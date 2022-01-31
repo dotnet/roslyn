@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             int position,
             RoslynCompletion.CompletionTrigger triggerInfo,
             CompletionOptions? options = null)
-            => service.GetCompletionsAsync(document, position, options ?? GetCompletionOptions(), triggerInfo, GetRoles(document));
+            => service.GetCompletionsAsync(document, position, options ?? GetCompletionOptions(), OptionValueSet.Empty, triggerInfo, GetRoles(document));
 
         private protected async Task CheckResultsAsync(
             Document document, int position, string expectedItemOrNull,
@@ -1037,7 +1037,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                     TriggerInArgumentLists = showCompletionInArgumentLists
                 };
 
-                var isTextualTriggerCharacterResult = service.ShouldTriggerCompletion(document.Project, document.Project.LanguageServices, text, position + 1, trigger, options, GetRoles(document));
+                var isTextualTriggerCharacterResult = service.ShouldTriggerCompletion(document.Project, document.Project.LanguageServices, text, position + 1, trigger, options, document.Project.Solution.Options, GetRoles(document));
 
                 if (expectedTriggerCharacter)
                 {

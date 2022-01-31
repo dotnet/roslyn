@@ -97,13 +97,16 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             // Publicly available options do not affect this API.
             var completionOptions = CompletionOptions.Default;
-            return await GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, completionOptions, trigger, roles, cancellationToken).ConfigureAwait(false);
+            var passthroughOptions = options ?? document.Project.Solution.Options;
+
+            return await GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, completionOptions, trigger, roles, passthroughOptions, cancellationToken).ConfigureAwait(false);
         }
 
         private protected async Task<CompletionList> GetCompletionsWithAvailabilityOfExpandedItemsAsync(
             Document document,
             int caretPosition,
             CompletionOptions options,
+            OptionSet passthroughOptions,
             CompletionTrigger trigger,
             ImmutableHashSet<string>? roles,
             CancellationToken cancellationToken)
@@ -114,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var defaultItemSpan = GetDefaultCompletionListSpan(text, caretPosition);
 
-            var providers = _providerManager.GetFilteredProviders(document.Project, roles, trigger, options);
+            var providers = _providerManager.GetFilteredProviders(document.Project, roles, trigger, options, passthroughOptions);
 
             // Phase 1: Completion Providers decide if they are triggered based on textual analysis
             // Phase 2: Completion Providers use syntax to confirm they are triggered, or decide they are not actually triggered and should become an augmenting provider

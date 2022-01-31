@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var roslynTrigger = Helpers.GetRoslynTrigger(trigger, triggerLocation);
 
             // The completion service decides that user may want a completion.
-            if (completionService.ShouldTriggerCompletion(document.Project, document.Project.LanguageServices, sourceText, triggerLocation.Position, roslynTrigger, options))
+            if (completionService.ShouldTriggerCompletion(document.Project, document.Project.LanguageServices, sourceText, triggerLocation.Position, roslynTrigger, options, document.Project.Solution.Options))
             {
                 return true;
             }
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 : Helpers.GetRoslynTrigger(trigger, triggerLocation);
 
             var completionList = await completionService.GetCompletionsAsync(
-                document, triggerLocation, options, roslynTrigger, _roles, cancellationToken).ConfigureAwait(false);
+                document, triggerLocation, options, document.Project.Solution.Options, roslynTrigger, _roles, cancellationToken).ConfigureAwait(false);
 
             var filterSet = new FilterSet();
             var itemsBuilder = new ArrayBuilder<VSCompletionItem>(completionList.Items.Length);

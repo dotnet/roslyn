@@ -39,11 +39,12 @@ namespace Microsoft.CodeAnalysis.Completion
             Document document,
             int caretPosition,
             CompletionOptions options,
+            OptionSet passthroughOptions,
             CompletionTrigger trigger,
             ImmutableHashSet<string>? roles,
             CancellationToken cancellationToken)
         {
-            return GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, options, trigger, roles, cancellationToken);
+            return GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, options, passthroughOptions, trigger, roles, cancellationToken);
         }
 
         protected static bool IsKeywordItem(CompletionItem item)

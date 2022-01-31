@@ -122,8 +122,10 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                 ExpandedCompletionBehavior = ExpandedCompletionMode.NonExpandedItemsOnly
             };
 
+            var passthroughOptions = document.Project.Solution.Options;
+
             var completionList = await service.GetCompletionsAsync(
-                document, nameToken.SpanStart, options, cancellationToken: cancellationToken).ConfigureAwait(false);
+                document, nameToken.SpanStart, options, passthroughOptions, cancellationToken).ConfigureAwait(false);
             if (completionList.Items.IsEmpty)
             {
                 return;
