@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             {
                 var interpolatedExpression = token.GetAncestor<InterpolatedStringExpressionSyntax>();
                 Contract.ThrowIfNull(interpolatedExpression);
-                if (interpolatedExpression.StringEndToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringEndToken))
+                if (interpolatedExpression.StringStartToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken))
                 {
                     var endLinePosition = sourceText.Lines.GetLineFromPosition(interpolatedExpression.StringEndToken.Span.End);
                     var nonWhitespaceOffset = endLinePosition.GetFirstNonWhitespaceOffset();

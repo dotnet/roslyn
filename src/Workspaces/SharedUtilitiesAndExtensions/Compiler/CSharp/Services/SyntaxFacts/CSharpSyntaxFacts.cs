@@ -471,12 +471,11 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.FalseKeyword:
                 case SyntaxKind.InterpolatedStringStartToken:
                 case SyntaxKind.InterpolatedStringEndToken:
+                case SyntaxKind.InterpolatedRawStringEndToken:
                 case SyntaxKind.InterpolatedVerbatimStringStartToken:
                 case SyntaxKind.InterpolatedStringTextToken:
                 case SyntaxKind.InterpolatedSingleLineRawStringStartToken:
-                case SyntaxKind.InterpolatedSingleLineRawStringEndToken:
                 case SyntaxKind.InterpolatedMultiLineRawStringStartToken:
-                case SyntaxKind.InterpolatedMultiLineRawStringEndToken:
                     return true;
                 default:
                     return false;

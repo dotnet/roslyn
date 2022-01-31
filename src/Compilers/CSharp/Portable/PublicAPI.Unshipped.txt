@@ -1,6 +1,5 @@
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.InterpolatedMultiLineRawStringEndToken = 9083 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.InterpolatedMultiLineRawStringStartToken = 9082 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-Microsoft.CodeAnalysis.CSharp.SyntaxKind.InterpolatedSingleLineRawStringEndToken = 9081 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.InterpolatedMultiLineRawStringStartToken = 9081 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.InterpolatedRawStringEndToken = 9082 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.InterpolatedSingleLineRawStringStartToken = 9080 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.MultiLineRawStringLiteralToken = 9073 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.SingleLineRawStringLiteralToken = 9072 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind

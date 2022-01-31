@@ -236,8 +236,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     {
                         Lexer.InterpolatedStringKind.Normal => SyntaxKind.InterpolatedStringEndToken,
                         Lexer.InterpolatedStringKind.Verbatim => SyntaxKind.InterpolatedStringEndToken,
-                        Lexer.InterpolatedStringKind.SingleLineRaw => SyntaxKind.InterpolatedSingleLineRawStringEndToken,
-                        Lexer.InterpolatedStringKind.MultiLineRaw => SyntaxKind.InterpolatedMultiLineRawStringEndToken,
+                        Lexer.InterpolatedStringKind.SingleLineRaw => SyntaxKind.InterpolatedRawStringEndToken,
+                        Lexer.InterpolatedStringKind.MultiLineRaw => SyntaxKind.InterpolatedRawStringEndToken,
                         _ => throw ExceptionUtilities.UnexpectedValue(kind),
                     },
                     originalText[closeQuoteRange],
