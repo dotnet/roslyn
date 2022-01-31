@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -31,11 +31,14 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         /// <summary>
         /// Gets the <see cref="QuickInfoItem"/> associated with position in the document.
         /// </summary>
-        public virtual Task<QuickInfoItem?> GetQuickInfoAsync(
+        public Task<QuickInfoItem?> GetQuickInfoAsync(
             Document document,
             int position,
             CancellationToken cancellationToken = default)
-            => GetQuickInfoAsync(document, position, SymbolDescriptionOptions.Default, cancellationToken);
+        {
+            Debug.Fail("For backwards API compat only, should not be called");
+            return GetQuickInfoAsync(document, position, SymbolDescriptionOptions.Default, cancellationToken);
+        }
 
         internal virtual Task<QuickInfoItem?> GetQuickInfoAsync(
             Document document,
