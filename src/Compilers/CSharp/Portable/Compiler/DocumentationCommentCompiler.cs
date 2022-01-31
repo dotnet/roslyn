@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
-            if (getMatchingParamTags() is not { } paramTags)
+            if (getMatchingParamTags(recordPropertySymbol.Name, docCommentNodes) is not { } paramTags)
             {
                 withUnprocessedIncludes = null;
                 includeElementNodes = default;
@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             paramTags.Free();
             return true;
 
-            ArrayBuilder<XmlElementSyntax>? getMatchingParamTags()
+            static ArrayBuilder<XmlElementSyntax>? getMatchingParamTags(string propertyName, ImmutableArray<DocumentationCommentTriviaSyntax> docCommentNodes)
             {
                 ArrayBuilder<XmlElementSyntax>? result = null;
                 foreach (var trivia in docCommentNodes)
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 if (attribute is XmlNameAttributeSyntax nameAttribute
                                     && nameAttribute.GetElementKind() == XmlNameAttributeElementKind.Parameter
-                                    && string.Equals(nameAttribute.Identifier.Identifier.ValueText, recordPropertySymbol.Name, StringComparison.Ordinal))
+                                    && string.Equals(nameAttribute.Identifier.Identifier.ValueText, propertyName, StringComparison.Ordinal))
                                 {
                                     result ??= ArrayBuilder<XmlElementSyntax>.GetInstance();
                                     result.Add(elementSyntax);
@@ -777,6 +777,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(numLines > 0);
                 }
 
+                // We may use multi-line formatting in a "fragment" scenario.
+                //     /** <summary>The record</summary>
+                //     <param name="P">The parameter</param>
+                //     */
+                //     record Rec(int P);
+                // When formatting docs for property 'Rec.P' we may have just the line with '<param ...>' as input to this method.
                 WriteFormattedMultiLineComment(lines, numLines);
             }
 
