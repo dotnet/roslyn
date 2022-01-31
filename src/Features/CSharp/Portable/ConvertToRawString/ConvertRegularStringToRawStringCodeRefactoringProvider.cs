@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.ConvertToRawString
                 context.RegisterRefactoring(
                     new MyCodeAction(
                         CSharpFeaturesResources.Convert_to_raw_string,
-                        c => UpdateDocumentAsync(document, span, ConvertToRawKind.MultiLine, c),
+                        c => UpdateDocumentAsync(document, span, ConvertToRawKind.MultiLineIndented, c),
                         nameof(CSharpFeaturesResources.Convert_to_raw_string),
                         priority),
                     token.Span);
@@ -101,9 +101,9 @@ namespace Microsoft.CodeAnalysis.ConvertToRawString
                 {
                     context.RegisterRefactoring(
                         new MyCodeAction(
-                            CSharpFeaturesResources.Convert_to_raw_string_indented,
-                            c => UpdateDocumentAsync(document, span, ConvertToRawKind.MultiLineIndented, c),
-                            nameof(CSharpFeaturesResources.Convert_to_raw_string_indented),
+                            CSharpFeaturesResources.Convert_to_raw_string_no_indent,
+                            c => UpdateDocumentAsync(document, span, ConvertToRawKind.MultiLine, c),
+                            nameof(CSharpFeaturesResources.Convert_to_raw_string_no_indent),
                             priority),
                         token.Span);
                 }

@@ -240,10 +240,30 @@ var v = """"""a"""""";
     void M()
     {
         var v = """"""
+            ""goobar
+            """""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestNoIndentStringWithQuoteAtStart()
+        {
+            await VerifyRefactoringAsync(@"public class C
+{
+    void M()
+    {
+        var v = [||]""\""goobar"";
+    }
+}", @"public class C
+{
+    void M()
+    {
+        var v = """"""
 ""goobar
 """""";
     }
-}");
+}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
@@ -260,10 +280,30 @@ var v = """"""a"""""";
     void M()
     {
         var v = """"""
+            ""goobar
+            """""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestNoIndentVerbatimStringWithQuoteAtStart()
+        {
+            await VerifyRefactoringAsync(@"public class C
+{
+    void M()
+    {
+        var v = [||]@""""""goobar"";
+    }
+}", @"public class C
+{
+    void M()
+    {
+        var v = """"""
 ""goobar
 """""";
     }
-}");
+}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
@@ -280,10 +320,30 @@ var v = """"""a"""""";
     void M()
     {
         var v = """"""
+            goobar""
+            """""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestNoIndentStringWithQuoteAtEnd()
+        {
+            await VerifyRefactoringAsync(@"public class C
+{
+    void M()
+    {
+        var v = [||]""goobar\"""";
+    }
+}", @"public class C
+{
+    void M()
+    {
+        var v = """"""
 goobar""
 """""";
     }
-}");
+}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
@@ -300,10 +360,30 @@ goobar""
     void M()
     {
         var v = """"""
+            goobar""
+            """""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestNoIndentVerbatimStringWithQuoteAtEnd()
+        {
+            await VerifyRefactoringAsync(@"public class C
+{
+    void M()
+    {
+        var v = [||]@""goobar"""""";
+    }
+}", @"public class C
+{
+    void M()
+    {
+        var v = """"""
 goobar""
 """""";
     }
-}");
+}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
@@ -320,11 +400,32 @@ goobar""
     void M()
     {
         var v = """"""
+            goo
+            bar
+            """""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestNoIndentStringWithNewLine()
+        {
+            await VerifyRefactoringAsync(@"public class C
+{
+    void M()
+    {
+        var v = [||]""goo\r\nbar"";
+    }
+}", @"public class C
+{
+    void M()
+    {
+        var v = """"""
 goo
 bar
 """""";
     }
-}");
+}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
@@ -342,11 +443,33 @@ bar"";
     void M()
     {
         var v = """"""
+            goo
+            bar
+            """""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestNoIndentVerbatimStringWithNewLine()
+        {
+            await VerifyRefactoringAsync(@"public class C
+{
+    void M()
+    {
+        var v = [||]@""goo
+bar"";
+    }
+}", @"public class C
+{
+    void M()
+    {
+        var v = """"""
 goo
 bar
 """""";
     }
-}");
+}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
@@ -364,11 +487,33 @@ bar
     {
         var v = """"""
 
+            goobar
+
+            """""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestNoIndentStringWithNewLineAtStartAndEnd()
+        {
+            await VerifyRefactoringAsync(@"public class C
+{
+    void M()
+    {
+        var v = [||]""\r\ngoobar\r\n"";
+    }
+}", @"public class C
+{
+    void M()
+    {
+        var v = """"""
+
 goobar
 
 """""";
     }
-}");
+}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
@@ -388,11 +533,35 @@ goobar
     {
         var v = """"""
 
+            goobar
+
+            """""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestNoIndentVerbatimStringWithNewLineAtStartAndEnd()
+        {
+            await VerifyRefactoringAsync(@"public class C
+{
+    void M()
+    {
+        var v = [||]@""
+goobar
+"";
+    }
+}", @"public class C
+{
+    void M()
+    {
+        var v = """"""
+
 goobar
 
 """""";
     }
-}");
+}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
@@ -413,6 +582,27 @@ goobar
             bar
             """""";
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestNoIndentedString()
+        {
+            await VerifyRefactoringAsync(@"public class C
+{
+    void M()
+    {
+        var v = [||]""goo\r\nbar"";
+    }
+}", @"public class C
+{
+    void M()
+    {
+        var v = """"""
+goo
+bar
+"""""";
+    }
 }", index: 1);
         }
 
@@ -426,6 +616,19 @@ var v = """"""
     goo
     bar
     """""";
+", outputKind: OutputKind.ConsoleApplication);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestNoIndentedStringTopLevel()
+        {
+            await VerifyRefactoringAsync(@"
+var v = [||]""goo\r\nbar"";
+", @"
+var v = """"""
+goo
+bar
+"""""";
 ", index: 1, outputKind: OutputKind.ConsoleApplication);
         }
 
@@ -447,6 +650,28 @@ bar"";
             goo
             bar
             """""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestNoIndentVerbatimIndentedString()
+        {
+            await VerifyRefactoringAsync(@"public class C
+{
+    void M()
+    {
+        var v = [||]@""goo
+bar"";
+    }
+}", @"public class C
+{
+    void M()
+    {
+        var v = """"""
+goo
+bar
+"""""";
     }
 }", index: 1);
         }
@@ -471,6 +696,29 @@ bar"";
                 bar
                 """""";
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestNoIndentedStringOnOwnLine()
+        {
+            await VerifyRefactoringAsync(@"public class C
+{
+    void M()
+    {
+        var v =
+                [||]""goo\r\nbar"";
+    }
+}", @"public class C
+{
+    void M()
+    {
+        var v =
+                """"""
+goo
+bar
+"""""";
+    }
 }", index: 1);
         }
 
@@ -494,6 +742,30 @@ bar"";
                 goo
                 bar
                 """""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestNoIndentVerbatimIndentedStringOnOwnLine()
+        {
+            await VerifyRefactoringAsync(@"public class C
+{
+    void M()
+    {
+        var v =
+                [||]@""goo
+bar"";
+    }
+}", @"public class C
+{
+    void M()
+    {
+        var v =
+                """"""
+goo
+bar
+"""""";
     }
 }", index: 1);
         }

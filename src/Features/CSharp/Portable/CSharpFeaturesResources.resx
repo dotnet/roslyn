@@ -633,7 +633,7 @@
   <data name="Convert_to_raw_string" xml:space="preserve">
     <value>Convert to raw string</value>
   </data>
-  <data name="Convert_to_raw_string_indented" xml:space="preserve">
-    <value>Convert to raw string (indented)</value>
+  <data name="Convert_to_raw_string_no_indent" xml:space="preserve">
+    <value>Convert to raw string (no indent)</value>
   </data>
 </root>
