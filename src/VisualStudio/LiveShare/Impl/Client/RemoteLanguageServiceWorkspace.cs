@@ -339,7 +339,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             return CurrentSolution.GetDocument(docInfo.Id)!;
         }
 
-        private string? GetLanguage(string filePath)
+        private static string? GetLanguage(string filePath)
         {
             var fileExtension = Path.GetExtension(filePath).ToLower();
 

@@ -6,7 +6,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing
@@ -52,6 +54,20 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
             var featureWaiter = listenerProvider.GetWaiter(featuresToWaitFor);
             await featureWaiter.ExpeditedWaitAsync().WithCancellation(cancellationToken);
+        }
+
+        public async Task WaitForAllAsyncOperationsAsync(string[] featureNames, CancellationToken cancellationToken)
+        {
+            if (featureNames.Contains(FeatureAttribute.Workspace))
+            {
+                await WaitForProjectSystemAsync(cancellationToken);
+                await TestServices.Shell.WaitForFileChangeNotificationsAsync(cancellationToken);
+                await TestServices.Editor.WaitForEditorOperationsAsync(cancellationToken);
+            }
+
+            var listenerProvider = await GetComponentModelServiceAsync<AsynchronousOperationListenerProvider>(cancellationToken);
+            var workspace = await GetComponentModelServiceAsync<VisualStudioWorkspace>(cancellationToken);
+            await listenerProvider.WaitAllAsync(workspace, featureNames).WithCancellation(cancellationToken);
         }
     }
 }

@@ -101,7 +101,11 @@ namespace Microsoft.CodeAnalysis
                         var value = new GeneratorSyntaxContext(node, model);
                         var transformed = _owner._transformFunc(value, cancellationToken);
 
-                        if (state == EntryState.Added || !_transformTable.TryModifyEntry(transformed, _owner._comparer, stopwatch.Elapsed, noInputStepsStepInfo, state))
+                        // The SemanticModel we provide to GeneratorSyntaxContext is never guaranteed to be the same between runs,
+                        // so we never consider the input to the transform as cached.
+                        var transformInputState = state == EntryState.Cached ? EntryState.Modified : state;
+
+                        if (transformInputState == EntryState.Added || !_transformTable.TryModifyEntry(transformed, _owner._comparer, stopwatch.Elapsed, noInputStepsStepInfo, transformInputState))
                         {
                             _transformTable.AddEntry(transformed, EntryState.Added, stopwatch.Elapsed, noInputStepsStepInfo, EntryState.Added);
                         }

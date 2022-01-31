@@ -132,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             }
         }
 
-        private IReadOnlyDictionary<string, IEnumerable<DiagnosticDescriptor>> Transform(
+        private static IReadOnlyDictionary<string, IEnumerable<DiagnosticDescriptor>> Transform(
             ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> map)
         {
             // unfortunately, we had to do this since ruleset editor and us are set to use this signature

@@ -552,6 +552,8 @@ namespace Microsoft.CodeAnalysis
         [Obsolete]
         protected abstract CompilationOptions CommonWithFeatures(ImmutableArray<string> features);
 
+        internal abstract DeterministicKeyBuilder CreateDeterministicKeyBuilder();
+
         /// <summary>
         /// Performs validation of options compatibilities and generates diagnostics if needed
         /// </summary>

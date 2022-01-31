@@ -1061,7 +1061,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             AddReferences(documentWithImports.Project, snippetNode);
         }
 
-        private void AddReferences(Project originalProject, XElement snippetNode)
+        private static void AddReferences(Project originalProject, XElement snippetNode)
         {
             var referencesNode = snippetNode.Element(XName.Get("References", snippetNode.Name.NamespaceName));
             if (referencesNode == null)
