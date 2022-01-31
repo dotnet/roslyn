@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -197,11 +198,11 @@ namespace Microsoft.CodeAnalysis.ConvertToRawString
             Contract.ThrowIfFalse(span.IntersectsWith(token.Span));
             Contract.ThrowIfFalse(token.Kind() == SyntaxKind.StringLiteralToken);
 
-            var replacement = await GetReplacementTokenAsync(document, token, kind, newLine, cancellationToken).ConfigureAwait(false);
+            var replacement = GetReplacementToken(document, token, kind, newLine, cancellationToken);
             return document.WithSyntaxRoot(root.ReplaceToken(token, replacement));
         }
 
-        private static async Task<SyntaxToken> GetReplacementTokenAsync(
+        private static SyntaxToken GetReplacementToken(
             Document document,
             SyntaxToken token,
             ConvertToRawKind kind,
@@ -212,12 +213,12 @@ namespace Microsoft.CodeAnalysis.ConvertToRawString
             {
                 ConvertToRawKind.SingleLine => ConvertToSingleLineRawString(token),
                 ConvertToRawKind.MultiLine => ConvertToMultiLineRawString(token, newLine),
-                ConvertToRawKind.MultiLineIndented => await ConvertToMultiLineRawIndentedStringAsync(document, token, newLine, cancellationToken)
+                ConvertToRawKind.MultiLineIndented => ConvertToMultiLineRawIndentedString(document, token, newLine, cancellationToken),
                 _ => throw ExceptionUtilities.UnexpectedValue(kind),
             };
         }
 
-        private static async Task<SyntaxToken> ConvertToMultiLineRawIndentedStringAsync(Document document, SyntaxToken token, string newLine, CancellationToken cancellationToken)
+        private static SyntaxToken ConvertToMultiLineRawIndentedString(Document document, SyntaxToken token, string newLine, CancellationToken cancellationToken)
         {
             var characters = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
             Contract.ThrowIfTrue(characters.IsDefaultOrEmpty);
@@ -225,7 +226,7 @@ namespace Microsoft.CodeAnalysis.ConvertToRawString
             // Have to make sure we have a delimiter longer than any quote sequence in the string.
             var longestQuoteSequence = GetLongestQuoteSequence(characters);
             var quoteDelimeterCount = Math.Max(3, longestQuoteSequence + 1);
-            var indentation = await DetermineIndentationAsync(document, token, cancellationToken).ConfigureAwait(false);
+            var indentation = token.GetPreferredIndentation(document, cancellationToken);
 
             using var _ = PooledStringBuilder.GetInstance(out var builder);
 
@@ -253,6 +254,7 @@ namespace Microsoft.CodeAnalysis.ConvertToRawString
             }
 
             builder.Append(newLine);
+            builder.Append(indentation);
             builder.Append('"', quoteDelimeterCount);
 
             return SyntaxFactory.Token(
