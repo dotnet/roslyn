@@ -6,13 +6,10 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
-    internal interface IVSTypeScriptStreamingFindUsagesPresenter
+    internal interface IVSTypeScriptStreamingFindUsagesPresenterAccessor
     {
         (VSTypeScriptFindUsagesContext context, CancellationToken cancellationToken) StartSearch(
             string title, bool supportsReferences);
-
-        (VSTypeScriptFindUsagesContext context, CancellationToken cancellationToken) StartSearchWithCustomColumns(
-            string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn);
 
         void ClearAll();
     }

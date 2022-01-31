@@ -11,27 +11,20 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
-    [Export(typeof(IVSTypeScriptStreamingFindUsagesPresenter)), Shared]
-    internal sealed class VSTypeScriptStreamingFindUsagesPresenter : IVSTypeScriptStreamingFindUsagesPresenter
+    [Export(typeof(IVSTypeScriptStreamingFindUsagesPresenterAccessor)), Shared]
+    internal sealed class VSTypeScriptStreamingFindUsagesPresenterAccessor : IVSTypeScriptStreamingFindUsagesPresenterAccessor
     {
         private readonly IStreamingFindUsagesPresenter _underlyingObject;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VSTypeScriptStreamingFindUsagesPresenter(IStreamingFindUsagesPresenter underlyingObject)
+        public VSTypeScriptStreamingFindUsagesPresenterAccessor(IStreamingFindUsagesPresenter underlyingObject)
             => _underlyingObject = underlyingObject;
 
         public (VSTypeScriptFindUsagesContext context, CancellationToken cancellationToken) StartSearch(
             string title, bool supportsReferences)
         {
             var (context, cancellationToken) = _underlyingObject.StartSearch(title, supportsReferences);
-            return (new(context), cancellationToken);
-        }
-
-        public (VSTypeScriptFindUsagesContext context, CancellationToken cancellationToken) StartSearchWithCustomColumns(
-            string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
-        {
-            var (context, cancellationToken) = _underlyingObject.StartSearchWithCustomColumns(title, supportsReferences, includeContainingTypeAndMemberColumns, includeKindColumn);
             return (new(context), cancellationToken);
         }
 
