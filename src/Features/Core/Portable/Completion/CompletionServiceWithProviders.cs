@@ -127,12 +127,14 @@ namespace Microsoft.CodeAnalysis.Completion
                 document, caretPosition, trigger, options, defaultItemSpan, triggeredProviders, cancellationToken).ConfigureAwait(false);
 
             // Nothing to do if we didn't even get any regular items back (i.e. 0 items or suggestion item only.)
-            if (!triggeredContexts.ContainsNonSuggestionModeItem)
+            if (!triggeredContexts.Any(cc => cc.Items.Count > 0))
                 return CompletionList.Empty;
 
-            // See if there were completion contexts provided that were exclusive. If so, then that's all we'll return.
-            if (triggeredContexts.ContainsExclusiveContext)
-                return MergeAndPruneCompletionLists(triggeredContexts.GetExclusiveContexts(), defaultItemSpan, options, isExclusive: true);
+            // See if there were completion contexts provided that were exclusive. If so, then
+            // that's all we'll return.
+            var exclusiveContexts = triggeredContexts.Where(t => t.IsExclusive).ToImmutableArray();
+            if (!exclusiveContexts.IsEmpty)
+                return MergeAndPruneCompletionLists(exclusiveContexts, defaultItemSpan, options, isExclusive: true);
 
             // Great!  We had some items.  Now we want to see if any of the other providers 
             // would like to augment the completion list.  For example, we might trigger
@@ -148,31 +150,30 @@ namespace Microsoft.CodeAnalysis.Completion
             // Providers are ordered, but we processed them in our own order.  Ensure that the
             // groups are properly ordered based on the original providers.
             var completionProviderToIndex = GetCompletionProviderToIndex(providers);
-            var allContexts = triggeredContexts.NonEmptyContexts.Concat(augmentingContexts.NonEmptyContexts)
+            var allContexts = triggeredContexts.Concat(augmentingContexts)
                 .Sort((p1, p2) => completionProviderToIndex[p1.Provider] - completionProviderToIndex[p2.Provider]);
 
             return MergeAndPruneCompletionLists(allContexts, defaultItemSpan, options, isExclusive: false);
 
             ImmutableArray<CompletionProvider> GetTriggeredProviders(
-                Document document, ConcatImmutableArray<CompletionProvider> allProviders, int caretPosition, CompletionOptions options, CompletionTrigger trigger, ImmutableHashSet<string>? roles, SourceText text)
+                Document document, ConcatImmutableArray<CompletionProvider> providers, int caretPosition, CompletionOptions options, CompletionTrigger trigger, ImmutableHashSet<string>? roles, SourceText text)
             {
                 switch (trigger.Kind)
                 {
                     case CompletionTriggerKind.Insertion:
                     case CompletionTriggerKind.Deletion:
-                        var shouldTrigger = ShouldTypingTriggerCompletionWithoutAskingProviders(trigger, options);
-                        if (shouldTrigger.HasValue && !shouldTrigger.Value)
-                            return ImmutableArray<CompletionProvider>.Empty;
+                        if (ShouldTriggerCompletion(document.Project, document.Project.LanguageServices, text, caretPosition, trigger, options, roles))
+                        {
+                            var triggeredProviders = providers.Where(p => p.ShouldTriggerCompletion(document.Project.LanguageServices, text, caretPosition, trigger, options)).ToImmutableArrayOrEmpty();
 
-                        var triggeredProviders = allProviders.Where(p => p.ShouldTriggerCompletion(document.Project.LanguageServices, text, caretPosition, trigger, options)).ToImmutableArrayOrEmpty();
-                        Debug.Assert(ValidatePossibleTriggerCharacterSet(trigger.Kind, triggeredProviders, document, text, caretPosition, options));
+                            Debug.Assert(ValidatePossibleTriggerCharacterSet(trigger.Kind, triggeredProviders, document, text, caretPosition, options));
+                            return triggeredProviders.IsEmpty ? providers.ToImmutableArray() : triggeredProviders;
+                        }
 
-                        return triggeredProviders.Length == 0
-                            ? allProviders.ToImmutableArray()
-                            : triggeredProviders;
+                        return ImmutableArray<CompletionProvider>.Empty;
 
                     default:
-                        return allProviders.ToImmutableArray();
+                        return providers.ToImmutableArray();
                 }
             }
 
@@ -205,12 +206,9 @@ namespace Microsoft.CodeAnalysis.Completion
             var completionOptions = CompletionOptions.From(options ?? document?.Project.Solution.Options ?? _workspace.CurrentSolution.Options, document?.Project.Language ?? Language);
             return ShouldTriggerCompletion(document?.Project, languageServices, text, caretPosition, trigger, completionOptions, roles);
         }
-
-        /// <summary>
-        /// A preliminary quick check to see if we can decide whether to trigger completion without asking each individual providers.
-        /// Returning null means the decision needs to be made by providers.
-        /// </summary>
-        private bool? ShouldTypingTriggerCompletionWithoutAskingProviders(CompletionTrigger trigger, CompletionOptions options)
+        
+        internal sealed override bool ShouldTriggerCompletion(
+            Project? project, HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options, ImmutableHashSet<string>? roles = null)
         {
             if (!options.TriggerOnTyping)
             {
@@ -221,16 +219,6 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 return char.IsLetterOrDigit(trigger.Character) || trigger.Character == '.';
             }
-
-            return null;
-        }
-
-        internal sealed override bool ShouldTriggerCompletion(
-            Project? project, HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options, ImmutableHashSet<string>? roles = null)
-        {
-            var shouldTrigger = ShouldTypingTriggerCompletionWithoutAskingProviders(trigger, options);
-            if (shouldTrigger.HasValue)
-                return shouldTrigger.Value;
 
             var providers = _providerManager.GetFilteredProviders(project, roles, trigger, options);
             return providers.Any(p => p.ShouldTriggerCompletion(languageServices, text, caretPosition, trigger, options));
@@ -278,7 +266,10 @@ namespace Microsoft.CodeAnalysis.Completion
             return true;
         }
 
-        private static async Task<AggregatedCompletionContextsData> ComputeNonEmptyCompletionContextsAsync(
+        private static bool HasAnyItems(CompletionContext cc)
+            => cc.Items.Count > 0 || cc.SuggestionModeItem != null;
+
+        private static async Task<ImmutableArray<CompletionContext>> ComputeNonEmptyCompletionContextsAsync(
             Document document, int caretPosition, CompletionTrigger trigger,
             CompletionOptions options, TextSpan defaultItemSpan,
             ImmutableArray<CompletionProvider> providers,
@@ -293,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             var completionContexts = await Task.WhenAll(completionContextTasks).ConfigureAwait(false);
-            return new(completionContexts);
+            return completionContexts.Where(HasAnyItems).ToImmutableArray();
         }
 
         private CompletionList MergeAndPruneCompletionLists(
@@ -508,46 +499,6 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 return GetEnumerator();
             }
-        }
-
-        private readonly struct AggregatedCompletionContextsData
-        {
-            public ImmutableArray<CompletionContext> NonEmptyContexts { get; }
-
-            public bool ContainsNonSuggestionModeItem { get; }
-            public bool ContainsExclusiveContext { get; }
-
-            public bool IsEmpty => NonEmptyContexts.Length == 0;
-
-            public AggregatedCompletionContextsData(CompletionContext[] allContexts)
-            {
-                var containsNonSuggestionModeItem = false;
-                var containsExclusiveContext = false;
-                var builder = ArrayBuilder<CompletionContext>.GetInstance(allContexts.Length);
-
-                foreach (var context in allContexts)
-                {
-                    if (context.Items.Count > 0)
-                    {
-                        containsNonSuggestionModeItem = true;
-                        builder.Add(context);
-                    }
-                    else if (context.SuggestionModeItem != null)
-                    {
-                        builder.Add(context);
-                    }
-
-                    if (context.IsExclusive)
-                        containsExclusiveContext = true;
-                }
-
-                NonEmptyContexts = builder.ToImmutableAndFree();
-                ContainsNonSuggestionModeItem = containsNonSuggestionModeItem;
-                ContainsExclusiveContext = containsExclusiveContext;
-            }
-
-            public ImmutableArray<CompletionContext> GetExclusiveContexts()
-                => ContainsExclusiveContext ? NonEmptyContexts.WhereAsArray(c => c.IsExclusive) : ImmutableArray<CompletionContext>.Empty;
         }
 
         internal TestAccessor GetTestAccessor()

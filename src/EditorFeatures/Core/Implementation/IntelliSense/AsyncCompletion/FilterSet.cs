@@ -188,6 +188,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return builder.ToImmutableAndFree();
         }
 
-        private readonly record struct FilterWithMask (CompletionFilter Filter, int Mask);
+        private readonly record struct FilterWithMask(CompletionFilter Filter, int Mask);
     }
 }

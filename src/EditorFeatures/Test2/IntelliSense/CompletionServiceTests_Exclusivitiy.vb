@@ -42,7 +42,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Dim list = Await completionService.GetCompletionsAsync(
                     document, caretPosition:=0, options:=CompletionOptions.Default, trigger:=CompletionTrigger.Invoke)
 
-                Assert.NotNull(list)
                 Assert.NotEmpty(list.Items)
                 Assert.True(list.Items.Length = 2, "Completion List does not contain exactly two items.")
                 Assert.Equal(String.Format(CompletionItemExclusive, 2), list.Items.First.DisplayText)

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -20,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private CompletionItem? _suggestionModeItem;
         private OptionSet? _lazyOptionSet;
+        private bool _isExclusive;
 
         internal CompletionProvider Provider { get; }
 
@@ -71,8 +73,23 @@ namespace Microsoft.CodeAnalysis.Completion
 
         /// <summary>
         /// Set to true if the items added here should be the only items presented to the user.
+        /// Expand items should never be exclusive.
         /// </summary>
-        public bool IsExclusive { get; set; }
+        public bool IsExclusive
+        {
+            get
+            {
+                return _isExclusive && !Provider.IsExpandItemProvider;
+            }
+
+            set
+            {
+                if (value)
+                    Debug.Assert(!Provider.IsExpandItemProvider);
+
+                _isExclusive = value;
+            }
+        }
 
         /// <summary>
         /// Creates a <see cref="CompletionContext"/> instance.
