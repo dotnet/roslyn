@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
+using Analyzer.Utilities.Lightup;
 using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
@@ -1260,29 +1261,41 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 }
 
                 // Handle is pattern operations with constant pattern.
-                if (operation is IIsPatternOperation patternOperation &&
-                    patternOperation.Pattern is IConstantPatternOperation constantPattern)
+                if (operation is IIsPatternOperation isPatternOperation)
                 {
-                    if (constantPattern.Value.ConstantValue.HasValue)
+                    IPatternOperation patternOperation = isPatternOperation.Pattern;
+                    bool direct = true;
+
+                    if (INegatedPatternOperationWrapper.IsInstance(patternOperation))
                     {
-                        if (constantPattern.Value.ConstantValue.Value == null)
-                        {
-                            switch (pointsToValue.NullState)
-                            {
-                                case NullAbstractValue.Null:
-                                    inference.AlwaysSucceed = true;
-                                    break;
-
-                                case NullAbstractValue.NotNull:
-                                    inference.AlwaysFail = true;
-                                    break;
-                            }
-                        }
-
-                        return true;
+                        INegatedPatternOperationWrapper negatedPattern = INegatedPatternOperationWrapper.FromOperation(patternOperation);
+                        patternOperation = negatedPattern.Pattern;
+                        direct = false;
                     }
 
-                    return false;
+                    if (patternOperation is IConstantPatternOperation constantPattern)
+                    {
+                        if (constantPattern.Value.ConstantValue.HasValue)
+                        {
+                            if (constantPattern.Value.ConstantValue.Value == null)
+                            {
+                                switch (pointsToValue.NullState)
+                                {
+                                    case NullAbstractValue.Null:
+                                        inference.AlwaysSucceed = direct;
+                                        break;
+
+                                    case NullAbstractValue.NotNull:
+                                        inference.AlwaysFail = direct;
+                                        break;
+                                }
+                            }
+
+                            return true;
+                        }
+
+                        return false;
+                    }
                 }
 
                 if (targetType == null)
