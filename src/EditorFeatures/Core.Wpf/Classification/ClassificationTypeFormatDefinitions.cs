@@ -914,7 +914,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public JsonCommentFormatDefinition()
-                => this.DisplayName = EditorFeaturesResources.JSON_Comment;
+                => this.DisplayName = EditorFeaturesResources.JSON_in_string_literal_Comment;
         }
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonNumber)]
@@ -928,7 +928,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public JsonNumberFormatDefinition()
-                => this.DisplayName = EditorFeaturesResources.JSON_Number;
+                => this.DisplayName = EditorFeaturesResources.JSON_in_string_literal_Number;
         }
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonString)]
@@ -942,7 +942,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public JsonStringFormatDefinition()
-                => this.DisplayName = EditorFeaturesResources.JSON_String;
+                => this.DisplayName = EditorFeaturesResources.JSON_in_string_literal_String;
         }
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonKeyword)]
@@ -956,7 +956,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public JsonKeywordFormatDefinition()
-                => this.DisplayName = EditorFeaturesResources.JSON_Keyword;
+                => this.DisplayName = EditorFeaturesResources.JSON_in_string_literal_Keyword;
         }
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonText)]
@@ -970,7 +970,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public JsonTextFormatDefinition()
-                => this.DisplayName = EditorFeaturesResources.JSON_Text;
+                => this.DisplayName = EditorFeaturesResources.JSON_in_string_literal_Text;
         }
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonOperator)]
@@ -984,7 +984,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public JsonOperatorFormatDefinition()
-                => this.DisplayName = EditorFeaturesResources.JSON_Operator;
+                => this.DisplayName = EditorFeaturesResources.JSON_in_string_literal_Operator;
         }
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonPunctuation)]
@@ -998,7 +998,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public JsonPunctuationFormatDefinition()
-                => this.DisplayName = EditorFeaturesResources.JSON_Punctuation;
+                => this.DisplayName = EditorFeaturesResources.JSON_in_string_literal_Punctuation;
         }
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonObject)]
@@ -1012,7 +1012,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public JsonObjectFormatDefinition()
-                => this.DisplayName = EditorFeaturesResources.JSON_Object;
+                => this.DisplayName = EditorFeaturesResources.JSON_in_string_literal_Object;
         }
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonArray)]
@@ -1026,7 +1026,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public JsonArrayFormatDefinition()
-                => this.DisplayName = EditorFeaturesResources.JSON_Array;
+                => this.DisplayName = EditorFeaturesResources.JSON_in_string_literal_Array;
         }
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonPropertyName)]
@@ -1040,7 +1040,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public JsonPropertyNameFormatDefinition()
-                => this.DisplayName = EditorFeaturesResources.JSON_Property_Name;
+                => this.DisplayName = EditorFeaturesResources.JSON_in_string_literal_Property_Name;
         }
         [Export(typeof(EditorFormatDefinition))]
         [ClassificationType(ClassificationTypeNames = ClassificationTypeNames.JsonConstructorName)]
@@ -1054,7 +1054,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             [ImportingConstructor]
             [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
             public JsonConstructorNameFormatDefinition()
-                => this.DisplayName = EditorFeaturesResources.JSON_Constructor_Name;
+                => this.DisplayName = EditorFeaturesResources.JSON_in_string_literal_Constructor_Name;
         }
         #endregion
 

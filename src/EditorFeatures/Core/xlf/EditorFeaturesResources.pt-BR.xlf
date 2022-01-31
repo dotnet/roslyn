@@ -152,59 +152,59 @@
         <target state="translated">Caracteres inválidos no nome do assembly</target>
         <note />
       </trans-unit>
-      <trans-unit id="JSON_Array">
-        <source>JSON - Array</source>
-        <target state="new">JSON - Array</target>
+      <trans-unit id="JSON_in_string_literal_Array">
+        <source>JSON in string literal - Array</source>
+        <target state="new">JSON in string literal - Array</target>
         <note />
       </trans-unit>
-      <trans-unit id="JSON_Comment">
-        <source>JSON - Comment</source>
-        <target state="new">JSON - Comment</target>
+      <trans-unit id="JSON_in_string_literal_Comment">
+        <source>JSON in string literal - Comment</source>
+        <target state="new">JSON in string literal - Comment</target>
         <note />
       </trans-unit>
-      <trans-unit id="JSON_Constructor_Name">
-        <source>JSON - Constructor Name</source>
-        <target state="new">JSON - Constructor Name</target>
+      <trans-unit id="JSON_in_string_literal_Constructor_Name">
+        <source>JSON in string literal - Constructor Name</source>
+        <target state="new">JSON in string literal - Constructor Name</target>
         <note />
       </trans-unit>
-      <trans-unit id="JSON_Keyword">
-        <source>JSON - Keyword</source>
-        <target state="new">JSON - Keyword</target>
+      <trans-unit id="JSON_in_string_literal_Keyword">
+        <source>JSON in string literal - Keyword</source>
+        <target state="new">JSON in string literal - Keyword</target>
         <note />
       </trans-unit>
-      <trans-unit id="JSON_Number">
-        <source>JSON - Number</source>
-        <target state="new">JSON - Number</target>
+      <trans-unit id="JSON_in_string_literal_Number">
+        <source>JSON in string literal - Number</source>
+        <target state="new">JSON in string literal - Number</target>
         <note />
       </trans-unit>
-      <trans-unit id="JSON_Object">
-        <source>JSON - Object</source>
-        <target state="new">JSON - Object</target>
+      <trans-unit id="JSON_in_string_literal_Object">
+        <source>JSON in string literal - Object</source>
+        <target state="new">JSON in string literal - Object</target>
         <note />
       </trans-unit>
-      <trans-unit id="JSON_Operator">
-        <source>JSON - Operator</source>
-        <target state="new">JSON - Operator</target>
+      <trans-unit id="JSON_in_string_literal_Operator">
+        <source>JSON in string literal - Operator</source>
+        <target state="new">JSON in string literal - Operator</target>
         <note />
       </trans-unit>
-      <trans-unit id="JSON_Property_Name">
-        <source>JSON - Property Name</source>
-        <target state="new">JSON - Property Name</target>
+      <trans-unit id="JSON_in_string_literal_Property_Name">
+        <source>JSON in string literal - Property Name</source>
+        <target state="new">JSON in string literal - Property Name</target>
         <note />
       </trans-unit>
-      <trans-unit id="JSON_Punctuation">
-        <source>JSON - Punctuation</source>
-        <target state="new">JSON - Punctuation</target>
+      <trans-unit id="JSON_in_string_literal_Punctuation">
+        <source>JSON in string literal - Punctuation</source>
+        <target state="new">JSON in string literal - Punctuation</target>
         <note />
       </trans-unit>
-      <trans-unit id="JSON_String">
-        <source>JSON - String</source>
-        <target state="new">JSON - String</target>
+      <trans-unit id="JSON_in_string_literal_String">
+        <source>JSON in string literal - String</source>
+        <target state="new">JSON in string literal - String</target>
         <note />
       </trans-unit>
-      <trans-unit id="JSON_Text">
-        <source>JSON - Text</source>
-        <target state="new">JSON - Text</target>
+      <trans-unit id="JSON_in_string_literal_Text">
+        <source>JSON in string literal - Text</source>
+        <target state="new">JSON in string literal - Text</target>
         <note />
       </trans-unit>
       <trans-unit id="Keyword_Control">
