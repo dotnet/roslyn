@@ -111,5 +111,274 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToRawString
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestNotOnNullChar()
+        {
+            var code = @"public class C
+{
+    void M()
+    {
+        var v = [||]""\u0000"";
+    }
+}";
+
+            await VerifyRefactoringAsync(code, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestNotOnControlCharacter()
+        {
+            var code = @"public class C
+{
+    void M()
+    {
+        var v = [||]""\u007F"";
+    }
+}";
+
+            await VerifyRefactoringAsync(code, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestSimpleString()
+        {
+            await VerifyRefactoringAsync(@"public class C
+{
+    void M()
+    {
+        var v = [||]""a"";
+    }
+}", @"public class C
+{
+    void M()
+    {
+        var v = """"""a"""""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestVerbatimSimpleString()
+        {
+            await VerifyRefactoringAsync(@"public class C
+{
+    void M()
+    {
+        var v = [||]@""a"";
+    }
+}", @"public class C
+{
+    void M()
+    {
+        var v = """"""a"""""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestStringWithQuoteInMiddle()
+        {
+            await VerifyRefactoringAsync(@"public class C
+{
+    void M()
+    {
+        var v = [||]""goo\""bar"";
+    }
+}", @"public class C
+{
+    void M()
+    {
+        var v = """"""goo""bar"""""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestVerbatimStringWithQuoteInMiddle()
+        {
+            await VerifyRefactoringAsync(@"public class C
+{
+    void M()
+    {
+        var v = [||]@""goo""""bar"";
+    }
+}", @"public class C
+{
+    void M()
+    {
+        var v = """"""goo""bar"""""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestStringWithQuoteAtStart()
+        {
+            await VerifyRefactoringAsync(@"public class C
+{
+    void M()
+    {
+        var v = [||]""\""goobar"";
+    }
+}", @"public class C
+{
+    void M()
+    {
+        var v = """"""
+""goobar
+"""""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestVerbatimStringWithQuoteAtStart()
+        {
+            await VerifyRefactoringAsync(@"public class C
+{
+    void M()
+    {
+        var v = [||]@""""""goobar"";
+    }
+}", @"public class C
+{
+    void M()
+    {
+        var v = """"""
+""goobar
+"""""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestStringWithQuoteAtEnd()
+        {
+            await VerifyRefactoringAsync(@"public class C
+{
+    void M()
+    {
+        var v = [||]""goobar\"""";
+    }
+}", @"public class C
+{
+    void M()
+    {
+        var v = """"""
+goobar""
+"""""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestVerbatimStringWithQuoteAtEnd()
+        {
+            await VerifyRefactoringAsync(@"public class C
+{
+    void M()
+    {
+        var v = [||]@""goobar"""""";
+    }
+}", @"public class C
+{
+    void M()
+    {
+        var v = """"""
+goobar""
+"""""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestStringWithNewLine()
+        {
+            await VerifyRefactoringAsync(@"public class C
+{
+    void M()
+    {
+        var v = [||]""goo\r\nbar"";
+    }
+}", @"public class C
+{
+    void M()
+    {
+        var v = """"""
+goo
+bar
+"""""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestVerbatimStringWithNewLine()
+        {
+            await VerifyRefactoringAsync(@"public class C
+{
+    void M()
+    {
+        var v = [||]@""goo
+bar"";
+    }
+}", @"public class C
+{
+    void M()
+    {
+        var v = """"""
+goo
+bar
+"""""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestStringWithNewLineAtStartAndEnd()
+        {
+            await VerifyRefactoringAsync(@"public class C
+{
+    void M()
+    {
+        var v = [||]""\r\ngoobar\r\n"";
+    }
+}", @"public class C
+{
+    void M()
+    {
+        var v = """"""
+
+goobar
+
+"""""";
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertRegularToRawString)]
+        public async Task TestVerbatimStringWithNewLineAtStartAndEnd()
+        {
+            await VerifyRefactoringAsync(@"public class C
+{
+    void M()
+    {
+        var v = [||]@""
+goobar
+"";
+    }
+}", @"public class C
+{
+    void M()
+    {
+        var v = """"""
+
+goobar
+
+"""""";
+    }
+}");
+        }
     }
 }
