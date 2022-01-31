@@ -3169,5 +3169,35 @@ using System.Runtime.CompilerServices;
             comp2 = CreateCompilation(source2, new[] { imageReference }, assemblyName: "Issue57742_04");
             comp2.VerifyDiagnostics(expected2);
         }
+
+        [Fact]
+        [WorkItem(57742, "https://github.com/dotnet/roslyn/issues/57742")]
+        public void Issue57742_05()
+        {
+            string lib_cs = @"
+using System.Runtime.CompilerServices;
+
+[ assembly: InternalsVisibleTo(""Issue57742_05, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"") ]
+internal class C {}
+";
+            var lib = CreateCompilation(lib_cs, assemblyName: "Issue57742_05_Lib");
+
+            string source1 = @"
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))]
+";
+
+            var comp = CreateCompilation(source1, new[] { lib.ToMetadataReference() }, assemblyName: "Issue57742_05");
+            var expected = new[]
+            {
+                // (2,67): error CS0281: Friend access was granted by 'Issue57742_05_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                // [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))]
+                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "C").WithArguments("Issue57742_05_Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(2, 67)
+            };
+
+            comp.VerifyDiagnostics(expected);
+
+            comp = CreateCompilation(source1, new[] { lib.EmitToImageReference() }, assemblyName: "Issue57742_05");
+            comp.VerifyDiagnostics(expected);
+        }
     }
 }

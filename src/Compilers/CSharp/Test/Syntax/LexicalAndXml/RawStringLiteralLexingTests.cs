@@ -123,14 +123,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml
         [InlineData("\"\"\"\r\n    \" abc \"\r\n    \"\" def \"\"\r\n  \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "  \" abc \"\r\n  \"\" def \"\"")]
         [InlineData("\"\"\"\r\n   \r\n  \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, " ")]
         [InlineData("\"\"\"\r\n   \"  abc  \"\r\n   \"\"  def  \"\"\r\n  \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, " \"  abc  \"\r\n \"\"  def  \"\"")]
-        [InlineData("\"\"\"\n{|CS9103:\t|}\n \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\n\t\n \"\"\"")]
+        [InlineData("\"\"\"\n{|CS9107:\t|}\n \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\n\t\n \"\"\"")]
         [InlineData("\"\"\"\r\n abc \r\n \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "abc ")]
         [InlineData("\"\"\"\r\n    abc  \r\n  \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "  abc  ")]
         [InlineData("\"\"\"\r\n  \"   abc   \"\r\n  \"\"   def   \"\"\r\n  \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\"   abc   \"\r\n\"\"   def   \"\"")]
         [InlineData("\"\"\"\r\n  abc \r\n  \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "abc ")]
         [InlineData("\"\"\"\r\n abc\r\n{|CS9103:|}def\r\n \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\r\n abc\r\ndef\r\n \"\"\"")]
         [InlineData("\"\"\"\r\n  \r\n  \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "")]
-        [InlineData("\"\"\"\n{|CS9103: |}\n\t\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\n \n\t\"\"\"")]
+        [InlineData("\"\"\"\n{|CS9107: |}\n\t\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\n \n\t\"\"\"")]
         [InlineData("\"\"\"\r\n  abc\r\n\r\n  def\r\n  \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "abc\r\n\r\ndef")]
         [InlineData("\"\"\"\r\n  abc\r\n  \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "abc")]
         [InlineData("\"\"\"\r\n  abc\r\n     \r\n  def\r\n  \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "abc\r\n   \r\ndef")]
@@ -141,10 +141,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml
         [InlineData("\"\"\"\r\n abc \r\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, " abc ")]
         [InlineData("\"\"\"\r\n  abc\r\n    \r\n  def\r\n  \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "abc\r\n  \r\ndef")]
         [InlineData("\"\"\"\r\n    \r\n  \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "  ")]
-        [InlineData("\"\"\"\n{|CS9103: |}abc\n\t\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\n abc\n\t\"\"\"")]
+        [InlineData("\"\"\"\n{|CS9107: |}abc\n\t\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\n abc\n\t\"\"\"")]
         [InlineData("\"\"\"\r\n  abc\r\n  \r\n  def\r\n  \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "abc\r\n\r\ndef")]
         [InlineData("\"\"\"\r\n abc\r\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, " abc")]
-        [InlineData("\"\"\"\n{|CS9103:\t|}abc\n \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\n\tabc\n \"\"\"")]
+        [InlineData("\"\"\"\n{|CS9107:\t|}abc\n \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\n\tabc\n \"\"\"")]
         [InlineData("\"\"\"\n{|CS9103: |}abc\n \t\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\n abc\n \t\"\"\"")]
         [InlineData("\"\"\"\n\t\n\"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "\t")]
         [InlineData("\"\"\"\r\n     abc\r\n  def\r\n  \"\"\"", SyntaxKind.MultiLineRawStringLiteralToken, "   abc\r\ndef")]
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml
             Assert.True(spans.Count == 0 || spans.Count == 1);
 
             var token = SyntaxFactory.ParseToken(input);
-            var literal = SyntaxFactory.LiteralExpression(SyntaxKind.MultiLineRawStringLiteralExpression, token);
+            var literal = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, token);
             token = literal.Token;
 
             Assert.Equal(expectedKind, token.Kind());

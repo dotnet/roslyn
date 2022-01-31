@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
         {
 #if CODE_STYLE
             var provider = GetSyntaxFormattingService();
-            var options = SyntaxFormattingOptions.Create(document.Project.AnalyzerOptions.GetAnalyzerOptionSet(editor.OriginalRoot.SyntaxTree, cancellationToken));
+            var options = provider.GetFormattingOptions(document.Project.AnalyzerOptions.GetAnalyzerOptionSet(editor.OriginalRoot.SyntaxTree, cancellationToken));
 #else
             var provider = document.Project.Solution.Workspace.Services;
             var options = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);

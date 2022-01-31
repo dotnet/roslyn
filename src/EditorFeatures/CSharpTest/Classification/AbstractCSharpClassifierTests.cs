@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         protected static TestWorkspace CreateWorkspace(string code, ParseOptions options, TestHost testHost)
         {
             var composition = EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost);
-            return TestWorkspace.CreateCSharp(code, parseOptions: options, composition: composition);
+            return TestWorkspace.CreateCSharp(code, parseOptions: options, composition: composition, isMarkup: false);
         }
 
         protected override async Task DefaultTestAsync(string code, string allCode, TestHost testHost, FormattedClassification[] expected)

@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -187,10 +188,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             var isLegalBlankLine = isBlankLine && indentationWhitespace.StartsWith(currentLineWhitespace);
                             if (!isLegalBlankLine)
                             {
-                                indentationError ??= MakeError(
-                                    lineStartPosition,
-                                    width: currentIndex - lineStartPosition,
-                                    ErrorCode.ERR_LineDoesNotStartWithSameWhitespace);
+                                // Specialized error message if this is a spacing difference.
+                                if (CheckForSpaceDifference(
+                                        currentLineWhitespace, indentationWhitespace,
+                                        out var currentLineWhitespaceChar, out var indentationWhitespaceChar))
+                                {
+                                    indentationError ??= MakeError(
+                                        lineStartPosition,
+                                        width: currentIndex - lineStartPosition,
+                                        ErrorCode.ERR_LineContainsDifferentWhitespace,
+                                        currentLineWhitespaceChar, indentationWhitespaceChar);
+                                }
+                                else
+                                {
+                                    indentationError ??= MakeError(
+                                        lineStartPosition,
+                                        width: currentIndex - lineStartPosition,
+                                        ErrorCode.ERR_LineDoesNotStartWithSameWhitespace);
+                                }
                             }
                         }
                     }
@@ -228,6 +243,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     originalText[closeQuoteRange],
                     originalToken.GetTrailingTrivia());
             }
+        }
+
+        private static bool CheckForSpaceDifference(
+            ReadOnlySpan<char> currentLineWhitespace,
+            ReadOnlySpan<char> indentationLineWhitespace,
+            [NotNullWhen(true)] out string? currentLineMessage,
+            [NotNullWhen(true)] out string? indentationLineMessage)
+        {
+            for (int i = 0, n = Math.Min(currentLineWhitespace.Length, indentationLineWhitespace.Length); i < n; i++)
+            {
+                var currentLineChar = currentLineWhitespace[i];
+                var indentationLineChar = indentationLineWhitespace[i];
+
+                if (currentLineChar != indentationLineChar &&
+                    SyntaxFacts.IsWhitespace(currentLineChar) &&
+                    SyntaxFacts.IsWhitespace(indentationLineChar))
+                {
+                    currentLineMessage = Lexer.CharToString(currentLineChar);
+                    indentationLineMessage = Lexer.CharToString(indentationLineChar);
+                    return true;
+                }
+            }
+
+            currentLineMessage = null;
+            indentationLineMessage = null;
+            return false;
         }
 
         private static SyntaxToken TokenOrMissingToken(GreenNode? leading, SyntaxKind kind, string text, GreenNode? trailing)

@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
         }
 
+        public abstract SyntaxFormattingOptions GetFormattingOptions(AnalyzerConfigOptions options);
+
         public abstract IEnumerable<AbstractFormattingRule> GetDefaultFormattingRules();
 
         protected abstract IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? formattingSpans = null);
