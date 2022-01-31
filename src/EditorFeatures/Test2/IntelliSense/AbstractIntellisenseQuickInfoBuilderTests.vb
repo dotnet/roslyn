@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.QuickInfo
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.Core.Imaging
@@ -67,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Dim languageServiceProvider = workspace.Services.GetLanguageServices(language)
                 Dim quickInfoService = languageServiceProvider.GetRequiredService(Of QuickInfoService)
 
-                Dim codeAnalysisQuickInfoItem = Await quickInfoService.GetQuickInfoAsync(document, cursorPosition, CancellationToken.None).ConfigureAwait(False)
+                Dim codeAnalysisQuickInfoItem = Await quickInfoService.GetQuickInfoAsync(document, cursorPosition, SymbolDescriptionOptions.Default, CancellationToken.None).ConfigureAwait(False)
 
                 Dim trackingSpan = New Mock(Of ITrackingSpan)(MockBehavior.Strict) With {
                     .DefaultValue = DefaultValue.Mock
