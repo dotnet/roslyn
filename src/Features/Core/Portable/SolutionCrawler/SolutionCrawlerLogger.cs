@@ -86,6 +86,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }));
         }
 
+        public static void LogOptionChanged(int correlationId, bool value)
+        {
+            Logger.Log(FunctionId.WorkCoordinator_SolutionCrawlerOption, KeyValueLogMessage.Create(m =>
+            {
+                m[Id] = correlationId;
+                m[Enabled] = value;
+            }));
+        }
+
         public static void LogAnalyzers(int correlationId, Workspace workspace, ImmutableArray<IIncrementalAnalyzer> reordered, bool onlyHighPriorityAnalyzer)
         {
             if (onlyHighPriorityAnalyzer)

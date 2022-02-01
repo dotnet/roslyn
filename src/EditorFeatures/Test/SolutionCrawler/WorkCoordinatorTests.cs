@@ -1169,11 +1169,35 @@ class C
         }
 
         [Fact, WorkItem(739943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739943")]
+        public async Task SemanticChange_Propagation_Transitive()
+        {
+            var solution = GetInitialSolutionInfoWithP2P();
+
+            using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(InternalSolutionCrawlerOptions.DirectDependencyPropagationOnly, false)));
+
+            workspace.OnSolutionAdded(solution);
+            await WaitWaiterAsync(workspace.ExportProvider);
+
+            var id = solution.Projects[0].Id;
+            var info = DocumentInfo.Create(DocumentId.CreateNewId(id), "D6");
+
+            var worker = await ExecuteOperation(workspace, w => w.OnDocumentAdded(info));
+
+            Assert.Equal(1, worker.SyntaxDocumentIds.Count);
+            Assert.Equal(4, worker.DocumentIds.Count);
+        }
+
+        [Fact, WorkItem(739943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739943")]
         public async Task SemanticChange_Propagation_Direct()
         {
             var solution = GetInitialSolutionInfoWithP2P();
 
             using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
+                .WithChangedOption(InternalSolutionCrawlerOptions.DirectDependencyPropagationOnly, true)));
+
             workspace.OnSolutionAdded(solution);
             await WaitWaiterAsync(workspace.ExportProvider);
 

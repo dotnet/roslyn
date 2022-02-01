@@ -35,6 +35,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             {
                 DebugVerifyDiagnosticLocations(buildDiagnostics);
 
+                if (!PreferBuildErrors(options))
+                {
+                    // Prefer live errors over build errors
+                    return;
+                }
+
                 var solution = Workspace.CurrentSolution;
 
                 foreach (var (projectId, diagnostics) in buildDiagnostics)
@@ -75,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 // Refresh live diagnostics after solution build completes.
-                if (onBuildCompleted)
+                if (onBuildCompleted && PreferLiveErrorsOnOpenedFiles(options))
                 {
                     // Enqueue re-analysis of active document with high-priority right away.
                     if (_documentTrackingService.GetActiveDocument(solution) is { } activeDocument)
@@ -139,6 +145,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return builder.ToImmutable();
         }
 
+        private static bool PreferBuildErrors(OptionSet options)
+            => options.GetOption(InternalDiagnosticsOptions.PreferBuildErrorsOverLiveErrors);
+
+        private static bool PreferLiveErrorsOnOpenedFiles(OptionSet options)
+            => options.GetOption(InternalDiagnosticsOptions.PreferLiveErrorsOnOpenedFiles);
+
         private static ImmutableArray<DiagnosticData> ConvertToLiveDiagnostics(
             ILookup<string, DiagnosticData> lookup, ImmutableArray<DiagnosticDescriptor> descriptors, HashSet<string> seen)
         {
@@ -197,6 +209,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             using var pooledObject = SharedPools.Default<StringBuilder>().GetPooledObject();
             var sb = pooledObject.Object;
+            sb.Append($"PreferBuildError:{PreferBuildErrors(options)}, PreferLiveOnOpenFiles:{PreferLiveErrorsOnOpenedFiles(options)}");
 
             if (map.Count > 0)
             {
@@ -206,7 +219,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     foreach (var diagnostic in diagnostics)
                     {
-                        sb.AppendLine($"    {diagnostic}");
+                        sb.AppendLine($"    {diagnostic.ToString()}");
                     }
                 }
             }
