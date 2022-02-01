@@ -109,15 +109,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         }
 
         // <Metalama>
-        protected override void AddLicenseConsumptionManager(AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider,
-            ServiceProviderBuilder serviceProviderBuilder)
-        {
-            if (!this._bypassLicensing)
-            {
-                base.AddLicenseConsumptionManager(analyzerConfigOptionsProvider, serviceProviderBuilder);
-            }
-            
-        }
+
+        protected override bool RequiresMetalamaSupportServices => false;
+        protected override bool RequiresMetalamaLicensingServices => !this._bypassLicensing;
 
         protected override bool IsLongRunningProcess => false;
         // </Metalama>

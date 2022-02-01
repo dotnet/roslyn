@@ -2,16 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
 using Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Metalama.Backstage.Licensing.Consumption.Sources;
-using Metalama.Backstage.Licensing.Licenses;
 using Xunit;
 using static Roslyn.Test.Utilities.SharedResourceHelpers;
 
@@ -30,7 +26,6 @@ namespace Metalama.Compiler.UnitTests
                 $@"is_global = true
 build_property.MetalamaLicense = {license}
 build_property.MetalamaIgnoreUserLicenses = True
-build_property.MetalamaAutoStartEvaluation = False
 build_property.MetalamaDebugTransformedCode = {(debugTransformedCode ? "True" : "False")}
 ");
             var args = new[] { "/nologo", "/t:library", _src.Path, $"/analyzerconfig:{config.Path}" };
@@ -72,7 +67,8 @@ build_property.MetalamaDebugTransformedCode = {(debugTransformedCode ? "True" : 
         [Fact]
         public void TransformedCodeDebuggingRequiresMetalamaLicense()
         {
-            var csc = CreateCompiler(new DummyTransformer(), debugTransformedCode: true, license:"1-ZEQQQQQQATQEQCRCE4UW3UFEB4URXMHRB8KQBJJSB64LX7EAEJFEB4V4U8DUPY3JP4Y9SXVNF9CSV3ADB53Z69RDR7PZMZGF7GRQPQQ5ZH3PQF7PHJZQTP2");
+            const string communityLicense = "1-ZEQQQQQQATQEQCRCE4UW3UFEB4URXMHRB8KQBJJSB64LX7EAEJFEB4V4U8DUPY3JP4Y9SXVNF9CSV3ADB53Z69RDR7PZMZGF7GRQPQQ5ZH3PQF7PHJZQTP2";
+            var csc = CreateCompiler(new DummyTransformer(), debugTransformedCode: true, license:communityLicense);
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = csc.Run(outWriter);

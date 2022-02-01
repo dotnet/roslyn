@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading;
 using Metalama.Compiler;
 using Metalama.Compiler.Interface.TypeForwards;
-using Metalama.Compiler.Licensing;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -20,9 +19,6 @@ using Metalama.Backstage.Diagnostics;
 using Metalama.Backstage.Extensibility;
 using Metalama.Backstage.Licensing;
 using Metalama.Backstage.Licensing.Consumption;
-using Metalama.Backstage.Licensing.Consumption.Sources;
-using Metalama.Backstage.Licensing.Registration;
-using Metalama.Backstage.Licensing.Registration.Evaluation;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -416,36 +412,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         
         // <Metalama>
         
-        // Used for testing.
-        protected virtual void AddLicenseConsumptionManager(
-            AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider,
-            ServiceProviderBuilder serviceProviderBuilder)
+        
+
+        private (string[] AdditionalLicenses, bool SkipUserLicenses) GetLicensingOptions(AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider)
         {
-            if ( !analyzerConfigOptionsProvider.GlobalOptions.TryGetValue("build_property.MetalamaAutoStartEvaluation", out var autoStartEvaluationStr) || 
-                 !bool.TryParse(autoStartEvaluationStr, out var autoStartEvaluation ) ||
-                 autoStartEvaluation )
+            // Load license keys from build options.
+            string[] additionalLicenses;
+            if (analyzerConfigOptionsProvider.GlobalOptions.TryGetValue("build_property.MetalamaLicense", out var licenseProperty))
             {
-                serviceProviderBuilder.AddSingleton<IFirstRunLicenseActivator>(new EvaluationLicenseRegistrar(serviceProviderBuilder.ServiceProvider));
+                additionalLicenses = licenseProperty.Trim()
+                    .Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries).ToArray();
+            }
+            else
+            {
+                additionalLicenses = Array.Empty<string>();
             }
 
-            ILicenseSource[] licenseSources = LicenseSourceFactory.CreateSources(serviceProviderBuilder.ServiceProvider, analyzerConfigOptionsProvider).ToArray();
+            if (!(analyzerConfigOptionsProvider.GlobalOptions.TryGetValue("build_property.MetalamaIgnoreUserLicenses",
+                out var ignoreUserLicensesProperty) && bool.TryParse(ignoreUserLicensesProperty, out var ignoreUserLicenses)))
+            {
+                ignoreUserLicenses = false;
+            }
 
-            serviceProviderBuilder.AddLicenseConsumptionManager(licenseSources);
+            return (additionalLicenses, ignoreUserLicenses);
+
+
         }
-        
-        private IServiceProvider CreateServiceProvider(AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider, string? projectName)
-        {
-            var services = new ServiceCollection();
 
-            var serviceProviderBuilder = new ServiceProviderBuilder(
-                (type, instance) => services.AddService(type, instance),
-                () => services)
-                .AddBackstageServices(new MetalamaCompilerApplicationInfo(this.IsLongRunningProcess), projectName);
-
-            this.AddLicenseConsumptionManager(analyzerConfigOptionsProvider, serviceProviderBuilder);
-
-            return services;
-        }
+        protected virtual bool RequiresMetalamaSupportServices => true;
+        protected virtual bool RequiresMetalamaLicensingServices => true;
 
         private protected override TransformersResult RunTransformers(
             Compilation inputCompilation, ImmutableArray<ISourceTransformer> transformers, SourceOnlyAnalyzersOptions sourceOnlyAnalyzersOptions,
@@ -457,8 +452,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return TransformersResult.Empty(inputCompilation);
             }
 
-            var services = CreateServiceProvider(analyzerConfigProvider, inputCompilation.AssemblyName);
-            
+            var services = new ServiceCollection();
+            var serviceProviderBuilder = new ServiceProviderBuilder(
+                (type, instance) => services.AddService(type, instance),
+                () => services);
+
+            if (this.RequiresMetalamaLicensingServices)
+            {
+                var licenseOptions = this.GetLicensingOptions(analyzerConfigProvider);
+                serviceProviderBuilder.AddBackstageServices(
+                    new MetalamaCompilerApplicationInfo(this.IsLongRunningProcess),
+                    inputCompilation.AssemblyName,
+                    licenseOptions.SkipUserLicenses,
+                    licenseOptions.AdditionalLicenses,
+                    this.RequiresMetalamaSupportServices);
+            }
+            else
+            {
+                if ( this.RequiresMetalamaSupportServices )
+                {
+                    throw new InvalidOperationException();
+                }
+
+                serviceProviderBuilder.AddMinimalBackstageServices();
+            }
+
             // Initialize licensing.
             var licenseManager = services.GetService<ILicenseConsumptionManager>();
             try
