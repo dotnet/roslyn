@@ -400,35 +400,32 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private async Task<bool> ContainsSymbolsAsync(
+        private Task<bool> ContainsSymbolsAsync(
             Func<SyntaxTreeIndex, CancellationToken, bool> predicate, CancellationToken cancellationToken)
         {
-            if (!this.SupportsCompilation)
-                return false;
-
-            var tasks = this.Documents.Select(async d =>
+            return ContainsAsync(async d =>
             {
                 var index = await SyntaxTreeIndex.GetRequiredIndexAsync(d, cancellationToken).ConfigureAwait(false);
                 return predicate(index, cancellationToken);
             });
-
-            var results = await Task.WhenAll(tasks).ConfigureAwait(false);
-            return results.Any(b => b);
         }
 
-        private async Task<bool> ContainsDeclarationAsync(
+        private Task<bool> ContainsDeclarationAsync(
             Func<TopLevelSyntaxTreeIndex, CancellationToken, bool> predicate, CancellationToken cancellationToken)
         {
-            if (!this.SupportsCompilation)
-                return false;
-
-            var tasks = this.Documents.Select(async d =>
+            return ContainsAsync(async d =>
             {
                 var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(d, cancellationToken).ConfigureAwait(false);
                 return predicate(index, cancellationToken);
             });
+        }
 
-            var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+        private async Task<bool> ContainsAsync(Func<Document, Task<bool>> predicateAsync)
+        {
+            if (!this.SupportsCompilation)
+                return false;
+
+            var results = await Task.WhenAll(this.Documents.Select(predicateAsync)).ConfigureAwait(false);
             return results.Any(b => b);
         }
 
