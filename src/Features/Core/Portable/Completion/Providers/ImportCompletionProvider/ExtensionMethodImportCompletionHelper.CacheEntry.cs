@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         _mapBuilder);
                 }
 
-                public void AddItem(SyntaxTreeIndex syntaxIndex)
+                public void AddItem(DeclaredSymbolInfoIndex syntaxIndex)
                 {
                     foreach (var (receiverType, symbolInfoIndices) in syntaxIndex.ReceiverTypeNameToExtensionMethodMap)
                     {
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         continue;
                     }
 
-                    var info = await document.GetSyntaxTreeIndexAsync(loadOnly, cancellationToken).ConfigureAwait(false);
+                    var info = await DeclaredSymbolInfoIndex.GetIndexAsync(document, loadOnly, cancellationToken).ConfigureAwait(false);
                     if (info == null)
                     {
                         return null;

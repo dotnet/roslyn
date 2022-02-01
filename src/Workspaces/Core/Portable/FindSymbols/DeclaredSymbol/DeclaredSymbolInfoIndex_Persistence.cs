@@ -4,32 +4,35 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal sealed partial class SyntaxTreeIndex : IObjectWritable
+    internal sealed partial class DeclaredSymbolInfoIndex : IObjectWritable
     {
-        private const string PersistenceName = "<SyntaxTreeIndex>";
-        private static readonly Checksum SerializationFormatChecksum = Checksum.Create("27");
+        private const string PersistenceName = "<DeclaredSymbolInfoIndex>";
+        private static readonly Checksum SerializationFormatChecksum = Checksum.Create("1");
 
         public readonly Checksum? Checksum;
 
-        private static Task<SyntaxTreeIndex?> LoadAsync(Document document, Checksum checksum, CancellationToken cancellationToken)
+        private static Task<DeclaredSymbolInfoIndex?> LoadAsync(Document document, Checksum checksum, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
             var database = solution.Options.GetPersistentStorageDatabase();
 
             var storageService = solution.Workspace.Services.GetPersistentStorageService(database);
-            return LoadAsync(storageService, DocumentKey.ToDocumentKey(document), checksum, GetStringTable(document.Project), cancellationToken);
+            return LoadAsync(storageService, DocumentKey.ToDocumentKey(document), checksum, SyntaxTreeIndex.GetStringTable(document.Project), cancellationToken);
         }
 
-        public static async Task<SyntaxTreeIndex?> LoadAsync(
+        public static async Task<DeclaredSymbolInfoIndex?> LoadAsync(
             IChecksummedPersistentStorageService storageService, DocumentKey documentKey, Checksum? checksum, StringTable stringTable, CancellationToken cancellationToken)
         {
             try
@@ -98,6 +101,32 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return false;
         }
 
+        public static async Task PrecalculateAsync(Document document, CancellationToken cancellationToken)
+        {
+            if (!document.SupportsSyntaxTree)
+                return;
+
+            using (Logger.LogBlock(FunctionId.SyntaxTreeIndex_Precalculate, cancellationToken))
+            {
+                Debug.Assert(document.IsFromPrimaryBranch());
+
+                var checksum = await GetChecksumAsync(document, cancellationToken).ConfigureAwait(false);
+
+                // Check if we've already created and persisted the index for this document.
+                if (await PrecalculatedAsync(document, checksum, cancellationToken).ConfigureAwait(false))
+                {
+                    return;
+                }
+
+                using (Logger.LogBlock(FunctionId.SyntaxTreeIndex_Precalculate_Create, cancellationToken))
+                {
+                    // If not, create and save the index.
+                    var data = await CreateIndexAsync(document, checksum, cancellationToken).ConfigureAwait(false);
+                    await data.SaveAsync(document, cancellationToken).ConfigureAwait(false);
+                }
+            }
+        }
+
         private static async Task<bool> PrecalculatedAsync(
             Document document, Checksum checksum, CancellationToken cancellationToken)
         {
@@ -127,58 +156,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public void WriteTo(ObjectWriter writer)
         {
-            _literalInfo.WriteTo(writer);
-            _identifierInfo.WriteTo(writer);
-            _contextInfo.WriteTo(writer);
-
-            if (_globalAliasInfo == null)
-            {
-                writer.WriteInt32(0);
-            }
-            else
-            {
-                writer.WriteInt32(_globalAliasInfo.Count);
-                foreach (var (alias, name, arity) in _globalAliasInfo)
-                {
-                    writer.WriteString(alias);
-                    writer.WriteString(name);
-                    writer.WriteInt32(arity);
-                }
-            }
+            _declarationInfo.WriteTo(writer);
+            _extensionMethodInfo.WriteTo(writer);
         }
 
-        private static SyntaxTreeIndex? ReadFrom(
+        private static DeclaredSymbolInfoIndex? ReadFrom(
             StringTable stringTable, ObjectReader reader, Checksum? checksum)
         {
-            var literalInfo = LiteralInfo.TryReadFrom(reader);
-            var identifierInfo = IdentifierInfo.TryReadFrom(reader);
-            var contextInfo = ContextInfo.TryReadFrom(reader);
+            var declarationInfo = DeclarationInfo.TryReadFrom(stringTable, reader);
+            var extensionMethodInfo = ExtensionMethodInfo.TryReadFrom(reader);
 
-            if (literalInfo == null || identifierInfo == null || contextInfo == null)
+            if (declarationInfo == null || extensionMethodInfo == null)
                 return null;
 
-            var globalAliasInfoCount = reader.ReadInt32();
-            HashSet<(string alias, string name, int arity)>? globalAliasInfo = null;
-
-            if (globalAliasInfoCount > 0)
-            {
-                globalAliasInfo = new HashSet<(string alias, string name, int arity)>();
-
-                for (var i = 0; i < globalAliasInfoCount; i++)
-                {
-                    var alias = reader.ReadString();
-                    var name = reader.ReadString();
-                    var arity = reader.ReadInt32();
-                    globalAliasInfo.Add((alias, name, arity));
-                }
-            }
-
-            return new SyntaxTreeIndex(
+            return new DeclaredSymbolInfoIndex(
                 checksum,
-                literalInfo.Value,
-                identifierInfo.Value,
-                contextInfo.Value,
-                globalAliasInfo);
+                declarationInfo.Value,
+                extensionMethodInfo.Value);
         }
     }
 }

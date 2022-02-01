@@ -117,6 +117,7 @@ namespace Microsoft.CodeAnalysis.Storage
             CancellationToken cancellationToken)
         {
             var databaseFilePath = GetDatabaseFilePath(workingFolderPath);
+            Console.WriteLine("Database: " + databaseFilePath);
             try
             {
                 return await TryOpenDatabaseAsync(solutionKey, workingFolderPath, databaseFilePath, cancellationToken).ConfigureAwait(false);

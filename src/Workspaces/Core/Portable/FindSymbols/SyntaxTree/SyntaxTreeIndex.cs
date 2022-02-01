@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -20,28 +18,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly LiteralInfo _literalInfo;
         private readonly IdentifierInfo _identifierInfo;
         private readonly ContextInfo _contextInfo;
-        private readonly DeclarationInfo _declarationInfo;
-        private readonly ExtensionMethodInfo _extensionMethodInfo;
         private readonly HashSet<(string alias, string name, int arity)>? _globalAliasInfo;
-        private readonly Lazy<HashSet<DeclaredSymbolInfo>> _declaredSymbolInfoSet;
 
         private SyntaxTreeIndex(
             Checksum? checksum,
             LiteralInfo literalInfo,
             IdentifierInfo identifierInfo,
             ContextInfo contextInfo,
-            DeclarationInfo declarationInfo,
-            ExtensionMethodInfo extensionMethodInfo,
             HashSet<(string alias, string name, int arity)>? globalAliasInfo)
         {
             this.Checksum = checksum;
             _literalInfo = literalInfo;
             _identifierInfo = identifierInfo;
             _contextInfo = contextInfo;
-            _declarationInfo = declarationInfo;
-            _extensionMethodInfo = extensionMethodInfo;
             _globalAliasInfo = globalAliasInfo;
-            _declaredSymbolInfoSet = new(() => new(this.DeclaredSymbolInfos));
         }
 
         private static readonly ConditionalWeakTable<Document, SyntaxTreeIndex?> s_documentToIndex = new();

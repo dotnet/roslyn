@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Net.WebSockets;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -52,14 +51,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Contract.ThrowIfFalse(document.SupportsSyntaxTree);
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return CreateIndex(document, root, checksum, cancellationToken);
+            return CreateIndex(document, root, checksum);
         }
 
         private static SyntaxTreeIndex CreateIndex(
-            Document document, SyntaxNode root, Checksum checksum, CancellationToken cancellationToken)
+            Document document, SyntaxNode root, Checksum checksum)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var infoFactory = document.GetRequiredLanguageService<IDeclaredSymbolInfoFactoryService>();
             var ignoreCase = !syntaxFacts.IsCaseSensitive;
             var isCaseSensitive = !ignoreCase;
 
@@ -68,8 +66,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var stringLiterals = StringLiteralHashSetPool.Allocate();
             var longLiterals = LongLiteralHashSetPool.Allocate();
 
-            using var _1 = ArrayBuilder<DeclaredSymbolInfo>.GetInstance(out var declaredSymbolInfos);
-            using var _2 = PooledDictionary<string, ArrayBuilder<int>>.GetInstance(out var extensionMethodInfo);
             HashSet<(string alias, string name, int arity)>? globalAliasInfo = null;
 
             try
@@ -180,9 +176,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             }
                         }
                     }
-
-                    infoFactory.AddDeclaredSymbolInfos(
-                        document, root, declaredSymbolInfos, extensionMethodInfo, cancellationToken);
                 }
 
                 return new SyntaxTreeIndex(
@@ -209,11 +202,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsImplicitObjectCreation,
                             containsGlobalSuppressMessageAttribute,
                             containsConversion),
-                    new DeclarationInfo(declaredSymbolInfos.ToImmutable()),
-                    new ExtensionMethodInfo(
-                        extensionMethodInfo.ToImmutableDictionary(
-                            static kvp => kvp.Key,
-                            static kvp => kvp.Value.ToImmutable())),
                     globalAliasInfo);
             }
             finally
@@ -221,9 +209,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 Free(ignoreCase, identifiers, escapedIdentifiers);
                 StringLiteralHashSetPool.ClearAndFree(stringLiterals);
                 LongLiteralHashSetPool.ClearAndFree(longLiterals);
-
-                foreach (var (_, builder) in extensionMethodInfo)
-                    builder.Free();
             }
         }
 

@@ -12,41 +12,41 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class SyntaxTreeIndex
     {
-        private readonly struct DeclarationInfo
-        {
-            public ImmutableArray<DeclaredSymbolInfo> DeclaredSymbolInfos { get; }
+        //private readonly struct DeclarationInfo
+        //{
+        //    public ImmutableArray<DeclaredSymbolInfo> DeclaredSymbolInfos { get; }
 
-            public DeclarationInfo(ImmutableArray<DeclaredSymbolInfo> declaredSymbolInfos)
-                => DeclaredSymbolInfos = declaredSymbolInfos;
+        //    public DeclarationInfo(ImmutableArray<DeclaredSymbolInfo> declaredSymbolInfos)
+        //        => DeclaredSymbolInfos = declaredSymbolInfos;
 
-            public void WriteTo(ObjectWriter writer)
-            {
-                writer.WriteInt32(DeclaredSymbolInfos.Length);
-                foreach (var declaredSymbolInfo in DeclaredSymbolInfos)
-                {
-                    declaredSymbolInfo.WriteTo(writer);
-                }
-            }
+        //    public void WriteTo(ObjectWriter writer)
+        //    {
+        //        writer.WriteInt32(DeclaredSymbolInfos.Length);
+        //        foreach (var declaredSymbolInfo in DeclaredSymbolInfos)
+        //        {
+        //            declaredSymbolInfo.WriteTo(writer);
+        //        }
+        //    }
 
-            public static DeclarationInfo? TryReadFrom(StringTable stringTable, ObjectReader reader)
-            {
-                try
-                {
-                    var declaredSymbolCount = reader.ReadInt32();
-                    var builder = ImmutableArray.CreateBuilder<DeclaredSymbolInfo>(declaredSymbolCount);
-                    for (var i = 0; i < declaredSymbolCount; i++)
-                    {
-                        builder.Add(DeclaredSymbolInfo.ReadFrom_ThrowsOnFailure(stringTable, reader));
-                    }
+        //    public static DeclarationInfo? TryReadFrom(StringTable stringTable, ObjectReader reader)
+        //    {
+        //        try
+        //        {
+        //            var declaredSymbolCount = reader.ReadInt32();
+        //            var builder = ImmutableArray.CreateBuilder<DeclaredSymbolInfo>(declaredSymbolCount);
+        //            for (var i = 0; i < declaredSymbolCount; i++)
+        //            {
+        //                builder.Add(DeclaredSymbolInfo.ReadFrom_ThrowsOnFailure(stringTable, reader));
+        //            }
 
-                    return new DeclarationInfo(builder.MoveToImmutable());
-                }
-                catch (Exception)
-                {
-                }
+        //            return new DeclarationInfo(builder.MoveToImmutable());
+        //        }
+        //        catch (Exception)
+        //        {
+        //        }
 
-                return null;
-            }
-        }
+        //        return null;
+        //    }
+        //}
     }
 }

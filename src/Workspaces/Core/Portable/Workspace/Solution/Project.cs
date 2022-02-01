@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis
         internal Task<bool> ContainsSymbolsWithNameAsync(
             Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
         {
-            return ContainsSymbolsAsync(
+            return ContainsDeclarationAsync(
                 (index, cancellationToken) =>
                 {
                     foreach (var info in index.DeclaredSymbolInfos)
@@ -409,6 +409,22 @@ namespace Microsoft.CodeAnalysis
             var tasks = this.Documents.Select(async d =>
             {
                 var index = await SyntaxTreeIndex.GetRequiredIndexAsync(d, cancellationToken).ConfigureAwait(false);
+                return predicate(index, cancellationToken);
+            });
+
+            var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+            return results.Any(b => b);
+        }
+
+        private async Task<bool> ContainsDeclarationAsync(
+            Func<DeclaredSymbolInfoIndex, CancellationToken, bool> predicate, CancellationToken cancellationToken)
+        {
+            if (!this.SupportsCompilation)
+                return false;
+
+            var tasks = this.Documents.Select(async d =>
+            {
+                var index = await DeclaredSymbolInfoIndex.GetRequiredIndexAsync(d, cancellationToken).ConfigureAwait(false);
                 return predicate(index, cancellationToken);
             });
 
