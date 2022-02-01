@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Providers.Snippets;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -17,7 +18,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
     [ExportCompletionProvider(nameof(ConsoleSnippetCompletionProvider), LanguageNames.CSharp)]
     [ExtensionOrder(After = nameof(FirstBuiltInCompletionProvider))]
     [Shared]
-    internal class ConsoleSnippetCompletionProvider : CommonCompletionProvider
+    internal class ConsoleSnippetCompletionProvider : AbstractSnippetCompletionProvider
     {
         internal override string Language => LanguageNames.CSharp;
 
@@ -36,16 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ConsoleSnippetCompletionProvider()
         {
-        }
-
-        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default)
-        {
-            if (!item.Properties.TryGetValue("SnippetText", out var snippetText))
-            {
-                return await base.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
-            }
-
-            return CompletionChange.Create(new TextChange(item.Span, snippetText), newPosition: 5);
         }
 
         private static int GetSpanStart(SyntaxNode declaration)
@@ -97,34 +87,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
                 return;
             }
 
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var generator = SyntaxGenerator.GetGenerator(document);
             var syntaxKinds = document.GetRequiredLanguageService<ISyntaxKindsService>();
-            var completionItem = GetCompletionItem(syntaxContext.TargetToken, generator, syntaxContext.IsGlobalStatementContext);
+            var completionItem = GetCompletionItem(syntaxContext.TargetToken, generator, text, position, syntaxContext.IsGlobalStatementContext);
             context.AddItem(completionItem);
         }
 
-        private static CompletionItem GetCompletionItem(SyntaxToken token, SyntaxGenerator generator, bool isGlobalStatementContext)
+        private static CompletionItem GetCompletionItem(SyntaxToken token, SyntaxGenerator generator, SourceText text, int position, bool isGlobalStatementContext)
         {
-            var snippetText = "Console.WriteLine();";
-
-            if (!isGlobalStatementContext)
-            {
-                var declaration = GetAsyncSupportingDeclaration(token);
-                var isAsync = generator.GetModifiers(declaration).IsAsync;
-
-                if (isAsync)
-                {
-                    snippetText = "await Console.Out.WriteLineAsync();";
-                }
-            }
-
-            return CommonCompletionItem.Create(
+            return SnippetCompletionItem.Create(
                 displayText: "Write to the Console",
                 displayTextSuffix: "",
-                rules: CompletionItemRules.Default,
-                Glyph.Snippet,
-                inlineDescription: "",
-                properties: ImmutableDictionary.Create<string, string>().Add("SnippetText", snippetText));
+                line: text.Lines.IndexOf(position),
+                token: token,
+                glyph: Glyph.Snippet);
+        }
+
+        protected override int GetTargetCaretPosition(SyntaxNode caretTarget)
+        {
+            return caretTarget.GetLocation().SourceSpan.End;
+        }
+
+        protected override SyntaxToken GetToken(CompletionItem completionItem, SyntaxTree tree, CancellationToken cancellationToken)
+        {
+            var tokenSpanEnd = SnippetCompletionItem.GetTokenSpanEnd(completionItem);
+            return tree.FindTokenOnLeftOfPosition(tokenSpanEnd, cancellationToken);
+        }
+
+        protected override SyntaxNode GetSyntax(SyntaxToken token)
+        {
+            return token.GetAncestor<MethodDeclarationSyntax>()
+                ?? token.GetAncestor<LocalFunctionStatementSyntax>()
+                ?? token.GetAncestor<AnonymousMethodExpressionSyntax>()
+                ?? token.GetAncestor<ParenthesizedLambdaExpressionSyntax>()
+                ?? (SyntaxNode?)token.GetAncestor<GlobalStatementSyntax>()
+                ?? throw ExceptionUtilities.UnexpectedValue(token);
+        }
+
+        protected override async Task<Document> GenerateDocumentWithSnippetAsync(Document document, CompletionItem completionItem, TextLine line, CancellationToken cancellationToken)
+        {
+            var generator = SyntaxGenerator.GetGenerator(document);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var editor = new SyntaxEditor(root, generator);
+            var invocation = generator.InvocationExpression(generator.MemberAccessExpression(generator.IdentifierName("Console"), generator.IdentifierName("WriteLine")));
+            var priorNode = root.FindNode(new TextSpan(line.Start, 0));
+            editor.InsertAfter(priorNode, invocation);
+            return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
     }
 }

@@ -4,19 +4,29 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
+namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
 {
     internal abstract class AbstractSnippetCompletionProvider : CommonCompletionProvider
     {
         private readonly SyntaxAnnotation _annotation = new();
+        private readonly SyntaxAnnotation _otherAnnotation = new();
+
+        protected abstract int GetTargetCaretPosition(SyntaxNode caretTarget);
+        protected abstract SyntaxToken GetToken(CompletionItem completionItem, SyntaxTree tree, CancellationToken cancellationToken);
+        protected abstract SyntaxNode GetSyntax(SyntaxToken commonSyntaxToken);
+        protected abstract Task<Document> GenerateDocumentWithSnippetAsync(Document document, CompletionItem completionItem, TextLine line, CancellationToken cancellationToken);
 
         public AbstractSnippetCompletionProvider()
         {
@@ -60,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             // The span we're going to replace
-            var line = text.Lines[SnippetCompletionProvider.GetLine(completionItem)];
+            var line = text.Lines[SnippetCompletionItem.GetLine(completionItem)];
 
             // Annotate the line we care about so we can find it after adding usings
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -68,18 +78,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
             var annotatedRoot = tree.GetRoot(cancellationToken).ReplaceToken(token, token.WithAdditionalAnnotations(_otherAnnotation));
             document = document.WithSyntaxRoot(annotatedRoot);
 
-            var memberContainingDocument = await GenerateMemberAndUsingsAsync(document, completionItem, line, cancellationToken).ConfigureAwait(false);
-            if (memberContainingDocument == null)
+            var snippetContainingDocument = await GenerateDocumentWithSnippetAsync(document, completionItem, line, cancellationToken).ConfigureAwait(false);
+
+            if (snippetContainingDocument is null)
             {
-                // Generating the new document failed because we somehow couldn't resolve
-                // the underlying symbol's SymbolKey. At this point, we won't be able to 
-                // make any changes, so just return the document we started with.
                 return document;
             }
 
-            var insertionRoot = await GetTreeWithAddedSyntaxNodeRemovedAsync(memberContainingDocument, cancellationToken).ConfigureAwait(false);
-            var insertionText = await GenerateInsertionTextAsync(memberContainingDocument, cancellationToken).ConfigureAwait(false);
-
+            var insertionRoot = await GetTreeWithAddedSyntaxNodeRemovedAsync(snippetContainingDocument, cancellationToken).ConfigureAwait(false);
+            var insertionText = await GenerateInsertionTextAsync(snippetContainingDocument, cancellationToken).ConfigureAwait(false);
             var destinationSpan = ComputeDestinationSpan(insertionRoot);
 
             var finalText = insertionRoot.GetText(text.Encoding)
@@ -91,6 +98,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
 
             document = document.WithSyntaxRoot(newRoot.ReplaceNode(declaration, declaration.WithAdditionalAnnotations(_annotation)));
             return await Formatter.FormatAsync(document, _annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<SyntaxNode> GetTreeWithAddedSyntaxNodeRemovedAsync(
+            Document document, CancellationToken cancellationToken)
+        {
+            document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, optionSet: null, cancellationToken).ConfigureAwait(false);
+
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var members = root.GetAnnotatedNodes(_annotation).AsImmutable();
+
+            root = root.RemoveNodes(members, SyntaxRemoveOptions.KeepLeadingTrivia);
+            Contract.ThrowIfNull(root);
+
+            var dismemberedDocument = document.WithSyntaxRoot(root);
+
+            dismemberedDocument = await Formatter.FormatAsync(dismemberedDocument, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return await dismemberedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<string> GenerateInsertionTextAsync(
+            Document document, CancellationToken cancellationToken)
+        {
+            document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, optionSet: null, cancellationToken).ConfigureAwait(false);
+            document = await Formatter.FormatAsync(document, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            return root.GetAnnotatedNodes(_annotation).Single().ToString().Trim();
+        }
+
+        private TextSpan ComputeDestinationSpan(SyntaxNode insertionRoot)
+        {
+            var targetToken = insertionRoot.GetAnnotatedTokens(_otherAnnotation).FirstOrNull();
+            Contract.ThrowIfNull(targetToken);
+
+            var text = insertionRoot.GetText();
+            var line = text.Lines.GetLineFromPosition(targetToken.Value.Span.End);
+            var position = line.GetFirstNonWhitespacePosition();
+            Contract.ThrowIfNull(position);
+
+            var firstToken = insertionRoot.FindToken(position.Value);
+            return TextSpan.FromBounds(firstToken.SpanStart, line.End);
         }
     }
 }
