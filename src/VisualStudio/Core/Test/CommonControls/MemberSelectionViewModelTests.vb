@@ -154,7 +154,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CommonControls
             Assert.False(FindMemberByName("FooEvent", viewModel.Members).IsChecked)
         End Function
 
-        Private Function FindMemberByName(name As String, memberArray As ImmutableArray(Of PullMemberUpSymbolViewModel)) As PullMemberUpSymbolViewModel
+        Private Shared Function FindMemberByName(name As String, memberArray As ImmutableArray(Of PullMemberUpSymbolViewModel)) As PullMemberUpSymbolViewModel
             Dim member = memberArray.FirstOrDefault(Function(memberViewModel) memberViewModel.SymbolName.Equals(name))
             If (member Is Nothing) Then
                 Assert.True(False, $"No member called {name} found")
@@ -163,7 +163,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CommonControls
             Return member
         End Function
 
-        Private Async Function GetViewModelAsync(markup As XElement, languageName As String) As Task(Of MemberSelectionViewModel)
+        Private Shared Async Function GetViewModelAsync(markup As XElement, languageName As String) As Task(Of MemberSelectionViewModel)
             Dim workspaceXml =
             <Workspace>
                 <Project Language=<%= languageName %> CommonReferences="true">

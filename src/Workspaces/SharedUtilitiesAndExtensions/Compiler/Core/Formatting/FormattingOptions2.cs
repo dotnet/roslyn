@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Formatting
     internal sealed class FormattingOptions2
     {
 #if !CODE_STYLE
-        [ExportOptionProvider, Shared]
+        [ExportSolutionOptionProvider, Shared]
         internal sealed class Provider : IOptionProvider
         {
             [ImportingConstructor]
@@ -75,6 +75,19 @@ namespace Microsoft.CodeAnalysis.Formatting
         internal static Option2<bool> InsertFinalNewLine =
             new(FeatureName, FormattingOptionGroups.NewLine, nameof(InsertFinalNewLine), defaultValue: false,
             storageLocation: EditorConfigStorageLocation.ForBoolOption("insert_final_newline"));
+
+        /// <summary>
+        /// Default value of 120 was picked based on the amount of code in a github.com diff at 1080p.
+        /// That resolution is the most common value as per the last DevDiv survey as well as the latest
+        /// Steam hardware survey.  This also seems to a reasonable length default in that shorter
+        /// lengths can often feel too cramped for .NET languages, which are often starting with a
+        /// default indentation of at least 16 (for namespace, class, member, plus the final construct
+        /// indentation).
+        /// 
+        /// TODO: Currently the option has no storage and always has its default value. See https://github.com/dotnet/roslyn/pull/30422#issuecomment-436118696.
+        /// </summary>
+        internal static Option2<int> PreferredWrappingColumn { get; } =
+            new(FeatureName, FormattingOptionGroups.NewLine, nameof(PreferredWrappingColumn), defaultValue: 120);
 
 #if !CODE_STYLE
         internal static readonly ImmutableArray<IOption> Options = ImmutableArray.Create<IOption>(

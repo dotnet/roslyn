@@ -1499,12 +1499,12 @@ End Module
         Private Sub EnumerateChildren(iop As IOperation, ByRef numChildren as Integer)
             numChildren += 1
             Assert.NotNull(iop)
-            For Each child in iop.Children
+            For Each child In iop.ChildOperations
                 EnumerateChildren(child, numChildren)
             Next
         End Sub
 
-        <ConditionalFact(GetType(NoIOperationValidation)), WorkItem(43019, "https://github.com/dotnet/roslyn/issues/43019"), WorkItem(37572, "https://github.com/dotnet/roslyn/issues/37572")>
+        <ConditionalFact(GetType(NoIOperationValidation), AlwaysSkip:="https://github.com/dotnet/roslyn/issues/57806"), WorkItem(43019, "https://github.com/dotnet/roslyn/issues/43019"), WorkItem(37572, "https://github.com/dotnet/roslyn/issues/37572")>
         Public Sub TestLargeStringConcatenation()
 
             Dim mid = New StringBuilder()

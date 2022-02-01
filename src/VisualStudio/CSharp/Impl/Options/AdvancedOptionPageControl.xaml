@@ -41,18 +41,13 @@
                     </StackPanel>
                     <CheckBox x:Name="Enable_navigation_to_decompiled_sources"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_navigation_to_decompiled_sources}" />
-                    
+
                     <CheckBox x:Name="Enable_pull_diagnostics_experimental_requires_restart"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_pull_diagnostics_experimental_requires_restart}" 
                               Checked="Enable_pull_diagnostics_experimental_requires_restart_CheckedChanged"
                               Unchecked="Enable_pull_diagnostics_experimental_requires_restart_CheckedChanged"
                               Indeterminate="Enable_pull_diagnostics_experimental_requires_restart_CheckedChanged"
                               IsThreeState="True"/>
-
-                    <CheckBox x:Name="Enable_Razor_pull_diagnostics_experimental_requires_restart"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_Razor_pull_diagnostics_experimental_requires_restart}" 
-                              Checked="Enable_Razor_pull_diagnostics_experimental_requires_restart_Checked"
-                              Unchecked="Enable_Razor_pull_diagnostics_experimental_requires_restart_Unchecked"/>
 
                     <CheckBox x:Name="Run_code_analysis_in_separate_process"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_run_code_analysis_in_separate_process}" />
@@ -85,6 +80,13 @@
                     <CheckBox x:Name="AddUsingsOnPaste"
                               x:Uid="AddMissingUsingDirectivesOnPaste"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Add_missing_using_directives_on_paste}" />
+                </StackPanel>
+            </GroupBox>
+            <GroupBox x:Uid="QuickActionsBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Quick_Actions}">
+                <StackPanel>
+                    <CheckBox x:Name="ComputeQuickActionsAsynchronouslyExperimental"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Compute_Quick_Actions_asynchronously_experimental}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="HighlightingGroupBox"
@@ -297,6 +299,14 @@
                     <CheckBox x:Uid="InheritanceMarginCombinedWithIndicatorMargin"
                               x:Name="InheritanceMarginCombinedWithIndicatorMargin"
                               Content="{x:Static local:AdvancedOptionPageStrings.Combine_inheritance_margin_with_indicator_margin}"/>
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox x:Uid="StackTraceExplorerGroupBox" Header="{x:Static local:AdvancedOptionPageStrings.Stack_Trace_Explorer}">
+                <StackPanel>
+                    <CheckBox x:Uid="AutomaticallyOpenStackTraceExplorer"
+                              x:Name="AutomaticallyOpenStackTraceExplorer"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Automatically_open_stack_trace_explorer_on_focus}" />
                 </StackPanel>
             </GroupBox>
         </StackPanel>

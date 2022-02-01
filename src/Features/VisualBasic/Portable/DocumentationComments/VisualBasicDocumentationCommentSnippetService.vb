@@ -109,10 +109,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
             Return count
         End Function
 
-        Protected Overrides Function IsMemberDeclaration(member As DeclarationStatementSyntax) As Boolean
-            Return member.IsMemberDeclaration()
-        End Function
-
         Protected Overrides Function GetDocumentationCommentStubLines(member As DeclarationStatementSyntax) As List(Of String)
             Dim list = New List(Of String) From {
                 "''' <summary>",

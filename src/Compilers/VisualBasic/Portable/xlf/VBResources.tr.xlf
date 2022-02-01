@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
         <source>A shared abstract interface member cannot be accessed.</source>
-        <target state="new">A shared abstract interface member cannot be accessed.</target>
+        <target state="translated">Paylaşılan bir soyut arabirim üyesine erişilemiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
         <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</source>
-        <target state="new">{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</target>
+        <target state="translated">{0} “{1}”,”{3}'” arabirimini uygulayamıyor, çünkü paylaşılan özet “{2}” içeriyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
@@ -5119,7 +5119,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnknownOperator">
         <source>Operator declaration must be one of:  +, -, *, \, /, ^, &amp;, Like, Mod, And, Or, Xor, Not, &lt;&lt;, &gt;&gt;, =, &lt;&gt;, &lt;, &lt;=, &gt;, &gt;=, CType, IsTrue, IsFalse.</source>
-        <target state="translated">İşleç bildirimi şunlardan biri olmalıdır: +, -, *, \, /, ^, &amp;, Like, Mod, And, Or, Xor, Not, &lt;&lt;, &gt;&gt;, =, &lt;&gt;, &lt;, &lt;=, &gt;, &gt;=, CType, IsTrue, IsFalse.</target>
+        <target state="translated">İşleç bildirimi şunlardan biri olmalıdır: +, -, *, \, /, ^, &amp;, Like, Mod, And, Or, Xor, Not, &lt;&lt;,&gt;&gt;, =, &lt;&gt;, &lt;, &lt;=,&gt;,&gt;=, CType, IsTrue, IsFalse.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateConversionCategoryUsed">
@@ -5129,7 +5129,7 @@
       </trans-unit>
       <trans-unit id="ERR_OperatorNotOverloadable">
         <source>Operator is not overloadable. Operator declaration must be one of:  +, -, *, \, /, ^, &amp;, Like, Mod, And, Or, Xor, Not, &lt;&lt;, &gt;&gt;, =, &lt;&gt;, &lt;, &lt;=, &gt;, &gt;=, CType, IsTrue, IsFalse.</source>
-        <target state="translated">İşleç aşırı yüklenebilir değil. İşleç bildirimi şunlardan biri olmalıdır: +, -, *, \, /, ^, &amp;, Like, Mod, And, Or, Xor, Not, &lt;&lt;, &gt;&gt;, =, &lt;&gt;, &lt;, &lt;=, &gt;, &gt;=, CType, IsTrue, IsFalse.</target>
+        <target state="translated">İşleç aşırı yüklenebilir değil. İşleç bildirimi şunlardan biri olmalıdır: +, -, *, \, /, ^, &amp;, Like, Mod, And, Or, Xor, Not, &lt;&lt;,&gt;&gt;, =, &lt;&gt;, &lt;, &lt;=,&gt;,&gt;=, CType, IsTrue, IsFalse.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidHandles">

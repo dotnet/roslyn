@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -1516,7 +1517,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     break;
 
-                case CompilationUnitCompletedEvent compilationUnitCompletedEvent:
+                case CompilationUnitCompletedEvent compilationUnitCompletedEvent when !compilationUnitCompletedEvent.FilterSpan.HasValue:
+                    // Clear the semantic model cache only if we have completed analysis for the entire compilation unit,
+                    // i.e. the event has a null filter span. Compilation unit completed event with a non-null filter span
+                    // indicates a synthesized event for partial analysis of the tree and we avoid clearing the semantic model cache for that case. 
                     SemanticModelProvider.ClearCache(compilationUnitCompletedEvent.CompilationUnit, compilationUnitCompletedEvent.Compilation);
                     break;
 
@@ -1796,6 +1800,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 foreach (var (analyzer, semanticModelActions) in _lazySemanticModelActions)
                 {
                     if (!analysisScope.Contains(analyzer))
+                    {
+                        continue;
+                    }
+
+                    // Only compiler analyzer supports span-based semantic model action callbacks.
+                    if (completedEvent.FilterSpan.HasValue && !IsCompilerAnalyzer(analyzer))
                     {
                         continue;
                     }
@@ -2687,7 +2697,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     return GetOperationsToAnalyze(operationBlocksToAnalyze);
                 }
-                catch (Exception ex) when (ex is InsufficientExecutionStackException || FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
+#pragma warning disable CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete; tracked by https://github.com/dotnet/roslyn/issues/58375
+                catch (Exception ex) when (ex is InsufficientExecutionStackException || FatalError.ReportIfNonFatalAndCatchUnlessCanceled(ex, cancellationToken))
+#pragma warning restore CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete
                 {
                     // the exception filter will short-circuit if `ex` is `InsufficientExecutionStackException` (from OperationWalker)
                     // and no non-fatal-watson will be logged as a result.
@@ -2855,12 +2867,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             Func<SyntaxNode, bool>? additionalFilter = semanticModel.GetSyntaxNodesToAnalyzeFilter(declaredNode, declaredSymbol);
-
             bool shouldAddNode(SyntaxNode node) => (descendantDeclsToSkip == null || !descendantDeclsToSkip.Contains(node)) && (additionalFilter is null || additionalFilter(node));
             var nodeBuilder = ArrayBuilder<SyntaxNode>.GetInstance();
             foreach (var node in declaredNode.DescendantNodesAndSelf(descendIntoChildren: shouldAddNode, descendIntoTrivia: true))
             {
                 if (shouldAddNode(node) &&
+                    !semanticModel.ShouldSkipSyntaxNodeAnalysis(node, declaredSymbol) &&
                     (!isPartialDeclAnalysis || analysisScope.ShouldAnalyze(node)))
                 {
                     nodeBuilder.Add(node);

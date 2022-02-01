@@ -13,6 +13,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -178,7 +179,6 @@ namespace N.;
                     Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("N.X.field", "null").WithLocation(4, 21));
         }
 
-        // Check that EmitMetadataOnly works
         [Fact]
         public void EmitMetadataOnly()
         {
@@ -247,6 +247,309 @@ class Test2
         }
 
         [Fact]
+        public void EmitMetadataOnly_XmlDocs_NoDocMode_Success()
+        {
+            CSharpCompilation comp = CreateCompilation(@"
+namespace Goo.Bar
+{
+    /// <summary>This should be emitted</summary>
+    public class Test1
+    {
+        public static void SayHello()
+        {
+            Console.WriteLine(""hello"");
+        }
+    }  
+}     
+", assemblyName: "test", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.None));
+
+            EmitResult emitResult;
+            byte[] mdOnlyImage;
+            byte[] xmlDocBytes;
+
+            using (var peStream = new MemoryStream())
+            using (var xmlStream = new MemoryStream())
+            {
+                emitResult = comp.Emit(peStream, xmlDocumentationStream: xmlStream, options: new EmitOptions(metadataOnly: true));
+                mdOnlyImage = peStream.ToArray();
+                xmlDocBytes = xmlStream.ToArray();
+            }
+
+            Assert.True(emitResult.Success);
+            emitResult.Diagnostics.Verify();
+            Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
+            Assert.Equal(
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>test</name>
+    </assembly>
+    <members>
+    </members>
+</doc>
+",
+                Encoding.UTF8.GetString(xmlDocBytes));
+        }
+
+        [Fact]
+        public void EmitMetadataOnly_XmlDocs_NoDocMode_SyntaxWarning()
+        {
+            CSharpCompilation comp = CreateCompilation(@"
+namespace Goo.Bar
+{
+    /// <summary>This should still emit
+    public class Test1
+    {
+        public static void SayHello()
+        {
+            Console.WriteLine(""hello"");
+        }
+    }  
+}     
+", assemblyName: "test", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.None));
+
+            EmitResult emitResult;
+            byte[] mdOnlyImage;
+            byte[] xmlDocBytes;
+
+            using (var peStream = new MemoryStream())
+            using (var xmlStream = new MemoryStream())
+            {
+                emitResult = comp.Emit(peStream, xmlDocumentationStream: xmlStream, options: new EmitOptions(metadataOnly: true));
+                mdOnlyImage = peStream.ToArray();
+                xmlDocBytes = xmlStream.ToArray();
+            }
+
+            Assert.True(emitResult.Success);
+            emitResult.Diagnostics.Verify();
+
+            Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
+            Assert.Equal(
+                @"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>test</name>
+    </assembly>
+    <members>
+    </members>
+</doc>
+",
+                Encoding.UTF8.GetString(xmlDocBytes));
+        }
+
+        [Fact]
+        public void EmitMetadataOnly_XmlDocs_DiagnoseDocMode_SyntaxWarning()
+        {
+            CSharpCompilation comp = CreateCompilation(@"
+namespace Goo.Bar
+{
+    /// <summary>This should still emit
+    public class Test1
+    {
+        public static void SayHello()
+        {
+            Console.WriteLine(""hello"");
+        }
+    }  
+}     
+", assemblyName: "test", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose));
+
+            EmitResult emitResult;
+            byte[] mdOnlyImage;
+            byte[] xmlDocBytes;
+
+            using (var peStream = new MemoryStream())
+            using (var xmlStream = new MemoryStream())
+            {
+                emitResult = comp.Emit(peStream, xmlDocumentationStream: xmlStream, options: new EmitOptions(metadataOnly: true));
+                mdOnlyImage = peStream.ToArray();
+                xmlDocBytes = xmlStream.ToArray();
+            }
+
+            // This should not fail the emit (as it's a warning).
+            Assert.True(emitResult.Success);
+            emitResult.Diagnostics.Verify(
+                // (5,1): warning CS1570: XML comment has badly formed XML -- 'Expected an end tag for element 'summary'.'
+                //     public class Test1
+                Diagnostic(ErrorCode.WRN_XMLParseError, "").WithArguments("summary").WithLocation(5, 1),
+                // (7,28): warning CS1591: Missing XML comment for publicly visible type or member 'Test1.SayHello()'
+                //         public static void SayHello()
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "SayHello").WithArguments("Goo.Bar.Test1.SayHello()").WithLocation(7, 28));
+
+            Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
+            Assert.Equal(
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>test</name>
+    </assembly>
+    <members>
+        <!-- Badly formed XML comment ignored for member ""T:Goo.Bar.Test1"" -->
+    </members>
+</doc>
+",
+                Encoding.UTF8.GetString(xmlDocBytes));
+        }
+
+        [Fact]
+        public void EmitMetadataOnly_XmlDocs_DiagnoseDocMode_SemanticWarning()
+        {
+            CSharpCompilation comp = CreateCompilation(@"
+namespace Goo.Bar
+{
+    /// <summary><see cref=""T""/></summary>
+    public class Test1
+    {
+        public static void SayHello()
+        {
+            Console.WriteLine(""hello"");
+        }
+    }  
+}     
+", assemblyName: "test", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose));
+
+            EmitResult emitResult;
+            byte[] mdOnlyImage;
+            byte[] xmlDocBytes;
+
+            using (var peStream = new MemoryStream())
+            using (var xmlStream = new MemoryStream())
+            {
+                emitResult = comp.Emit(peStream, xmlDocumentationStream: xmlStream, options: new EmitOptions(metadataOnly: true));
+                mdOnlyImage = peStream.ToArray();
+                xmlDocBytes = xmlStream.ToArray();
+            }
+
+            // This should not fail the emit (as it's a warning).
+            Assert.True(emitResult.Success);
+            emitResult.Diagnostics.Verify(
+                // (4,29): warning CS1574: XML comment has cref attribute 'T' that could not be resolved
+                //     /// <summary><see cref="T"/></summary>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "T").WithArguments("T").WithLocation(4, 29),
+                // (7,28): warning CS1591: Missing XML comment for publicly visible type or member 'Test1.SayHello()'
+                //         public static void SayHello()
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "SayHello").WithArguments("Goo.Bar.Test1.SayHello()").WithLocation(7, 28));
+
+            Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
+            Assert.Equal(
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>test</name>
+    </assembly>
+    <members>
+        <member name=""T:Goo.Bar.Test1"">
+            <summary><see cref=""!:T""/></summary>
+        </member>
+    </members>
+</doc>
+",
+                Encoding.UTF8.GetString(xmlDocBytes));
+        }
+
+        [Fact]
+        public void EmitMetadataOnly_XmlDocs_DiagnoseDocMode_Success()
+        {
+            CSharpCompilation comp = CreateCompilation(@"
+namespace Goo.Bar
+{
+    /// <summary>This should emit</summary>
+    public class Test1
+    {
+        public static void SayHello()
+        {
+            Console.WriteLine(""hello"");
+        }
+    }  
+}     
+", assemblyName: "test", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose));
+
+            EmitResult emitResult;
+            byte[] mdOnlyImage;
+            byte[] xmlDocBytes;
+
+            using (var peStream = new MemoryStream())
+            using (var xmlStream = new MemoryStream())
+            {
+                emitResult = comp.Emit(peStream, xmlDocumentationStream: xmlStream, options: new EmitOptions(metadataOnly: true));
+                mdOnlyImage = peStream.ToArray();
+                xmlDocBytes = xmlStream.ToArray();
+            }
+
+            // This should not fail the emit (as it's a warning).
+            Assert.True(emitResult.Success);
+            emitResult.Diagnostics.Verify(
+                // (7,28): warning CS1591: Missing XML comment for publicly visible type or member 'Test1.SayHello()'
+                //         public static void SayHello()
+                Diagnostic(ErrorCode.WRN_MissingXMLComment, "SayHello").WithArguments("Goo.Bar.Test1.SayHello()").WithLocation(7, 28));
+
+            Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
+            Assert.Equal(
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>test</name>
+    </assembly>
+    <members>
+        <member name=""T:Goo.Bar.Test1"">
+            <summary>This should emit</summary>
+        </member>
+    </members>
+</doc>
+",
+                Encoding.UTF8.GetString(xmlDocBytes));
+        }
+
+        [Fact]
+        public void EmitMetadataOnly_XmlDocs_ParseDocMode_Success()
+        {
+            CSharpCompilation comp = CreateCompilation(@"
+namespace Goo.Bar
+{
+    /// <summary>This should emit</summary>
+    public class Test1
+    {
+        public static void SayHello()
+        {
+            Console.WriteLine(""hello"");
+        }
+    }  
+}     
+", assemblyName: "test", parseOptions: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse));
+
+            EmitResult emitResult;
+            byte[] mdOnlyImage;
+            byte[] xmlDocBytes;
+
+            using (var peStream = new MemoryStream())
+            using (var xmlStream = new MemoryStream())
+            {
+                emitResult = comp.Emit(peStream, xmlDocumentationStream: xmlStream, options: new EmitOptions(metadataOnly: true));
+                mdOnlyImage = peStream.ToArray();
+                xmlDocBytes = xmlStream.ToArray();
+            }
+
+            Assert.True(emitResult.Success);
+            emitResult.Diagnostics.Verify();
+
+            Assert.True(mdOnlyImage.Length > 0, "no metadata emitted");
+            Assert.Equal(
+                @"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>test</name>
+    </assembly>
+    <members>
+        <member name=""T:Goo.Bar.Test1"">
+            <summary>This should emit</summary>
+        </member>
+    </members>
+</doc>
+",
+                Encoding.UTF8.GetString(xmlDocBytes));
+        }
+
+        [Fact]
         public void EmitRefAssembly_PrivateMain()
         {
             CSharpCompilation comp = CreateCompilation(@"
@@ -269,16 +572,16 @@ public class C
                 Assert.True(emitResult.Success);
                 emitResult.Diagnostics.Verify();
 
-                VerifyEntryPoint(output, expectZero: false);
+                verifyEntryPoint(output, expectZero: false);
                 VerifyMethods(output, "C", new[] { "void C.Main()", "C..ctor()" });
                 VerifyMvid(output, hasMvidSection: false);
 
-                VerifyEntryPoint(metadataOutput, expectZero: true);
+                verifyEntryPoint(metadataOutput, expectZero: true);
                 VerifyMethods(metadataOutput, "C", new[] { "C..ctor()" });
                 VerifyMvid(metadataOutput, hasMvidSection: true);
             }
 
-            void VerifyEntryPoint(MemoryStream stream, bool expectZero)
+            void verifyEntryPoint(MemoryStream stream, bool expectZero)
             {
                 stream.Position = 0;
                 int entryPoint = new PEHeaders(stream).CorHeader.EntryPointTokenOrRelativeVirtualAddress;
@@ -1784,10 +2087,10 @@ public partial class C
     CHANGE
 }
 ";
-            VerifyIgnoresDiagnostics(EmitOptions.Default.WithEmitMetadataOnly(false).WithTolerateErrors(false), success: false);
-            VerifyIgnoresDiagnostics(EmitOptions.Default.WithEmitMetadataOnly(true).WithTolerateErrors(false), success: expectSuccess);
+            verifyIgnoresDiagnostics(EmitOptions.Default.WithEmitMetadataOnly(false).WithTolerateErrors(false), success: false);
+            verifyIgnoresDiagnostics(EmitOptions.Default.WithEmitMetadataOnly(true).WithTolerateErrors(false), success: expectSuccess);
 
-            void VerifyIgnoresDiagnostics(EmitOptions emitOptions, bool success)
+            void verifyIgnoresDiagnostics(EmitOptions emitOptions, bool success)
             {
                 string source = sourceTemplate.Replace("CHANGE", change);
                 string name = GetUniqueName();
@@ -2305,11 +2608,11 @@ struct S
                 var result = comp.Emit(output, metadataPEStream: metadataOutput,
                     options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Embedded).WithIncludePrivateMembers(false));
 
-                VerifyEmbeddedDebugInfo(output, new[] { DebugDirectoryEntryType.CodeView, DebugDirectoryEntryType.PdbChecksum, DebugDirectoryEntryType.EmbeddedPortablePdb });
-                VerifyEmbeddedDebugInfo(metadataOutput, new DebugDirectoryEntryType[] { DebugDirectoryEntryType.Reproducible });
+                verifyEmbeddedDebugInfo(output, new[] { DebugDirectoryEntryType.CodeView, DebugDirectoryEntryType.PdbChecksum, DebugDirectoryEntryType.EmbeddedPortablePdb });
+                verifyEmbeddedDebugInfo(metadataOutput, new DebugDirectoryEntryType[] { DebugDirectoryEntryType.Reproducible });
             }
 
-            void VerifyEmbeddedDebugInfo(MemoryStream stream, DebugDirectoryEntryType[] expected)
+            void verifyEmbeddedDebugInfo(MemoryStream stream, DebugDirectoryEntryType[] expected)
             {
                 using (var peReader = new PEReader(stream.ToImmutable()))
                 {

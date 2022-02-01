@@ -4,9 +4,13 @@
 
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Text.Classification;
 
@@ -18,15 +22,13 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         private readonly IClassificationFormatMap _formatMap;
         private readonly ClassificationTypeMap _typeMap;
         private readonly IThreadingContext _threadingContext;
-        private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
 
-        public StackTraceExplorerRootViewModel(IThreadingContext threadingContext, VisualStudioWorkspace workspace, IClassificationFormatMap formatMap, ClassificationTypeMap typeMap, IStreamingFindUsagesPresenter streamingFindUsagesPresenter)
+        public StackTraceExplorerRootViewModel(IThreadingContext threadingContext, VisualStudioWorkspace workspace, IClassificationFormatMap formatMap, ClassificationTypeMap typeMap)
         {
             _threadingContext = threadingContext;
             _workspace = workspace;
             _formatMap = formatMap;
             _typeMap = typeMap;
-            _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
         }
 
         public ObservableCollection<StackTraceExplorerTab> Tabs { get; } = new();
@@ -38,38 +40,57 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             set => SetProperty(ref _selectedTab, value);
         }
 
-        public void AddNewTab(bool triggerPaste)
+        /// <summary>
+        /// Returns true if there's a tab that already matches the text
+        /// </summary>
+        public bool ContainsTab(string text)
+            => Tabs.Any(tab => tab.Content.ViewModel.Matches(text));
+
+        public async Task AddNewTabAsync(StackTraceAnalysisResult? result, string originalText, CancellationToken cancellationToken)
         {
             // Name will always have an index. Use the highest index opened + 1.
             var highestIndex = Tabs.Count == 0
                 ? 0
                 : Tabs.Max(t => t.NameIndex);
 
-            var newTab = new StackTraceExplorerTab(_threadingContext, _workspace, _formatMap, _typeMap, _streamingFindUsagesPresenter, highestIndex + 1);
+            var newTab = new StackTraceExplorerTab(_threadingContext, _workspace, _formatMap, _typeMap, highestIndex + 1);
             Tabs.Add(newTab);
 
             SelectedTab = newTab;
 
             newTab.OnClosed += Tab_Closed;
-
-            if (triggerPaste)
+            if (result.HasValue)
             {
-                SelectedTab.Content.OnPaste();
+                await newTab.Content.ViewModel.SetStackTraceResultAsync(result.Value, originalText, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        internal void OnPaste()
+        public async Task DoPasteAsync(CancellationToken cancellationToken)
         {
+            var text = Clipboard.GetText();
+            if (string.IsNullOrEmpty(text))
+            {
+                return;
+            }
+
+            var result = await StackTraceAnalyzer.AnalyzeAsync(text, cancellationToken).ConfigureAwait(false);
             if (SelectedTab is { IsEmpty: true })
             {
                 // Paste in the SelectedTab instead of opening a new tab
                 // for cases where there are no contents in the current tab
-                SelectedTab.Content.OnPaste();
+                await SelectedTab.Content.ViewModel.SetStackTraceResultAsync(result, text, cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                AddNewTab(triggerPaste: true);
+                await AddNewTabAsync(result, text, cancellationToken).ConfigureAwait(false);
             }
+        }
+
+        public void DoPasteSynchronously(CancellationToken cancellationToken)
+        {
+#pragma warning disable VSTHRD102 // Implement internal logic asynchronously
+            _threadingContext.JoinableTaskFactory.Run(() => DoPasteAsync(cancellationToken));
+#pragma warning restore VSTHRD102 // Implement internal logic asynchronously
         }
 
         private void Tab_Closed(object sender, System.EventArgs e)

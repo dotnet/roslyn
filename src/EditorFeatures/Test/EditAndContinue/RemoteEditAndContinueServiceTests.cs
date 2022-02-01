@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -25,7 +26,6 @@ using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -103,7 +103,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 instructionId1,
                 documentName: "test.cs",
                 span1.ToSourceSpan(),
-                flags: ActiveStatementFlags.IsLeafFrame | ActiveStatementFlags.PartiallyExecuted);
+                flags: ActiveStatementFlags.LeafFrame | ActiveStatementFlags.PartiallyExecuted);
 
             var methodId2 = new ManagedModuleMethodId(token: 0x06000002, version: 1);
 
@@ -115,7 +115,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             var document1 = localWorkspace.CurrentSolution.Projects.Single().Documents.Single();
 
             var activeSpans1 = ImmutableArray.Create(
-                new ActiveStatementSpan(0, new LinePositionSpan(new LinePosition(1, 2), new LinePosition(3, 4)), ActiveStatementFlags.IsNonLeafFrame, document.Id));
+                new ActiveStatementSpan(0, new LinePositionSpan(new LinePosition(1, 2), new LinePosition(3, 4)), ActiveStatementFlags.NonLeafFrame, document.Id));
 
             var activeStatementSpanProvider = new ActiveStatementSpanProvider((documentId, path, cancellationToken) =>
             {
@@ -128,7 +128,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 
             // StartDebuggingSession
 
-            IManagedEditAndContinueDebuggerService? remoteDebuggeeModuleMetadataProvider = null;
+            IManagedHotReloadService? remoteDebuggeeModuleMetadataProvider = null;
 
             var debuggingSession = mockEncService.StartDebuggingSessionImpl = (solution, debuggerService, captureMatchingDocuments, captureAllMatchingDocuments, reportDiagnostics) =>
             {
@@ -145,7 +145,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 localWorkspace.CurrentSolution,
                 debuggerService: new MockManagedEditAndContinueDebuggerService()
                 {
-                    IsEditAndContinueAvailable = _ => new ManagedEditAndContinueAvailability(ManagedEditAndContinueAvailabilityStatus.NotAllowedForModule, "can't do enc"),
+                    IsEditAndContinueAvailable = _ => new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.NotAllowedForModule, "can't do enc"),
                     GetActiveStatementsImpl = () => ImmutableArray.Create(as1)
                 },
                 captureMatchingDocuments: ImmutableArray.Create(document1.Id),
@@ -163,8 +163,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
                 documentsToReanalyze = ImmutableArray.Create(document.Id);
             };
 
-            await sessionProxy.BreakStateOrCapabilitiesChangedAsync(mockDiagnosticService, inBreakState: true, CancellationToken.None).ConfigureAwait(false);
+            await sessionProxy.BreakStateOrCapabilitiesChangedAsync(mockDiagnosticService, diagnosticUpdateSource, inBreakState: true, CancellationToken.None).ConfigureAwait(false);
             VerifyReanalyzeInvocation(ImmutableArray.Create(document.Id));
+
+            Assert.Equal(1, emitDiagnosticsClearedCount);
+            emitDiagnosticsClearedCount = 0;
 
             var activeStatement = (await remoteDebuggeeModuleMetadataProvider!.GetActiveStatementsAsync(CancellationToken.None).ConfigureAwait(false)).Single();
             Assert.Equal(as1.ActiveInstruction, activeStatement.ActiveInstruction);
@@ -172,7 +175,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
             Assert.Equal(as1.Flags, activeStatement.Flags);
 
             var availability = await remoteDebuggeeModuleMetadataProvider!.GetAvailabilityAsync(moduleId1, CancellationToken.None).ConfigureAwait(false);
-            Assert.Equal(new ManagedEditAndContinueAvailability(ManagedEditAndContinueAvailabilityStatus.NotAllowedForModule, "can't do enc"), availability);
+            Assert.Equal(new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.NotAllowedForModule, "can't do enc"), availability);
 
             // HasChanges
 
@@ -301,7 +304,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.EditAndContinue
 
             // GetBaseActiveStatementSpans
 
-            var activeStatementSpan1 = new ActiveStatementSpan(0, span1, ActiveStatementFlags.IsNonLeafFrame | ActiveStatementFlags.PartiallyExecuted, unmappedDocumentId: document1.Id);
+            var activeStatementSpan1 = new ActiveStatementSpan(0, span1, ActiveStatementFlags.NonLeafFrame | ActiveStatementFlags.PartiallyExecuted, unmappedDocumentId: document1.Id);
 
             mockEncService.GetBaseActiveStatementSpansImpl = (solution, documentIds) =>
             {

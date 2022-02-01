@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
         <source>A shared abstract interface member cannot be accessed.</source>
-        <target state="new">A shared abstract interface member cannot be accessed.</target>
+        <target state="translated">Impossible d’accéder à un membre d’interface abstract partagé.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
         <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</source>
-        <target state="new">{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</target>
+        <target state="translated">{0} ' {1} 'ne peut pas implémenter l’interface' {3} ', car il contient un abstract partagé' {2} '.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
@@ -520,7 +520,7 @@
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
         <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</source>
-        <target state="new">The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</target>
+        <target state="translated">Le CallerArgumentExpressionAttribute appliqué au paramètre « {0} » n’aura aucun effet. Il est appliqué avec un nom de paramètre non valide.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName_Title">
@@ -3992,7 +3992,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedXmlEndCData">
         <source>Expected closing ']]&gt;' for XML CDATA section.</source>
-        <target state="translated">]]&gt;' fermant attendu pour une section CDATA XML.</target>
+        <target state="translated">']]&gt;' fermant attendu pour une section CDATA XML.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedSQuote">
@@ -4007,7 +4007,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedLT">
         <source>Expected beginning '&lt;' for an XML tag.</source>
-        <target state="translated">&lt;' ouvrant attendu pour une balise XML.</target>
+        <target state="translated">'&lt;' ouvrant attendu pour une balise XML.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StartAttributeValue">

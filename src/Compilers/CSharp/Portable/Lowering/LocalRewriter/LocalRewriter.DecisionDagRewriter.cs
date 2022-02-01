@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <summary>
             /// The label in the code for the beginning of code for each node of the dag.
             /// </summary>
-            protected readonly PooledDictionary<BoundDecisionDagNode, LabelSymbol> _dagNodeLabels = PooledDictionary<BoundDecisionDagNode, LabelSymbol>.GetInstance();
+            private readonly PooledDictionary<BoundDecisionDagNode, LabelSymbol> _dagNodeLabels = PooledDictionary<BoundDecisionDagNode, LabelSymbol>.GetInstance();
 
 #nullable enable
             // When different branches of the DAG share `when` expressions, the
@@ -222,6 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             default:
                                 if (!conversion.UnderlyingConversions.IsDefault)
                                 {
+                                    conversion.AssertUnderlyingConversionsChecked();
                                     foreach (var underlying in conversion.UnderlyingConversions)
                                     {
                                         visitConversion(underlying);
@@ -544,7 +545,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 HashSet<BoundDecisionDagNode> loweredNodes,
                 BoundDagTemp input)
             {
-                IValueSetFactory fac = ValueSetFactory.ForType(input.Type);
+                IValueSetFactory fac = ValueSetFactory.ForInput(input);
                 return GatherValueDispatchNodes(node, loweredNodes, input, fac);
             }
 
@@ -1105,15 +1106,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BoundEvaluationDecisionDagNode evaluationNode:
                         {
-                            BoundExpression sideEffect = LowerEvaluation(evaluationNode.Evaluation);
-                            Debug.Assert(sideEffect != null);
-                            _loweredDecisionDag.Add(_factory.ExpressionStatement(sideEffect));
+                            var e = evaluationNode.Evaluation;
+                            if (e is not BoundDagAssignmentEvaluation)
+                            {
+                                BoundExpression sideEffect = LowerEvaluation(e);
+                                Debug.Assert(sideEffect != null);
+                                _loweredDecisionDag.Add(_factory.ExpressionStatement(sideEffect));
 
-                            // We add a hidden sequence point after the evaluation's side-effect, which may be a call out
-                            // to user code such as `Deconstruct` or a property get, to permit edit-and-continue to
-                            // synchronize on changes.
-                            if (GenerateInstrumentation)
-                                _loweredDecisionDag.Add(_factory.HiddenSequencePoint());
+                                // We add a hidden sequence point after the evaluation's side-effect, which may be a call out
+                                // to user code such as `Deconstruct` or a property get, to permit edit-and-continue to
+                                // synchronize on changes.
+                                if (GenerateInstrumentation)
+                                    _loweredDecisionDag.Add(_factory.HiddenSequencePoint());
+                            }
 
                             if (nextNode != evaluationNode.Next)
                             {

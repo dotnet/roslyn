@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadAbstractStaticMemberAccess">
         <source>A shared abstract interface member cannot be accessed.</source>
-        <target state="new">A shared abstract interface member cannot be accessed.</target>
+        <target state="translated">Nejde získat přístup ke členu sdíleného abstraktního rozhraní.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
         <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</source>
-        <target state="new">{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</target>
+        <target state="translated">{0} {1} nemůže implementovat rozhraní {3}, protože obsahuje sdílené abstraktní {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
@@ -3992,7 +3992,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedXmlEndCData">
         <source>Expected closing ']]&gt;' for XML CDATA section.</source>
-        <target state="translated">Očekávalo se ukončení oddílu CDATA kódu XML znaky ]]&gt;.</target>
+        <target state="translated">Očekávalo se ukončení oddílu CDATA kódu XML znaky ']]&gt;'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedSQuote">
@@ -4007,7 +4007,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedLT">
         <source>Expected beginning '&lt;' for an XML tag.</source>
-        <target state="translated">Očekával se úvodní znak &lt; značky XML.</target>
+        <target state="translated">Očekával se úvodní znak '&lt;' značky XML.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StartAttributeValue">
@@ -7395,7 +7395,7 @@
       </trans-unit>
       <trans-unit id="ERR_XmlEndCDataNotAllowedInContent">
         <source>The literal string ']]&gt;' is not allowed in element content.</source>
-        <target state="translated">V obsahu elementu není povolený řetězec literálu ]]&gt;.</target>
+        <target state="translated">V obsahu elementu není povolený řetězec literálu ']]&gt;'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverloadsModifierInModule">

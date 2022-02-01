@@ -2569,7 +2569,7 @@ public class C : A {
         [Fact]
         public async Task TestFrozenPartialProjectHasDifferentSemanticVersions()
         {
-            using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartalSemantics();
+            using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics();
             var project = workspace.CurrentSolution.AddProject("CSharpProject", "CSharpProject", LanguageNames.CSharp);
             project = project.AddDocument("Extra.cs", SourceText.From("class Extra { }")).Project;
 
@@ -2616,6 +2616,26 @@ public class C : A {
         }
 
         [Fact]
+        public async Task TestFrozenPartialSemanticsProjectDoesNotHaveAdditionalDocumentsFromInProgressChange()
+        {
+            using var workspace = CreateWorkspaceWithPartialSemanticsAndWeakCompilations();
+            var project = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp)
+                .AddDocument("RegularDocument.cs", "// Source File", filePath: "RegularDocument.cs").Project;
+
+            // Fetch the compilation and ensure it's held during forking, as otherwise we may have no in-progress state
+            // when we freeze.
+            var originalCompilation = await project.GetCompilationAsync();
+            project = project.AddAdditionalDocument("Test.txt", "").Project;
+            GC.KeepAlive(originalCompilation);
+
+            // Freeze semantics -- this should give us a compilation and state that don't include the additional file,
+            // since the compilation won't represent that either
+            var frozenDocument = project.Documents.Single().WithFrozenPartialSemantics(CancellationToken.None);
+
+            Assert.Empty(frozenDocument.Project.AdditionalDocuments);
+        }
+
+        [Fact]
         public void TestProjectCompletenessWithMultipleProjects()
         {
             GetMultipleProjects(out var csBrokenProject, out var vbNormalProject, out var dependsOnBrokenProject, out var dependsOnVbNormalProject, out var transitivelyDependsOnBrokenProjects, out var transitivelyDependsOnNormalProjects);
@@ -2641,22 +2661,30 @@ public class C : A {
             Assert.True(transitivelyDependsOnNormalProjects.HasSuccessfullyLoadedAsync().Result);
         }
 
+        private class TestSmallFileTextLoader : FileTextLoader
+        {
+            public TestSmallFileTextLoader(string path, Encoding encoding)
+                : base(path, encoding)
+            {
+            }
+
+            // set max file length to 1 byte
+            internal override int MaxFileLength => 1;
+        }
+
         [Fact]
         public async Task TestMassiveFileSize()
         {
-            // set max file length to 1 bytes
-            var maxLength = 1;
             var workspace = new AdhocWorkspace();
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(FileTextLoaderOptions.FileLengthThreshold, maxLength)));
 
             using var root = new TempRoot();
             var file = root.CreateFile(prefix: "massiveFile", extension: ".cs").WriteAllText("hello");
 
-            var loader = new FileTextLoader(file.Path, Encoding.UTF8);
+            var loader = new TestSmallFileTextLoader(file.Path, Encoding.UTF8);
+
             var textLength = FileUtilities.GetFileLength(file.Path);
 
-            var expected = string.Format(WorkspacesResources.File_0_size_of_1_exceeds_maximum_allowed_size_of_2, file.Path, textLength, maxLength);
+            var expected = string.Format(WorkspacesResources.File_0_size_of_1_exceeds_maximum_allowed_size_of_2, file.Path, textLength, 1);
             var exceptionThrown = false;
 
             try

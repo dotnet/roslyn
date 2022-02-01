@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis
                "System.Runtime.CompilerServices.Unsafe",
                "System.Runtime.Extensions",
                "System.Runtime.InteropServices",
+               "System.Runtime.InteropServices.RuntimeInformation",
                "System.Runtime.Loader",
                "System.Runtime.Numerics",
                "System.Runtime.Serialization.Primitives",
@@ -71,13 +72,15 @@ namespace Microsoft.CodeAnalysis
                "System.Xml.XDocument",
                "System.Xml.XPath.XDocument");
 
+        internal virtual ImmutableHashSet<string> AssemblySimpleNamesToBeLoadedInCompilerContext => CompilerAssemblySimpleNames;
+
         // This is the context where compiler (and some of its dependencies) are being loaded into, which might be different from AssemblyLoadContext.Default.
         private static readonly AssemblyLoadContext s_compilerLoadContext = AssemblyLoadContext.GetLoadContext(typeof(DefaultAnalyzerAssemblyLoader).GetTypeInfo().Assembly)!;
 
         private readonly object _guard = new object();
         private readonly Dictionary<string, DirectoryLoadContext> _loadContextByDirectory = new Dictionary<string, DirectoryLoadContext>(StringComparer.Ordinal);
 
-        protected override Assembly LoadFromPathImpl(string fullPath)
+        protected override Assembly LoadFromPathUncheckedImpl(string fullPath)
         {
             DirectoryLoadContext? loadContext;
 
@@ -119,7 +122,7 @@ namespace Microsoft.CodeAnalysis
             protected override Assembly? Load(AssemblyName assemblyName)
             {
                 var simpleName = assemblyName.Name!;
-                if (CompilerAssemblySimpleNames.Contains(simpleName))
+                if (_loader.AssemblySimpleNamesToBeLoadedInCompilerContext.Contains(simpleName))
                 {
                     // Delegate to the compiler's load context to load the compiler or anything
                     // referenced by the compiler

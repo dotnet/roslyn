@@ -90,7 +90,7 @@ ISwitchOperation (1 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null, 
   Switch expression: 
     IInvalidOperation (OperationKind.Invalid, Type: Program, IsInvalid, IsImplicit) (Syntax: 'Program')
       Children(1):
-          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Program')
+          IOperation:  (OperationKind.None, Type: Program, IsInvalid) (Syntax: 'Program')
   Sections:
       ISwitchCaseOperation (1 case clauses, 1 statements) (OperationKind.SwitchCase, Type: null, IsInvalid) (Syntax: 'case 1: ... break;')
           Clauses:

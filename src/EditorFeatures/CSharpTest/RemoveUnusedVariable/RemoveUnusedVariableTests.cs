@@ -6,6 +6,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -768,6 +769,46 @@ class C
         }
     }
 }");
+        }
+
+        [WorkItem(56924, "https://github.com/dotnet/roslyn/issues/56924")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task RemoveUnusedVariableInCatchInsideBadLocalDeclaration()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method(bool test)
+    {
+        if (test) var x = () => {
+            try { }
+            catch (Exception [|ex|]) { }
+        };
+    }
+}",
+@"class Class
+{
+    void Method(bool test)
+    {
+        if (test) var x = () => {
+            try { }
+            catch (Exception) { }
+        };
+    }
+}");
+        }
+
+        [WorkItem(51737, "https://github.com/dotnet/roslyn/issues/51737")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task RemoveUnusedVariableTopLevel()
+        {
+            await TestAsync(
+@"
+[|int i = 1|];
+i = 2;
+",
+@"
+", CSharpParseOptions.Default);
         }
     }
 }

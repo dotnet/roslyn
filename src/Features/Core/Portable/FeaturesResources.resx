@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!--
-    Microsoft ResX Schema
-
+  <!-- 
+    Microsoft ResX Schema 
+    
     Version 2.0
-
-    The primary goals of this format is to allow a simple XML format
-    that is mostly human readable. The generation and parsing of the
-    various data types are done through the TypeConverter classes
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
     associated with the data types.
-
+    
     Example:
-
+    
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -26,36 +26,36 @@
         <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
         <comment>This is a comment</comment>
     </data>
-
-    There are any number of "resheader" rows that contain simple
+                
+    There are any number of "resheader" rows that contain simple 
     name/value pairs.
-
-    Each data row contains a name, and value. The row also contains a
-    type or mimetype. Type corresponds to a .NET class that support
-    text/value conversion through the TypeConverter architecture.
-    Classes that don't support this are serialized and stored with the
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
     mimetype set.
-
-    The mimetype is used for serialized objects, and tells the
-    ResXResourceReader how to depersist the object. This is currently not
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
     extensible. For a given mimetype the value must be set accordingly:
-
-    Note - application/x-microsoft.net.object.binary.base64 is the format
-    that the ResXResourceWriter will generate, however the reader can
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
     read any of the formats listed below.
-
+    
     mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with
+    value   : The object must be serialized with 
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
-
+    
     mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with
+    value   : The object must be serialized with 
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
             : and then encoded with base64 encoding.
 
     mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array
+    value   : The object must be serialized into a byte array 
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
@@ -965,11 +965,12 @@ This version used in: {2}</value>
   <data name="Asynchronously_waits_for_the_task_to_finish" xml:space="preserve">
     <value>Asynchronously waits for the task to finish.</value>
   </data>
-  <data name="Make_containing_scope_async" xml:space="preserve">
-    <value>Make containing scope async</value>
+  <data name="Await_the_preceding_expression" xml:space="preserve">
+    <value>Await the preceding expression</value>
   </data>
-  <data name="Make_containing_scope_async_return_Task" xml:space="preserve">
-    <value>Make containing scope async (return Task)</value>
+  <data name="Await_the_preceding_expression_and_add_ConfigureAwait_0" xml:space="preserve">
+    <value>Await the preceding expression and add ConfigureAwait({0}).</value>
+    <comment>{Locked="ConfigureAwait"} "ConfigureAwait" is an api name and should not be localized. {0} is a placeholder for the language specific keyword 'false'.</comment>
   </data>
   <data name="paren_Unknown_paren" xml:space="preserve">
     <value>(Unknown)</value>
@@ -2940,5 +2941,169 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Miscellaneous_Files" xml:space="preserve">
     <value>Miscellaneous Files</value>
+  </data>
+  <data name="Explicitly_inherit_documentation" xml:space="preserve">
+    <value>Explicitly inherit documentation</value>
+  </data>
+  <data name="Silent" xml:space="preserve">
+    <value>Silent</value>
+  </data>
+  <data name="embedded" xml:space="preserve">
+    <value>embedded</value>
+    <comment>Embedded is a technical term for "Embedded source", where souce files are embedded into the PDB</comment>
+  </data>
+  <data name="external" xml:space="preserve">
+    <value>external</value>
+    <comment>External means "external source", meaning source files that are not part of the current solution</comment>
+  </data>
+  <data name="Could_not_find_PDB_on_disk_or_embedded" xml:space="preserve">
+    <value>Could not find portable PDB on disk or embedded.</value>
+  </data>
+  <data name="Error_reading_PDB_0" xml:space="preserve">
+    <value>Error reading PDB: '{0}'</value>
+  </data>
+  <data name="Found_embedded_PDB_file" xml:space="preserve">
+    <value>Found embedded PDB file.</value>
+  </data>
+  <data name="Found_PDB_file_at_0" xml:space="preserve">
+    <value>Found PDB file at '{0}'</value>
+  </data>
+  <data name="Found_PDB_on_symbol_server" xml:space="preserve">
+    <value>Found PDB on symbol server.</value>
+  </data>
+  <data name="Found_PDB_on_symbol_server_but_could_not_read_file" xml:space="preserve">
+    <value>Found PDB on symbol server but could not read file.</value>
+  </data>
+  <data name="Navigating_to_symbol_0_from_1" xml:space="preserve">
+    <value>Navigating to symbol '{0}' from '{1}'.</value>
+  </data>
+  <data name="No_source_document_info_found_in_PDB" xml:space="preserve">
+    <value>No source document info found in PDB.</value>
+  </data>
+  <data name="Source_code_language_information_was_not_found_in_PDB" xml:space="preserve">
+    <value>Source code language information was not found in PDB.</value>
+  </data>
+  <data name="Source_is_a_reference_assembly" xml:space="preserve">
+    <value>Source is a reference assembly, not enough information to find PDB.</value>
+  </data>
+  <data name="_0_found_in_embedded_PDB" xml:space="preserve">
+    <value>'{0}' found in embedded PDB.</value>
+  </data>
+  <data name="_0_found_in_embedded_PDB_but_checksum_failed" xml:space="preserve">
+    <value>'{0}' found in embedded PDB but checksum was wrong, or couldn't read temp file.</value>
+  </data>
+  <data name="_0_found_in_embedded_PDB_but_could_not_write_file_1" xml:space="preserve">
+    <value>'{0}' found in embedded PDB but could not write to temp file: '{1}'</value>
+  </data>
+  <data name="_0_found_in_embedded_PDB_cached_source_file" xml:space="preserve">
+    <value>'{0}' found in embedded PDB and found cached source file.</value>
+  </data>
+  <data name="_0_found_via_SourceLink" xml:space="preserve">
+    <value>'{0}' found via SourceLink.</value>
+  </data>
+  <data name="_0_found_via_SourceLink_but_couldnt_read_file" xml:space="preserve">
+    <value>'{0}' found via SourceLink but couldn't read temp file.</value>
+  </data>
+  <data name="_0_found_in_original_location" xml:space="preserve">
+    <value>'{0}' found in original location.</value>
+  </data>
+  <data name="_0_found_in_original_location_but_checksum_failed" xml:space="preserve">
+    <value>'{0}' found in original location but checksum was wrong, or couldn't read temp file.</value>
+  </data>
+  <data name="Could_not_find_PDB_on_disk_or_embedded_or_server" xml:space="preserve">
+    <value>Could not find PDB on disk, or embedded, or on a symbol server.</value>
+  </data>
+  <data name="Timeout_SourceLink" xml:space="preserve">
+    <value>Timed out trying to download source code from SourceLink. Subsequent requests may succeed.</value>
+  </data>
+  <data name="Timeout_symbol_server" xml:space="preserve">
+    <value>Timed out trying to download PDB from symbol server. Subsequent requests may succeed.</value>
+  </data>
+  <data name="Symbol_found_in_assembly_path_0" xml:space="preserve">
+    <value>Symbol found in assembly path '{0}'</value>
+  </data>
+  <data name="Invalid_number" xml:space="preserve">
+    <value>Invalid number</value>
+  </data>
+  <data name="Unterminated_comment" xml:space="preserve">
+    <value>Unterminated comment</value>
+  </data>
+  <data name="Unterminated_string" xml:space="preserve">
+    <value>Unterminated string</value>
+  </data>
+  <data name="_0_expected" xml:space="preserve">
+    <value>'{0}' expected</value>
+  </data>
+  <data name="_0_unexpected" xml:space="preserve">
+    <value>'{0}' unexpected</value>
+  </data>
+  <data name="Invalid_escape_sequence" xml:space="preserve">
+    <value>Invalid escape sequence</value>
+  </data>
+  <data name="Error_parsing_comment" xml:space="preserve">
+    <value>Error parsing comment</value>
+  </data>
+  <data name="Syntax_error" xml:space="preserve">
+    <value>Syntax error</value>
+  </data>
+  <data name="Invalid_property_name" xml:space="preserve">
+    <value>Invalid property name</value>
+  </data>
+  <data name="Missing_property_value" xml:space="preserve">
+    <value>Missing property value</value>
+  </data>
+  <data name="Nested_properties_not_allowed" xml:space="preserve">
+    <value>Nested properties not allowed</value>
+  </data>
+  <data name="Name_expected" xml:space="preserve">
+    <value>Name expected</value>
+  </data>
+  <data name="Invalid_constructor_name" xml:space="preserve">
+    <value>Invalid constructor name</value>
+  </data>
+  <data name="Comments_not_allowed" xml:space="preserve">
+    <value>Comments not allowed</value>
+  </data>
+  <data name="Constructors_not_allowed" xml:space="preserve">
+    <value>Constructors not allowed</value>
+  </data>
+  <data name="Illegal_string_character" xml:space="preserve">
+    <value>Illegal string character</value>
+  </data>
+  <data name="Illegal_whitespace_character" xml:space="preserve">
+    <value>Illegal whitespace character</value>
+  </data>
+  <data name="Only_properties_allowed_in_an_object" xml:space="preserve">
+    <value>Only properties allowed in an object</value>
+  </data>
+  <data name="Properties_not_allowed_in_an_array" xml:space="preserve">
+    <value>Properties not allowed in an array</value>
+  </data>
+  <data name="Property_name_must_be_a_string" xml:space="preserve">
+    <value>Property name must be a string</value>
+  </data>
+  <data name="Strings_must_start_with_double_quote_not_single_quote" xml:space="preserve">
+    <value>Strings must start with " not '</value>
+  </data>
+  <data name="Trailing_comma_not_allowed" xml:space="preserve">
+    <value>Trailing comma not allowed</value>
+  </data>
+  <data name="Value_required" xml:space="preserve">
+    <value>Value required</value>
+  </data>
+  <data name="_0_literal_not_allowed" xml:space="preserve">
+    <value>'{0}' literal not allowed</value>
+  </data>
+  <data name="JSON_issue_0" xml:space="preserve">
+    <value>JSON issue: {0}</value>
+  </data>
+  <data name="Probable_JSON_string_detected" xml:space="preserve">
+    <value>Probable JSON string detected</value>
+  </data>
+  <data name="Enable_JSON_editor_features" xml:space="preserve">
+    <value>Enable JSON editor features</value>
+  </data>
+  <data name="Invalid_regex_pattern" xml:space="preserve">
+    <value>Invalid regex pattern</value>
   </data>
 </root>

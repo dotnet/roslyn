@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
@@ -1192,7 +1193,18 @@ namespace Microsoft.CodeAnalysis
                 // If the workspace has already accepted an update, then fail
                 if (newSolution.WorkspaceVersion != oldSolution.WorkspaceVersion)
                 {
-                    Logger.Log(FunctionId.Workspace_ApplyChanges, "Apply Failed: Workspace has already been updated");
+                    Logger.Log(
+                        FunctionId.Workspace_ApplyChanges,
+                        static (oldSolution, newSolution) =>
+                        {
+                            // 'oldSolution' is the current workspace solution; if we reach this point we know
+                            // 'oldSolution' is newer than the expected workspace solution 'newSolution'.
+                            var oldWorkspaceVersion = oldSolution.WorkspaceVersion;
+                            var newWorkspaceVersion = newSolution.WorkspaceVersion;
+                            return $"Apply Failed: Workspace has already been updated (from version '{newWorkspaceVersion}' to '{oldWorkspaceVersion}')";
+                        },
+                        oldSolution,
+                        newSolution);
                     return false;
                 }
 

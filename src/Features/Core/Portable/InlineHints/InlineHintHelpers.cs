@@ -16,23 +16,22 @@ namespace Microsoft.CodeAnalysis.InlineHints
 {
     internal static class InlineHintHelpers
     {
-        public static Func<Document, CancellationToken, Task<ImmutableArray<TaggedText>>>? GetDescriptionFunction(int position, SymbolKey symbolKey)
-            => (document, cancellationToken) => GetDescriptionAsync(document, position, symbolKey, cancellationToken);
+        public static Func<Document, CancellationToken, Task<ImmutableArray<TaggedText>>>? GetDescriptionFunction(int position, SymbolKey symbolKey, SymbolDescriptionOptions options)
+            => (document, cancellationToken) => GetDescriptionAsync(document, position, symbolKey, options, cancellationToken);
 
-        private static async Task<ImmutableArray<TaggedText>> GetDescriptionAsync(Document document, int position, SymbolKey symbolKey, CancellationToken cancellationToken)
+        private static async Task<ImmutableArray<TaggedText>> GetDescriptionAsync(Document document, int position, SymbolKey symbolKey, SymbolDescriptionOptions options, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var symbol = symbolKey.Resolve(semanticModel.Compilation, cancellationToken: cancellationToken).Symbol;
             if (symbol != null)
             {
-                var workspace = document.Project.Solution.Workspace;
                 var symbolDisplayService = document.GetRequiredLanguageService<ISymbolDisplayService>();
 
                 var parts = new List<TaggedText>();
 
                 var groups = await symbolDisplayService.ToDescriptionGroupsAsync(
-                    workspace, semanticModel, position, ImmutableArray.Create(symbol), cancellationToken).ConfigureAwait(false);
+                    semanticModel, position, ImmutableArray.Create(symbol), options, cancellationToken).ConfigureAwait(false);
 
                 parts.AddRange(groups[SymbolDescriptionGroups.MainDescription]);
 

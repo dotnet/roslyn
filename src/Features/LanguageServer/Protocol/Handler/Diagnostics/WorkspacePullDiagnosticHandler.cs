@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -15,19 +16,19 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
-    internal class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport>
+    internal class WorkspacePullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport, VSInternalWorkspaceDiagnosticReport[]>
     {
         public override string Method => VSInternalMethods.WorkspacePullDiagnosticName;
 
-        public WorkspacePullDiagnosticHandler(IDiagnosticService diagnosticService)
-            : base(diagnosticService)
+        public WorkspacePullDiagnosticHandler(WellKnownLspServerKinds serverKind, IDiagnosticService diagnosticService)
+            : base(serverKind, diagnosticService)
         {
         }
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalWorkspaceDiagnosticsParams request)
             => null;
 
-        protected override VSInternalWorkspaceDiagnosticReport CreateReport(TextDocumentIdentifier? identifier, VSDiagnostic[]? diagnostics, string? resultId)
+        protected override VSInternalWorkspaceDiagnosticReport CreateReport(TextDocumentIdentifier identifier, VisualStudio.LanguageServer.Protocol.Diagnostic[]? diagnostics, string? resultId)
             => new VSInternalWorkspaceDiagnosticReport
             {
                 TextDocument = identifier,
@@ -38,11 +39,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 Identifier = WorkspaceDiagnosticIdentifier,
             };
 
-        protected override IProgress<VSInternalWorkspaceDiagnosticReport[]>? GetProgress(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
-            => diagnosticsParams.PartialResultToken;
-
-        protected override VSInternalDiagnosticParams[]? GetPreviousResults(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
-            => diagnosticsParams.PreviousResults;
+        protected override ImmutableArray<PreviousResult>? GetPreviousResults(VSInternalWorkspaceDiagnosticsParams diagnosticsParams)
+            => diagnosticsParams.PreviousResults?.Where(d => d.PreviousResultId != null).Select(d => new PreviousResult(d.PreviousResultId!, d.TextDocument!)).ToImmutableArray();
 
         protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
         {
@@ -52,6 +50,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         }
 
         protected override ImmutableArray<Document> GetOrderedDocuments(RequestContext context)
+        {
+            return GetWorkspacePullDocuments(context);
+        }
+
+        protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
+            RequestContext context, Document document, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
+        {
+            // For closed files, go to the IDiagnosticService for results.  These won't necessarily be totally up to
+            // date.  However, that's fine as these are closed files and won't be in the process of being edited.  So
+            // any deviations in the spans of diagnostics shouldn't be impactful for the user.
+            return DiagnosticService.GetPullDiagnosticsAsync(document, includeSuppressedDiagnostics: false, diagnosticMode, cancellationToken).AsTask();
+        }
+
+        protected override VSInternalWorkspaceDiagnosticReport[]? CreateReturn(BufferedProgress<VSInternalWorkspaceDiagnosticReport> progress)
+        {
+            return progress.GetValues();
+        }
+
+        internal static ImmutableArray<Document> GetWorkspacePullDocuments(RequestContext context)
         {
             Contract.ThrowIfNull(context.Solution);
 
@@ -126,15 +143,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     result.Add(document);
                 }
             }
-        }
-
-        protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
-            RequestContext context, Document document, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
-        {
-            // For closed files, go to the IDiagnosticService for results.  These won't necessarily be totally up to
-            // date.  However, that's fine as these are closed files and won't be in the process of being edited.  So
-            // any deviations in the spans of diagnostics shouldn't be impactful for the user.
-            return DiagnosticService.GetPullDiagnosticsAsync(document, includeSuppressedDiagnostics: false, diagnosticMode, cancellationToken).AsTask();
         }
     }
 }

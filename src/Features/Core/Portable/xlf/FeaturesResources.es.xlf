@@ -227,7 +227,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Applying_source_changes_while_the_application_is_running_is_not_supported_by_the_runtime">
         <source>Applying source changes while the application is running is not supported by the runtime.</source>
-        <target state="new">Applying source changes while the application is running is not supported by the runtime.</target>
+        <target state="translated">El tiempo de ejecución no admite la aplicación de cambios de origen mientras se ejecuta la aplicación.</target>
         <note />
       </trans-unit>
       <trans-unit id="Attribute_0_is_missing_Updating_an_async_method_or_an_iterator_requires_restarting_the_application">
@@ -239,6 +239,16 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <source>Asynchronously waits for the task to finish.</source>
         <target state="translated">Espera de forma asincrónica a que termine la tarea.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Await_the_preceding_expression">
+        <source>Await the preceding expression</source>
+        <target state="translated">Espere la expresión anterior</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Await_the_preceding_expression_and_add_ConfigureAwait_0">
+        <source>Await the preceding expression and add ConfigureAwait({0}).</source>
+        <target state="translated">Espere la expresión anterior y agregue ConfigureAwait({0}).</target>
+        <note>{Locked="ConfigureAwait"} "ConfigureAwait" is an api name and should not be localized. {0} is a placeholder for the language specific keyword 'false'.</note>
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
         <source>Awaited task returns '{0}'</source>
@@ -395,6 +405,11 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Para cambiar la visibilidad de {0} es necesario reiniciar la aplicación.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Comments_not_allowed">
+        <source>Comments not allowed</source>
+        <target state="new">Comments not allowed</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Configure_0_code_style">
         <source>Configure {0} code style</source>
         <target state="translated">Configurar el estilo de código de {0}</target>
@@ -413,6 +428,11 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       <trans-unit id="Configure_severity_for_all_analyzers">
         <source>Configure severity for all analyzers</source>
         <target state="translated">Configurar la gravedad de todos los analizadores</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Constructors_not_allowed">
+        <source>Constructors not allowed</source>
+        <target state="new">Constructors not allowed</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
@@ -452,12 +472,22 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Convert_to_tuple">
         <source>Convert to tuple</source>
-        <target state="new">Convert to tuple</target>
+        <target state="translated">Convertir a tupla</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_type_to_0">
         <source>Convert type to '{0}'</source>
         <target state="translated">Convertir tipo en "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Could_not_find_PDB_on_disk_or_embedded">
+        <source>Could not find portable PDB on disk or embedded.</source>
+        <target state="translated">No se pudo encontrar el archivo PDB portátil en el disco o incrustado.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Could_not_find_PDB_on_disk_or_embedded_or_server">
+        <source>Could not find PDB on disk, or embedded, or on a symbol server.</source>
+        <target state="translated">No se encontró el archivo PDB en el disco, incrustado o en un servidor de símbolos.</target>
         <note />
       </trans-unit>
       <trans-unit id="Create_and_assign_field_0">
@@ -525,6 +555,11 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Los cambios realizados en el proyecto "{0}" requieren reiniciar la aplicación: {1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_JSON_editor_features">
+        <source>Enable JSON editor features</source>
+        <target state="new">Enable JSON editor features</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ErrorReadingFile">
         <source>Error while reading file '{0}': {1}</source>
         <target state="translated">Error al leer el archivo "{0}": {1}</target>
@@ -540,6 +575,16 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Error al crear la instancia de CodeFixProvider "{0}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="Error_parsing_comment">
+        <source>Error parsing comment</source>
+        <target state="new">Error parsing comment</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_reading_PDB_0">
+        <source>Error reading PDB: '{0}'</source>
+        <target state="translated">Error al leer PDB: '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Example">
         <source>Example:</source>
         <target state="translated">Ejemplo:</target>
@@ -553,6 +598,11 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       <trans-unit id="Explicitly_implemented_methods_of_records_must_have_parameter_names_that_match_the_compiler_generated_equivalent_0">
         <source>Explicitly implemented methods of records must have parameter names that match the compiler generated equivalent '{0}'</source>
         <target state="translated">Los métodos de registros implementados explícitamente deben tener nombres de parámetro que coincidan con el equivalente generado por el programa "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Explicitly_inherit_documentation">
+        <source>Explicitly inherit documentation</source>
+        <target state="translated">Heredar explícitamente la documentación</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_base_class">
@@ -600,14 +650,34 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Aplicando formato al documento</target>
         <note />
       </trans-unit>
+      <trans-unit id="Found_PDB_file_at_0">
+        <source>Found PDB file at '{0}'</source>
+        <target state="translated">Se encontró el archivo PDB en '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_PDB_on_symbol_server">
+        <source>Found PDB on symbol server.</source>
+        <target state="translated">Se encontró PDB en el servidor de símbolos.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_PDB_on_symbol_server_but_could_not_read_file">
+        <source>Found PDB on symbol server but could not read file.</source>
+        <target state="translated">Se encontró PDB en el servidor de símbolos, pero no se pudo leer el archivo.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Found_embedded_PDB_file">
+        <source>Found embedded PDB file.</source>
+        <target state="translated">Se encontró un archivo PDB incrustado.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_abstract_method_0">
         <source>Generate abstract method '{0}'</source>
-        <target state="new">Generate abstract method '{0}'</target>
+        <target state="translated">Generar método abstracto "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_abstract_property_0">
         <source>Generate abstract property '{0}'</source>
-        <target state="new">Generate abstract property '{0}'</target>
+        <target state="translated">Generar propiedad abstracta "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_comparison_operators">
@@ -617,7 +687,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Generate_constant_0">
         <source>Generate constant '{0}'</source>
-        <target state="new">Generate constant '{0}'</target>
+        <target state="translated">Generar constante "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constructor_in_0_with_fields">
@@ -632,12 +702,12 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Generate_enum_member_0">
         <source>Generate enum member '{0}'</source>
-        <target state="new">Generate enum member '{0}'</target>
+        <target state="translated">Generar miembro de enumeración "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_field_0">
         <source>Generate field '{0}'</source>
-        <target state="new">Generate field '{0}'</target>
+        <target state="translated">Generar campo "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_for_0">
@@ -647,7 +717,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Generate_method_0">
         <source>Generate method '{0}'</source>
-        <target state="new">Generate method '{0}'</target>
+        <target state="translated">Generar método "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_parameter_0">
@@ -662,23 +732,33 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Generate_property_0">
         <source>Generate property '{0}'</source>
-        <target state="new">Generate property '{0}'</target>
+        <target state="translated">Generar propiedad "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_read_only_field_0">
         <source>Generate read-only field '{0}'</source>
-        <target state="new">Generate read-only field '{0}'</target>
+        <target state="translated">Generar un campo de sólo lectura "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_read_only_property_0">
         <source>Generate read-only property '{0}'</source>
-        <target state="new">Generate read-only property '{0}'</target>
+        <target state="translated">Generar propiedad de solo lectura "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_backslash_at_end_of_pattern">
         <source>Illegal \ at end of pattern</source>
         <target state="translated">\ no válido al final del modelo</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \</note>
+      </trans-unit>
+      <trans-unit id="Illegal_string_character">
+        <source>Illegal string character</source>
+        <target state="new">Illegal string character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Illegal_whitespace_character">
+        <source>Illegal whitespace character</source>
+        <target state="new">Illegal whitespace character</target>
+        <note />
       </trans-unit>
       <trans-unit id="Illegal_x_y_with_x_less_than_y">
         <source>Illegal {x,y} with x &gt; y</source>
@@ -820,14 +900,44 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Introducir la variable de consulta</target>
         <note />
       </trans-unit>
+      <trans-unit id="Invalid_constructor_name">
+        <source>Invalid constructor name</source>
+        <target state="new">Invalid constructor name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_escape_sequence">
+        <source>Invalid escape sequence</source>
+        <target state="new">Invalid escape sequence</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Invalid_group_name_Group_names_must_begin_with_a_word_character">
         <source>Invalid group name: Group names must begin with a word character</source>
         <target state="translated">Nombre de grupo no válido: nombres de grupo deben comenzar con un carácter de palabra</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?&lt;a &gt;a)</note>
       </trans-unit>
+      <trans-unit id="Invalid_number">
+        <source>Invalid number</source>
+        <target state="new">Invalid number</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_property_name">
+        <source>Invalid property name</source>
+        <target state="new">Invalid property name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Invalid_regex_pattern">
+        <source>Invalid regex pattern</source>
+        <target state="new">Invalid regex pattern</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Invalid_selection">
         <source>Invalid selection.</source>
         <target state="translated">Selección no válida.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_issue_0">
+        <source>JSON issue: {0}</source>
+        <target state="new">JSON issue: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_class_abstract">
@@ -897,13 +1007,18 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Miscellaneous_Files">
         <source>Miscellaneous Files</source>
-        <target state="new">Miscellaneous Files</target>
+        <target state="translated">Archivos varios</target>
         <note />
       </trans-unit>
       <trans-unit id="Missing_control_character">
         <source>Missing control character</source>
         <target state="translated">Falta de carácter de control</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: \c</note>
+      </trans-unit>
+      <trans-unit id="Missing_property_value">
+        <source>Missing property value</source>
+        <target state="new">Missing property value</target>
+        <note />
       </trans-unit>
       <trans-unit id="Modifying_0_which_contains_a_static_variable_requires_restarting_the_application">
         <source>Modifying {0} which contains a static variable requires restarting the application.</source>
@@ -1007,7 +1122,7 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       </trans-unit>
       <trans-unit id="Move_static_members_to_another_type">
         <source>Move static members to another type...</source>
-        <target state="new">Move static members to another type...</target>
+        <target state="translated">Mover miembros estáticos a otro tipo...</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
@@ -1020,6 +1135,21 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Para mover {0} es necesario reiniciar la aplicación.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Name_expected">
+        <source>Name expected</source>
+        <target state="new">Name expected</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigating_to_symbol_0_from_1">
+        <source>Navigating to symbol '{0}' from '{1}'.</source>
+        <target state="translated">Navegando al símbolo '{0}' desde '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Nested_properties_not_allowed">
+        <source>Nested properties not allowed</source>
+        <target state="new">Nested properties not allowed</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Nested_quantifier_0">
         <source>Nested quantifier {0}</source>
         <target state="translated">Cuantificador anidado {0}</target>
@@ -1028,6 +1158,11 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       <trans-unit id="No_common_root_node_for_extraction">
         <source>No common root node for extraction.</source>
         <target state="translated">No hay nodo raíz común para la extracción.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_source_document_info_found_in_PDB">
+        <source>No source document info found in PDB.</source>
+        <target state="translated">No se encontró información del documento de origen en PDB.</target>
         <note />
       </trans-unit>
       <trans-unit id="No_valid_location_to_insert_method_call">
@@ -1045,9 +1180,29 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">No hay suficientes )</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (a</note>
       </trans-unit>
+      <trans-unit id="Only_properties_allowed_in_an_object">
+        <source>Only properties allowed in an object</source>
+        <target state="new">Only properties allowed in an object</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Operators">
         <source>Operators</source>
         <target state="translated">Operadores</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Probable_JSON_string_detected">
+        <source>Probable JSON string detected</source>
+        <target state="new">Probable JSON string detected</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Properties_not_allowed_in_an_array">
+        <source>Properties not allowed in an array</source>
+        <target state="new">Properties not allowed in an array</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Property_name_must_be_a_string">
+        <source>Property name must be a string</source>
+        <target state="new">Property name must be a string</target>
         <note />
       </trans-unit>
       <trans-unit id="Property_reference_cannot_be_updated">
@@ -1215,8 +1370,8 @@ Se recomienda esta opción si sabe que la vuelta atrás no será correcta. Evita
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</source>
-        <target state="needs-review-translation">Una definición de grupo de equilibrio elimina la definición de un grupo definido anteriormente y almacena, en el grupo actual, el intervalo entre el grupo definido anteriormente y el grupo actual.
-    
+        <target state="translated">Una definición de grupo de equilibrio elimina la definición de un grupo definido anteriormente y almacena, en el grupo actual, el intervalo entre el grupo definido anteriormente y el grupo actual.
+
 "name1" es el grupo actual (opcional), "name2" es un grupo definido anteriormente y "subexpression" es cualquier patrón de expresión regular válido. La definición del grupo de equilibrio elimina la definición de name2 y almacena el intervalo entre name2 y name1 en name1. Si no se define un grupo de name2, la coincidencia se busca con retroceso. Como la eliminación de la última definición de name2 revela la definición anterior de name2, esta construcción permite usar la pila de capturas para el grupo name2 como contador para realizar el seguimiento de las construcciones anidadas, como los paréntesis o los corchetes de apertura y cierre.
 
 La definición del grupo de equilibrio usa "name2" como una pila. El carácter inicial de cada construcción anidada se coloca en el grupo y en su colección Group.Captures. Cuando coincide el carácter de cierre, se quita el carácter de apertura correspondiente del grupo y se quita uno de la colección Captures. Una vez que se han encontrado coincidencias de los caracteres de apertura y cierre de todas las construcciones anidadas, "name1" se queda vacío.</target>
@@ -2290,9 +2445,24 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="translated">La selección no está contenida dentro de un tipo.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Silent">
+        <source>Silent</source>
+        <target state="translated">Silencioso</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">Ordenar modificadores de accesibilidad</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Source_code_language_information_was_not_found_in_PDB">
+        <source>Source code language information was not found in PDB.</source>
+        <target state="translated">No se encontró la información del lenguaje de código fuente en PDB.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Source_is_a_reference_assembly">
+        <source>Source is a reference assembly, not enough information to find PDB.</source>
+        <target state="translated">El origen es un ensamblado de referencia, no hay suficiente información para encontrar el archivo PDB.</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_into_consecutive_0_statements">
@@ -2310,6 +2480,11 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="translated">La secuencia debe admitir las operaciones de lectura y búsqueda.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Strings_must_start_with_double_quote_not_single_quote">
+        <source>Strings must start with " not '</source>
+        <target state="new">Strings must start with " not '</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Suppress_0">
         <source>Suppress {0}</source>
         <target state="translated">Suprimir {0}</target>
@@ -2318,6 +2493,16 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
       <trans-unit id="Switching_between_lambda_and_local_function_requires_restarting_the_application">
         <source>Switching between a lambda and a local function requires restarting the application.</source>
         <target state="translated">Para cambiar entre una expresión lambda y una función local, es necesario reiniciar la aplicación.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_found_in_assembly_path_0">
+        <source>Symbol found in assembly path '{0}'</source>
+        <target state="translated">Símbolo encontrado en la ruta de acceso del ensamblado '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Syntax_error">
+        <source>Syntax error</source>
+        <target state="new">Syntax error</target>
         <note />
       </trans-unit>
       <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
@@ -2345,6 +2530,16 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="translated">La selección contiene una llamada a una función local sin la declaración correspondiente.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Timeout_SourceLink">
+        <source>Timed out trying to download source code from SourceLink. Subsequent requests may succeed.</source>
+        <target state="translated">Se agotó el tiempo de espera al intentar descargar el código fuente de SourceLink. Es posible que las solicitudes siguientes se realicen correctamente.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Timeout_symbol_server">
+        <source>Timed out trying to download PDB from symbol server. Subsequent requests may succeed.</source>
+        <target state="translated">Se agotó el tiempo de espera al intentar descargar el archivo PDB del servidor de símbolos. Es posible que las solicitudes siguientes se realicen correctamente.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Too_many_bars_in_conditional_grouping">
         <source>Too many | in (?()|)</source>
         <target state="translated">Demasiados | en (?()|)</target>
@@ -2355,9 +2550,14 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="translated">Demasiados )</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: )</note>
       </trans-unit>
+      <trans-unit id="Trailing_comma_not_allowed">
+        <source>Trailing comma not allowed</source>
+        <target state="new">Trailing comma not allowed</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Types_colon">
         <source>Types:</source>
-        <target state="new">Types:</target>
+        <target state="translated">Tipos:</target>
         <note />
       </trans-unit>
       <trans-unit id="UnableToReadSourceFileOrPdb">
@@ -2395,10 +2595,20 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="translated">Conjunto [] sin terminar</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [</note>
       </trans-unit>
+      <trans-unit id="Unterminated_comment">
+        <source>Unterminated comment</source>
+        <target state="new">Unterminated comment</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unterminated_regex_comment">
         <source>Unterminated (?#...) comment</source>
         <target state="translated">Comentario (?#...) sin terminar</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: (?#</note>
+      </trans-unit>
+      <trans-unit id="Unterminated_string">
+        <source>Unterminated string</source>
+        <target state="new">Unterminated string</target>
+        <note />
       </trans-unit>
       <trans-unit id="Unwrap_all_arguments">
         <source>Unwrap all arguments</source>
@@ -2560,6 +2770,11 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="translated">Valor:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Value_required">
+        <source>Value required</source>
+        <target state="new">Value required</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
         <source>Warning: Changing namespace may produce invalid code and change code meaning.</source>
         <target state="translated">Advertencia: si cambia Cambiar el espacio de nombres puede producir código inválido y cambiar el significado del código.</target>
@@ -2645,14 +2860,69 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="translated">{0} - {1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_expected">
+        <source>'{0}' expected</source>
+        <target state="new">'{0}' expected</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB">
+        <source>'{0}' found in embedded PDB.</source>
+        <target state="translated">'{0}' encontrados en PDB incrustado.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB_but_checksum_failed">
+        <source>'{0}' found in embedded PDB but checksum was wrong, or couldn't read temp file.</source>
+        <target state="translated">'{0}' encontró en el archivo PDB incrustado, pero la suma de comprobación era incorrecta o no pudo leer el archivo temporal.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB_but_could_not_write_file_1">
+        <source>'{0}' found in embedded PDB but could not write to temp file: '{1}'</source>
+        <target state="translated">'{0}' encontró en el archivo PDB incrustado pero no pudo escribir en el archivo temporal: '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_embedded_PDB_cached_source_file">
+        <source>'{0}' found in embedded PDB and found cached source file.</source>
+        <target state="translated">'{0}' se encontró en el archivo PDB incrustado y se encontró el archivo de origen almacenado en caché.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_original_location">
+        <source>'{0}' found in original location.</source>
+        <target state="translated">'{0}' encontrados en la ubicación original.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_in_original_location_but_checksum_failed">
+        <source>'{0}' found in original location but checksum was wrong, or couldn't read temp file.</source>
+        <target state="translated">'{0}' encontró en la ubicación original, pero la suma de comprobación era incorrecta o no pudo leer el archivo temporal.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_via_SourceLink">
+        <source>'{0}' found via SourceLink.</source>
+        <target state="translated">'{0}' encontró a través de SourceLink.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_found_via_SourceLink_but_couldnt_read_file">
+        <source>'{0}' found via SourceLink but couldn't read temp file.</source>
+        <target state="translated">'{0}' encontró a través de SourceLink pero no pudo leer el archivo temporal.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
         <target state="translated">"{0}" no es NULL aquí.</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_literal_not_allowed">
+        <source>'{0}' literal not allowed</source>
+        <target state="new">'{0}' literal not allowed</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_may_be_null_here">
         <source>'{0}' may be null here.</source>
         <target state="translated">"{0}" puede ser NULL aquí.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_unexpected">
+        <source>'{0}' unexpected</source>
+        <target state="new">'{0}' unexpected</target>
         <note />
       </trans-unit>
       <trans-unit id="_10000000ths_of_a_second">
@@ -2893,7 +3163,7 @@ Si el especificador de formato "H" se usa sin otros especificadores de formato p
       </trans-unit>
       <trans-unit id="all_anonymous_types_in_container">
         <source>all anonymous types in container</source>
-        <target state="new">all anonymous types in container</target>
+        <target state="translated">todos los tipos anónimos del contenedor</target>
         <note />
       </trans-unit>
       <trans-unit id="and_update_call_sites_directly">
@@ -2972,6 +3242,16 @@ Si el especificador de formato "d" se usa sin otros especificadores de formato p
         <source>discard</source>
         <target state="translated">descartar</target>
         <note />
+      </trans-unit>
+      <trans-unit id="embedded">
+        <source>embedded</source>
+        <target state="translated">Incrustado</target>
+        <note>Embedded is a technical term for "Embedded source", where souce files are embedded into the PDB</note>
+      </trans-unit>
+      <trans-unit id="external">
+        <source>external</source>
+        <target state="translated">externo</target>
+        <note>External means "external source", meaning source files that are not part of the current solution</note>
       </trans-unit>
       <trans-unit id="from_metadata">
         <source>from metadata</source>
@@ -3054,7 +3334,7 @@ El especificador de formato estándar "f" representa una combinación de los pat
       </trans-unit>
       <trans-unit id="just_this_anonymous_type">
         <source>just this anonymous type</source>
-        <target state="new">just this anonymous type</target>
+        <target state="translated">solo este tipo anónimo</target>
         <note />
       </trans-unit>
       <trans-unit id="long_date">
@@ -3607,7 +3887,7 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="in_Suppression_File">
         <source>in Suppression File</source>
-        <target state="translated">En&amp; archivo de supresión</target>
+        <target state="translated">En archivo de supresión</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_Suppression_0">
@@ -4173,16 +4453,6 @@ Esta versión se utiliza en: {2}</target>
       <trans-unit id="Add_missing_param_nodes">
         <source>Add missing param nodes</source>
         <target state="translated">Agregar nodos de parámetros que faltan</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_containing_scope_async">
-        <source>Make containing scope async</source>
-        <target state="translated">Convertir el ámbito contenedor en asincrónico</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Make_containing_scope_async_return_Task">
-        <source>Make containing scope async (return Task)</source>
-        <target state="translated">Convertir el ámbito contenedor en asincrónico (devolver Task)</target>
         <note />
       </trans-unit>
       <trans-unit id="paren_Unknown_paren">

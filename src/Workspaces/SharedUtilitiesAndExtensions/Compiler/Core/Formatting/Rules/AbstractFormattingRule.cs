@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
     /// <remarks>All methods defined in this class can be called concurrently. Must be thread-safe.</remarks>
     internal abstract class AbstractFormattingRule
     {
-        public virtual AbstractFormattingRule WithOptions(AnalyzerConfigOptions options)
+        public virtual AbstractFormattingRule WithOptions(SyntaxFormattingOptions options)
             => this;
 
         /// <summary>

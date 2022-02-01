@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -13,12 +14,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     {
         internal readonly struct Data
         {
+            public readonly Guid SolutionSessionId;
             public readonly ImmutableArray<EditSessionTelemetry.Data> EditSessionData;
             public readonly int EmptyEditSessionCount;
             public readonly int EmptyHotReloadEditSessionCount;
 
             public Data(DebuggingSessionTelemetry telemetry)
             {
+                SolutionSessionId = telemetry._solutionSessionId;
                 EditSessionData = telemetry._editSessionData.ToImmutableArray();
                 EmptyEditSessionCount = telemetry._emptyEditSessionCount;
                 EmptyHotReloadEditSessionCount = telemetry._emptyHotReloadEditSessionCount;
@@ -27,9 +30,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         private readonly object _guard = new();
 
+        private readonly Guid _solutionSessionId;
         private readonly List<EditSessionTelemetry.Data> _editSessionData = new();
         private int _emptyEditSessionCount;
         private int _emptyHotReloadEditSessionCount;
+
+        public DebuggingSessionTelemetry(Guid solutionSessionId)
+        {
+            _solutionSessionId = solutionSessionId;
+        }
 
         public Data GetDataAndClear()
         {
@@ -82,6 +91,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             log(FunctionId.Debugging_EncSession, KeyValueLogMessage.Create(map =>
             {
+                map["SolutionSessionId"] = data.SolutionSessionId.ToString("B").ToUpperInvariant();
                 map[SessionId] = debugSessionId;
                 map["SessionCount"] = data.EditSessionData.Count(session => session.InBreakState);
                 map["EmptySessionCount"] = data.EmptyEditSessionCount;
@@ -100,13 +110,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     map["HadCompilationErrors"] = editSessionData.HadCompilationErrors;
                     map["HadRudeEdits"] = editSessionData.HadRudeEdits;
+
+                    // Changes made to source code during the edit session were valid - they were significant and no rude edits were reported.
+                    // The changes still might fail to emit (see EmitDeltaErrorIdCount).
                     map["HadValidChanges"] = editSessionData.HadValidChanges;
                     map["HadValidInsignificantChanges"] = editSessionData.HadValidInsignificantChanges;
 
                     map["RudeEditsCount"] = editSessionData.RudeEdits.Length;
+
+                    // Number of emit errors.
                     map["EmitDeltaErrorIdCount"] = editSessionData.EmitErrorIds.Length;
+
+                    // False for Hot Reload session, true or missing for EnC session (missing in older data that did not have this property).
                     map["InBreakState"] = editSessionData.InBreakState;
+
                     map["Capabilities"] = (int)editSessionData.Capabilities;
+
+                    // Ids of all projects whose binaries were successfully updated during the session.
+                    map["ProjectIdsWithAppliedChanges"] = editSessionData.Committed ? editSessionData.ProjectsWithValidDelta.Select(id => new PiiValue(id.ToString("B").ToUpperInvariant())) : "";
                 }));
 
                 foreach (var errorId in editSessionData.EmitErrorIds)

@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             bool conversionFailureOk,
             bool allowIndexOutOfRange,
             bool allowNullReference,
-            bool allowOutOfMemeory,
+            bool allowOutOfMemory,
             bool allowDiagnosticsMismatch = false)
         {
             var (token, tree, allChars) = JustParseTree(stringText, options, conversionFailureOk);
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                 // bug with .NET regex parser.  can happen with patterns like: (?(?S))
                 return treeAndText;
             }
-            catch (OutOfMemoryException) when (allowOutOfMemeory)
+            catch (OutOfMemoryException) when (allowOutOfMemory)
             {
                 // bug with .NET regex parser.  can happen with patterns like: a{2147483647,}
                 return treeAndText;
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             }
 
             Assert.True(regex.GetGroupNumbers().OrderBy(v => v).SequenceEqual(
-                tree.CaptureNumbersToSpan.Keys.OrderBy(v => v).Select(v => (int)v)));
+                tree.CaptureNumbersToSpan.Keys.OrderBy(v => v)));
 
             Assert.True(regex.GetGroupNames().Where(v => !int.TryParse(v, out _)).OrderBy(v => v).SequenceEqual(
                 tree.CaptureNamesToSpan.Keys.OrderBy(v => v)));
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             return treeAndText;
         }
 
-        private string TreeToText(SourceText text, RegexTree tree)
+        private static string TreeToText(SourceText text, RegexTree tree)
         {
             var element = new XElement("Tree",
                 NodeToElement(tree.Root));
@@ -224,16 +224,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                         GetTextAttribute(text, d.Span))));
 
         private static XAttribute GetTextAttribute(SourceText text, TextSpan span)
-            => new XAttribute("Text", text.ToString(span));
+            => new("Text", text.ToString(span));
 
-        private XElement NodeToElement(RegexNode node)
+        private static XElement NodeToElement(RegexNode node)
         {
+            if (node is RegexAlternationNode alternationNode)
+                return AlternationToElement(alternationNode, alternationNode.SequenceList.NodesAndTokens.Length);
+
             var element = new XElement(node.Kind.ToString());
             foreach (var child in node)
-            {
                 element.Add(child.IsNode ? NodeToElement(child.Node) : TokenToElement(child.Token));
-            }
 
+            return element;
+        }
+
+        private static XElement AlternationToElement(RegexAlternationNode alternationNode, int end)
+        {
+            // to keep tests in sync with how we used to structure alternations, we specially handle this node.
+            // First, if the node only has a single element, then just print that element as that's what would
+            // normally be inlined into the parent.
+            if (end == 1)
+                return NodeToElement(alternationNode.SequenceList.NodesAndTokens[0].Node);
+
+            var element = new XElement(alternationNode.Kind.ToString());
+            element.Add(AlternationToElement(alternationNode, end - 2));
+            element.Add(TokenToElement(alternationNode.SequenceList.NodesAndTokens[end - 2].Token));
+            element.Add(NodeToElement(alternationNode.SequenceList.NodesAndTokens[end - 1].Node));
             return element;
         }
 
@@ -264,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                 trivia.Kind.ToString(),
                 trivia.VirtualChars.CreateString());
 
-        private void CheckInvariants(RegexTree tree, VirtualCharSequence allChars)
+        private static void CheckInvariants(RegexTree tree, VirtualCharSequence allChars)
         {
             var root = tree.Root;
             var position = 0;
@@ -272,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             Assert.Equal(allChars.Length, position);
         }
 
-        private void CheckInvariants(RegexNode node, ref int position, VirtualCharSequence allChars)
+        private static void CheckInvariants(RegexNode node, ref int position, VirtualCharSequence allChars)
         {
             foreach (var child in node)
             {
@@ -326,6 +342,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             position += virtualChars.Length;
         }
 
+        private static string And(params string[] regexes)
+        {
+            var conj = $"({regexes[regexes.Length - 1]})";
+            for (var i = regexes.Length - 2; i >= 0; i--)
+                conj = $"(?({regexes[i]}){conj}|[0-[0]])";
+
+            return conj;
+        }
+
+        private static string Not(string regex)
+            => $"(?({regex})[0-[0]]|.*)";
+
         [Fact]
         public void TestDeepRecursion()
         {
@@ -346,6 +374,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             Assert.False(token.IsMissing);
             Assert.False(chars.IsDefaultOrEmpty);
             Assert.Null(tree);
+        }
+
+        [Fact]
+        public void TestNoStackOverflow()
+        {
+            for (var i = 1; i < 1200; i++)
+            {
+                var text = new string('(', i);
+                var (token, _, chars) = JustParseTree($@"@""{text}""", RegexOptions.None, conversionFailureOk: false);
+                Assert.False(token.IsMissing);
+                Assert.False(chars.IsDefaultOrEmpty);
+            }
         }
     }
 }

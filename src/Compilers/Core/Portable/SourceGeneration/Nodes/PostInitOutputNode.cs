@@ -9,9 +9,9 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class PostInitOutputNode : IIncrementalGeneratorOutputNode
     {
-        private readonly Action<IncrementalGeneratorPostInitializationContext> _callback;
+        private readonly Action<IncrementalGeneratorPostInitializationContext, CancellationToken> _callback;
 
-        public PostInitOutputNode(Action<IncrementalGeneratorPostInitializationContext> callback)
+        public PostInitOutputNode(Action<IncrementalGeneratorPostInitializationContext, CancellationToken> callback)
         {
             _callback = callback;
         }
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis
 
         public void AppendOutputs(IncrementalExecutionContext context, CancellationToken cancellationToken)
         {
-            _callback(new IncrementalGeneratorPostInitializationContext(context.Sources, cancellationToken));
+            _callback(new IncrementalGeneratorPostInitializationContext(context.Sources, cancellationToken), cancellationToken);
         }
     }
 }

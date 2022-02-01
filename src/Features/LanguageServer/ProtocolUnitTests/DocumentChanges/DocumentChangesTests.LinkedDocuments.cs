@@ -36,13 +36,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
     </Project>
 </Workspace>";
 
-            using var testLspServer = CreateXmlTestLspServer(workspaceXml, out var locations);
-            var caretLocation = locations["caret"].Single();
+            using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml);
+            var caretLocation = testLspServer.GetLocations("caret").Single();
 
             await DidOpen(testLspServer, caretLocation.Uri);
 
             var trackedDocuments = testLspServer.GetQueueAccessor().GetTrackedTexts();
-            Assert.Equal(1, trackedDocuments.Count);
+            Assert.Equal(1, trackedDocuments.Length);
 
             var solution = await GetLSPSolution(testLspServer, caretLocation.Uri);
 
@@ -77,8 +77,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
     </Project>
 </Workspace>";
 
-            using var testLspServer = CreateXmlTestLspServer(workspaceXml, out var locations);
-            var caretLocation = locations["caret"].Single();
+            using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml);
+            var caretLocation = testLspServer.GetLocations("caret").Single();
 
             var updatedText =
 @"class A
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
             await DidOpen(testLspServer, caretLocation.Uri);
 
-            Assert.Equal(1, testLspServer.GetQueueAccessor().GetTrackedTexts().Count);
+            Assert.Equal(1, testLspServer.GetQueueAccessor().GetTrackedTexts().Length);
 
             await DidChange(testLspServer, caretLocation.Uri, (4, 8, "// hi there"));
 
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
             {
             }
 
-            public override ImmutableArray<IRequestHandler> CreateRequestHandlers() => ImmutableArray.Create<IRequestHandler>(new GetLSPSolutionHandler());
+            public override ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind) => ImmutableArray.Create<IRequestHandler>(new GetLSPSolutionHandler());
         }
 
         private class GetLSPSolutionHandler : IRequestHandler<Uri, Solution>

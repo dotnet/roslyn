@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp;
@@ -65,6 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         protected readonly Guid LanguageServiceGuid;
         protected readonly ITextView TextView;
         protected readonly ITextBuffer SubjectBuffer;
+        protected readonly IGlobalOptionService GlobalOptions;
 
         private readonly ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> _allArgumentProviders;
         private ImmutableArray<ArgumentProvider> _argumentProviders;
@@ -93,16 +95,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             SignatureHelpControllerProvider signatureHelpControllerProvider,
             IEditorCommandHandlerServiceFactory editorCommandHandlerServiceFactory,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
-            ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders)
+            ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders,
+            IGlobalOptionService globalOptions)
             : base(threadingContext)
         {
-            this.LanguageServiceGuid = languageServiceGuid;
-            this.TextView = textView;
-            this.SubjectBuffer = subjectBuffer;
+            LanguageServiceGuid = languageServiceGuid;
+            TextView = textView;
+            SubjectBuffer = subjectBuffer;
             _signatureHelpControllerProvider = signatureHelpControllerProvider;
             _editorCommandHandlerServiceFactory = editorCommandHandlerServiceFactory;
-            this.EditorAdaptersFactoryService = editorAdaptersFactoryService;
+            EditorAdaptersFactoryService = editorAdaptersFactoryService;
             _allArgumentProviders = argumentProviders;
+            GlobalOptions = globalOptions;
         }
 
         /// <inheritdoc cref="State._expansionSession"/>
@@ -128,7 +132,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         public abstract int GetExpansionFunction(IXMLDOMNode xmlFunctionNode, string bstrFieldName, out IVsExpansionFunction? pFunc);
         protected abstract ITrackingSpan? InsertEmptyCommentAndGetEndPositionTrackingSpan();
-        internal abstract Document AddImports(Document document, OptionSet options, int position, XElement snippetNode, bool allowInHiddenRegions, CancellationToken cancellationToken);
+        internal abstract Document AddImports(Document document, CodeGenerationPreferences preferences, int position, XElement snippetNode, bool allowInHiddenRegions, CancellationToken cancellationToken);
         protected abstract string FallbackDefaultLiteral { get; }
 
         public int FormatSpan(IVsTextLines pBuffer, VsTextSpan[] tsInSurfaceBuffer)
@@ -516,16 +520,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
         private bool TryInsertArgumentCompletionSnippet(SnapshotSpan triggerSpan, SnapshotSpan dataBufferSpan, IVsExpansion expansion, VsTextSpan textSpan, CancellationToken cancellationToken)
         {
-            if (!(SubjectBuffer.GetFeatureOnOffOption(CompletionOptions.EnableArgumentCompletionSnippets) ?? false))
-            {
-                // Argument completion snippets are not enabled
-                return false;
-            }
-
             var document = SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document is null)
             {
                 // Couldn't identify the current document
+                return false;
+            }
+
+            if (!(GlobalOptions.GetOption(CompletionViewOptions.EnableArgumentCompletionSnippets, document.Project.Language) ?? false))
+            {
+                // Argument completion snippets are not enabled
                 return false;
             }
 
@@ -746,7 +750,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return ImmutableArray<ISymbol>.Empty;
             }
 
-            var semanticInfo = semanticModel.GetSemanticInfo(token, document.Project.Solution.Workspace, cancellationToken);
+            var semanticInfo = semanticModel.GetSemanticInfo(token, document.Project.Solution.Workspace.Services, cancellationToken);
             return semanticInfo.ReferencedSymbols;
         }
 
@@ -877,6 +881,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
 
             // Now compute the new arguments for the new call
+            var options = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var semanticModel = document.GetRequiredSemanticModelAsync(cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
             var position = SubjectBuffer.CurrentSnapshot.GetPosition(adjustedTextSpan.iStartLine, adjustedTextSpan.iStartIndex);
 
@@ -886,7 +891,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
                 foreach (var provider in GetArgumentProviders(document.Project.Solution.Workspace))
                 {
-                    var context = new ArgumentContext(provider, semanticModel, position, parameter, value, cancellationToken);
+                    var context = new ArgumentContext(provider, options, semanticModel, position, parameter, value, cancellationToken);
                     ThreadingContext.JoinableTaskFactory.Run(() => provider.ProvideArgumentAsync(context));
 
                     if (context.DefaultValue is not null)
@@ -1049,14 +1054,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return;
             }
 
-            var documentOptions = documentWithImports.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var preferences = CodeGenerationPreferences.FromDocumentAsync(documentWithImports, cancellationToken).WaitAndGetResult(cancellationToken);
             var allowInHiddenRegions = documentWithImports.CanAddImportsInHiddenRegions();
 
-            documentWithImports = AddImports(documentWithImports, documentOptions, position, snippetNode, allowInHiddenRegions, cancellationToken);
+            documentWithImports = AddImports(documentWithImports, preferences, position, snippetNode, allowInHiddenRegions, cancellationToken);
             AddReferences(documentWithImports.Project, snippetNode);
         }
 
-        private void AddReferences(Project originalProject, XElement snippetNode)
+        private static void AddReferences(Project originalProject, XElement snippetNode)
         {
             var referencesNode = snippetNode.Element(XName.Get("References", snippetNode.Name.NamespaceName));
             if (referencesNode == null)

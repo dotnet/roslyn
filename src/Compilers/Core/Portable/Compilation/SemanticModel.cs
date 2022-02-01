@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -78,7 +79,9 @@ namespace Microsoft.CodeAnalysis
             {
                 return GetOperationCore(node, cancellationToken);
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+#pragma warning disable CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete; tracked by https://github.com/dotnet/roslyn/issues/58375
+            catch (Exception e) when (FatalError.ReportIfNonFatalAndCatchUnlessCanceled(e, cancellationToken))
+#pragma warning restore CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete
             {
                 // Log a Non-fatal-watson and then ignore the crash in the attempt of getting operation
                 Debug.Assert(false, "\n" + e.ToString());
@@ -709,7 +712,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Analyze data-flow within a part of a method body.
         /// </summary>
-        /// <param name="statementOrExpression">The statement or expression to be analyzed.</param>
+        /// <param name="statementOrExpression">The statement or expression to be analyzed. A ConstructorInitializerSyntax / PrimaryConstructorBaseTypeSyntax is treated here as a regular statement.</param>
         /// <returns>An object that can be used to obtain the result of the data flow analysis.</returns>
         /// <exception cref="System.ArgumentException">The statement or expression is not with a method
         /// body or field or property initializer.</exception>
@@ -872,7 +875,23 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal abstract void ComputeDeclarationsInNode(SyntaxNode node, ISymbol associatedSymbol, bool getSymbol, ArrayBuilder<DeclarationInfo> builder, CancellationToken cancellationToken, int? levelsToCompute = null);
 
+        /// <summary>
+        /// Gets a filter that determines whether or not a given syntax node and its descendants should be analyzed for the given
+        /// declared node and declared symbol. We have scenarios where certain syntax nodes declare multiple symbols,
+        /// for example record declarations, and we want to avoid duplicate syntax node callbacks for such nodes.
+        /// Note that the predicate returned by this method filters out both the node and all its descendants from analysis.
+        /// If you wish to skip analysis just for a specific node, but not its descendants, then add the required logic in
+        /// <see cref="ShouldSkipSyntaxNodeAnalysis(SyntaxNode, ISymbol)"/>.
+        /// </summary>
         internal virtual Func<SyntaxNode, bool>? GetSyntaxNodesToAnalyzeFilter(SyntaxNode declaredNode, ISymbol declaredSymbol) => null;
+
+        /// <summary>
+        /// Determines if the given syntax node with the given containing symbol should be analyzed or not.
+        /// Note that only the given syntax node will be filtered out from analysis, this API will be invoked separately
+        /// for each of its descendants. If you wish to skip analysis of the node and all its descendants, then add the required
+        /// logic to <see cref="GetSyntaxNodesToAnalyzeFilter(SyntaxNode, ISymbol)"/>.
+        /// </summary>
+        internal virtual bool ShouldSkipSyntaxNodeAnalysis(SyntaxNode node, ISymbol containingSymbol) => false;
 
         /// <summary>
         /// Takes a Symbol and syntax for one of its declaring syntax reference and returns the topmost syntax node to be used by syntax analyzer.

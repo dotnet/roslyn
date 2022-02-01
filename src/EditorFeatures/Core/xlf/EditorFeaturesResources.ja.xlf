@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
         <source>Do not prefer 'this.' or 'Me.'</source>
-        <target state="needs-review-translation">'this.' または 'Me' を優先しない</target>
+        <target state="translated">'this.' または 'Me' を優先しない</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_show_this_message_again">
@@ -44,7 +44,7 @@
       </trans-unit>
       <trans-unit id="Execute_Suggested_Action">
         <source>Execute Suggested Action</source>
-        <target state="new">Execute Suggested Action</target>
+        <target state="translated">おすすめのアクションを実行する</target>
         <note />
       </trans-unit>
       <trans-unit id="Expander_display_text">
@@ -99,17 +99,17 @@
       </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">
         <source>In arithmetic operators</source>
-        <target state="new">In arithmetic operators</target>
+        <target state="translated">算術演算子内で</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_binary_operators">
         <source>In other binary operators</source>
-        <target state="new">In other binary operators</target>
+        <target state="translated">その他のバイナリ演算子内で</target>
         <note />
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators</source>
-        <target state="new">In relational operators</target>
+        <target state="translated">関係演算子内で</target>
         <note />
       </trans-unit>
       <trans-unit id="Indentation_Size">
@@ -119,17 +119,17 @@
       </trans-unit>
       <trans-unit id="Inline_Diagnostics_Error">
         <source>Inline Diagnostics - Error</source>
-        <target state="new">Inline Diagnostics - Error</target>
+        <target state="translated">インライン診断 - エラー</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Diagnostics_Rude_Edit">
         <source>Inline Diagnostics - Rude Edit</source>
-        <target state="new">Inline Diagnostics - Rude Edit</target>
+        <target state="translated">インライン診断 - Rude Edit</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Diagnostics_Warning">
         <source>Inline Diagnostics - Warning</source>
-        <target state="new">Inline Diagnostics - Warning</target>
+        <target state="translated">インライン診断 - 警告</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_Hints">
@@ -159,7 +159,7 @@
       </trans-unit>
       <trans-unit id="Language_client_initialization_failed">
         <source>{0} failed to initialize. Status = {1}. Exception = {2}</source>
-        <target state="new">{0} failed to initialize. Status = {1}. Exception = {2}</target>
+        <target state="translated">{0} を初期化できませんでした。状態 = {1}。例外 = {2}</target>
         <note>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</note>
       </trans-unit>
       <trans-unit id="Locating_bases">
@@ -174,7 +174,7 @@
       </trans-unit>
       <trans-unit id="No">
         <source>No</source>
-        <target state="new">No</target>
+        <target state="translated">いいえ</target>
         <note />
       </trans-unit>
       <trans-unit id="Operator_Overloaded">
@@ -189,12 +189,12 @@
       </trans-unit>
       <trans-unit id="Prefer_is_null_for_reference_equality_checks">
         <source>Prefer 'is null' for reference equality checks</source>
-        <target state="new">Prefer 'is null' for reference equality checks</target>
+        <target state="translated">参照の等値性のチェックには 'is null' を優先する</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_this_or_Me">
         <source>Prefer 'this.' or 'Me.'</source>
-        <target state="new">Prefer 'this.' or 'Me.'</target>
+        <target state="translated">'this.' または 'Me' を優先する</target>
         <note />
       </trans-unit>
       <trans-unit id="Preprocessor_Text">
@@ -209,22 +209,22 @@
       </trans-unit>
       <trans-unit id="Qualify_event_access_with_this_or_Me">
         <source>Qualify event access with 'this' or 'Me'</source>
-        <target state="new">Qualify event access with 'this' or 'Me'</target>
+        <target state="translated">イベント アクセスを 'this' または 'Me' で修飾する</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_field_access_with_this_or_Me">
         <source>Qualify field access with 'this' or 'Me'</source>
-        <target state="new">Qualify field access with 'this' or 'Me'</target>
+        <target state="translated">フィールド アクセスを 'this' または 'Me' で修飾する</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_method_access_with_this_or_Me">
         <source>Qualify method access with 'this' or 'Me'</source>
-        <target state="new">Qualify method access with 'this' or 'Me'</target>
+        <target state="translated">メソッド アクセスを 'this' または 'Me' で修飾する</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_property_access_with_this_or_Me">
         <source>Qualify property access with 'this' or 'Me'</source>
-        <target state="new">Qualify property access with 'this' or 'Me'</target>
+        <target state="translated">プロパティ アクセスを 'this' または 'Me' で修飾する</target>
         <note />
       </trans-unit>
       <trans-unit id="Reassigned_variable">
@@ -265,6 +265,11 @@
       <trans-unit id="Tab_Size">
         <source>Tab Size</source>
         <target state="translated">タブのサイズ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_results_may_be_incomplete_due_to_the_solution_still_loading_projects">
+        <source>The results may be incomplete due to the solution still loading projects.</source>
+        <target state="translated">ソリューションでプロジェクトを読み込み中であるため、結果は不完全になる可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="The_symbol_has_no_base">
@@ -529,7 +534,7 @@
       </trans-unit>
       <trans-unit id="Yes">
         <source>Yes</source>
-        <target state="new">Yes</target>
+        <target state="translated">はい</target>
         <note />
       </trans-unit>
       <trans-unit id="You_cannot_rename_this_element_because_it_is_contained_in_a_read_only_file">
@@ -1484,11 +1489,6 @@ Do you want to proceed?</source>
         <target state="translated">アウトライン</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_Tracking_Cancellation">
-        <source>Rename Tracking Cancellation</source>
-        <target state="translated">名前変更の追跡取り消し</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Regex_Comment">
         <source>Regex - Comment</source>
         <target state="translated">正規表現 - コメント</target>
@@ -1532,6 +1532,11 @@ Do you want to proceed?</source>
       <trans-unit id="Regex_OtherEscape">
         <source>Regex - Other Escape</source>
         <target state="translated">正規表現 - 他のエスケープ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Rename_Tracking_Cancellation">
+        <source>Rename Tracking Cancellation</source>
+        <target state="translated">名前変更の追跡取り消し</target>
         <note />
       </trans-unit>
       <trans-unit id="Signature_Help">

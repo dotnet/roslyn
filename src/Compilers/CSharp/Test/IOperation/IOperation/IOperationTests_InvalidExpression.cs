@@ -35,7 +35,7 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Console.
   Children(1):
       IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'Console.WriteLine2')
         Children(1):
-            IOperation:  (OperationKind.None, Type: null) (Syntax: 'Console')
+            IOperation:  (OperationKind.None, Type: System.Console) (Syntax: 'Console')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0117: 'Console' does not contain a definition for 'WriteLine2'
@@ -428,7 +428,7 @@ IFieldInitializerOperation (Field: System.Int32 Program.x) (OperationKind.FieldI
     Operand: 
       IInvalidOperation (OperationKind.Invalid, Type: Program, IsInvalid, IsImplicit) (Syntax: 'Program')
         Children(1):
-            IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Program')
+            IOperation:  (OperationKind.None, Type: Program, IsInvalid) (Syntax: 'Program')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0119: 'Program' is a type, which is not valid in the given context
@@ -510,7 +510,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: X[], IsInvalid) (Syn
   Dimension Sizes(1):
       IInvalidOperation (OperationKind.Invalid, Type: Program, IsInvalid, IsImplicit) (Syntax: 'Program')
         Children(1):
-            IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Program')
+            IOperation:  (OperationKind.None, Type: Program, IsInvalid) (Syntax: 'Program')
   Initializer: 
     IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '{ { 1 } }')
       Element Values(1):
@@ -591,7 +591,7 @@ public class C
             string expectedOperationTree = @"
 IInvalidOperation (OperationKind.Invalid, Type: System.String, IsInvalid) (Syntax: 'string.Form ... format: """")')
   Children(3):
-      IOperation:  (OperationKind.None, Type: null) (Syntax: 'string')
+      IOperation:  (OperationKind.None, Type: System.String) (Syntax: 'string')
       ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """") (Syntax: '""""')
       ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """") (Syntax: '""""')
 ";

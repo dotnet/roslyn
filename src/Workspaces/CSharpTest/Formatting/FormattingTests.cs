@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -4510,7 +4511,7 @@ class innerClass
 {
     public innerClass()
     {
-        myDelegate x = (int y = 1) => { return; };
+        myDelegate x = (int y=1) => { return; };
     }
 }";
 
@@ -4626,8 +4627,8 @@ class innerClass
                         })));
 
             Assert.NotNull(property);
-
-            var newProperty = Formatter.Format(property, new AdhocWorkspace());
+            using var workspace = new AdhocWorkspace();
+            var newProperty = Formatter.Format(property, workspace.Services, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
 
             Assert.Equal(expected, newProperty.ToFullString());
         }
@@ -5769,6 +5770,28 @@ void bar()
         object? x = null;
         object? y = null;
         return x! ?? (y)! ?? o[0]!;
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingInNullCheckedParameter()
+        {
+            var code =
+@"class C
+{
+    static object F(string s !!)
+    {
+    }
+}";
+            var expectedCode =
+@"class C
+{
+    static object F(string s!!)
+    {
     }
 }";
 
@@ -8115,7 +8138,7 @@ class Program
         public void DontAssumeCertainNodeAreAlwaysParented()
         {
             var block = SyntaxFactory.Block();
-            Formatter.Format(block, new AdhocWorkspace());
+            Formatter.Format(block, new AdhocWorkspace().Services, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
         }
 
         [WorkItem(776, "https://github.com/dotnet/roslyn/issues/776")]
@@ -9190,7 +9213,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         [WorkItem(25098, "https://github.com/dotnet/roslyn/issues/25098")]
         public void FormatSingleStructDeclaration()
-            => Formatter.Format(SyntaxFactory.StructDeclaration("S"), DefaultWorkspace);
+            => Formatter.Format(SyntaxFactory.StructDeclaration("S"), DefaultWorkspace.Services, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatIndexExpression()
@@ -10063,6 +10086,262 @@ record struct R(int X);
                 @"
 record  struct  R(int X);
 ");
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatListPattern()
+        {
+            var code = @"
+class C
+{
+    void M() {
+_ = this is[1,2,>=3];
+}
+}";
+            await AssertFormatAsync(code: code, expected: @"
+class C
+{
+    void M()
+    {
+        _ = this is [1, 2, >= 3];
+    }
+}");
+
+            var options = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { SpaceBetweenEmptySquareBrackets, false },
+                { SpaceWithinSquareBrackets, false },
+                { SpaceBeforeComma, false },
+                { SpaceAfterComma, false },
+            };
+
+            await AssertFormatAsync(code: code, changedOptionSet: options, expected: @"
+class C
+{
+    void M()
+    {
+        _ = this is [1,2,>= 3];
+    }
+}");
+
+            options = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { SpaceBeforeOpenSquareBracket, false }, // ignored
+                { SpaceBetweenEmptySquareBrackets, true },
+                { SpaceWithinSquareBrackets, true },
+                { SpaceBeforeComma, true },
+                { SpaceAfterComma, true },
+            };
+
+            await AssertFormatAsync(code: code, changedOptionSet: options, expected: @"
+class C
+{
+    void M()
+    {
+        _ = this is [ 1 , 2 , >= 3 ];
+    }
+}");
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatListPattern_TrailingComma()
+        {
+            var code = @"
+class C
+{
+    void M() {
+_ = this is[1,2,>=3,];
+}
+}";
+            await AssertFormatAsync(code: code, expected: @"
+class C
+{
+    void M()
+    {
+        _ = this is [1, 2, >= 3,];
+    }
+}");
+
+            var options = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { SpaceBetweenEmptySquareBrackets, false },
+                { SpaceWithinSquareBrackets, false },
+                { SpaceBeforeComma, false },
+                { SpaceAfterComma, false },
+            };
+
+            await AssertFormatAsync(code: code, changedOptionSet: options, expected: @"
+class C
+{
+    void M()
+    {
+        _ = this is [1,2,>= 3,];
+    }
+}");
+
+            options = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { SpaceBeforeOpenSquareBracket, false }, // ignored
+                { SpaceBetweenEmptySquareBrackets, true },
+                { SpaceWithinSquareBrackets, true },
+                { SpaceBeforeComma, true },
+                { SpaceAfterComma, true },
+            };
+
+            await AssertFormatAsync(code: code, changedOptionSet: options, expected: @"
+class C
+{
+    void M()
+    {
+        _ = this is [ 1 , 2 , >= 3 , ];
+    }
+}");
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatListPattern_WithNewline()
+        {
+            var code = @"
+class C
+{
+    void M() {
+_ = this is
+[1,2,>=3
+];
+}
+}";
+            await AssertFormatAsync(code: code, expected: @"
+class C
+{
+    void M()
+    {
+        _ = this is
+        [1, 2, >= 3
+        ];
+    }
+}");
+
+            var options = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { SpaceBetweenEmptySquareBrackets, false },
+                { SpaceWithinSquareBrackets, false },
+                { SpaceBeforeComma, false },
+                { SpaceAfterComma, false },
+            };
+
+            await AssertFormatAsync(code: code, changedOptionSet: options, expected: @"
+class C
+{
+    void M()
+    {
+        _ = this is
+        [1,2,>= 3
+        ];
+    }
+}");
+
+            options = new OptionsCollection(LanguageNames.CSharp)
+            {
+                { SpaceBeforeOpenSquareBracket, false }, // ignored
+                { SpaceBetweenEmptySquareBrackets, true },
+                { SpaceWithinSquareBrackets, true },
+                { SpaceBeforeComma, true },
+                { SpaceAfterComma, true },
+            };
+
+            await AssertFormatAsync(code: code, changedOptionSet: options, expected: @"
+class C
+{
+    void M()
+    {
+        _ = this is
+        [ 1 , 2 , >= 3
+        ];
+    }
+}");
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatSlicePattern()
+        {
+            var code = @"class C
+{
+    void M() {
+_ = this is[ 0,.. var  rest ];
+}
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        _ = this is [0, .. var rest];
+    }
+}";
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatSlicePattern_NoSpace()
+        {
+            var code = @"class C
+{
+    void M() {
+_ = this is[ 0,..var  rest ];
+}
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        _ = this is [0, .. var rest];
+    }
+}";
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatSlicePatternWithAnd()
+        {
+            var code = @"class C
+{
+    void M() {
+_ = this is[ 0,.. {Count: >0} and var  rest ];
+}
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        _ = this is [0, .. { Count: > 0 } and var rest];
+    }
+}";
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatLengthAndListPattern()
+        {
+            var code = @"class C
+{
+    void M() {
+_ = this is{Count:>0 and var x}and[ 1,2,3 ];
+}
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        _ = this is { Count: > 0 and var x } and [1, 2, 3];
+    }
+}";
+            await AssertFormatAsync(expectedCode, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]

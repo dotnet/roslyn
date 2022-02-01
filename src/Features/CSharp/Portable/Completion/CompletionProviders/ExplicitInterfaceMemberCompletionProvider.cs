@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -24,25 +25,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     [ExtensionOrder(After = nameof(UnnamedSymbolCompletionProvider))]
     internal partial class ExplicitInterfaceMemberCompletionProvider : LSPCompletionProvider
     {
-        private static readonly SymbolDisplayFormat s_signatureDisplayFormat =
-            new(genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-                memberOptions:
-                    SymbolDisplayMemberOptions.IncludeParameters,
-                parameterOptions:
-                    SymbolDisplayParameterOptions.IncludeName |
-                    SymbolDisplayParameterOptions.IncludeType |
-                    SymbolDisplayParameterOptions.IncludeParamsRefOut,
-                miscellaneousOptions:
-                    SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
-                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public ExplicitInterfaceMemberCompletionProvider()
         {
         }
 
-        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        internal override string Language => LanguageNames.CSharp;
+
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
             => text[characterPosition] == '.';
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = ImmutableHashSet.Create('.');
@@ -98,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         continue;
                     }
 
-                    var memberString = member.ToMinimalDisplayString(semanticModel, namePosition, s_signatureDisplayFormat);
+                    var memberString = CompletionSymbolDisplay.ToDisplayString(member);
 
                     // Split the member string into two parts (generally the name, and the signature portion). We want
                     // the split so that other features (like spell-checking), only look at the name portion.
@@ -113,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         rules: CompletionItemRules.Default));
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))
             {
                 // nop
             }
@@ -130,8 +121,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return (memberString, "");
         }
 
-        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
+        internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, displayOptions, cancellationToken);
 
         public override Task<TextChange?> GetTextChangeAsync(
             Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)

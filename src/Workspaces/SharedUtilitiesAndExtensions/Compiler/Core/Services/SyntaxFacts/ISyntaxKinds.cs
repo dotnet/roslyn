@@ -40,9 +40,12 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         int AwaitKeyword { get; }
         int AsyncKeyword { get; }
+        int DelegateKeyword { get; }
         int GlobalKeyword { get; }
         int IfKeyword { get; }
         int? GlobalStatement { get; }
+        int TrueKeyword { get; }
+        int FalseKeyword { get; }
 
         #endregion
 

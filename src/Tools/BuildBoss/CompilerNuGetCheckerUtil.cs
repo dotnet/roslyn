@@ -20,7 +20,7 @@ namespace BuildBoss
     /// <summary>
     /// Verifies the contents of our toolset NuPkg and SWR files are correct.
     /// 
-    /// The compiler toolset is a particularly difficult package to get correct. In essense it is 
+    /// The compiler toolset is a particularly difficult package to get correct. In essence it is 
     /// merging the output of three different exes into a single directory. That causes a number 
     /// of issues during pack time:
     /// 
@@ -135,9 +135,7 @@ namespace BuildBoss
             var list = new List<string>();
             foreach (var asset in packageAssets)
             {
-                var folder = asset.IsDesktop
-                    ? @"net472"
-                    : @"netcoreapp3.1";
+                var folder = asset.IsDesktop ? "net472" : "net6.0";
                 var fileRelativeName = Path.Combine(folder, asset.FileRelativeName);
                 list.Add(fileRelativeName);
             }
@@ -244,9 +242,9 @@ namespace BuildBoss
                 textWriter,
                 isDesktop: false,
                 coreClrAssets,
-                $@"csc\{Configuration}\netcoreapp3.1\publish",
-                $@"vbc\{Configuration}\netcoreapp3.1\publish",
-                $@"VBCSCompiler\{Configuration}\netcoreapp3.1\publish");
+                $@"csc\{Configuration}\net6.0\publish",
+                $@"vbc\{Configuration}\net6.0\publish",
+                $@"VBCSCompiler\{Configuration}\net6.0\publish");
 
             // The native DLLs ship inside the runtime specific directories but build deploys it at the 
             // root as well. That copy is unnecessary.
@@ -262,7 +260,7 @@ namespace BuildBoss
                 textWriter,
                 isDesktop: false,
                 coreClrAssets,
-                $@"Microsoft.Build.Tasks.CodeAnalysis\{Configuration}\netcoreapp3.1\publish");
+                $@"Microsoft.Build.Tasks.CodeAnalysis\{Configuration}\net6.0\publish");
 
             packageAssets.AddRange(desktopAssets);
             packageAssets.AddRange(coreClrAssets);

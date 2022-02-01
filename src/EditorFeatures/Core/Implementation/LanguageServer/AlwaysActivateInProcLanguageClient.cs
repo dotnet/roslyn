@@ -5,11 +5,12 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
@@ -38,18 +39,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             RequestDispatcherFactory csharpVBRequestDispatcherFactory,
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
-            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             DefaultCapabilitiesProvider defaultCapabilitiesProvider,
             ILspLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext)
-            : base(csharpVBRequestDispatcherFactory, globalOptions, diagnosticService: null, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, diagnosticsClientName: null)
+            : base(csharpVBRequestDispatcherFactory, globalOptions, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, diagnosticsClientName: null)
         {
             _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
 
         protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
-
-        public override string Name => CSharpVisualBasicLanguageServerFactory.UserVisibleName;
 
         public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
@@ -71,7 +70,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 };
             }
 
-            serverCapabilities.SupportsDiagnosticRequests = GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
+            serverCapabilities.ProjectContextProvider = true;
+
+            var isPullDiagnostics = GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
+            if (isPullDiagnostics)
+            {
+                serverCapabilities.SupportsDiagnosticRequests = true;
+                serverCapabilities.MultipleContextSupportProvider = new VSInternalMultipleContextFeatures { SupportsMultipleContextsDiagnostics = true };
+            }
 
             // This capability is always enabled as we provide cntrl+Q VS search only via LSP in ever scenario.
             serverCapabilities.WorkspaceSymbolProvider = true;
@@ -80,6 +86,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             // when not running the experimental LSP editor.  This ensures NavigateTo uses the existing editor APIs.
             // However, when the experimental LSP editor is enabled we want LSP to power NavigateTo, so we set DisableGoToWorkspaceSymbols=false.
             serverCapabilities.DisableGoToWorkspaceSymbols = !isLspEditorEnabled;
+
+            var isLspSemanticTokensEnabled = GlobalOptions.GetOption(LspOptions.LspSemanticTokensFeatureFlag);
+            if (isLspSemanticTokensEnabled)
+            {
+                // Using only range handling has shown to be more performant than using a combination of full/edits/range handling,
+                // especially for larger files. With range handling, we only need to compute tokens for whatever is in view, while
+                // with full/edits handling we need to compute tokens for the entire file and then potentially run a diff between
+                // the old and new tokens.
+                serverCapabilities.SemanticTokensOptions = new SemanticTokensOptions
+                {
+                    Full = false,
+                    Range = true,
+                    Legend = new SemanticTokensLegend
+                    {
+                        TokenTypes = SemanticTokenTypes.AllTypes.Concat(SemanticTokensHelpers.RoslynCustomTokenTypes).ToArray(),
+                        TokenModifiers = new string[] { SemanticTokenModifiers.Static }
+                    }
+                };
+            }
 
             return serverCapabilities;
         }
@@ -90,5 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// as the failure is not catastrophic.
         /// </summary>
         public override bool ShowNotificationOnInitializeFailed => GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
+
+        public override WellKnownLspServerKinds ServerKind => WellKnownLspServerKinds.AlwaysActiveVSLspServer;
     }
 }

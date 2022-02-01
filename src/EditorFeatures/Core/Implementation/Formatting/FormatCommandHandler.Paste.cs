@@ -47,20 +47,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             }
         }
 
-        private static void ExecuteCommandWorker(PasteCommandArgs args, SnapshotPoint? caretPosition, CancellationToken cancellationToken)
+        private void ExecuteCommandWorker(PasteCommandArgs args, SnapshotPoint? caretPosition, CancellationToken cancellationToken)
         {
-            if (!args.SubjectBuffer.CanApplyChangeDocumentToWorkspace())
+            if (!caretPosition.HasValue)
             {
                 return;
             }
-
-            if (!args.SubjectBuffer.GetFeatureOnOffOption(FormattingBehaviorOptions.FormatOnPaste) ||
-                !caretPosition.HasValue)
-            {
-                return;
-            }
-
-            var trackingSpan = caretPosition.Value.Snapshot.CreateTrackingSpan(caretPosition.Value.Position, 0, SpanTrackingMode.EdgeInclusive);
 
             var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
@@ -68,7 +60,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return;
             }
 
-            var formattingRuleService = document.Project.Solution.Workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
+            if (!_globalOptions.GetOption(FormattingOptionsMetadata.FormatOnPaste, document.Project.Language))
+            {
+                return;
+            }
+
+            var solution = document.Project.Solution;
+            if (!solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
+            {
+                return;
+            }
+
+            var formattingRuleService = solution.Workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
             if (formattingRuleService != null && formattingRuleService.ShouldNotFormatOrCommitOnPaste(document))
             {
                 return;
@@ -80,6 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return;
             }
 
+            var trackingSpan = caretPosition.Value.Snapshot.CreateTrackingSpan(caretPosition.Value.Position, 0, SpanTrackingMode.EdgeInclusive);
             var span = trackingSpan.GetSpan(args.SubjectBuffer.CurrentSnapshot).Span.ToTextSpan();
             var changes = formattingService.GetFormattingChangesOnPasteAsync(
                 document, span, documentOptions: null, cancellationToken).WaitAndGetResult(cancellationToken);
@@ -88,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return;
             }
 
-            document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, cancellationToken);
+            solution.Workspace.ApplyTextChanges(document.Id, changes, cancellationToken);
         }
     }
 }

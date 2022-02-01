@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 SyntaxKind.InvocationExpression => ((InvocationExpressionSyntax)expression).ArgumentList,
                 SyntaxKind.ObjectCreationExpression => ((ObjectCreationExpressionSyntax)expression).ArgumentList,
                 SyntaxKind.ElementAccessExpression => ((ElementAccessExpressionSyntax)expression).ArgumentList,
-                _ => (BaseArgumentListSyntax)null,
+                _ => null,
             };
         }
 
@@ -757,7 +757,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         }
 
         private static bool ConditionalExpressionConversionsAreAllowed(ExpressionSyntax originalExpression)
-            => ((CSharpParseOptions)originalExpression.SyntaxTree.Options).LanguageVersion >= LanguageVersion.CSharp9;
+            => originalExpression.GetLanguageVersion() >= LanguageVersion.CSharp9;
 
         protected override bool ConversionsAreCompatible(ExpressionSyntax originalExpression, ITypeSymbol originalTargetType, ExpressionSyntax newExpression, ITypeSymbol newTargetType)
         {

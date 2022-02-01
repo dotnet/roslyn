@@ -45,6 +45,7 @@ param (
   [switch]$warnAsError = $false,
   [switch]$sourceBuild = $false,
   [switch]$oop64bit = $true,
+  [switch]$oopCoreClr = $false,
   [switch]$lspEditor = $false,
 
   # official build settings
@@ -337,6 +338,7 @@ function GetCompilerTestAssembliesIncludePaths() {
   $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Symbol\.UnitTests$'"
   $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Semantic\.UnitTests$'"
   $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit\.UnitTests$'"
+  $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit2\.UnitTests$'"
   $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.IOperation\.UnitTests$'"
   $assemblies += " --include '^Microsoft\.CodeAnalysis\.CSharp\.CommandLine\.UnitTests$'"
   $assemblies += " --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Syntax\.UnitTests$'"
@@ -394,6 +396,7 @@ function TestUsingRunTests() {
     if ($testCompilerOnly) {
       $args += GetCompilerTestAssembliesIncludePaths
     } else {
+      $args += " --tfm net6.0-windows"
       $args += " --include '\.UnitTests'"
     }
   }
@@ -566,6 +569,35 @@ function Deploy-VsixViaTool() {
     Write-Host "`tInstalling $vsixFileName"
     Exec-Console $vsixExe $fullArg
   }
+
+  # Set up registry
+  $vsRegEdit = Join-Path (Join-Path (Join-Path $vsDir 'Common7') 'IDE') 'VsRegEdit.exe'
+
+  # Disable roaming settings to avoid interference from the online user profile
+  &$vsRegEdit set "$vsDir" $hive HKCU "ApplicationPrivateSettings\Microsoft\VisualStudio" RoamingEnabled string "1*System.Boolean*False"
+
+  # Disable IntelliCode line completions to avoid interference with argument completion testing
+  &$vsRegEdit set "$vsDir" $hive HKCU "ApplicationPrivateSettings\Microsoft\VisualStudio\IntelliCode" wholeLineCompletions string "0*System.Int32*2"
+
+  # Disable background download UI to avoid toasts
+  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Setup\BackgroundDownload" Value dword 0
+
+  # Configure LSP
+  $lspRegistryValue = [int]$lspEditor.ToBool()
+  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Roslyn\LSP\Editor" Value dword $lspRegistryValue
+  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Lsp\PullDiagnostics" Value dword $lspRegistryValue
+
+  # Disable text editor error reporting because it pops up a dialog. We want to either fail fast in our
+  # custom handler or fail silently and continue testing.
+  &$vsRegEdit set "$vsDir" $hive HKCU "Text Editor" "Report Exceptions" dword 0
+
+  # Configure RemoteHostOptions.OOP64Bit for testing
+  $oop64bitValue = [int]$oop64bit.ToBool()
+  &$vsRegEdit set "$vsDir" $hive HKCU "Roslyn\Internal\OnOff\Features" OOP64Bit dword $oop64bitValue
+
+  # Configure RemoteHostOptions.OOPCoreClrFeatureFlag for testing
+  $oopCoreClrFeatureFlagValue = [int]$oopCoreClr.ToBool()
+  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Roslyn\ServiceHubCore" Value dword $oopCoreClrFeatureFlagValue
 }
 
 # Ensure that procdump is available on the machine.  Returns the path to the directory that contains
@@ -634,14 +666,11 @@ function Setup-IntegrationTestRun() {
   }
 
   $env:ROSLYN_OOP64BIT = "$oop64bit"
+  $env:ROSLYN_OOPCORECLR = "$oopCoreClr"
   $env:ROSLYN_LSPEDITOR = "$lspEditor"
 }
 
 function Prepare-TempDir() {
-  $env:TEMP=$TempDir
-  $env:TMP=$TempDir
-
-  Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\.editorconfig") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\global.json") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.props") $TempDir
   Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.targets") $TempDir
@@ -677,6 +706,8 @@ try {
   }
 
   Push-Location $RepoRoot
+
+  Subst-TempDir
 
   if ($ci) {
     List-Processes
@@ -747,5 +778,7 @@ finally {
   if ($ci) {
     Stop-Processes
   }
+
+  Unsubst-TempDir
   Pop-Location
 }

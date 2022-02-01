@@ -11,10 +11,17 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using static Microsoft.CodeAnalysis.UseConditionalExpression.UseConditionalExpressionCodeFixHelpers;
+
+#if CODE_STYLE
+using Formatter = Microsoft.CodeAnalysis.Formatting.FormatterHelper;
+#else
+using Formatter = Microsoft.CodeAnalysis.Formatting.Formatter;
+#endif
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression
 {
@@ -30,6 +37,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
     {
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
+        protected abstract ISyntaxFacts SyntaxFacts { get; }
         protected abstract AbstractFormattingRule GetMultiLineFormattingRule();
 
 #if CODE_STYLE
@@ -53,7 +61,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             // will return 'true' if it made a multi-line conditional expression. In that case,
             // we'll need to explicitly format this node so we can get our special multi-line
             // formatting in VB and C#.
-            var nestedEditor = new SyntaxEditor(root, document.Project.Solution.Workspace);
+            var nestedEditor = new SyntaxEditor(root, document.Project.Solution.Workspace.Services);
             foreach (var diagnostic in diagnostics)
             {
                 await FixOneAsync(
@@ -68,21 +76,15 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             // annotation on it.
             var rules = new List<AbstractFormattingRule> { GetMultiLineFormattingRule() };
 
-            var options = document.Project.AnalyzerOptions.GetAnalyzerOptionSet(root.SyntaxTree, cancellationToken);
-
 #if CODE_STYLE
-            var formattedRoot = FormatterHelper.Format(changedRoot,
-                GetSyntaxFormattingService(),
-                SpecializedFormattingAnnotation,
-                options,
-                rules, cancellationToken);
+            var provider = GetSyntaxFormattingService();
+            var options = provider.GetFormattingOptions(document.Project.AnalyzerOptions.GetAnalyzerOptionSet(root.SyntaxTree, cancellationToken));
 #else
-            var formattedRoot = Formatter.Format(changedRoot,
-                SpecializedFormattingAnnotation,
-                document.Project.Solution.Workspace,
-                options,
-                rules, cancellationToken);
+            var provider = document.Project.Solution.Workspace.Services;
+            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
 #endif
+            var formattedRoot = Formatter.Format(changedRoot, SpecializedFormattingAnnotation, provider, options, rules, cancellationToken);
+
             changedRoot = formattedRoot;
 
             editor.ReplaceNode(root, changedRoot);
@@ -102,7 +104,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         {
             var generator = SyntaxGenerator.GetGenerator(document);
             var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var condition = ifOperation.Condition.Syntax;
             if (!isRef)

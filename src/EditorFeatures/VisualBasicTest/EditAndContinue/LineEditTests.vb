@@ -5,10 +5,10 @@
 Imports System.Collections.Immutable
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.EditAndContinue
+Imports Microsoft.CodeAnalysis.EditAndContinue.Contracts
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     <UseExportProvider>
@@ -73,7 +73,7 @@ End Class
             edits.VerifyLineEdits(
             {
                 New SourceLineUpdate(2, 6),
-                AbstractEditAndContinueAnalyzer.CreateZeroDeltaSourceLineUpdate(5),
+                New SourceLineUpdate(5, 5),
                 New SourceLineUpdate(6, 2)
             }, {})
         End Sub
@@ -118,9 +118,9 @@ End Class
             edits.VerifyLineEdits(
             {
                 New SourceLineUpdate(2, 6),
-                AbstractEditAndContinueAnalyzer.CreateZeroDeltaSourceLineUpdate(6),
+                New SourceLineUpdate(6, 6),
                 New SourceLineUpdate(7, 2),
-                AbstractEditAndContinueAnalyzer.CreateZeroDeltaSourceLineUpdate(10)
+                New SourceLineUpdate(10, 10)
             }, {})
         End Sub
 
@@ -1295,7 +1295,7 @@ End Class
                 {
                     New SequencePointUpdates("a", ImmutableArray.Create(
                         New SourceLineUpdate(1, 11), ' x, y, F1, F2
-                        AbstractEditAndContinueAnalyzer.CreateZeroDeltaSourceLineUpdate(5),' lines between F2 And D ctor
+                        New SourceLineUpdate(5, 5),' lines between F2 And D ctor
                         New SourceLineUpdate(7, 17)))' D ctor
                 },
                 semanticEdits:=

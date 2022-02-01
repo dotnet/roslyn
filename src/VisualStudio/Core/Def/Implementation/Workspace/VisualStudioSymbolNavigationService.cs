@@ -84,8 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             // We don't have a source document, so show the Metadata as Source view in a preview tab.
 
-            var metadataLocation = symbol.Locations.Where(loc => loc.IsInMetadata).FirstOrDefault();
-            if (metadataLocation == null || !_metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
+            if (!_metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
             {
                 return false;
             }
@@ -116,27 +115,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             // Generate new source or retrieve existing source for the symbol in question
-            var allowDecompilation = false;
+            return ThreadingContext.JoinableTaskFactory.Run(() => TryNavigateToMetadataAsync(project, symbol, options, cancellationToken));
+        }
 
-            // Check whether decompilation is supported for the project. We currently only support this for C# projects.
-            if (project.LanguageServices.GetService<IDecompiledSourceService>() != null)
-            {
-                allowDecompilation = project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.NavigateToDecompiledSources) && !symbol.IsFromSource();
-            }
+        private async Task<bool> TryNavigateToMetadataAsync(Project project, ISymbol symbol, OptionSet options, CancellationToken cancellationToken)
+        {
+            var allowDecompilation = _globalOptions.GetOption(FeatureOnOffOptions.NavigateToDecompiledSources);
 
-            var result = _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, allowDecompilation, cancellationToken).WaitAndGetResult(cancellationToken);
+            var result = await _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, allowDecompilation, cancellationToken).ConfigureAwait(false);
+
+            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var vsRunningDocumentTable4 = IServiceProviderExtensions.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable4>(_serviceProvider);
             var fileAlreadyOpen = vsRunningDocumentTable4.IsMonikerValid(result.FilePath);
 
             var openDocumentService = IServiceProviderExtensions.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>(_serviceProvider);
-            openDocumentService.OpenDocumentViaProject(result.FilePath, VSConstants.LOGVIEWID.TextView_guid, out var localServiceProvider, out var hierarchy, out var itemId, out var windowFrame);
+            openDocumentService.OpenDocumentViaProject(result.FilePath, VSConstants.LOGVIEWID.TextView_guid, out _, out _, out _, out var windowFrame);
 
             var documentCookie = vsRunningDocumentTable4.GetDocumentCookie(result.FilePath);
 
-            // The cast from dynamic to object doesn't change semantics, but avoids loading the dynamic binder
-            // which saves us JIT time in this method.
-            var vsTextBuffer = (IVsTextBuffer)(object)vsRunningDocumentTable4.GetDocumentData(documentCookie);
+            var vsTextBuffer = (IVsTextBuffer)vsRunningDocumentTable4.GetDocumentData(documentCookie);
+
+            // Set the buffer to read only, just in case the file isn't
+            ErrorHandler.ThrowOnFailure(vsTextBuffer.GetStateFlags(out var flags));
+            flags |= (int)BUFFERSTATEFLAGS.BSF_USER_READONLY;
+            ErrorHandler.ThrowOnFailure(vsTextBuffer.SetStateFlags(flags));
+
             var textBuffer = _editorAdaptersFactory.GetDataBuffer(vsTextBuffer);
 
             if (!fileAlreadyOpen)
@@ -187,17 +191,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return returnCode == VSConstants.S_OK && navigationHandled == 1;
         }
 
-        public async Task<(string filePath, int lineNumber, int charOffset)?> WouldNavigateToSymbolAsync(
+        public async Task<(string filePath, LinePosition linePosition)?> GetExternalNavigationSymbolLocationAsync(
             DefinitionItem definitionItem, CancellationToken cancellationToken)
         {
             definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey1, out var rqName1);
             definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey2, out var rqName2);
 
-            return await WouldNotifyToSpecificSymbolAsync(definitionItem, rqName1, cancellationToken).ConfigureAwait(false) ??
-                   await WouldNotifyToSpecificSymbolAsync(definitionItem, rqName2, cancellationToken).ConfigureAwait(false);
+            return await GetExternalNavigationLocationForSpecificSymbolAsync(definitionItem, rqName1, cancellationToken).ConfigureAwait(false) ??
+                   await GetExternalNavigationLocationForSpecificSymbolAsync(definitionItem, rqName2, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<(string filePath, int lineNumber, int charOffset)?> WouldNotifyToSpecificSymbolAsync(
+        public async Task<(string filePath, LinePosition linePosition)?> GetExternalNavigationLocationForSpecificSymbolAsync(
             DefinitionItem definitionItem, string? rqName, CancellationToken cancellationToken)
         {
             if (rqName == null)
@@ -228,7 +232,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var lineNumber = navigateToTextSpan[0].iStartLine;
             var charOffset = navigateToTextSpan[0].iStartIndex;
 
-            return (filePath, lineNumber, charOffset);
+            return (filePath, new LinePosition(lineNumber, charOffset));
         }
 
         private async Task<(IVsHierarchy hierarchy, uint itemId, IVsSymbolicNavigationNotify navigationNotify)?> TryGetNavigationAPIRequiredArgumentsAsync(

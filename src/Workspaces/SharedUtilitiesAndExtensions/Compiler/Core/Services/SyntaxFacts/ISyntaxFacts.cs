@@ -103,6 +103,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool SupportsRecord(ParseOptions options);
         bool SupportsRecordStruct(ParseOptions options);
         bool SupportsThrowExpression(ParseOptions options);
+        bool SupportsTargetTypedConditionalExpression(ParseOptions options);
 
         SyntaxToken ParseToken(string text);
         SyntaxTriviaList ParseLeadingTrivia(string text);
@@ -337,6 +338,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsDirective([NotNullWhen(true)] SyntaxNode? node);
         bool IsStatement([NotNullWhen(true)] SyntaxNode? node);
         bool IsExecutableStatement([NotNullWhen(true)] SyntaxNode? node);
+        bool IsGlobalStatement([NotNullWhen(true)] SyntaxNode? node);
+        bool AreStatementsInSameContainer(SyntaxNode firstStatement, SyntaxNode secondStatement);
 
         bool IsDeconstructionAssignment([NotNullWhen(true)] SyntaxNode? node);
         bool IsDeconstructionForEachStatement([NotNullWhen(true)] SyntaxNode? node);
@@ -424,8 +427,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         string GetDisplayName(SyntaxNode? node, DisplayNameOptions options, string? rootNamespace = null);
 
         // Violation.  This is a feature level API.  How 'position' relates to 'containment' is not defined.
-        SyntaxNode? GetContainingTypeDeclaration(SyntaxNode? root, int position);
-        SyntaxNode? GetContainingMemberDeclaration(SyntaxNode? root, int position, bool useFullSpan = true);
+        SyntaxNode? GetContainingTypeDeclaration(SyntaxNode root, int position);
+        SyntaxNode? GetContainingMemberDeclaration(SyntaxNode root, int position, bool useFullSpan = true);
         SyntaxNode? GetContainingVariableDeclaratorOfFieldDeclaration(SyntaxNode? node);
 
         [return: NotNullIfNotNull("node")]

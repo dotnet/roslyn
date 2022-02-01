@@ -9,7 +9,10 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -19,6 +22,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     {
         public const string DefaultParameterName = "p";
         private const string DefaultBuiltInParameterName = "v";
+
+        public static bool IsIntegralType([NotNullWhen(returnValue: true)] this ITypeSymbol? type)
+            => type?.SpecialType.IsIntegralType() == true;
+
+        public static bool IsSignedIntegralType([NotNullWhen(returnValue: true)] this ITypeSymbol? type)
+            => type?.SpecialType.IsSignedIntegralType() == true;
 
         public static bool CanAddNullCheck([NotNullWhen(returnValue: true)] this ITypeSymbol? type)
         {
@@ -319,7 +328,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static bool ContainsAnonymousType(INamedTypeSymbol type)
         {
-            if (type.IsAnonymousType || type.IsAnonymousDelegateType())
+            if (type.IsAnonymousType)
                 return true;
 
             foreach (var typeArg in type.GetAllTypeArguments())

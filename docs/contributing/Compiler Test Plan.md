@@ -57,6 +57,7 @@ This document provides guidance for thinking about language interactions and tes
 - Partial method
 - Named and optional parameters
 - String interpolation
+- Raw strings (including interpolation)
 - Properties (read-write, read-only, init-only, write-only, auto-property, expression-bodied)
 - Interfaces (implicit vs. explicit interface member implementation)
 - Delegates
@@ -93,7 +94,7 @@ This document provides guidance for thinking about language interactions and tes
 - Ref return, ref readonly return, ref ternary, ref readonly local, ref local re-assignment, ref foreach
 - `this = e;` in `struct` .ctor
 - Stackalloc (including initializers)
-- Patterns (constant, declaration, `var`, positional, property and extended property, discard, parenthesized, type, relational, `and`/`or`/`not`)
+- Patterns (constant, declaration, `var`, positional, property and extended property, discard, parenthesized, type, relational, `and`/`or`/`not`, list, slice)
 - Switch expressions
 - With expressions (on record classes and on value types)
 - Nullability annotations (`?`, attributes) and analysis

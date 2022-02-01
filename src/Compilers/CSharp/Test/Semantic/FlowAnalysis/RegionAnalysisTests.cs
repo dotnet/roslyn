@@ -2618,6 +2618,202 @@ class C
 
         #endregion
 
+        #region "constructor initalizer"
+        [Fact]
+        public void TestDataFlowsInCtorInitPublicApi()
+        {
+            var program = @"
+class C
+{
+    C(int x)
+    {}
+    
+    C(int x, int y) /*<bind>*/ : this(x + y) /*</bind>*/
+    {}
+}
+";
+            var analysis = CompileAndGetModelAndConstructorInitializer(program,
+                (model, constructorInitializer) => CSharpExtensions.AnalyzeDataFlow(model, constructorInitializer)
+            );
+
+            Assert.Equal("x, y", GetSymbolNamesJoined(analysis.DataFlowsIn));
+        }
+
+        [Fact]
+        public void TestDataFlowsInCtorInitPublicApi2()
+        {
+            var program = @"
+class C
+{
+    C(int x)
+    {}
+    
+    C(int x, int y) /*<bind>*/ : this(x + y) /*</bind>*/
+    {}
+}
+";
+            var analysis = CompileAndGetModelAndConstructorInitializer(program,
+                (model, constructorInitializer) => global::Microsoft.CodeAnalysis.ModelExtensions.AnalyzeDataFlow(model, constructorInitializer)
+            );
+
+            Assert.Equal("x, y", GetSymbolNamesJoined(analysis.DataFlowsIn));
+        }
+
+        [Fact]
+        public void TestDataFlowsInCtorInit()
+        {
+            var analysis = CompileAndAnalyzeDataFlowConstructorInitializer(@"
+class C
+{
+    C(int x)
+    {}
+    
+    C(int x, int y) /*<bind>*/ : this(x + y) /*</bind>*/
+    {}
+}");
+            Assert.Equal("x, y", GetSymbolNamesJoined(analysis.DataFlowsIn));
+        }
+
+        [Fact]
+        public void TestDataFlowsInCtorInitVariablesDeclared()
+        {
+            var analysis = CompileAndAnalyzeDataFlowConstructorInitializer(@"
+class C
+{
+    C(int x)
+    {}
+
+    C(int x)
+    {}
+    
+    C(int x, int y) /*<bind>*/ : this((x++ + y is var b) switch { _ => b * 2}) /*</bind>*/
+    {}
+}");
+            Assert.Equal("x, y", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Equal("x, b", GetSymbolNamesJoined(analysis.WrittenInside));
+            Assert.Equal("b", GetSymbolNamesJoined(analysis.VariablesDeclared));
+        }
+
+        [Fact]
+        public void TestDataFlowsInCtorInitComplex()
+        {
+            var analysis = CompileAndAnalyzeDataFlowConstructorInitializer(@"
+public class BaseX
+{
+	public BaseX(out int ix, ref string i, in int s, in int s2, out int rrr)
+	{
+	}
+}
+	
+public class X : BaseX
+{
+	public X(int r, out int ix, out int x, ref int i)/*<bind>*/  : 
+		base(out ix, ref CalcValue(""ctor"", out x), CalcInt(""int"", out var y) + CalcInt(""int2"", out var y2),
+        x + y + r + y2 + i++, out var rrr)
+        /*</bind>*/
+    {
+        Console.WriteLine(y);
+    }
+
+    static string s;
+    static ref string CalcValue(string text, out int i)
+    {
+        Console.WriteLine($""CalcInt({text})"");
+        i = 42;
+        return ref s;
+    }
+
+        static int CalcInt(string text, out int i)
+        {
+            Console.WriteLine($""CalcInt({text})"");
+            i = 42;
+            return i;
+        }
+}");
+            Assert.Equal("r, i", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Equal("ix, x, i, y", GetSymbolNamesJoined(analysis.DataFlowsOut));
+            Assert.Equal("r, x, i, y, y2", GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Equal("ix, x, i, y", GetSymbolNamesJoined(analysis.ReadOutside));
+            Assert.Equal("ix, x, i, y, y2, rrr", GetSymbolNamesJoined(analysis.WrittenInside));
+            Assert.Equal("ix, x, i, y, y2, rrr", GetSymbolNamesJoined(analysis.AlwaysAssigned));
+            Assert.Equal("this, r, i", GetSymbolNamesJoined(analysis.WrittenOutside));
+            Assert.Equal("y, y2, rrr", GetSymbolNamesJoined(analysis.VariablesDeclared));
+        }
+
+        [Fact]
+        public void TestDataFlowsInCtorInitWrite()
+        {
+            var analysis = CompileAndAnalyzeDataFlowConstructorInitializer(@"
+class C
+{
+    C(int x)
+    {}
+    
+    C(int x, int y) /*<bind>*/ : this(x++ + y) /*</bind>*/
+    {}
+}");
+            Assert.Equal("x, y", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Equal("x", GetSymbolNamesJoined(analysis.WrittenInside));
+        }
+        #endregion
+
+        #region "primary constructor initalizer"
+
+        [Fact]
+        public void TestDataFlowsInPrimaryCtorInitPublicApi()
+        {
+            var program = @"
+record Base(int x)
+
+record C(int x, int y) /*<bind>*/ : Base(x + y) /*</bind>*/;
+";
+            var analysis = CompileAndGetModelAndPrimaryConstructorInitializer(program,
+                (model, primaryConstructorInitializer) => CSharpExtensions.AnalyzeDataFlow(model, primaryConstructorInitializer)
+            );
+
+            Assert.Equal("x, y", GetSymbolNamesJoined(analysis.DataFlowsIn));
+        }
+
+        [Fact]
+        public void TestDataFlowsInPrimaryCtorInitPublicApi2()
+        {
+            var program = @"
+record Base(int x)
+
+record C(int x, int y) /*<bind>*/ : Base(x + y) /*</bind>*/;
+";
+            var analysis = CompileAndGetModelAndPrimaryConstructorInitializer(program,
+                (model, primaryConstructorInitializer) => global::Microsoft.CodeAnalysis.ModelExtensions.AnalyzeDataFlow(model, primaryConstructorInitializer)
+            );
+
+            Assert.Equal("x, y", GetSymbolNamesJoined(analysis.DataFlowsIn));
+        }
+
+        [Fact]
+        public void TestDataFlowsInPrimaryCtorInit()
+        {
+            var analysis = CompileAndAnalyzeDataFlowPrimaryConstructorInitializer(@"
+record Base(int x)
+
+record C(int x, int y) /*<bind>*/ : Base(x + y) /*</bind>*/;
+");
+            Assert.Equal("x, y", GetSymbolNamesJoined(analysis.DataFlowsIn));
+        }
+
+        [Fact]
+        public void TestDataFlowsInPrimaryCtorInitVariablesDeclared()
+        {
+            var analysis = CompileAndAnalyzeDataFlowPrimaryConstructorInitializer(@"
+record Base(int x);
+
+record C(int x, int y) /*<bind>*/ : Base((x++ + y is var b) switch { _ => b * 2}) /*</bind>*/;
+");
+            Assert.Equal("x, y", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Equal("x, b", GetSymbolNamesJoined(analysis.WrittenInside));
+            Assert.Equal("b", GetSymbolNamesJoined(analysis.VariablesDeclared));
+        }
+        #endregion
+
         #region "Statements"
 
         [Fact]
@@ -7836,6 +8032,59 @@ class Program
             Assert.Equal("px", GetSymbolNamesJoined(analysis.WrittenOutside));
         }
 
+        [WorkItem(57428, "https://github.com/dotnet/roslyn/issues/57428")]
+        [Fact]
+        public void AttributeArgumentWithLambdaBody_01()
+        {
+            var source =
+@"using System.Runtime.InteropServices;
+class Program
+{
+    static void F([DefaultParameterValue(() => { return 0; })] object obj)
+    {
+    }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (4,42): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     static void F([DefaultParameterValue(() => { return 0; })] object obj)
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "() => { return 0; }").WithLocation(4, 42));
+
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
+            var analysis = model.AnalyzeDataFlow(expr);
+            Assert.False(analysis.Succeeded);
+        }
+
+        [Fact]
+        public void AttributeArgumentWithLambdaBody_02()
+        {
+            var source =
+@"using System;
+class A : Attribute
+{
+    internal A(object o) { }
+}
+class Program
+{
+    static void F([A(() => { return 0; })] object obj)
+    {
+    }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (8,22): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     static void F([A(() => { return 0; })] object obj)
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "() => { return 0; }").WithLocation(8, 22));
+
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var expr = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
+            var analysis = model.AnalyzeDataFlow(expr);
+            Assert.False(analysis.Succeeded);
+        }
+
         #endregion
 
         #region "Used Local Functions"
@@ -8768,5 +9017,114 @@ public struct CustomHandler
         }
 
         #endregion
+
+        [Fact]
+        public void TestDataFlowsArrayInit_01()
+        {
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+class C {
+    public void F(int x)
+    {
+        int a = 1, y = 2;
+        int[] b = /*<bind>*/{ a + x + 3 } /*</bind>*/;
+        int c = a + 4 + y;
+    }
+}");
+            Assert.Equal("x, a", GetSymbolNamesJoined(analysis.DataFlowsIn));
+        }
+
+        [Fact]
+        public void TestDataFlowsArrayInit_02()
+        {
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+class C {
+    public void F(int x)
+    {
+        int a = 1, y = 2;
+        int[,] b = /*<bind>*/{ { a + x + 3 } }/*</bind>*/;
+        int c = a + 4 + y;
+    }
+}");
+            Assert.Equal("x, a", GetSymbolNamesJoined(analysis.DataFlowsIn));
+        }
+
+        [Fact]
+        public void TestDataFlowsArrayInit_03()
+        {
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+class C {
+    public void F(int x)
+    {
+        int a = 1, y = 2;
+        int[,] b = {/*<bind>*/{ a + x + 3 } /*</bind>*/};
+        int c = a + 4 + y;
+    }
+}");
+            Assert.Equal("x, a", GetSymbolNamesJoined(analysis.DataFlowsIn));
+        }
+
+        [Fact]
+        [WorkItem(57572, "https://github.com/dotnet/roslyn/issues/57572")]
+        public void TestDataFlowsArrayInit_04()
+        {
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+class C {
+    public void F(int x)
+    {
+        int a = 1, y = 2;
+        int[] b = new int[] /*<bind>*/{ a + x + 3 } /*</bind>*/;
+        int c = a + 4 + y;
+    }
+}");
+            Assert.Equal("x, a", GetSymbolNamesJoined(analysis.DataFlowsIn));
+        }
+
+        [Fact]
+        [WorkItem(57572, "https://github.com/dotnet/roslyn/issues/57572")]
+        public void TestDataFlowsArrayInit_05()
+        {
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+class C {
+    public void F(int x)
+    {
+        int a = 1, y = 2;
+        int[,] b = new int[,] /*<bind>*/{ {a + x + 3} } /*</bind>*/;
+        int c = a + 4 + y;
+    }
+}");
+            Assert.Equal("x, a", GetSymbolNamesJoined(analysis.DataFlowsIn));
+        }
+
+        [Fact]
+        [WorkItem(57572, "https://github.com/dotnet/roslyn/issues/57572")]
+        public void TestDataFlowsArrayInit_06()
+        {
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+class C {
+    public void F(int x)
+    {
+        int a = 1, y = 2;
+        int[,] b = new int[,] {/*<bind>*/{ a + x + 3 } /*</bind>*/};
+        int c = a + 4 + y;
+    }
+}");
+            Assert.Equal("x, a", GetSymbolNamesJoined(analysis.DataFlowsIn));
+        }
+
+        [Fact]
+        public void TestDataFlowsObjectInit()
+        {
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+class C {
+    public int Data;
+    public void F(int x)
+    {
+        int a = 1, y = 2;
+        var b = new object() /*<bind>*/{ Data = a + x + 3 } /*</bind>*/;
+        int c = a + 4 + y;
+    }
+}");
+            Assert.Equal("x, a", GetSymbolNamesJoined(analysis.DataFlowsIn));
+        }
     }
 }

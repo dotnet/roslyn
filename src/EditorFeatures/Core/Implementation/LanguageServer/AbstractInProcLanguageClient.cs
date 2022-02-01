@@ -28,13 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         private readonly IThreadingContext _threadingContext;
         private readonly ILspLoggerFactory _lspLoggerFactory;
 
-        /// <summary>
-        /// Legacy support for LSP push diagnostics.
-        /// </summary>
-        private readonly IDiagnosticService? _diagnosticService;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
         private readonly AbstractRequestDispatcherFactory _requestDispatcherFactory;
-        private readonly ILspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
+        private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
 
         protected readonly IGlobalOptionService GlobalOptions;
 
@@ -46,7 +42,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// <summary>
         /// Gets the name of the language client (displayed to the user).
         /// </summary>
-        public abstract string Name { get; }
+        public string Name => ServerKind.ToUserVisibleString();
+
+        /// <summary>
+        /// An enum representing this server instance.
+        /// </summary>
+        public abstract WellKnownLspServerKinds ServerKind { get; }
 
         /// <summary>
         /// The set of languages that this LSP server supports and can return results for.
@@ -82,16 +83,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         public AbstractInProcLanguageClient(
             AbstractRequestDispatcherFactory requestDispatcherFactory,
             IGlobalOptionService globalOptions,
-            IDiagnosticService? diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
-            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             ILspLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext,
             string? diagnosticsClientName)
         {
             _requestDispatcherFactory = requestDispatcherFactory;
             GlobalOptions = globalOptions;
-            _diagnosticService = diagnosticService;
             _listenerProvider = listenerProvider;
             _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
             _diagnosticsClientName = diagnosticsClientName;
@@ -139,7 +138,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 this,
                 serverStream,
                 serverStream,
-                _lspWorkspaceRegistrationService,
                 _lspLoggerFactory,
                 _diagnosticsClientName,
                 cancellationToken).ConfigureAwait(false);
@@ -170,7 +168,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             AbstractInProcLanguageClient languageClient,
             Stream inputStream,
             Stream outputStream,
-            ILspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             ILspLoggerFactory lspLoggerFactory,
             string? clientName,
             CancellationToken cancellationToken)
@@ -190,7 +187,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             var server = languageClient.Create(
                 jsonRpc,
                 languageClient,
-                lspWorkspaceRegistrationService,
                 logger);
 
             jsonRpc.StartListening();
@@ -200,22 +196,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         public ILanguageServerTarget Create(
             JsonRpc jsonRpc,
             ICapabilitiesProvider capabilitiesProvider,
-            ILspWorkspaceRegistrationService workspaceRegistrationService,
             ILspLogger logger)
         {
             return new VisualStudioInProcLanguageServer(
                 _requestDispatcherFactory,
                 jsonRpc,
                 capabilitiesProvider,
-                workspaceRegistrationService,
+                _lspWorkspaceRegistrationService,
                 GlobalOptions,
                 _listenerProvider,
                 logger,
-                _diagnosticService,
                 SupportedLanguages,
                 clientName: _diagnosticsClientName,
-                userVisibleServerName: this.Name,
-                telemetryServerTypeName: this.GetType().Name);
+                ServerKind);
         }
 
         public abstract ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities);

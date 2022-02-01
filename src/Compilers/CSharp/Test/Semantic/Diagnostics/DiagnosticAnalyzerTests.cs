@@ -1004,7 +1004,7 @@ public class B
 
         [Theory, WorkItem(7173, "https://github.com/dotnet/roslyn/issues/7173")]
         [CombinatorialData]
-        public void TestReportingDiagnosticWithInvalidLocation(AnalyzerWithInvalidDiagnosticLocation.ActionKind actionKind)
+        public void TestReportingDiagnosticWithInvalidLocation(AnalyzerWithInvalidDiagnosticLocation.ActionKind actionKind, bool testInvalidAdditionalLocation)
         {
             var source1 = @"class C1 { void M() { int i = 0; i++; } }";
             var source2 = @"class C2 { void M() { int i = 0; i++; } }";
@@ -1017,7 +1017,7 @@ public class B
 
             compilation.VerifyDiagnostics();
 
-            var analyzer = new AnalyzerWithInvalidDiagnosticLocation(treeInAnotherCompilation, actionKind);
+            var analyzer = new AnalyzerWithInvalidDiagnosticLocation(treeInAnotherCompilation, actionKind, testInvalidAdditionalLocation);
             var analyzers = new DiagnosticAnalyzer[] { analyzer };
             Exception analyzerException = null;
 
@@ -1502,7 +1502,7 @@ class NonGeneratedCode{0}
             generatedFileNames.Add(myGeneratedFileTrueName);
             tree = CSharpSyntaxTree.ParseText(string.Format(source, treeNum++), path: myGeneratedFileTrueName);
             builder.Add(tree);
-            var analyzerConfigOptions = new CompilerAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("generated_code", "true"));
+            var analyzerConfigOptions = new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("generated_code", "true"));
             analyzerConfigOptionsPerTreeBuilder.Add(tree, analyzerConfigOptions);
 
             // (2) "generated_code = TRUE" (case insensitive)
@@ -1510,22 +1510,22 @@ class NonGeneratedCode{0}
             generatedFileNames.Add(myGeneratedFileCaseInsensitiveTrueName);
             tree = CSharpSyntaxTree.ParseText(string.Format(source, treeNum++), path: myGeneratedFileCaseInsensitiveTrueName);
             builder.Add(tree);
-            analyzerConfigOptions = new CompilerAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("generated_code", "TRUE"));
+            analyzerConfigOptions = new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("generated_code", "TRUE"));
             analyzerConfigOptionsPerTreeBuilder.Add(tree, analyzerConfigOptions);
 
             // (3) "generated_code = false"
             tree = CSharpSyntaxTree.ParseText(string.Format(source, treeNum++), path: "MyGeneratedFileFalse.cs");
             builder.Add(tree);
-            analyzerConfigOptions = new CompilerAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("generated_code", "false"));
+            analyzerConfigOptions = new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("generated_code", "false"));
             analyzerConfigOptionsPerTreeBuilder.Add(tree, analyzerConfigOptions);
 
             // (4) "generated_code = auto"
             tree = CSharpSyntaxTree.ParseText(string.Format(source, treeNum++), path: "MyGeneratedFileAuto.cs");
             builder.Add(tree);
-            analyzerConfigOptions = new CompilerAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("generated_code", "auto"));
+            analyzerConfigOptions = new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("generated_code", "auto"));
             analyzerConfigOptionsPerTreeBuilder.Add(tree, analyzerConfigOptions);
 
-            var analyzerConfigOptionsProvider = new CompilerAnalyzerConfigOptionsProvider(analyzerConfigOptionsPerTreeBuilder.ToImmutable(), CompilerAnalyzerConfigOptions.Empty);
+            var analyzerConfigOptionsProvider = new CompilerAnalyzerConfigOptionsProvider(analyzerConfigOptionsPerTreeBuilder.ToImmutable(), DictionaryAnalyzerConfigOptions.Empty);
             var analyzerOptions = new AnalyzerOptions(additionalFiles: ImmutableArray<AdditionalText>.Empty, analyzerConfigOptionsProvider);
 
             // Verify no compiler diagnostics.
@@ -3761,6 +3761,44 @@ class C
             {
                 Assert.Same(model, _cache[tree]);
             }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        public class RecordDeclarationAnalyzer : DiagnosticAnalyzer
+        {
+            public const string DiagnosticId = "MyDiagnostic";
+            internal const string Title = "MyDiagnostic";
+            internal const string MessageFormat = "MyDiagnostic";
+            internal const string Category = "Category";
+
+            internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxNodeAction(AnalyzeRecordDeclaration, SyntaxKind.RecordDeclaration);
+            }
+
+            private static void AnalyzeRecordDeclaration(SyntaxNodeAnalysisContext context)
+            {
+                var recordDeclaration = (RecordDeclarationSyntax)context.Node;
+                var diagnostic = CodeAnalysis.Diagnostic.Create(Rule, recordDeclaration.GetLocation());
+                context.ReportDiagnostic(diagnostic);
+            }
+        }
+
+        [Fact, WorkItem(53136, "https://github.com/dotnet/roslyn/issues/53136")]
+        public void TestNoDuplicateCallbacksForRecordDeclaration()
+        {
+            string source = @"
+public record A(int X, int Y);";
+            var analyzers = new DiagnosticAnalyzer[] { new RecordDeclarationAnalyzer() };
+
+            CreateCompilation(new[] { source, IsExternalInitTypeDefinition })
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null,
+                     Diagnostic("MyDiagnostic", @"public record A(int X, int Y);").WithLocation(2, 1));
         }
     }
 }

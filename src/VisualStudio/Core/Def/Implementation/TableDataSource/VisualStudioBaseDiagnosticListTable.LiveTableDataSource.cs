@@ -127,7 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return key;
                 }
 
-                if (!CheckAggregateKey(key as AggregatedKey, data as DiagnosticsUpdatedArgs))
+                if (!CheckAggregateKey(key as AggregatedKey, data))
                 {
                     RemoveStaledData(data);
 
@@ -416,7 +416,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return _source.BuildTool;
                 }
 
-                private ErrorSource GetErrorSource(string buildTool)
+                private static ErrorSource GetErrorSource(string buildTool)
                 {
                     if (buildTool == PredefinedBuildTools.Build)
                     {
@@ -426,7 +426,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return ErrorSource.Other;
                 }
 
-                private ErrorRank GetErrorRank(DiagnosticData item)
+                private static ErrorRank GetErrorRank(DiagnosticData item)
                 {
                     if (!item.Properties.TryGetValue(WellKnownDiagnosticPropertyNames.Origin, out var value))
                     {
@@ -571,7 +571,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
 
 #pragma warning disable IDE0060 // Remove unused parameter - TODO: remove this once we moved to new drop 
-                public bool TryCreateStringContent(int index, string columnName, bool singleColumnView, [NotNullWhen(returnValue: true)] out string? content)
+                public static bool TryCreateStringContent(int index, string columnName, bool singleColumnView, [NotNullWhen(returnValue: true)] out string? content)
 #pragma warning restore IDE0060 // Remove unused parameter
                 {
                     content = null;

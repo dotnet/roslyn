@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -97,6 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             VSUtilities.IUIThreadOperationExecutor operationExecutor,
             IAsynchronousOperationListenerProvider listenerProvider,
             VisualStudioWorkspaceImpl workspace,
+            IGlobalOptionService globalOptions,
             SVsServiceProvider serviceProvider,
             [Import("Microsoft.VisualStudio.Shell.Interop.SAsyncServiceProvider")] object asyncServiceProvider,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
@@ -105,7 +107,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             [Import(AllowDefault = true)] Lazy<IVsPackageSourceProvider>? packageSourceProvider)
             : base(threadingContext,
                    workspace,
-                   SymbolSearchOptions.Enabled,
+                   globalOptions,
+                   SymbolSearchGlobalOptions.Enabled,
                    SymbolSearchOptions.SuggestForTypesInReferenceAssemblies,
                    SymbolSearchOptions.SuggestForTypesInNuGetPackages)
         {
@@ -651,7 +654,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             return versionsAndSplits.Select(v => v.Version).ToImmutableArray();
         }
 
-        private int CompareSplit(string[] split1, string[] split2)
+        private static int CompareSplit(string[] split1, string[] split2)
         {
             ThisCanBeCalledOnAnyThread();
 

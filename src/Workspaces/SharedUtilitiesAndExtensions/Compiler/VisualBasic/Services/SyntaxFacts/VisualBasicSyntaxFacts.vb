@@ -74,6 +74,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
+        Public Function SupportsTargetTypedConditionalExpression(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsTargetTypedConditionalExpression
+            Return False
+        End Function
+
         Public Function ParseToken(text As String) As SyntaxToken Implements ISyntaxFacts.ParseToken
             Return SyntaxFactory.ParseToken(text, startStatement:=True)
         End Function
@@ -227,6 +231,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public Function IsExecutableStatement(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsExecutableStatement
             Return TypeOf node Is ExecutableStatementSyntax
+        End Function
+
+        Public Function IsGlobalStatement(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsGlobalStatement
+            Return False
+        End Function
+
+        Public Function AreStatementsInSameContainer(firstStatement As SyntaxNode, secondStatement As SyntaxNode) As Boolean Implements ISyntaxFacts.AreStatementsInSameContainer
+            Debug.Assert(IsStatement(firstStatement))
+            Debug.Assert(IsStatement(secondStatement))
+
+            Return firstStatement.Parent Is secondStatement.Parent
         End Function
 
         Public Function IsMethodBody(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsMethodBody
@@ -615,14 +630,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function GetContainingTypeDeclaration(root As SyntaxNode, position As Integer) As SyntaxNode Implements ISyntaxFacts.GetContainingTypeDeclaration
-            If root Is Nothing Then
-                Throw New ArgumentNullException(NameOf(root))
-            End If
-
-            If position < 0 OrElse position > root.Span.End Then
-                Throw New ArgumentOutOfRangeException(NameOf(position))
-            End If
-
             Return root.
                 FindToken(position).
                 GetAncestors(Of SyntaxNode)().
@@ -687,9 +694,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         End Function
 
         Public Function GetContainingMemberDeclaration(root As SyntaxNode, position As Integer, Optional useFullSpan As Boolean = True) As SyntaxNode Implements ISyntaxFacts.GetContainingMemberDeclaration
-            Contract.ThrowIfNull(root, NameOf(root))
-            Contract.ThrowIfTrue(position < 0 OrElse position > root.FullSpan.End, NameOf(position))
-
             Dim [end] = root.FullSpan.End
             If [end] = 0 Then
                 ' empty file

@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Logging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -201,12 +202,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IReadOnlyList<ProjectId> ProjectIds { get; }
 
-        // Only run this in debug builds; even the .Any() call across all projects can be expensive when there's a lot of them.
-        [Conditional("DEBUG")]
         private void CheckInvariants()
         {
+            // Run these quick checks all the time.  We need to know immediately if we violate these.
             Contract.ThrowIfFalse(_projectIdToProjectStateMap.Count == ProjectIds.Count);
             Contract.ThrowIfFalse(_projectIdToProjectStateMap.Count == _dependencyGraph.ProjectIds.Count);
+
+            // Only run this in debug builds; even the .Any() call across all projects can be expensive when there's a lot of them.
+
+#if DEBUG
 
             // An id shouldn't point at a tracker for a different project.
             Contract.ThrowIfTrue(_projectIdToTrackerMap.Any(kvp => kvp.Key != kvp.Value.ProjectState.Id));
@@ -216,6 +220,8 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(_projectIdToProjectStateMap.Keys.SetEquals(_dependencyGraph.ProjectIds));
 
             Debug.Assert(_remoteSupportedLanguages.SetEquals(GetRemoteSupportedProjectLanguages(_projectIdToProjectStateMap)));
+
+#endif
         }
 
         private SolutionState Branch(
@@ -429,6 +435,9 @@ namespace Microsoft.CodeAnalysis
 
         public Task<VersionStamp> GetDependentSemanticVersionAsync(ProjectId projectId, CancellationToken cancellationToken)
             => this.GetCompilationTracker(projectId).GetDependentSemanticVersionAsync(this, cancellationToken);
+
+        public Task<Checksum> GetDependentChecksumAsync(ProjectId projectId, CancellationToken cancellationToken)
+            => this.GetCompilationTracker(projectId).GetDependentChecksumAsync(this, cancellationToken);
 
         public ProjectState? GetProjectState(ProjectId projectId)
         {
@@ -1054,7 +1063,7 @@ namespace Microsoft.CodeAnalysis
 
             return ForkProject(
                 oldProject.WithAnalyzerReferences(newReferences),
-                new CompilationAndGeneratorDriverTranslationAction.AddAnalyzerReferencesAction(analyzerReferences, oldProject.Language));
+                new CompilationAndGeneratorDriverTranslationAction.AddOrRemoveAnalyzerReferencesAction(oldProject.Language, referencesToAdd: analyzerReferences));
         }
 
         /// <summary>
@@ -1073,7 +1082,7 @@ namespace Microsoft.CodeAnalysis
 
             return ForkProject(
                 oldProject.WithAnalyzerReferences(newReferences),
-                new CompilationAndGeneratorDriverTranslationAction.RemoveAnalyzerReferencesAction(ImmutableArray.Create(analyzerReference), oldProject.Language));
+                new CompilationAndGeneratorDriverTranslationAction.AddOrRemoveAnalyzerReferencesAction(oldProject.Language, referencesToRemove: ImmutableArray.Create(analyzerReference)));
         }
 
         /// <summary>
@@ -1089,7 +1098,16 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return ForkProject(newProject);
+            // The .Except() methods here aren't going to terribly cheap, but the assumption is adding or removing just the generators
+            // we changed, rather than creating an entire new generator driver from scratch and rerunning all generators, is cheaper
+            // in the end. This was written without data backing up that assumption, so if a profile indicates to the contrary,
+            // this could be changed.
+            var addedReferences = newProject.AnalyzerReferences.Except(oldProject.AnalyzerReferences).ToImmutableArray();
+            var removedReferences = oldProject.AnalyzerReferences.Except(newProject.AnalyzerReferences).ToImmutableArray();
+
+            return ForkProject(
+                newProject,
+                new CompilationAndGeneratorDriverTranslationAction.AddOrRemoveAnalyzerReferencesAction(oldProject.Language, referencesToAdd: addedReferences, referencesToRemove: removedReferences));
         }
 
         /// <summary>
@@ -1520,6 +1538,7 @@ namespace Microsoft.CodeAnalysis
         {
             var projectId = newProjectState.Id;
 
+            Contract.ThrowIfFalse(_projectIdToProjectStateMap.ContainsKey(projectId));
             var newStateMap = _projectIdToProjectStateMap.SetItem(projectId, newProjectState);
 
             // Remote supported languages can only change if the project changes language. This is an unexpected edge
@@ -1538,7 +1557,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (forkTracker)
                 {
-                    newTrackerMap = newTrackerMap.Add(projectId, tracker.Fork(newProjectState, translate));
+                    newTrackerMap = newTrackerMap.Add(projectId, tracker.Fork(_solutionServices, newProjectState, translate));
                 }
             }
 
@@ -1584,7 +1603,7 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<ProjectId>? dependencies = null;
 
             foreach (var (id, tracker) in _projectIdToTrackerMap)
-                builder.Add(id, CanReuse(id) ? tracker : tracker.Fork(tracker.ProjectState));
+                builder.Add(id, CanReuse(id) ? tracker : tracker.Fork(_solutionServices, tracker.ProjectState));
 
             return builder.ToImmutable();
 
@@ -1708,6 +1727,7 @@ namespace Microsoft.CodeAnalysis
                     var tracker = this.GetCompilationTracker(documentId.ProjectId);
                     var newTracker = tracker.FreezePartialStateWithTree(this, doc, tree, cancellationToken);
 
+                    Contract.ThrowIfFalse(_projectIdToProjectStateMap.ContainsKey(documentId.ProjectId));
                     var newIdToProjectStateMap = _projectIdToProjectStateMap.SetItem(documentId.ProjectId, newTracker.ProjectState);
                     var newLanguages = _remoteSupportedLanguages;
                     var newIdToTrackerMap = _projectIdToTrackerMap.SetItem(documentId.ProjectId, newTracker);
@@ -1726,7 +1746,7 @@ namespace Microsoft.CodeAnalysis
                     return currentPartialSolution;
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -1894,18 +1914,53 @@ namespace Microsoft.CodeAnalysis
         private static readonly ConditionalWeakTable<ISymbol, ProjectId> s_assemblyOrModuleSymbolToProjectMap = new();
 
         /// <summary>
-        /// Get a metadata reference for the project's compilation
+        /// Get a metadata reference for the project's compilation.  Returns <see langword="null"/> upon failure, which 
+        /// can happen when trying to build a skeleton reference that fails to build.
         /// </summary>
-        public Task<MetadataReference> GetMetadataReferenceAsync(ProjectReference projectReference, ProjectState fromProject, CancellationToken cancellationToken)
+        public Task<MetadataReference?> GetMetadataReferenceAsync(ProjectReference projectReference, ProjectState fromProject, CancellationToken cancellationToken)
         {
             try
             {
                 // Get the compilation state for this project.  If it's not already created, then this
                 // will create it.  Then force that state to completion and get a metadata reference to it.
                 var tracker = this.GetCompilationTracker(projectReference.ProjectId);
-                return tracker.GetMetadataReferenceAsync(this, fromProject, projectReference, cancellationToken);
+                return GetMetadataReferenceAsync(tracker, fromProject, projectReference, cancellationToken);
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        /// <summary>
+        /// Get a metadata reference to this compilation info's compilation with respect to
+        /// another project. For cross language references produce a skeletal assembly. If the
+        /// compilation is not available, it is built. If a skeletal assembly reference is
+        /// needed and does not exist, it is also built.
+        /// </summary>
+        private async Task<MetadataReference?> GetMetadataReferenceAsync(
+            ICompilationTracker tracker, ProjectState fromProject, ProjectReference projectReference, CancellationToken cancellationToken)
+        {
+            try
+            {
+                // If same language then we can wrap the other project's compilation into a compilation reference
+                if (tracker.ProjectState.LanguageServices == fromProject.LanguageServices)
+                {
+                    // otherwise, base it off the compilation by building it first.
+                    var compilation = await tracker.GetCompilationAsync(this, cancellationToken).ConfigureAwait(false);
+                    return compilation.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
+                }
+
+                // otherwise get a metadata only image reference that is built by emitting the metadata from the
+                // referenced project's compilation and re-importing it.
+                using (Logger.LogBlock(FunctionId.Workspace_SkeletonAssembly_GetMetadataOnlyImage, cancellationToken))
+                {
+                    var properties = new MetadataReferenceProperties(aliases: projectReference.Aliases, embedInteropTypes: projectReference.EmbedInteropTypes);
+                    return await tracker.SkeletonReferenceCache.GetOrBuildReferenceAsync(
+                        tracker, this, properties, cancellationToken).ConfigureAwait(false);
+                }
+            }
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -1978,6 +2033,23 @@ namespace Microsoft.CodeAnalysis
             }
 
             return builder.ToImmutable();
+        }
+
+        internal TestAccessor GetTestAccessor() => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly SolutionState _solutionState;
+
+            public TestAccessor(SolutionState solutionState)
+            {
+                _solutionState = solutionState;
+            }
+
+            public GeneratorDriver? GetGeneratorDriver(Project project)
+            {
+                return project.SupportsCompilation ? _solutionState.GetCompilationTracker(project.Id).GeneratorDriver : null;
+            }
         }
     }
 }

@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 
             var persistentService = previewWorkspace.Services.GetPersistentStorageService(previewWorkspace.CurrentSolution.Options);
 
-            await using var storage = await persistentService.GetStorageAsync(SolutionKey.ToSolutionKey(previewWorkspace.CurrentSolution), checkBranchId: true, CancellationToken.None);
+            await using var storage = await persistentService.GetStorageAsync(SolutionKey.ToSolutionKey(previewWorkspace.CurrentSolution), CancellationToken.None);
             Assert.IsType<NoOpPersistentStorage>(storage);
         }
 
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             // enable preview diagnostics
             previewWorkspace.EnableDiagnostic();
 
-            var diagnosticsAndErrorsSpans = await SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<DiagnosticsSquiggleTaggerProvider>(workspace);
+            var diagnosticsAndErrorsSpans = await SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace);
             const string AnalyzerCount = "Analyzer Count: ";
             Assert.Equal(AnalyzerCount + 1, AnalyzerCount + diagnosticsAndErrorsSpans.Item1.Length);
 

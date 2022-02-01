@@ -480,7 +480,7 @@ class Class1
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null) (Syntax: '*x')
+IOperation:  (OperationKind.None, Type: System.Int32) (Syntax: '*x')
   Children(1):
       IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32*) (Syntax: 'x')
 ";
@@ -515,7 +515,7 @@ internal class Class
 IVariableDeclaratorOperation (Symbol: System.Int32* p) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'p = array')
   Initializer: 
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= array')
-      IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'array')
+      IOperation:  (OperationKind.None, Type: System.Int32*, IsImplicit) (Syntax: 'array')
         Children(1):
             IParameterReferenceOperation: array (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'array')
 ";
@@ -542,7 +542,7 @@ class Class1
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null) (Syntax: '__reftype(x)')
+IOperation:  (OperationKind.None, Type: System.Type) (Syntax: '__reftype(x)')
   Children(1):
       IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.TypedReference) (Syntax: 'x')
 ";
@@ -565,7 +565,7 @@ class Class1
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null) (Syntax: '__makeref(x)')
+IOperation:  (OperationKind.None, Type: System.TypedReference) (Syntax: '__makeref(x)')
   Children(1):
       IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Type) (Syntax: 'x')
 ";
@@ -588,7 +588,7 @@ class Class1
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null) (Syntax: '__refvalue(x, int)')
+IOperation:  (OperationKind.None, Type: System.Int32) (Syntax: '__refvalue(x, int)')
   Children(1):
       IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.TypedReference) (Syntax: 'x')
 ";
@@ -730,7 +730,7 @@ internal class Class
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null) (Syntax: 'stackalloc int[x]')
+IOperation:  (OperationKind.None, Type: System.Int32*) (Syntax: 'stackalloc int[x]')
   Children(1):
       IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
 ";
@@ -987,9 +987,9 @@ struct S
                 references: new[] { MscorlibRef, SystemRef, compilation0.EmitToImageReference(embedInteropTypes: true) });
 
             string expectedOperationTree = @"
-INoPiaObjectCreationOperation (OperationKind.None, Type: I, IsInvalid) (Syntax: 'new I(x)')
-  Initializer: 
-    null
+IInvalidOperation (OperationKind.Invalid, Type: I, IsInvalid) (Syntax: 'new I(x)')
+  Children(1):
+      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'x')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // (6,24): error CS1729: 'I' does not contain a constructor that takes 1 arguments

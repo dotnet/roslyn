@@ -15,6 +15,7 @@ using Roslyn.Utilities;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Options;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -53,23 +54,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </remarks>
     internal partial class RequestExecutionQueue
     {
-        private readonly string _serverName;
+        private readonly WellKnownLspServerKinds _serverKind;
         private readonly ImmutableArray<string> _supportedLanguages;
 
-        private readonly AsyncQueue<QueueItem> _queue;
-        private readonly CancellationTokenSource _cancelSource;
-        private readonly DocumentChangeTracker _documentChangeTracker;
+        /// <summary>
+        /// The queue containing the ordered LSP requests along with a combined cancellation token
+        /// representing the queue's cancellation token and the individual request cancellation token.
+        /// </summary>
+        private readonly AsyncQueue<(IQueueItem queueItem, CancellationToken cancellationToken)> _queue = new();
+        private readonly CancellationTokenSource _cancelSource = new CancellationTokenSource();
         private readonly RequestTelemetryLogger _requestTelemetryLogger;
         private readonly IGlobalOptionService _globalOptions;
-        private readonly LspMiscellaneousFilesWorkspace _lspMiscellaneousFilesWorkspace;
 
-        // This dictionary is used to cache our forked LSP solution so we don't have to
-        // recompute it for each request. We don't need to worry about threading because they are only
-        // used when preparing to handle a request, which happens in a single thread in the ProcessQueueAsync
-        // method.
-        private readonly Dictionary<Workspace, (Solution workspaceSolution, Solution lspSolution)> _lspSolutionCache = new();
         private readonly ILspLogger _logger;
-        private readonly ILspWorkspaceRegistrationService _workspaceRegistrationService;
+        private readonly LspWorkspaceManager _lspWorkspaceManager;
+
+        /// <summary>
+        /// For test purposes only.
+        /// A task that completes when the queue processing stops.
+        /// </summary>
+        private readonly Task _queueProcessingTask;
 
         public CancellationToken CancellationToken => _cancelSource.Token;
 
@@ -85,32 +89,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public RequestExecutionQueue(
             ILspLogger logger,
-            ILspWorkspaceRegistrationService workspaceRegistrationService,
-            LspMiscellaneousFilesWorkspace lspMiscellaneousFilesWorkspace,
+            LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
+            LspMiscellaneousFilesWorkspace? lspMiscellaneousFilesWorkspace,
             IGlobalOptionService globalOptions,
             ImmutableArray<string> supportedLanguages,
-            string serverName,
-            string serverTypeName)
+            WellKnownLspServerKinds serverKind)
         {
             _logger = logger;
-            _workspaceRegistrationService = workspaceRegistrationService;
-            _lspMiscellaneousFilesWorkspace = lspMiscellaneousFilesWorkspace;
             _globalOptions = globalOptions;
             _supportedLanguages = supportedLanguages;
-            _serverName = serverName;
-
-            _queue = new AsyncQueue<QueueItem>();
-            _cancelSource = new CancellationTokenSource();
-            _documentChangeTracker = new DocumentChangeTracker(lspMiscellaneousFilesWorkspace, workspaceRegistrationService);
+            _serverKind = serverKind;
 
             // Pass the language client instance type name to the telemetry logger to ensure we can
             // differentiate between the different C# LSP servers that have the same client name.
             // We also don't use the language client's name property as it is a localized user facing string
             // which is difficult to write telemetry queries for.
-            _requestTelemetryLogger = new RequestTelemetryLogger(serverTypeName);
+            _requestTelemetryLogger = new RequestTelemetryLogger(_serverKind.ToTelemetryString());
+
+            _lspWorkspaceManager = new LspWorkspaceManager(logger, lspMiscellaneousFilesWorkspace, lspWorkspaceRegistrationService, _requestTelemetryLogger);
 
             // Start the queue processing
-            _ = ProcessQueueAsync();
+            _queueProcessingTask = ProcessQueueAsync();
         }
 
         /// <summary>
@@ -120,8 +119,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public void Shutdown()
         {
             _cancelSource.Cancel();
-            DrainQueue();
+
+            // Tell the queue not to accept any more items.
+            // Note: We do not need to spin through the queue manually and cancel items as
+            // 1.  New queue instances are created for each server, so items in the queue would be gc'd.
+            // 2.  Their cancellation tokens are linked to the queue's _cancelSource so are also cancelled.
+            _queue.Complete();
+
             _requestTelemetryLogger.Dispose();
+            _lspWorkspaceManager.Dispose();
         }
 
         /// <summary>
@@ -152,74 +158,39 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             CancellationToken requestCancellationToken)
             where TRequestType : class
         {
-            // Create a task completion source that will represent the processing of this request to the caller
-            var completion = new TaskCompletionSource<TResponseType?>();
-
             // Note: If the queue is not accepting any more items then TryEnqueue below will fail.
 
             var textDocument = handler.GetTextDocumentIdentifier(request);
-            var item = new QueueItem(
+
+            // Create a combined cancellation token so either the client cancelling it's token or the queue
+            // shutting down cancels the request.
+            var combinedTokenSource = _cancelSource.Token.CombineWith(requestCancellationToken);
+            var combinedCancellationToken = combinedTokenSource.Token;
+
+            var (item, resultTask) = QueueItem<TRequestType, TResponseType>.Create(
                 mutatesSolutionState,
                 requiresLSPSolution,
                 clientCapabilities,
                 clientName,
                 methodName,
                 textDocument,
+                request,
+                handler,
                 Trace.CorrelationManager.ActivityId,
                 _logger,
                 _requestTelemetryLogger,
-                callbackAsync: async (context, cancellationToken) =>
-                {
-                    // Check if cancellation was requested while this was waiting in the queue
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        completion.SetCanceled();
+                combinedCancellationToken);
 
-                        return;
-                    }
-
-                    // If we weren't able to get a corresponding context for this request (for example, we
-                    // couldn't map a doc request to a particular Document, or we couldn't find an appropriate
-                    // Workspace for a global operation), then just immediately complete the request with a
-                    // 'null' response.  Note: the lsp spec was checked to ensure that 'null' is valid for all
-                    // the requests this could happen for.  However, this assumption may not hold in the future.
-                    // If that turns out to be the case, we could defer to the individual handler to decide
-                    // what to do.
-                    if (context == null)
-                    {
-                        completion.SetResult(default);
-                        return;
-                    }
-
-                    try
-                    {
-                        var result = await handler.HandleRequestAsync(request, context.Value, cancellationToken).ConfigureAwait(false);
-                        completion.SetResult(result);
-                    }
-                    catch (OperationCanceledException ex)
-                    {
-                        completion.TrySetCanceled(ex.CancellationToken);
-                    }
-                    catch (Exception exception)
-                    {
-                        // Pass the exception to the task completion source, so the caller of the ExecuteAsync method can react
-                        completion.SetException(exception);
-
-                        // Also allow the exception to flow back to the request queue to handle as appropriate
-                        throw new InvalidOperationException($"Error handling '{methodName}' request: {exception.Message}", exception);
-                    }
-                }, requestCancellationToken);
-
-            var didEnqueue = _queue.TryEnqueue(item);
+            var didEnqueue = _queue.TryEnqueue((item, combinedCancellationToken));
 
             // If the queue has been shut down the enqueue will fail, so we just fault the task immediately.
             // The queue itself is threadsafe (_queue.TryEnqueue and _queue.Complete use the same lock).
             if (!didEnqueue)
             {
-                completion.SetException(new InvalidOperationException($"{_serverName} was requested to shut down."));
+                return Task.FromException<TResponseType?>(new InvalidOperationException($"{_serverKind.ToUserVisibleString()} was requested to shut down."));
             }
 
-            return completion.Task;
+            return resultTask;
         }
 
         private async Task ProcessQueueAsync()
@@ -228,55 +199,64 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 while (!_cancelSource.IsCancellationRequested)
                 {
-                    var work = await _queue.DequeueAsync(_cancelSource.Token).ConfigureAwait(false);
 
-                    // Record when the work item was been de-queued and the request context preparation started.
-                    work.Metrics.RecordExecutionStart();
-
-                    // Restore our activity id so that logging/tracking works across asynchronous calls.
-                    Trace.CorrelationManager.ActivityId = work.ActivityId;
-                    var (context, workspace) = CreateRequestContext(work);
-
-                    if (work.MutatesSolutionState)
+                    // First attempt to de-queue the work item in its own try-catch.
+                    // This is because before we de-queue we do not have access to the queue item's linked cancellation token.
+                    (IQueueItem work, CancellationToken cancellationToken) queueItem;
+                    try
                     {
-                        // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
-                        await ExecuteCallbackAsync(work, context, _cancelSource.Token).ConfigureAwait(false);
-
-                        // Now that we've mutated our solution, clear out our saved state to ensure it gets recalculated
-                        if (workspace != null)
-                            _lspSolutionCache.Remove(workspace);
+                        queueItem = await _queue.DequeueAsync(_cancelSource.Token).ConfigureAwait(false);
                     }
-                    else
+                    catch (OperationCanceledException ex) when (ex.CancellationToken == _cancelSource.Token)
                     {
-                        // Non mutating are fire-and-forget because they are by definition readonly. Any errors
-                        // will be sent back to the client but we can still capture errors in queue processing
-                        // via NFW, though these errors don't put us into a bad state as far as the rest of the queue goes.
-                        // Furthermore we use Task.Run here to protect ourselves against synchronous execution of work
-                        // blocking the request queue for longer periods of time (it enforces parallelizabilty).
-                        _ = Task.Run(() => ExecuteCallbackAsync(work, context, _cancelSource.Token), _cancelSource.Token).ReportNonFatalErrorAsync();
+                        // The queue's cancellation token was invoked which means we are shutting down the queue.
+                        // Exit out of the loop so we stop processing new items.
+                        return;
+                    }
+
+                    try
+                    {
+                        var (work, cancellationToken) = queueItem;
+                        // Record when the work item was been de-queued and the request context preparation started.
+                        work.Metrics.RecordExecutionStart();
+
+                        // Restore our activity id so that logging/tracking works across asynchronous calls.
+                        Trace.CorrelationManager.ActivityId = work.ActivityId;
+                        var context = CreateRequestContext(work);
+
+                        if (work.MutatesSolutionState)
+                        {
+                            // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
+                            // Since we're explicitly awaiting exceptions to mutating requests will bubble up here.
+                            await work.CallbackAsync(context, cancellationToken).ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            // Non mutating are fire-and-forget because they are by definition readonly. Any errors
+                            // will be sent back to the client but we can still capture errors in queue processing
+                            // via NFW, though these errors don't put us into a bad state as far as the rest of the queue goes.
+                            // Furthermore we use Task.Run here to protect ourselves against synchronous execution of work
+                            // blocking the request queue for longer periods of time (it enforces parallelizabilty).
+                            _ = Task.Run(() => work.CallbackAsync(context, cancellationToken), cancellationToken).ReportNonFatalErrorAsync();
+                        }
+                    }
+                    catch (OperationCanceledException ex) when (ex.CancellationToken == queueItem.cancellationToken)
+                    {
+                        // Explicitly ignore this exception as cancellation occured as a result of our linked cancellation token.
+                        // This means either the queue is shutting down or the request itself was cancelled.
+                        //   1.  If the queue is shutting down, then while loop will exit before the next iteration since it checks for cancellation.
+                        //   2.  Request cancellations are normal so no need to report anything there.
                     }
                 }
             }
-            catch (OperationCanceledException e) when (e.CancellationToken == _cancelSource.Token)
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
             {
-                // If cancellation occurs as a result of our token, then it was either because we cancelled it in the Shutdown
-                // method, if it happened during a mutating request, or because the queue was completed in the Shutdown method
-                // if it happened while waiting to dequeue the next item. Either way, we're already shutting down so we don't
-                // want to log it.
+                // We encountered an unexpected exception in processing the queue or in a mutating request.
+                // Log it, shutdown the queue, and exit the loop.
+                _logger.TraceException(ex);
+                OnRequestServerShutdown($"Error occurred processing queue in {_serverKind.ToUserVisibleString()}: {ex.Message}.");
+                return;
             }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
-            {
-                _logger.TraceException(e);
-                OnRequestServerShutdown($"Error occurred processing queue in {_serverName}: {e.Message}.");
-            }
-        }
-
-        private static Task ExecuteCallbackAsync(QueueItem work, RequestContext? context, CancellationToken queueCancellationToken)
-        {
-            // Create a combined cancellation token to cancel any requests in progress when this shuts down
-            using var combinedTokenSource = queueCancellationToken.CombineWith(work.CancellationToken);
-
-            return work.CallbackAsync(context, combinedTokenSource.Token);
         }
 
         private void OnRequestServerShutdown(string message)
@@ -286,42 +266,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Shutdown();
         }
 
-        /// <summary>
-        /// Cancels all requests in the queue and stops the queue from accepting any more requests. After this method
-        /// is called this queue is essentially useless.
-        /// </summary>
-        private void DrainQueue()
-        {
-            // Tell the queue not to accept any more items
-            _queue.Complete();
-
-            // Spin through the queue and pass in our cancelled token, so that the waiting tasks are cancelled.
-            // NOTE: This only really works because the first thing that CallbackAsync does is check for cancellation
-            // but generics make it annoying to store the TaskCompletionSource<TResult> on the QueueItem so this
-            // is the best we can do for now. Ideally we would manipulate the TaskCompletionSource directly here
-            // and just call SetCanceled
-            while (_queue.TryDequeue(out var item))
-            {
-                _ = item.CallbackAsync(null, new CancellationToken(true));
-            }
-        }
-
-        private (RequestContext? context, Workspace? workspace) CreateRequestContext(QueueItem queueItem)
+        private RequestContext? CreateRequestContext(IQueueItem queueItem)
         {
             var trackerToUse = queueItem.MutatesSolutionState
-                ? (IDocumentChangeTracker)_documentChangeTracker
-                : new NonMutatingDocumentChangeTracker(_documentChangeTracker);
+                ? (IDocumentChangeTracker)_lspWorkspaceManager
+                : new NonMutatingDocumentChangeTracker();
 
             return RequestContext.Create(
                 queueItem.RequiresLSPSolution,
                 queueItem.TextDocument,
                 queueItem.ClientName,
                 _logger,
-                _requestTelemetryLogger,
                 queueItem.ClientCapabilities,
-                _workspaceRegistrationService,
-                _lspMiscellaneousFilesWorkspace,
-                _lspSolutionCache,
+                _lspWorkspaceManager,
                 trackerToUse,
                 _supportedLanguages,
                 _globalOptions);

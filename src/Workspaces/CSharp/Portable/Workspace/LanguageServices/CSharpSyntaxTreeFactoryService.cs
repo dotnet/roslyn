@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Composition;
 using System.IO;
 using System.Text;
@@ -22,22 +23,20 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class CSharpSyntaxTreeFactoryServiceFactory : ILanguageServiceFactory
     {
         private static readonly CSharpParseOptions _parseOptionWithLatestLanguageVersion = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
-        private readonly IGlobalOptionService _optionService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpSyntaxTreeFactoryServiceFactory(IGlobalOptionService optionService)
+        public CSharpSyntaxTreeFactoryServiceFactory()
         {
-            _optionService = optionService;
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices provider)
-            => new CSharpSyntaxTreeFactoryService(_optionService, provider);
+            => new CSharpSyntaxTreeFactoryService(provider);
 
         private partial class CSharpSyntaxTreeFactoryService : AbstractSyntaxTreeFactoryService
         {
-            public CSharpSyntaxTreeFactoryService(IGlobalOptionService optionService, HostLanguageServices languageServices)
-                : base(optionService, languageServices)
+            public CSharpSyntaxTreeFactoryService(HostLanguageServices languageServices)
+                : base(languageServices)
             {
             }
 
@@ -46,6 +45,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override ParseOptions GetDefaultParseOptionsWithLatestLanguageVersion()
                 => _parseOptionWithLatestLanguageVersion;
+
+            public override ParseOptions TryParsePdbParseOptions(IReadOnlyDictionary<string, string> metadata)
+            {
+                if (!metadata.TryGetValue("language-version", out var langVersionString) ||
+                    !LanguageVersionFacts.TryParse(langVersionString, out var langVersion))
+                {
+                    langVersion = LanguageVersion.Default;
+                }
+
+                return new CSharpParseOptions(
+                    languageVersion: langVersion,
+                    preprocessorSymbols: metadata.TryGetValue("define", out var defines) ? defines.Split(',') : null);
+            }
 
             public override SyntaxTree CreateSyntaxTree(string filePath, ParseOptions options, Encoding encoding, SyntaxNode root)
             {

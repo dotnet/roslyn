@@ -4,32 +4,40 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.StackTraceExplorer;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.VisualStudio.Text.Classification;
 using Roslyn.Utilities;
-using System.Diagnostics;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 {
+    using StackFrameToken = EmbeddedSyntaxToken<StackFrameKind>;
+    using StackFrameTrivia = EmbeddedSyntaxTrivia<StackFrameKind>;
+
     internal class StackFrameViewModel : FrameViewModel
     {
         private readonly ParsedStackFrame _frame;
         private readonly IThreadingContext _threadingContext;
         private readonly Workspace _workspace;
-        private readonly IStreamingFindUsagesPresenter _streamingPresenter;
+        private readonly IStackTraceExplorerService _stackExplorerService;
+        private readonly Dictionary<StackFrameSymbolPart, DefinitionItem?> _definitionCache = new();
 
-        private ISymbol? _cachedSymbol;
         private Document? _cachedDocument;
         private int _cachedLineNumber;
 
@@ -38,14 +46,13 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
             IThreadingContext threadingContext,
             Workspace workspace,
             IClassificationFormatMap formatMap,
-            ClassificationTypeMap typeMap,
-            IStreamingFindUsagesPresenter streamingPresenter)
+            ClassificationTypeMap typeMap)
             : base(formatMap, typeMap)
         {
             _frame = frame;
             _threadingContext = threadingContext;
             _workspace = workspace;
-            _streamingPresenter = streamingPresenter;
+            _stackExplorerService = workspace.Services.GetRequiredService<IStackTraceExplorerService>();
         }
 
         public override bool ShowMouseOver => true;
@@ -60,22 +67,16 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         {
             try
             {
-                var symbol = await GetSymbolAsync(cancellationToken).ConfigureAwait(false);
-
-                if (symbol is not { ContainingSymbol: not null })
+                var definition = await GetDefinitionAsync(StackFrameSymbolPart.ContainingType, cancellationToken).ConfigureAwait(false);
+                if (definition is null)
                 {
-                    // Show some dialog?
                     return;
                 }
 
-                // Use the parent class instead of the method to navigate to
-                symbol = symbol.ContainingSymbol;
-
-                var success = NavigateToSymbol(symbol, cancellationToken);
-                if (!success)
+                var canNavigate = await definition.CanNavigateToAsync(_workspace, cancellationToken).ConfigureAwait(false);
+                if (canNavigate)
                 {
-                    // show some dialog?
-                    return;
+                    await definition.TryNavigateToAsync(_workspace, showInPreviewTab: true, activateTab: false, cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
@@ -93,35 +94,22 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         {
             try
             {
-                var symbol = await _frame.ResolveSymbolAsync(_workspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
-
-                if (symbol is null)
+                var definition = await GetDefinitionAsync(StackFrameSymbolPart.Method, cancellationToken).ConfigureAwait(false);
+                if (definition is null)
                 {
-                    // Show some dialog?
                     return;
                 }
 
-                var success = NavigateToSymbol(symbol, cancellationToken);
-
-                if (!success)
+                var canNavigate = await definition.CanNavigateToAsync(_workspace, cancellationToken).ConfigureAwait(false);
+                if (canNavigate)
                 {
-                    // Show some dialog?
-                    return;
+                    await definition.TryNavigateToAsync(_workspace, showInPreviewTab: true, activateTab: false, cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
             {
             }
         }
-
-        private bool NavigateToSymbol(ISymbol symbol, CancellationToken cancellationToken)
-            => GoToDefinitionHelpers.TryGoToDefinition(
-                    symbol,
-                    _workspace.CurrentSolution,
-                    _threadingContext,
-                    _streamingPresenter,
-                    thirdPartyNavigationAllowed: true,
-                    cancellationToken: cancellationToken);
 
         public void NavigateToFile()
         {
@@ -167,39 +155,70 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
         protected override IEnumerable<Inline> CreateInlines()
         {
-            yield return MakeClassifiedRun(ClassificationTypeNames.Text, _frame.GetTextBeforeType());
+            var methodDeclaration = _frame.Root.MethodDeclaration;
+            var tree = _frame.Tree;
+            var className = methodDeclaration.MemberAccessExpression.Left;
+            var classLeadingTrivia = GetLeadingTrivia(className);
+            yield return MakeClassifiedRun(ClassificationTypeNames.Text, CreateString(classLeadingTrivia));
+
+            //
+            // Build the link to the class
+            //
 
             var classLink = new Hyperlink();
-            classLink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.ClassName, _frame.GetQualifiedTypeText()));
+            var classLinkText = className.ToString();
+            classLink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.ClassName, classLinkText));
             classLink.Click += (s, a) => NavigateToClass();
             classLink.RequestNavigate += (s, a) => NavigateToClass();
             yield return classLink;
 
+            // Since we're only using the left side of a qualified name, we expect 
+            // there to be no trivia on the right (trailing).
+            Debug.Assert(GetTrailingTrivia(className).IsEmpty);
+
+            //
+            // Build the link to the method
+            //
             var methodLink = new Hyperlink();
-            methodLink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.MethodName, _frame.GetMethodText()));
+            var methodTextBuilder = new StringBuilder();
+            methodTextBuilder.Append(methodDeclaration.MemberAccessExpression.DotToken.ToFullString());
+            methodTextBuilder.Append(methodDeclaration.MemberAccessExpression.Right.ToFullString());
+
+            if (methodDeclaration.TypeArguments is not null)
+            {
+                methodTextBuilder.Append(methodDeclaration.TypeArguments.ToFullString());
+            }
+
+            methodTextBuilder.Append(methodDeclaration.ArgumentList.ToFullString());
+            methodLink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.MethodName, methodTextBuilder.ToString()));
             methodLink.Click += (s, a) => NavigateToSymbol();
             methodLink.RequestNavigate += (s, a) => NavigateToSymbol();
             yield return methodLink;
 
-            if (_frame.FileSpan != default)
+            //
+            // If there is file information build a link to that
+            //
+            if (_frame.Root.FileInformationExpression is not null)
             {
-                var textBetween = _frame.GetTextBetweenTypeAndFile();
-                if (textBetween is not null)
-                {
-                    yield return MakeClassifiedRun(ClassificationTypeNames.Text, textBetween);
-                }
+                var fileInformation = _frame.Root.FileInformationExpression;
+                var leadingTrivia = GetLeadingTrivia(fileInformation);
+                yield return MakeClassifiedRun(ClassificationTypeNames.Text, CreateString(leadingTrivia));
 
-                var fileText = _frame.GetFileText();
-                RoslynDebug.AssertNotNull(fileText);
+                var fileLink = new Hyperlink();
+                var fileLinkText = _frame.Root.FileInformationExpression.ToString();
+                fileLink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.Text, fileInformation.ToString()));
+                fileLink.Click += (s, a) => NavigateToFile();
+                fileLink.RequestNavigate += (s, a) => NavigateToFile();
+                yield return fileLink;
 
-                var fileHyperlink = new Hyperlink();
-                fileHyperlink.Inlines.Add(MakeClassifiedRun(ClassificationTypeNames.Text, fileText));
-                fileHyperlink.RequestNavigate += (s, e) => NavigateToFile();
-                fileHyperlink.Click += (s, e) => NavigateToFile();
-                yield return fileHyperlink;
+                var trailingTrivia = GetTrailingTrivia(fileInformation);
+                yield return MakeClassifiedRun(ClassificationTypeNames.Text, CreateString(trailingTrivia));
             }
 
-            yield return MakeClassifiedRun(ClassificationTypeNames.Text, _frame.GetTrailingText());
+            //
+            // Don't lose the trailing trivia text
+            //
+            yield return MakeClassifiedRun(ClassificationTypeNames.Text, _frame.Root.EndOfLineToken.ToFullString());
         }
 
         private (Document? document, int lineNumber) GetDocumentAndLine()
@@ -209,19 +228,80 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                 return (_cachedDocument, _cachedLineNumber);
             }
 
-            (_cachedDocument, _cachedLineNumber) = _frame.GetDocumentAndLine(_workspace.CurrentSolution);
+            (_cachedDocument, _cachedLineNumber) = _stackExplorerService.GetDocumentAndLine(_workspace.CurrentSolution, _frame);
             return (_cachedDocument, _cachedLineNumber);
         }
 
-        private async Task<ISymbol?> GetSymbolAsync(CancellationToken cancellationToken)
+        private async Task<DefinitionItem?> GetDefinitionAsync(StackFrameSymbolPart symbolPart, CancellationToken cancellationToken)
         {
-            if (_cachedSymbol is not null)
+            if (_definitionCache.TryGetValue(symbolPart, out var definition) && definition is not null)
             {
-                return _cachedSymbol;
+                return definition;
             }
 
-            _cachedSymbol = await _frame.ResolveSymbolAsync(_workspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
-            return _cachedSymbol;
+            _definitionCache[symbolPart] = await _stackExplorerService.TryFindDefinitionAsync(_workspace.CurrentSolution, _frame, symbolPart, cancellationToken).ConfigureAwait(false);
+            return _definitionCache[symbolPart];
+        }
+
+        private static ImmutableArray<StackFrameTrivia> GetLeadingTrivia(StackFrameNode node)
+        {
+            if (node.ChildCount == 0)
+            {
+                return ImmutableArray<StackFrameTrivia>.Empty;
+            }
+
+            var child = node[0];
+            if (child.IsNode)
+            {
+                return GetLeadingTrivia(child.Node);
+            }
+
+            return child.Token.LeadingTrivia;
+        }
+
+        private static ImmutableArray<StackFrameTrivia> GetTrailingTrivia(StackFrameNode node)
+        {
+            if (node.ChildCount == 0)
+            {
+                return ImmutableArray<StackFrameTrivia>.Empty;
+            }
+
+            var child = node[^1];
+            if (child.IsNode)
+            {
+                return GetTrailingTrivia(child.Node);
+            }
+
+            return child.Token.TrailingTrivia;
+        }
+
+        /// <summary>
+        /// Depth first traversal of the descendents of a node to the tokens
+        /// </summary>
+        private static void GetLeafTokens(StackFrameNode node, ArrayBuilder<StackFrameToken> builder)
+        {
+            foreach (var child in node)
+            {
+                if (child.IsNode)
+                {
+                    GetLeafTokens(child.Node, builder);
+                }
+                else
+                {
+                    builder.Add(child.Token);
+                }
+            }
+        }
+
+        private static string CreateString(ImmutableArray<StackFrameTrivia> triviaList)
+        {
+            using var _ = PooledStringBuilder.GetInstance(out var sb);
+            foreach (var trivia in triviaList)
+            {
+                sb.Append(trivia.ToString());
+            }
+
+            return sb.ToString();
         }
     }
 }
