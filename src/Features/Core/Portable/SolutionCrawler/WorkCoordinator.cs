@@ -57,22 +57,26 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 _eventProcessingQueue = new TaskQueue(listener, TaskScheduler.Default);
 
-                var activeFileBackOffTimeSpan = SolutionCrawlerTimeSpan.ActiveFileWorkerBackOff;
-                var allFilesWorkerBackOffTimeSpan = SolutionCrawlerTimeSpan.AllFilesWorkerBackOff;
-                var entireProjectWorkerBackOffTimeSpan = SolutionCrawlerTimeSpan.EntireProjectWorkerBackOff;
+                var activeFileBackOffTimeSpan = InternalSolutionCrawlerOptions.ActiveFileWorkerBackOffTimeSpan;
+                var allFilesWorkerBackOffTimeSpan = InternalSolutionCrawlerOptions.AllFilesWorkerBackOffTimeSpan;
+                var entireProjectWorkerBackOffTimeSpan = InternalSolutionCrawlerOptions.EntireProjectWorkerBackOffTimeSpan;
 
                 _documentAndProjectWorkerProcessor = new IncrementalAnalyzerProcessor(
                     listener, analyzerProviders, initializeLazily, _registration,
                     activeFileBackOffTimeSpan, allFilesWorkerBackOffTimeSpan, entireProjectWorkerBackOffTimeSpan, _shutdownToken);
 
-                var semanticBackOffTimeSpan = SolutionCrawlerTimeSpan.SemanticChangeBackOff;
-                var projectBackOffTimeSpan = SolutionCrawlerTimeSpan.ProjectPropagationBackOff;
+                var semanticBackOffTimeSpan = InternalSolutionCrawlerOptions.SemanticChangeBackOffTimeSpan;
+                var projectBackOffTimeSpan = InternalSolutionCrawlerOptions.ProjectPropagationBackOffTimeSpan;
 
                 _semanticChangeProcessor = new SemanticChangeProcessor(listener, _registration, _documentAndProjectWorkerProcessor, semanticBackOffTimeSpan, projectBackOffTimeSpan, _shutdownToken);
 
-                _registration.Workspace.WorkspaceChanged += OnWorkspaceChanged;
-                _registration.Workspace.DocumentOpened += OnDocumentOpened;
-                _registration.Workspace.DocumentClosed += OnDocumentClosed;
+                // if option is on
+                if (_optionService.GetOption(InternalSolutionCrawlerOptions.SolutionCrawler))
+                {
+                    _registration.Workspace.WorkspaceChanged += OnWorkspaceChanged;
+                    _registration.Workspace.DocumentOpened += OnDocumentOpened;
+                    _registration.Workspace.DocumentClosed += OnDocumentClosed;
+                }
 
                 // subscribe to option changed event after all required fields are set
                 // otherwise, we can get null exception when running OnOptionChanged handler
@@ -136,6 +140,35 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             private void OnOptionChanged(object? sender, OptionChangedEventArgs e)
             {
+                // if solution crawler got turned off or on.
+                if (e.Option == InternalSolutionCrawlerOptions.SolutionCrawler)
+                {
+                    Contract.ThrowIfNull(e.Value);
+
+                    var value = (bool)e.Value;
+                    if (value)
+                    {
+                        _registration.Workspace.WorkspaceChanged += OnWorkspaceChanged;
+                        _registration.Workspace.DocumentOpened += OnDocumentOpened;
+                        _registration.Workspace.DocumentClosed += OnDocumentClosed;
+                    }
+                    else
+                    {
+                        _registration.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
+                        _registration.Workspace.DocumentOpened -= OnDocumentOpened;
+                        _registration.Workspace.DocumentClosed -= OnDocumentClosed;
+                    }
+
+                    SolutionCrawlerLogger.LogOptionChanged(CorrelationId, value);
+                    return;
+                }
+
+                if (!_optionService.GetOption(InternalSolutionCrawlerOptions.SolutionCrawler))
+                {
+                    // Bail out if solution crawler is disabled.
+                    return;
+                }
+
                 ReanalyzeOnOptionChange(sender, e);
             }
 
