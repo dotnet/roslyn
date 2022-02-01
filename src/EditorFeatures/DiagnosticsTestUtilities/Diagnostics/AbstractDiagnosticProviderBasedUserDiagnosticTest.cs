@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         continue;
                     }
 
-                    if (descriptor.Id is "IDE1007" or "IDE1008")
+                    if (descriptor.Id == "IDE1007")
                     {
                         continue;
                     }
