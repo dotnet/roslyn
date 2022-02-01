@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             try
             {
                 var diagnosticMode = GlobalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
-                
+
                 var id = bucket.Id;
                 var diagnostics = await _diagnosticService.GetPushDiagnosticsAsync(
                     workspace, document.Project.Id, document.Id, id,
