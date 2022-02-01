@@ -27,6 +27,9 @@ efforts behind them.
 | [Switch on ReadOnlySpan<char>](https://github.com/dotnet/csharplang/issues/1881) | main | [In Progress](https://github.com/dotnet/roslyn/issues/59191) | [YairHalberstadt ](https://github.com/YairHalberstadt) | [cston](https://github.com/cston), [RikkiGibson](https://github.com/RikkiGibson) | [jcouv](https://github.com/jcouv) |
 | [nameof accessing instance memebers](https://github.com/dotnet/roslyn/issues/40229) | main | [In Progress](https://github.com/dotnet/roslyn/pull/48754) | [YairHalberstadt ](https://github.com/YairHalberstadt) | [333fred](https://github.com/333fred), [AlekseyTs](https://github.com/AlekseyTs)  | [333fred](https://github.com/333fred) |
 | [Utf8 String Literals](https://github.com/dotnet/csharplang/issues/184) | [Utf8StringLiterals](https://github.com/dotnet/roslyn/tree/features/Utf8StringLiterals) | [In Progress](https://github.com/dotnet/roslyn/issues/58848) | [AlekseyTs](https://github.com/AlekseyTs) | [cston](https://github.com/cston), [RikkiGibson](https://github.com/RikkiGibson) | [MadsTorgersen](https://github.com/MadsTorgersen) |
+| [Attributes on Main for top level programs](https://github.com/dotnet/csharplang/issues/5045) | TBD | [In Progress](https://github.com/dotnet/roslyn/issues/59193) | TBD | TBD | [jaredpar](https://github.com/jaredpar) |
+| [ref fields](https://github.com/dotnet/csharplang/blob/main/proposals/low-level-struct-improvements.md) | TBD | [In Progress](https://github.com/dotnet/roslyn/issues/59194) | TBD | TBD | [jaredpar](https://github.com/jaredpar) | 
+| [checked operators](https://github.com/dotnet/csharplang/issues/4665) | TBD | [In Progress](https://github.com/dotnet/roslyn/issues/59196) | TBD | TBD | [AlekseyTs](https://github.com/AlekseyTs) | 
   
 # C# 10.0
 
