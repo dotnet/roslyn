@@ -20,16 +20,12 @@ namespace Microsoft.CodeAnalysis.Host
 
         internal HostLanguageServices LanguageServices { get; }
 
-        public AbstractSyntaxTreeFactoryService(
-            IGlobalOptionService optionService,
-            HostLanguageServices languageServices)
+        public AbstractSyntaxTreeFactoryService(HostLanguageServices languageServices)
         {
             LanguageServices = languageServices;
 
             var cacheService = languageServices.WorkspaceServices.GetService<IProjectCacheHostService>();
-
-            _minimumLengthForRecoverableTree = (cacheService != null && !optionService.GetOption(WorkspaceConfigurationOptions.DisableRecoverableTrees)) ?
-                cacheService.MinimumLengthForRecoverableTree : int.MaxValue;
+            _minimumLengthForRecoverableTree = (cacheService != null) ? cacheService.MinimumLengthForRecoverableTree : int.MaxValue;
         }
 
         public abstract ParseOptions GetDefaultParseOptions();

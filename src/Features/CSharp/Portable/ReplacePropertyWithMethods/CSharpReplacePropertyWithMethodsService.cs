@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
 
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var languageVersion = ((CSharpParseOptions)syntaxTree.Options).LanguageVersion;
+            var languageVersion = syntaxTree.Options.LanguageVersion();
 
             return ConvertPropertyToMembers(
                 documentOptions, languageVersion,

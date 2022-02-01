@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -30,10 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(context =>
             {
-                if (MakeLocalFunctionStaticHelper.IsStaticLocalFunctionSupported(((CSharpCompilation)context.Compilation).LanguageVersion))
-                {
+                if (MakeLocalFunctionStaticHelper.IsStaticLocalFunctionSupported(context.Compilation.LanguageVersion()))
                     context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.LocalFunctionStatement);
-                }
             });
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)

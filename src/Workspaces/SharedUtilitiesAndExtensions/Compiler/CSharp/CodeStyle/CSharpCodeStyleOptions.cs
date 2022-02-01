@@ -339,6 +339,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             new(NamespaceDeclarationPreference.BlockScoped, NotificationOption2.Silent),
             "csharp_style_namespace_declarations");
 
+        public static readonly Option2<CodeStyleOption2<bool>> PreferMethodGroupConversion = CreateOption(
+            CSharpCodeStyleOptionGroups.CodeBlockPreferences, nameof(PreferMethodGroupConversion),
+            defaultValue: s_trueWithSilentEnforcement,
+            "csharp_style_prefer_method_group_conversion",
+            "TextEditor.CSharp.Specific.PreferMethodGroupConversion");
+
 #if false
 
         public static readonly Option2<CodeStyleOption2<bool>> VarElsewhere = CreateOption(

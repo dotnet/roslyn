@@ -5738,7 +5738,6 @@ class Attr1 : System.Attribute {}
 
             Assert.Equal(1, analyzer.FireCount0);
             Assert.Equal(1, analyzer.FireCountRecordStructDeclarationA);
-            Assert.Equal(1, analyzer.FireCountRecordStructDeclarationACtor);
             Assert.Equal(1, analyzer.FireCount3);
             Assert.Equal(1, analyzer.FireCountSimpleBaseTypeI1onA);
             Assert.Equal(1, analyzer.FireCount5);
@@ -5755,7 +5754,6 @@ class Attr1 : System.Attribute {}
         {
             public int FireCount0;
             public int FireCountRecordStructDeclarationA;
-            public int FireCountRecordStructDeclarationACtor;
             public int FireCount3;
             public int FireCountSimpleBaseTypeI1onA;
             public int FireCount5;
@@ -5870,9 +5868,6 @@ class Attr1 : System.Attribute {}
                 {
                     case "A":
                         Interlocked.Increment(ref FireCountRecordStructDeclarationA);
-                        break;
-                    case "A..ctor([System.Int32 X = 0])":
-                        Interlocked.Increment(ref FireCountRecordStructDeclarationACtor);
                         break;
                     default:
                         Assert.True(false);
@@ -6448,7 +6443,6 @@ interface I1 {}
 
             Assert.Equal(1, analyzer.FireCount0);
             Assert.Equal(0, analyzer.FireCountRecordStructDeclarationA);
-            Assert.Equal(0, analyzer.FireCountRecordStructDeclarationACtor);
             Assert.Equal(1, analyzer.FireCount3);
             Assert.Equal(0, analyzer.FireCountSimpleBaseTypeI1onA);
             Assert.Equal(1, analyzer.FireCount5);

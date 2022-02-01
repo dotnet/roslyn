@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.UseAutoProperty;
@@ -18,10 +19,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
         PropertyDeclarationSyntax, FieldDeclarationSyntax, VariableDeclaratorSyntax, ExpressionSyntax>
     {
         protected override bool SupportsReadOnlyProperties(Compilation compilation)
-            => ((CSharpCompilation)compilation).LanguageVersion >= LanguageVersion.CSharp6;
+            => compilation.LanguageVersion() >= LanguageVersion.CSharp6;
 
         protected override bool SupportsPropertyInitializer(Compilation compilation)
-            => ((CSharpCompilation)compilation).LanguageVersion >= LanguageVersion.CSharp6;
+            => compilation.LanguageVersion() >= LanguageVersion.CSharp6;
 
         protected override bool CanExplicitInterfaceImplementationsBeFixed()
             => false;

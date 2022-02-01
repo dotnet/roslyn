@@ -280,8 +280,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return newRoot;
             }
 
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return Formatter.Format(newRoot, SpecializedFormattingAnnotation, document.Project.Solution.Workspace, options, formattingRules, cancellationToken);
+            var options = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            return Formatter.Format(newRoot, SpecializedFormattingAnnotation, document.Project.Solution.Workspace.Services, options, formattingRules, cancellationToken);
         }
 
         private static bool IsWrittenToOutsideOfConstructorOrProperty(

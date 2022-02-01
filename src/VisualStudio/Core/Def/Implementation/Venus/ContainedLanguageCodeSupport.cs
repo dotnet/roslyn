@@ -229,12 +229,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 targetDocument.WithSyntaxRoot(newRoot), Simplifier.Annotation, null, cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetSyntaxRootSynchronously(cancellationToken);
 
             var formattingRules = additionalFormattingRule.Concat(Formatter.GetDefaultFormattingRules(targetDocument));
+            var formattingOptions = SyntaxFormattingOptions.FromDocumentAsync(targetDocument, cancellationToken).WaitAndGetResult_Venus(cancellationToken);
 
             newRoot = Formatter.Format(
                 newRoot,
                 Formatter.Annotation,
-                targetDocument.Project.Solution.Workspace,
-                targetDocument.GetOptionsAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken),
+                targetDocument.Project.Solution.Workspace.Services,
+                formattingOptions,
                 formattingRules,
                 cancellationToken);
 

@@ -623,7 +623,9 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 .WithAdditionalAnnotations(Formatter.Annotation);
 
             // Need to invoke formatter explicitly since we are doing the diff merge ourselves.
-            root = Formatter.Format(root, Formatter.Annotation, documentWithAddedImports.Project.Solution.Workspace, optionSet, cancellationToken);
+            var services = documentWithAddedImports.Project.Solution.Workspace.Services;
+            var formattingOptions = SyntaxFormattingOptions.Create(optionSet, services, root.Language);
+            root = Formatter.Format(root, Formatter.Annotation, services, formattingOptions, cancellationToken);
 
             root = root.WithAdditionalAnnotations(Simplifier.Annotation);
             var formattedDocument = documentWithAddedImports.WithSyntaxRoot(root);

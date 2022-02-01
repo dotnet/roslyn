@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public int QuestionToken => (int)SyntaxKind.QuestionToken;
         public int StringLiteralToken => (int)SyntaxKind.StringLiteralToken;
 
+        public int DelegateKeyword => (int)SyntaxKind.DelegateKeyword;
         public int IfKeyword => (int)SyntaxKind.IfKeyword;
         public int TrueKeyword => (int)SyntaxKind.TrueKeyword;
         public int FalseKeyword => (int)SyntaxKind.FalseKeyword;
