@@ -21,6 +21,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static Task PrecalculateAsync(Document document, CancellationToken cancellationToken)
             => PrecalculateAsync(document, CreateIndex, cancellationToken);
 
+        public static Task<DeclaredSymbolInfoIndex?> LoadAsync(
+            IChecksummedPersistentStorageService storageService, DocumentKey documentKey, Checksum? checksum, StringTable stringTable, CancellationToken cancellationToken)
+        {
+            return LoadAsync(storageService, documentKey, checksum, stringTable, ReadIndex, cancellationToken);
+        }
+
         public override void WriteTo(ObjectWriter writer)
         {
             _declarationInfo.WriteTo(writer);

@@ -19,11 +19,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal partial class AbstractSyntaxIndex<TIndex> : IObjectWritable
     {
         private static readonly string s_persistenceName = typeof(TIndex).Name;
-        private static readonly Checksum s_serializationFormatChecksum = Checksum.Create("1");
+        private static readonly Checksum s_serializationFormatChecksum = Checksum.Create("27");
 
         public readonly Checksum? Checksum;
 
-        private static Task<TIndex?> LoadAsync(
+        protected static Task<TIndex?> LoadAsync(
             Document document,
             Checksum checksum,
             IndexReader read,

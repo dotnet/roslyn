@@ -45,17 +45,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         private static readonly ConditionalWeakTable<Project, StringTable> s_projectStringTable = new();
 
-        private static async Task<SyntaxTreeIndex> CreateIndexAsync(
-            Document document, Checksum checksum, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfFalse(document.SupportsSyntaxTree);
-
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return CreateIndex(document, root, checksum);
-        }
-
         private static SyntaxTreeIndex CreateIndex(
-            Document document, SyntaxNode root, Checksum checksum)
+            Document document, SyntaxNode root, Checksum checksum, CancellationToken _)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
             var ignoreCase = !syntaxFacts.IsCaseSensitive;
