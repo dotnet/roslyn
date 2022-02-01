@@ -1139,14 +1139,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MethodSymbol spanConstructor;
             MethodSymbol spanGetItem;
-            MethodSymbol? spanToReadOnlySpanOperator = null;
             if (!TryGetWellKnownTypeMember(syntax, WellKnownMember.System_Span_T__ctorArray, out spanConstructor) ||
-                !TryGetWellKnownTypeMember(syntax, WellKnownMember.System_Span_T__get_Item, out spanGetItem) ||
-                // PROTOTYPE: To convert from Span<T> to ReadOnlySpan<T>, we're currently looking for
-                // 'static implicit operator ReadOnlySpan<T>(Span<T> span)' explicitly. Instead, should
-                // we use ConversionsBase.ClassifyImplicitConversionFromType() to find the conversion?
-                (paramArrayType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions) &&
-                !TryGetWellKnownTypeMember<MethodSymbol>(syntax, WellKnownMember.System_Span_T__op_Implicit_SpanReadOnlySpan, out spanToReadOnlySpanOperator)))
+                !TryGetWellKnownTypeMember(syntax, WellKnownMember.System_Span_T__get_Item, out spanGetItem))
             {
                 return BadExpression(syntax, paramArrayType, ImmutableArray<BoundExpression>.Empty);
             }
@@ -1154,7 +1148,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             var spanType = spanConstructor.ContainingType.Construct(elementType);
             spanConstructor = spanConstructor.AsMember(spanType);
             spanGetItem = spanGetItem.AsMember(spanType);
-            spanToReadOnlySpanOperator = spanToReadOnlySpanOperator?.AsMember(spanType);
+
+            // PROTOTYPE: Test use-site diagnostics.
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(_diagnostics, _compilation.Assembly);
+            var conversion = _compilation.Conversions.ClassifyImplicitConversionFromType(spanType, paramArrayType, ref useSiteInfo);
+            conversion.MarkUnderlyingConversionsCheckedRecursive();
+            _diagnostics.Add(syntax, useSiteInfo);
+
+            if (!conversion.IsValid)
+            {
+                _diagnostics.Add(ErrorCode.ERR_NoImplicitConv, syntax.Location, spanType, paramArrayType);
+                return BadExpression(syntax, paramArrayType, ImmutableArray<BoundExpression>.Empty);
+            }
 
             var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
             var span = _factory.New(spanConstructor, array);
@@ -1173,27 +1178,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sideEffects.Add(assignment);
             }
 
-            BoundExpression expr = temp;
-            if (spanToReadOnlySpanOperator is { })
-            {
-                // Convert Span<T> to ReadOnlySpan<T>.
-                expr = new BoundCall(
-                    syntax,
-                    receiverOpt: null,
-                    method: spanToReadOnlySpanOperator,
-                    arguments: ImmutableArray.Create(expr),
-                    argumentNamesOpt: default,
-                    argumentRefKindsOpt: default,
-                    isDelegateCall: false,
-                    expanded: false,
-                    invokedAsExtensionMethod: false,
-                    argsToParamsOpt: default,
-                    defaultArguments: default,
-                    resultKind: LookupResultKind.Viable,
-                    type: spanToReadOnlySpanOperator.ReturnType);
-            }
-
+            var expr = MakeConversionNode(syntax, temp, conversion, temp.Type, @checked: false);
             Debug.Assert(expr.Type is { });
+
             return new BoundSequence(
                 syntax,
                 locals: ImmutableArray.Create(temp.LocalSymbol),

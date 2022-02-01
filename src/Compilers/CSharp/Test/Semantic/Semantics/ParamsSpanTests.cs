@@ -482,10 +482,31 @@ public class A
 4
 ");
         }
-        [ConditionalFact(typeof(CoreClrOnly))]
-        public void MissingSpanConstructor()
+
+        [Fact]
+        public void NoMissingMembers()
         {
-            var source =
+            var sourceA =
+@"namespace System
+{
+    public ref struct Span<T>
+    {
+        private readonly T[] _array;
+        public Span(T[] array) { _array = array; }
+        public ref T this[int index] => ref _array[index];
+        public static implicit operator ReadOnlySpan<T>(Span<T> s) => new ReadOnlySpan<T>(s._array);
+    }
+    public ref struct ReadOnlySpan<T>
+    {
+        private readonly T[] _array;
+        public ReadOnlySpan(T[] array) { _array = array; }
+        public ref T this[int index] => ref _array[index];
+    }
+}";
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            var sourceB =
 @"using System;
 class Program
 {
@@ -497,8 +518,46 @@ class Program
         F2();
     }
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
-            comp.MakeMemberMissing(WellKnownMember.System_Span_T__ctorArray);
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void MissingSpanConstructor()
+        {
+            var sourceA =
+@"namespace System
+{
+    public ref struct Span<T>
+    {
+        private readonly T[] _array;
+        internal Span(T[] array) { _array = array; }
+        public ref T this[int index] => ref _array[index];
+        public static implicit operator ReadOnlySpan<T>(Span<T> s) => new ReadOnlySpan<T>(s._array);
+    }
+    public ref struct ReadOnlySpan<T>
+    {
+        private readonly T[] _array;
+        internal ReadOnlySpan(T[] array) { _array = array; }
+        public ref T this[int index] => ref _array[index];
+    }
+}";
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            var sourceB =
+@"using System;
+class Program
+{
+    static void F1(params Span<object> args) { }
+    static void F2(params ReadOnlySpan<object> args) { }
+    static void Main()
+    {
+        F1();
+        F2();
+    }
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
                 // (8,9): error CS0656: Missing compiler required member 'System.Span`1..ctor'
                 //         F1();
@@ -508,10 +567,28 @@ class Program
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "F2()").WithArguments("System.Span`1", ".ctor").WithLocation(9, 9));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void MissingSpanGetItem()
         {
-            var source =
+            var sourceA =
+@"namespace System
+{
+    public ref struct Span<T>
+    {
+        private readonly T[] _array;
+        public Span(T[] array) { _array = array; }
+        public static implicit operator ReadOnlySpan<T>(Span<T> s) => new ReadOnlySpan<T>(s._array);
+    }
+    public ref struct ReadOnlySpan<T>
+    {
+        private readonly T[] _array;
+        public ReadOnlySpan(T[] array) { _array = array; }
+    }
+}";
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            var sourceB =
 @"using System;
 class Program
 {
@@ -523,8 +600,7 @@ class Program
         F2();
     }
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
-            comp.MakeMemberMissing(WellKnownMember.System_Span_T__get_Item);
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
                 // (8,9): error CS0656: Missing compiler required member 'System.Span`1.get_Item'
                 //         F1();
@@ -534,10 +610,29 @@ class Program
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "F2()").WithArguments("System.Span`1", "get_Item").WithLocation(9, 9));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void MissingSpanImplicitOperator()
         {
-            var source =
+            var sourceA =
+@"namespace System
+{
+    public ref struct Span<T>
+    {
+        private readonly T[] _array;
+        public Span(T[] array) { _array = array; }
+        public ref T this[int index] => ref _array[index];
+    }
+    public ref struct ReadOnlySpan<T>
+    {
+        private readonly T[] _array;
+        public ReadOnlySpan(T[] array) { _array = array; }
+        public ref T this[int index] => ref _array[index];
+    }
+}";
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            var sourceB =
 @"using System;
 class Program
 {
@@ -549,12 +644,11 @@ class Program
         F2();
     }
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseExe);
-            comp.MakeMemberMissing(WellKnownMember.System_Span_T__op_Implicit_SpanReadOnlySpan);
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
-                // (9,9): error CS0656: Missing compiler required member 'System.Span`1.op_Implicit'
+                // (9,9): error CS0029: Cannot implicitly convert type 'Span<object>' to 'ReadOnlySpan<object>'
                 //         F2();
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "F2()").WithArguments("System.Span`1", "op_Implicit").WithLocation(9, 9));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "F2()").WithArguments("System.Span<object>", "System.ReadOnlySpan<object>").WithLocation(9, 9));
         }
 
         /// <summary>
