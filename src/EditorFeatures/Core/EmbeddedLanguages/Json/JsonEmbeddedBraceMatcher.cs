@@ -63,6 +63,13 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.Json
 
         private static BraceMatchingResult? FindBraceMatchingResult(JsonNode node, VirtualChar ch)
         {
+            var fullSpan = node.GetFullSpan();
+            if (fullSpan == null)
+                return null;
+
+            if (!fullSpan.Value.Contains(ch.Span.Start))
+                return null;
+
             switch (node)
             {
                 case JsonArrayNode array when Matches(array.OpenBracketToken, array.CloseBracketToken, ch):
