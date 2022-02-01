@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         protected override Task InitializeServiceForOpenedDocumentAsync(Document document)
         {
             // Only pre-populate cache if import completion is enabled
-            if (GlobalOptions.GetOption(CompletionOptionsMetadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp) != true)
+            if (GlobalOptions.GetOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp) != true)
                 return Task.CompletedTask;
 
             lock (_gate)

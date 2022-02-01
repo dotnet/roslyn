@@ -794,7 +794,7 @@ class C
                               showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.TriggerOnDeletion, LanguageNames.CSharp), True)
+                    New OptionKey(CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp), True)
 
                 state.SendTypeChars("repl")
                 state.SendTab()
@@ -1056,7 +1056,7 @@ class Class1
 }</Document>,
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.EnterKeyBehavior, LanguageNames.CSharp), EnterKeyRule.AfterFullyTypedWord)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.EnterKeyBehavior, LanguageNames.CSharp), EnterKeyRule.AfterFullyTypedWord)
 
                 state.SendTypeChars("System.TimeSpan.FromMin")
                 state.SendReturn()
@@ -1086,7 +1086,7 @@ class Class1
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.EnterKeyBehavior, LanguageNames.CSharp), EnterKeyRule.AfterFullyTypedWord)
+                    New OptionKey(CompletionOptionsStorage.EnterKeyBehavior, LanguageNames.CSharp), EnterKeyRule.AfterFullyTypedWord)
 
                 state.SendTypeChars("System.TimeSpan.FromMinutes")
                 state.SendReturn()
@@ -1444,7 +1444,7 @@ class Variable
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.TriggerOnDeletion, LanguageNames.CSharp), True)
+                    New OptionKey(CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp), True)
 
                 state.SendBackspace()
                 Await state.AssertSelectedCompletionItem(displayText:="as", isSoftSelected:=True)
@@ -1474,7 +1474,7 @@ class Variable
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.TriggerOnDeletion, LanguageNames.CSharp), True)
+                    New OptionKey(CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp), True)
 
                 state.SendBackspace()
                 Await state.AssertSelectedCompletionItem(displayText:="as", isSoftSelected:=True)
@@ -4024,7 +4024,7 @@ class$$ C
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.TriggerOnDeletion, LanguageNames.CSharp), True)
+                    New OptionKey(CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp), True)
 
                 state.SendBackspace()
                 Await state.AssertCompletionSession()
@@ -4055,7 +4055,7 @@ class Program
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.TriggerOnDeletion, LanguageNames.CSharp), True)
+                    New OptionKey(CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp), True)
 
                 state.SendBackspace()
                 Await state.AssertCompletionSession()
@@ -4779,7 +4779,7 @@ class Program
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.TriggerOnDeletion, LanguageNames.CSharp), True)
+                    New OptionKey(CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp), True)
 
                 For Each c In "Offset"
                     state.SendBackspace()
@@ -4809,7 +4809,7 @@ class Program
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.TriggerOnDeletion, LanguageNames.CSharp), True)
+                    New OptionKey(CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp), True)
 
                 For Each c In "Offset."
                     state.SendBackspace()
@@ -5442,7 +5442,7 @@ class Program
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.TriggerOnDeletion, LanguageNames.CSharp), True)
+                    New OptionKey(CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp), True)
 
                 state.SendBackspace()
                 Await state.AssertSelectedCompletionItem(displayText:="Environment", isHardSelected:=True)
@@ -5752,7 +5752,7 @@ class C
                               </Document>)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.TriggerOnDeletion, LanguageNames.CSharp), True)
+                    New OptionKey(CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp), True)
 
                 state.SendTypeChars("""")
 
@@ -5991,7 +5991,7 @@ public class Program
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.TriggerOnDeletion, LanguageNames.CSharp), True)
+                    New OptionKey(CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp), True)
 
                 state.SendInvokeCompletionList()
                 state.SendBackspace()
@@ -6017,7 +6017,7 @@ public class Program
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.TriggerOnDeletion, LanguageNames.CSharp), True)
+                    New OptionKey(CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp), True)
 
                 state.SendInvokeCompletionList()
                 state.SelectAndMoveCaret(-6)
@@ -6068,7 +6068,7 @@ class C
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.TriggerOnDeletion, LanguageNames.CSharp), True)
+                    New OptionKey(CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp), True)
 
                 state.SendBackspace()
                 Await state.AssertCompletionItemsContainAll("WriteLine")
@@ -6315,7 +6315,7 @@ class C
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.TriggerOnDeletion, LanguageNames.CSharp), True)
+                    New OptionKey(CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp), True)
 
                 state.SendBackspace()
                 Await state.AssertCompletionSession()
@@ -6343,7 +6343,7 @@ class C
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.TriggerOnDeletion, LanguageNames.CSharp), True)
+                    New OptionKey(CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp), True)
 
                 state.SendBackspace()
                 Await state.AssertCompletionSession()
@@ -6431,7 +6431,7 @@ class C
                 Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of IntelliCodeMockProvider)().Single()
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.TriggerOnDeletion, LanguageNames.CSharp), True)
+                    New OptionKey(CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp), True)
 
                 state.SendBackspace()
                 Await state.AssertCompletionItemsContainAll("Normalize", "★ Normalize")
@@ -6542,7 +6542,7 @@ class C
                 Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of IntelliCodeMockProvider)().Single()
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.TriggerOnDeletion, LanguageNames.CSharp), True)
+                    New OptionKey(CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp), True)
 
                 state.SendTypeChars(".nor")
                 Await state.AssertCompletionItemsContainAll("Normalize", "★ Normalize")
@@ -6594,7 +6594,7 @@ class C
                 Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of IntelliCodeMockProvider)().Single()
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.TriggerOnDeletion, LanguageNames.CSharp), True)
+                    New OptionKey(CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp), True)
 
                 state.SendTypeChars(".nor")
                 Await state.AssertCompletionItemsContainAll("Normalize", "★ Normalize")
@@ -6670,8 +6670,8 @@ namespace NS2
                 Dim completionService = CType(document.GetLanguageService(Of CompletionService)(), CompletionServiceWithProviders)
                 completionService.GetTestAccessor().SuppressPartialSemantics()
 
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.BlockOnExpandedCompletion), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.BlockOnExpandedCompletion), True)
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForUIRenderedAsync()
@@ -6728,8 +6728,8 @@ namespace NS2
                 Dim completionService = CType(document.GetLanguageService(Of CompletionService)(), CompletionServiceWithProviders)
                 completionService.GetTestAccessor().SuppressPartialSemantics()
 
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.BlockOnExpandedCompletion), True)
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.BlockOnExpandedCompletion), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForUIRenderedAsync()
@@ -6766,8 +6766,8 @@ namespace NS2
 ]]></Document>,
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.BlockOnExpandedCompletion), True)
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.BlockOnExpandedCompletion), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
 
                 ' trigger completion with import completion disabled
                 state.SendInvokeCompletionList()
@@ -6835,8 +6835,8 @@ namespace NS2
 ]]></Document>,
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.BlockOnExpandedCompletion), True)
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.BlockOnExpandedCompletion), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
                 ' trigger completion with import completion enabled
                 state.SendInvokeCompletionList()
@@ -6877,9 +6877,9 @@ namespace NS1
 ]]></Document>,
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.BlockOnExpandedCompletion), True)
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.ForceExpandedCompletionIndexCreation), True)
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.BlockOnExpandedCompletion), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
                 ' trigger completion with import completion enabled
                 state.SendInvokeCompletionList()
@@ -7320,9 +7320,9 @@ namespace NS2
 }
 "
 
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.BlockOnExpandedCompletion), True)
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.ForceExpandedCompletionIndexCreation), True)
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.BlockOnExpandedCompletion), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForUIRenderedAsync()
@@ -7389,9 +7389,9 @@ namespace NS2
 }
 "
 
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.BlockOnExpandedCompletion), True)
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.ForceExpandedCompletionIndexCreation), True)
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.BlockOnExpandedCompletion), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForUIRenderedAsync()
@@ -7458,9 +7458,9 @@ namespace NS2
 }
 "
 
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.BlockOnExpandedCompletion), True)
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.ForceExpandedCompletionIndexCreation), True)
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.BlockOnExpandedCompletion), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForUIRenderedAsync()
@@ -7527,9 +7527,9 @@ namespace NS2
 }
 "
 
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.BlockOnExpandedCompletion), True)
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.ForceExpandedCompletionIndexCreation), True)
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.BlockOnExpandedCompletion), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForUIRenderedAsync()
@@ -7597,9 +7597,9 @@ namespace NS2
 }
 "
 
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.BlockOnExpandedCompletion), True)
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.ForceExpandedCompletionIndexCreation), True)
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.BlockOnExpandedCompletion), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForUIRenderedAsync()
@@ -7636,9 +7636,9 @@ namespace OtherNS
 </Document>,
                               showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.BlockOnExpandedCompletion), True)
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.ForceExpandedCompletionIndexCreation), True)
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.BlockOnExpandedCompletion), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForUIRenderedAsync()
@@ -7680,7 +7680,7 @@ namespace NS
                               showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
+                    New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), False)
 
                 state.SendTypeChars("task")
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -7732,8 +7732,8 @@ namespace NS2
 </Document>,
                               showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.ForceExpandedCompletionIndexCreation), True)
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
                 ' trigger completion with import completion disabled
                 state.SendInvokeCompletionList()
@@ -7747,8 +7747,8 @@ namespace NS2
                 state.SendEscape()
                 Await state.AssertNoCompletionSession()
 
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.BlockOnExpandedCompletion), True)
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.BlockOnExpandedCompletion), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
                 state.SendTypeChars("mytask")
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -7793,7 +7793,7 @@ namespace NS
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.ShowNameSuggestions, LanguageNames.CSharp), True)
+                    New OptionKey(CompletionOptionsStorage.ShowNameSuggestions, LanguageNames.CSharp), True)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContainAll("foo123Bar", "foo123", "foo", "bar")
@@ -7824,7 +7824,7 @@ namespace NS
                   showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.ShowNameSuggestions, LanguageNames.CSharp), True)
+                    New OptionKey(CompletionOptionsStorage.ShowNameSuggestions, LanguageNames.CSharp), True)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContainAll("foo123", "foo")
@@ -8258,8 +8258,8 @@ namespace B
     }
 }                              </Document>)
 
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.BlockOnExpandedCompletion), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.BlockOnExpandedCompletion), True)
 
                 state.SendInvokeCompletionList()
                 state.AssertItemsInOrder(New String() {
@@ -8578,8 +8578,8 @@ public class AA
     }
 }</Document>,
                 showCompletionInArgumentLists:=showCompletionInArgumentLists)
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.BlockOnExpandedCompletion), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.BlockOnExpandedCompletion), True)
 
                 Dim expectedText = $"
 using CC;
@@ -8625,8 +8625,8 @@ public class AA
     }
 }</Document>,
                 showCompletionInArgumentLists:=showCompletionInArgumentLists)
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
-                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsMetadata.BlockOnExpandedCompletion), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.BlockOnExpandedCompletion), True)
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -8681,7 +8681,7 @@ public class AA
                 showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
+                    New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -8730,7 +8730,7 @@ public class AA
                 showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
+                    New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -8773,7 +8773,7 @@ public class AA
                 showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
+                    New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -8823,7 +8823,7 @@ namespace Bar1
                 showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
+                    New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -8873,7 +8873,7 @@ public unsafe class AA
                 showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
+                    New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -9238,7 +9238,7 @@ class C
                            showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.TriggerOnDeletion, LanguageNames.CSharp), True)
+                    New OptionKey(CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp), True)
 
                 state.SendBackspace()
                 Await state.AssertSelectedCompletionItem("xml", isSoftSelected:=True).ConfigureAwait(True)
@@ -9294,7 +9294,7 @@ class Repro
                               showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.TriggerOnDeletion, LanguageNames.CSharp), True)
+                    New OptionKey(CompletionOptionsStorage.TriggerOnDeletion, LanguageNames.CSharp), True)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContainAll({"★ length", "length", "Length"})

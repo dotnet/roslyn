@@ -8,10 +8,10 @@ using Microsoft.CodeAnalysis.Options;
 namespace Microsoft.CodeAnalysis.SignatureHelp
 {
     // TODO: Move to EditorFeatures https://github.com/dotnet/roslyn/issues/59184
-    internal static class SignatureHelpOptionsMetadata
+    internal static class SignatureHelpOptionsStorage
     {
         public static SignatureHelpOptions GetSignatureHelpOptions(this IGlobalOptionService globalOptions, string language)
           => new(
-              HideAdvancedMembers: globalOptions.GetOption(CompletionOptionsMetadata.HideAdvancedMembers, language));
+              HideAdvancedMembers: globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, language));
     }
 }

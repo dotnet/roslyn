@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                  includeFormatCommandHandler, workspaceKind:=Nothing)
 
             testState.Workspace.GlobalOptions.SetGlobalOption(
-                New OptionKey(CompletionOptionsMetadata.TriggerInArgumentLists, LanguageNames.CSharp), showCompletionInArgumentLists)
+                New OptionKey(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp), showCompletionInArgumentLists)
 
             Return testState
         End Function
@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 workspaceElement, excludedTypes:=Nothing, extraExportedTypes, includeFormatCommandHandler:=False, workspaceKind)
 
             testState.Workspace.GlobalOptions.SetGlobalOption(
-                New OptionKey(CompletionOptionsMetadata.TriggerInArgumentLists, LanguageNames.CSharp), showCompletionInArgumentLists)
+                New OptionKey(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp), showCompletionInArgumentLists)
 
             Return testState
         End Function

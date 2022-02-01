@@ -92,8 +92,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             FormattingOptions.TabSize,
             FormattingOptions.SmartIndent,
             FormattingOptions.IndentationSize,
-            CompletionOptionsMetadata.HideAdvancedMembers,
-            CompletionOptionsMetadata.TriggerOnTyping,
+            CompletionOptionsStorage.HideAdvancedMembers,
+            CompletionOptionsStorage.TriggerOnTyping,
             SignatureHelpViewOptions.ShowSignatureHelp,
             NavigationBarViewOptions.ShowNavigationBar
         };
@@ -159,11 +159,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                         return FormattingOptions.IndentStyle.Smart;
                 }
             }
-            else if (option == CompletionOptionsMetadata.HideAdvancedMembers)
+            else if (option == CompletionOptionsStorage.HideAdvancedMembers)
             {
                 return languagePreference.fHideAdvancedAutoListMembers != 0;
             }
-            else if (option == CompletionOptionsMetadata.TriggerOnTyping)
+            else if (option == CompletionOptionsStorage.TriggerOnTyping)
             {
                 return languagePreference.fAutoListMembers != 0;
             }
@@ -210,11 +210,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                         break;
                 }
             }
-            else if (option == CompletionOptionsMetadata.HideAdvancedMembers)
+            else if (option == CompletionOptionsStorage.HideAdvancedMembers)
             {
                 languagePreference.fHideAdvancedAutoListMembers = Convert.ToUInt32((bool)value ? 1 : 0);
             }
-            else if (option == CompletionOptionsMetadata.TriggerOnTyping)
+            else if (option == CompletionOptionsStorage.TriggerOnTyping)
             {
                 languagePreference.fAutoListMembers = Convert.ToUInt32((bool)value ? 1 : 0);
             }

@@ -8,12 +8,12 @@ using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.CodeAnalysis.CodeActions
 {
-    internal static class CodeActionOptionsMetadata
+    internal static class CodeActionOptionsStorage
     {
         internal static CodeActionOptions GetCodeActionOptions(this IGlobalOptionService globalOptions, string language, bool isBlocking)
             => new(
                 IsBlocking: isBlocking,
                 SearchReferenceAssemblies: globalOptions.GetOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, language),
-                HideAdvancedMembers: globalOptions.GetOption(CompletionOptionsMetadata.HideAdvancedMembers, language));
+                HideAdvancedMembers: globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, language));
     }
 }

@@ -1834,7 +1834,7 @@ End Class
 </Document>)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.EnterKeyBehavior, LanguageNames.VisualBasic), EnterKeyRule.AfterFullyTypedWord)
+                    New OptionKey(CompletionOptionsStorage.EnterKeyBehavior, LanguageNames.VisualBasic), EnterKeyRule.AfterFullyTypedWord)
 
                 state.SendTypeChars("System.TimeSpan.FromMin")
                 state.SendReturn()
@@ -1860,7 +1860,7 @@ End Class
 </Document>)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.EnterKeyBehavior, LanguageNames.VisualBasic), EnterKeyRule.AfterFullyTypedWord)
+                    New OptionKey(CompletionOptionsStorage.EnterKeyBehavior, LanguageNames.VisualBasic), EnterKeyRule.AfterFullyTypedWord)
 
                 state.SendTypeChars("System.TimeSpan.FromMinutes")
                 state.SendReturn()
@@ -2165,7 +2165,7 @@ End Class
             ]]></Document>)
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.TriggerOnTyping, LanguageNames.VisualBasic), False)
+                    New OptionKey(CompletionOptionsStorage.TriggerOnTyping, LanguageNames.VisualBasic), False)
 
                 state.SendBackspace()
                 Await state.AssertNoCompletionSession()
@@ -2656,7 +2656,7 @@ End Class
                   extraExportedTypes:={GetType(MockSnippetInfoService), GetType(SnippetCompletionProvider), GetType(StubVsEditorAdaptersFactoryService)}.ToList())
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)
+                    New OptionKey(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)
 
                 state.SendTypeChars("Shortcu")
                 Await state.AssertSelectedCompletionItem(displayText:="Shortcut", isHardSelected:=True)
@@ -2678,7 +2678,7 @@ End Class
                   extraExportedTypes:={GetType(MockSnippetInfoService), GetType(SnippetCompletionProvider), GetType(StubVsEditorAdaptersFactoryService)}.ToList())
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)
+                    New OptionKey(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)
 
                 state.SendTypeChars("Shortcu")
                 Await state.AssertSelectedCompletionItem(displayText:="Shortcut", isHardSelected:=True)
@@ -2701,7 +2701,7 @@ End Class
                   extraExportedTypes:={GetType(MockSnippetInfoService), GetType(SnippetCompletionProvider), GetType(StubVsEditorAdaptersFactoryService)}.ToList())
 
                 state.Workspace.GlobalOptions.SetGlobalOption(
-                    New OptionKey(CompletionOptionsMetadata.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)
+                    New OptionKey(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContainAll("x", "Shortcut")
