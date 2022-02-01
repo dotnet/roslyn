@@ -271,31 +271,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // contemplate such action thus typing slower before commit and/or spending more time examining the list, which give us some opportunities
             // to still provide those items later before they are truly required.
 
-            // Trigger completion with only "core" providers
-            var nonExpandedItemsTask = GetCompletionContextWorkerAsync(document, trigger, triggerLocation,
-                options with { ExpandedCompletionBehavior = ExpandedCompletionMode.NonExpandedItemsOnly }, cancellationToken);
-
-            // No need to trigger expanded providers at all if the feature is disabled. 
+            // No need to trigger expanded providers at all if the feature is disabled, just trigger core providers and return;
             if (!options.ShouldShowItemsFromUnimportNamspaces())
             {
-                var (context, list) = await nonExpandedItemsTask.ConfigureAwait(false);
+                var (context, list) = await GetCompletionContextWorkerAsync(document, trigger, triggerLocation,
+                    options with { ExpandedCompletionBehavior = ExpandedCompletionMode.NonExpandedItemsOnly }, cancellationToken).ConfigureAwait(false);
                 AddPropertiesToSession(session, list, triggerLocation);
                 return context;
             }
 
-            // Use a cancellation token associated with the session for the background expanded item task.
-            var cancellationTokenSource = new CancellationTokenSource();
-            void HandleCancellation(object? sender, EventArgs e) => cancellationTokenSource.Cancel();
-            session.Dismissed += HandleCancellation;
-            session.ItemCommitted += HandleCancellation;
-
             // The use of an explicit task (instead of calling GetCompletionContextWorkerAsync w/o await) is to
             // make sure the entire expanded item computation runs in the background.
+            var backgroundTaskCancellationToken = GetCancellationTokenForSession(session);
             var expandedItemsTask = Task.Run(async () => await GetCompletionContextWorkerAsync(document, trigger, triggerLocation,
-                options with { ExpandedCompletionBehavior = ExpandedCompletionMode.ExpandedItemsOnly }, cancellationTokenSource.Token).ConfigureAwait(false),
-                cancellationTokenSource.Token);
+                options with { ExpandedCompletionBehavior = ExpandedCompletionMode.ExpandedItemsOnly }, backgroundTaskCancellationToken).ConfigureAwait(false),
+                backgroundTaskCancellationToken);
 
-            var (nonExpandedContext, nonExpandedCompletionList) = await nonExpandedItemsTask.ConfigureAwait(false);
+            // Now trigger and wait for core providers to return;
+            var (nonExpandedContext, nonExpandedCompletionList) = await GetCompletionContextWorkerAsync(document, trigger, triggerLocation,
+                    options with { ExpandedCompletionBehavior = ExpandedCompletionMode.NonExpandedItemsOnly }, cancellationToken).ConfigureAwait(false);
             AddPropertiesToSession(session, nonExpandedCompletionList, triggerLocation);
 
             if (!expandedItemsTask.IsCompleted && !options.BlockOnExpandedCompletion)
@@ -308,7 +302,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // the task of expanded item is completed, so get the result and combine it with result of non-expanded items.
             var (expandedContext, expandedCompletionList) = await expandedItemsTask.ConfigureAwait(false);
             AddPropertiesToSession(session, expandedCompletionList, triggerLocation: null);
+
             return CombineCompletionContext(nonExpandedContext, expandedContext);
+
+            // Create a cancellation token associated with the session for the background expanded item task.
+            // TODO: not sure if we need a separate token, need to confirm.
+            static CancellationToken GetCancellationTokenForSession(IAsyncCompletionSession session)
+            {
+                var cancellationTokenSource = new CancellationTokenSource();
+                void HandleCancellation(object? sender, EventArgs e) => cancellationTokenSource.Cancel();
+
+                session.Dismissed += HandleCancellation;
+                session.ItemCommitted += HandleCancellation;
+
+                return cancellationTokenSource.Token;
+            }
 
             static AsyncCompletionData.CompletionContext CombineCompletionContext(AsyncCompletionData.CompletionContext context1, AsyncCompletionData.CompletionContext context2)
             {
