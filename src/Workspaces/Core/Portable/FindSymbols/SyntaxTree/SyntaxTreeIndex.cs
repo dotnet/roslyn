@@ -40,10 +40,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             => GetIndexAsync(document, loadOnly: false, cancellationToken);
 
         [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
-        public static ValueTask<SyntaxTreeIndex?> GetIndexAsync(
-            Document document, bool loadOnly, CancellationToken cancellationToken)
-        {
-            return GetIndexAsync(document, loadOnly, ReadIndex, CreateIndex, cancellationToken);
-        }
+        public static ValueTask<SyntaxTreeIndex?> GetIndexAsync(Document document, bool loadOnly, CancellationToken cancellationToken)
+            => GetIndexAsync(document, loadOnly, ReadIndex, CreateIndex, cancellationToken);
     }
 }

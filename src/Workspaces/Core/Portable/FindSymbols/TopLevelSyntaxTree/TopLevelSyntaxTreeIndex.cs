@@ -5,12 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -44,7 +40,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public ImmutableDictionary<string, ImmutableArray<int>> ReceiverTypeNameToExtensionMethodMap
             => _extensionMethodInfo.ReceiverTypeNameToExtensionMethodMap;
 
-        public bool ContainsExtensionMethod => _extensionMethodInfo.ContainsExtensionMethod;
+        public bool ContainsExtensionMethod
+            => _extensionMethodInfo.ContainsExtensionMethod;
 
         public static ValueTask<TopLevelSyntaxTreeIndex> GetRequiredIndexAsync(Document document, CancellationToken cancellationToken)
             => GetRequiredIndexAsync(document, ReadIndex, CreateIndex, cancellationToken);
@@ -53,37 +50,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             => GetIndexAsync(document, ReadIndex, CreateIndex, cancellationToken);
 
         [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
-        public static ValueTask<TopLevelSyntaxTreeIndex?> GetIndexAsync(
-            Document document, bool loadOnly, CancellationToken cancellationToken)
-        {
-            return GetIndexAsync(document, loadOnly, ReadIndex, CreateIndex, cancellationToken);
-        }
-
-        private static TopLevelSyntaxTreeIndex CreateIndex(
-            Document document, SyntaxNode root, Checksum checksum, CancellationToken cancellationToken)
-        {
-            var infoFactory = document.GetRequiredLanguageService<IDeclaredSymbolInfoFactoryService>();
-
-            using var _1 = ArrayBuilder<DeclaredSymbolInfo>.GetInstance(out var declaredSymbolInfos);
-            using var _2 = PooledDictionary<string, ArrayBuilder<int>>.GetInstance(out var extensionMethodInfo);
-            try
-            {
-                infoFactory.AddDeclaredSymbolInfos(
-                    document, root, declaredSymbolInfos, extensionMethodInfo, cancellationToken);
-
-                return new TopLevelSyntaxTreeIndex(
-                    checksum,
-                    new DeclarationInfo(declaredSymbolInfos.ToImmutable()),
-                    new ExtensionMethodInfo(
-                        extensionMethodInfo.ToImmutableDictionary(
-                            static kvp => kvp.Key,
-                            static kvp => kvp.Value.ToImmutable())));
-            }
-            finally
-            {
-                foreach (var (_, builder) in extensionMethodInfo)
-                    builder.Free();
-            }
-        }
+        public static ValueTask<TopLevelSyntaxTreeIndex?> GetIndexAsync(Document document, bool loadOnly, CancellationToken cancellationToken)
+            => GetIndexAsync(document, loadOnly, ReadIndex, CreateIndex, cancellationToken);
     }
 }
