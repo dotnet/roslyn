@@ -328,6 +328,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Task.WaitAny(task1, task2)
         End Sub
 
+        Public Async Function GetCompletionSession(Optional projectionsView As ITextView = Nothing) As Task(Of IAsyncCompletionSession)
+            Await WaitForAsynchronousOperationsAsync()
+            Dim view = If(projectionsView, TextView)
+
+            Return GetExportedValue(Of IAsyncCompletionBroker)().GetSession(view)
+        End Function
+
         Public Async Function AssertCompletionSession(Optional projectionsView As ITextView = Nothing) As Task
             Await WaitForAsynchronousOperationsAsync()
             Dim view = If(projectionsView, TextView)

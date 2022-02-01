@@ -9605,5 +9605,156 @@ class C
                 Return Task.CompletedTask
             End Function
         End Class
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestNonBlockingExpandCompletionViaTyping() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+                                  using $$
+                              </Document>,
+                              extraExportedTypes:={GetType(TestProvider)}.ToList())
+
+                Dim workspace = state.Workspace
+
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
+                globalOptions.SetGlobalOption(New OptionKey(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp), True)
+
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.Metadata.BlockOnExpandedCompletion, False) _
+                    .WithChangedOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)))
+
+                Dim completionService = DirectCast(workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
+                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of TestProvider)().Single()
+
+                ' completion list shouldn't have expand item until we release the checkpoint
+                state.SendTypeChars("TestUnimp")
+                Await state.AssertCompletionItemsDoNotContainAny("TestUnimportedItem")
+
+                Dim session = Await state.GetCompletionSession()
+                Dim expandTask As Task = Nothing
+                Assert.True(session.Properties.TryGetProperty(Of Task)(CompletionSource.ExpandedItemsTask, expandTask))
+                Assert.False(expandTask.IsCompleted)
+
+                ' following up by typing a few more characters each triggers an list update
+                state.SendTypeChars("o")
+                Await state.AssertCompletionItemsDoNotContainAny("TestUnimportedItem")
+                Assert.False(expandTask.IsCompleted)
+
+                Dim uiRender = state.WaitForUIRenderedAsync()
+                state.SendTypeChars("r")
+                Await state.AssertCompletionItemsDoNotContainAny("TestUnimportedItem")
+                Assert.False(expandTask.IsCompleted)
+                Await uiRender
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
+
+                provider.Checkpoint.Release()
+                Await expandTask
+
+                ' OK, now the expand task is completed,  but we shouldn't have expand item
+                ' until a refresh is triggered
+                Await state.AssertCompletionItemsDoNotContainAny("TestUnimportedItem")
+                Assert.True(expandTask.IsCompleted)
+
+                uiRender = state.WaitForUIRenderedAsync()
+                state.SendTypeChars("t")
+                Await state.AssertCompletionItemsContain("TestUnimportedItem", "")
+                Await state.AssertSelectedCompletionItem("TestUnimportedItem", inlineDescription:="Test.Name.Spaces")
+                Await uiRender
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestNonBlockingExpandCompletionViaExpander() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+                                  using $$
+                              </Document>,
+                              extraExportedTypes:={GetType(TestProvider)}.ToList())
+
+                Dim workspace = state.Workspace
+
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
+                globalOptions.SetGlobalOption(New OptionKey(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp), True)
+
+                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
+                    .WithChangedOption(CompletionOptions.Metadata.BlockOnExpandedCompletion, False) _
+                    .WithChangedOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)))
+
+                Dim completionService = DirectCast(workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
+                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of TestProvider)().Single()
+
+                ' completion list shouldn't have expand item until we release the checkpoint
+                state.SendTypeChars("TestUnimp")
+                Await state.AssertCompletionItemsDoNotContainAny("TestUnimportedItem")
+
+                Dim session = Await state.GetCompletionSession()
+                Dim expandTask As Task = Nothing
+                Assert.True(session.Properties.TryGetProperty(Of Task)(CompletionSource.ExpandedItemsTask, expandTask))
+                Assert.False(expandTask.IsCompleted)
+
+                ' following up by typing more characters each triggers an list update
+                Dim uiRender = state.WaitForUIRenderedAsync()
+                state.SendTypeChars("o")
+                Await state.AssertCompletionItemsDoNotContainAny("TestUnimportedItem")
+                Await uiRender
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=False)
+                Assert.False(expandTask.IsCompleted)
+
+                provider.Checkpoint.Release()
+                Await expandTask
+
+                ' OK, now the expand task is completed,  but we shouldn't have expand item
+                ' until a refresh is triggered
+                Await state.AssertCompletionItemsDoNotContainAny("TestUnimportedItem")
+                Assert.True(expandTask.IsCompleted)
+
+                ' trigger update by using expander
+                uiRender = state.WaitForUIRenderedAsync()
+                state.SetCompletionItemExpanderState(isSelected:=True)
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await uiRender
+
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
+                Await state.AssertCompletionItemsContain("TestUnimportedItem", "")
+                Await state.AssertSelectedCompletionItem("TestUnimportedItem", inlineDescription:="Test.Name.Spaces")
+            End Using
+        End Function
+
+        <ExportCompletionProvider(NameOf(TestProvider), LanguageNames.CSharp)>
+        <[Shared]>
+        <PartNotDiscoverable>
+        Private Class TestProvider
+            Inherits CommonCompletionProvider
+
+            Public Checkpoint As Checkpoint = New Checkpoint()
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+            End Sub
+
+            Public Overrides Async Function ProvideCompletionsAsync(context As CompletionContext) As Task
+                Await checkpoint.Task.ConfigureAwait(False)
+                Dim item = ImportCompletionItem.Create("TestUnimportedItem", 0, "Test.Name.Spaces", Glyph.ClassPublic, "", CompletionItemFlags.CachedAndExpanded, Nothing)
+                context.AddItem(item)
+            End Function
+
+            Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
+                Return True
+            End Function
+
+            Friend Overrides ReadOnly Property IsExpandItemProvider As Boolean
+                Get
+                    Return True
+                End Get
+            End Property
+
+            Friend Overrides ReadOnly Property Language As String
+                Get
+                    Return LanguageNames.CSharp
+                End Get
+            End Property
+        End Class
     End Class
 End Namespace
