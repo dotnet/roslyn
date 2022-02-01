@@ -1288,7 +1288,7 @@ class F
         }
 
         [Fact]
-        public void IncrementalGenerator_With_Syntax_Filter_Doesnt_Run_When_Compiation_Is_Unchanged()
+        public void IncrementalGenerator_With_Syntax_Filter_Doesnt_Run_When_Compilation_Is_Unchanged()
         {
             var source1 = @"
 #pragma warning disable CS0414
@@ -1407,7 +1407,10 @@ class E
                 });
             });
 
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(
+                new[] { new IncrementalGeneratorWrapper(testGenerator) },
+                parseOptions: parseOptions,
+                driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
             driver = driver.RunGenerators(compilation);
 
             var results = driver.GetRunResult();
@@ -1525,7 +1528,10 @@ class C
                 });
             });
 
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(
+                new[] { new IncrementalGeneratorWrapper(testGenerator) },
+                parseOptions: parseOptions,
+                driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
             driver = driver.RunGenerators(compilation);
             var results = driver.GetRunResult();
             Assert.Collection(results.Results[0].TrackedSteps["Fields"],

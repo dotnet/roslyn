@@ -60,8 +60,8 @@ namespace Microsoft.CodeAnalysis
                     var syntaxInputBuilders = ArrayBuilder<(SyntaxInputNode node, ISyntaxInputBuilder builder)>.GetInstance(_syntaxInputNodes.Length);
                     foreach (var node in _syntaxInputNodes)
                     {
-                        // TODO: We don't cache the tracked incremental steps in a manner that we can easily rehydrate between runs,
-                        // so we'll disable the cached compilation perf optimization when incremental step tracking is enabled.
+                        // We don't cache the tracked incremental steps in a manner that we can easily rehydrate between runs,
+                        // so we disable the cached compilation perf optimization when incremental step tracking is enabled.
                         if (compilationIsCached && !_enableTracking && _previous._tables.TryGetValue(node, out var previousStateTable))
                         {
                             _tableBuilder.SetTable(node, previousStateTable);
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis
                         NodeStateTable<SyntaxTree> syntaxTreeState = syntaxTreeTable;
 
                         // update each tree for the builders, sharing the semantic model
-                        foreach ((var tree, var state, var syntaxTreeIndex, var stepInfo) in syntaxTreeState)
+                        foreach (var (tree, state, syntaxTreeIndex, stepInfo) in syntaxTreeState)
                         {
                             var root = new Lazy<SyntaxNode>(() => tree.GetRoot(_cancellationToken));
                             var model = state != EntryState.Removed ? _compilation.GetSemanticModel(tree) : null;
