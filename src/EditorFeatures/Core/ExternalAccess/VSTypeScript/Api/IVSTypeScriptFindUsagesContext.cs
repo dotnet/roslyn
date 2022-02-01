@@ -30,6 +30,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 
         ValueTask OnDefinitionFoundAsync(VSTypeScriptDefinitionItem definition, CancellationToken cancellationToken);
         ValueTask OnReferenceFoundAsync(VSTypeScriptSourceReferenceItem reference, CancellationToken cancellationToken);
+
+        ValueTask OnCompletedAsync(CancellationToken cancellationToken);
     }
 
     internal interface IVSTypeScriptStreamingProgressTracker

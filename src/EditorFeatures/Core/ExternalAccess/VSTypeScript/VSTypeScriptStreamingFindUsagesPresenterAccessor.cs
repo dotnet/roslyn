@@ -21,11 +21,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
         public VSTypeScriptStreamingFindUsagesPresenterAccessor(IStreamingFindUsagesPresenter underlyingObject)
             => _underlyingObject = underlyingObject;
 
-        public (VSTypeScriptFindUsagesContext context, CancellationToken cancellationToken) StartSearch(
+        public (IVSTypeScriptFindUsagesContext context, CancellationToken cancellationToken) StartSearch(
             string title, bool supportsReferences)
         {
             var (context, cancellationToken) = _underlyingObject.StartSearch(title, supportsReferences);
-            return (new(context), cancellationToken);
+            return (new VSTypeScriptFindUsagesContext(context), cancellationToken);
         }
 
         public void ClearAll()

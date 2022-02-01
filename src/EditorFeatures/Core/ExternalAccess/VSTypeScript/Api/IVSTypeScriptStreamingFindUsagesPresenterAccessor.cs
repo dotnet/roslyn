@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
     internal interface IVSTypeScriptStreamingFindUsagesPresenterAccessor
     {
-        (VSTypeScriptFindUsagesContext context, CancellationToken cancellationToken) StartSearch(
+        (IVSTypeScriptFindUsagesContext context, CancellationToken cancellationToken) StartSearch(
             string title, bool supportsReferences);
 
         void ClearAll();

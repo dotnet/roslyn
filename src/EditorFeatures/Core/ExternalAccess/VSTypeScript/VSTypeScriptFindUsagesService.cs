@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
@@ -56,6 +57,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 
             public ValueTask OnReferenceFoundAsync(VSTypeScriptSourceReferenceItem reference, CancellationToken cancellationToken)
                 => _context.OnReferenceFoundAsync(reference.UnderlyingObject, cancellationToken);
+
+            public ValueTask OnCompletedAsync(CancellationToken cancellationToken)
+                => ValueTaskFactory.CompletedTask;
         }
 
         private sealed class ProgressTracker : IVSTypeScriptStreamingProgressTracker

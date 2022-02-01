@@ -5,8 +5,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
 {
     internal sealed class VSTypeScriptFindUsagesContext : IVSTypeScriptFindUsagesContext
     {
