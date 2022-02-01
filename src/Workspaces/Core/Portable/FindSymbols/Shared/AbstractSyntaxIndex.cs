@@ -14,10 +14,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         where TIndex : AbstractSyntaxIndex<TIndex>
     {
         protected delegate TIndex? IndexReader(StringTable stringTable, ObjectReader reader, Checksum? checksum);
-        protected delegate TIndex IndexCreator(Document document, SyntaxNode root, Checksum checksum);
+        protected delegate TIndex IndexCreator(Document document, SyntaxNode root, Checksum checksum, CancellationToken cancellationToken);
 
         private static readonly ConditionalWeakTable<Document, TIndex?> s_documentToIndex = new();
         private static readonly ConditionalWeakTable<DocumentId, TIndex?> s_documentIdToIndex = new();
+
+        protected AbstractSyntaxIndex(Checksum? checksum)
+        {
+            this.Checksum = checksum;
+        }
 
         protected static async ValueTask<TIndex> GetRequiredIndexAsync(Document document, IndexReader read, IndexCreator create, CancellationToken cancellationToken)
         {
@@ -30,7 +35,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             => GetIndexAsync(document, loadOnly: false, read, create, cancellationToken);
 
         [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1224834", OftenCompletesSynchronously = true)]
-        private static async ValueTask<TIndex?> GetIndexAsync(
+        protected static async ValueTask<TIndex?> GetIndexAsync(
             Document document,
             bool loadOnly,
             IndexReader read,
@@ -103,7 +108,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Contract.ThrowIfFalse(document.SupportsSyntaxTree);
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return create(document, root, checksum);
+            return create(document, root, checksum, cancellationToken);
         }
     }
 }
