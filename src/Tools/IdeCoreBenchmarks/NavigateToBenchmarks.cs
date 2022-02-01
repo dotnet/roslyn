@@ -25,7 +25,7 @@ using Microsoft.CodeAnalysis.Storage;
 
 namespace IdeCoreBenchmarks
 {
-    [GcServer(true)]
+    // [GcServer(true)]
     [MemoryDiagnoser]
     [SimpleJob(launchCount: 1, warmupCount: 0, targetCount: 0, invocationCount: 1, id: "QuickJob")]
     public class NavigateToBenchmarks
@@ -113,7 +113,7 @@ namespace IdeCoreBenchmarks
             _workspace = null;
         }
 
-        [Benchmark]
+        // [Benchmark]
         public async Task RunSerialIndexing()
         {
             Console.WriteLine("start profiling now");
@@ -165,7 +165,7 @@ namespace IdeCoreBenchmarks
             Console.ReadLine();
         }
 
-        [Benchmark]
+        //  [Benchmark]
         public async Task RunFullParallelIndexing()
         {
             Console.WriteLine("Attach now");
@@ -178,7 +178,7 @@ namespace IdeCoreBenchmarks
             Console.WriteLine("Solution parallel: " + (DateTime.Now - start));
         }
 
-        [Benchmark]
+        // [Benchmark]
         public async Task RunNavigateTo()
         {
             Console.WriteLine("Starting navigate to");

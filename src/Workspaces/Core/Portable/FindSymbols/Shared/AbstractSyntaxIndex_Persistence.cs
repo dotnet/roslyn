@@ -164,19 +164,5 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         bool IObjectWritable.ShouldReuseInSerialization => true;
 
         public abstract void WriteTo(ObjectWriter writer);
-
-        //private static DeclaredSymbolInfoIndex? ReadFrom(StringTable stringTable, ObjectReader reader, Checksum? checksum)
-        //{
-        //    var declarationInfo = DeclarationInfo.TryReadFrom(stringTable, reader);
-        //    var extensionMethodInfo = ExtensionMethodInfo.TryReadFrom(reader);
-
-        //    if (declarationInfo == null || extensionMethodInfo == null)
-        //        return null;
-
-        //    return new DeclaredSymbolInfoIndex(
-        //        checksum,
-        //        declarationInfo.Value,
-        //        extensionMethodInfo.Value);
-        //}
     }
 }
