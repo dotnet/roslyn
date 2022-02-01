@@ -44,9 +44,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     AsyncCompletionLogger.LogSessionContainsTargetTypeFilter();
             }
 
-            if (session.TextView.Properties.TryGetProperty(CompletionSource.TypeImportCompletionEnabled, out bool isTypeImportCompletionEnabled) && isTypeImportCompletionEnabled)
-                AsyncCompletionLogger.LogSessionWithTypeImportCompletionEnabled();
-
             // Sort by default comparer of Roslyn CompletionItem
             var sortedItems = data.InitialList.OrderBy(GetOrAddRoslynCompletionItem).ToImmutableArray();
             return Task.FromResult(sortedItems);
@@ -89,6 +86,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     data = new(combinedSortedList, data.Snapshot, data.Trigger, data.InitialTrigger, combinedFilterStates,
                         data.IsSoftSelected, data.DisplaySuggestionItem, data.Defaults);
                 }
+
+                AsyncCompletionLogger.LogSessionWithDelayedImportCompletionIncludedInUpdate();
             }
             else if (session.Properties.TryGetProperty<ImmutableArray<VSCompletionItem>>(CombinedSortedList, out var combinedSortedList))
             {

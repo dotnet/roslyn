@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var completionOptions = CompletionOptions.From(options ?? document?.Project.Solution.Options ?? _workspace.CurrentSolution.Options, document?.Project.Language ?? Language);
             return ShouldTriggerCompletion(document?.Project, languageServices, text, caretPosition, trigger, completionOptions, roles);
         }
-        
+
         internal sealed override bool ShouldTriggerCompletion(
             Project? project, HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options, ImmutableHashSet<string>? roles = null)
         {

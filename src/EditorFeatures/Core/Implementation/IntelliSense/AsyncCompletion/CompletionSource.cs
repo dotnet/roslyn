@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -27,6 +28,7 @@ using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Utilities;
 using AsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data.CompletionItem;
@@ -46,7 +48,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         internal const string PotentialCommitCharacters = nameof(PotentialCommitCharacters);
         internal const string ExcludedCommitCharacters = nameof(ExcludedCommitCharacters);
         internal const string NonBlockingCompletion = nameof(NonBlockingCompletion);
-        internal const string TypeImportCompletionEnabled = nameof(TypeImportCompletionEnabled);
         internal const string TargetTypeFilterExperimentEnabled = nameof(TargetTypeFilterExperimentEnabled);
         internal const string ExpandedItemsTask = nameof(ExpandedItemsTask);
 
@@ -129,7 +130,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // Set it later if met the condition.
             _snippetCompletionTriggeredIndirectly = false;
 
-            CheckForExperimentStatus(_textView, options);
+            // For telemetry reporting purpose
+            _textView.Properties[TargetTypeFilterExperimentEnabled] = options.TargetTypedCompletionFilter;
 
             var sourceText = document.GetTextSynchronously(cancellationToken);
 
@@ -140,17 +142,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         triggerLocation.Snapshot,
                         service.GetDefaultCompletionListSpan(sourceText, triggerLocation.Position).ToSpan()))
                 : AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
-
-            // For telemetry reporting purpose
-            static void CheckForExperimentStatus(ITextView textView, in CompletionOptions options)
-            {
-                textView.Properties[TargetTypeFilterExperimentEnabled] = options.TargetTypedCompletionFilter;
-
-                var importCompletionOptionValue = options.ShowItemsFromUnimportedNamespaces;
-                var importCompletionExperimentValue = options.TypeImportCompletion;
-                var isTypeImportEnababled = importCompletionOptionValue == true || (importCompletionOptionValue == null && importCompletionExperimentValue);
-                textView.Properties[TypeImportCompletionEnabled] = isTypeImportEnababled;
-            }
         }
 
         private bool ShouldTriggerCompletion(
@@ -287,6 +278,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 options with { ExpandedCompletionBehavior = ExpandedCompletionMode.ExpandedItemsOnly }, backgroundTaskCancellationToken).ConfigureAwait(false),
                 backgroundTaskCancellationToken);
 
+            // Record how long it takes for the background task to complete.
+            var stopwatch = Stopwatch.StartNew();
+            expandedItemsTask = expandedItemsTask.ContinueWith(task =>
+            {
+                AsyncCompletionLogger.LogAdditionalTicksToCompleteDelayedImportCompletionDataPoint((int)stopwatch.ElapsedMilliseconds);
+                return task.Result;
+            }, backgroundTaskCancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
+
             // Now trigger and wait for core providers to return;
             var (nonExpandedContext, nonExpandedCompletionList) = await GetCompletionContextWorkerAsync(document, trigger, triggerLocation,
                     options with { ExpandedCompletionBehavior = ExpandedCompletionMode.NonExpandedItemsOnly }, cancellationToken).ConfigureAwait(false);
@@ -296,8 +295,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 // expanded item task still running. Save it to the session and return non-expanded items immediately.
                 session.Properties[ExpandedItemsTask] = expandedItemsTask;
+                AsyncCompletionLogger.LogImportCompletionGetContext(isBlocking: false, delayed: true);
+
                 return nonExpandedContext;
             }
+
+            AsyncCompletionLogger.LogImportCompletionGetContext(isBlocking: options.BlockOnExpandedCompletion, delayed: false);
 
             // the task of expanded item is completed, so get the result and combine it with result of non-expanded items.
             var (expandedContext, expandedCompletionList) = await expandedItemsTask.ConfigureAwait(false);

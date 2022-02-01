@@ -10,11 +10,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
     {
         private static readonly LogAggregator s_logAggregator = new();
         private static readonly StatisticLogAggregator s_statisticLogAggregator = new();
+        private static readonly HistogramLogAggregator s_histogramLogAggregator = new(25, 500);
 
         private enum ActionInfo
         {
-            // For type import completion
+            // For import completion
             SessionWithTypeImportCompletionEnabled,
+            SessionWithImportCompletionBlocking,
+            SessionWithImportCompletionDelayed,
+            SessionWithDelayedImportCompletionIncludedInUpdate, // this doesn't include using of expander
+            AdditionalTicksToCompleteDelayedImportCompletion,
             ExpanderUsageCount,
 
             // For targeted type completion
@@ -34,7 +39,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             GetDefaultsMatchTicks,
         }
 
-        internal static void LogSessionWithTypeImportCompletionEnabled() =>
+        internal static void LogImportCompletionGetContext(bool isBlocking, bool delayed)
+        {
+            s_logAggregator.IncreaseCount((int)ActionInfo.SessionWithTypeImportCompletionEnabled);
+
+            if (isBlocking)
+                s_logAggregator.IncreaseCount((int)ActionInfo.SessionWithImportCompletionBlocking);
+
+            if (delayed)
+                s_logAggregator.IncreaseCount((int)ActionInfo.SessionWithImportCompletionDelayed);
+        }
+
+        internal static void LogSessionWithDelayedImportCompletionIncludedInUpdate() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.SessionWithDelayedImportCompletionIncludedInUpdate);
+
+        internal static void LogAdditionalTicksToCompleteDelayedImportCompletionDataPoint(int count) =>
+            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.AdditionalTicksToCompleteDelayedImportCompletion, count);
+
+        internal static void LogDelayedImportCompletionIncluded() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.SessionWithTypeImportCompletionEnabled);
 
         internal static void LogExpanderUsage() =>
@@ -78,6 +100,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 {
                     var mergeInfo = ((ActionInfo)kv.Key).ToString("f");
                     m[mergeInfo] = kv.Value.GetCount();
+                }
+
+                foreach (var kv in s_histogramLogAggregator)
+                {
+                    var info = ((ActionInfo)kv.Key).ToString("f");
+                    m[$"{info}.BucketSize"] = kv.Value.BucketSize;
+                    m[$"{info}.MaxBucketValue"] = kv.Value.MaxBucketValue;
+                    m[$"{info}.Buckets"] = kv.Value.GetBucketsAsString();
                 }
             }));
         }
