@@ -16,12 +16,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal sealed partial class DeclaredSymbolInfoIndex : IObjectWritable
+    internal sealed partial class TopLevelSyntaxTreeIndex : IObjectWritable
     {
         public static Task PrecalculateAsync(Document document, CancellationToken cancellationToken)
             => PrecalculateAsync(document, CreateIndex, cancellationToken);
 
-        public static Task<DeclaredSymbolInfoIndex?> LoadAsync(
+        public static Task<TopLevelSyntaxTreeIndex?> LoadAsync(
             IChecksummedPersistentStorageService storageService, DocumentKey documentKey, Checksum? checksum, StringTable stringTable, CancellationToken cancellationToken)
         {
             return LoadAsync(storageService, documentKey, checksum, stringTable, ReadIndex, cancellationToken);
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _extensionMethodInfo.WriteTo(writer);
         }
 
-        private static DeclaredSymbolInfoIndex? ReadIndex(
+        private static TopLevelSyntaxTreeIndex? ReadIndex(
             StringTable stringTable, ObjectReader reader, Checksum? checksum)
         {
             var declarationInfo = DeclarationInfo.TryReadFrom(stringTable, reader);
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (declarationInfo == null || extensionMethodInfo == null)
                 return null;
 
-            return new DeclaredSymbolInfoIndex(
+            return new TopLevelSyntaxTreeIndex(
                 checksum,
                 declarationInfo.Value,
                 extensionMethodInfo.Value);

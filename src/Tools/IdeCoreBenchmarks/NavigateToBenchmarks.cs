@@ -157,7 +157,7 @@ namespace IdeCoreBenchmarks
                     async () =>
                     {
                         // await WalkTree(d);
-                        await DeclaredSymbolInfoIndex.PrecalculateAsync(d, default);
+                        await TopLevelSyntaxTreeIndex.PrecalculateAsync(d, default);
                     })).ToList();
                 await Task.WhenAll(tasks);
             }

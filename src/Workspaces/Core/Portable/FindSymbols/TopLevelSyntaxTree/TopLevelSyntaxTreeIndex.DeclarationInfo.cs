@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal sealed partial class DeclaredSymbolInfoIndex
+    internal sealed partial class TopLevelSyntaxTreeIndex
     {
         private readonly struct DeclarationInfo
         {

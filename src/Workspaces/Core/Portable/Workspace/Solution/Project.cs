@@ -417,14 +417,14 @@ namespace Microsoft.CodeAnalysis
         }
 
         private async Task<bool> ContainsDeclarationAsync(
-            Func<DeclaredSymbolInfoIndex, CancellationToken, bool> predicate, CancellationToken cancellationToken)
+            Func<TopLevelSyntaxTreeIndex, CancellationToken, bool> predicate, CancellationToken cancellationToken)
         {
             if (!this.SupportsCompilation)
                 return false;
 
             var tasks = this.Documents.Select(async d =>
             {
-                var index = await DeclaredSymbolInfoIndex.GetRequiredIndexAsync(d, cancellationToken).ConfigureAwait(false);
+                var index = await TopLevelSyntaxTreeIndex.GetRequiredIndexAsync(d, cancellationToken).ConfigureAwait(false);
                 return predicate(index, cancellationToken);
             });
 

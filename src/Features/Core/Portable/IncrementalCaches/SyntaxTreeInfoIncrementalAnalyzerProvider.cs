@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 }
 
                 await SyntaxTreeIndex.PrecalculateAsync(document, cancellationToken).ConfigureAwait(false);
-                await DeclaredSymbolInfoIndex.PrecalculateAsync(document, cancellationToken).ConfigureAwait(false);
+                await TopLevelSyntaxTreeIndex.PrecalculateAsync(document, cancellationToken).ConfigureAwait(false);
             }
         }
     }
