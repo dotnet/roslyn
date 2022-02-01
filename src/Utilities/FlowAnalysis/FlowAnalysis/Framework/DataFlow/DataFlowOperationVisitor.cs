@@ -1273,28 +1273,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         direct = false;
                     }
 
-                    if (patternOperation is IConstantPatternOperation constantPattern)
+                    if (patternOperation is IConstantPatternOperation { Value.ConstantValue: { HasValue: true, Value: null } })
                     {
-                        if (constantPattern.Value.ConstantValue.HasValue)
+                        switch (pointsToValue.NullState)
                         {
-                            if (constantPattern.Value.ConstantValue.Value == null)
-                            {
-                                switch (pointsToValue.NullState)
-                                {
-                                    case NullAbstractValue.Null:
-                                        inference.AlwaysSucceed = direct;
-                                        break;
+                            case NullAbstractValue.Null:
+                                inference.AlwaysSucceed = direct;
+                                break;
 
-                                    case NullAbstractValue.NotNull:
-                                        inference.AlwaysFail = direct;
-                                        break;
-                                }
-                            }
-
-                            return true;
+                            case NullAbstractValue.NotNull:
+                                inference.AlwaysFail = direct;
+                                break;
                         }
 
-                        return false;
+                        return true;
                     }
                 }
 
