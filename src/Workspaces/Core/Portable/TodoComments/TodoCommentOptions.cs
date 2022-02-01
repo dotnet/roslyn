@@ -23,6 +23,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
         ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
             TokenList);
 
-        public static readonly Option<string> TokenList = new(nameof(TodoCommentOptions), nameof(TokenList), defaultValue: "");
+        public static readonly Option2<string> TokenList = new(nameof(TodoCommentOptions), nameof(TokenList), defaultValue: "");
     }
 }

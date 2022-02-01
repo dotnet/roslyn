@@ -240,7 +240,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
         private void StoreCurrentGroupingPriority(IFindAllReferencesWindow window)
         {
-            _globalOptions.SetGlobalOption(FindUsagesOptions.DefinitionGroupingPriority, window.GetDefinitionColumn().GroupingPriority);
+            _globalOptions.SetGlobalOption(new OptionKey(FindUsagesOptions.DefinitionGroupingPriority), window.GetDefinitionColumn().GroupingPriority);
         }
 
         private void SetDefinitionGroupingPriority(IFindAllReferencesWindow window, int priority)

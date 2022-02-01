@@ -37,11 +37,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
             /// <summary>
             /// Disables if the workspace creates recoverable trees when from its <see cref="ISyntaxTreeFactoryService"/>s.
             /// </summary>
-            public static readonly Option<bool> DisableRecoverableTrees = new(
+            public static readonly Option2<bool> DisableRecoverableTrees = new(
                 nameof(WorkspaceConfigurationOptions), nameof(DisableRecoverableTrees), defaultValue: false,
                 new FeatureFlagStorageLocation("Roslyn.DisableRecoverableTrees"));
 
-            public static readonly Option<bool> DisableProjectCacheService = new(
+            public static readonly Option2<bool> DisableProjectCacheService = new(
                 nameof(WorkspaceConfigurationOptions), nameof(DisableProjectCacheService), defaultValue: false,
                 new FeatureFlagStorageLocation("Roslyn.DisableProjectCacheService"));
 
