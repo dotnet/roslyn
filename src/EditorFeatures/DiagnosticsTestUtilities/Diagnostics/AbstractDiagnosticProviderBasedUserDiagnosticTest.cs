@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 foreach (var descriptor in diagnosticAnalyzer.SupportedDiagnostics)
                 {
-                    // These doesn't come up in UI.
+                    // These don't come up in UI.
                     if (descriptor.DefaultSeverity == DiagnosticSeverity.Hidden && descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable))
                     {
                         continue;
