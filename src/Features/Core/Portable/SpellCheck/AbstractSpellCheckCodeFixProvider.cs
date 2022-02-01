@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             var passthroughOptions = document.Project.Solution.Options;
 
             var completionList = await service.GetCompletionsAsync(
-                document, nameToken.SpanStart, options, passthroughOptions, cancellationToken).ConfigureAwait(false);
+                document, nameToken.SpanStart, options, passthroughOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (completionList.Items.IsEmpty)
             {
                 return;

@@ -42,7 +42,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
             Assert.NotNull(service);
         }
 
-
         [ExportCompletionProvider(nameof(ThirdPartyCompletionProvider), LanguageNames.CSharp)]
         [ExtensionOrder(After = nameof(KeywordCompletionProvider))]
         [Shared]

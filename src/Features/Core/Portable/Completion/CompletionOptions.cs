@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Recommendations;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
-    internal record struct CompletionOptions(
+    internal readonly record struct CompletionOptions(
         bool TriggerOnTyping = true,
         bool TriggerOnTypingLetters = true,
         bool? TriggerOnDeletion = null,

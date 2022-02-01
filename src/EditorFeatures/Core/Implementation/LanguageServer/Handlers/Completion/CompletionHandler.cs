@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             CompletionListCache completionListCache,
             CancellationToken cancellationToken)
         {
-            var completionList = await completionService.GetCompletionsAsync(document, position, completionOptions, document.Project.Solution.Options, completionTrigger, cancellationToken).ConfigureAwait(false);
+            var completionList = await completionService.GetCompletionsAsync(document, position, completionOptions, document.Project.Solution.Options, completionTrigger, cancellationToken: cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
             if (completionList.Items.IsEmpty)
             {

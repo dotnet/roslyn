@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Tags;
 

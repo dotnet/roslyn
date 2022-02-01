@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.Completion
               TriggerOnTypingLetters: options.GetOption(TriggerOnTypingLetters, language),
               TriggerOnDeletion: options.GetOption(TriggerOnDeletion, language),
               TriggerInArgumentLists: options.GetOption(TriggerInArgumentLists, language),
-              IsExpandedCompletion: options.GetOption(IsExpandedCompletion),
               EnterKeyBehavior: options.GetOption(EnterKeyBehavior, language),
               SnippetsBehavior: options.GetOption(SnippetsBehavior, language),
               HideAdvancedMembers: options.GetOption(HideAdvancedMembers, language),
@@ -26,7 +25,8 @@ namespace Microsoft.CodeAnalysis.Completion
               TypeImportCompletion: options.GetOption(TypeImportCompletionFeatureFlag),
               ProvideDateAndTimeCompletions: options.GetOption(ProvideDateAndTimeCompletions, language),
               ProvideRegexCompletions: options.GetOption(ProvideRegexCompletions, language),
-              TimeoutInMillisecondsForExtensionMethodImportCompletion: options.GetOption(TimeoutInMillisecondsForExtensionMethodImportCompletion));
+              ForceExpandedCompletionIndexCreation: options.GetOption(ForceExpandedCompletionIndexCreation),
+              BlockOnExpandedCompletion: options.GetOption(BlockOnExpandedCompletion));
 
         // feature flags
 
@@ -77,18 +77,15 @@ namespace Microsoft.CodeAnalysis.Completion
             new(nameof(CompletionOptions), nameof(TriggerInArgumentLists), CompletionOptions.Default.TriggerInArgumentLists,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.TriggerInArgumentLists"));
 
-        /// <summary>
-        /// Indicates if the completion is trigger by toggle the expander.
-        /// </summary>
-        public static readonly Option2<bool> IsExpandedCompletion
-            = new("CompletionServiceOptions", nameof(IsExpandedCompletion), CompletionOptions.Default.IsExpandedCompletion);
+        // Test-only option
+        public static readonly Option2<bool> ForceExpandedCompletionIndexCreation
+            = new(nameof(CompletionOptions), nameof(ForceExpandedCompletionIndexCreation), defaultValue: false);
 
-        /// <summary>
-        /// Timeout value used for time-boxing completion of unimported extension methods.
-        /// Value less than 0 means no timebox; value == 0 means immediate timeout (for testing purpose)
-        /// </summary>
-        public static readonly Option2<int> TimeoutInMillisecondsForExtensionMethodImportCompletion
-            = new("CompletionServiceOptions", nameof(TimeoutInMillisecondsForExtensionMethodImportCompletion), CompletionOptions.Default.TimeoutInMillisecondsForExtensionMethodImportCompletion);
+        // Test-only option
+        // Set this to true to have a deterministic behavior for expand items. Otherwise, expand items might not
+        // be included in the completion list if the calculation is slow.
+        public static readonly Option2<bool> BlockOnExpandedCompletion
+            = new(nameof(CompletionOptions), nameof(BlockOnExpandedCompletion), defaultValue: false);
 
         // Embedded languages:
 
