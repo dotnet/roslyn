@@ -4,6 +4,7 @@
 
 // tests from: https://github.com/nst/JSONTestSuite
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
@@ -13,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
         private void TestNST(
             string stringText, string expected, string _, string strictDiagnostics, [CallerMemberName] string caller = "")
         {
-            var (_, tree, allChars) = JustParseTree(stringText, strict: true, conversionFailureOk: false);
+            var (_, tree, allChars) = JustParseTree(stringText, JsonOptions.Strict, conversionFailureOk: false);
             Assert.NotNull(tree);
             Roslyn.Utilities.Contract.ThrowIfNull(tree);
             var actualTree = TreeToText(tree!).Replace("\"", "\"\"");
@@ -2616,7 +2617,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
   <Diagnostic Message=""',' expected"" Start=""13"" Length=""1"" />
 </Diagnostics>",
         @"<Diagnostics>
-  <Diagnostic Message=""',' expected"" Start=""13"" Length=""1"" />
+  <Diagnostic Message=""Invalid number"" Start=""11"" Length=""1"" />
 </Diagnostics>");
         }
 

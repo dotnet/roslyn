@@ -880,8 +880,8 @@ this_expression
 interpolated_string_expression
   : '$"' interpolated_string_content* '"'
   | '$@"' interpolated_string_content* '"'
-  | interpolated_multi_line_raw_string_start_token interpolated_string_content* interpolated_multi_line_raw_string_end_token
-  | interpolated_single_line_raw_string_start_token interpolated_string_content* interpolated_single_line_raw_string_end_token
+  | interpolated_multi_line_raw_string_start_token interpolated_string_content* interpolated_raw_string_end_token
+  | interpolated_single_line_raw_string_start_token interpolated_string_content* interpolated_raw_string_end_token
   ;
 
 interpolated_string_content
@@ -1351,15 +1351,11 @@ identifier_token
   : /* see lexical specification */
   ;
 
-interpolated_multi_line_raw_string_end_token
-  : /* see lexical specification */
-  ;
-
 interpolated_multi_line_raw_string_start_token
   : /* see lexical specification */
   ;
 
-interpolated_single_line_raw_string_end_token
+interpolated_raw_string_end_token
   : /* see lexical specification */
   ;
 

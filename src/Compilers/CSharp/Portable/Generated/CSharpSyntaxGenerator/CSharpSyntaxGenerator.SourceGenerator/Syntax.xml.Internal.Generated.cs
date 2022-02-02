@@ -37145,8 +37145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             switch (stringEndToken.Kind)
             {
                 case SyntaxKind.InterpolatedStringEndToken:
-                case SyntaxKind.InterpolatedSingleLineRawStringEndToken:
-                case SyntaxKind.InterpolatedMultiLineRawStringEndToken: break;
+                case SyntaxKind.InterpolatedRawStringEndToken: break;
                 default: throw new ArgumentException(nameof(stringEndToken));
             }
 #endif
@@ -42169,8 +42168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             switch (stringEndToken.Kind)
             {
                 case SyntaxKind.InterpolatedStringEndToken:
-                case SyntaxKind.InterpolatedSingleLineRawStringEndToken:
-                case SyntaxKind.InterpolatedMultiLineRawStringEndToken: break;
+                case SyntaxKind.InterpolatedRawStringEndToken: break;
                 default: throw new ArgumentException(nameof(stringEndToken));
             }
 #endif

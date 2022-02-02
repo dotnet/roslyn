@@ -39,7 +39,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-                // (6,25): error CS9102: Too many closing quotes for raw string literal
+                // (6,25): error CS8998: Too many closing quotes for raw string literal
                 //         var v = $""" """";
                 Diagnostic(ErrorCode.ERR_TooManyQuotesForRawString, @"""").WithLocation(6, 25));
     }
@@ -57,7 +57,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,25): error CS9102: Too many closing quotes for raw string literal
+            // (6,25): error CS8998: Too many closing quotes for raw string literal
             //         var v = $""" """"";
             Diagnostic(ErrorCode.ERR_TooManyQuotesForRawString, @"""""").WithLocation(6, 25));
     }
@@ -165,7 +165,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,21): error CS9122: Too many open braces for raw string literal
+            // (6,21): error CS9006: Too many open braces for raw string literal
             //         var v = $"""{{0}}""";
             Diagnostic(ErrorCode.ERR_TooManyOpenBracesForRawString, "{").WithLocation(6, 21));
     }
@@ -183,7 +183,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,22): error CS9122: Too many open braces for raw string literal
+            // (6,22): error CS9006: Too many open braces for raw string literal
             //         var v = $$"""{{{{0}}}}""";
             Diagnostic(ErrorCode.ERR_TooManyOpenBracesForRawString, "{{").WithLocation(6, 22));
     }
@@ -201,7 +201,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,24): error CS9123: Too many closing braces for raw string literal
+            // (6,24): error CS9007: Too many closing braces for raw string literal
             //         var v = $"""{0}}}""";
             Diagnostic(ErrorCode.ERR_TooManyCloseBracesForRawString, "}}").WithLocation(6, 24));
     }
@@ -219,7 +219,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,28): error CS9123: Too many closing braces for raw string literal
+            // (6,28): error CS9007: Too many closing braces for raw string literal
             //         var v = $$"""{{{0}}}}""";
             Diagnostic(ErrorCode.ERR_TooManyCloseBracesForRawString, "}}").WithLocation(6, 28));
     }
@@ -237,7 +237,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,24): error CS9123: Too many closing braces for raw string literal
+            // (6,24): error CS9007: Too many closing braces for raw string literal
             //         var v = $$"""{0}}""";
             Diagnostic(ErrorCode.ERR_TooManyCloseBracesForRawString, "}}").WithLocation(6, 24));
     }
@@ -255,7 +255,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,22): error CS9121: Not enough closing braces for raw string literal
+            // (6,22): error CS9005: Not enough closing braces for raw string literal
             //         var v = $$"""{{{0}""";
             Diagnostic(ErrorCode.ERR_NotEnoughCloseBracesForRawString, "{").WithLocation(6, 22));
     }
@@ -491,7 +491,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (7,1): error CS9103: Line does not start with the same whitespace as the closing line of the raw string literal
+            // (7,1): error CS8999: Line does not start with the same whitespace as the closing line of the raw string literal
             //   a
             Diagnostic(ErrorCode.ERR_LineDoesNotStartWithSameWhitespace, "  ").WithLocation(7, 1));
     }
@@ -1118,7 +1118,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-                    // (6,17): error CS9124: Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.
+                    // (6,17): error CS9008: Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.
                     //         var v = @@";
                     Diagnostic(ErrorCode.ERR_IllegalAtSequence, "@@").WithLocation(6, 17),
                     // (6,17): error CS1039: Unterminated string literal
@@ -1148,7 +1148,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-                    // (6,17): error CS9124: Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.
+                    // (6,17): error CS9008: Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.
                     //         var v = @@" ";
                     Diagnostic(ErrorCode.ERR_IllegalAtSequence, "@@").WithLocation(6, 17));
     }
@@ -1166,7 +1166,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-                    // (6,17): error CS9124: Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.
+                    // (6,17): error CS9008: Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.
                     //         var v = @@""" """;
                     Diagnostic(ErrorCode.ERR_IllegalAtSequence, "@@").WithLocation(6, 17));
     }
@@ -1205,7 +1205,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-                    // (6,17): error CS9124: Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.
+                    // (6,17): error CS9008: Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.
                     //         var v = @@@";
                     Diagnostic(ErrorCode.ERR_IllegalAtSequence, "@@@").WithLocation(6, 17),
                     // (6,17): error CS1039: Unterminated string literal
@@ -1235,7 +1235,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-                    // (6,17): error CS9124: Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.
+                    // (6,17): error CS9008: Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.
                     //         var v = @@@" ";
                     Diagnostic(ErrorCode.ERR_IllegalAtSequence, "@@@").WithLocation(6, 17));
     }
@@ -1253,7 +1253,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-                    // (6,17): error CS9124: Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.
+                    // (6,17): error CS9008: Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.
                     //         var v = @@@""" """;
                     Diagnostic(ErrorCode.ERR_IllegalAtSequence, "@@@").WithLocation(6, 17));
     }
@@ -1271,7 +1271,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-                    // (6,17): error CS9125: String must start with quote character: "
+                    // (6,17): error CS9009: String must start with quote character: "
                     //         var v = $@@;
                     Diagnostic(ErrorCode.ERR_StringMustStartWithQuoteCharacter, "$@@").WithLocation(6, 17));
     }
@@ -1289,7 +1289,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            // (6,17): error CS9009: Cannot mix verbatim and raw strings
             //         var v = $@@";
             Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"$@@""").WithLocation(6, 17),
             // (6,22): error CS1002: ; expected
@@ -1310,7 +1310,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            // (6,17): error CS9009: Cannot mix verbatim and raw strings
             //         var v = $@@" ";
             Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"$@@""").WithLocation(6, 17));
     }
@@ -1328,7 +1328,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            // (6,17): error CS9009: Cannot mix verbatim and raw strings
             //         var v = $@@""" """;
             Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"$@@""""""").WithLocation(6, 17));
     }
@@ -1346,7 +1346,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-                    // (6,17): error CS9125: String must start with quote character: "
+                    // (6,17): error CS9009: String must start with quote character: "
                     //         var v = $@@@;
                     Diagnostic(ErrorCode.ERR_StringMustStartWithQuoteCharacter, "$@@@").WithLocation(6, 17));
     }
@@ -1364,7 +1364,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            // (6,17): error CS9009: Cannot mix verbatim and raw strings
             //         var v = $@@@";
             Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"$@@@""").WithLocation(6, 17),
             // (6,23): error CS1002: ; expected
@@ -1385,7 +1385,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            // (6,17): error CS9009: Cannot mix verbatim and raw strings
             //         var v = $@@@" ";
             Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"$@@@""").WithLocation(6, 17));
     }
@@ -1403,7 +1403,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            // (6,17): error CS9009: Cannot mix verbatim and raw strings
             //         var v = $@@@""" """;
             Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"$@@@""""""").WithLocation(6, 17));
     }
@@ -1421,7 +1421,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-                    // (6,17): error CS9125: String must start with quote character: "
+                    // (6,17): error CS9009: String must start with quote character: "
                     //         var v = @@$;
                     Diagnostic(ErrorCode.ERR_StringMustStartWithQuoteCharacter, "@@$").WithLocation(6, 17));
     }
@@ -1439,7 +1439,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            // (6,17): error CS9009: Cannot mix verbatim and raw strings
             //         var v = @@$";
             Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"@@$""").WithLocation(6, 17),
             // (6,22): error CS1002: ; expected
@@ -1460,7 +1460,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            // (6,17): error CS9009: Cannot mix verbatim and raw strings
             //         var v = @@$" ";
             Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"@@$""").WithLocation(6, 17));
     }
@@ -1478,7 +1478,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            // (6,17): error CS9009: Cannot mix verbatim and raw strings
             //         var v = @@$""" """;
             Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"@@$""""""").WithLocation(6, 17));
     }
@@ -1496,7 +1496,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-                    // (6,17): error CS9125: String must start with quote character: "
+                    // (6,17): error CS9009: String must start with quote character: "
                     //         var v = @@$$;
                     Diagnostic(ErrorCode.ERR_StringMustStartWithQuoteCharacter, "@@$$").WithLocation(6, 17));
     }
@@ -1514,7 +1514,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            // (6,17): error CS9009: Cannot mix verbatim and raw strings
             //         var v = @@$$";
             Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"@@$$""").WithLocation(6, 17),
             // (6,23): error CS1002: ; expected
@@ -1535,7 +1535,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            // (6,17): error CS9009: Cannot mix verbatim and raw strings
             //         var v = @@$$" ";
             Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"@@$$""").WithLocation(6, 17));
     }
@@ -1553,7 +1553,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            // (6,17): error CS9009: Cannot mix verbatim and raw strings
             //         var v = @@$$""" """;
             Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"@@$$""""""").WithLocation(6, 17));
     }
@@ -1571,7 +1571,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-                    // (6,17): error CS9125: String must start with quote character: "
+                    // (6,17): error CS9009: String must start with quote character: "
                     //         var v = @@$@;
                     Diagnostic(ErrorCode.ERR_StringMustStartWithQuoteCharacter, "@@$@").WithLocation(6, 17));
     }
@@ -1589,7 +1589,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            // (6,17): error CS9009: Cannot mix verbatim and raw strings
             //         var v = @@$@";
             Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"@@$@""").WithLocation(6, 17),
             // (6,23): error CS1002: ; expected
@@ -1610,7 +1610,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            // (6,17): error CS9009: Cannot mix verbatim and raw strings
             //         var v = @@$@" ";
             Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"@@$@""").WithLocation(6, 17));
     }
@@ -1628,7 +1628,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            // (6,17): error CS9009: Cannot mix verbatim and raw strings
             //         var v = @@$@""" """;
             Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"@@$@""""""").WithLocation(6, 17));
     }
@@ -1646,7 +1646,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-                    // (6,17): error CS9125: String must start with quote character: "
+                    // (6,17): error CS9009: String must start with quote character: "
                     //         var v = @@$$@;
                     Diagnostic(ErrorCode.ERR_StringMustStartWithQuoteCharacter, "@@$$@").WithLocation(6, 17));
     }
@@ -1664,7 +1664,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            // (6,17): error CS9009: Cannot mix verbatim and raw strings
             //         var v = @@$$@";
             Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"@@$$@""").WithLocation(6, 17),
             // (6,24): error CS1002: ; expected
@@ -1685,7 +1685,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            // (6,17): error CS9009: Cannot mix verbatim and raw strings
             //         var v = @@$$@" ";
             Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"@@$$@""").WithLocation(6, 17));
     }
@@ -1703,7 +1703,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,17): error CS9125: Cannot mix verbatim and raw strings
+            // (6,17): error CS9009: Cannot mix verbatim and raw strings
             //         var v = @@$$@""" """;
             Diagnostic(ErrorCode.ERR_IllegalAtSequence, @"@@$$@""""""").WithLocation(6, 17));
     }
@@ -1742,7 +1742,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-                // (6,17): error CS9125: String must start with quote character: "
+                // (6,17): error CS9009: String must start with quote character: "
                 //         var v = $$;
                 Diagnostic(ErrorCode.ERR_StringMustStartWithQuoteCharacter, "$$").WithLocation(6, 17));
     }
@@ -1760,7 +1760,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-                    // (6,17): error CS9125: String must start with quote character: "
+                    // (6,17): error CS9009: String must start with quote character: "
                     //         var v = $$$;
                     Diagnostic(ErrorCode.ERR_StringMustStartWithQuoteCharacter, "$$$").WithLocation(6, 17));
     }
@@ -1778,7 +1778,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,19): error CS9120: Not enough quotes for raw string literal
+            // (6,19): error CS9004: Not enough quotes for raw string literal
             //         var v = $$";
             Diagnostic(ErrorCode.ERR_NotEnoughQuotesForRawString, @"""").WithLocation(6, 19),
             // (6,21): error CS1002: ; expected
@@ -1799,7 +1799,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,19): error CS9120: Not enough quotes for raw string literal
+            // (6,19): error CS9004: Not enough quotes for raw string literal
             //         var v = $$" ";
             Diagnostic(ErrorCode.ERR_NotEnoughQuotesForRawString, @"""").WithLocation(6, 19));
     }
@@ -1817,7 +1817,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,19): error CS9120: Not enough quotes for raw string literal
+            // (6,19): error CS9004: Not enough quotes for raw string literal
             //         var v = $$"" "";
             Diagnostic(ErrorCode.ERR_NotEnoughQuotesForRawString, @"""""").WithLocation(6, 19));
     }
@@ -1841,7 +1841,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,19): error CS9120: Not enough quotes for raw string literal
+            // (6,19): error CS9004: Not enough quotes for raw string literal
             //         var v = $$"
             Diagnostic(ErrorCode.ERR_NotEnoughQuotesForRawString, @"""").WithLocation(6, 19));
     }
@@ -1861,7 +1861,7 @@ class C
 }";
 
         CreateCompilation(text).VerifyDiagnostics(
-            // (6,19): error CS9120: Not enough quotes for raw string literal
+            // (6,19): error CS9004: Not enough quotes for raw string literal
             //         var v = $$""
             Diagnostic(ErrorCode.ERR_NotEnoughQuotesForRawString, @"""""").WithLocation(6, 19));
     }

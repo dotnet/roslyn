@@ -30,14 +30,14 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         /// </summary>
         private readonly TaskQueue _taskQueue;
 
-        public FileLogger(IGlobalOptionService globalOptions, string logFilePath)
+        public FileLogger(IGlobalOptionService optionService, string logFilePath)
         {
             _logFilePath = logFilePath;
             _gate = new();
             _buffer = new();
             _taskQueue = new(AsynchronousOperationListenerProvider.NullListener, TaskScheduler.Default);
-            _enabled = globalOptions.GetOption(VisualStudioLoggingOptionsMetadata.EnableFileLoggingForDiagnostics);
-            globalOptions.OptionChanged += OptionService_OptionChanged;
+            _enabled = optionService.GetOption(InternalDiagnosticsOptions.EnableFileLoggingForDiagnostics);
+            optionService.OptionChanged += OptionService_OptionChanged;
         }
 
         public FileLogger(IGlobalOptionService optionService)
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         private void OptionService_OptionChanged(object? sender, OptionChangedEventArgs e)
         {
-            if (e.Option == VisualStudioLoggingOptionsMetadata.EnableFileLoggingForDiagnostics)
+            if (e.Option == InternalDiagnosticsOptions.EnableFileLoggingForDiagnostics)
             {
                 Contract.ThrowIfNull(e.Value);
 
