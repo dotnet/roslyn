@@ -272,8 +272,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 
         protected static async Task<ImmutableArray<ClassifiedSpan>> GetSyntacticClassificationsAsync(Document document, TextSpan span)
         {
-            var root = await document.GetSyntaxRootAsync();
-            var service = document.GetLanguageService<ISyntaxClassificationService>();
+            var root = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            var service = document.GetRequiredLanguageService<ISyntaxClassificationService>();
 
             using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var results);
             service.AddSyntacticClassifications(root, span, results, CancellationToken.None);
