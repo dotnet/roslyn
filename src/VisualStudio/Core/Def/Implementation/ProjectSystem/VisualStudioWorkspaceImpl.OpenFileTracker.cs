@@ -18,6 +18,7 @@ using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 using Task = System.Threading.Tasks.Task;
@@ -34,6 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly ForegroundThreadAffinitizedObject _foregroundAffinitization;
 
             private readonly VisualStudioWorkspaceImpl _workspace;
+            private readonly IThreadingContext _threadingContext;
             private readonly IAsynchronousOperationListener _asyncOperationListener;
 
             private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
@@ -97,6 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 IAsynchronousOperationListenerProvider listenerProvider)
             {
                 _workspace = workspace;
+                _threadingContext = threadingContext;
                 _foregroundAffinitization = new ForegroundThreadAffinitizedObject(workspace._threadingContext, assertIsForeground: true);
                 _asyncOperationListener = componentModel.GetService<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.Workspace);
                 _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(workspace._threadingContext,
@@ -154,7 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 _foregroundAffinitization.AssertIsForeground();
 
-                _workspace.ApplyChangeToWorkspace(w =>
+                _workspaceApplicationQueue.AddWork(async () =>
                 {
                     var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
                     if (documentIds.IsDefaultOrEmpty)
@@ -162,49 +165,47 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         return;
                     }
 
-                    if (documentIds.All(w.IsDocumentOpen))
+                    if (documentIds.All(_workspace.IsDocumentOpen))
                     {
                         return;
                     }
 
-                    ProjectId activeContextProjectId;
+                    var activeContextProjectId = documentIds.Length == 1
+                        ? documentIds.Single().ProjectId
+                        : await GetActiveContextProjectIdAndWatchHierarchiesAsync(moniker, documentIds.Select(d => d.ProjectId), hierarchy).ConfigureAwait(false);
 
-                    if (documentIds.Length == 1)
+                    await _workspace.ApplyChangeToWorkspaceMaybeAsync(useAsync: true, w =>
                     {
-                        activeContextProjectId = documentIds.Single().ProjectId;
-                    }
-                    else
-                    {
-                        activeContextProjectId = GetActiveContextProjectIdAndWatchHierarchies_NoLock(moniker, documentIds.Select(d => d.ProjectId), hierarchy);
-                    }
+                        var textContainer = textBuffer.AsTextContainer();
 
-                    var textContainer = textBuffer.AsTextContainer();
-
-                    foreach (var documentId in documentIds)
-                    {
-                        if (!w.IsDocumentOpen(documentId) && !_workspace._documentsNotFromFiles.Contains(documentId))
+                        foreach (var documentId in documentIds)
                         {
-                            var isCurrentContext = documentId.ProjectId == activeContextProjectId;
-                            if (w.CurrentSolution.ContainsDocument(documentId))
+                            if (!w.IsDocumentOpen(documentId) && !_workspace._documentsNotFromFiles.Contains(documentId))
                             {
-                                w.OnDocumentOpened(documentId, textContainer, isCurrentContext);
-                            }
-                            else if (w.CurrentSolution.ContainsAdditionalDocument(documentId))
-                            {
-                                w.OnAdditionalDocumentOpened(documentId, textContainer, isCurrentContext);
-                            }
-                            else
-                            {
-                                Debug.Assert(w.CurrentSolution.ContainsAnalyzerConfigDocument(documentId));
-                                w.OnAnalyzerConfigDocumentOpened(documentId, textContainer, isCurrentContext);
+                                var isCurrentContext = documentId.ProjectId == activeContextProjectId;
+                                if (w.CurrentSolution.ContainsDocument(documentId))
+                                {
+                                    w.OnDocumentOpened(documentId, textContainer, isCurrentContext);
+                                }
+                                else if (w.CurrentSolution.ContainsAdditionalDocument(documentId))
+                                {
+                                    w.OnAdditionalDocumentOpened(documentId, textContainer, isCurrentContext);
+                                }
+                                else
+                                {
+                                    Debug.Assert(w.CurrentSolution.ContainsAnalyzerConfigDocument(documentId));
+                                    w.OnAnalyzerConfigDocumentOpened(documentId, textContainer, isCurrentContext);
+                                }
                             }
                         }
-                    }
+                    }).ConfigureAwait(false);
                 });
             }
 
-            private ProjectId GetActiveContextProjectIdAndWatchHierarchies_NoLock(string moniker, IEnumerable<ProjectId> projectIds, IVsHierarchy? hierarchy)
+            private async Task<ProjectId> GetActiveContextProjectIdAndWatchHierarchiesAsync(string moniker, IEnumerable<ProjectId> projectIds, IVsHierarchy? hierarchy)
             {
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+
                 _foregroundAffinitization.AssertIsForeground();
 
                 // First clear off any existing IVsHierarchies we are watching. Any ones that still matter we will resubscribe to.
@@ -290,7 +291,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 _foregroundAffinitization.AssertIsForeground();
 
-                _workspace.ApplyChangeToWorkspace(w =>
+                _workspaceApplicationQueue.AddWork(async () =>
                 {
                     var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
                     if (documentIds.IsDefaultOrEmpty || documentIds.Length == 1)
@@ -298,13 +299,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         return;
                     }
 
-                    if (!documentIds.All(w.IsDocumentOpen))
+                    if (!documentIds.All(_workspace.IsDocumentOpen))
                     {
                         return;
                     }
 
-                    var activeProjectId = GetActiveContextProjectIdAndWatchHierarchies_NoLock(moniker, documentIds.Select(d => d.ProjectId), hierarchy);
-                    w.OnDocumentContextUpdated(documentIds.First(d => d.ProjectId == activeProjectId));
+                    var activeProjectId = await GetActiveContextProjectIdAndWatchHierarchiesAsync(moniker, documentIds.Select(d => d.ProjectId), hierarchy).ConfigureAwait(false);
+
+                    await _workspace.ApplyChangeToWorkspaceMaybeAsync(useAsync: true, w =>
+                    {
+                        w.OnDocumentContextUpdated(documentIds.First(d => d.ProjectId == activeProjectId));
+                    }).ConfigureAwait(false);
                 });
             }
 
