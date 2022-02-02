@@ -9,6 +9,7 @@ using Metalama.Compiler;
 [assembly: TypeForwardedTo(typeof(SyntaxTreeTransformation))]
 [assembly: TypeForwardedTo(typeof(DiagnosticFilteringRequest))]
 [assembly: TypeForwardedTo(typeof(ManagedResource))]
+[assembly: TypeForwardedTo(typeof(MetalamaPlugInAttribute))]
 
 namespace Metalama.Compiler.Interface.TypeForwards
 {
