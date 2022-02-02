@@ -8114,5 +8114,65 @@ $@"
     'a {FeaturesResources.is_} new {{ 'b x, 'b y }}
     'b {FeaturesResources.is_} (int a, string b)"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInRawStringInterpolation_SingleLine()
+        {
+            await TestInMethodAsync(
+@"var x = 1;
+var s = $""""""Hello world {$$x}""""""",
+                MainDescription($"({FeaturesResources.local_variable}) int x"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInRawStringInterpolation_SingleLine_MultiBrace()
+        {
+            await TestInMethodAsync(
+@"var x = 1;
+var s = ${|#0:|}$""""""Hello world {{$$x}}""""""",
+                MainDescription($"({FeaturesResources.local_variable}) int x"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInRawStringLiteral_SingleLine_Const()
+        {
+            await TestInClassAsync(
+@"const string $$s = """"""Hello world""""""",
+                MainDescription(@$"({FeaturesResources.constant}) string C.s = """"""Hello world"""""""));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInRawStringInterpolation_MultiLine()
+        {
+            await TestInMethodAsync(
+@"var x = 1;
+var s = $""""""
+Hello world {$$x}
+""""""",
+                MainDescription($"({FeaturesResources.local_variable}) int x"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInRawStringInterpolation_MultiLine_MultiBrace()
+        {
+            await TestInMethodAsync(
+@"var x = 1;
+var s = ${|#0:|}$""""""
+Hello world {{$$x}}
+""""""",
+                MainDescription($"({FeaturesResources.local_variable}) int x"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestInRawStringLiteral_MultiLine_Const()
+        {
+            await TestInClassAsync(
+@"const string $$s = """"""
+        Hello world
+    """"""",
+                MainDescription(@$"({FeaturesResources.constant}) string C.s = """"""
+        Hello world
+    """""""));
+        }
     }
 }

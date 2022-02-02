@@ -2,10 +2,14 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.LineSeparators
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineSeparators
@@ -47,19 +51,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineSeparators
         ''' Given a syntaxTree returns line separator spans. The operation may take fairly long time
         ''' on a big syntaxTree so it is cancellable.
         ''' </summary>
-        Public Async Function GetLineSeparatorsAsync(document As Document,
-                                          textSpan As TextSpan,
-                                          Optional cancellationToken As CancellationToken = Nothing) As Task(Of IEnumerable(Of TextSpan)) Implements ILineSeparatorService.GetLineSeparatorsAsync
+        Public Async Function GetLineSeparatorsAsync(
+                document As Document,
+                textSpan As TextSpan,
+                cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of TextSpan)) Implements ILineSeparatorService.GetLineSeparatorsAsync
             Dim syntaxTree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             Dim root = Await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(False)
 
-            Dim spans As New List(Of TextSpan)
+            Dim spans = ArrayBuilder(Of TextSpan).GetInstance()
 
             Dim blocks = root.Traverse(Of SyntaxNode)(textSpan, AddressOf IsSeparableContainer)
 
             For Each block In blocks
                 If cancellationToken.IsCancellationRequested Then
-                    Return SpecializedCollections.EmptyList(Of TextSpan)()
+                    Return ImmutableArray(Of TextSpan).Empty
                 End If
 
                 Dim typeBlock = TryCast(block, TypeBlockSyntax)
@@ -87,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineSeparators
                 End If
             Next
 
-            Return spans
+            Return spans.ToImmutable()
         End Function
 
         ''' <summary>
@@ -95,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineSeparators
         ''' If node is separable and not the first in its container => ensure separator before the node
         ''' last separable node in Program needs separator after it.
         ''' </summary>
-        Private Shared Sub ProcessNodeList(Of T As SyntaxNode)(children As SyntaxList(Of T), spans As List(Of TextSpan), token As CancellationToken)
+        Private Shared Sub ProcessNodeList(Of T As SyntaxNode)(children As SyntaxList(Of T), spans As ArrayBuilder(Of TextSpan), token As CancellationToken)
             Contract.ThrowIfNull(spans)
 
             If children.Count = 0 Then
@@ -130,14 +135,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineSeparators
                     spans.Add(GetLineSeparatorSpanForNode(nextToLast))
                 End If
 
-                If lastChild.Parent.Kind = SyntaxKind.CompilationUnit Then
+                If lastChild.Parent.Kind() = SyntaxKind.CompilationUnit Then
                     spans.Add(GetLineSeparatorSpanForNode(lastChild))
                 End If
             End If
 
         End Sub
 
-        Private Shared Sub ProcessImports(importsList As SyntaxList(Of ImportsStatementSyntax), spans As List(Of TextSpan))
+        Private Shared Sub ProcessImports(importsList As SyntaxList(Of ImportsStatementSyntax), spans As ArrayBuilder(Of TextSpan))
             If importsList.Any() Then
                 spans.Add(GetLineSeparatorSpanForNode(importsList.Last()))
             End If

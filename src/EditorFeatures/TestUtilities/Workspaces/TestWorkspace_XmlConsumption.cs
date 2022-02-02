@@ -787,8 +787,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     : (SourceCodeKind)Enum.Parse(typeof(SourceCodeKind), attr.Value);
             }
 
-            TestFileMarkupParser.GetPositionAndSpans(markupCode,
-                out var code, out int? cursorPosition, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            var markupAttribute = documentElement.Attribute(MarkupAttributeName);
+            var isMarkup = markupAttribute == null || (bool)markupAttribute == true;
+
+            string code;
+            int? cursorPosition;
+            ImmutableDictionary<string, ImmutableArray<TextSpan>> spans;
+
+            if (isMarkup)
+            {
+                TestFileMarkupParser.GetPositionAndSpans(markupCode, out code, out cursorPosition, out spans);
+            }
+            else
+            {
+                code = markupCode;
+                cursorPosition = null;
+                spans = ImmutableDictionary<string, ImmutableArray<TextSpan>>.Empty;
+            }
 
             var testDocumentServiceProvider = GetDocumentServiceProvider(documentElement);
 
