@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureName, "OfferRemoveUnusedReferences", defaultValue: true,
             storageLocation: new RoamingProfileStorageLocation("TextEditor.OfferRemoveUnusedReferences"));
 
-        public static readonly Option<bool> OfferRemoveUnusedReferencesFeatureFlag = new(
+        public static readonly Option2<bool> OfferRemoveUnusedReferencesFeatureFlag = new(
             FeatureName, "OfferRemoveUnusedReferencesFeatureFlag", defaultValue: false,
             new FeatureFlagStorageLocation("Roslyn.RemoveUnusedReferences"));
 

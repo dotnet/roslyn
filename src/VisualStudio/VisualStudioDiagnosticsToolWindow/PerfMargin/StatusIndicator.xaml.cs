@@ -64,7 +64,7 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
             // sure something is visible.
             this.clipScale.ScaleX = Math.Max(this.clipScale.ScaleX, MinimumScale);
 
-            DoubleAnimation anim = _activityLevel.IsActive ? s_growAnimation : s_shrinkAnimation;
+            var anim = _activityLevel.IsActive ? s_growAnimation : s_shrinkAnimation;
             this.clipScale.BeginAnimation(ScaleTransform.ScaleXProperty, anim, HandoffBehavior.SnapshotAndReplace);
         }
     }

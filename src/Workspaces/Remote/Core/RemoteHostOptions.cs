@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Remote
         // Even if primary workspace is not updated, other OOP queries will work as expected. Updating primary workspace
         // on OOP should let latest data to be synced pre-emptively rather than on demand, and will kick off
         // incremental analyzer tasks.
-        public static readonly Option<int> SolutionChecksumMonitorBackOffTimeSpanInMS = new(
+        public static readonly Option2<int> SolutionChecksumMonitorBackOffTimeSpanInMS = new(
             FeatureName, nameof(SolutionChecksumMonitorBackOffTimeSpanInMS), defaultValue: 1000,
             storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(SolutionChecksumMonitorBackOffTimeSpanInMS)));
 
@@ -40,12 +40,12 @@ namespace Microsoft.CodeAnalysis.Remote
             FeatureName, nameof(OOPServerGC), defaultValue: false,
             storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(OOPServerGC)));
 
-        public static readonly Option<bool> OOPServerGCFeatureFlag = new(
+        public static readonly Option2<bool> OOPServerGCFeatureFlag = new(
             FeatureName, nameof(OOPServerGCFeatureFlag), defaultValue: false,
             new FeatureFlagStorageLocation("Roslyn.OOPServerGC"));
 
         // use coreclr host for OOP
-        public static readonly Option<bool> OOPCoreClrFeatureFlag = new(
+        public static readonly Option2<bool> OOPCoreClrFeatureFlag = new(
             FeatureName, nameof(OOPCoreClrFeatureFlag), defaultValue: false,
             new FeatureFlagStorageLocation("Roslyn.ServiceHubCore"));
 
