@@ -4392,7 +4392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         parameter);
                     CheckDisallowedNullAssignment(resultType, parameterAnnotations, expr.Syntax.Location, operand);
 
-                    LearnFromPostConditions(operand, GetParameterAnnotations(parameter));
+                    LearnFromPostConditions(operand, parameterAnnotations);
                 }
             }
             else
