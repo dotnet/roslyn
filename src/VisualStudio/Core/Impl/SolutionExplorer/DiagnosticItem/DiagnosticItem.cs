@@ -20,7 +20,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     {
         private readonly AnalyzerReference _analyzerReference;
         private readonly IAnalyzersCommandHandler _commandHandler;
-        private readonly string _language;
 
         public ProjectId ProjectId { get; }
         public DiagnosticDescriptor Descriptor { get; }
@@ -28,14 +27,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         public override event PropertyChangedEventHandler? PropertyChanged;
 
-        public DiagnosticItem(ProjectId projectId, AnalyzerReference analyzerReference, DiagnosticDescriptor descriptor, ReportDiagnostic effectiveSeverity, string language, IAnalyzersCommandHandler commandHandler)
+        public DiagnosticItem(ProjectId projectId, AnalyzerReference analyzerReference, DiagnosticDescriptor descriptor, ReportDiagnostic effectiveSeverity, IAnalyzersCommandHandler commandHandler)
             : base(descriptor.Id + ": " + descriptor.Title)
         {
             ProjectId = projectId;
             _analyzerReference = analyzerReference;
             Descriptor = descriptor;
             EffectiveSeverity = effectiveSeverity;
-            _language = language;
             _commandHandler = commandHandler;
         }
 
