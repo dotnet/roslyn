@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
@@ -243,10 +244,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             if (context.AddImports)
             {
-                newDocument = await ImportAdder.AddImportsFromSymbolAnnotationAsync(
-                    newDocument,
-                    await newDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(false),
-                    cancellationToken).ConfigureAwait(false);
+                var addImportsOptions = await AddImportPlacementOptions.FromDocumentAsync(newDocument, cancellationToken).ConfigureAwait(false);
+                newDocument = await ImportAdder.AddImportsFromSymbolAnnotationAsync(newDocument, addImportsOptions, cancellationToken).ConfigureAwait(false);
             }
 
             return newDocument;
