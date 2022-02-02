@@ -530,9 +530,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         /// calculation cost for cached Roslyn completion items.
         /// FilterSetData is the bit vector value from the FilterSet of this item.
         /// </summary>
-        private readonly record struct VSCompletionItemData
-            (string DisplayText, ImageElement Icon, ImmutableArray<AsyncCompletionData.CompletionFilter> Filters,
-                int FilterSetData, ImmutableArray<ImageElement> AttributeIcons, string InsertionText);
+        private readonly record struct VSCompletionItemData(
+            string DisplayText,
+            ImageElement Icon,
+            ImmutableArray<AsyncCompletionData.CompletionFilter> Filters,
+            int FilterSetData,
+            ImmutableArray<ImageElement> AttributeIcons,
+            string InsertionText);
 
         private VSCompletionItem Convert(
             Document document,

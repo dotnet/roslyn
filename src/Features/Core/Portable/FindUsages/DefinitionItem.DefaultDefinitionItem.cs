@@ -29,8 +29,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 ImmutableArray<TaggedText> nameDisplayParts,
                 ImmutableArray<TaggedText> originationParts,
                 ImmutableArray<DocumentSpan> sourceSpans,
-                ImmutableDictionary<string, string> properties,
-                ImmutableDictionary<string, string> displayableProperties,
+                ImmutableDictionary<string, string>? properties,
+                ImmutableDictionary<string, string>? displayableProperties,
                 bool displayIfNoReferences)
                 : base(tags, displayParts, nameDisplayParts, originationParts,
                        sourceSpans, properties, displayableProperties, displayIfNoReferences)

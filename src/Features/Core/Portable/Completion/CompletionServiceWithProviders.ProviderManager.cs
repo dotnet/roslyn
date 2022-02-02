@@ -24,18 +24,17 @@ namespace Microsoft.CodeAnalysis.Completion
         private sealed class ProviderManager : IEqualityComparer<ImmutableHashSet<string>>
         {
             private readonly object _gate = new();
+            private readonly Dictionary<string, CompletionProvider?> _nameToProvider = new();
+            private readonly Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>> _rolesToProviders;
 
-            private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, StrongBox<ImmutableArray<CompletionProvider>>> _projectCompletionProvidersMap
-                 = new();
-
-            private readonly ConditionalWeakTable<AnalyzerReference, ProjectCompletionProvider> _analyzerReferenceToCompletionProvidersMap
-                = new();
+            // Following CWTs are used to cache completion providers from projects' references,
+            // so we can avoid the slow path unless there's any change to the references.
+            private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, StrongBox<ImmutableArray<CompletionProvider>>> _projectCompletionProvidersMap = new();
+            private readonly ConditionalWeakTable<AnalyzerReference, ProjectCompletionProvider> _analyzerReferenceToCompletionProvidersMap = new();
 
             private readonly ConditionalWeakTable<AnalyzerReference, ProjectCompletionProvider>.CreateValueCallback _createProjectCompletionProvidersProvider
                 = new(r => new ProjectCompletionProvider(r));
 
-            private readonly Dictionary<string, CompletionProvider?> _nameToProvider = new();
-            private readonly Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>> _rolesToProviders;
             private readonly Func<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>> _createRoleProviders;
             private readonly Func<string, CompletionProvider?> _getProviderByName;
 

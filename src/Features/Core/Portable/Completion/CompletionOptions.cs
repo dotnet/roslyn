@@ -177,6 +177,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 = new(nameof(CompletionOptions), nameof(ForceExpandedCompletionIndexCreation), defaultValue: false);
 
             // Test-only option
+            // Set this to true to have a deterministic behavior for expand items. Otherwise, expand items might not
+            // be included in the completion list if the calculation is slow.
             public static readonly Option2<bool> BlockOnExpandedCompletion
                 = new(nameof(CompletionOptions), nameof(BlockOnExpandedCompletion), defaultValue: false);
 

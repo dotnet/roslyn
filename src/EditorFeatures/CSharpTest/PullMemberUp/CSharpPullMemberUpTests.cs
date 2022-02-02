@@ -6,6 +6,7 @@
 
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -3889,7 +3890,7 @@ namespace N
             await TestInRegularAndScriptAsync(
                 testText,
                 expected,
-                options: Option(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, CodeAnalysis.AddImports.AddImportPlacement.InsideNamespace, CodeStyle.NotificationOption2.Silent));
+                options: Option(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, AddImportPlacement.InsideNamespace, CodeStyle.NotificationOption2.Silent));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]

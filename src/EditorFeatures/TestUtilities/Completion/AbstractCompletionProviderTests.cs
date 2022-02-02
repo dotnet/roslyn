@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 options = options with { ShowItemsFromUnimportedNamespaces = ShowImportCompletionItemsOptionValue.Value };
 
             if (ForceExpandedCompletionIndexCreation.HasValue)
-                options = options with { ForceExpandedCompletionIndexCreation = true };
+                options = options with { ForceExpandedCompletionIndexCreation = ForceExpandedCompletionIndexCreation.Value };
 
             if (HideAdvancedMembers.HasValue)
                 options = options with { HideAdvancedMembers = HideAdvancedMembers.Value };
