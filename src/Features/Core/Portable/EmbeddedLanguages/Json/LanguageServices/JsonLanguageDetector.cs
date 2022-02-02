@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
         public JsonLanguageDetector(
             EmbeddedLanguageInfo info,
             ISet<INamedTypeSymbol> typesOfInterest)
-            : base(info, s_languageCommentDetector)
+            : base("Json", info, s_languageCommentDetector)
         {
             _typesOfInterest = typesOfInterest;
         }

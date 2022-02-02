@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime.LanguageServices;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -30,15 +31,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime.LanguageServices
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = GetToken(syntaxFacts, root, position);
-            if (!DateAndTimePatternDetector.IsPossiblyDateAndTimeArgumentToken(token, syntaxFacts, out _, out _) &&
-                token.RawKind != syntaxFacts.SyntaxKinds.InterpolatedStringTextToken)
-            {
-                return null;
-            }
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var detector = DateAndTimePatternDetector.TryGetOrCreate(semanticModel, this.Info);
-            return detector != null && detector.IsDateAndTimeToken(token, syntaxFacts, cancellationToken)
+            var detector = DateAndTimeLanguageDetector.GetOrCreate(semanticModel.Compilation, this.Info);
+            return detector.TryParseString(token, semanticModel, cancellationToken) != null
                 ? token : null;
         }
 
