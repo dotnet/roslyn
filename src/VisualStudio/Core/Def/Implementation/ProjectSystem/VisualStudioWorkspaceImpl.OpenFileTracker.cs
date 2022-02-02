@@ -167,10 +167,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     {
                         var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
                         if (documentIds.IsDefaultOrEmpty)
+                        {
                             return;
+                        }
 
                         if (documentIds.All(_workspace.IsDocumentOpen))
+                        {
                             return;
+                        }
 
                         var activeContextProjectId = documentIds.Length == 1
                             ? documentIds.Single().ProjectId
