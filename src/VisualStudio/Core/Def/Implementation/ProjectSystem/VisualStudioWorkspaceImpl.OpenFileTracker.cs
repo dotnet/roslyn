@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// Queue to process the workspace side of the document notifications we get.  We process this in the BG to
             /// avoid taking workspace locks on the UI thread.
             /// </summary>
-            private readonly AsyncBatchingWorkQueue<Func<Task>> _workspaceApplicationQueue;
+            private readonly AsyncBatchingWorkQueue<Func<ValueTask>> _workspaceApplicationQueue;
 
             #region Fields read/written to from multiple threads to track files that need to be checked
 
@@ -105,14 +105,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(workspace._threadingContext,
                     componentModel.GetService<IVsEditorAdaptersFactoryService>(), runningDocumentTable, this);
 
-                _workspaceApplicationQueue = new AsyncBatchingWorkQueue<Func<Task>>(
+                _workspaceApplicationQueue = new AsyncBatchingWorkQueue<Func<ValueTask>>(
                     TimeSpan.FromMilliseconds(50),
                     ProcessWorkspaceApplicationQueueAsync,
                     _asyncOperationListener,
                     threadingContext.DisposalToken);
             }
 
-            private async ValueTask ProcessWorkspaceApplicationQueueAsync(ImmutableArray<Func<Task>> taskFactories, CancellationToken cancellationToken)
+            private async ValueTask ProcessWorkspaceApplicationQueueAsync(ImmutableArray<Func<ValueTask>> taskFactories, CancellationToken cancellationToken)
             {
                 foreach (var taskFactory in taskFactories)
                 {
@@ -161,9 +161,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 var activeProjectInfo = GetActiveContextProjectIdAndWatchHierarchies(moniker, hierarchy);
 
-                _workspaceApplicationQueue.AddWork(async () =>
-                {
-                    await _workspace.ApplyChangeToWorkspaceMaybeAsync(useAsync: true, w =>
+                _workspaceApplicationQueue.AddWork(() =>
+                    _workspace.ApplyChangeToWorkspaceMaybeAsync(useAsync: true, w =>
                     {
                         var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
                         if (documentIds.IsDefaultOrEmpty)
@@ -204,8 +203,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                                 }
                             }
                         }
-                    }).ConfigureAwait(false);
-                });
+                    }));
             }
 
             private (IVsHierarchy? hierarchy, VisualStudioProject? project, ImmutableDictionary<ProjectId, IVsHierarchy?>? projectToHierarchy)
@@ -316,9 +314,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 var activeProjectInfoInfo = GetActiveContextProjectIdAndWatchHierarchies(moniker, hierarchy);
 
-                _workspaceApplicationQueue.AddWork(async () =>
-                {
-                    await _workspace.ApplyChangeToWorkspaceMaybeAsync(useAsync: true, w =>
+                _workspaceApplicationQueue.AddWork(() =>
+                    _workspace.ApplyChangeToWorkspaceMaybeAsync(useAsync: true, w =>
                     {
                         var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
                         if (documentIds.IsDefaultOrEmpty || documentIds.Length == 1)
@@ -336,8 +333,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             documentIds.SelectAsArray(d => d.ProjectId));
 
                         w.OnDocumentContextUpdated(documentIds.First(d => d.ProjectId == activeProjectId));
-                    }).ConfigureAwait(false);
-                });
+                    }));
             }
 
             private void RefreshContextsForHierarchyPropertyChange(IVsHierarchy hierarchy)
@@ -366,9 +362,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 // Queue this up to be processed  asynchronously in the BG.  That way we don't take a workspace lock
                 // synchronously on the UI thread.
-                _workspaceApplicationQueue.AddWork(async () =>
-                {
-                    await _workspace.ApplyChangeToWorkspaceMaybeAsync(useAsync: true, w =>
+                _workspaceApplicationQueue.AddWork(() =>
+                    _workspace.ApplyChangeToWorkspaceMaybeAsync(useAsync: true, w =>
                     {
                         var documentIds = w.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
                         if (documentIds.IsDefaultOrEmpty)
@@ -395,8 +390,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                                 }
                             }
                         }
-                    }).ConfigureAwait(false);
-                });
+                    }));
             }
 
             /// <summary>
