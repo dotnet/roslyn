@@ -220,14 +220,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var textSpan = ProtocolConversions.RangeToTextSpan(selection, text);
+            var options = CodeActionOptionsFactory.GetCodeActionOptions(document.Project, isBlocking: false);
 
             var codeFixes = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
                 document.Project.Solution.Workspace, codeFixService, document, textSpan,
                 CodeActionRequestPriority.None,
-                isBlocking: false, addOperationScope: _ => null, cancellationToken).ConfigureAwait(false);
+                options, addOperationScope: _ => null, cancellationToken).ConfigureAwait(false);
 
             var codeRefactorings = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
-                document.Project.Solution.Workspace, codeRefactoringService, document, textSpan, CodeActionRequestPriority.None, isBlocking: false,
+                document.Project.Solution.Workspace, codeRefactoringService, document, textSpan, CodeActionRequestPriority.None, options,
                 addOperationScope: _ => null, filterOutsideSelection: false, cancellationToken).ConfigureAwait(false);
 
             var actionSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(

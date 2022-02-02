@@ -77,12 +77,3 @@ https://github.com/dotnet/roslyn/issues/5775
 
     //prints now: "{C}" - not "{X}}"
     ```
-
-6. Starting with Visual Studio 17.1, `struct` type declarations with field initializers must include an explicitly declared constructor.
-
-    ```csharp
-    struct S
-    {
-        int X = 1; // error: struct with field initializers must include an explicitly declared constructor
-    }
-    ```

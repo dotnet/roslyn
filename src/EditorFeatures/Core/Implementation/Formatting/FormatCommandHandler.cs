@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
@@ -42,6 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+        private readonly IGlobalOptionService _globalOptions;
 
         public string DisplayName => EditorFeaturesResources.Automatic_Formatting;
 
@@ -49,10 +51,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FormatCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService)
+            IEditorOperationsFactoryService editorOperationsFactoryService,
+            IGlobalOptionService globalOptions)
         {
             _undoHistoryRegistry = undoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
+            _globalOptions = globalOptions;
         }
 
         private void Format(ITextView textView, Document document, TextSpan? selectionOpt, CancellationToken cancellationToken)
@@ -162,7 +166,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             }
             else if (args is TypeCharCommandArgs typeCharArgs)
             {
-                if (!service.SupportsFormattingOnTypedCharacter(document, typeCharArgs.TypedChar))
+                var options = AutoFormattingOptions.From(document.Project);
+                if (!service.SupportsFormattingOnTypedCharacter(document, options, typeCharArgs.TypedChar))
                 {
                     return;
                 }

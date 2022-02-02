@@ -124,12 +124,14 @@ namespace Microsoft.CodeAnalysis.Editing
             var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var nodesWithExplicitNamespaces = syntaxNodes
-                .Select(n => (syntaxnode: n, namespaceSymbol: GetExplicitNamespaceSymbol(n, model)))
-                .Where(x => x.namespaceSymbol != null);
+                .Select(n => (syntaxnode: n, namespaceSymbol: GetExplicitNamespaceSymbol(n, model)));
 
             var addedSymbols = new HashSet<INamespaceSymbol>();
             foreach (var (node, namespaceSymbol) in nodesWithExplicitNamespaces)
             {
+                if (namespaceSymbol is null)
+                    continue;
+
                 cancellationToken.ThrowIfCancellationRequested();
 
                 nodesToSimplify.Add(node);

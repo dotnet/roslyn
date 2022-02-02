@@ -362,6 +362,11 @@
         <target state="translated">在“not”或“or”模式中不能声明变量。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DiscardCannotBeNullChecked">
+        <source>Discard parameter cannot be null-checked.</source>
+        <target state="new">Discard parameter cannot be null-checked.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
         <source>The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.</source>
         <target state="translated">在 switch 语句中，不允许将放弃模式作为 case 标签。请使用“case var _:”以表示放弃模式、使用“case @_:”以定义名为“_”的变量。</target>
@@ -635,11 +640,6 @@
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">带有 "in" 修饰符的参数不能用于动态调度的表达式。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_IncorrectNullCheckSyntax">
-        <source>Incorrect parameter null checking syntax. Should be '!!'.</source>
-        <target state="translated">参数 null 检查语法不正确。应为 "!!"。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
@@ -942,9 +942,9 @@
         <target state="translated">“{0}”必须允许替代，因为包含的记录未密封。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NullCheckingOnByRefParameter">
-        <source>By-reference parameter '{0}' cannot be null-checked.</source>
-        <target state="translated">不能对按地址引用参数 "{0}" 进行 null 检查。</target>
+      <trans-unit id="ERR_NullCheckingOnOutParameter">
+        <source>'out' parameter '{0}' cannot be null-checked.</source>
+        <target state="new">'out' parameter '{0}' cannot be null-checked.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">

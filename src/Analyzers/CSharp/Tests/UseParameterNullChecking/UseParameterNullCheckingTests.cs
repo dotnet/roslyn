@@ -3,16 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseParameterNullChecking
 {
@@ -45,6 +41,36 @@ using System;
 class C
 {
     void M(string s!!)
+    {
+    }
+}",
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestNullableParameterType()
+        {
+            await new VerifyCS.Test()
+            {
+                TestCode = @"#nullable enable
+using System;
+
+class C
+{
+    void M(string? s)
+    {
+        [|if (s is null)
+            throw new ArgumentNullException(nameof(s));|]
+    }
+}",
+                FixedCode = @"#nullable enable
+using System;
+
+class C
+{
+    void M(string? s!!)
     {
     }
 }",
@@ -192,7 +218,7 @@ class C
     private readonly string s;
     public C(string s)
     {
-        [|this.s = s ?? throw new ArgumentNullException(nameof(s));|]
+        this.s = s ?? [|throw new ArgumentNullException(nameof(s))|];
     }
 }",
                 FixedCode = @"
@@ -204,6 +230,34 @@ class C
     public C(string s!!)
     {
         this.s = s;
+    }
+}",
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestNullCoalescingThrow_AssignSameVariable()
+        {
+            await new VerifyCS.Test()
+            {
+                TestCode = @"
+using System;
+
+class C
+{
+    public void M(string s)
+    {
+        [|s = s ?? throw new ArgumentNullException(nameof(s));|]
+    }
+}",
+                FixedCode = @"
+using System;
+
+class C
+{
+    public void M(string s!!)
+    {
     }
 }",
                 LanguageVersion = LanguageVersionExtensions.CSharpNext
@@ -551,19 +605,45 @@ class C
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         [InlineData("ref")]
         [InlineData("in")]
-        [InlineData("out")]
         public async Task TestRefParameter(string refKind)
         {
-            // https://github.com/dotnet/roslyn/issues/58699
-            // When the implementation changes to permit ref/in parameters, we should also change the fixer.
-            var testCode = @"
+            await new VerifyCS.Test()
+            {
+                TestCode = @"
 using System;
 
 class C
 {
     public C(" + refKind + @" string s)
     {
-        if (s is null)
+        [|if (s is null)
+            throw new ArgumentNullException(nameof(s));|]
+    }
+}",
+                FixedCode = @"
+using System;
+
+class C
+{
+    public C(" + refKind + @" string s!!)
+    {
+    }
+}",
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestOutParameter()
+        {
+            var testCode = @"
+using System;
+
+class C
+{
+    public {|CS0177:C|}(out string s)
+    {
+        if ({|CS0269:s|} is null)
             throw new ArgumentNullException(nameof(s));
     }
 }";
@@ -571,7 +651,6 @@ class C
             {
                 TestCode = testCode,
                 FixedCode = testCode,
-                CompilerDiagnostics = Testing.CompilerDiagnostics.None,
                 LanguageVersion = LanguageVersionExtensions.CSharpNext
             }.RunAsync();
         }
@@ -1177,6 +1256,57 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestDiscard1()
+        {
+            await new VerifyCS.Test()
+            {
+                TestCode = @"using System;
+
+class C
+{
+    Action<string> lambda = _ =>
+    {
+        [|if (_ is null)
+            throw new ArgumentNullException(nameof(_));|]
+    };
+}
+",
+                FixedCode = @"using System;
+
+class C
+{
+    Action<string> lambda = _!! =>
+    {
+    };
+}
+",
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestDiscard2()
+        {
+            var testCode = @"
+using System;
+
+class C
+{
+    Action<string, string> lambda = (_, _) =>
+    {
+        if ({|CS0103:_|} is null)
+            throw new ArgumentNullException(nameof({|CS0103:_|}));
+    };
+}";
+            await new VerifyCS.Test()
+            {
+                TestCode = testCode,
+                FixedCode = testCode,
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestAnonymousMethod()
         {
             await new VerifyCS.Test()
@@ -1490,6 +1620,33 @@ class C
 class C
 {
     static unsafe void M(delegate*<int, void> ptr!!)
+    {
+    }
+}
+",
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestNullableValueType()
+        {
+            await new VerifyCS.Test()
+            {
+                TestCode = @"using System;
+class C
+{
+    static void M(int? value)
+    {
+        [|if (value == null)
+            throw new ArgumentNullException(nameof(value));|]
+    }
+}
+",
+                FixedCode = @"using System;
+class C
+{
+    static void M(int? value!!)
     {
     }
 }

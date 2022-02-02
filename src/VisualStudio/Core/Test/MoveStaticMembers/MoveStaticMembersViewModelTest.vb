@@ -18,7 +18,7 @@ Imports Microsoft.VisualStudio.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
     <UseExportProvider>
     Public Class MoveStaticMembersViewModelTest
-        Private Async Function GetViewModelAsync(xmlElement As XElement) As Task(Of MoveStaticMembersDialogViewModel)
+        Private Shared Async Function GetViewModelAsync(xmlElement As XElement) As Task(Of MoveStaticMembersDialogViewModel)
             Dim workspaceXml = xmlElement.Value
             Using workspace = TestWorkspace.Create(workspaceXml)
                 Dim doc = workspace.Documents.ElementAt(0)
@@ -40,20 +40,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveStaticMembers
             End Using
         End Function
 
-        Private Function FindMemberByName(name As String, memberArray As ImmutableArray(Of SymbolViewModel(Of ISymbol))) As SymbolViewModel(Of ISymbol)
+        Private Shared Function FindMemberByName(name As String, memberArray As ImmutableArray(Of SymbolViewModel(Of ISymbol))) As SymbolViewModel(Of ISymbol)
             Dim member = memberArray.FirstOrDefault(Function(memberViewModel) memberViewModel.Symbol.Name.Equals(name))
             Assert.NotNull(member)
             Return member
         End Function
 
-        Private Sub SelectMember(name As String, viewModel As StaticMemberSelectionViewModel)
+        Private Shared Sub SelectMember(name As String, viewModel As StaticMemberSelectionViewModel)
             Dim member = FindMemberByName(name, viewModel.Members)
             member.IsChecked = True
             viewModel.Members.Replace(FindMemberByName(name, viewModel.Members), member)
             Assert.True(FindMemberByName(name, viewModel.Members).IsChecked)
         End Sub
 
-        Private Sub DeselectMember(name As String, viewModel As StaticMemberSelectionViewModel)
+        Private Shared Sub DeselectMember(name As String, viewModel As StaticMemberSelectionViewModel)
             Dim member = FindMemberByName(name, viewModel.Members)
             member.IsChecked = False
             viewModel.Members.Replace(FindMemberByName(name, viewModel.Members), member)

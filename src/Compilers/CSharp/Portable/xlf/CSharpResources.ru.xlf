@@ -362,6 +362,11 @@
         <target state="translated">Переменная не может быть объявлена в шаблоне "not" или "or".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DiscardCannotBeNullChecked">
+        <source>Discard parameter cannot be null-checked.</source>
+        <target state="new">Discard parameter cannot be null-checked.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
         <source>The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.</source>
         <target state="translated">Шаблон отмены запрещено использовать как метку case в операторе switch. Используйте "case var _:" в качестве шаблона отмены или "case @_:" в качестве константы "_".</target>
@@ -635,11 +640,6 @@
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">Аргументы с модификатором "in" невозможно использовать в динамически диспетчеризируемых выражениях.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_IncorrectNullCheckSyntax">
-        <source>Incorrect parameter null checking syntax. Should be '!!'.</source>
-        <target state="translated">Неправильный синтаксис проверки значений NULL для параметра. Следует использовать "!!".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
@@ -942,9 +942,9 @@
         <target state="translated">"{0}" должен допускать переопределение, поскольку содержащая его запись не является запечатанной.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NullCheckingOnByRefParameter">
-        <source>By-reference parameter '{0}' cannot be null-checked.</source>
-        <target state="translated">Для параметра по ссылке "{0}" невозможно проверить значение NULL.</target>
+      <trans-unit id="ERR_NullCheckingOnOutParameter">
+        <source>'out' parameter '{0}' cannot be null-checked.</source>
+        <target state="new">'out' parameter '{0}' cannot be null-checked.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">
