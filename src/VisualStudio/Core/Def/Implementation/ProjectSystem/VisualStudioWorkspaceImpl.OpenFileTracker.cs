@@ -316,12 +316,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     await _workspace.ApplyChangeToWorkspaceMaybeAsync(useAsync: true, w =>
                     {
-                        var documentIds = w.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
+                        var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
                         if (documentIds.IsDefaultOrEmpty || documentIds.Length == 1)
+                        {
                             return;
+                        }
 
                         if (!documentIds.All(_workspace.IsDocumentOpen))
+                        {
                             return;
+                        }
 
                         var activeProjectId = GetActiveProjectId(
                             activeProjectInfoInfo.hierarchy, activeProjectInfoInfo.project, activeProjectInfoInfo.projectToHierarchy,
