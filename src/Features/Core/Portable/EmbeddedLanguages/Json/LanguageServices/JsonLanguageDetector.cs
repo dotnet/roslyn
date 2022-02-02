@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
         protected override JsonTree? TryParse(VirtualCharSequence chars, JsonOptions options)
             => JsonParser.TryParse(chars, options);
 
-        protected override bool IsEmbeddedLanguageString(
+        protected override bool IsArgumentToWellKnownAPI(
             SyntaxToken token,
             SyntaxNode argumentNode,
             SemanticModel semanticModel,

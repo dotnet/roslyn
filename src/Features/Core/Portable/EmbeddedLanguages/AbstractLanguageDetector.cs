@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
             _commentDetector = commentDetector;
         }
 
-        protected abstract bool IsEmbeddedLanguageString(SyntaxToken token, SyntaxNode argumentNode, SemanticModel semanticModel, CancellationToken cancellationToken, out TOptions options);
+        protected abstract bool IsArgumentToWellKnownAPI(SyntaxToken token, SyntaxNode argumentNode, SemanticModel semanticModel, CancellationToken cancellationToken, out TOptions options);
         protected abstract TTree? TryParse(VirtualCharSequence chars, TOptions options);
         protected abstract bool TryGetOptions(SemanticModel semanticModel, ITypeSymbol exprType, SyntaxNode expr, CancellationToken cancellationToken, out TOptions options);
 
@@ -108,7 +108,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
             var argumentNode = literalNode.Parent;
             Debug.Assert(syntaxFacts.IsArgument(argumentNode));
 
-            return IsEmbeddedLanguageString(token, argumentNode, semanticModel, cancellationToken, out options);
+            if (IsArgumentToWellKnownAPI(token, argumentNode, semanticModel, cancellationToken, out options))
+                return true;
+
+            return false;
         }
 
         public TTree? TryParseString(SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)

@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             return result;
         }
 
-        protected override bool IsEmbeddedLanguageString(
+        protected override bool IsArgumentToWellKnownAPI(
             SyntaxToken token,
             SyntaxNode argumentNode,
             SemanticModel semanticModel,
