@@ -80,7 +80,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                                 newStatements.Add(statements[i]);
                             }
 
-                            parent.Statements.ReplaceRange(ifStatementWithElseBlock, newStatements);
                             editor.ReplaceNode(parent, parent.WithStatements(SyntaxFactory.List(newStatements)));
                             break;
                         }
