@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (name.StartsWith("Item", StringComparison.Ordinal))
             {
-                string tail = name.Substring(4);
+                string tail = name.Substring("Item".Length);
                 if (int.TryParse(tail, out int number))
                 {
                     if (number > 0 && string.Equals(name, TupleMemberName(number), StringComparison.Ordinal))
