@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             /// <summary>
             /// Queue to process the workspace side of the document notifications we get.  We process this in the BG to
-            /// avoid impacting the UI thread heavily, esp during things like a large branch switch.
+            /// avoid taking workspace locks on the UI thread.
             /// </summary>
             private readonly AsyncBatchingWorkQueue<Func<Task>> _workspaceApplicationQueue;
 
