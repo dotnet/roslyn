@@ -95,8 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 VisualStudioWorkspaceImpl workspace,
                 IThreadingContext threadingContext,
                 IVsRunningDocumentTable runningDocumentTable,
-                IComponentModel componentModel,
-                IAsynchronousOperationListenerProvider listenerProvider)
+                IComponentModel componentModel)
             {
                 _workspace = workspace;
                 _threadingContext = threadingContext;
@@ -108,7 +107,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _workspaceApplicationQueue = new AsyncBatchingWorkQueue<Func<Task>>(
                     TimeSpan.FromMilliseconds(250),
                     ProcessWorkspaceApplicationQueueAsync,
-                    listenerProvider.GetListener(FeatureAttribute.Workspace),
+                    _asyncOperationListener,
                     threadingContext.DisposalToken);
             }
 
@@ -141,8 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             public static async Task<OpenFileTracker> CreateAsync(
                 VisualStudioWorkspaceImpl workspace,
                 IThreadingContext threadingContext,
-                IAsyncServiceProvider asyncServiceProvider,
-                IAsynchronousOperationListenerProvider listenerProvider)
+                IAsyncServiceProvider asyncServiceProvider)
             {
                 var runningDocumentTable = (IVsRunningDocumentTable?)await asyncServiceProvider.GetServiceAsync(typeof(SVsRunningDocumentTable)).ConfigureAwait(true);
                 Assumes.Present(runningDocumentTable);
@@ -150,7 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var componentModel = (IComponentModel?)await asyncServiceProvider.GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
                 Assumes.Present(componentModel);
 
-                return new OpenFileTracker(workspace, threadingContext, runningDocumentTable, componentModel, listenerProvider);
+                return new OpenFileTracker(workspace, threadingContext, runningDocumentTable, componentModel);
             }
 
             private void TryOpeningDocumentsForMoniker(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy)
