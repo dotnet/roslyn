@@ -3,22 +3,21 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal interface ISyntaxInputNode
+    internal interface ISyntaxSelectionStrategy<T>
     {
-        ISyntaxInputBuilder GetBuilder(DriverStateTable table, bool trackIncrementalSteps);
+        ISyntaxInputBuilder GetBuilder(StateTableStore tableStore, object key, bool trackIncrementalSteps, string? name, IEqualityComparer<T> comparer);
     }
 
     internal interface ISyntaxInputBuilder
     {
-        ISyntaxInputNode SyntaxInputNode { get; }
-
         void VisitTree(Lazy<SyntaxNode> root, EntryState state, SemanticModel? model, CancellationToken cancellationToken);
 
-        void SaveStateAndFree(ImmutableSegmentedDictionary<object, IStateTable>.Builder tables);
+        void SaveStateAndFree(StateTableStore.Builder tableStoreBuilder);
     }
 }
