@@ -3106,4 +3106,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Invalid_regex_pattern" xml:space="preserve">
     <value>Invalid regex pattern</value>
   </data>
+  <data name="Invalid_JSON_pattern" xml:space="preserve">
+    <value>Invalid JSON pattern</value>
+  </data>
 </root>

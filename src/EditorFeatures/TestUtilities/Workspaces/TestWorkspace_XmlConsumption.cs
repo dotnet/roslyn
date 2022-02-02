@@ -1093,6 +1093,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 references = TargetFrameworkUtil.NetStandard20References.ToList();
             }
 
+            var net6 = element.Attribute(CommonReferencesNet6Name);
+            if (net6 != null &&
+                ((bool?)net6).HasValue &&
+                ((bool?)net6).Value)
+            {
+                references = TargetFrameworkUtil.GetReferences(TargetFramework.Net60).ToList();
+            }
+
             return references;
         }
 

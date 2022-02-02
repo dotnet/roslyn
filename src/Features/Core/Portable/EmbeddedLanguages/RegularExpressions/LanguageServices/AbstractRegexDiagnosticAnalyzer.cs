@@ -9,10 +9,8 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices;
 
-namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
     /// <summary>
     /// Analyzer that reports diagnostics in strings that we know are regex text.
@@ -47,15 +45,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 
             var option = context.GetOption(RegularExpressionsOptions.ReportInvalidRegexPatterns, syntaxTree.Options.Language);
             if (!option)
-            {
                 return;
-            }
 
-            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel.Compilation, _info);
-            if (detector == null)
-            {
-                return;
-            }
+            var detector = RegexLanguageDetector.GetOrCreate(semanticModel.Compilation, _info);
 
             // Use an actual stack object so that we don't blow the actual stack through recursion.
             var root = syntaxTree.GetRoot(cancellationToken);
@@ -82,12 +74,14 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         }
 
         private void AnalyzeToken(
-            SemanticModelAnalysisContext context, RegexPatternDetector detector,
-            SyntaxToken token, CancellationToken cancellationToken)
+            SemanticModelAnalysisContext context,
+            RegexLanguageDetector detector,
+            SyntaxToken token,
+            CancellationToken cancellationToken)
         {
             if (token.RawKind == _info.StringLiteralTokenKind)
             {
-                var tree = detector.TryParseRegexPattern(token, context.SemanticModel, cancellationToken);
+                var tree = detector.TryParseString(token, context.SemanticModel, cancellationToken);
                 if (tree != null)
                 {
                     foreach (var diag in tree.Diagnostics)

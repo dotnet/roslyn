@@ -17,9 +17,10 @@ using Microsoft.CodeAnalysis.Editor.InlineDiagnostics;
 using Microsoft.CodeAnalysis.Editor.InlineHints;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Fading;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.QuickInfo;
@@ -128,8 +129,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             BindToOption(Colorize_regular_expressions, ClassificationOptions.Metadata.ColorizeRegexPatterns, LanguageNames.CSharp);
             BindToOption(Report_invalid_regular_expressions, RegularExpressionsOptions.ReportInvalidRegexPatterns, LanguageNames.CSharp);
-            BindToOption(Highlight_related_components_under_cursor, RegularExpressionsOptions.HighlightRelatedRegexComponentsUnderCursor, LanguageNames.CSharp);
+            BindToOption(Highlight_related_regular_expression_components_under_cursor, RegularExpressionsOptions.HighlightRelatedRegexComponentsUnderCursor, LanguageNames.CSharp);
             BindToOption(Show_completion_list, CompletionOptions.Metadata.ProvideRegexCompletions, LanguageNames.CSharp);
+
+            BindToOption(Detect_and_offer_editor_features_for_likely_JSON_strings, JsonFeatureOptions.DetectAndOfferEditorFeaturesForProbableJsonStrings, LanguageNames.CSharp);
+            BindToOption(Colorize_JSON_strings, ClassificationOptions.Metadata.ColorizeJsonPatterns, LanguageNames.CSharp);
+            BindToOption(Report_invalid_JSON_strings, JsonFeatureOptions.ReportInvalidJsonPatterns, LanguageNames.CSharp);
+            BindToOption(Highlight_related_JSON_components_under_cursor, JsonFeatureOptions.HighlightRelatedJsonComponentsUnderCursor, LanguageNames.CSharp);
 
             BindToOption(Editor_color_scheme, ColorSchemeOptions.ColorScheme);
 

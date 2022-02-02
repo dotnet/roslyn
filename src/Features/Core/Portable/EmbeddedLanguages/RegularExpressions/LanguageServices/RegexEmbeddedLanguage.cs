@@ -5,16 +5,14 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
     internal class RegexEmbeddedLanguage : IEmbeddedLanguageFeatures
     {
@@ -45,13 +43,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            if (!RegexPatternDetector.IsPossiblyPatternToken(token, syntaxFacts))
-                return default;
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel.Compilation, this.Info);
-            var tree = detector?.TryParseRegexPattern(token, semanticModel, cancellationToken);
+            var detector = RegexLanguageDetector.GetOrCreate(semanticModel.Compilation, this.Info);
+            var tree = detector.TryParseString(token, semanticModel, cancellationToken);
             return tree == null ? default : (tree, token);
         }
 

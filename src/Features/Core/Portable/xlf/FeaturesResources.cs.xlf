@@ -900,6 +900,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Zavést proměnnou dotazu</target>
         <note />
       </trans-unit>
+      <trans-unit id="Invalid_JSON_pattern">
+        <source>Invalid JSON pattern</source>
+        <target state="new">Invalid JSON pattern</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Invalid_constructor_name">
         <source>Invalid constructor name</source>
         <target state="new">Invalid constructor name</target>
