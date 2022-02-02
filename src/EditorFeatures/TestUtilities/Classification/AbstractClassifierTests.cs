@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -19,6 +17,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 {
@@ -27,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
     {
         protected AbstractClassifierTests() { }
 
-        protected abstract Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string text, TextSpan span, ParseOptions parseOptions, TestHost testHost);
+        protected abstract Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string text, TextSpan span, ParseOptions? parseOptions, TestHost testHost);
 
         protected abstract string WrapInClass(string className, string code);
         protected abstract string WrapInExpression(string code);
@@ -40,12 +39,31 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
            string code,
            string allCode,
            TestHost testHost,
-           ParseOptions parseOptions,
+           ParseOptions? parseOptions,
            params FormattedClassification[] expected)
         {
-            var start = allCode.IndexOf(code, StringComparison.Ordinal);
-            var length = code.Length;
-            var span = new TextSpan(start, length);
+            TextSpan span;
+            if (code != allCode)
+            {
+                var start = allCode.IndexOf(code, StringComparison.Ordinal);
+                var length = code.Length;
+                span = new TextSpan(start, length);
+            }
+            else
+            {
+                MarkupTestFile.GetSpans(allCode, out var rewrittenCode, out ImmutableArray<TextSpan> spans);
+                Assert.True(spans.Length < 2);
+                if (spans.Length == 1)
+                {
+                    allCode = rewrittenCode;
+                    span = spans.Single();
+                }
+                else
+                {
+                    span = new TextSpan(0, allCode.Length);
+                }
+            }
+
             var actual = await GetClassificationSpansAsync(allCode, span, parseOptions, testHost);
 
             var actualOrdered = actual.OrderBy((t1, t2) => t1.TextSpan.Start - t2.TextSpan.Start);

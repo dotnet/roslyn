@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -2970,7 +2971,6 @@ using System.Text.RegularExpressions;
 
 class Program
 {
-
     void Goo()
     {
         var r = new Regex(@""$(\a\t\u0020)|[^\p{Lu}-a\w\sa-z-[m-p]]+?(?#comment)|(\b\G\z)|(?<name>sub){0,5}?^"");
@@ -3054,7 +3054,6 @@ using System.Text.RegularExpressions;
 
 class Program
 {
-
     void Goo()
     {
         // language=regex
@@ -3445,6 +3444,88 @@ Class("Regex"),
 Regex.Anchor("^"),
 Regex.Text(@" """" "),
 Regex.Anchor("$"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_Field(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    [StringSyntax(StringSyntaxAttribute.Regex)]
+    private string field;
+
+    void Goo()
+    {
+        [|this.field = @""$\a(?#comment)"";|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCode,
+testHost,
+Field("field"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_Property(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    [StringSyntax(StringSyntaxAttribute.Regex)]
+    private string Prop { get; set; }
+
+    void Goo()
+    {
+        [|this.Prop = @""$\a(?#comment)"";|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCode,
+testHost,
+Property("Prop"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_Argument(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    private void M([StringSyntax(StringSyntaxAttribute.Regex)] string p)
+    {
+    }
+
+    void Goo()
+    {
+        [|M(@""$\a(?#comment)"");|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCode,
+testHost,
+Method("M"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
         }
 
         [Theory]

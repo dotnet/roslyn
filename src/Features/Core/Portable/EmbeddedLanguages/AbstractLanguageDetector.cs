@@ -113,9 +113,11 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
             if (HasLanguageComment(token, syntaxFacts, out options))
                 return true;
 
-            if (syntaxFacts.IsArgument(token.Parent.Parent))
+            var parent = syntaxFacts.WalkUpParentheses(token.Parent);
+
+            if (syntaxFacts.IsArgument(parent.Parent))
             {
-                var argument = token.Parent.Parent;
+                var argument = parent.Parent;
                 if (IsArgumentToWellKnownAPI(token, argument, semanticModel, cancellationToken, out options))
                     return true;
 
@@ -124,10 +126,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
             }
             else
             {
-                var parent = syntaxFacts.WalkUpParentheses(token.Parent);
-                if (syntaxFacts.IsSimpleAssignmentStatement(parent.Parent))
+                var statement = parent.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsStatement);
+                if (syntaxFacts.IsSimpleAssignmentStatement(statement))
                 {
-                    syntaxFacts.GetPartsOfAssignmentStatement(parent.Parent, out var left, out var right);
+                    syntaxFacts.GetPartsOfAssignmentStatement(statement, out var left, out var right);
                     if (parent == right &&
                         IsFieldOrPropertyWithMatchingStringSyntaxAttribute(semanticModel, left, cancellationToken))
                     {
