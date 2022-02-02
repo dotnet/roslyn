@@ -125,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         cancellationToken.ThrowIfCancellationRequested();
                         action(w);
                     }
-                });
+                }, cancellationToken);
             }
 
             void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy, IVsWindowFrame? _)
