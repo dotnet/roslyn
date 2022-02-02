@@ -8769,6 +8769,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var discarded = left is BoundDiscardExpression;
                     rightState = VisitOptionalImplicitConversion(right, targetTypeOpt: discarded ? default : leftLValueType, UseLegacyWarnings(left, leftLValueType), trackMembers: true, AssignmentKind.Assignment);
+                    Unsplit();
                 }
                 else
                 {
@@ -9090,6 +9091,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             operandType = default;
                             valueType = VisitOptionalImplicitConversion(rightPart, lvalueType, useLegacyWarnings: true, trackMembers: true, AssignmentKind.Assignment);
+                            Unsplit();
                         }
                         valueSlot = MakeSlot(rightPart);
                     }
