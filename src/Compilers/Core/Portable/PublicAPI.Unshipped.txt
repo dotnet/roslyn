@@ -15,6 +15,8 @@ Metalama.Compiler.ManagedResource.IsPublic.get -> bool
 Metalama.Compiler.ManagedResource.ManagedResource(Microsoft.CodeAnalysis.ResourceDescription! resource, bool includeInRefAssembly = false) -> void
 Metalama.Compiler.ManagedResource.Name.get -> string?
 Metalama.Compiler.ManagedResource.Resource.get -> Microsoft.CodeAnalysis.ResourceDescription!
+Metalama.Compiler.MetalamaPlugInAttribute
+Metalama.Compiler.MetalamaPlugInAttribute.MetalamaPlugInAttribute() -> void
 Metalama.Compiler.TransformerContext.AddResources(params Microsoft.CodeAnalysis.ResourceDescription![]! resources) -> void
 Metalama.Compiler.TransformerContext.AddResources(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ResourceDescription!>! resources) -> void
 Metalama.Compiler.TransformerContext.AddSyntaxTrees(params Microsoft.CodeAnalysis.SyntaxTree![]! syntaxTrees) -> void
@@ -23,8 +25,6 @@ Metalama.Compiler.TransformerContext.AddSyntaxTreeTransformations(System.Collect
 Metalama.Compiler.TransformerContext.RegisterDiagnosticFilter(Microsoft.CodeAnalysis.SuppressionDescriptor! descriptor, System.Action<Metalama.Compiler.DiagnosticFilteringRequest!>! filter) -> void
 Metalama.Compiler.TransformerContext.ReplaceSyntaxTree(Microsoft.CodeAnalysis.SyntaxTree! oldTree, Microsoft.CodeAnalysis.SyntaxTree! newTree) -> void
 Metalama.Compiler.TransformerContext.Resources.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ResourceDescription!>
-const Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.CompilerPlugInAttributeAssembly = "Metalama.Framework.Sdk" -> string!
-const Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.CompilerPlugInAttributeTypeNamespace = "Metalama.Framework.Engine.Sdk" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.PrintMembersMethodName = "PrintMembers" -> string!
 Microsoft.CodeAnalysis.Compilation.EmitDifference(Microsoft.CodeAnalysis.Emit.EmitBaseline! baseline, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Emit.SemanticEdit>! edits, System.Func<Microsoft.CodeAnalysis.ISymbol!, bool>! isAddedSymbol, System.IO.Stream! metadataStream, System.IO.Stream! ilStream, System.IO.Stream! pdbStream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Emit.EmitDifferenceResult!
 Microsoft.CodeAnalysis.Emit.EmitDifferenceResult.ChangedTypes.get -> System.Collections.Immutable.ImmutableArray<System.Reflection.Metadata.TypeDefinitionHandle>
@@ -97,6 +97,7 @@ Microsoft.CodeAnalysis.LineMapping.LineMapping() -> void
 Microsoft.CodeAnalysis.LineMapping.LineMapping(Microsoft.CodeAnalysis.Text.LinePositionSpan span, int? characterOffset, Microsoft.CodeAnalysis.FileLinePositionSpan mappedSpan) -> void
 Microsoft.CodeAnalysis.LineMapping.MappedSpan.get -> Microsoft.CodeAnalysis.FileLinePositionSpan
 Microsoft.CodeAnalysis.LineMapping.Span.get -> Microsoft.CodeAnalysis.Text.LinePositionSpan
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetGenerators(string! language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISourceGenerator!>
 override Microsoft.CodeAnalysis.LineMapping.Equals(object? obj) -> bool
 override Microsoft.CodeAnalysis.LineMapping.GetHashCode() -> int
 override Microsoft.CodeAnalysis.LineMapping.ToString() -> string?
@@ -164,7 +165,6 @@ Metalama.Compiler.TransformerContext.Compilation.get -> Microsoft.CodeAnalysis.C
 Metalama.Compiler.TransformerContext.GlobalOptions.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions!
 Metalama.Compiler.TransformerContext.LoadReferencedAssembly(Microsoft.CodeAnalysis.IAssemblySymbol! assemblySymbol) -> System.Reflection.Assembly!
 Metalama.Compiler.TransformerContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic! diagnostic) -> void
-const Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.CompilerPlugInAttributeTypeName = "CompilerPluginAttribute" -> string!
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetPlugins() -> System.Collections.Immutable.ImmutableArray<object!>
 override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetTransformers() -> System.Collections.Immutable.ImmutableArray<Metalama.Compiler.ISourceTransformer!>
 static Metalama.Compiler.Intrinsics.GetRuntimeFieldHandle(string documentationId) -> System.RuntimeFieldHandle

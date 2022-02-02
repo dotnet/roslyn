@@ -65,15 +65,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _diagnosticAnalyzers = new(this, typeof(DiagnosticAnalyzerAttribute), GetDiagnosticsAnalyzerSupportedLanguages, allowNetFramework: true);
             _generators = new(this, typeof(GeneratorAttribute), GetGeneratorSupportedLanguages, allowNetFramework: false, coerceFunction: CoerceGeneratorType);
             // <Metalama>
-            _transformers = new(this, typeof(TransformerAttribute), GetTransformersSupportedLanguages, allowNetFramework: false);
-
-            // The declaring assembly might not be loaded in tests.
-            var compilerPlugInAttributeType = Type.GetType($"{CompilerPlugInAttributeTypeNamespace}.{CompilerPlugInAttributeTypeName}, {CompilerPlugInAttributeAssembly}");
-
-            if (compilerPlugInAttributeType != null)
-            {
-                _plugins = new(this, compilerPlugInAttributeType, GetTransformersSupportedLanguages, allowNetFramework: false);
-            }
+            AttributeLanguagesFunc supportedLanguages = (_, _) => ImmutableArray.Create(LanguageNames.CSharp);
+            _transformers = new(this, typeof(TransformerAttribute), supportedLanguages, allowNetFramework: false);
+             _plugins = new(this, typeof(MetalamaPlugInAttribute), supportedLanguages, allowNetFramework: false);
             // </Metalama>
 
             // Note this analyzer full path as a dependency location, so that the analyzer loader
@@ -393,15 +387,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
             return null;
         }
-
-        // <Metalama>
-        private static IEnumerable<string> GetTransformersSupportedLanguages(PEModule peModule, CustomAttributeHandle customAttrHandle) => ImmutableArray.Create(LanguageNames.CSharp);
-
-        // These constants are referenced in Metalama.Try.
-        public const string CompilerPlugInAttributeTypeName = "CompilerPluginAttribute";
-        public const string CompilerPlugInAttributeTypeNamespace = "Metalama.Framework.Engine.Sdk";
-        public const string CompilerPlugInAttributeAssembly = "Metalama.Framework.Sdk";
-        // </Metalama>
 
         private static string GetFullyQualifiedTypeName(TypeDefinition typeDef, PEModule peModule)
         {

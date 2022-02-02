@@ -1128,7 +1128,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableArray<ISourceGenerator> generators,
             // <Metalama>
-            ImmutableArray<ISourceTransformer> transfomers,
+            ImmutableArray<ISourceTransformer> transformers,
             ImmutableArray<object> plugins,
             // </Metalama>
             ImmutableArray<AdditionalText> additionalTextFiles,
@@ -1155,7 +1155,7 @@ namespace Microsoft.CodeAnalysis
             DiagnosticBag? analyzerExceptionDiagnostics = null;
             if (!analyzers.IsEmpty || !generators.IsEmpty
                                    // <Metalama>
-                                   || !transfomers.IsEmpty
+                                   || !transformers.IsEmpty
                                    // </Metalama>
                                    )
             {
@@ -1262,7 +1262,7 @@ namespace Microsoft.CodeAnalysis
                     Debugger.Launch();
                 }
 
-                if (!transfomers.IsEmpty)
+                if (!transformers.IsEmpty)
                 {
                     // Split analyzers between those that must run on source code only and those that will run on transformed code.
                     (var sourceOnlyAnalyzers, analyzers) = SplitAnalyzers(analyzerConfigProvider, analyzers);
@@ -1280,7 +1280,7 @@ namespace Microsoft.CodeAnalysis
                     // Execute transformers.
                     var compilationBeforeTransformation = compilation;
                     var transformersDiagnostics = new DiagnosticBag();
-                    var transformersResult = RunTransformers(compilationBeforeTransformation, transfomers, sourceOnlyAnalyzerOptions, plugins, analyzerConfigProvider, transformersDiagnostics, cancellationToken);
+                    var transformersResult = RunTransformers(compilationBeforeTransformation, transformers, sourceOnlyAnalyzerOptions, plugins, analyzerConfigProvider, transformersDiagnostics, cancellationToken);
 
                     compilation = transformersResult.TransformedCompilation;
 
