@@ -2807,7 +2807,7 @@ class C { }
             Assert.Single(referenceList, modifiedRef.Display);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         [WorkItem(59190, "https://github.com/dotnet/roslyn/issues/59190")]
         public void LongBinaryExpression()
         {
@@ -2816,12 +2816,11 @@ class C {
 public static readonly string F = ""a""
 ";
 
-            for (int i = 0; i < 3500 + 3500; i++)
+            for (int i = 0; i < 7000; i++)
             {
                 source += @" + ""a""
 ";
             }
-
 
             source += @";
 }
