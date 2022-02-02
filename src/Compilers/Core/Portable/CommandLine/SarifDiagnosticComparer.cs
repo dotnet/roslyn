@@ -48,11 +48,11 @@ namespace Microsoft.CodeAnalysis
 
             return x.Category == y.Category
                 && x.DefaultSeverity == y.DefaultSeverity
-                && x.Description!.Equals(y.Description)
+                && x.Description.Equals(y.Description)
                 && x.HelpLinkUri == y.HelpLinkUri
                 && x.Id == y.Id
                 && x.IsEnabledByDefault == y.IsEnabledByDefault
-                && x.Title!.Equals(y.Title)
+                && x.Title.Equals(y.Title)
                 && x.ImmutableCustomTags.SequenceEqual(y.ImmutableCustomTags);
         }
 

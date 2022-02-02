@@ -524,6 +524,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 value == WellKnownDiagnosticTags.Build;
         }
 
+        // TODO: the value stored in HelpLink should already be valid URI (https://github.com/dotnet/roslyn/issues/59205)
         internal Uri? GetValidHelpLinkUri()
             => Uri.TryCreate(HelpLink, UriKind.Absolute, out var uri) ? uri : null;
     }
