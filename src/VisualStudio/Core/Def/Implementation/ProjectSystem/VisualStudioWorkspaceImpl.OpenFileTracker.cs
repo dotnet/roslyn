@@ -38,6 +38,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
 
+            /// <summary>
+            /// Queue to process the workspace side of a document close notification.  We process this in the BG to
+            /// avoid impacting the UI thread heavily, esp during things like a large branch switch.
+            /// </summary>
             private readonly AsyncBatchingWorkQueue<string> _closeDocumentQueue;
 
             #region Fields read/written to from multiple threads to track files that need to be checked
