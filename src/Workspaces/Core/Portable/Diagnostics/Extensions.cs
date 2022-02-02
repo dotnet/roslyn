@@ -22,21 +22,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static partial class Extensions
     {
-        public static readonly CultureInfo USCultureInfo = new("en-US");
-
-        public static string GetBingHelpMessage(this Diagnostic diagnostic, OptionSet options)
-        {
-            // We use the ENU version of the message for bing search.
-            return options.GetOption(InternalDiagnosticsOptions.PutCustomTypeInBingSearch) ?
-                diagnostic.GetMessage(USCultureInfo) : diagnostic.Descriptor.GetBingHelpMessage();
-        }
-
-        public static string GetBingHelpMessage(this DiagnosticDescriptor descriptor)
-        {
-            // We use the ENU version of the message for bing search.
-            return descriptor.MessageFormat.ToString(USCultureInfo);
-        }
-
         public static async Task<ImmutableArray<Diagnostic>> ToDiagnosticsAsync(this IEnumerable<DiagnosticData> diagnostics, Project project, CancellationToken cancellationToken)
         {
             var result = ArrayBuilder<Diagnostic>.GetInstance();

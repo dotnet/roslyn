@@ -47,11 +47,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return;
             }
 
-            var diagnosticData = (project != null) ?
-                DiagnosticData.Create(diagnostic, project) :
-                DiagnosticData.Create(diagnostic, Workspace.Options);
-
-            ReportAnalyzerDiagnostic(analyzer, diagnosticData, project);
+            ReportAnalyzerDiagnostic(analyzer, DiagnosticData.Create(diagnostic, project), project);
         }
 
         public void ReportAnalyzerDiagnostic(DiagnosticAnalyzer analyzer, DiagnosticData diagnosticData, Project? project)

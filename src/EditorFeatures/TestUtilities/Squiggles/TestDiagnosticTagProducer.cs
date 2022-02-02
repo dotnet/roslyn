@@ -59,7 +59,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
                 id: "test",
                 category: "test",
                 message: "test",
-                enuMessageForBingSearch: "test",
                 severity: DiagnosticSeverity.Error,
                 defaultSeverity: DiagnosticSeverity.Error,
                 isEnabledByDefault: true,

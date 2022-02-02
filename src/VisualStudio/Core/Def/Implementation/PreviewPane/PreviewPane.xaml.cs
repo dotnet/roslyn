@@ -72,7 +72,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 // Now set the actual title text.
                 TitleRun.Text = title;
 
-                InitializeHyperlinks(helpLink, helpLinkToolTipText);
+                if (helpLink != null)
+                {
+                    Contract.ThrowIfNull(helpLinkToolTipText);
+                    InitializeHyperlinks(helpLink, helpLinkToolTipText);
+                }
 
                 if (!string.IsNullOrWhiteSpace(description))
                 {

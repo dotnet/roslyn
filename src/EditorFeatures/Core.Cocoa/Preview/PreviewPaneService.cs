@@ -2,21 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Composition;
-using System.Globalization;
-using AppKit;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio.Core.Imaging;
-using Microsoft.VisualStudio.Imaging;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 {
@@ -34,11 +27,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         {
             return this;
         }
-        object IPreviewPaneService.GetPreviewPane(DiagnosticData data, IReadOnlyList<object> previewContent)
-        {
-            var title = data?.Message;
 
-            if (string.IsNullOrWhiteSpace(title))
+        object? IPreviewPaneService.GetPreviewPane(DiagnosticData? data, IReadOnlyList<object>? previewContent)
+        {
+            if (data == null || string.IsNullOrWhiteSpace(data.Message))
             {
                 if (previewContent == null)
                 {
@@ -47,24 +39,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                     return null;
                 }
 
-                return new PreviewPane(id: null, title: null, helpLink: null, helpLinkToolTipText: null, previewContent: previewContent);
-            }
-            else
-            {
-                if (previewContent == null)
-                {
-                    // TODO: Mac, if we have title but no content, we should still display title/help link...
-                    return null;
-                }
+                return new PreviewPane(id: null, title: null, helpLink: null, helpLinkToolTipText: null, previewContent);
             }
 
-            var helpLinkUri = BrowserHelper.GetHelpLink(data);
-            var helpLinkToolTip = BrowserHelper.GetHelpLinkToolTip(data.Id, helpLinkUri);
+            if (previewContent == null)
+            {
+                // TODO: Mac, if we have title but no content, we should still display title/help link...
+                return null;
+            }
+
+            var helpLinkUri = data.GetValidHelpLinkUri();
 
             return new PreviewPane(
-                id: data.Id, title: title,
+                id: data.Id,
+                title: data.Message,
                 helpLink: helpLinkUri,
-                helpLinkToolTipText: helpLinkToolTip,
+                helpLinkToolTipText: (helpLinkUri != null) ? string.Format(EditorFeaturesResources.Get_help_for_0, data.Id) : null,
                 previewContent: previewContent);
         }
     }

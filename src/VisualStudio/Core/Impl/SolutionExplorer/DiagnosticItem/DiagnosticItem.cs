@@ -10,11 +10,9 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes.Configuration;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
@@ -50,9 +48,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         {
             return new BrowseObject(this);
         }
-
-        public Uri? GetHelpLink()
-            => BrowserHelper.GetHelpLink(Descriptor, _language);
 
         internal void UpdateEffectiveSeverity(ReportDiagnostic newEffectiveSeverity)
         {

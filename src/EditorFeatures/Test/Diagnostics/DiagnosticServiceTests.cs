@@ -182,7 +182,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 id: "test1",
                 category: "Test",
                 message: "test1 message",
-                enuMessageForBingSearch: "test1 message format",
                 severity: DiagnosticSeverity.Info,
                 defaultSeverity: DiagnosticSeverity.Info,
                 isEnabledByDefault: false,

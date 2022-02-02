@@ -262,7 +262,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private void UpdateOpenHelpLinkMenuItemVisibility()
         {
             _openHelpLinkMenuItem.Visible = _tracker.SelectedDiagnosticItems.Length == 1 &&
-                                            _tracker.SelectedDiagnosticItems[0].GetHelpLink() != null;
+                                            _tracker.SelectedDiagnosticItems[0].Descriptor.GetValidHelpLinkUri() != null;
         }
 
         private void UpdateSeverityMenuItemsChecked()
@@ -534,7 +534,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 return;
             }
 
-            var uri = _tracker.SelectedDiagnosticItems[0].GetHelpLink();
+            var uri = _tracker.SelectedDiagnosticItems[0].Descriptor.GetValidHelpLinkUri();
             if (uri != null)
             {
                 VisualStudioNavigateToLinkService.StartBrowser(uri);

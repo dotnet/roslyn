@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Diagnostics
 {
     internal class XamlDiagnostic
@@ -15,5 +17,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Features.Diagnostics
         public string? ExtendedMessage { get; set; }
         public string? HelpLink { get; set; }
         public string[]? CustomTags { get; set; }
+
+        public Uri? GetHelpLinkUri() =>
+            Uri.TryCreate(HelpLink, UriKind.Absolute, out var uri) ? uri : null;
     }
 }

@@ -352,7 +352,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 id:=id,
                 category:="test",
                 message:=message,
-                enuMessageForBingSearch:=message,
                 severity:=severity,
                 defaultSeverity:=severity,
                 isEnabledByDefault:=True,
