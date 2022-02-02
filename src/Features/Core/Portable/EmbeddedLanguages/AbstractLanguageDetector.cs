@@ -3,12 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.ComponentModel;
-using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
@@ -18,12 +17,16 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
         where TTree : class
     {
         protected readonly EmbeddedLanguageInfo Info;
+
+        private readonly string _stringSyntaxAttributeName;
         private readonly LanguageCommentDetector<TOptions> _commentDetector;
 
         protected AbstractLanguageDetector(
+            string stringSyntaxAttributeName,
             EmbeddedLanguageInfo info,
             LanguageCommentDetector<TOptions> commentDetector)
         {
+            _stringSyntaxAttributeName = stringSyntaxAttributeName;
             Info = info;
             _commentDetector = commentDetector;
         }
@@ -31,17 +34,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
         protected abstract bool IsArgumentToWellKnownAPI(SyntaxToken token, SyntaxNode argumentNode, SemanticModel semanticModel, CancellationToken cancellationToken, out TOptions options);
         protected abstract TTree? TryParse(VirtualCharSequence chars, TOptions options);
         protected abstract bool TryGetOptions(SemanticModel semanticModel, ITypeSymbol exprType, SyntaxNode expr, CancellationToken cancellationToken, out TOptions options);
-
-        public bool IsPossiblyPatternToken(SyntaxToken token, ISyntaxFacts syntaxFacts)
-        {
-            if (!syntaxFacts.IsStringLiteral(token))
-                return false;
-
-            if (syntaxFacts.IsLiteralExpression(token.Parent) && syntaxFacts.IsArgument(token.Parent.Parent))
-                return true;
-
-            return HasLanguageComment(token, syntaxFacts, out _);
-        }
 
         private bool HasLanguageComment(
             SyntaxToken token, ISyntaxFacts syntaxFacts, out TOptions options)
@@ -96,22 +88,104 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
         public bool IsEmbeddedLanguageString(SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken, out TOptions options)
         {
             options = default;
-            if (!IsPossiblyPatternToken(token, Info.SyntaxFacts))
-                return false;
 
             var syntaxFacts = Info.SyntaxFacts;
+            if (!syntaxFacts.IsStringLiteral(token))
+                return false;
+
+            if (!syntaxFacts.IsLiteralExpression(token.Parent))
+                return false;
+
             if (HasLanguageComment(token, syntaxFacts, out options))
                 return true;
 
-            var stringLiteral = token;
-            var literalNode = stringLiteral.GetRequiredParent();
-            var argumentNode = literalNode.Parent;
-            Debug.Assert(syntaxFacts.IsArgument(argumentNode));
+            if (syntaxFacts.IsArgument(token.Parent.Parent))
+            {
+                var argument = token.Parent.Parent;
+                if (IsArgumentToWellKnownAPI(token, argument, semanticModel, cancellationToken, out options))
+                    return true;
 
-            if (IsArgumentToWellKnownAPI(token, argumentNode, semanticModel, cancellationToken, out options))
-                return true;
+                if (IsArgumentToParameterWithMatchingStringSyntaxAttribute(semanticModel, argument, cancellationToken, out options))
+                    return true;
+            }
+            else
+            {
+                var parent = syntaxFacts.WalkUpParentheses(token.Parent);
+                if (syntaxFacts.IsSimpleAssignmentStatement(parent.Parent))
+                {
+                    syntaxFacts.GetPartsOfAssignmentStatement(parent.Parent, out var left, out var right);
+                    if (parent == right &&
+                        IsFieldOrPropertyWithMatchingStringSyntaxAttribute(semanticModel, left, cancellationToken))
+                    {
+                        return true;
+                    }
+                }
+            }
 
             return false;
+        }
+
+        private bool IsArgumentToParameterWithMatchingStringSyntaxAttribute(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken, out TOptions options)
+        {
+            var operation = semanticModel.GetOperation(argumentNode, cancellationToken);
+            if (operation is IArgumentOperation { Parameter: { } parameter } &&
+                HasMatchingStringSyntaxAttribute(parameter))
+            {
+                options = GetOptionsFromSiblingArgument(argumentNode, semanticModel, cancellationToken);
+                return true;
+            }
+
+            options = default;
+            return false;
+        }
+
+        private bool IsFieldOrPropertyWithMatchingStringSyntaxAttribute(
+            SemanticModel semanticModel, SyntaxNode left, CancellationToken cancellationToken)
+        {
+            var symbol = semanticModel.GetSymbolInfo(left, cancellationToken).Symbol;
+            return symbol is IFieldSymbol or IPropertySymbol &&
+                HasMatchingStringSyntaxAttribute(symbol);
+        }
+
+        private bool HasMatchingStringSyntaxAttribute(ISymbol symbol)
+        {
+            foreach (var attribute in symbol.GetAttributes())
+            {
+                if (IsMatchingStringSyntaxAttribute(attribute))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private bool IsMatchingStringSyntaxAttribute(AttributeData attribute)
+        {
+            if (attribute.ConstructorArguments.Length == 0)
+                return false;
+
+            if (attribute.AttributeClass is not
+                {
+                    Name: "StringSyntaxAttribute",
+                    ContainingNamespace:
+                    {
+                        Name: nameof(CodeAnalysis),
+                        ContainingNamespace:
+                        {
+                            Name: nameof(Diagnostics),
+                            ContainingNamespace:
+                            {
+                                Name: nameof(System),
+                                ContainingNamespace.IsGlobalNamespace: true,
+                            }
+                        }
+                    }
+                })
+            {
+                return false;
+            }
+
+            var argument = attribute.ConstructorArguments[0];
+            return argument.Kind == TypedConstantKind.Primitive && argument.Value is string argString && argString == _stringSyntaxAttributeName;
         }
 
         public TTree? TryParseString(SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
