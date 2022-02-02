@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// Queue to process the workspace side of the document notifications we get.  We process this in the BG to
             /// avoid taking workspace locks on the UI thread.
             /// </summary>
-            private readonly AsyncBatchingWorkQueue<Func<ValueTask>> _workspaceApplicationQueue;
+            private readonly AsyncBatchingWorkQueue<Action<Workspace>> _workspaceApplicationQueue;
 
             #region Fields read/written to from multiple threads to track files that need to be checked
 
@@ -105,24 +105,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(workspace._threadingContext,
                     componentModel.GetService<IVsEditorAdaptersFactoryService>(), runningDocumentTable, this);
 
-                _workspaceApplicationQueue = new AsyncBatchingWorkQueue<Func<ValueTask>>(
+                _workspaceApplicationQueue = new AsyncBatchingWorkQueue<Action<Workspace>>(
                     TimeSpan.FromMilliseconds(50),
                     ProcessWorkspaceApplicationQueueAsync,
                     _asyncOperationListener,
                     threadingContext.DisposalToken);
             }
 
-            private async ValueTask ProcessWorkspaceApplicationQueueAsync(ImmutableArray<Func<ValueTask>> taskFactories, CancellationToken cancellationToken)
+            private ValueTask ProcessWorkspaceApplicationQueueAsync(ImmutableArray<Action<Workspace>> actions, CancellationToken cancellationToken)
             {
-                foreach (var taskFactory in taskFactories)
+                // Take the workspace lock once, then apply all the changes we have while holding it.
+                return _workspace.ApplyChangeToWorkspaceMaybeAsync(useAsync: true, w =>
                 {
-                    // Canceling here means we won't process the remaining workspace work.  That's OK as we are only
-                    // canceled during shutdown, and at that point we really don't want to be doing any unnecessary work
-                    // anyways.
-                    cancellationToken.ThrowIfCancellationRequested();
-                    var task = taskFactory();
-                    await task.ConfigureAwait(false);
-                }
+                    foreach (var action in actions)
+                    {
+                        // Canceling here means we won't process the remaining workspace work.  That's OK as we are only
+                        // canceled during shutdown, and at that point we really don't want to be doing any unnecessary work
+                        // anyways.
+                        cancellationToken.ThrowIfCancellationRequested();
+                        action(w);
+                    }
+                });
             }
 
             void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy, IVsWindowFrame? _)
@@ -165,8 +168,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 UnsubscribeFromWatchedHierarchies(moniker);
                 WatchAndSubscribeToHierarchies(moniker, hierarchy, out var contextHierarchy, out var contextHierarchyProjectName);
 
-                _workspaceApplicationQueue.AddWork(() =>
-                    _workspace.ApplyChangeToWorkspaceMaybeAsync(useAsync: true, w =>
+                _workspaceApplicationQueue.AddWork(w =>
                     {
                         var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
                         if (documentIds.IsDefaultOrEmpty)
@@ -205,7 +207,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                                 }
                             }
                         }
-                    }));
+                    });
             }
 
             /// <summary>
@@ -319,8 +321,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 UnsubscribeFromWatchedHierarchies(moniker);
                 WatchAndSubscribeToHierarchies(moniker, hierarchy, out var contextHierarchy, out var contextProjectName);
 
-                _workspaceApplicationQueue.AddWork(() =>
-                    _workspace.ApplyChangeToWorkspaceMaybeAsync(useAsync: true, w =>
+                _workspaceApplicationQueue.AddWork(w =>
                     {
                         var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
                         if (documentIds.IsDefaultOrEmpty || documentIds.Length == 1)
@@ -337,7 +338,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             contextHierarchy, contextProjectName, documentIds.SelectAsArray(d => d.ProjectId));
 
                         w.OnDocumentContextUpdated(documentIds.First(d => d.ProjectId == activeProjectId));
-                    }));
+                    });
             }
 
             private void RefreshContextsForHierarchyPropertyChange(IVsHierarchy hierarchy)
@@ -364,8 +365,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 UnsubscribeFromWatchedHierarchies(moniker);
 
-                _workspaceApplicationQueue.AddWork(() =>
-                    _workspace.ApplyChangeToWorkspaceMaybeAsync(useAsync: true, w =>
+                _workspaceApplicationQueue.AddWork(w =>
                     {
                         var documentIds = w.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
                         if (documentIds.IsDefaultOrEmpty)
@@ -392,7 +392,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                                 }
                             }
                         }
-                    }));
+                    });
             }
 
             /// <summary>
