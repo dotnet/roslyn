@@ -7538,6 +7538,23 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task QuickInfoRecordProperty()
+        {
+            await TestWithOptionsAsync(
+                Options.Regular.WithLanguageVersion(LanguageVersion.CSharp9),
+@"/// <param name=""First"">The person's first name.</param>
+record Person(string First, string Last)
+{
+    void M(Person p)
+    {
+        _ = p.$$First;
+    }
+}",
+    MainDescription("string Person.First { get; init; }"),
+    Documentation("The person's first name."));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         [WorkItem(51615, "https://github.com/dotnet/roslyn/issues/51615")]
         public async Task TestVarPatternOnVarKeyword()
         {

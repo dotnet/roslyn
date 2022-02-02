@@ -106,6 +106,28 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             return -1;
         }
 
+        public bool Any(Func<VirtualChar, bool> predicate)
+        {
+            foreach (var ch in this)
+            {
+                if (predicate(ch))
+                    return true;
+            }
+
+            return false;
+        }
+
+        public bool All(Func<VirtualChar, bool> predicate)
+        {
+            foreach (var ch in this)
+            {
+                if (!predicate(ch))
+                    return false;
+            }
+
+            return true;
+        }
+
         public string CreateString()
         {
             using var _ = PooledStringBuilder.GetInstance(out var builder);

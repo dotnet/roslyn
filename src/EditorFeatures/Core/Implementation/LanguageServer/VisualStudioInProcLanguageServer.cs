@@ -92,5 +92,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             return RequestDispatcher.ExecuteRequestAsync<LinkedEditingRangeParams, LinkedEditingRanges?>(Queue, Methods.TextDocumentLinkedEditingRangeName,
                 renameParams, _clientCapabilities, ClientName, cancellationToken);
         }
+
+        [JsonRpcMethod(VSInternalMethods.TextDocumentInlineCompletionName, UseSingleObjectParameterDeserialization = true)]
+        public Task<VSInternalInlineCompletionList?> GetInlineCompletionsAsync(VSInternalInlineCompletionRequest request, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
+
+            return RequestDispatcher.ExecuteRequestAsync<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList?>(Queue, VSInternalMethods.TextDocumentInlineCompletionName,
+                request, _clientCapabilities, ClientName, cancellationToken);
+        }
     }
 }

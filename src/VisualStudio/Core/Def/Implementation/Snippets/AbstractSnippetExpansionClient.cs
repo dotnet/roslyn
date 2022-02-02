@@ -129,7 +129,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             return _argumentProviders;
         }
 
-        public abstract int GetExpansionFunction(IXMLDOMNode xmlFunctionNode, string bstrFieldName, out IVsExpansionFunction? pFunc);
+        public int GetExpansionFunction(IXMLDOMNode xmlFunctionNode, string bstrFieldName, out IVsExpansionFunction? pFunc)
+        {
+            if (!SnippetFunctionService.TryGetSnippetFunctionInfo(xmlFunctionNode.text, out var snippetFunctionName, out var param))
+            {
+                pFunc = null;
+                return VSConstants.E_INVALIDARG;
+            }
+
+            switch (snippetFunctionName)
+            {
+                case "SimpleTypeName":
+                    pFunc = new SnippetFunctionSimpleTypeName(this, SubjectBuffer, bstrFieldName, param, ThreadingContext);
+                    return VSConstants.S_OK;
+                case "ClassName":
+                    pFunc = new SnippetFunctionClassName(this, SubjectBuffer, bstrFieldName, ThreadingContext);
+                    return VSConstants.S_OK;
+                case "GenerateSwitchCases":
+                    pFunc = new SnippetFunctionGenerateSwitchCases(this, SubjectBuffer, bstrFieldName, param, ThreadingContext);
+                    return VSConstants.S_OK;
+                default:
+                    pFunc = null;
+                    return VSConstants.E_INVALIDARG;
+            }
+        }
         protected abstract ITrackingSpan? InsertEmptyCommentAndGetEndPositionTrackingSpan();
         internal abstract Document AddImports(Document document, AddImportPlacementOptions options, int position, XElement snippetNode, CancellationToken cancellationToken);
         protected abstract string FallbackDefaultLiteral { get; }
@@ -1128,28 +1151,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 }
             }
 
-            return true;
-        }
-
-        protected static bool TryGetSnippetFunctionInfo(
-            IXMLDOMNode xmlFunctionNode,
-            [NotNullWhen(true)] out string? snippetFunctionName,
-            [NotNullWhen(true)] out string? param)
-        {
-            if (xmlFunctionNode.text.IndexOf('(') == -1 ||
-                xmlFunctionNode.text.IndexOf(')') == -1 ||
-                xmlFunctionNode.text.IndexOf(')') < xmlFunctionNode.text.IndexOf('('))
-            {
-                snippetFunctionName = null;
-                param = null;
-                return false;
-            }
-
-            snippetFunctionName = xmlFunctionNode.text.Substring(0, xmlFunctionNode.text.IndexOf('('));
-
-            var paramStart = xmlFunctionNode.text.IndexOf('(') + 1;
-            var paramLength = xmlFunctionNode.text.LastIndexOf(')') - xmlFunctionNode.text.IndexOf('(') - 1;
-            param = xmlFunctionNode.text.Substring(paramStart, paramLength);
             return true;
         }
 

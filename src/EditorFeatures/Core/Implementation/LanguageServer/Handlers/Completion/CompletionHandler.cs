@@ -547,8 +547,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         internal static CompletionOptions GetCompletionOptions(Document document)
         {
-            // Filter out snippets as they are not supported in the LSP client
-            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1139740
             // Filter out unimported types for now as there are two issues with providing them:
             // 1.  LSP client does not currently provide a way to provide detail text on the completion item to show the namespace.
             //     https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1076759
@@ -557,7 +555,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // 3.  LSP client should support completion filters / expanders
             return CompletionOptions.From(document.Project) with
             {
-                SnippetsBehavior = SnippetsRule.NeverInclude,
                 ShowItemsFromUnimportedNamespaces = false,
                 ExpandedCompletionBehavior = ExpandedCompletionMode.NonExpandedItemsOnly
             };

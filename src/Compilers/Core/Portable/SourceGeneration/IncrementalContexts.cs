@@ -17,11 +17,11 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public readonly struct IncrementalGeneratorInitializationContext
     {
-        private readonly ArrayBuilder<ISyntaxInputNode> _syntaxInputBuilder;
+        private readonly ArrayBuilder<SyntaxInputNode> _syntaxInputBuilder;
         private readonly ArrayBuilder<IIncrementalGeneratorOutputNode> _outputNodes;
         private readonly string _sourceExtension;
 
-        internal IncrementalGeneratorInitializationContext(ArrayBuilder<ISyntaxInputNode> syntaxInputBuilder, ArrayBuilder<IIncrementalGeneratorOutputNode> outputNodes, string sourceExtension)
+        internal IncrementalGeneratorInitializationContext(ArrayBuilder<SyntaxInputNode> syntaxInputBuilder, ArrayBuilder<IIncrementalGeneratorOutputNode> outputNodes, string sourceExtension)
         {
             _syntaxInputBuilder = syntaxInputBuilder;
             _outputNodes = outputNodes;

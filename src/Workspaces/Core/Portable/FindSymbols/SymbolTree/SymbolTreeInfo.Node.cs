@@ -97,10 +97,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public readonly bool IsArray;
 
             /// <summary>
-            /// Similar to <see cref="SyntaxTreeIndex.ExtensionMethodInfo"/>, we divide extension methods into simple 
-            /// and complex categories for filtering purpose. Whether a method is simple is determined based on if we 
-            /// can determine it's receiver type easily with a pure text matching. For complex methods, we will need to
-            /// rely on symbol to decide if it's feasible.
+            /// Similar to <see cref="TopLevelSyntaxTreeIndex.ExtensionMethodInfo"/>, we divide extension methods into
+            /// simple and complex categories for filtering purpose. Whether a method is simple is determined based on
+            /// if we can determine it's receiver type easily with a pure text matching. For complex methods, we will
+            /// need to rely on symbol to decide if it's feasible.
             /// 
             /// Simple types include:
             /// - Primitive types
