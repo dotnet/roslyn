@@ -29,7 +29,7 @@ namespace Roslyn.Test.Utilities
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine();
-            string tool = isIlVerify ? "IlVerify" : "PeVerify";
+            string tool = isIlVerify ? "ILVerify" : "PEVerify";
             sb.Append($"{tool} failed for assembly '");
             sb.Append(exePath);
             sb.AppendLine("':");

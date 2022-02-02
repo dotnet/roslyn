@@ -227,31 +227,27 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        private class Resolver : ILVerify.ResolverBase
+        private sealed class Resolver : ILVerify.ResolverBase
         {
-            private readonly Dictionary<string, ImmutableArray<byte>> imagesByName = new Dictionary<string, ImmutableArray<byte>>();
+            private readonly Dictionary<string, ImmutableArray<byte>> _imagesByName = new Dictionary<string, ImmutableArray<byte>>(StringComparer.OrdinalIgnoreCase);
 
             internal Resolver(IList<ModuleData> allModuleData)
             {
                 foreach (var module in allModuleData)
                 {
                     string name = module.SimpleName;
-                    if (imagesByName.ContainsKey(module.SimpleName))
+                    if (_imagesByName.ContainsKey(module.SimpleName))
                     {
                         throw new Exception($"Multiple modules named '{name}' were found");
                     }
-                    imagesByName.Add(name, module.Image);
+                    _imagesByName.Add(name, module.Image);
                 }
             }
 
             protected override PEReader ResolveCore(string simpleName)
             {
-                if (imagesByName.TryGetValue(simpleName, out var image))
+                if (_imagesByName.TryGetValue(simpleName, out var image))
                 {
-                    if (image.IsDefault)
-                    {
-                        throw new Exception($"ILVerify was not able to resolve a module named '{simpleName}' because multiple exist in this compilation");
-                    }
                     return new PEReader(image);
                 }
 
