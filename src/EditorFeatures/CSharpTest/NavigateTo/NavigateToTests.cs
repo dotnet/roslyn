@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -1469,6 +1470,36 @@ testHost, composition, @"class C
             VerifyNavigateToResultItems(
                 new()
                 {
+                    new NavigateToItem("C", NavigateToItemKind.Class, "csharp", null, null, s_emptyExactPatternMatch, null),
+                },
+                await _aggregator.GetItemsAsync("C"));
+        }
+
+        [Fact]
+        public async Task DoIncludeSymbolsFromMultipleSourceGeneratedFiles()
+        {
+            using var workspace = TestWorkspace.CreateCSharp(
+                files: Array.Empty<string>(),
+                sourceGeneratedFiles: new[]
+                {
+                    @"
+public partial class C
+{
+}",
+                    @"
+public partial class C
+{
+}",
+                },
+                composition: EditorTestCompositions.EditorFeatures);
+
+            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener, workspace.GetService<IThreadingContext>());
+            _aggregator = new NavigateToTestAggregator(_provider);
+
+            VerifyNavigateToResultItems(
+                new()
+                {
+                    new NavigateToItem("C", NavigateToItemKind.Class, "csharp", null, null, s_emptyExactPatternMatch, null),
                     new NavigateToItem("C", NavigateToItemKind.Class, "csharp", null, null, s_emptyExactPatternMatch, null),
                 },
                 await _aggregator.GetItemsAsync("C"));

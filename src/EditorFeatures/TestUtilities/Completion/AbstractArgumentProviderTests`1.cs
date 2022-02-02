@@ -3,18 +3,21 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities.Completion
 {
@@ -39,12 +42,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Completion
 
         internal abstract Type GetArgumentProviderType();
 
+        protected abstract (SyntaxNode argumentList, ImmutableArray<SyntaxNode> arguments) GetArgumentList(SyntaxToken token);
+
         protected virtual OptionSet WithChangedOptions(OptionSet options) => options;
 
         private protected async Task VerifyDefaultValueAsync(
             string markup,
             string? expectedDefaultValue,
-            string? previousDefaultValue = null)
+            string? previousDefaultValue = null,
+            OptionsCollection? options = null)
         {
             using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
@@ -52,7 +58,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Completion
             var code = workspaceFixture.Target.Code;
             var position = workspaceFixture.Target.Position;
 
-            workspace.SetOptions(WithChangedOptions(workspace.Options));
+            var changedOptions = WithChangedOptions(workspace.Options);
+            if (options is not null)
+            {
+                foreach (var option in options)
+                    changedOptions = changedOptions.WithChangedOption(option.Key, option.Value);
+            }
+
+            workspace.SetOptions(changedOptions);
 
             var document = workspaceFixture.Target.UpdateDocument(code, SourceCodeKind.Regular);
 
@@ -60,17 +73,59 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Completion
             Assert.IsType(GetArgumentProviderType(), provider);
 
             var root = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
-            var token = root.FindToken(position - 2);
+            var documentOptions = await document.GetOptionsAsync(CancellationToken.None);
             var semanticModel = await document.GetRequiredSemanticModelAsync(CancellationToken.None);
-            var symbolInfo = semanticModel.GetSymbolInfo(token.GetRequiredParent(), CancellationToken.None);
-            var target = symbolInfo.Symbol ?? symbolInfo.CandidateSymbols.Single();
-            Contract.ThrowIfNull(target);
+            var parameter = GetParameterSymbolInfo(workspace, semanticModel, root, position, CancellationToken.None);
+            Contract.ThrowIfNull(parameter);
 
-            var parameter = target.GetParameters().Single();
-            var context = new ArgumentContext(provider, semanticModel, position, parameter, previousDefaultValue, CancellationToken.None);
+            var context = new ArgumentContext(provider, documentOptions, semanticModel, position, parameter, previousDefaultValue, CancellationToken.None);
             await provider.ProvideArgumentAsync(context);
 
             Assert.Equal(expectedDefaultValue, context.DefaultValue);
+        }
+
+        private IParameterSymbol GetParameterSymbolInfo(Workspace workspace, SemanticModel semanticModel, SyntaxNode root, int position, CancellationToken cancellationToken)
+        {
+            var token = root.FindToken(position);
+            var (argumentList, arguments) = GetArgumentList(token);
+            var symbols = semanticModel.GetSymbolInfo(argumentList.GetRequiredParent(), cancellationToken).GetAllSymbols();
+
+            // if more than one symbol is found, filter to only include symbols with a matching number of arguments
+            if (symbols.Length > 1)
+            {
+                symbols = symbols.WhereAsArray(
+                    symbol =>
+                    {
+                        var parameters = symbol.GetParameters();
+                        if (arguments.Length < GetMinimumArgumentCount(parameters))
+                            return false;
+
+                        if (arguments.Length > GetMaximumArgumentCount(parameters))
+                            return false;
+
+                        return true;
+                    });
+            }
+
+            var symbol = symbols.Single();
+            var parameters = symbol.GetParameters();
+
+            var syntaxFacts = workspace.Services.GetLanguageServices(root.Language).GetRequiredService<ISyntaxFactsService>();
+            Contract.ThrowIfTrue(arguments.Any(argument => syntaxFacts.IsNamedArgument(argument)), "Named arguments are not currently supported by this test.");
+            Contract.ThrowIfTrue(parameters.Any(parameter => parameter.IsParams), "'params' parameters are not currently supported by this test.");
+
+            var index = arguments.Any()
+                ? arguments.IndexOf(arguments.Single(argument => argument.FullSpan.Start <= position && argument.FullSpan.End >= position))
+                : 0;
+
+            return parameters[index];
+
+            // Local functions
+            static int GetMinimumArgumentCount(ImmutableArray<IParameterSymbol> parameters)
+                => parameters.Count(parameter => !parameter.IsOptional && !parameter.IsParams);
+
+            static int GetMaximumArgumentCount(ImmutableArray<IParameterSymbol> parameters)
+                => parameters.Any(parameter => parameter.IsParams) ? int.MaxValue : parameters.Length;
         }
     }
 }

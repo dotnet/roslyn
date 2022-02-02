@@ -125,9 +125,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             // CodeGenerationOptions containing before and after
-            var options = new CodeGenerationOptions(
-                contextLocation: semanticModel.SyntaxTree.GetLocation(TextSpan.FromBounds(line.Start, line.Start)),
-                options: await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false));
+            var context = new CodeGenerationContext(
+                contextLocation: semanticModel.SyntaxTree.GetLocation(TextSpan.FromBounds(line.Start, line.Start)));
 
             var generatedMember = await GenerateMemberAsync(overriddenMember, containingType, document, completionItem, cancellationToken).ConfigureAwait(false);
             generatedMember = _annotation.AddAnnotationToSymbol(generatedMember);
@@ -135,15 +134,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             Document? memberContainingDocument = null;
             if (generatedMember.Kind == SymbolKind.Method)
             {
-                memberContainingDocument = await codeGenService.AddMethodAsync(document.Project.Solution, containingType, (IMethodSymbol)generatedMember, options, cancellationToken).ConfigureAwait(false);
+                memberContainingDocument = await codeGenService.AddMethodAsync(document.Project.Solution, containingType, (IMethodSymbol)generatedMember, context, cancellationToken).ConfigureAwait(false);
             }
             else if (generatedMember.Kind == SymbolKind.Property)
             {
-                memberContainingDocument = await codeGenService.AddPropertyAsync(document.Project.Solution, containingType, (IPropertySymbol)generatedMember, options, cancellationToken).ConfigureAwait(false);
+                memberContainingDocument = await codeGenService.AddPropertyAsync(document.Project.Solution, containingType, (IPropertySymbol)generatedMember, context, cancellationToken).ConfigureAwait(false);
             }
             else if (generatedMember.Kind == SymbolKind.Event)
             {
-                memberContainingDocument = await codeGenService.AddEventAsync(document.Project.Solution, containingType, (IEventSymbol)generatedMember, options, cancellationToken).ConfigureAwait(false);
+                memberContainingDocument = await codeGenService.AddEventAsync(document.Project.Solution, containingType, (IEventSymbol)generatedMember, context, cancellationToken).ConfigureAwait(false);
             }
 
             return memberContainingDocument;

@@ -6,13 +6,8 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Roslyn.Utilities;
-
-#if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
-#else
-using Microsoft.CodeAnalysis.Options;
-#endif
 
 namespace Microsoft.CodeAnalysis.AddImports
 {
@@ -29,11 +24,11 @@ namespace Microsoft.CodeAnalysis.AddImports
         /// Given a context location in a provided syntax tree, returns the appropriate container
         /// that <paramref name="import"/> should be added to.
         /// </summary>
-        SyntaxNode GetImportContainer(SyntaxNode root, SyntaxNode? contextLocation, SyntaxNode import, OptionSet options);
+        SyntaxNode GetImportContainer(SyntaxNode root, SyntaxNode? contextLocation, SyntaxNode import, CodeGenerationPreferences preferences);
 
         SyntaxNode AddImports(
             Compilation compilation, SyntaxNode root, SyntaxNode? contextLocation,
-            IEnumerable<SyntaxNode> newImports, SyntaxGenerator generator, OptionSet options,
+            IEnumerable<SyntaxNode> newImports, SyntaxGenerator generator, CodeGenerationPreferences preferences,
             bool allowInHiddenRegions, CancellationToken cancellationToken);
     }
 
@@ -41,11 +36,11 @@ namespace Microsoft.CodeAnalysis.AddImports
     {
         public static SyntaxNode AddImport(
             this IAddImportsService service, Compilation compilation, SyntaxNode root,
-            SyntaxNode contextLocation, SyntaxNode newImport, SyntaxGenerator generator, OptionSet options,
+            SyntaxNode contextLocation, SyntaxNode newImport, SyntaxGenerator generator, CodeGenerationPreferences preferences,
             bool allowInHiddenRegions, CancellationToken cancellationToken)
         {
             return service.AddImports(compilation, root, contextLocation,
-                SpecializedCollections.SingletonEnumerable(newImport), generator, options,
+                SpecializedCollections.SingletonEnumerable(newImport), generator, preferences,
                 allowInHiddenRegions, cancellationToken);
         }
     }

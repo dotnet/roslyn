@@ -12152,18 +12152,24 @@ class Test
             verifier.VerifyIL("Test.M02<T, U>()",
 @"
 {
-  // Code size       24 (0x18)
+  // Code size       39 (0x27)
   .maxstack  2
   .locals init (System.Action V_0)
   IL_0000:  nop
-  IL_0001:  ldnull
-  IL_0002:  constrained. ""T""
-  IL_0008:  ldftn      ""void I1.M01()""
-  IL_000e:  newobj     ""System.Action..ctor(object, System.IntPtr)""
-  IL_0013:  stloc.0
-  IL_0014:  br.s       IL_0016
-  IL_0016:  ldloc.0
-  IL_0017:  ret
+  IL_0001:  ldsfld     ""System.Action Test.<>O.<0>__M01""
+  IL_0006:  dup
+  IL_0007:  brtrue.s   IL_0022
+  IL_0009:  pop
+  IL_000a:  ldnull
+  IL_000b:  constrained. ""T""
+  IL_0011:  ldftn      ""void I1.M01()""
+  IL_0017:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_001c:  dup
+  IL_001d:  stsfld     ""System.Action Test.<>O.<0>__M01""
+  IL_0022:  stloc.0
+  IL_0023:  br.s       IL_0025
+  IL_0025:  ldloc.0
+  IL_0026:  ret
 }
 ");
 
@@ -12176,13 +12182,19 @@ class Test
             verifier.VerifyIL("Test.M02<T, U>()",
 @"
 {
-  // Code size       19 (0x13)
+  // Code size       34 (0x22)
   .maxstack  2
-  IL_0000:  ldnull
-  IL_0001:  constrained. ""T""
-  IL_0007:  ldftn      ""void I1.M01()""
-  IL_000d:  newobj     ""System.Action..ctor(object, System.IntPtr)""
-  IL_0012:  ret
+  IL_0000:  ldsfld     ""System.Action Test.<>O.<0>__M01""
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_0021
+  IL_0008:  pop
+  IL_0009:  ldnull
+  IL_000a:  constrained. ""T""
+  IL_0010:  ldftn      ""void I1.M01()""
+  IL_0016:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_001b:  dup
+  IL_001c:  stsfld     ""System.Action Test.<>O.<0>__M01""
+  IL_0021:  ret
 }
 ");
 

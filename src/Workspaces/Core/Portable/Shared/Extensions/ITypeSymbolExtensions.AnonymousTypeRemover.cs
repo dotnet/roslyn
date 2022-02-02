@@ -45,17 +45,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             public override ITypeSymbol VisitNamedType(INamedTypeSymbol symbol)
             {
-                if (symbol.IsNormalAnonymousType() ||
-                    symbol.IsAnonymousDelegateType())
-                {
+                if (symbol.IsAnonymousType())
                     return _compilation.ObjectType;
-                }
 
                 var arguments = symbol.TypeArguments.Select(t => t.Accept(this)).ToArray();
                 if (arguments.SequenceEqual(symbol.TypeArguments))
-                {
                     return symbol;
-                }
 
                 return symbol.ConstructedFrom.Construct(arguments.ToArray());
             }

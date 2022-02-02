@@ -126,62 +126,68 @@ partial class C
         public void NullCheckedBadSyntax()
         {
             var source = @"
-#pragma warning disable CS8893  
 partial class C
 {
-    void M0(string name !!=null) { }
-    void M1(string name! !=null) { }
-    void M2(string name!!= null) { }
-    void M3(string name ! !=null) { }
-    void M4(string name ! ! =null) { }
-    void M5(string name! ! =null) { }
-    void M6(string name! != null) { }
-    void M7(string name!
-    != null) { }
+    void M0(string name !!=""a"") { }
+    void M1(string name! !=""a"") { }
+    void M2(string name!!= ""a"") { }
+    void M3(string name ! !=""a"") { }
+    void M4(string name ! ! =""a"") { }
+    void M5(string name! ! =""a"") { }
+    void M6(string name! != ""a"") { }
 }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-                // (5,20): warning CS8993: Parameter 'name' is null-checked but is null by default.
-                //     void M0(string name !!=null) { }
-                Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(5, 20),
-                // (6,20): warning CS8993: Parameter 'name' is null-checked but is null by default.
-                //     void M1(string name! !=null) { }
-                Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(6, 20),
-                // (6,26): error CS1525: Invalid expression term '!'
-                //     void M1(string name! !=null) { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(6, 26),
-                // (7,20): warning CS8993: Parameter 'name' is null-checked but is null by default.
-                //     void M2(string name!!= null) { }
-                Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(7, 20),
-                // (8,20): warning CS8993: Parameter 'name' is null-checked but is null by default.
-                //     void M3(string name ! !=null) { }
-                Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(8, 20),
-                // (8,27): error CS1525: Invalid expression term '!'
-                //     void M3(string name ! !=null) { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(8, 27),
-                // (9,20): warning CS8993: Parameter 'name' is null-checked but is null by default.
-                //     void M4(string name ! ! =null) { }
-                Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(9, 20),
-                // (9,27): error CS1525: Invalid expression term '!'
-                //     void M4(string name ! ! =null) { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(9, 27),
-                // (10,20): warning CS8993: Parameter 'name' is null-checked but is null by default.
-                //     void M5(string name! ! =null) { }
-                Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(10, 20),
-                // (10,26): error CS1525: Invalid expression term '!'
-                //     void M5(string name! ! =null) { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(10, 26),
-                // (11,20): warning CS8993: Parameter 'name' is null-checked but is null by default.
-                //     void M6(string name! != null) { }
-                Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(11, 20),
-                // (11,26): error CS1525: Invalid expression term '!'
-                //     void M6(string name! != null) { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(11, 26),
-                // (12,20): warning CS8993: Parameter 'name' is null-checked but is null by default.
-                //     void M7(string name!
-                Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "name").WithArguments("name").WithLocation(12, 20),
-                // (13,5): error CS1525: Invalid expression term '!'
-                //     != null) { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(13, 5));
+                // (5,24): error CS1003: Syntax error, '!!' expected
+                //     void M1(string name! !="a") { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "! !").WithArguments("!!", "!").WithLocation(5, 24),
+                // (7,25): error CS1003: Syntax error, '!!' expected
+                //     void M3(string name ! !="a") { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "! !").WithArguments("!!", "!").WithLocation(7, 25),
+                // (8,25): error CS1003: Syntax error, '!!' expected
+                //     void M4(string name ! ! ="a") { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(8, 25),
+                // (9,24): error CS1003: Syntax error, '!!' expected
+                //     void M5(string name! ! ="a") { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(9, 24),
+                // (10,24): error CS1003: Syntax error, '!!' expected
+                //     void M6(string name! != "a") { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "! !").WithArguments("!!", "!").WithLocation(10, 24)
+                );
+        }
+
+        [Fact]
+        public void CommentTriviaBetweenExclamations()
+        {
+            var source = @"
+partial class C
+{
+    void M0(string name !/*comment1*/
+    /*comment2*/!) { }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (4,25): error CS1003: Syntax error, '!!' expected
+                    //     void M0(string name !/*comment1*/
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(4, 25)
+                    );
+        }
+
+        [Fact]
+        public void CommentTriviaSurroundingNotEquals()
+        {
+            var source = @"
+partial class C
+{
+    void M0(string name
+        /*comment1*/!=/*comment2*/
+        ""a"") { }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview)
+                .VerifyDiagnostics(
+                    // (4,12): error CS1003: Syntax error, '!!' expected
+                    //     void M0(string name
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("!!", "!").WithLocation(4, 12)
+                    );
         }
 
         [Fact]
@@ -497,33 +503,18 @@ class C
     }
 }";
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
-                    // (7,39): error CS1003: Syntax error, '=>' expected
+                    // (7,39): error CS1003: Syntax error, '!!' expected
                     //         Func<string, string> func0 = x!=> x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!=").WithArguments("=>", "!=").WithLocation(7, 39),
-                    // (7,39): error CS1525: Invalid expression term '!='
-                    //         Func<string, string> func0 = x!=> x;
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!=").WithArguments("!=").WithLocation(7, 39),
-                    // (7,41): error CS1525: Invalid expression term '>'
-                    //         Func<string, string> func0 = x!=> x;
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(7, 41),
-                    // (8,40): error CS1003: Syntax error, '=>' expected
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(7, 39),
+                    // (8,40): error CS1003: Syntax error, '!!' expected
                     //         Func<string, string> func1 = x !=> x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!=").WithArguments("=>", "!=").WithLocation(8, 40),
-                    // (8,40): error CS1525: Invalid expression term '!='
-                    //         Func<string, string> func1 = x !=> x;
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!=").WithArguments("!=").WithLocation(8, 40),
-                    // (8,42): error CS1525: Invalid expression term '>'
-                    //         Func<string, string> func1 = x !=> x;
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(8, 42),
-                    // (9,40): error CS1003: Syntax error, '=>' expected
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(8, 40),
+                    // (9,40): error CS1003: Syntax error, '!!' expected
                     //         Func<string, string> func2 = x != > x;
-                    Diagnostic(ErrorCode.ERR_SyntaxError, "!=").WithArguments("=>", "!=").WithLocation(9, 40),
-                    // (9,40): error CS1525: Invalid expression term '!='
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(9, 40),
+                    // (9,41): error CS1003: Syntax error, '=>' expected
                     //         Func<string, string> func2 = x != > x;
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!=").WithArguments("!=").WithLocation(9, 40),
-                    // (9,43): error CS1525: Invalid expression term '>'
-                    //         Func<string, string> func2 = x != > x;
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(9, 43),
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("=>", "=").WithLocation(9, 41),
                     // (10,38): error CS0103: The name 'x' does not exist in the current context
                     //         Func<string, string> func3 = x! => x;
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(10, 38),
@@ -554,15 +545,15 @@ class C
                     // (11,45): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                     //         Func<string, string> func4 = x ! => x;
                     Diagnostic(ErrorCode.ERR_IllegalStatement, "x").WithLocation(11, 45),
-                    // (13,44): error CS1525: Invalid expression term '>'
+                    // (13,42): error CS1003: Syntax error, '=>' expected
                     //         Func<string, string> func6 = x !!= > x;
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(13, 44),
-                    // (15,41): error CS1525: Invalid expression term '!'
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("=>", "=").WithLocation(13, 42),
+                    // (15,39): error CS1003: Syntax error, '!!' expected
                     //         Func<string, string> func8 = x! !=> x;
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(15, 41),
-                    // (16,41): error CS1525: Invalid expression term '!'
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "!").WithArguments("!!", "!").WithLocation(15, 39),
+                    // (16,39): error CS1003: Syntax error, '!!' expected
                     //         Func<string, string> func9 = x! ! => x;
-                    Diagnostic(ErrorCode.ERR_InvalidExprTerm, "!").WithArguments("!").WithLocation(16, 41));
+                    Diagnostic(ErrorCode.ERR_SyntaxError, "! ").WithArguments("!!", "!").WithLocation(16, 39));
         }
 
         [Fact]
@@ -689,9 +680,9 @@ class C
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics(
-                    // (5,31): error CS8720: By-reference parameter 'x' cannot be null-checked.
+                    // (5,31): error CS8994: 'out' parameter 'x' cannot be null-checked.
                     //     public void M(out string x!!)
-                    Diagnostic(ErrorCode.ERR_NullCheckingOnByRefParameter, "!!").WithArguments("x").WithLocation(5, 31));
+                    Diagnostic(ErrorCode.ERR_NullCheckingOnOutParameter, "!!").WithArguments("x").WithLocation(5, 31));
         }
 
         [Fact]
@@ -707,10 +698,7 @@ class C
     }
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics(
-                    // (5,31): error CS8720: By-reference parameter 'x' cannot be null-checked.
-                    //     public void M(ref string x!!)
-                    Diagnostic(ErrorCode.ERR_NullCheckingOnByRefParameter, "!!").WithArguments("x").WithLocation(5, 31));
+            compilation.VerifyDiagnostics();
         }
 
         [Fact]
@@ -723,10 +711,7 @@ class C
     public void M(in string x!!) { }
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            compilation.VerifyDiagnostics(
-                    // (5,30): error CS8720: By-reference parameter 'x' cannot be null-checked.
-                    //     public void M(in string x!!) { }
-                    Diagnostic(ErrorCode.ERR_NullCheckingOnByRefParameter, "!!").WithArguments("x").WithLocation(5, 30));
+            compilation.VerifyDiagnostics();
         }
 
         [Fact]
