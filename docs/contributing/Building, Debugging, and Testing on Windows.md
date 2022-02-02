@@ -182,6 +182,17 @@ Run `build.cmd -testIOperation` which sets the `ROSLYN_TEST_IOPERATION` environm
 For running those tests in an IDE, the easiest is to find the `//#define ROSLYN_TEST_IOPERATION` directive and uncomment it.
 See more details in the [IOperation test hook](https://github.com/dotnet/roslyn/blob/main/docs/compilers/IOperation%20Test%20Hook.md) doc.
 
+### Running the PublicAPI fixer
+
+1. Install `dotnet-format` as a global tool. It does ship as part of the SDK, but a separate version can be installed as a global tool and invoked with `dotnet-format {options}`.
+`C:\Source\roslyn> dotnet tool install -g dotnet-format --version "6.*" --add-source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet6/nuget/v3/index.json`
+2. Restore and build `Compilers.sln`. This is necessary to ensure the source generator project is built and we can load the generator assembly when running `dotnet-format`.
+`C:\Source\roslyn> .\restore.cmd`
+`C:\Source\roslyn> .\build.cmd`
+3. Invoke the `dotnet-format` global tool. Running only the analyzers subcommand and fixing only the "missing Public API signature" diagnostic. We must also pass the `--include-generated` flag to include source generated documents in the analysis.
+`C:\Source\roslyn> cd ..`
+`C:\Source> dotnet-format analyzers .\roslyn\Compilers.sln --diagnostics=RS0016 --no-restore --include-generated -v diag`
+
 ## Contributing
 
 Please see [Contributing Code](https://github.com/dotnet/roslyn/blob/main/CONTRIBUTING.md) for details on contributing changes back to the code.

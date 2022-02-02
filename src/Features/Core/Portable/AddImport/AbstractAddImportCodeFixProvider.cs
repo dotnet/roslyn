@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -57,12 +58,14 @@ namespace Microsoft.CodeAnalysis.AddImport
             var addImportService = document.GetLanguageService<IAddImportFeatureService>();
 
             var solution = document.Project.Solution;
-            var options = solution.Options;
 
-            var searchReferenceAssemblies = options.GetOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, document.Project.Language);
-            var searchNuGetPackages = options.GetOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, document.Project.Language);
+            var searchNuGetPackages = solution.Options.GetOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, document.Project.Language);
 
-            var symbolSearchService = searchReferenceAssemblies || searchNuGetPackages
+            var options = new AddImportOptions(
+                context.Options.SearchReferenceAssemblies,
+                context.Options.HideAdvancedMembers);
+
+            var symbolSearchService = options.SearchReferenceAssemblies || searchNuGetPackages
                 ? _symbolSearchService ?? solution.Workspace.Services.GetService<ISymbolSearchService>()
                 : null;
 
@@ -72,7 +75,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 : ImmutableArray<PackageSource>.Empty;
 
             var fixesForDiagnostic = await addImportService.GetFixesForDiagnosticsAsync(
-                document, span, diagnostics, MaxResults, symbolSearchService, searchReferenceAssemblies, packageSources, cancellationToken).ConfigureAwait(false);
+                document, span, diagnostics, MaxResults, symbolSearchService, options, packageSources, cancellationToken).ConfigureAwait(false);
 
             foreach (var (diagnostic, fixes) in fixesForDiagnostic)
             {

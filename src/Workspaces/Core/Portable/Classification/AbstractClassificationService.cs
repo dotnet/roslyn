@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ReassignedVariable;
 using Microsoft.CodeAnalysis.Remote;
@@ -45,6 +46,8 @@ namespace Microsoft.CodeAnalysis.Classification
                 return;
             }
 
+            var database = document.Project.Solution.Options.GetPersistentStorageDatabase();
+
             var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
@@ -53,14 +56,14 @@ namespace Microsoft.CodeAnalysis.Classification
                 // service.GetSemanticClassificationsAsync below) as we want to try to read in the cached
                 // classifications without doing any syncing to the OOP process.
                 var isFullyLoaded = IsFullyLoaded(document, cancellationToken);
-                if (await TryGetCachedClassificationsAsync(document, textSpan, result, client, isFullyLoaded, cancellationToken).ConfigureAwait(false))
+                if (await TryGetCachedClassificationsAsync(document, textSpan, result, client, database, isFullyLoaded, cancellationToken).ConfigureAwait(false))
                     return;
 
                 // Call the project overload.  Semantic classification only needs the current project's information
                 // to classify properly.
                 var classifiedSpans = await client.TryInvokeAsync<IRemoteSemanticClassificationService, SerializableClassifiedSpans>(
                    document.Project,
-                   (service, solutionInfo, cancellationToken) => service.GetSemanticClassificationsAsync(solutionInfo, document.Id, textSpan, options, isFullyLoaded, cancellationToken),
+                   (service, solutionInfo, cancellationToken) => service.GetSemanticClassificationsAsync(solutionInfo, document.Id, textSpan, options, database, isFullyLoaded, cancellationToken),
                    cancellationToken).ConfigureAwait(false);
 
                 // if the remote call fails do nothing (error has already been reported)
@@ -90,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Classification
 
         private static async Task<bool> TryGetCachedClassificationsAsync(
             Document document, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result,
-            RemoteHostClient client, bool isFullyLoaded, CancellationToken cancellationToken)
+            RemoteHostClient client, StorageDatabase database, bool isFullyLoaded, CancellationToken cancellationToken)
         {
             // Only try to get cached classifications if we're not fully loaded yet.
             if (isFullyLoaded)
@@ -98,7 +101,6 @@ namespace Microsoft.CodeAnalysis.Classification
 
             var (documentKey, checksum) = await SemanticClassificationCacheUtilities.GetDocumentKeyAndChecksumAsync(
                 document, cancellationToken).ConfigureAwait(false);
-            var database = document.Project.Solution.Options.GetPersistentStorageDatabase();
 
             var cachedSpans = await client.TryInvokeAsync<IRemoteSemanticClassificationService, SerializableClassifiedSpans?>(
                document.Project,

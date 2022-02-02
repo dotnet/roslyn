@@ -5250,21 +5250,12 @@ class Program
                 // (7,13): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
                 //         d = TypedReference () => throw null;
                 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "TypedReference").WithArguments("System.TypedReference").WithLocation(7, 13),
-                // (7,13): error CS8917: The delegate type could not be inferred.
-                //         d = TypedReference () => throw null;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "TypedReference () => throw null").WithLocation(7, 13),
                 // (8,13): error CS1599: The return type of a method, delegate, or function pointer cannot be 'RuntimeArgumentHandle'
                 //         d = RuntimeArgumentHandle () => throw null;
                 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "RuntimeArgumentHandle").WithArguments("System.RuntimeArgumentHandle").WithLocation(8, 13),
-                // (8,13): error CS8917: The delegate type could not be inferred.
-                //         d = RuntimeArgumentHandle () => throw null;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "RuntimeArgumentHandle () => throw null").WithLocation(8, 13),
                 // (9,13): error CS1599: The return type of a method, delegate, or function pointer cannot be 'ArgIterator'
                 //         d = ArgIterator () => throw null;
-                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator").WithLocation(9, 13),
-                // (9,13): error CS8917: The delegate type could not be inferred.
-                //         d = ArgIterator () => throw null;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "ArgIterator () => throw null").WithLocation(9, 13));
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator").WithLocation(9, 13));
         }
 
         [Fact]

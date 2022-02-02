@@ -427,8 +427,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         string GetDisplayName(SyntaxNode? node, DisplayNameOptions options, string? rootNamespace = null);
 
         // Violation.  This is a feature level API.  How 'position' relates to 'containment' is not defined.
-        SyntaxNode? GetContainingTypeDeclaration(SyntaxNode? root, int position);
-        SyntaxNode? GetContainingMemberDeclaration(SyntaxNode? root, int position, bool useFullSpan = true);
+        SyntaxNode? GetContainingTypeDeclaration(SyntaxNode root, int position);
+        SyntaxNode? GetContainingMemberDeclaration(SyntaxNode root, int position, bool useFullSpan = true);
         SyntaxNode? GetContainingVariableDeclaratorOfFieldDeclaration(SyntaxNode? node);
 
         [return: NotNullIfNotNull("node")]

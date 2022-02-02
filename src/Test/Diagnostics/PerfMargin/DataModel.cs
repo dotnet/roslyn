@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Hosting.Diagnostics.PerfMargin
 {
@@ -15,24 +14,23 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
     {
         public ActivityLevel RootNode { get; }
 
-        private readonly ActivityLevel[] _activities;
+        private readonly ImmutableArray<ActivityLevel?> _activities;
 
         public DataModel()
         {
-            var functions = from f in typeof(FunctionId).GetFields()
-                            where !f.IsSpecialName
-                            select f;
+            var fields = from field in typeof(FunctionId).GetFields()
+                         where !field.IsSpecialName
+                         select field;
 
-            var count = functions.Count();
-            _activities = new ActivityLevel[count];
+            var builder = new ArrayBuilder<ActivityLevel?>();
 
             var features = new Dictionary<string, ActivityLevel>();
             var root = new ActivityLevel("All");
 
-            foreach (var function in functions)
+            foreach (var field in fields)
             {
-                var value = (int)function.GetRawConstantValue();
-                var name = function.Name;
+                var value = (int)field.GetRawConstantValue();
+                var name = field.Name;
                 var featureNames = name.Split('_');
                 var featureName = featureNames.Length > 1 ? featureNames[0] : "Uncategorized";
 
@@ -42,21 +40,18 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
                     features[featureName] = parent;
                 }
 
-                _activities[value - 1] = new ActivityLevel(name, parent, createChildList: false);
+                builder.SetItem(value, new ActivityLevel(name, parent, createChildList: false));
             }
 
+            _activities = builder.ToImmutable();
             root.SortChildren();
-            this.RootNode = root;
+            RootNode = root;
         }
 
         public void BlockStart(FunctionId functionId)
-        {
-            _activities[(int)functionId - 1].Start();
-        }
+            => _activities[(int)functionId]!.Start();
 
         public void BlockDisposed(FunctionId functionId)
-        {
-            _activities[(int)functionId - 1].Stop();
-        }
+            => _activities[(int)functionId]!.Stop();
     }
 }

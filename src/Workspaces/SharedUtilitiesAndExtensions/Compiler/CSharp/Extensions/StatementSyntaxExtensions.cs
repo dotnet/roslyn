@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (statement != null)
             {
                 var previousToken = statement.GetFirstToken().GetPreviousToken();
-                return previousToken.GetAncestors<StatementSyntax>().FirstOrDefault(s => s.Parent == statement.Parent);
+                return previousToken.GetAncestors<StatementSyntax>().FirstOrDefault(s => AreSiblingStatements(s, statement));
             }
 
             return null;
@@ -29,16 +29,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (statement != null)
             {
                 var nextToken = statement.GetLastToken().GetNextToken();
-                return nextToken.GetAncestors<StatementSyntax>().FirstOrDefault(s => s.Parent == statement.Parent || AreInSiblingTopLevelStatements(s, statement));
+                return nextToken.GetAncestors<StatementSyntax>().FirstOrDefault(s => AreSiblingStatements(s, statement));
             }
 
             return null;
+        }
 
-            static bool AreInSiblingTopLevelStatements(StatementSyntax one, StatementSyntax other)
-            {
-                return one.IsParentKind(SyntaxKind.GlobalStatement) &&
-                    other.IsParentKind(SyntaxKind.GlobalStatement);
-            }
+        private static bool AreSiblingStatements(StatementSyntax first, StatementSyntax second)
+        {
+            if (first.Parent.IsKind(SyntaxKind.GlobalStatement))
+                return second.Parent.IsKind(SyntaxKind.GlobalStatement);
+            else
+                return first.Parent == second.Parent;
         }
     }
 }

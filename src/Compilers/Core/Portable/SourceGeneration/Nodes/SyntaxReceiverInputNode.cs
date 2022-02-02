@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis
                             lastElapsedTime = stopwatch.Elapsed;
                         }
                     }
-                    catch (Exception e)
+                    catch (Exception e) when (!ExceptionUtilities.IsCurrentOperationBeingCancelled(e, cancellationToken))
                     {
                         throw new UserFunctionException(e);
                     }

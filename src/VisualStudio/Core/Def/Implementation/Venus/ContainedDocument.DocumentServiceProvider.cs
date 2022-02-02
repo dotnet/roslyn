@@ -165,14 +165,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                         return null;
                     }
 
-                    var classifiedSpansOnContent = await GetClassifiedSpansOnContentAsync(document, roslynSnapshot, contentSpanOnPrimarySnapshot.Value, cancellationToken).ConfigureAwait(false);
+                    var options = ClassificationOptions.From(document.Project);
+                    var classifiedSpansOnContent = await GetClassifiedSpansOnContentAsync(document, roslynSnapshot, contentSpanOnPrimarySnapshot.Value, options, cancellationToken).ConfigureAwait(false);
 
                     // the default implementation has no idea how to classify the primary snapshot
                     return new ExcerptResult(content, spanOnContent, classifiedSpansOnContent, document, span);
                 }
 
                 private static async Task<ImmutableArray<ClassifiedSpan>> GetClassifiedSpansOnContentAsync(
-                    Document document, ITextSnapshot roslynSnapshot, SnapshotSpan contentSpanOnPrimarySnapshot, CancellationToken cancellationToken)
+                    Document document, ITextSnapshot roslynSnapshot, SnapshotSpan contentSpanOnPrimarySnapshot, ClassificationOptions options, CancellationToken cancellationToken)
                 {
                     var primarySnapshot = (IProjectionSnapshot)contentSpanOnPrimarySnapshot.Snapshot;
 
@@ -197,7 +198,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                         // we don't have guarantee that pirmary snapshot is from same snapshot as roslyn snapshot. make sure
                         // we map it to right snapshot
                         var fixedUpSpan = roslynSpan.TranslateTo(roslynSnapshot, SpanTrackingMode.EdgeExclusive);
-                        var classifiedSpans = await ClassifierHelper.GetClassifiedSpansAsync(document, fixedUpSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
+                        var classifiedSpans = await ClassifierHelper.GetClassifiedSpansAsync(document, fixedUpSpan.Span.ToTextSpan(), options, cancellationToken).ConfigureAwait(false);
                         if (classifiedSpans.IsDefault)
                         {
                             continue;

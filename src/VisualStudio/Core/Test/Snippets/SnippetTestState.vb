@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting
@@ -219,7 +220,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                 End Get
             End Property
 
-            Friend Overrides Function AddImports(document As Document, options As OptionSet, position As Integer, snippetNode As XElement, allowInHiddenRegions As Boolean, cancellationToken As CancellationToken) As Document
+            Friend Overrides Function AddImports(document As Document, preferences As CodeGenerationPreferences, position As Integer, snippetNode As XElement, allowInHiddenRegions As Boolean, cancellationToken As CancellationToken) As Document
                 Return document
             End Function
         End Class

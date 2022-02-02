@@ -106,7 +106,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             Return False
         End Function
 
-        Private Sub DeleteQuestionMark(subjectBuffer As ITextBuffer, caretPosition As Integer)
+        Private Shared Sub DeleteQuestionMark(subjectBuffer As ITextBuffer, caretPosition As Integer)
             Dim currentSnapshot = subjectBuffer.CurrentSnapshot
             Dim document = currentSnapshot.GetOpenDocumentInCurrentContextWithChanges()
             If document IsNot Nothing Then

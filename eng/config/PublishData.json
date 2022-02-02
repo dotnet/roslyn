@@ -210,9 +210,10 @@
       "channels": [],
       "vsBranch": "rel/d17.1",
       "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.1p2]"
+      "insertionCreateDraftPR": false,
+      "insertionTitlePrefix": "[d17.1p3]"
     },
-    "main-vs-deps": {
+    "main": {
       "nugetKind": [
         "Shipping",
         "NonShipping"
@@ -223,19 +224,7 @@
       "vsBranch": "main",
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.1p3]"
-    },
-    "main": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "version": "4.1.*",
-      "packageFeeds": "arcade",
-      "channels": [],
-      "vsBranch": "main",
-      "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[Validation]"
+      "insertionTitlePrefix": "[d17.2p1]"
     },
     "features/NullableReferenceTypes": {
       "nugetKind": "PerBuildPreRelease",

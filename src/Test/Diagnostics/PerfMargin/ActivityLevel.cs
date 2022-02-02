@@ -6,11 +6,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Internal.Log;
-using Roslyn.Utilities;
 
 namespace Roslyn.Hosting.Diagnostics.PerfMargin
 {
@@ -21,7 +17,7 @@ namespace Roslyn.Hosting.Diagnostics.PerfMargin
     /// middle of an operation.  Features can be grouped into a parent ActivityLevel
     /// which is active when any of its children are active.
     /// </summary>
-    internal class ActivityLevel
+    internal sealed class ActivityLevel
     {
         private int _isActive;
         private readonly List<ActivityLevel> _children;

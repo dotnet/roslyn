@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 
             // TODO: set SmartIndent to textView.Options (https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1412138)
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(FormattingBehaviorOptions.SmartIndent, LanguageNames.CSharp, indentStyle)));
+                .WithChangedOption(AutoFormattingOptions.Metadata.SmartIndent, LanguageNames.CSharp, indentStyle)));
 
             if (useTabs && expectedOutputMarkup != null)
             {

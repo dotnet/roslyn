@@ -618,7 +618,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.CallerArgumentExpressionAttribute))
                 {
                     var index = -1;
-                    var (attributeData, _) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out _);
+                    var (attributeData, _) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, beforeAttributePartBound: null, afterAttributePartBound: null, out _);
                     if (!attributeData.HasErrors)
                     {
                         var constructorArguments = attributeData.CommonConstructorArguments;
@@ -651,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 description.Equals(AttributeDescription.DateTimeConstantAttribute));
 
             bool hasAnyDiagnostics;
-            var (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
+            var (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, beforeAttributePartBound: null, afterAttributePartBound: null, out hasAnyDiagnostics);
             ConstantValue value;
             if (attributeData.HasErrors)
             {
@@ -1197,6 +1197,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attributeIndex == 1)
             {
+                if (constructorArgument.IsNull)
+                {
+                    setInterpolatedStringHandlerAttributeError(ref arguments);
+                    // null is not a valid parameter name. To get access to the receiver of an instance method, use the empty string as the parameter name.
+                    diagnostics.Add(ErrorCode.ERR_NullInvalidInterpolatedStringHandlerArgumentName, arguments.AttributeSyntaxOpt!.Location);
+                    return;
+                }
+
                 bool hadError = false;
                 parameters = ArrayBuilder<ParameterSymbol?>.GetInstance(constructorArgument.Values.Length);
                 var ordinalsBuilder = ArrayBuilder<int>.GetInstance(constructorArgument.Values.Length);

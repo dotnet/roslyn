@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 telemetryService.InitializeTelemetrySession(telemetrySession);
                 telemetryService.RegisterUnexpectedExceptionLogger(TraceLogger);
-                WatsonReporter.InitializeFatalErrorHandlers();
+                FaultReporter.InitializeFatalErrorHandlers();
 
                 // log telemetry that service hub started
                 RoslynLogger.Log(FunctionId.RemoteHost_Connect, KeyValueLogMessage.Create(m =>
@@ -108,6 +108,20 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 RoslynLogger.SetLogger(AggregateLogger.Remove(RoslynLogger.GetLogger(), l => l is T));
             }
+        }
+
+        /// <summary>
+        /// Remote API.
+        /// </summary>
+        public ValueTask SetSyntaxTreeConfigurationOptionsAsync(bool disableRecoverableTrees, bool disableProjectCacheService, CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(cancellationToken =>
+            {
+                var service = (RemoteSyntaxTreeConfigurationService)GetWorkspaceServices().GetRequiredService<ISyntaxTreeConfigurationService>();
+                service.SetOptions(disableRecoverableTrees, disableProjectCacheService);
+
+                return ValueTaskFactory.CompletedTask;
+            }, cancellationToken);
         }
     }
 }

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         /// <summary>
         /// give a way to explicitly set/replace the logger
         /// </summary>
-        public static ILogger? SetLogger(ILogger logger)
+        public static ILogger? SetLogger(ILogger? logger)
         {
             // we don't care what was there already, just replace it explicitly
             return Interlocked.Exchange(ref s_currentLogger, logger);

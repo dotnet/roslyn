@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 project.Properties.Item("OptionInfer").Value = convertedValue;
             });
 
-        private EnvDTE.Project GetProject(string nameOrFileName)
+        private static EnvDTE.Project GetProject(string nameOrFileName)
             => GetDTE().Solution.Projects.OfType<EnvDTE.Project>().First(p =>
                string.Compare(p.FileName, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0
                 || string.Compare(p.Name, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0);

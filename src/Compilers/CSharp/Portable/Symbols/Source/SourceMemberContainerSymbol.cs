@@ -449,12 +449,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            if (name == SyntaxFacts.GetText(SyntaxKind.RecordKeyword))
+            if (name == SyntaxFacts.GetText(SyntaxKind.RecordKeyword) && compilation.LanguageVersion >= MessageID.IDS_FeatureRecords.RequiredVersion())
             {
-                if (compilation.LanguageVersion >= MessageID.IDS_FeatureRecords.RequiredVersion())
-                {
-                    diagnostics.Add(ErrorCode.WRN_RecordNamedDisallowed, location, name);
-                }
+                diagnostics.Add(ErrorCode.WRN_RecordNamedDisallowed, location);
             }
             else if (IsReservedTypeName(name))
             {
@@ -3527,13 +3524,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
+            bool hasInitializers = false;
             foreach (var initializers in builder.InstanceInitializers)
             {
                 foreach (FieldOrPropertyInitializer initializer in initializers)
                 {
+                    hasInitializers = true;
                     var symbol = initializer.FieldOpt.AssociatedSymbol ?? initializer.FieldOpt;
                     MessageID.IDS_FeatureStructFieldInitializers.CheckFeatureAvailability(diagnostics, symbol.DeclaringCompilation, symbol.Locations[0]);
                 }
+            }
+
+            if (hasInitializers && !builder.NonTypeMembers.Any(member => member is MethodSymbol { MethodKind: MethodKind.Constructor }))
+            {
+                diagnostics.Add(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, Locations[0]);
             }
         }
 
@@ -4761,8 +4765,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return this; }
         }
-
-        internal sealed override bool HasFieldInitializers() => InstanceInitializers.Length > 0;
 
         internal class SynthesizedExplicitImplementations
         {

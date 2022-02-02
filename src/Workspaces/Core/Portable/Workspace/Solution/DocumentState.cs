@@ -43,6 +43,8 @@ namespace Microsoft.CodeAnalysis
             ValueSource<TreeAndVersion>? treeSource)
             : base(solutionServices, documentServiceProvider, attributes, sourceText, textSource)
         {
+            Contract.ThrowIfFalse(_options is null == _treeSource is null);
+
             _languageServices = languageServices;
             _options = options;
             _treeSource = treeSource;
@@ -227,7 +229,7 @@ namespace Microsoft.CodeAnalysis
                     return IncrementallyParse(newTextAndVersion, oldTreeAndVersion, cancellationToken);
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -248,7 +250,7 @@ namespace Microsoft.CodeAnalysis
                     return IncrementallyParse(newTextAndVersion, oldTreeAndVersion, cancellationToken);
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -735,8 +737,8 @@ namespace Microsoft.CodeAnalysis
             var oldTextContent = oldText?.ToString();
 
             // we time to time see (incremental) parsing bug where text <-> tree round tripping is broken.
-            // send NFW for those cases
-            FatalError.ReportAndCatch(new Exception($"tree and text has different length {newTree.Length} vs {newText.Length}"));
+            // send NFW for those cases, since we'll be in a very broken state at that point
+            FatalError.ReportAndCatch(new Exception($"tree and text has different length {newTree.Length} vs {newText.Length}"), ErrorSeverity.Critical);
 
             // this will make sure that these variables are not thrown away in the dump
             GC.KeepAlive(newTreeContent);

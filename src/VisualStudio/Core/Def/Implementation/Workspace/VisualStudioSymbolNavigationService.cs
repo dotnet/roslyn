@@ -115,14 +115,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             // Generate new source or retrieve existing source for the symbol in question
+            return ThreadingContext.JoinableTaskFactory.Run(() => TryNavigateToMetadataAsync(project, symbol, options, cancellationToken));
+        }
+
+        private async Task<bool> TryNavigateToMetadataAsync(Project project, ISymbol symbol, OptionSet options, CancellationToken cancellationToken)
+        {
             var allowDecompilation = _globalOptions.GetOption(FeatureOnOffOptions.NavigateToDecompiledSources);
-            var result = _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, allowDecompilation, cancellationToken).WaitAndGetResult(cancellationToken);
+
+            var result = await _metadataAsSourceFileService.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, allowDecompilation, cancellationToken).ConfigureAwait(false);
+
+            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var vsRunningDocumentTable4 = IServiceProviderExtensions.GetService<SVsRunningDocumentTable, IVsRunningDocumentTable4>(_serviceProvider);
             var fileAlreadyOpen = vsRunningDocumentTable4.IsMonikerValid(result.FilePath);
 
             var openDocumentService = IServiceProviderExtensions.GetService<SVsUIShellOpenDocument, IVsUIShellOpenDocument>(_serviceProvider);
-            openDocumentService.OpenDocumentViaProject(result.FilePath, VSConstants.LOGVIEWID.TextView_guid, out var localServiceProvider, out var hierarchy, out var itemId, out var windowFrame);
+            openDocumentService.OpenDocumentViaProject(result.FilePath, VSConstants.LOGVIEWID.TextView_guid, out _, out _, out _, out var windowFrame);
 
             var documentCookie = vsRunningDocumentTable4.GetDocumentCookie(result.FilePath);
 

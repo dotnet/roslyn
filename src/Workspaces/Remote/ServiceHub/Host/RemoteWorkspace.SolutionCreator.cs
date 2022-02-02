@@ -150,6 +150,31 @@ namespace Microsoft.CodeAnalysis.Remote
                     }
                 }
 
+                // remove all project references from projects that changed. this ensures exceptions will not occur for
+                // cyclic references during an incremental update.
+                foreach (var (projectId, newProjectChecksums) in newMap)
+                {
+                    if (!oldMap.TryGetValue(projectId, out var oldProjectChecksums))
+                    {
+                        continue;
+                    }
+
+                    if (oldProjectChecksums.ProjectReferences.Checksum != newProjectChecksums.ProjectReferences.Checksum)
+                    {
+                        solution = solution.WithProjectReferences(projectId, SpecializedCollections.EmptyEnumerable<ProjectReference>());
+                    }
+                }
+
+                // removed project
+                foreach (var (projectId, _) in oldMap)
+                {
+                    if (!newMap.ContainsKey(projectId))
+                    {
+                        // we have a project removed
+                        solution = solution.RemoveProject(projectId);
+                    }
+                }
+
                 // changed project
                 foreach (var (projectId, newProjectChecksums) in newMap)
                 {
@@ -161,16 +186,6 @@ namespace Microsoft.CodeAnalysis.Remote
                     Contract.ThrowIfTrue(oldProjectChecksums.Checksum == newProjectChecksums.Checksum);
 
                     solution = await UpdateProjectAsync(solution.GetProject(projectId)!, oldProjectChecksums, newProjectChecksums).ConfigureAwait(false);
-                }
-
-                // removed project
-                foreach (var (projectId, _) in oldMap)
-                {
-                    if (!newMap.ContainsKey(projectId))
-                    {
-                        // we have a project removed
-                        solution = solution.RemoveProject(projectId);
-                    }
                 }
 
                 return solution;

@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         /// <param name="trailing">If false, trailing trivia will not be added</param>
         public void WriteTo(StringBuilder sb, bool leading, bool trailing)
         {
-            if (leading)
+            if (leading && !LeadingTrivia.IsDefault)
             {
                 foreach (var trivia in LeadingTrivia)
                 {
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 
             sb.Append(VirtualChars.CreateString());
 
-            if (trailing)
+            if (trailing && !TrailingTrivia.IsDefault)
             {
                 foreach (var trivia in TrailingTrivia)
                 {

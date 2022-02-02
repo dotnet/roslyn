@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
@@ -576,6 +574,319 @@ class Bar : IGoo
 }";
 
             await VerifyProviderCommitAsync(markup, "this[K key, V value]", expected, '[');
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("ref")]
+        [InlineData("in")]
+        [InlineData("out")]
+        public async Task TestWithRefKind(string refKind)
+        {
+            var markup = $@"
+interface I
+{{
+    void M({refKind} string s);
+}}
+
+class C : I
+{{
+    void I.$$
+}}
+";
+
+            var expected = $@"
+interface I
+{{
+    void M({refKind} string s);
+}}
+
+class C : I
+{{
+    void I.M({refKind} string s)
+}}
+";
+
+            await VerifyProviderCommitAsync(markup, $"M({refKind} string s)", expected, '\t');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(53924, "https://github.com/dotnet/roslyn/issues/53924")]
+        public async Task TestStaticAbstractInterfaceMember()
+        {
+            var markup = @"
+interface I2<T> where T : I2<T>
+{
+    abstract static implicit operator int(T x);
+}
+
+class Test2 : I2<Test2>
+{
+    static implicit I2<Test2>.$$
+}
+";
+
+            var expected = @"
+interface I2<T> where T : I2<T>
+{
+    abstract static implicit operator int(T x);
+}
+
+class Test2 : I2<Test2>
+{
+    static implicit I2<Test2>.operator int(Test2 x)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "operator int(Test2 x)", expected, '\t');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(53924, "https://github.com/dotnet/roslyn/issues/53924")]
+        public async Task TestStaticAbstractInterfaceMember_TrueOperator()
+        {
+            var markup = @"
+interface I<T> where T : I<T>
+{
+    abstract static bool operator true(T x);
+    abstract static bool operator false(T x);
+}
+
+class C : I<C>
+{
+    static bool I<C>.$$
+}
+";
+
+            var expected = @"
+interface I<T> where T : I<T>
+{
+    abstract static bool operator true(T x);
+    abstract static bool operator false(T x);
+}
+
+class C : I<C>
+{
+    static bool I<C>.operator true(C x)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "operator true(C x)", expected, '\t');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(53924, "https://github.com/dotnet/roslyn/issues/53924")]
+        public async Task TestStaticAbstractInterfaceMember_UnaryPlusOperator()
+        {
+            var markup = @"
+interface I<T> where T : I<T>
+{
+    abstract static T operator +(T x);
+}
+
+class C : I<C>
+{
+    static C I<C>.$$
+}
+";
+
+            var expected = @"
+interface I<T> where T : I<T>
+{
+    abstract static T operator +(T x);
+}
+
+class C : I<C>
+{
+    static C I<C>.operator +(C x)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "operator +(C x)", expected, '\t');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(53924, "https://github.com/dotnet/roslyn/issues/53924")]
+        public async Task TestStaticAbstractInterfaceMember_BinaryPlusOperator()
+        {
+            var markup = @"
+interface I<T> where T : I<T>
+{
+    abstract static T operator +(T x, T y);
+}
+
+class C : I<C>
+{
+    static C I<C>.$$
+}
+";
+
+            var expected = @"
+interface I<T> where T : I<T>
+{
+    abstract static T operator +(T x, T y);
+}
+
+class C : I<C>
+{
+    static C I<C>.operator +(C x, C y)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "operator +(C x, C y)", expected, '\t');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestWithParamsParameter()
+        {
+            var markup = @"
+interface I
+{
+    void M(params string[] args);
+}
+
+class C : I
+{
+    void I.$$
+}
+";
+
+            var expected = @"
+interface I
+{
+    void M(params string[] args);
+}
+
+class C : I
+{
+    void I.M(params string[] args)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "M(params string[] args)", expected, '\t');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestWithNullable()
+        {
+            var markup = @"
+#nullable enable
+
+interface I
+{
+    void M<T>(T? x);
+}
+
+class C : I
+{
+    void I.$$
+}
+";
+
+            var expected = @"
+#nullable enable
+
+interface I
+{
+    void M<T>(T? x);
+}
+
+class C : I
+{
+    void I.M<T>(T? x)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "M<T>(T? x)", expected, '\t');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestEscapeIdentifier()
+        {
+            var markup = @"
+interface I
+{
+    void M(string @class);
+}
+
+class C : I
+{
+    void I.$$
+}
+";
+
+            var expected = @"
+interface I
+{
+    void M(string @class);
+}
+
+class C : I
+{
+    void I.M(string @class)
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "M(string @class)", expected, '\t');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestEscapeIdentifier2()
+        {
+            var markup = @"
+interface I
+{
+    void M<@class>();
+}
+
+class C : I
+{
+    void I.$$
+}
+";
+
+            var expected = @"
+interface I
+{
+    void M<@class>();
+}
+
+class C : I
+{
+    void I.M<@class>()
+}
+";
+
+            await VerifyProviderCommitAsync(markup, "M<@class>()", expected, '\t');
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestParameterWithDefaultValue()
+        {
+            var markup = @"
+interface I
+{
+    void M(int x = 10);
+}
+
+class C : I
+{
+    void I.$$
+}
+";
+
+            var expected = @"
+interface I
+{
+    void M(int x = 10);
+}
+
+class C : I
+{
+    void I.M(int x)
+}
+";
+            // TODO: Consider adding the default value too.
+            await VerifyProviderCommitAsync(markup, "M(int x)", expected, '\t');
         }
     }
 }

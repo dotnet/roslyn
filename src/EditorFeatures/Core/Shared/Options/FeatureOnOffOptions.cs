@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowInheritanceMargin"));
 
         public static readonly Option2<bool> InheritanceMarginCombinedWithIndicatorMargin = new(
-            FeatureName, "InheritanceMarginCombinedWithIndicatorMargin", defaultValue: true,
+            FeatureName, "InheritanceMarginCombinedWithIndicatorMargin", defaultValue: false,
             new RoamingProfileStorageLocation("TextEditor.InheritanceMarginCombinedWithIndicatorMargin"));
 
         public static readonly Option2<bool> AutomaticallyCompleteStatementOnSemicolon = new(

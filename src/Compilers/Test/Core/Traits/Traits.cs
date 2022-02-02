@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsInvertIf = "CodeActions.InvertIf";
             public const string CodeActionsInvertLogical = "CodeActions.InvertLogical";
             public const string CodeActionsInvokeDelegateWithConditionalAccess = "CodeActions.InvokeDelegateWithConditionalAccess";
-            public const string CodeActionsLambdaSimplifier = "CodeActions.LambdaSimplifier";
+            public const string CodeActionsRemoveUnnecessaryLambdaExpression = "CodeActions.RemoveUnnecessaryLambdaExpression";
             public const string CodeActionsMakeFieldReadonly = "CodeActions.MakeFieldReadonly";
             public const string CodeActionsMakeLocalFunctionStatic = "CodeActions.MakeLocalFunctionStatic";
             public const string CodeActionsMakeMethodAsynchronous = "CodeActions.MakeMethodAsynchronous";
@@ -194,6 +194,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsUseInterpolatedVerbatimString = "CodeActions.UseInterpolatedVerbatimString";
             public const string CodeActionsUseIsNotExpression = "CodeActions.UseIsNotExpression";
             public const string CodeActionsUseIsNullCheck = "CodeActions.UseIsNullCheck";
+            public const string CodeActionsUseParameterNullChecking = "CodeActions.UseParameterNullChecking";
             public const string CodeActionsUseLocalFunction = "CodeActions.UseLocalFunction";
             public const string CodeActionsUseNamedArguments = "CodeActions.UseNamedArguments";
             public const string CodeActionsUseNotPattern = "CodeActions.UseNotPattern";

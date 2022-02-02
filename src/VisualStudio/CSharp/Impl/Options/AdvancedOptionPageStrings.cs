@@ -299,5 +299,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Inheritance_Margin
             => ServicesVSResources.Inheritance_Margin;
+
+        public static string Stack_Trace_Explorer
+            => ServicesVSResources.Stack_Trace_Explorer;
+
+        public static string Option_Automatically_open_stack_trace_explorer_on_focus
+            => ServicesVSResources.Automatically_open_stack_trace_explorer_on_focus;
     }
 }

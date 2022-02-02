@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 context.AddItems(items);
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))
             {
                 // nop
             }

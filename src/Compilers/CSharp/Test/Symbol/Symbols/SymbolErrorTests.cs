@@ -10656,24 +10656,36 @@ interface IA
 ";
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
+                // (10,19): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                //     public struct @cly
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "@cly").WithLocation(10, 19),
                 // (12,13): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         clx a = new clx();   // CS8036
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "a").WithArguments("struct field initializers", "10.0").WithLocation(12, 13),
+                // (12,13): warning CS0169: The field 'cly.a' is never used
+                //         clx a = new clx();   // CS8036
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("x.cly.a").WithLocation(12, 13),
                 // (13,13): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         int i = 7;           // CS8036
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "i").WithArguments("struct field initializers", "10.0").WithLocation(13, 13),
-                // (13,13): warning CS0414: The field 'cly.i' is assigned but its value is never used
+                // (13,13): warning CS0169: The field 'cly.i' is never used
                 //         int i = 7;           // CS8036
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i").WithArguments("x.cly.i").WithLocation(13, 13),
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("x.cly.i").WithLocation(13, 13),
                 // (15,20): warning CS0414: The field 'cly.s' is assigned but its value is never used
                 //         static int s = 2;    // no error
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s").WithArguments("x.cly.s").WithLocation(15, 20));
 
             comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (13,13): warning CS0414: The field 'cly.i' is assigned but its value is never used
+                // (10,19): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                //     public struct @cly
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "@cly").WithLocation(10, 19),
+                // (12,13): warning CS0169: The field 'cly.a' is never used
+                //         clx a = new clx();   // CS8036
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("x.cly.a").WithLocation(12, 13),
+                // (13,13): warning CS0169: The field 'cly.i' is never used
                 //         int i = 7;           // CS8036
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "i").WithArguments("x.cly.i").WithLocation(13, 13),
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("x.cly.i").WithLocation(13, 13),
                 // (15,20): warning CS0414: The field 'cly.s' is assigned but its value is never used
                 //         static int s = 2;    // no error
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s").WithArguments("x.cly.s").WithLocation(15, 20));
@@ -21218,6 +21230,199 @@ class \u007c { }
                 // (3,14): error CS8805: Program using top-level statements must be an executable.
                 // class \u007c { }
                 Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, "{ }").WithLocation(3, 14)
+                );
+        }
+
+        [Fact]
+        [WorkItem(58517, "https://github.com/dotnet/roslyn/issues/58517")]
+        public void CycleThroughForwardedType_01()
+        {
+            var source1_1 = @"
+public class Base
+{
+}
+";
+
+            var comp1_v1 = CreateCompilation(source1_1, assemblyName: "Lib1");
+            comp1_v1.VerifyDiagnostics();
+
+            var source2 = @"
+[MyAttribute]
+public class Derived : Base
+{
+}
+
+class MyAttribute : System.Attribute {}
+";
+
+            var comp2 = CreateCompilation(source2, references: new[] { comp1_v1.ToMetadataReference() });
+
+            var comp2Ref = comp2.EmitToImageReference();
+
+            var comp3 = CreateCompilation(source1_1);
+
+            var source1_2 = @"
+using System.Runtime.CompilerServices;
+
+[assembly: TypeForwardedTo(typeof(Base))]
+[assembly: TypeForwardedTo(typeof(Derived))]
+
+class Test
+{
+    void M()
+    {
+        Base x = new Derived();
+    }
+}
+";
+
+            var comp1_v2 = CreateCompilation(source1_2, assemblyName: "Lib1", references: new[] { comp2Ref, comp3.ToMetadataReference() });
+            comp1_v2.VerifyEmitDiagnostics();
+
+            var source1_3 = @"
+using System.Runtime.CompilerServices;
+
+[assembly: TypeForwardedTo(typeof(Derived))]
+";
+
+            var comp1_v3 = CreateCompilation(source1_3, assemblyName: "Lib1", references: new[] { comp2Ref });
+            comp1_v3.VerifyEmitDiagnostics();
+
+            var source1_4 = @"
+using System.Runtime.CompilerServices;
+
+[assembly: TypeForwardedTo(typeof(Derived))]
+[assembly: TypeForwardedTo(typeof(Base))]
+
+class Test
+{
+    void M()
+    {
+        Base x = new Derived();
+    }
+}
+";
+
+            var comp1_v4 = CreateCompilation(source1_4, assemblyName: "Lib1", references: new[] { comp2Ref, comp3.ToMetadataReference() });
+            comp1_v4.VerifyEmitDiagnostics();
+
+            var source1_5 = @"
+using System.Runtime.CompilerServices;
+
+[assembly: TypeForwardedTo(typeof(Derived))]
+
+class Test
+{
+    void M()
+    {
+        Test x = new Derived();
+    }
+}
+";
+
+            var comp1_v5 = CreateCompilation(source1_5, assemblyName: "Lib1", references: new[] { comp2Ref });
+            comp1_v5.VerifyEmitDiagnostics(
+                // (10,18): error CS7068: Reference to type 'Base' claims it is defined in this assembly, but it is not defined in source or any added modules
+                //         Test x = new Derived();
+                Diagnostic(ErrorCode.ERR_MissingTypeInSource, "new Derived()").WithArguments("Base").WithLocation(10, 18),
+                // (10,18): error CS0029: Cannot implicitly convert type 'Derived' to 'Test'
+                //         Test x = new Derived();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new Derived()").WithArguments("Derived", "Test").WithLocation(10, 18)
+                );
+        }
+
+        [Fact]
+        [WorkItem(58517, "https://github.com/dotnet/roslyn/issues/58517")]
+        public void CycleThroughForwardedType_02()
+        {
+            var source1_1 = @"
+public class Base
+{
+}
+";
+
+            var comp1_v1 = CreateCompilation(source1_1, assemblyName: "Lib1");
+            comp1_v1.VerifyDiagnostics();
+
+            var source2 = @"
+public class Derived : Base
+{
+}
+";
+
+            var comp2 = CreateCompilation(source2, references: new[] { comp1_v1.ToMetadataReference() });
+
+            var comp2Ref = comp2.EmitToImageReference();
+
+            var comp3 = CreateCompilation(source1_1);
+
+            var source1_2 = @"
+using System.Runtime.CompilerServices;
+
+[assembly: TypeForwardedTo(typeof(Base))]
+[assembly: TypeForwardedTo(typeof(Derived))]
+
+class Test
+{
+    void M()
+    {
+        Base x = new Derived();
+    }
+}
+";
+
+            var comp1_v2 = CreateCompilation(source1_2, assemblyName: "Lib1", references: new[] { comp2Ref, comp3.ToMetadataReference() });
+            comp1_v2.VerifyEmitDiagnostics();
+
+            var source1_3 = @"
+using System.Runtime.CompilerServices;
+
+[assembly: TypeForwardedTo(typeof(Derived))]
+";
+
+            var comp1_v3 = CreateCompilation(source1_3, assemblyName: "Lib1", references: new[] { comp2Ref });
+            comp1_v3.VerifyEmitDiagnostics();
+
+            var source1_4 = @"
+using System.Runtime.CompilerServices;
+
+[assembly: TypeForwardedTo(typeof(Derived))]
+[assembly: TypeForwardedTo(typeof(Base))]
+
+class Test
+{
+    void M()
+    {
+        Base x = new Derived();
+    }
+}
+";
+
+            var comp1_v4 = CreateCompilation(source1_4, assemblyName: "Lib1", references: new[] { comp2Ref, comp3.ToMetadataReference() });
+            comp1_v4.VerifyEmitDiagnostics();
+
+            var source1_5 = @"
+using System.Runtime.CompilerServices;
+
+[assembly: TypeForwardedTo(typeof(Derived))]
+
+class Test
+{
+    void M()
+    {
+        Test x = new Derived();
+    }
+}
+";
+
+            var comp1_v5 = CreateCompilation(source1_5, assemblyName: "Lib1", references: new[] { comp2Ref });
+            comp1_v5.VerifyEmitDiagnostics(
+                // (10,18): error CS7068: Reference to type 'Base' claims it is defined in this assembly, but it is not defined in source or any added modules
+                //         Test x = new Derived();
+                Diagnostic(ErrorCode.ERR_MissingTypeInSource, "new Derived()").WithArguments("Base").WithLocation(10, 18),
+                // (10,18): error CS0029: Cannot implicitly convert type 'Derived' to 'Test'
+                //         Test x = new Derived();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new Derived()").WithArguments("Derived", "Test").WithLocation(10, 18)
                 );
         }
     }

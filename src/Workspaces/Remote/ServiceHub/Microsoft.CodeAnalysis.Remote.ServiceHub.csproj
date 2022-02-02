@@ -41,7 +41,7 @@
   <ItemGroup>
     <Compile Include="..\..\..\VisualStudio\Core\Def\Implementation\UnusedReferences\ProjectAssets\ProjectAssetsFileReader.cs" Link="Services\UnusedReferences\ProjectAssets\ProjectAssetsFileReader.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Implementation\Watson\WatsonExtensions.cs" Link="Services\ProcessTelemetry\WatsonExtensions.cs" />
-    <Compile Include="..\..\..\VisualStudio\Core\Def\Implementation\Watson\WatsonReporter.cs" Link="Services\ProcessTelemetry\WatsonReporter.cs" />
+    <Compile Include="..\..\..\VisualStudio\Core\Def\Implementation\Watson\FaultReporter.cs" Link="Services\ProcessTelemetry\FaultReporter.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Storage\AbstractCloudCachePersistentStorageService.cs" Link="Host\Storage\AbstractCloudCachePersistentStorageService.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Storage\CloudCachePersistentStorage.cs" Link="Host\Storage\CloudCachePersistentStorage.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Storage\ProjectContainerKeyCache.cs" Link="Host\Storage\ProjectContainerKeyCache.cs" />

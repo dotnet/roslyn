@@ -9,7 +9,9 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -81,9 +83,9 @@ namespace Microsoft.CodeAnalysis.AddImport
                 Document document, SyntaxNode node,
                 bool allowInHiddenRegions, CancellationToken cancellationToken)
             {
-                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var preferences = await CodeGenerationPreferences.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var (description, hasExistingImport) = GetDescription(document, options, node, semanticModel, cancellationToken);
+                var (description, hasExistingImport) = GetDescription(document, preferences, node, semanticModel, cancellationToken);
                 if (description == null)
                 {
                     return null;
@@ -128,11 +130,11 @@ namespace Microsoft.CodeAnalysis.AddImport
             protected abstract CodeActionPriority GetPriority(Document document);
 
             protected virtual (string description, bool hasExistingImport) GetDescription(
-                Document document, OptionSet options, SyntaxNode node,
+                Document document, CodeGenerationPreferences preferences, SyntaxNode node,
                 SemanticModel semanticModel, CancellationToken cancellationToken)
             {
                 return provider.GetDescription(
-                    document, options, SymbolResult.Symbol, semanticModel, node, cancellationToken);
+                    document, preferences, SymbolResult.Symbol, semanticModel, node, cancellationToken);
             }
         }
     }

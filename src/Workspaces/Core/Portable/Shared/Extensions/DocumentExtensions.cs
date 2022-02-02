@@ -13,6 +13,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class DocumentExtensions
     {
+        public static bool IsFromPrimaryBranch(this Document document)
+            => document.Project.Solution.BranchId == document.Project.Solution.Workspace.PrimaryBranchId;
+
         public static async ValueTask<SyntaxTreeIndex> GetSyntaxTreeIndexAsync(this Document document, CancellationToken cancellationToken)
         {
             var result = await SyntaxTreeIndex.GetIndexAsync(document, loadOnly: false, cancellationToken).ConfigureAwait(false);

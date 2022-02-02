@@ -25,6 +25,7 @@ using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.ValidateFormatString;
@@ -115,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 return optionStore.GetOption(SourceGeneratedFileManager.Options.EnableOpeningInWorkspaceFeatureFlag);
             });
 
-            BindToOption(DontPutOutOrRefOnStruct, ExtractMethodOptions.DontPutOutOrRefOnStruct, LanguageNames.CSharp);
+            BindToOption(DontPutOutOrRefOnStruct, ExtractMethodOptions.Metadata.DontPutOutOrRefOnStruct, LanguageNames.CSharp);
 
             BindToOption(with_other_members_of_the_same_kind, ImplementTypeOptions.Metadata.InsertionBehavior, ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind, LanguageNames.CSharp);
             BindToOption(at_the_end, ImplementTypeOptions.Metadata.InsertionBehavior, ImplementTypeInsertionBehavior.AtTheEnd, LanguageNames.CSharp);
@@ -152,6 +153,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             // Leave the null converter here to make sure if the option value is get from the storage (if it is null), the feature will be enabled
             BindToOption(ShowInheritanceMargin, FeatureOnOffOptions.ShowInheritanceMargin, LanguageNames.CSharp, () => true);
             BindToOption(InheritanceMarginCombinedWithIndicatorMargin, FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin);
+
+            BindToOption(AutomaticallyOpenStackTraceExplorer, StackTraceExplorerOptions.OpenOnFocus);
         }
 
         // Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,
@@ -175,8 +178,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             var normalPullDiagnosticsOption = OptionStore.GetOption(InternalDiagnosticsOptions.NormalDiagnosticMode);
             Enable_pull_diagnostics_experimental_requires_restart.IsChecked = GetCheckboxValueForDiagnosticMode(normalPullDiagnosticsOption);
-
-            Enable_Razor_pull_diagnostics_experimental_requires_restart.IsChecked = OptionStore.GetOption(InternalDiagnosticsOptions.RazorDiagnosticMode) == DiagnosticMode.Pull;
 
             static bool? GetCheckboxValueForDiagnosticMode(DiagnosticMode mode)
             {
@@ -222,18 +223,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         private void Enable_pull_diagnostics_experimental_requires_restart_Indeterminate(object sender, RoutedEventArgs e)
         {
             this.OptionStore.SetOption(InternalDiagnosticsOptions.NormalDiagnosticMode, DiagnosticMode.Default);
-            UpdatePullDiagnosticsOptions();
-        }
-
-        private void Enable_Razor_pull_diagnostics_experimental_requires_restart_Checked(object sender, RoutedEventArgs e)
-        {
-            this.OptionStore.SetOption(InternalDiagnosticsOptions.RazorDiagnosticMode, DiagnosticMode.Pull);
-            UpdatePullDiagnosticsOptions();
-        }
-
-        private void Enable_Razor_pull_diagnostics_experimental_requires_restart_Unchecked(object sender, RoutedEventArgs e)
-        {
-            this.OptionStore.SetOption(InternalDiagnosticsOptions.RazorDiagnosticMode, DiagnosticMode.Push);
             UpdatePullDiagnosticsOptions();
         }
 
