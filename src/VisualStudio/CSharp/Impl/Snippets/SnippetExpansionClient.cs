@@ -23,7 +23,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Snippets;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -87,31 +86,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         }
 
         protected override string FallbackDefaultLiteral => "default";
-
-        public override int GetExpansionFunction(IXMLDOMNode xmlFunctionNode, string bstrFieldName, out IVsExpansionFunction? pFunc)
-        {
-            if (!TryGetSnippetFunctionInfo(xmlFunctionNode, out var snippetFunctionName, out var param))
-            {
-                pFunc = null;
-                return VSConstants.E_INVALIDARG;
-            }
-
-            switch (snippetFunctionName)
-            {
-                case "SimpleTypeName":
-                    pFunc = new SnippetFunctionSimpleTypeName(this, SubjectBuffer, bstrFieldName, param);
-                    return VSConstants.S_OK;
-                case "ClassName":
-                    pFunc = new SnippetFunctionClassName(this, SubjectBuffer, bstrFieldName);
-                    return VSConstants.S_OK;
-                case "GenerateSwitchCases":
-                    pFunc = new SnippetFunctionGenerateSwitchCases(this, SubjectBuffer, bstrFieldName, param);
-                    return VSConstants.S_OK;
-                default:
-                    pFunc = null;
-                    return VSConstants.E_INVALIDARG;
-            }
-        }
 
         internal override Document AddImports(
             Document document, AddImportPlacementOptions options, int position, XElement snippetNode,
