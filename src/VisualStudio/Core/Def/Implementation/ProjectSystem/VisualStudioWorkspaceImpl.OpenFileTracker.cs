@@ -326,7 +326,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             return;
                         }
 
-                        if (!documentIds.All(_workspace.IsDocumentOpen))
+                        if (!documentIds.All(w.IsDocumentOpen))
                         {
                             return;
                         }
@@ -334,8 +334,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         var activeProjectId = GetActiveProjectId(
                             activeProjectInfoInfo.hierarchy, activeProjectInfoInfo.project, activeProjectInfoInfo.projectToHierarchy,
                             documentIds.SelectAsArray(d => d.ProjectId));
-                        if (activeProjectId == null)
-                            return;
 
                         w.OnDocumentContextUpdated(documentIds.First(d => d.ProjectId == activeProjectId));
                     }).ConfigureAwait(false);
