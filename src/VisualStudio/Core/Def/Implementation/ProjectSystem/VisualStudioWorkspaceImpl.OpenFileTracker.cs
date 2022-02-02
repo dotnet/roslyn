@@ -255,13 +255,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 _foregroundAffinitization.AssertIsForeground();
 
-                mappedHierarchy = null;
-                mappedHierarchyName = null;
-
                 if (hierarchy == null)
                 {
                     // Any item in the RDT should have a hierarchy associated; in this case we don't so there's absolutely nothing
                     // we can do at this point.
+                    mappedHierarchy = null;
+                    mappedHierarchyName = null;
                     return;
                 }
 
@@ -284,13 +283,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 // We may have multiple projects with the same hierarchy, but we can use __VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext to distinguish
-                mappedHierarchy = hierarchy;
                 if (ErrorHandler.Succeeded(hierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext, out var contextProjectNameObject)))
-                {
                     WatchHierarchy(hierarchy);
-                    mappedHierarchyName = contextProjectNameObject as string;
-                }
 
+                mappedHierarchy = hierarchy;
+                mappedHierarchyName = contextProjectNameObject as string;
                 return;
 
                 void WatchHierarchy(IVsHierarchy hierarchyToWatch)
