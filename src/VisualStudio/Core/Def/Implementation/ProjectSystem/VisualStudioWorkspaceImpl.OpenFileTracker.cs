@@ -39,10 +39,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
 
             /// <summary>
-            /// Queue to process the workspace side of a document close notification.  We process this in the BG to
+            /// Queue to process the workspace side of the document notifications we get.  We process this in the BG to
             /// avoid impacting the UI thread heavily, esp during things like a large branch switch.
             /// </summary>
-            private readonly AsyncBatchingWorkQueue<string> _closeDocumentQueue;
+            private readonly AsyncBatchingWorkQueue<Func<Task>> _workspaceApplicationQueue;
 
             #region Fields read/written to from multiple threads to track files that need to be checked
 
@@ -102,11 +102,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(workspace._threadingContext,
                     componentModel.GetService<IVsEditorAdaptersFactoryService>(), runningDocumentTable, this);
 
-                _closeDocumentQueue = new AsyncBatchingWorkQueue<string>(
+                _workspaceApplicationQueue = new AsyncBatchingWorkQueue<Func<Task>>(
                     TimeSpan.FromMilliseconds(250),
-                    ProcessCloseDocumentWorkspaceActionsAsync,
+                    ProcessWorkspaceApplicationQueueAsync,
                     listenerProvider.GetListener(FeatureAttribute.Workspace),
                     threadingContext.DisposalToken);
+            }
+
+            private async ValueTask ProcessWorkspaceApplicationQueueAsync(ImmutableArray<Func<Task>> taskFactories, CancellationToken cancellationToken)
+            {
+                foreach (var taskFactory in taskFactories)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var task = taskFactory();
+                    await task.ConfigureAwait(false);
+                }
             }
 
             void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy, IVsWindowFrame? _)
@@ -323,14 +333,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 UnsubscribeFromWatchedHierarchies(moniker);
 
                 // Don't do expensive workspace work on the UI thread.  Queue this up to be processed in the BG.
-                _closeDocumentQueue.AddWork(moniker);
-            }
-
-            private ValueTask ProcessCloseDocumentWorkspaceActionsAsync(ImmutableArray<string> monikers, CancellationToken _)
-            {
-                return _workspace.ApplyChangeToWorkspaceMaybeAsync(useAsync: true, w =>
+                _workspaceApplicationQueue.AddWork(async () =>
                 {
-                    foreach (var moniker in monikers)
+                    await _workspace.ApplyChangeToWorkspaceMaybeAsync(useAsync: true, w =>
                     {
                         var documentIds = w.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
                         if (documentIds.IsDefaultOrEmpty)
@@ -357,7 +362,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                                 }
                             }
                         }
-                    }
+                    }).ConfigureAwait(false);
                 });
             }
 
