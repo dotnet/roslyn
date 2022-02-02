@@ -105,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     componentModel.GetService<IVsEditorAdaptersFactoryService>(), runningDocumentTable, this);
 
                 _workspaceApplicationQueue = new AsyncBatchingWorkQueue<Func<Task>>(
-                    TimeSpan.FromMilliseconds(250),
+                    TimeSpan.FromMilliseconds(50),
                     ProcessWorkspaceApplicationQueueAsync,
                     _asyncOperationListener,
                     threadingContext.DisposalToken);
