@@ -1573,6 +1573,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+        public async ValueTask ApplyChangeToWorkspaceMaybeAsync(Func<Workspace, ValueTask> action)
+        {
+            using (await _gate.DisposableWaitAsync().ConfigureAwait(false))
+            {
+                await action(this).ConfigureAwait(false);
+            }
+        }
+
         /// <summary>
         /// Applies a solution transformation to the workspace and triggers workspace changed event for specified <paramref name="projectId"/>.
         /// The transformation shall only update the project of the solution with the specified <paramref name="projectId"/>.

@@ -159,10 +159,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 _foregroundAffinitization.AssertIsForeground();
 
-                var activeProjectInfo = GetActiveContextProjectIdAndWatchHierarchies(moniker, hierarchy);
+                // First clear off any existing IVsHierarchies we are watching. Any ones that still matter we will
+                // resubscribe to. We could be fancy and diff, but the cost is probably negligible.  Then watch and
+                // subscribe to this hierarchy and any related ones.
+                UnsubscribeFromWatchedHierarchies(moniker);
+                WatchAndSubscribeToHierarchies(moniker, hierarchy);
 
                 _workspaceApplicationQueue.AddWork(() =>
-                    _workspace.ApplyChangeToWorkspaceMaybeAsync(useAsync: true, w =>
+                    _workspace.ApplyChangeToWorkspaceMaybeAsync(async w =>
                     {
                         var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
                         if (documentIds.IsDefaultOrEmpty)
@@ -177,9 +181,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                         var activeContextProjectId = documentIds.Length == 1
                             ? documentIds.Single().ProjectId
-                            : GetActiveProjectId(
-                                activeProjectInfo.hierarchy, activeProjectInfo.project, activeProjectInfo.projectToHierarchy,
-                                documentIds.SelectAsArray(d => d.ProjectId));
+                            : await GetActiveContextProjectId_NoLockAsync(hierarchy, documentIds.SelectAsArray(d => d.ProjectId)).ConfigureAwait(false);
 
                         var textContainer = textBuffer.AsTextContainer();
 
@@ -206,22 +208,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }));
             }
 
-            private (IVsHierarchy? hierarchy, VisualStudioProject? project, ImmutableDictionary<ProjectId, IVsHierarchy?>? projectToHierarchy)
-                GetActiveContextProjectIdAndWatchHierarchies(string moniker, IVsHierarchy? hierarchy)
+            private void WatchAndSubscribeToHierarchies(string moniker, IVsHierarchy? hierarchy)
             {
-                // Keep this method in sync with GetActiveProjectId.
+                // Keep this method in sync with GetActiveContextProjectIdAndWatchHierarchies and GetActiveProjectId.
 
                 _foregroundAffinitization.AssertIsForeground();
-
-                // First clear off any existing IVsHierarchies we are watching. Any ones that still matter we will resubscribe to.
-                // We could be fancy and diff, but the cost is probably negligible.
-                UnsubscribeFromWatchedHierarchies(moniker);
 
                 if (hierarchy == null)
                 {
                     // Any item in the RDT should have a hierarchy associated; in this case we don't so there's absolutely nothing
                     // we can do at this point.
-                    return default;
+                    return;
                 }
 
                 // Take a snapshot of the immutable data structure here to avoid mutation underneath us
@@ -247,18 +244,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 // We may have multiple projects with the same hierarchy, but we can use __VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext to distinguish
-                VisualStudioProject? project = null;
-                if (ErrorHandler.Succeeded(hierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext, out var contextProjectNameObject)))
+                if (ErrorHandler.Succeeded(hierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext, out _)))
                 {
                     WatchHierarchy(hierarchy);
-
-                    if (contextProjectNameObject is string contextProjectName)
-                    {
-                        project = _workspace.GetProjectWithHierarchyAndName(hierarchy, contextProjectName);
-                    }
                 }
 
-                return (hierarchy, project, projectToHierarchyMap);
+                return;
 
                 void WatchHierarchy(IVsHierarchy hierarchyToWatch)
                 {
@@ -266,31 +257,65 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            private static ProjectId? GetActiveProjectId(
-                IVsHierarchy? hierarchy,
-                VisualStudioProject? project,
-                ImmutableDictionary<ProjectId, IVsHierarchy?>? projectToHierarchyMap,
-                ImmutableArray<ProjectId> projectIds)
+            /// <summary>
+            /// Gets the active project ID for the given hierarchy.  Only callable while holding the workspace lock.
+            /// </summary>
+            private async Task<ProjectId?> GetActiveContextProjectId_NoLockAsync(IVsHierarchy? hierarchy, ImmutableArray<ProjectId> projectIds)
             {
-                // Keep this method in sync with GetActiveContextProjectIdAndWatchHierarchies.
-
+                // Keep this method in sync with SubscribeToHierarchies.
                 if (hierarchy == null)
                 {
-                    // Any item in the RDT should have a hierarchy associated; in this case we don't so there's
-                    // absolutely nothing we can do at this point.
-                    return projectIds.First();
+                    // Any item in the RDT should have a hierarchy associated; in this case we don't so there's absolutely nothing
+                    // we can do at this point.
+                    return null;
+                }
+
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                _foregroundAffinitization.AssertIsForeground();
+
+                // Take a snapshot of the immutable data structure here to avoid mutation underneath us
+                var projectToHierarchyMap = _workspace._projectToHierarchyMap;
+                var solution = _workspace.CurrentSolution;
+
+                // We now must chase to the actual hierarchy that we know about. First, we'll chase through multiple shared asset projects if
+                // we need to do so.
+                while (true)
+                {
+                    var contextHierarchy = hierarchy.GetActiveProjectContext();
+
+                    // The check for if contextHierarchy == hierarchy is working around downstream impacts of https://devdiv.visualstudio.com/DevDiv/_git/CPS/pullrequest/158271
+                    // Since that bug means shared projects have themselves as their own owner, it sometimes results in us corrupting state where we end up
+                    // having the context of shared project be itself, it seems.
+                    if (contextHierarchy == null || contextHierarchy == hierarchy)
+                    {
+                        break;
+                    }
+
+                    hierarchy = contextHierarchy;
                 }
 
                 // We may have multiple projects with the same hierarchy, but we can use __VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext to distinguish
-                if (project != null && projectIds.Contains(project.Id))
-                    return project.Id;
+                VisualStudioProject? project = null;
+                if (ErrorHandler.Succeeded(hierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext, out var contextProjectNameObject)))
+                {
+                    if (contextProjectNameObject is string contextProjectName)
+                    {
+                        project = _workspace.GetProjectWithHierarchyAndName_NoLock(hierarchy, contextProjectName);
+                        if (project != null && projectIds.Contains(project.Id))
+                        {
+                            return project.Id;
+                        }
+                    }
+                }
 
                 // At this point, we should hopefully have only one project that matches by hierarchy. If there's
                 // multiple, at this point we can't figure anything out better.
-                Contract.ThrowIfNull(projectToHierarchyMap);
                 var matchingProjectId = projectIds.FirstOrDefault(id => projectToHierarchyMap.GetValueOrDefault(id, null) == hierarchy);
                 if (matchingProjectId != null)
+                {
                     return matchingProjectId;
+                }
 
                 // If we had some trouble finding the project, we'll just pick one arbitrarily
                 return projectIds.First();
@@ -312,10 +337,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 _foregroundAffinitization.AssertIsForeground();
 
-                var activeProjectInfoInfo = GetActiveContextProjectIdAndWatchHierarchies(moniker, hierarchy);
+                // First clear off any existing IVsHierarchies we are watching. Any ones that still matter we will
+                // resubscribe to. We could be fancy and diff, but the cost is probably negligible.  Then watch and
+                // subscribe to this hierarchy and any related ones.
+                UnsubscribeFromWatchedHierarchies(moniker);
+                WatchAndSubscribeToHierarchies(moniker, hierarchy);
 
                 _workspaceApplicationQueue.AddWork(() =>
-                    _workspace.ApplyChangeToWorkspaceMaybeAsync(useAsync: true, w =>
+                    _workspace.ApplyChangeToWorkspaceMaybeAsync(async w =>
                     {
                         var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
                         if (documentIds.IsDefaultOrEmpty || documentIds.Length == 1)
@@ -328,9 +357,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             return;
                         }
 
-                        var activeProjectId = GetActiveProjectId(
-                            activeProjectInfoInfo.hierarchy, activeProjectInfoInfo.project, activeProjectInfoInfo.projectToHierarchy,
-                            documentIds.SelectAsArray(d => d.ProjectId));
+                        var activeProjectId = await GetActiveContextProjectId_NoLockAsync(
+                            hierarchy, documentIds.SelectAsArray(d => d.ProjectId)).ConfigureAwait(false);
 
                         w.OnDocumentContextUpdated(documentIds.First(d => d.ProjectId == activeProjectId));
                     }));
