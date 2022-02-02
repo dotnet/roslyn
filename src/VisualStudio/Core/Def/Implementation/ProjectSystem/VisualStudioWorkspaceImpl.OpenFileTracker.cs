@@ -251,6 +251,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     if (contextProjectNameObject is string contextProjectName)
                     {
                         var project = _workspace.GetProjectWithHierarchyAndName_NoLock(hierarchy, contextProjectName);
+
                         if (project != null && projectIds.Contains(project.Id))
                         {
                             return project.Id;
