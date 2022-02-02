@@ -224,11 +224,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return default;
                 }
 
-                void WatchHierarchy(IVsHierarchy hierarchyToWatch)
-                {
-                    _watchedHierarchiesForDocumentMoniker.Add(moniker, _hierarchyEventSinkCache.GetOrCreate(hierarchyToWatch, static (h, self) => new HierarchyEventSink(h, self), this));
-                }
-
                 // Take a snapshot of the immutable data structure here to avoid mutation underneath us
                 var projectToHierarchyMap = _workspace._projectToHierarchyMap;
                 var solution = _workspace.CurrentSolution;
@@ -264,6 +259,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 return (hierarchy, project, projectToHierarchyMap);
+
+                void WatchHierarchy(IVsHierarchy hierarchyToWatch)
+                {
+                    _watchedHierarchiesForDocumentMoniker.Add(moniker, _hierarchyEventSinkCache.GetOrCreate(hierarchyToWatch, static (h, self) => new HierarchyEventSink(h, self), this));
+                }
             }
 
             private static ProjectId? GetActiveProjectId(
