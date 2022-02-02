@@ -159,23 +159,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 _workspaceApplicationQueue.AddWork(async () =>
                 {
-                    var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
-                    if (documentIds.IsDefaultOrEmpty)
-                    {
-                        return;
-                    }
-
-                    if (documentIds.All(_workspace.IsDocumentOpen))
-                    {
-                        return;
-                    }
-
-                    var activeContextProjectId = documentIds.Length == 1
-                        ? documentIds.Single().ProjectId
-                        : await GetActiveContextProjectIdAndWatchHierarchiesAsync(moniker, documentIds.Select(d => d.ProjectId), hierarchy).ConfigureAwait(false);
+                    var activeProjectInfo = await GetActiveContextProjectIdAndWatchHierarchiesAsync(moniker, hierarchy).ConfigureAwait(false);
 
                     await _workspace.ApplyChangeToWorkspaceMaybeAsync(useAsync: true, w =>
                     {
+                        var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
+                        if (documentIds.IsDefaultOrEmpty)
+                            return;
+
+                        if (documentIds.All(_workspace.IsDocumentOpen))
+                            return;
+
+                        var activeContextProjectId = documentIds.Length == 1
+                            ? documentIds.Single().ProjectId
+                            : GetActiveProjectId(
+                                activeProjectInfo.hierarchy, activeProjectInfo.project, activeProjectInfo.projectToHierarchy,
+                                documentIds.SelectAsArray(d => d.ProjectId));
+
                         var textContainer = textBuffer.AsTextContainer();
 
                         foreach (var documentId in documentIds)
@@ -202,7 +202,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 });
             }
 
-            private async Task<ProjectId> GetActiveContextProjectIdAndWatchHierarchiesAsync(string moniker, IEnumerable<ProjectId> projectIds, IVsHierarchy? hierarchy)
+            private async Task<(IVsHierarchy? hierarchy, VisualStudioProject? project, ImmutableDictionary<ProjectId, IVsHierarchy?>? projectToHierarchy)>
+                GetActiveContextProjectIdAndWatchHierarchiesAsync(string moniker, IVsHierarchy? hierarchy)
             {
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -216,7 +217,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     // Any item in the RDT should have a hierarchy associated; in this case we don't so there's absolutely nothing
                     // we can do at this point.
-                    return projectIds.First();
+                    return default;
                 }
 
                 void WatchHierarchy(IVsHierarchy hierarchyToWatch)
@@ -247,29 +248,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 // We may have multiple projects with the same hierarchy, but we can use __VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext to distinguish
+                VisualStudioProject? project = null;
                 if (ErrorHandler.Succeeded(hierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext, out var contextProjectNameObject)))
                 {
                     WatchHierarchy(hierarchy);
 
                     if (contextProjectNameObject is string contextProjectName)
                     {
-                        var project = _workspace.GetProjectWithHierarchyAndName_NoLock(hierarchy, contextProjectName);
-
-                        if (project != null && projectIds.Contains(project.Id))
-                        {
-                            return project.Id;
-                        }
+                        project = _workspace.GetProjectWithHierarchyAndName_NoLock(hierarchy, contextProjectName);
                     }
                 }
 
+                return (hierarchy, project, projectToHierarchyMap);
+            }
+
+            private static ProjectId? GetActiveProjectId(
+                IVsHierarchy? hierarchy,
+                VisualStudioProject? project,
+                ImmutableDictionary<ProjectId, IVsHierarchy?>? projectToHierarchyMap,
+                ImmutableArray<ProjectId> projectIds)
+            {
+                if (hierarchy == null)
+                {
+                    // Any item in the RDT should have a hierarchy associated; in this case we don't so there's absolutely nothing
+                    // we can do at this point.
+                    return projectIds.First();
+                }
+
+                // We may have multiple projects with the same hierarchy, but we can use __VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext to distinguish
+                if (project != null && projectIds.Contains(project.Id))
+                    return project.Id;
+
                 // At this point, we should hopefully have only one project that maches by hierarchy. If there's multiple, at this point we can't figure anything
                 // out better.
+                Contract.ThrowIfNull(projectToHierarchyMap);
                 var matchingProjectId = projectIds.FirstOrDefault(id => projectToHierarchyMap.GetValueOrDefault(id, null) == hierarchy);
-
                 if (matchingProjectId != null)
-                {
                     return matchingProjectId;
-                }
 
                 // If we had some trouble finding the project, we'll just pick one arbitrarily
                 return projectIds.First();
@@ -293,21 +308,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 _workspaceApplicationQueue.AddWork(async () =>
                 {
-                    var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
-                    if (documentIds.IsDefaultOrEmpty || documentIds.Length == 1)
-                    {
-                        return;
-                    }
-
-                    if (!documentIds.All(_workspace.IsDocumentOpen))
-                    {
-                        return;
-                    }
-
-                    var activeProjectId = await GetActiveContextProjectIdAndWatchHierarchiesAsync(moniker, documentIds.Select(d => d.ProjectId), hierarchy).ConfigureAwait(false);
+                    var activeContextInfo = await GetActiveContextProjectIdAndWatchHierarchiesAsync(moniker, hierarchy).ConfigureAwait(false);
 
                     await _workspace.ApplyChangeToWorkspaceMaybeAsync(useAsync: true, w =>
                     {
+                        var documentIds = w.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
+                        if (documentIds.IsDefaultOrEmpty || documentIds.Length == 1)
+                            return;
+
+                        if (!documentIds.All(_workspace.IsDocumentOpen))
+                            return;
+
+                        var activeProjectId = GetActiveProjectId(
+                            activeContextInfo.hierarchy, activeContextInfo.project, activeContextInfo.projectToHierarchy,
+                            documentIds.SelectAsArray(d => d.ProjectId));
+                        if (activeProjectId == null)
+                            return;
+
                         w.OnDocumentContextUpdated(documentIds.First(d => d.ProjectId == activeProjectId));
                     }).ConfigureAwait(false);
                 });
