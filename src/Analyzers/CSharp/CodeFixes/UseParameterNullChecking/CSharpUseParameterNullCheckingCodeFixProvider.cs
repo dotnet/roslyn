@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -56,33 +57,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                 switch (node)
                 {
                     case ExpressionSyntax { Parent: BinaryExpressionSyntax(SyntaxKind.CoalesceExpression) nullCoalescing }:
-                        // this.item = item ?? throw new ArgumentNullException(nameof(item));
                         var parameterReferenceSyntax = nullCoalescing.Left;
                         editor.ReplaceNode(nullCoalescing, parameterReferenceSyntax.WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker));
                         break;
                     case IfStatementSyntax { Else.Statement: BlockSyntax { Statements: var statementsWithinElse } } ifStatementWithElseBlock:
-                        {
-                            var parent = (BlockSyntax)ifStatementWithElseBlock.Parent!;
-                            var statements = parent.Statements;
-                            var indexOfIfStatement = statements.IndexOf(ifStatementWithElseBlock);
-                            using var _1 = ArrayBuilder<StatementSyntax>.GetInstance(capacity: statements.Count + statementsWithinElse.Count - 1, out var newStatements);
-
-                            for (var i = 0; i < indexOfIfStatement; i++)
-                            {
-                                newStatements.Add(statements[i]);
-                            }
-                            foreach (var statementWithinElse in statementsWithinElse)
-                            {
-                                newStatements.Add(statementWithinElse.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker));
-                            }
-                            for (var i = indexOfIfStatement + 1; i < statements.Count; i++)
-                            {
-                                newStatements.Add(statements[i]);
-                            }
-
-                            editor.ReplaceNode(parent, parent.WithStatements(SyntaxFactory.List(newStatements)));
-                            break;
-                        }
+                        var parent = (BlockSyntax)ifStatementWithElseBlock.Parent!;
+                        var newStatements = parent.Statements.ReplaceRange(ifStatementWithElseBlock, statementsWithinElse.Select(s => s.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker)));
+                        editor.ReplaceNode(parent, parent.WithStatements(newStatements));
+                        break;
                     case IfStatementSyntax { Else.Statement: StatementSyntax statementWithinElse }:
                         editor.ReplaceNode(node, statementWithinElse.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker));
                         break;
