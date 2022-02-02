@@ -72,8 +72,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly ReferenceCountedDisposableCache<IVsHierarchy, HierarchyEventSink> _hierarchyEventSinkCache = new();
 
             /// <summary>
-            /// The IVsHierarchies we have subscribed to to watch for any changes to this moniker. We track this per moniker, so
-            /// when a document is closed we know what we have to incrementally unsubscribe from rather than having to unsubscribe from everything.
+            /// The IVsHierarchies we have subscribed to watch for any changes to this moniker. We track this per
+            /// moniker, so when a document is closed we know what we have to incrementally unsubscribe from rather than
+            /// having to unsubscribe from everything.
             /// </summary>
             private readonly MultiDictionary<string, IReferenceCountedDisposable<ICacheEntry<IVsHierarchy, HierarchyEventSink>>> _watchedHierarchiesForDocumentMoniker = new();
 
@@ -115,6 +116,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 foreach (var taskFactory in taskFactories)
                 {
+                    // Canceling here means we won't process the remaining workspace work.  That's OK as we are only
+                    // canceled during shutdown, and at that point we really don't want to be doing any unnecessary work
+                    // anyways.
                     cancellationToken.ThrowIfCancellationRequested();
                     var task = taskFactory();
                     await task.ConfigureAwait(false);
@@ -203,6 +207,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private (IVsHierarchy? hierarchy, VisualStudioProject? project, ImmutableDictionary<ProjectId, IVsHierarchy?>? projectToHierarchy)
                 GetActiveContextProjectIdAndWatchHierarchies(string moniker, IVsHierarchy? hierarchy)
             {
+                // Keep this method in sync with GetActiveProjectId.
+
                 _foregroundAffinitization.AssertIsForeground();
 
                 // First clear off any existing IVsHierarchies we are watching. Any ones that still matter we will resubscribe to.
@@ -264,10 +270,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 ImmutableDictionary<ProjectId, IVsHierarchy?>? projectToHierarchyMap,
                 ImmutableArray<ProjectId> projectIds)
             {
+                // Keep this method in sync with GetActiveContextProjectIdAndWatchHierarchies.
+
                 if (hierarchy == null)
                 {
-                    // Any item in the RDT should have a hierarchy associated; in this case we don't so there's absolutely nothing
-                    // we can do at this point.
+                    // Any item in the RDT should have a hierarchy associated; in this case we don't so there's
+                    // absolutely nothing we can do at this point.
                     return projectIds.First();
                 }
 
@@ -275,8 +283,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 if (project != null && projectIds.Contains(project.Id))
                     return project.Id;
 
-                // At this point, we should hopefully have only one project that maches by hierarchy. If there's multiple, at this point we can't figure anything
-                // out better.
+                // At this point, we should hopefully have only one project that matches by hierarchy. If there's
+                // multiple, at this point we can't figure anything out better.
                 Contract.ThrowIfNull(projectToHierarchyMap);
                 var matchingProjectId = projectIds.FirstOrDefault(id => projectToHierarchyMap.GetValueOrDefault(id, null) == hierarchy);
                 if (matchingProjectId != null)
