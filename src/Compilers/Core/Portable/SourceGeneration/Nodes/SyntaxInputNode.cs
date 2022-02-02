@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis
                     if (state != EntryState.Cached || !_filterTable.TryUseCachedEntries(TimeSpan.Zero, noInputStepsStepInfo, out ImmutableArray<SyntaxNode> nodes))
                     {
                         var stopwatch = SharedStopwatch.StartNew();
-                        nodes = IncrementalGeneratorSyntaxWalker.GetFilteredNodes(root.Value, _owner._filterFunc, cancellationToken);
+                        nodes = getFilteredNodes(root.Value, _owner._filterFunc, cancellationToken);
                         _filterTable.AddEntries(nodes, state, stopwatch.Elapsed, noInputStepsStepInfo, state);
                     }
 
@@ -110,6 +110,22 @@ namespace Microsoft.CodeAnalysis
                             _transformTable.AddEntry(transformed, EntryState.Added, stopwatch.Elapsed, noInputStepsStepInfo, EntryState.Added);
                         }
                     }
+                }
+
+                static ImmutableArray<SyntaxNode> getFilteredNodes(SyntaxNode root, Func<SyntaxNode, CancellationToken, bool> func, CancellationToken token)
+                {
+                    ArrayBuilder<SyntaxNode>? results = null;
+                    foreach (var node in root.DescendantNodesAndSelf())
+                    {
+                        token.ThrowIfCancellationRequested();
+
+                        if (func(node, token))
+                        {
+                            (results ??= ArrayBuilder<SyntaxNode>.GetInstance()).Add(node);
+                        }
+                    }
+
+                    return results.ToImmutableOrEmptyAndFree();
                 }
             }
         }
