@@ -145,7 +145,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _textBufferFactoryService.TextBufferCreated += AddTextBufferCloneServiceToBuffer;
             _projectionBufferFactoryService.ProjectionBufferCreated += AddTextBufferCloneServiceToBuffer;
 
-            _ = Task.Run(() => InitializeUIAffinitizedServicesAsync(asyncServiceProvider));
+            var asyncOperationListenerProvider = exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>()
+            _ = Task.Run(() => InitializeUIAffinitizedServicesAsync(asyncServiceProvider, asyncOperationListenerProvider));
 
             FileChangeWatcher = exportProvider.GetExportedValue<FileChangeWatcherProvider>().Watcher;
             FileWatchedReferenceFactory = exportProvider.GetExportedValue<FileWatchedPortableExecutableReferenceFactory>();
@@ -157,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     this,
                     exportProvider.GetExportedValue<IDiagnosticAnalyzerService>(),
                     exportProvider.GetExportedValue<IDiagnosticUpdateSourceRegistrationService>(),
-                    exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>(),
+                    asyncOperationListenerProvider,
                     _threadingContext), isThreadSafe: true);
         }
 
@@ -200,7 +201,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents = true;
         }
 
-        public async Task InitializeUIAffinitizedServicesAsync(IAsyncServiceProvider asyncServiceProvider)
+        public async Task InitializeUIAffinitizedServicesAsync(
+            IAsyncServiceProvider asyncServiceProvider,
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             // Create services that are bound to the UI thread
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
@@ -214,7 +217,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var solutionClosingContext = UIContext.FromUIContextGuid(VSConstants.UICONTEXT.SolutionClosing_guid);
             solutionClosingContext.UIContextChanged += (_, e) => _solutionClosing = e.Activated;
 
-            var openFileTracker = await OpenFileTracker.CreateAsync(this, asyncServiceProvider).ConfigureAwait(true);
+            var openFileTracker = await OpenFileTracker.CreateAsync(this, _threadingContext, asyncServiceProvider, listenerProvider).ConfigureAwait(true);
             var memoryListener = await VirtualMemoryNotificationListener.CreateAsync(this, _threadingContext, asyncServiceProvider, _globalOptions, _threadingContext.DisposalToken).ConfigureAwait(true);
 
             // Update our fields first, so any asynchronous work that needs to use these is able to see the service.

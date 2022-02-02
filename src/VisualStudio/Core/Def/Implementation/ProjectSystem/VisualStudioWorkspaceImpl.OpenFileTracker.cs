@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -37,6 +38,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
 
+            private readonly AsyncBatchingWorkQueue<string> _closeDocumentQueue;
+
             #region Fields read/written to from multiple threads to track files that need to be checked
 
             /// <summary>
@@ -66,8 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// The IVsHierarchies we have subscribed to to watch for any changes to this moniker. We track this per moniker, so
             /// when a document is closed we know what we have to incrementally unsubscribe from rather than having to unsubscribe from everything.
             /// </summary>
-            private readonly MultiDictionary<string, IReferenceCountedDisposable<ICacheEntry<IVsHierarchy, HierarchyEventSink>>> _watchedHierarchiesForDocumentMoniker
-                = new();
+            private readonly MultiDictionary<string, IReferenceCountedDisposable<ICacheEntry<IVsHierarchy, HierarchyEventSink>>> _watchedHierarchiesForDocumentMoniker = new();
 
             #endregion
 
@@ -83,13 +85,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// This cutoff of 10 was chosen arbitrarily and with no evidence whatsoever.</remarks>
             private const int CutoffForCheckingAllRunningDocumentTableDocuments = 10;
 
-            private OpenFileTracker(VisualStudioWorkspaceImpl workspace, IVsRunningDocumentTable runningDocumentTable, IComponentModel componentModel)
+            private OpenFileTracker(
+                VisualStudioWorkspaceImpl workspace,
+                IThreadingContext threadingContext,
+                IVsRunningDocumentTable runningDocumentTable,
+                IComponentModel componentModel,
+                IAsynchronousOperationListenerProvider listenerProvider)
             {
                 _workspace = workspace;
                 _foregroundAffinitization = new ForegroundThreadAffinitizedObject(workspace._threadingContext, assertIsForeground: true);
                 _asyncOperationListener = componentModel.GetService<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.Workspace);
                 _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(workspace._threadingContext,
                     componentModel.GetService<IVsEditorAdaptersFactoryService>(), runningDocumentTable, this);
+
+                _closeDocumentQueue = new AsyncBatchingWorkQueue<string>(
+                    TimeSpan.FromMilliseconds(250),
+                    ProcessCloseDocumentWorkspaceActionsAsync,
+                    listenerProvider.GetListener(FeatureAttribute.Workspace),
+                    threadingContext.DisposalToken);
             }
 
             void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy, IVsWindowFrame? _)
@@ -108,7 +121,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
             }
 
-            public static async Task<OpenFileTracker> CreateAsync(VisualStudioWorkspaceImpl workspace, IAsyncServiceProvider asyncServiceProvider)
+            public static async Task<OpenFileTracker> CreateAsync(
+                VisualStudioWorkspaceImpl workspace,
+                IThreadingContext threadingContext,
+                IAsyncServiceProvider asyncServiceProvider,
+                IAsynchronousOperationListenerProvider listenerProvider)
             {
                 var runningDocumentTable = (IVsRunningDocumentTable?)await asyncServiceProvider.GetServiceAsync(typeof(SVsRunningDocumentTable)).ConfigureAwait(true);
                 Assumes.Present(runningDocumentTable);
@@ -116,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var componentModel = (IComponentModel?)await asyncServiceProvider.GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
                 Assumes.Present(componentModel);
 
-                return new OpenFileTracker(workspace, runningDocumentTable, componentModel);
+                return new OpenFileTracker(workspace, threadingContext, runningDocumentTable, componentModel, listenerProvider);
             }
 
             private void TryOpeningDocumentsForMoniker(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy)
@@ -301,30 +318,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 UnsubscribeFromWatchedHierarchies(moniker);
 
-                _workspace.ApplyChangeToWorkspace(w =>
-                {
-                    var documentIds = w.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
-                    if (documentIds.IsDefaultOrEmpty)
-                    {
-                        return;
-                    }
+                // Don't do expensive workspace work on the UI thread.  Queue this up to be processed in the BG.
+                _closeDocumentQueue.AddWork(moniker);
+            }
 
-                    foreach (var documentId in documentIds)
+            private ValueTask ProcessCloseDocumentWorkspaceActionsAsync(ImmutableArray<string> monikers, CancellationToken _)
+            {
+                return _workspace.ApplyChangeToWorkspaceMaybeAsync(useAsync: true, w =>
+                {
+                    foreach (var moniker in monikers)
                     {
-                        if (w.IsDocumentOpen(documentId) && !_workspace._documentsNotFromFiles.Contains(documentId))
+                        var documentIds = w.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
+                        if (documentIds.IsDefaultOrEmpty)
                         {
-                            if (w.CurrentSolution.ContainsDocument(documentId))
+                            return;
+                        }
+
+                        foreach (var documentId in documentIds)
+                        {
+                            if (w.IsDocumentOpen(documentId) && !_workspace._documentsNotFromFiles.Contains(documentId))
                             {
-                                w.OnDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
-                            }
-                            else if (w.CurrentSolution.ContainsAdditionalDocument(documentId))
-                            {
-                                w.OnAdditionalDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
-                            }
-                            else
-                            {
-                                Debug.Assert(w.CurrentSolution.ContainsAnalyzerConfigDocument(documentId));
-                                w.OnAnalyzerConfigDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
+                                if (w.CurrentSolution.ContainsDocument(documentId))
+                                {
+                                    w.OnDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
+                                }
+                                else if (w.CurrentSolution.ContainsAdditionalDocument(documentId))
+                                {
+                                    w.OnAdditionalDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
+                                }
+                                else
+                                {
+                                    Debug.Assert(w.CurrentSolution.ContainsAnalyzerConfigDocument(documentId));
+                                    w.OnAnalyzerConfigDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
+                                }
                             }
                         }
                     }
