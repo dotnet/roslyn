@@ -206,7 +206,7 @@ transformations together:
 Consider the following simple example:
 
 ```csharp
-initContext.RegisterExecutionPipeline(context =>
+initContext.RegisterExecutionPipeline(static context =>
 {
     // get the additional text provider
     IncrementalValuesProvider<AdditionalText> additionalTexts = context.AdditionalTextsProvider;
@@ -369,7 +369,7 @@ distinct item for generation, effectively splitting a single additional file
 into multiple sub-items.
 
 ``` csharp
-initContext.RegisterExecutionPipeline(context =>
+initContext.RegisterExecutionPipeline(static context =>
 {
     // get the additional text provider
     IncrementalValuesProvider<AdditionalText> additionalTexts = context.AdditionalTextsProvider;
@@ -422,7 +422,7 @@ interested in. For example, the generator will likely want to filter additional
 texts on file extensions:
 
 ```csharp
-initContext.RegisterExecutionPipeline(context =>
+initContext.RegisterExecutionPipeline(static context =>
 {
     // get the additional text provider
     IncrementalValuesProvider<AdditionalText> additionalTexts = context.AdditionalTextsProvider;
@@ -464,7 +464,7 @@ IncrementalValuesProvider<TSource>                IncrementalValueProvider<Immut
 ```
 
 ```csharp
-initContext.RegisterExecutionPipeline(context =>
+initContext.RegisterExecutionPipeline(static context =>
 {
     // get the additional text provider
     IncrementalValuesProvider<AdditionalText> additionalTexts = context.AdditionalTextsProvider;
@@ -473,7 +473,7 @@ initContext.RegisterExecutionPipeline(context =>
     IncrementalValueProvider<AdditionalText[]> collected = context.AdditionalTexts.Collect();
 
     // perform a transformation where you can access all texts at once
-    var transform = collected.Select((texts, _) => /* ... */);
+    var transform = collected.Select(static (texts, _) => /* ... */);
 }
 
 ```
@@ -520,7 +520,7 @@ Those transforms can then be used as the inputs to new single path transforms, i
 For example:
 
 ```csharp
-initContext.RegisterExecutionPipeline(context =>
+initContext.RegisterExecutionPipeline(static context =>
 {
     // get the additional text provider
     IncrementalValuesProvider<AdditionalText> additionalTexts = context.AdditionalTextsProvider;
@@ -671,7 +671,7 @@ With the above transformations the generator author can now take one or more
 inputs and combine them into a single source of data. For example:
 
 ```csharp
-initContext.RegisterExecutionPipeline(context =>
+initContext.RegisterExecutionPipeline(static context =>
 {
     // get the additional text provider
     IncrementalValuesProvider<AdditionalText> additionalTexts = context.AdditionalTextsProvider;
@@ -680,7 +680,7 @@ initContext.RegisterExecutionPipeline(context =>
     IncrementalValuesProvider<(AdditionalText, ParseOptions)> combined = context.AdditionalTextsProvider.Combine(context.ParseOptionsProvider);
 
     // perform a transform on each text, with access to the options
-    var transformed = combined.Select((pair, _) => 
+    var transformed = combined.Select(static (pair, _) => 
     {
         AdditionalText text = pair.Left;
         ParseOptions parseOptions = pair.Right;
@@ -751,11 +751,11 @@ public class Class3 {}
 As an author I can make an input node that extracts the return type information 
 
 ```csharp
-initContext.RegisterExecutionPipeline(context =>
+initContext.RegisterExecutionPipeline(static context =>
 {
     // create a syntax provider that extracts the return type kind of method symbols
-    var returnKinds = context.SyntaxProvider.CreateSyntaxProvider((n, _) => n is MethodDeclarationSyntax,
-                                                                  (n, _) => ((IMethodSymbol)n.SemanticModel.GetDeclaredSymbol(n.Node)).ReturnType.Kind);
+    var returnKinds = context.SyntaxProvider.CreateSyntaxProvider(static (n, _) => n is MethodDeclarationSyntax,
+                                                                  static (n, _) => ((IMethodSymbol)n.SemanticModel.GetDeclaredSymbol(n.Node)).ReturnType.Kind);
 }
 ```
 
@@ -856,7 +856,7 @@ For example, a generator can extract out the set of paths for the additional
 files and create a method that prints them out:
 
 ``` csharp
-initContext.RegisterExecutionPipeline(context =>
+initContext.RegisterExecutionPipeline(static context =>
 {
     // get the additional text provider
     IncrementalValuesProvider<AdditionalText> additionalTexts = context.AdditionalTextsProvider;
@@ -926,10 +926,10 @@ should be passed into `GetText(...)`:
 ```csharp
 public void Initialize(IncrementalGeneratorInitializationContext context)
 {
-    var txtFiles = context.AdditionalTextsProvider.Where(f => f.Path.EndsWith(".txt", StringComparison.OrdinalIgnoreCase));
+    var txtFiles = context.AdditionalTextsProvider.Where(static f => f.Path.EndsWith(".txt", StringComparison.OrdinalIgnoreCase));
     
     // ensure we forward the cancellation token to GeText
-    var fileContents = txtFiles.Select((file, cancellationToken) => file.GetText(cancellationToken));   
+    var fileContents = txtFiles.Select(static (file, cancellationToken) => file.GetText(cancellationToken));   
 }
 ```
 
@@ -946,9 +946,9 @@ correctly.
 ```csharp
 public void Initialize(IncrementalGeneratorInitializationContext context)
 {
-    var txtFilesArray = context.AdditionalTextsProvider.Where(f => f.Path.EndsWith(".txt", StringComparison.OrdinalIgnoreCase)).Collect();
+    var txtFilesArray = context.AdditionalTextsProvider.Where(static f => f.Path.EndsWith(".txt", StringComparison.OrdinalIgnoreCase)).Collect();
     
-    var expensive = txtFilesArray.Select((files, cancellationToken) => 
+    var expensive = txtFilesArray.Select(static (files, cancellationToken) => 
     {
         foreach (var file in files)
         {
@@ -1007,7 +1007,7 @@ The generator would run select1 on the first and second files, producing
 select for the third file, as the input has not changed. It can just use the
 previously cached value.
 
-AdditionalText               | Select1    | Select2
+AdditionalText               | Select1        | Select2
 -----------------------------|----------------|-----------
 **Text{ Path: "diff.txt" }** | **"diff.txt"** |
 **Text{ Path: "def.txt" }**  | **"def.txt"**  |
@@ -1021,10 +1021,10 @@ on it was the same. Thus there is no need to re-run Select2 on `"def.txt"` as
 it can just use the cached value from before. Similarly the cached state of
 "ghi.txt" can be used.
 
-AdditionalText               | Select1    | Select2
+AdditionalText               | Select1        | Select2
 -----------------------------|----------------|----------------------
 **Text{ Path: "diff.txt" }** | **"diff.txt"** | **"prefix_diff.txt"**
-**Text{ Path: "def.txt" }**  | **"def.txt"**  | "prefix_diff.txt"
+**Text{ Path: "def.txt" }**  | **"def.txt"**  | "prefix_def.txt"
 Text{ Path: "ghi.txt" }      | "ghi.txt"      | "prefix_ghi.txt"
 
 In this way, only changes that are consequential flow through the pipeline, and
@@ -1052,7 +1052,7 @@ Allowing the generator author to specify a given comparer.
 
 ```csharp
 var withComparer = context.AdditionalTextsProvider
-                          .Select(t => t.Path)
+                          .Select(static t => t.Path)
                           .WithComparer(myComparer);
 ```
 
@@ -1060,7 +1060,7 @@ Note that the comparer is on a per-transformation basis, meaning an author can
 specify different comparers for different parts of the pipeline.
 
 ```csharp
-var select = context.AdditionalTextsProvider.Select(t => t.Path);
+var select = context.AdditionalTextsProvider.Select(static t => t.Path);
 
 var noCompareSelect = select.Select(...);
 var compareSelect = select.WithComparer(myComparer).Select(...);
@@ -1118,7 +1118,7 @@ public void Initialize(IncrementalGeneratorInitializationContext context)
     // Don't do this!
     var combined = texts.Combine(compilation);
 
-    context.RegisterSourceOutput(combined, (spc, pair) =>
+    context.RegisterSourceOutput(combined, static (spc, pair) =>
     {
         var assemblyName = pair.Right.AssemblyName;
         // produce source ...
@@ -1133,7 +1133,7 @@ files:
 ```csharp
 public void Initialize(IncrementalGeneratorInitializationContext context)
 {
-    var assemblyName = context.CompilationProvider.Select((c, _) => c.AssemblyName);
+    var assemblyName = context.CompilationProvider.Select(static (c, _) => c.AssemblyName);
     var texts = context.AdditionalTextsProvider;
 
     var combined = texts.Combine(assemblyName);
