@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.DateAndTime.LanguageServices
             Info = info;
         }
 
-        internal async Task<SyntaxToken?> TryGetDateAndTimeTokenAtPositionAsync(
+        public async Task<SyntaxToken?> TryGetDateAndTimeTokenAtPositionAsync(
             Document document, int position, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();

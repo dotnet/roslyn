@@ -15,7 +15,6 @@ namespace System.Diagnostics.CodeAnalysis
         public StringSyntaxAttribute(string syntax)
         {
             Syntax = syntax;
-This conversation was marked as resolved by deeprobin
             Arguments = Array.Empty<object?>();
         }
 

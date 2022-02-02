@@ -3659,6 +3659,92 @@ Json.Comment("// comment"));
 
         [Theory]
         [CombinatorialData]
+        public async Task TestJsonOnApiWithStringSyntaxAttribute_Field(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+
+class Program
+{
+    [StringSyntax(StringSyntaxAttribute.Json)]
+    private string field;
+    void Goo()
+    {
+        [|this.field = @""[{ 'goo': 0}]"";|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCode,
+testHost,
+Field("field"),
+Json.Array("["),
+Json.Object("{"),
+Json.PropertyName("'goo'"),
+Json.Punctuation(":"),
+Json.Number("0"),
+Json.Object("}"),
+Json.Array("]"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestJsonOnApiWithStringSyntaxAttribute_Property(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+
+class Program
+{
+    [StringSyntax(StringSyntaxAttribute.Json)]
+    private string Prop { get; set; }
+    void Goo()
+    {
+        [|this.Prop = @""[{ 'goo': 0}]"";|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCode,
+testHost,
+Property("Prop"),
+Json.Array("["),
+Json.Object("{"),
+Json.PropertyName("'goo'"),
+Json.Punctuation(":"),
+Json.Number("0"),
+Json.Object("}"),
+Json.Array("]"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestJsonOnApiWithStringSyntaxAttribute_Argument(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+
+class Program
+{
+    private void M([StringSyntax(StringSyntaxAttribute.Json)] string p)
+    {
+    }
+
+    void Goo()
+    {
+        [|M(@""[{ 'goo': 0}]"");|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCode,
+testHost,
+Method("M"),
+Json.Array("["),
+Json.Object("{"),
+Json.PropertyName("'goo'"),
+Json.Punctuation(":"),
+Json.Number("0"),
+Json.Object("}"),
+Json.Array("]"));
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task TestUnmanagedConstraint_LocalFunction_Keyword(TestHost testHost)
         {
             await TestAsync(@"
