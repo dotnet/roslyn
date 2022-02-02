@@ -384,8 +384,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 UnsubscribeFromWatchedHierarchies(moniker);
 
-                // Queue this up to be processed  asynchronously in the BG.  That way we don't take a workspace lock
-                // synchronously on the UI thread.
                 _workspaceApplicationQueue.AddWork(() =>
                     _workspace.ApplyChangeToWorkspaceMaybeAsync(useAsync: true, w =>
                     {
