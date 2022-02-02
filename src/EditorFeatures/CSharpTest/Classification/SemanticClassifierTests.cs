@@ -3479,6 +3479,105 @@ Class("Regex"));
 
         [Theory]
         [CombinatorialData]
+        public async Task TestJson1(TestHost testHost)
+        {
+            await TestAsync(
+@"
+class Program
+{
+    void Goo()
+    {
+        // lang=json
+        var r = @""[/*comment*/{ 'goo': 0, bar: -Infinity, """"baz"""": true }, new Date(), text, 'str'] // comment"";
+    }
+}",
+testHost,
+Keyword("var"),
+Json.Array("["),
+Json.Comment("/*comment*/"),
+Json.Object("{"),
+Json.PropertyName("'goo'"),
+Json.Punctuation(":"),
+Json.Number("0"),
+Json.PropertyName("bar"),
+Json.Punctuation(":"),
+Json.Operator("-"),
+Json.Keyword("Infinity"),
+Json.PropertyName(@"""""baz"""""),
+Json.Punctuation(":"),
+Json.Keyword("true"),
+Json.Object("}"),
+Json.Punctuation(","),
+Json.Keyword("new"),
+Json.ConstructorName("Date"),
+Json.Punctuation("("),
+Json.Punctuation(")"),
+Json.Punctuation(","),
+Json.Text("text"),
+Json.Punctuation(","),
+Json.String("'str'"),
+Json.Array("]"),
+Json.Comment("// comment"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestMultiLineJson1(TestHost testHost)
+        {
+            await TestAsync(
+@"
+class Program
+{
+    void Goo()
+    {
+        // lang=json
+        var r = @""[
+            /*comment*/
+            {
+                'goo': 0,
+                bar: -Infinity,
+                """"baz"""": true,
+                0: null
+            },
+            new Date(),
+            text,
+            'str'] // comment"";
+    }
+}",
+testHost,
+Keyword("var"),
+Json.Array("["),
+Json.Comment("/*comment*/"),
+Json.Object("{"),
+Json.PropertyName("'goo'"),
+Json.Punctuation(":"),
+Json.Number("0"),
+Json.PropertyName("bar"),
+Json.Punctuation(":"),
+Json.Operator("-"),
+Json.Keyword("Infinity"),
+Json.PropertyName(@"""""baz"""""),
+Json.Punctuation(":"),
+Json.Keyword("true"),
+Json.PropertyName("0"),
+Json.Punctuation(":"),
+Json.Keyword("null"),
+Json.Object("}"),
+Json.Punctuation(","),
+Json.Keyword("new"),
+Json.ConstructorName("Date"),
+Json.Punctuation("("),
+Json.Punctuation(")"),
+Json.Punctuation(","),
+Json.Text("text"),
+Json.Punctuation(","),
+Json.String("'str'"),
+Json.Array("]"),
+Json.Comment("// comment"));
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task TestUnmanagedConstraint_LocalFunction_Keyword(TestHost testHost)
         {
             await TestAsync(@"

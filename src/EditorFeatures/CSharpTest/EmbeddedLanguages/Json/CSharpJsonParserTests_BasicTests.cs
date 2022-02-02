@@ -1171,7 +1171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
   <Diagnostic Message=""Only properties allowed in an object"" Start=""20"" Length=""3"" />
 </Diagnostics>",
         @"<Diagnostics>
-  <Diagnostic Message=""Only properties allowed in an object"" Start=""20"" Length=""3"" />
+  <Diagnostic Message=""Strings must start with &quot; not '"" Start=""12"" Length=""1"" />
 </Diagnostics>");
         }
 
@@ -2176,7 +2176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
 </Tree>",
         @"",
         @"<Diagnostics>
-  <Diagnostic Message=""Trailing comma not allowed"" Start=""19"" Length=""1"" />
+  <Diagnostic Message=""Value required"" Start=""18"" Length=""0"" />
 </Diagnostics>");
         }
 
@@ -2206,7 +2206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
 </Tree>",
         @"",
         @"<Diagnostics>
-  <Diagnostic Message=""Trailing comma not allowed"" Start=""21"" Length=""1"" />
+  <Diagnostic Message=""Value required"" Start=""20"" Length=""0"" />
 </Diagnostics>");
         }
 
@@ -2480,7 +2480,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
 </Tree>",
         @"",
         @"<Diagnostics>
-  <Diagnostic Message=""',' unexpected"" Start=""64"" Length=""1"" />
+  <Diagnostic Message=""Strings must start with &quot; not '"" Start=""12"" Length=""1"" />
 </Diagnostics>");
         }
 
@@ -4373,7 +4373,7 @@ b""</StringToken>
   <Diagnostic Message=""Only properties allowed in an object"" Start=""15"" Length=""1"" />
 </Diagnostics>",
         @"<Diagnostics>
-  <Diagnostic Message=""Only properties allowed in an object"" Start=""15"" Length=""1"" />
+  <Diagnostic Message=""Property name must be a string"" Start=""11"" Length=""1"" />
 </Diagnostics>");
         }
 
@@ -5257,7 +5257,7 @@ b""</StringToken>
   <Diagnostic Message=""Only properties allowed in an object"" Start=""18"" Length=""1"" />
 </Diagnostics>",
         @"<Diagnostics>
-  <Diagnostic Message=""Only properties allowed in an object"" Start=""18"" Length=""1"" />
+  <Diagnostic Message=""Value required"" Start=""15"" Length=""0"" />
 </Diagnostics>");
         }
 
@@ -5458,7 +5458,7 @@ b""</StringToken>
 </Tree>",
         @"",
         @"<Diagnostics>
-  <Diagnostic Message=""Trailing comma not allowed"" Start=""29"" Length=""1"" />
+  <Diagnostic Message=""Trailing comma not allowed"" Start=""23"" Length=""1"" />
 </Diagnostics>");
         }
 

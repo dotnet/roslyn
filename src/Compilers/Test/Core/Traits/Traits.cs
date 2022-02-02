@@ -82,6 +82,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsCorrectFunctionReturnType = "CodeActions.CorrectFunctionReturnType";
             public const string CodeActionsCorrectNextControlVariable = "CodeActions.CorrectNextControlVariable";
             public const string CodeActionsDeclareAsNullable = "CodeActions.DeclareAsNullable";
+            public const string CodeActionsDetectJsonString = "CodeActions.DetectJsonString";
             public const string CodeActionsExtractInterface = "CodeActions.ExtractInterface";
             public const string CodeActionsExtractLocalFunction = "CodeActions.ExtractLocalFunction";
             public const string CodeActionsExtractMethod = "CodeActions.ExtractMethod";
@@ -296,6 +297,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string SourceGenerators = nameof(SourceGenerators);
             public const string SplitComment = nameof(SplitComment);
             public const string SplitStringLiteral = nameof(SplitStringLiteral);
+            public const string StringIndentation = nameof(StringIndentation);
             public const string SuggestionTags = nameof(SuggestionTags);
             public const string SyncNamespaces = nameof(SyncNamespaces);
             public const string TargetTypedCompletion = nameof(TargetTypedCompletion);
@@ -306,6 +308,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string TypeInferenceService = nameof(TypeInferenceService);
             public const string UnusedReferences = nameof(UnusedReferences);
             public const string ValidateFormatString = nameof(ValidateFormatString);
+            public const string ValidateJsonString = nameof(ValidateJsonString);
             public const string ValidateRegexString = nameof(ValidateRegexString);
             public const string Venus = nameof(Venus);
             public const string VsLanguageBlock = nameof(VsLanguageBlock);
