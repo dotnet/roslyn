@@ -171,7 +171,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             return;
                         }
 
-                        if (documentIds.All(_workspace.IsDocumentOpen))
+                        if (documentIds.All(w.IsDocumentOpen))
                         {
                             return;
                         }
