@@ -262,6 +262,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // At this point, we should hopefully have only one project that matches by hierarchy. If there's
                 // multiple, at this point we can't figure anything out better.
                 var matchingProjectId = projectIds.FirstOrDefault(id => projectToHierarchyMap.GetValueOrDefault(id, null) == hierarchy);
+
                 if (matchingProjectId != null)
                 {
                     return matchingProjectId;
