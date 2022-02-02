@@ -208,51 +208,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }));
             }
 
-            private void WatchAndSubscribeToHierarchies(string moniker, IVsHierarchy? hierarchy)
-            {
-                // Keep this method in sync with GetActiveContextProjectId_NoLockAsync
-
-                _foregroundAffinitization.AssertIsForeground();
-
-                if (hierarchy == null)
-                {
-                    // Any item in the RDT should have a hierarchy associated; in this case we don't so there's absolutely nothing
-                    // we can do at this point.
-                    return;
-                }
-
-                // We now must chase to the actual hierarchy that we know about. First, we'll chase through multiple shared asset projects if
-                // we need to do so.
-                while (true)
-                {
-                    var contextHierarchy = hierarchy.GetActiveProjectContext();
-
-                    // The check for if contextHierarchy == hierarchy is working around downstream impacts of https://devdiv.visualstudio.com/DevDiv/_git/CPS/pullrequest/158271
-                    // Since that bug means shared projects have themselves as their own owner, it sometimes results in us corrupting state where we end up
-                    // having the context of shared project be itself, it seems.
-                    if (contextHierarchy == null || contextHierarchy == hierarchy)
-                    {
-                        break;
-                    }
-
-                    WatchHierarchy(hierarchy);
-                    hierarchy = contextHierarchy;
-                }
-
-                // We may have multiple projects with the same hierarchy, but we can use __VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext to distinguish
-                if (ErrorHandler.Succeeded(hierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext, out _)))
-                {
-                    WatchHierarchy(hierarchy);
-                }
-
-                return;
-
-                void WatchHierarchy(IVsHierarchy hierarchyToWatch)
-                {
-                    _watchedHierarchiesForDocumentMoniker.Add(moniker, _hierarchyEventSinkCache.GetOrCreate(hierarchyToWatch, static (h, self) => new HierarchyEventSink(h, self), this));
-                }
-            }
-
             /// <summary>
             /// Gets the active project ID for the given hierarchy.  Only callable while holding the workspace lock.
             /// </summary>
@@ -313,6 +268,51 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 // If we had some trouble finding the project, we'll just pick one arbitrarily
                 return projectIds.First();
+            }
+
+            private void WatchAndSubscribeToHierarchies(string moniker, IVsHierarchy? hierarchy)
+            {
+                // Keep this method in sync with GetActiveContextProjectId_NoLockAsync
+
+                _foregroundAffinitization.AssertIsForeground();
+
+                if (hierarchy == null)
+                {
+                    // Any item in the RDT should have a hierarchy associated; in this case we don't so there's absolutely nothing
+                    // we can do at this point.
+                    return;
+                }
+
+                // We now must chase to the actual hierarchy that we know about. First, we'll chase through multiple shared asset projects if
+                // we need to do so.
+                while (true)
+                {
+                    var contextHierarchy = hierarchy.GetActiveProjectContext();
+
+                    // The check for if contextHierarchy == hierarchy is working around downstream impacts of https://devdiv.visualstudio.com/DevDiv/_git/CPS/pullrequest/158271
+                    // Since that bug means shared projects have themselves as their own owner, it sometimes results in us corrupting state where we end up
+                    // having the context of shared project be itself, it seems.
+                    if (contextHierarchy == null || contextHierarchy == hierarchy)
+                    {
+                        break;
+                    }
+
+                    WatchHierarchy(hierarchy);
+                    hierarchy = contextHierarchy;
+                }
+
+                // We may have multiple projects with the same hierarchy, but we can use __VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext to distinguish
+                if (ErrorHandler.Succeeded(hierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext, out _)))
+                {
+                    WatchHierarchy(hierarchy);
+                }
+
+                return;
+
+                void WatchHierarchy(IVsHierarchy hierarchyToWatch)
+                {
+                    _watchedHierarchiesForDocumentMoniker.Add(moniker, _hierarchyEventSinkCache.GetOrCreate(hierarchyToWatch, static (h, self) => new HierarchyEventSink(h, self), this));
+                }
             }
 
             private void UnsubscribeFromWatchedHierarchies(string moniker)
