@@ -260,14 +260,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// <summary>
             /// Gets the active project ID for the given hierarchy.  Only callable while holding the workspace lock.
             /// </summary>
-            private async Task<ProjectId?> GetActiveContextProjectId_NoLockAsync(IVsHierarchy? hierarchy, ImmutableArray<ProjectId> projectIds)
+            private async Task<ProjectId> GetActiveContextProjectId_NoLockAsync(IVsHierarchy? hierarchy, ImmutableArray<ProjectId> projectIds)
             {
                 // Keep this method in sync with SubscribeToHierarchies.
                 if (hierarchy == null)
                 {
                     // Any item in the RDT should have a hierarchy associated; in this case we don't so there's absolutely nothing
                     // we can do at this point.
-                    return null;
+                    return projectIds.First();
                 }
 
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
