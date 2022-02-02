@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
         protected abstract bool IsArgumentToWellKnownAPI(SyntaxToken token, SyntaxNode argumentNode, SemanticModel semanticModel, CancellationToken cancellationToken, out TOptions options);
         protected abstract TTree? TryParse(VirtualCharSequence chars, TOptions options);
         protected abstract bool TryGetOptions(SemanticModel semanticModel, ITypeSymbol exprType, SyntaxNode expr, CancellationToken cancellationToken, out TOptions options);
+        protected abstract bool IsEmbeddedLanguageInterpolatedStringTextToken(SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken);
 
         private bool HasLanguageComment(
             SyntaxToken token, ISyntaxFacts syntaxFacts, out TOptions options)
@@ -85,14 +86,27 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
             return false;
         }
 
-        public bool IsEmbeddedLanguageString(SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken, out TOptions options)
+        public bool IsEmbeddedLanguageToken(SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken, out TOptions options)
         {
             options = default;
 
             var syntaxFacts = Info.SyntaxFacts;
-            if (!syntaxFacts.IsStringLiteral(token))
-                return false;
+            if (syntaxFacts.IsStringLiteral(token))
+                return IsEmbeddedLanguageStringLiteralToken(token, semanticModel, cancellationToken, out options);
 
+            if (token.RawKind == syntaxFacts.SyntaxKinds.InterpolatedStringTextToken)
+            {
+                options = default;
+                return IsEmbeddedLanguageInterpolatedStringTextToken(token, semanticModel, cancellationToken);
+            }
+
+            return false;
+        }
+
+        private bool IsEmbeddedLanguageStringLiteralToken(SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken, out TOptions options)
+        {
+            options = default;
+            var syntaxFacts = Info.SyntaxFacts;
             if (!syntaxFacts.IsLiteralExpression(token.Parent))
                 return false;
 
@@ -190,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
 
         public TTree? TryParseString(SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            if (!this.IsEmbeddedLanguageString(token, semanticModel, cancellationToken, out var options))
+            if (!this.IsEmbeddedLanguageToken(token, semanticModel, cancellationToken, out var options))
                 return null;
 
             var chars = Info.VirtualCharService.TryConvertToVirtualChars(token);

@@ -4,7 +4,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -84,6 +83,19 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime.Language
             return new DateAndTimeLanguageDetector(info, dateTimeType, dateTimeOffsetType);
         }
 
+        protected override bool IsEmbeddedLanguageInterpolatedStringTextToken(SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            var syntaxFacts = Info.SyntaxFacts;
+            var interpolationFormatClause = token.Parent;
+            var interpolation = interpolationFormatClause?.Parent;
+            if (interpolation?.RawKind != syntaxFacts.SyntaxKinds.Interpolation)
+                return false;
+
+            var expression = syntaxFacts.GetExpressionOfInterpolation(interpolation);
+            var type = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
+            return IsDateTimeType(type);
+        }
+
         protected override bool IsArgumentToWellKnownAPI(
             SyntaxToken token,
             SyntaxNode argumentNode,
@@ -149,32 +161,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime.Language
         private static bool IsMethodArgument(SyntaxToken token, ISyntaxFacts syntaxFacts)
             => syntaxFacts.IsLiteralExpression(token.Parent) &&
                syntaxFacts.IsArgument(token.Parent!.Parent);
-
-        //public bool IsDateAndTimeToken(SyntaxToken token, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
-        //{
-        //    if (IsPossiblyDateAndTimeArgumentToken(
-        //            token, _info.SyntaxFacts,
-        //            out var argumentNode, out var invocationOrCreation))
-        //    {
-
-        //    }
-
-        //    return false;
-        //}
-
-#if false
-            else if (token.RawKind == syntaxFacts.SyntaxKinds.InterpolatedStringTextToken)
-            {
-                var interpolationFormatClause = token.Parent!;
-                var interpolation = interpolationFormatClause.Parent!;
-                if (interpolation.RawKind == syntaxFacts.SyntaxKinds.Interpolation)
-                {
-                    var expression = syntaxFacts.GetExpressionOfInterpolation(interpolation)!;
-                    var type = _semanticModel.GetTypeInfo(expression, cancellationToken).Type;
-                    return IsDateTimeType(type);
-                }
-            }
-#endif
 
         private (string? name, int? index) GetArgumentNameOrIndex(SyntaxNode argument)
         {

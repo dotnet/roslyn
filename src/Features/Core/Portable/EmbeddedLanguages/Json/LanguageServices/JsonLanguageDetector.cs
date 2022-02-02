@@ -67,6 +67,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
             return new JsonLanguageDetector(info, types);
         }
 
+        protected override bool IsEmbeddedLanguageInterpolatedStringTextToken(SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
+            => false;
+
         protected override JsonTree? TryParse(VirtualCharSequence chars, JsonOptions options)
             => JsonParser.TryParse(chars, options);
 
