@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Security;
+
 namespace Microsoft.CodeAnalysis.Test.Utilities.EmbeddedLanguages
 {
     internal static class EmbeddedLanguagesTestConstants
     {
-        public static readonly string StringSyntaxAttributeCode = @"
+        public static readonly string StringSyntaxAttributeCodeCSharp = @"
 namespace System.Diagnostics.CodeAnalysis
 {
     [AttributeUsage(AttributeTargets.Parameter | AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
@@ -32,6 +34,8 @@ namespace System.Diagnostics.CodeAnalysis
         public const string Regex = nameof(Regex);
     }
 }";
+        public static readonly string StringSyntaxAttributeCodeCSharpXml = SecurityElement.Escape(StringSyntaxAttributeCodeCSharp);
+
         public static readonly string StringSyntaxAttributeCodeVB = @"
 Namespace System.Diagnostics.CodeAnalysis
     <AttributeUsage(AttributeTargets.Parameter Or AttributeTargets.Field Or AttributeTargets.Property, AllowMultiple:=False, Inherited:=False)>

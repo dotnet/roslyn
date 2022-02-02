@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Globalization
+Imports Microsoft.CodeAnalysis.Test.Utilities.EmbeddedLanguages
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
@@ -200,6 +201,34 @@ class c
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("var v = ""G""", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ExplicitInvokeStringSyntaxAttribute_Argument(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System.Diagnostics.CodeAnalysis;
+using System;
+class c
+{
+    void M([StringSyntax(StringSyntaxAttribute.DateTimeFormat)] string p)
+    {
+    }
+
+    void goo()
+    {
+        M("$$");
+    }
+}
+<%= EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp %>
+                </Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("G", inlineDescription:=FeaturesResources.general_long_date_time)
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("M(""G"")", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 

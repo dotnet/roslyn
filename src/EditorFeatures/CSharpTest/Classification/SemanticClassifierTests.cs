@@ -3464,7 +3464,7 @@ class Program
     {
         [|this.field = @""$\a(?#comment)"";|]
     }
-}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCode,
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
 testHost,
 Field("field"),
 Regex.Anchor("$"),
@@ -3491,7 +3491,7 @@ class Program
     {
         [|this.Prop = @""$\a(?#comment)"";|]
     }
-}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCode,
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
 testHost,
 Property("Prop"),
 Regex.Anchor("$"),
@@ -3519,13 +3519,44 @@ class Program
     {
         [|M(@""$\a(?#comment)"");|]
     }
-}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCode,
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
 testHost,
 Method("M"),
 Regex.Anchor("$"),
 Regex.OtherEscape("\\"),
 Regex.OtherEscape("a"),
 Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_Argument_Options(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    private void M([StringSyntax(StringSyntaxAttribute.Regex)] string p, RegexOptions options)
+    {
+    }
+
+    void Goo()
+    {
+        [|M(@""$\a(?#comment) # is end of line comment"", RegexOptions.IgnorePatternWhitespace);|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Method("M"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"),
+Regex.Comment("# is end of line comment"),
+Enum("RegexOptions"),
+EnumMember("IgnorePatternWhitespace"));
         }
 
         [Theory]
@@ -3673,7 +3704,7 @@ class Program
     {
         [|this.field = @""[{ 'goo': 0}]"";|]
     }
-}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCode,
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
 testHost,
 Field("field"),
 Json.Array("["),
@@ -3701,7 +3732,7 @@ class Program
     {
         [|this.Prop = @""[{ 'goo': 0}]"";|]
     }
-}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCode,
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
 testHost,
 Property("Prop"),
 Json.Array("["),
@@ -3731,7 +3762,7 @@ class Program
     {
         [|M(@""[{ 'goo': 0}]"");|]
     }
-}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCode,
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
 testHost,
 Method("M"),
 Json.Array("["),

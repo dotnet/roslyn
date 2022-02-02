@@ -93,9 +93,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             return result;
         }
 
-        protected override bool IsEmbeddedLanguageInterpolatedStringTextToken(SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
-            => false;
-
         protected override bool IsArgumentToWellKnownAPI(
             SyntaxToken token,
             SyntaxNode argumentNode,
@@ -203,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
                 return false;
             }
 
-            options = GetOptionsFromSiblingArgument(argumentNode, semanticModel, cancellationToken);
+            options = GetOptionsFromSiblingArgument(argumentNode, semanticModel, cancellationToken) ?? default;
             return true;
         }
 

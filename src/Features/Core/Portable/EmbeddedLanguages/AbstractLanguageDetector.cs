@@ -34,7 +34,17 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
         protected abstract bool IsArgumentToWellKnownAPI(SyntaxToken token, SyntaxNode argumentNode, SemanticModel semanticModel, CancellationToken cancellationToken, out TOptions options);
         protected abstract TTree? TryParse(VirtualCharSequence chars, TOptions options);
         protected abstract bool TryGetOptions(SemanticModel semanticModel, ITypeSymbol exprType, SyntaxNode expr, CancellationToken cancellationToken, out TOptions options);
-        protected abstract bool IsEmbeddedLanguageInterpolatedStringTextToken(SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken);
+
+        // Most embedded languages don't support being in an interpolated string text token.
+        protected virtual bool IsEmbeddedLanguageInterpolatedStringTextToken(SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
+            => false;
+
+        /// <summary>
+        /// What options we should assume by default if we're matched up against a symbol that has a [StringSyntax]
+        /// attribute on it.
+        /// </summary>
+        protected virtual TOptions GetStringSyntaxDefaultOptions()
+            => default;
 
         private bool HasLanguageComment(
             SyntaxToken token, ISyntaxFacts syntaxFacts, out TOptions options)
@@ -147,7 +157,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
             if (operation is IArgumentOperation { Parameter: { } parameter } &&
                 HasMatchingStringSyntaxAttribute(parameter))
             {
-                options = GetOptionsFromSiblingArgument(argumentNode, semanticModel, cancellationToken);
+                options = GetOptionsFromSiblingArgument(argumentNode, semanticModel, cancellationToken) ??
+                          GetStringSyntaxDefaultOptions();
                 return true;
             }
 
@@ -213,7 +224,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
             return TryParse(chars, options);
         }
 
-        protected TOptions GetOptionsFromSiblingArgument(SyntaxNode argumentNode, SemanticModel semanticModel, CancellationToken cancellationToken)
+        protected TOptions? GetOptionsFromSiblingArgument(
+            SyntaxNode argumentNode,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
         {
             var syntaxFacts = Info.SyntaxFacts;
             var argumentList = argumentNode.GetRequiredParent();
@@ -235,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
                 }
             }
 
-            return default;
+            return null;
         }
 
         protected string? GetNameOfType(SyntaxNode? typeNode, ISyntaxFacts syntaxFacts)
