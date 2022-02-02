@@ -60,6 +60,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                         var parameterReferenceSyntax = nullCoalescing.Left;
                         editor.ReplaceNode(nullCoalescing, parameterReferenceSyntax.WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker));
                         break;
+                    case IfStatementSyntax { Else.Statement: BlockSyntax blockWithinElse } ifStatementWithElseBlock:
+                        {
+                            var parent = (BlockSyntax)ifStatementWithElseBlock.Parent!;
+                            var statements = parent.Statements;
+                            var indexOfIfStatement = statements.IndexOf(ifStatementWithElseBlock);
+                            using var _1 = ArrayBuilder<StatementSyntax>.GetInstance(capacity: statements.Count + blockWithinElse.Statements.Count - 1, out var newStatements);
+
+                            for (var i = 0; i < indexOfIfStatement; i++)
+                            {
+                                newStatements.Add(statements[i]);
+                            }
+                            foreach (var statementWithinElse in blockWithinElse.Statements)
+                            {
+                                newStatements.Add(statementWithinElse.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker));
+                            }
+                            for (var i = indexOfIfStatement + 1; i < statements.Count; i++)
+                            {
+                                newStatements.Add(statements[i]);
+                            }
+
+                            parent.Statements.ReplaceRange(ifStatementWithElseBlock, newStatements);
+                            editor.ReplaceNode(parent, parent.WithStatements(SyntaxFactory.List(newStatements)));
+                            break;
+                        }
+                    case IfStatementSyntax { Else.Statement: StatementSyntax statementWithinElse }:
+                        editor.ReplaceNode(node, statementWithinElse.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker));
+                        break;
                     case IfStatementSyntax:
                     case ExpressionStatementSyntax { Expression: AssignmentExpressionSyntax { Right: BinaryExpressionSyntax(SyntaxKind.CoalesceExpression) } }:
                         editor.RemoveNode(node);
