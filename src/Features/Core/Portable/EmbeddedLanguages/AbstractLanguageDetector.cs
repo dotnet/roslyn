@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -31,8 +32,23 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
             _commentDetector = commentDetector;
         }
 
+        /// <summary>
+        /// Whether or not this is an argument to a well known api for this language (like Regex.Match or JToken.Parse).
+        /// We light up support if we detect these, even if these APIs don't have the StringSyntaxAttribute attribute on
+        /// them.  That way users can get a decent experience even on downlevel frameworks.
+        /// </summary>
         protected abstract bool IsArgumentToWellKnownAPI(SyntaxToken token, SyntaxNode argumentNode, SemanticModel semanticModel, CancellationToken cancellationToken, out TOptions options);
+
+        /// <summary>
+        /// Tries to parse out an appropriate language tree given the characters in this string literal.
+        /// </summary>
         protected abstract TTree? TryParse(VirtualCharSequence chars, TOptions options);
+
+        /// <summary>
+        /// Giving a sibling argument expression to the string literal, attempts to determine if they correspond to
+        /// options for that language.  For example with <c>new Regex("[a-z]", RegexOptions.CaseInsensitive)</c> the 
+        /// second argument's expression defines options that control how the literal is parsed.
+        /// </summary>
         protected abstract bool TryGetOptions(SemanticModel semanticModel, ITypeSymbol exprType, SyntaxNode expr, CancellationToken cancellationToken, out TOptions options);
 
         // Most embedded languages don't support being in an interpolated string text token.
