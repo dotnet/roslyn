@@ -221,10 +221,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     return;
                 }
 
-                // Take a snapshot of the immutable data structure here to avoid mutation underneath us
-                var projectToHierarchyMap = _workspace._projectToHierarchyMap;
-                var solution = _workspace.CurrentSolution;
-
                 // We now must chase to the actual hierarchy that we know about. First, we'll chase through multiple shared asset projects if
                 // we need to do so.
                 while (true)
@@ -276,7 +272,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 // Take a snapshot of the immutable data structure here to avoid mutation underneath us
                 var projectToHierarchyMap = _workspace._projectToHierarchyMap;
-                var solution = _workspace.CurrentSolution;
 
                 // We now must chase to the actual hierarchy that we know about. First, we'll chase through multiple shared asset projects if
                 // we need to do so.
@@ -296,12 +291,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 // We may have multiple projects with the same hierarchy, but we can use __VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext to distinguish
-                VisualStudioProject? project = null;
                 if (ErrorHandler.Succeeded(hierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext, out var contextProjectNameObject)))
                 {
                     if (contextProjectNameObject is string contextProjectName)
                     {
-                        project = _workspace.GetProjectWithHierarchyAndName_NoLock(hierarchy, contextProjectName);
+                        var project = _workspace.GetProjectWithHierarchyAndName_NoLock(hierarchy, contextProjectName);
                         if (project != null && projectIds.Contains(project.Id))
                         {
                             return project.Id;
