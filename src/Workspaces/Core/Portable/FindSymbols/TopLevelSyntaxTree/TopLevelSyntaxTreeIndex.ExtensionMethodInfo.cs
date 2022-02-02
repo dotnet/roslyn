@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal partial class SyntaxTreeIndex
+    internal sealed partial class TopLevelSyntaxTreeIndex
     {
         private readonly struct ExtensionMethodInfo
         {
