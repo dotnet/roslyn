@@ -210,7 +210,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             private void WatchAndSubscribeToHierarchies(string moniker, IVsHierarchy? hierarchy)
             {
-                // Keep this method in sync with GetActiveContextProjectIdAndWatchHierarchies and GetActiveProjectId.
+                // Keep this method in sync with GetActiveContextProjectId_NoLockAsync
 
                 _foregroundAffinitization.AssertIsForeground();
 
