@@ -107,10 +107,11 @@ namespace Microsoft.CodeAnalysis.Completion
                    position,
                    defaultSpan,
                    trigger,
-                   CompletionOptions.From(options ?? throw new ArgumentNullException(nameof(options)), document.Project.Language),
+                   // Publicly available options do not affect this API.
+                   CompletionOptions.Default,
                    cancellationToken)
         {
-            _lazyOptionSet = options;
+            _lazyOptionSet = options ?? throw new ArgumentNullException(nameof(options));
         }
 
         /// <summary>
@@ -139,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// The options that completion was started with.
         /// </summary>
         public OptionSet Options
-            => _lazyOptionSet ??= CompletionOptions.ToSet(Document.Project.Language);
+            => _lazyOptionSet ??= OptionValueSet.Empty;
 
         internal IReadOnlyList<CompletionItem> Items => _items;
 

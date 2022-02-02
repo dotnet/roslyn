@@ -25,9 +25,10 @@ internal class ExperimentalDocumentPullDiagnosticsHandler : AbstractPullDiagnost
     private readonly IDiagnosticAnalyzerService _analyzerService;
 
     public ExperimentalDocumentPullDiagnosticsHandler(
+        WellKnownLspServerKinds serverKind,
         IDiagnosticService diagnosticService,
         IDiagnosticAnalyzerService analyzerService)
-        : base(diagnosticService)
+        : base(serverKind, diagnosticService)
     {
         _analyzerService = analyzerService;
     }

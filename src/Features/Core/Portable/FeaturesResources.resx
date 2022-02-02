@@ -3022,19 +3022,91 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Symbol_found_in_assembly_path_0" xml:space="preserve">
     <value>Symbol found in assembly path '{0}'</value>
   </data>
+  <data name="Invalid_number" xml:space="preserve">
+    <value>Invalid number</value>
+  </data>
+  <data name="Unterminated_comment" xml:space="preserve">
+    <value>Unterminated comment</value>
+  </data>
+  <data name="Unterminated_string" xml:space="preserve">
+    <value>Unterminated string</value>
+  </data>
+  <data name="_0_expected" xml:space="preserve">
+    <value>'{0}' expected</value>
+  </data>
+  <data name="_0_unexpected" xml:space="preserve">
+    <value>'{0}' unexpected</value>
+  </data>
+  <data name="Invalid_escape_sequence" xml:space="preserve">
+    <value>Invalid escape sequence</value>
+  </data>
+  <data name="Error_parsing_comment" xml:space="preserve">
+    <value>Error parsing comment</value>
+  </data>
+  <data name="Syntax_error" xml:space="preserve">
+    <value>Syntax error</value>
+  </data>
+  <data name="Invalid_property_name" xml:space="preserve">
+    <value>Invalid property name</value>
+  </data>
+  <data name="Missing_property_value" xml:space="preserve">
+    <value>Missing property value</value>
+  </data>
+  <data name="Nested_properties_not_allowed" xml:space="preserve">
+    <value>Nested properties not allowed</value>
+  </data>
+  <data name="Name_expected" xml:space="preserve">
+    <value>Name expected</value>
+  </data>
+  <data name="Invalid_constructor_name" xml:space="preserve">
+    <value>Invalid constructor name</value>
+  </data>
+  <data name="Comments_not_allowed" xml:space="preserve">
+    <value>Comments not allowed</value>
+  </data>
+  <data name="Constructors_not_allowed" xml:space="preserve">
+    <value>Constructors not allowed</value>
+  </data>
+  <data name="Illegal_string_character" xml:space="preserve">
+    <value>Illegal string character</value>
+  </data>
+  <data name="Illegal_whitespace_character" xml:space="preserve">
+    <value>Illegal whitespace character</value>
+  </data>
+  <data name="Only_properties_allowed_in_an_object" xml:space="preserve">
+    <value>Only properties allowed in an object</value>
+  </data>
+  <data name="Properties_not_allowed_in_an_array" xml:space="preserve">
+    <value>Properties not allowed in an array</value>
+  </data>
+  <data name="Property_name_must_be_a_string" xml:space="preserve">
+    <value>Property name must be a string</value>
+  </data>
+  <data name="Strings_must_start_with_double_quote_not_single_quote" xml:space="preserve">
+    <value>Strings must start with " not '</value>
+  </data>
+  <data name="Trailing_comma_not_allowed" xml:space="preserve">
+    <value>Trailing comma not allowed</value>
+  </data>
+  <data name="Value_required" xml:space="preserve">
+    <value>Value required</value>
+  </data>
+  <data name="_0_literal_not_allowed" xml:space="preserve">
+    <value>'{0}' literal not allowed</value>
+  </data>
+  <data name="JSON_issue_0" xml:space="preserve">
+    <value>JSON issue: {0}</value>
+  </data>
+  <data name="Probable_JSON_string_detected" xml:space="preserve">
+    <value>Probable JSON string detected</value>
+  </data>
+  <data name="Enable_JSON_editor_features" xml:space="preserve">
+    <value>Enable JSON editor features</value>
+  </data>
   <data name="Invalid_regex_pattern" xml:space="preserve">
     <value>Invalid regex pattern</value>
   </data>
-  <data name="Cannot_navigate_to_the_symbol_under_the_caret" xml:space="preserve">
-    <value>Cannot navigate to the symbol under the caret.</value>
-  </data>
-  <data name="_0_implementations" xml:space="preserve">
-    <value>'{0}' implementations</value>
-  </data>
-  <data name="_0_references" xml:space="preserve">
-    <value>'{0}' references</value>
-  </data>
-  <data name="The_symbol_has_no_implementations" xml:space="preserve">
-    <value>The symbol has no implementations.</value>
+  <data name="Invalid_JSON_pattern" xml:space="preserve">
+    <value>Invalid JSON pattern</value>
   </data>
 </root>

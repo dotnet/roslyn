@@ -21,9 +21,10 @@ internal class ExperimentalWorkspacePullDiagnosticsHandler : AbstractPullDiagnos
     private readonly IDiagnosticAnalyzerService _analyzerService;
 
     public ExperimentalWorkspacePullDiagnosticsHandler(
+        WellKnownLspServerKinds serverKind,
         IDiagnosticService diagnosticService,
         IDiagnosticAnalyzerService analyzerService)
-        : base(diagnosticService)
+        : base(serverKind, diagnosticService)
     {
         _analyzerService = analyzerService;
     }

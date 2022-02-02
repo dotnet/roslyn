@@ -44,7 +44,12 @@ namespace Microsoft.CodeAnalysis.Completion
         /// Backward compatibility only.
         /// </summary>
         public sealed override CompletionRules GetRules()
-            => GetRules(CompletionOptions.From(_workspace.CurrentSolution.Options, Language));
+        {
+            Debug.Fail("For backwards API compat only, should not be called");
+
+            // Publicly available options do not affect this API.
+            return GetRules(CompletionOptions.Default);
+        }
 
         /// <summary>
         /// Returns the providers always available to the service.
@@ -90,7 +95,8 @@ namespace Microsoft.CodeAnalysis.Completion
             OptionSet? options,
             CancellationToken cancellationToken)
         {
-            var completionOptions = CompletionOptions.From(options ?? document.Project.Solution.Options, document.Project.Language);
+            // Publicly available options do not affect this API.
+            var completionOptions = CompletionOptions.Default;
             return await GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, completionOptions, trigger, roles, cancellationToken).ConfigureAwait(false);
         }
 
@@ -204,7 +210,9 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             var document = text.GetOpenDocumentInCurrentContextWithChanges();
             var languageServices = document?.Project.LanguageServices ?? _workspace.Services.GetLanguageServices(Language);
-            var completionOptions = CompletionOptions.From(options ?? document?.Project.Solution.Options ?? _workspace.CurrentSolution.Options, document?.Project.Language ?? Language);
+
+            // Publicly available options do not affect this API.
+            var completionOptions = CompletionOptions.Default;
             return ShouldTriggerCompletion(document?.Project, languageServices, text, caretPosition, trigger, completionOptions, roles);
         }
 

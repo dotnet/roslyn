@@ -1963,6 +1963,41 @@ class C { }
             Assert.True(generatorCancelled);
         }
 
+        [Fact]
+        public void Syntax_Receiver_Cancellation_During_Visit()
+        {
+            var source = @"
+class C 
+{
+    int Property { get; set; }
+
+    void Function()
+    {
+        var x = 5;
+        x += 4;
+    }
+}
+";
+            var parseOptions = TestOptions.Regular;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var testGenerator = new CallbackGenerator(
+                onInit: (i) => i.RegisterForSyntaxNotifications(() => new TestSyntaxReceiver(tag: 0, callback: (a) => { if (a is AssignmentExpressionSyntax) { throw new OperationCanceledException("Simulated cancellation from external source"); } })),
+                onExecute: (e) => { e.AddSource("test", SourceText.From("public class D{}", Encoding.UTF8)); }
+                );
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { testGenerator }, parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation, CancellationToken.None);
+            var results = driver.GetRunResult();
+
+            Assert.Single(results.Results);
+            Assert.IsType<OperationCanceledException>(results.Results[0].Exception);
+            Assert.Equal("Simulated cancellation from external source", results.Results[0].Exception!.Message);
+        }
+
         private class TestReceiverBase<T>
         {
             private readonly Action<T>? _callback;

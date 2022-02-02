@@ -164,7 +164,12 @@ namespace Microsoft.CodeAnalysis.Completion
             Document document,
             CompletionItem item,
             CancellationToken cancellationToken = default)
-            => GetDescriptionAsync(document, item, CompletionOptions.From(document.Project), SymbolDescriptionOptions.From(document.Project), cancellationToken);
+        {
+            Debug.Fail("For backwards API compat only, should not be called");
+
+            // Publicly available options do not affect this API.
+            return GetDescriptionAsync(document, item, CompletionOptions.Default, SymbolDescriptionOptions.Default, cancellationToken);
+        }
 
         /// <summary>
         /// Gets the description of the item.
