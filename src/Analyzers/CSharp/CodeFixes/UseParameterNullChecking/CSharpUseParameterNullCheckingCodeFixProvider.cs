@@ -60,18 +60,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                         var parameterReferenceSyntax = nullCoalescing.Left;
                         editor.ReplaceNode(nullCoalescing, parameterReferenceSyntax.WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker));
                         break;
-                    case IfStatementSyntax { Else.Statement: BlockSyntax blockWithinElse } ifStatementWithElseBlock:
+                    case IfStatementSyntax { Else.Statement: BlockSyntax { Statements: var statementsWithinElse } } ifStatementWithElseBlock:
                         {
                             var parent = (BlockSyntax)ifStatementWithElseBlock.Parent!;
                             var statements = parent.Statements;
                             var indexOfIfStatement = statements.IndexOf(ifStatementWithElseBlock);
-                            using var _1 = ArrayBuilder<StatementSyntax>.GetInstance(capacity: statements.Count + blockWithinElse.Statements.Count - 1, out var newStatements);
+                            using var _1 = ArrayBuilder<StatementSyntax>.GetInstance(capacity: statements.Count + statementsWithinElse.Count - 1, out var newStatements);
 
                             for (var i = 0; i < indexOfIfStatement; i++)
                             {
                                 newStatements.Add(statements[i]);
                             }
-                            foreach (var statementWithinElse in blockWithinElse.Statements)
+                            foreach (var statementWithinElse in statementsWithinElse)
                             {
                                 newStatements.Add(statementWithinElse.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker));
                             }
