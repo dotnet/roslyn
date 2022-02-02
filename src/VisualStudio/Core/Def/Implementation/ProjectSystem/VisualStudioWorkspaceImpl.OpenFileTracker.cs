@@ -155,10 +155,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 _foregroundAffinitization.AssertIsForeground();
 
+                var activeProjectInfo = GetActiveContextProjectIdAndWatchHierarchies(moniker, hierarchy);
+
                 _workspaceApplicationQueue.AddWork(async () =>
                 {
-                    var activeProjectInfo = await GetActiveContextProjectIdAndWatchHierarchiesAsync(moniker, hierarchy).ConfigureAwait(false);
-
                     await _workspace.ApplyChangeToWorkspaceMaybeAsync(useAsync: true, w =>
                     {
                         var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
@@ -200,11 +200,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 });
             }
 
-            private async Task<(IVsHierarchy? hierarchy, VisualStudioProject? project, ImmutableDictionary<ProjectId, IVsHierarchy?>? projectToHierarchy)>
-                GetActiveContextProjectIdAndWatchHierarchiesAsync(string moniker, IVsHierarchy? hierarchy)
+            private (IVsHierarchy? hierarchy, VisualStudioProject? project, ImmutableDictionary<ProjectId, IVsHierarchy?>? projectToHierarchy)
+                GetActiveContextProjectIdAndWatchHierarchies(string moniker, IVsHierarchy? hierarchy)
             {
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-
                 _foregroundAffinitization.AssertIsForeground();
 
                 // First clear off any existing IVsHierarchies we are watching. Any ones that still matter we will resubscribe to.
@@ -304,10 +302,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 _foregroundAffinitization.AssertIsForeground();
 
+                var activeProjectInfoInfo = GetActiveContextProjectIdAndWatchHierarchies(moniker, hierarchy);
+
                 _workspaceApplicationQueue.AddWork(async () =>
                 {
-                    var activeContextInfo = await GetActiveContextProjectIdAndWatchHierarchiesAsync(moniker, hierarchy).ConfigureAwait(false);
-
                     await _workspace.ApplyChangeToWorkspaceMaybeAsync(useAsync: true, w =>
                     {
                         var documentIds = w.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
@@ -318,7 +316,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             return;
 
                         var activeProjectId = GetActiveProjectId(
-                            activeContextInfo.hierarchy, activeContextInfo.project, activeContextInfo.projectToHierarchy,
+                            activeProjectInfoInfo.hierarchy, activeProjectInfoInfo.project, activeProjectInfoInfo.projectToHierarchy,
                             documentIds.SelectAsArray(d => d.ProjectId));
                         if (activeProjectId == null)
                             return;
