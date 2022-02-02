@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
         internal GeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts, GeneratorDriverOptions driverOptions)
         {
             (var filteredGenerators, var incrementalGenerators) = GetIncrementalGenerators(generators, SourceExtension);
-            _state = new GeneratorDriverState(parseOptions, optionsProvider, filteredGenerators, incrementalGenerators, additionalTexts, ImmutableArray.Create(new GeneratorState[filteredGenerators.Length]), DriverStateTable.Empty, driverOptions.DisabledOutputs, runtime: TimeSpan.Zero, driverOptions.TrackIncrementalGeneratorSteps);
+            _state = new GeneratorDriverState(parseOptions, optionsProvider, filteredGenerators, incrementalGenerators, additionalTexts, ImmutableArray.Create(new GeneratorState[filteredGenerators.Length]), DriverStateTable.Empty, SyntaxStore.Empty, driverOptions.DisabledOutputs, runtime: TimeSpan.Zero, driverOptions.TrackIncrementalGeneratorSteps);
         }
 
         public GeneratorDriver RunGenerators(Compilation compilation, CancellationToken cancellationToken = default)
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis
             var state = _state;
             var stateBuilder = ArrayBuilder<GeneratorState>.GetInstance(state.Generators.Length);
             var constantSourcesBuilder = ArrayBuilder<SyntaxTree>.GetInstance();
-            var syntaxInputNodes = ArrayBuilder<ISyntaxInputNode>.GetInstance();
+            var syntaxInputNodes = ArrayBuilder<SyntaxInputNode>.GetInstance();
 
             for (int i = 0; i < state.IncrementalGenerators.Length; i++)
             {
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis
                 if (!generatorState.Initialized)
                 {
                     var outputBuilder = ArrayBuilder<IIncrementalGeneratorOutputNode>.GetInstance();
-                    var inputBuilder = ArrayBuilder<ISyntaxInputNode>.GetInstance();
+                    var inputBuilder = ArrayBuilder<SyntaxInputNode>.GetInstance();
                     var postInitSources = ImmutableArray<GeneratedSyntaxTree>.Empty;
                     var pipelineContext = new IncrementalGeneratorInitializationContext(inputBuilder, outputBuilder, SourceExtension);
 
@@ -241,7 +241,9 @@ namespace Microsoft.CodeAnalysis
             }
             constantSourcesBuilder.Free();
 
-            var driverStateBuilder = new DriverStateTable.Builder(compilation, _state, syntaxInputNodes.ToImmutableAndFree(), cancellationToken);
+            var syntaxStoreBuilder = _state.SyntaxStore.ToBuilder(compilation, syntaxInputNodes.ToImmutableAndFree(), _state.TrackIncrementalSteps, cancellationToken);
+
+            var driverStateBuilder = new DriverStateTable.Builder(compilation, _state, syntaxStoreBuilder, cancellationToken);
             for (int i = 0; i < state.IncrementalGenerators.Length; i++)
             {
                 var generatorState = stateBuilder[i];
@@ -266,7 +268,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            state = state.With(stateTable: driverStateBuilder.ToImmutable(), generatorStates: stateBuilder.ToImmutableAndFree(), runTime: timer.Elapsed);
+            state = state.With(stateTable: driverStateBuilder.ToImmutable(), syntaxStore: syntaxStoreBuilder.ToImmutable(), generatorStates: stateBuilder.ToImmutableAndFree(), runTime: timer.Elapsed);
             return state;
         }
 

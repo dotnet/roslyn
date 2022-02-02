@@ -1791,9 +1791,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return TypeOf node Is SimpleNameSyntax
         End Function
 
+        Public Function IsNamedMemberInitializer(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNamedMemberInitializer
+            Return TypeOf node Is NamedFieldInitializerSyntax
+        End Function
+
 #End Region
 
 #Region "GetPartsOfXXX members"
+
+        Public Sub GetPartsOfBaseObjectCreationExpression(node As SyntaxNode, ByRef argumentList As SyntaxNode, ByRef initializer As SyntaxNode) Implements ISyntaxFacts.GetPartsOfBaseObjectCreationExpression
+            Dim objectCreationExpression = DirectCast(node, ObjectCreationExpressionSyntax)
+            argumentList = objectCreationExpression.ArgumentList
+            initializer = objectCreationExpression.Initializer
+        End Sub
 
         Public Sub GetPartsOfBinaryExpression(node As SyntaxNode, ByRef left As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef right As SyntaxNode) Implements ISyntaxFacts.GetPartsOfBinaryExpression
             Dim binaryExpression = DirectCast(node, BinaryExpressionSyntax)
@@ -1843,6 +1853,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             members = namespaceBlock.Members
         End Sub
 
+        Public Sub GetPartsOfNamedMemberInitializer(node As SyntaxNode, ByRef identifier As SyntaxNode, ByRef expression As SyntaxNode) Implements ISyntaxFacts.GetPartsOfNamedMemberInitializer
+            Dim namedField = DirectCast(node, NamedFieldInitializerSyntax)
+            identifier = namedField.Name
+            expression = namedField.Expression
+        End Sub
+
         Public Sub GetPartsOfObjectCreationExpression(node As SyntaxNode, ByRef type As SyntaxNode, ByRef argumentList As SyntaxNode, ByRef initializer As SyntaxNode) Implements ISyntaxFacts.GetPartsOfObjectCreationExpression
             Dim objectCreationExpression = DirectCast(node, ObjectCreationExpressionSyntax)
             type = objectCreationExpression.Type
@@ -1881,6 +1897,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public Function GetExpressionOfThrowExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.GetExpressionOfThrowExpression
             ' ThrowExpression doesn't exist in VB
             Throw New NotImplementedException()
+        End Function
+
+        Public Function GetMemberInitializersofInitializer(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetMemberInitializersOfInitializer
+            Dim initializer = TryCast(node, ObjectMemberInitializerSyntax)
+            If initializer Is Nothing Then
+                Return Nothing
+            End If
+
+            Return initializer.Initializers
         End Function
 
 #End Region

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel;
@@ -121,7 +119,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<TaggedText> nameDisplayParts,
             ImmutableArray<TaggedText> originationParts,
             ImmutableArray<DocumentSpan> sourceSpans,
-            ImmutableDictionary<string, string> properties,
+            ImmutableDictionary<string, string>? properties,
             bool displayIfNoReferences)
             : this(
                 tags,
@@ -141,8 +139,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<TaggedText> nameDisplayParts,
             ImmutableArray<TaggedText> originationParts,
             ImmutableArray<DocumentSpan> sourceSpans,
-            ImmutableDictionary<string, string> properties,
-            ImmutableDictionary<string, string> displayableProperties,
+            ImmutableDictionary<string, string>? properties,
+            ImmutableDictionary<string, string>? displayableProperties,
             bool displayIfNoReferences)
         {
             Tags = tags;
@@ -210,7 +208,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<TaggedText> displayParts,
             ImmutableArray<DocumentSpan> sourceSpans,
             ImmutableArray<TaggedText> nameDisplayParts = default,
-            ImmutableDictionary<string, string> properties = null,
+            ImmutableDictionary<string, string>? properties = null,
             bool displayIfNoReferences = true)
         {
             return Create(tags, displayParts, sourceSpans, nameDisplayParts, properties, ImmutableDictionary<string, string>.Empty, displayIfNoReferences);
@@ -221,8 +219,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<TaggedText> displayParts,
             ImmutableArray<DocumentSpan> sourceSpans,
             ImmutableArray<TaggedText> nameDisplayParts = default,
-            ImmutableDictionary<string, string> properties = null,
-            ImmutableDictionary<string, string> displayableProperties = null,
+            ImmutableDictionary<string, string>? properties = null,
+            ImmutableDictionary<string, string>? displayableProperties = null,
             bool displayIfNoReferences = true)
         {
             if (sourceSpans.Length == 0)
@@ -245,7 +243,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<TaggedText> nameDisplayParts,
             Solution solution,
             ISymbol symbol,
-            ImmutableDictionary<string, string> properties = null,
+            ImmutableDictionary<string, string>? properties = null,
             bool displayIfNoReferences = true)
         {
             properties ??= ImmutableDictionary<string, string>.Empty;
@@ -257,7 +255,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
             properties = properties.Add(MetadataSymbolKey, symbolKey)
                                    .Add(MetadataSymbolOriginatingProjectIdGuid, projectId.Id.ToString())
-                                   .Add(MetadataSymbolOriginatingProjectIdDebugName, projectId.DebugName);
+                                   .Add(MetadataSymbolOriginatingProjectIdDebugName, projectId.DebugName ?? "");
 
             // Find the highest level containing type to show as the "file name". For metadata locations
             // that come from embedded source or SourceLink this will be wrong, but its _way_ too expensive
@@ -291,7 +289,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
             ImmutableArray<TaggedText> originationParts = default,
-            ImmutableDictionary<string, string> properties = null,
+            ImmutableDictionary<string, string>? properties = null,
             bool displayIfNoReferences = true)
         {
             properties ??= ImmutableDictionary<string, string>.Empty;

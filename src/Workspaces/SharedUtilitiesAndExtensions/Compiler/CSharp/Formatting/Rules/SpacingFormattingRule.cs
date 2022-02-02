@@ -454,13 +454,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // No space after $" and $@" and @$" at the start of an interpolated string
             if (previousKind is SyntaxKind.InterpolatedStringStartToken or
-                SyntaxKind.InterpolatedVerbatimStringStartToken)
+                                SyntaxKind.InterpolatedVerbatimStringStartToken or
+                                SyntaxKind.InterpolatedSingleLineRawStringStartToken or
+                                SyntaxKind.InterpolatedMultiLineRawStringStartToken)
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
             }
 
             // No space before " at the end of an interpolated string
-            if (currentKind == SyntaxKind.InterpolatedStringEndToken)
+            if (currentKind is SyntaxKind.InterpolatedStringEndToken or
+                               SyntaxKind.InterpolatedRawStringEndToken)
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
             }

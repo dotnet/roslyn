@@ -210,8 +210,7 @@
       "channels": [],
       "vsBranch": "rel/d17.1",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.1p3]"
+      "insertionTitlePrefix": "[d17.1]"
     },
     "main": {
       "nugetKind": [

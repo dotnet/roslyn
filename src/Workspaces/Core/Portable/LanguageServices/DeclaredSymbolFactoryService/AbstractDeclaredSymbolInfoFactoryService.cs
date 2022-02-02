@@ -68,10 +68,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         protected abstract void AddDeclaredSymbolInfosWorker(
             SyntaxNode container, TMemberDeclarationSyntax memberDeclaration, StringTable stringTable, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, Dictionary<string, string> aliases, Dictionary<string, ArrayBuilder<int>> extensionMethodInfo, string containerDisplayName, string fullyQualifiedContainerName, CancellationToken cancellationToken);
         /// <summary>
-        /// Get the name of the target type of specified extension method declaration. 
-        /// The node provided must be an extension method declaration,  i.e. calling `TryGetDeclaredSymbolInfo()` 
-        /// on `node` should return a `DeclaredSymbolInfo` of kind `ExtensionMethod`. 
-        /// If the return value is null, then it means this is a "complex" method (as described at <see cref="SyntaxTreeIndex.ExtensionMethodInfo"/>).
+        /// Get the name of the target type of specified extension method declaration. The node provided must be an
+        /// extension method declaration,  i.e. calling `TryGetDeclaredSymbolInfo()` on `node` should return a
+        /// `DeclaredSymbolInfo` of kind `ExtensionMethod`. If the return value is null, then it means this is a
+        /// "complex" method (as described at <see cref="TopLevelSyntaxTreeIndex.ExtensionMethodInfo"/>).
         /// </summary>
         protected abstract string GetReceiverTypeName(TMemberDeclarationSyntax node);
         protected abstract bool TryGetAliasesFromUsingDirective(TUsingDirectiveSyntax node, out ImmutableArray<(string aliasName, string name)> aliases);

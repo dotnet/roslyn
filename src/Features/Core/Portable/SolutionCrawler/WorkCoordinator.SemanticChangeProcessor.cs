@@ -304,8 +304,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     var graph = solution.GetProjectDependencyGraph();
 
-                    // Reanalyze direct dependencies only as reanalyzing all transitive dependencies is very expensive.
-                    return graph.GetProjectsThatDirectlyDependOnThisProject(projectId).Concat(projectId);
+                    if (solution.Options.GetOption(InternalSolutionCrawlerOptions.DirectDependencyPropagationOnly))
+                    {
+                        return graph.GetProjectsThatDirectlyDependOnThisProject(projectId).Concat(projectId);
+                    }
+
+                    // re-analyzing all transitive dependencies is very expensive. by default we will only
+                    // re-analyze direct dependency for now. and consider flipping the default only if we must.
+                    return graph.GetProjectsThatTransitivelyDependOnThisProject(projectId).Concat(projectId);
                 }
 
                 private readonly struct Data

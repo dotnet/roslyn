@@ -97,6 +97,16 @@
         <target state="translated">Converter em método</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_raw_string">
+        <source>Convert to raw string</source>
+        <target state="new">Convert to raw string</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_raw_string_no_indent">
+        <source>Convert to raw string (no indent)</source>
+        <target state="new">Convert to raw string (no indent)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_regular_string">
         <source>Convert to regular string</source>
         <target state="translated">Converter para cadeia de caracteres regular</target>
