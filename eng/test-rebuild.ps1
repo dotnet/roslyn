@@ -55,7 +55,7 @@ try {
 # Rebuilds with other issues
   " --exclude net472\Microsoft.CodeAnalysis.EditorFeatures2.UnitTests.dll" +
   " --exclude netcoreapp3.1\Microsoft.CodeAnalysis.Collections.Package.dll" +
-  " --exclude netstandard1.3\Microsoft.CodeAnalysis.Collections.Package.dll" +
+  " --exclude netstandard2.0\Microsoft.CodeAnalysis.Collections.Package.dll" +
   " --exclude net45\Microsoft.CodeAnalysis.Debugging.Package.dll" +
   " --exclude netstandard1.3\Microsoft.CodeAnalysis.Debugging.Package.dll" +
   " --exclude net45\Microsoft.CodeAnalysis.PooledObjects.Package.dll" +
