@@ -1504,6 +1504,25 @@ public partial class C
                 },
                 await _aggregator.GetItemsAsync("C"));
         }
+
+        [Theory, CombinatorialData]
+        [WorkItem(59231, "https://github.com/dotnet/roslyn/issues/59231")]
+        public async Task FindMethodWithTuple(TestHost testHost, Composition composition)
+        {
+            await TestAsync(
+testHost, composition, @"class Goo
+{
+    public void Method(
+        (int x, Dictionary<int,string> y) t1,
+        (bool b, global::System.Int32 c) t2)
+    {
+    }
+}", async w =>
+{
+    var item = (await _aggregator.GetItemsAsync("Method")).Single();
+    VerifyNavigateToResultItem(item, "Method", "[|Method|]((int x, Dictionary<int,string> y), (bool b, global::System.Int32 c))", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
+});
+        }
     }
 }
 #pragma warning restore CS0618 // MatchKind is obsolete

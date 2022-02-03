@@ -505,7 +505,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
                 Next
 
                 If parameter.AsClause?.Type IsNot Nothing Then
-                    AppendTokens(parameter.AsClause.Type, builder)
+                    builder.Append(parameter.AsClause.Type.ConvertToSingleLine().ToString())
                 End If
 
                 First = False
