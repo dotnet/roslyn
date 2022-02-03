@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -32,10 +33,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     [Trait(Traits.Feature, Traits.Features.Classification)]
     public class SemanticClassifierTests : AbstractCSharpClassifierTests
     {
-        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options, TestHost testHost)
+        protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions? options, TestHost testHost)
         {
             using var workspace = CreateWorkspace(code, options, testHost);
-            var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
+            var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
 
             return await GetSemanticClassificationsAsync(document, span);
         }
@@ -2970,7 +2971,6 @@ using System.Text.RegularExpressions;
 
 class Program
 {
-
     void Goo()
     {
         var r = new Regex(@""$(\a\t\u0020)|[^\p{Lu}-a\w\sa-z-[m-p]]+?(?#comment)|(\b\G\z)|(?<name>sub){0,5}?^"");
@@ -3054,7 +3054,6 @@ using System.Text.RegularExpressions;
 
 class Program
 {
-
     void Goo()
     {
         // language=regex
@@ -3449,6 +3448,119 @@ Regex.Anchor("$"));
 
         [Theory]
         [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_Field(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    [StringSyntax(StringSyntaxAttribute.Regex)]
+    private string field;
+
+    void Goo()
+    {
+        [|this.field = @""$\a(?#comment)"";|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Field("field"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_Property(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    [StringSyntax(StringSyntaxAttribute.Regex)]
+    private string Prop { get; set; }
+
+    void Goo()
+    {
+        [|this.Prop = @""$\a(?#comment)"";|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Property("Prop"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_Argument(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    private void M([StringSyntax(StringSyntaxAttribute.Regex)] string p)
+    {
+    }
+
+    void Goo()
+    {
+        [|M(@""$\a(?#comment)"");|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Method("M"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_Argument_Options(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+class Program
+{
+    private void M([StringSyntax(StringSyntaxAttribute.Regex)] string p, RegexOptions options)
+    {
+    }
+
+    void Goo()
+    {
+        [|M(@""$\a(?#comment) # is end of line comment"", RegexOptions.IgnorePatternWhitespace);|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Method("M"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"),
+Regex.Comment("# is end of line comment"),
+Enum("RegexOptions"),
+EnumMember("IgnorePatternWhitespace"));
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task TestIncompleteRegexLeadingToStringInsideSkippedTokensInsideADirective(TestHost testHost)
         {
             await TestAsync(
@@ -3574,6 +3686,92 @@ Json.Punctuation(","),
 Json.String("'str'"),
 Json.Array("]"),
 Json.Comment("// comment"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestJsonOnApiWithStringSyntaxAttribute_Field(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+
+class Program
+{
+    [StringSyntax(StringSyntaxAttribute.Json)]
+    private string field;
+    void Goo()
+    {
+        [|this.field = @""[{ 'goo': 0}]"";|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Field("field"),
+Json.Array("["),
+Json.Object("{"),
+Json.PropertyName("'goo'"),
+Json.Punctuation(":"),
+Json.Number("0"),
+Json.Object("}"),
+Json.Array("]"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestJsonOnApiWithStringSyntaxAttribute_Property(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+
+class Program
+{
+    [StringSyntax(StringSyntaxAttribute.Json)]
+    private string Prop { get; set; }
+    void Goo()
+    {
+        [|this.Prop = @""[{ 'goo': 0}]"";|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Property("Prop"),
+Json.Array("["),
+Json.Object("{"),
+Json.PropertyName("'goo'"),
+Json.Punctuation(":"),
+Json.Number("0"),
+Json.Object("}"),
+Json.Array("]"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestJsonOnApiWithStringSyntaxAttribute_Argument(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Diagnostics.CodeAnalysis;
+
+class Program
+{
+    private void M([StringSyntax(StringSyntaxAttribute.Json)] string p)
+    {
+    }
+
+    void Goo()
+    {
+        [|M(@""[{ 'goo': 0}]"");|]
+    }
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Method("M"),
+Json.Array("["),
+Json.Object("{"),
+Json.PropertyName("'goo'"),
+Json.Punctuation(":"),
+Json.Number("0"),
+Json.Object("}"),
+Json.Array("]"));
         }
 
         [Theory]
