@@ -3,13 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.InlineRename.Adornment;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 
@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     internal class InlineRenameAdornmentManager : IDisposable
     {
         private readonly IWpfTextView _textView;
+        private readonly IGlobalOptionService _globalOptionService;
         private readonly InlineRenameService _renameService;
         private readonly IEditorFormatMapService _editorFormatMapService;
         private readonly IInlineRenameColorUpdater? _dashboardColorUpdater;
@@ -31,13 +32,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             InlineRenameService renameService,
             IEditorFormatMapService editorFormatMapService,
             IInlineRenameColorUpdater? dashboardColorUpdater,
-            IWpfTextView textView)
+            IWpfTextView textView,
+            IGlobalOptionService globalOptionService)
         {
             _renameService = renameService;
             _editorFormatMapService = editorFormatMapService;
             _dashboardColorUpdater = dashboardColorUpdater;
             _textView = textView;
-
+            _globalOptionService = globalOptionService;
             _adornmentLayer = textView.GetAdornmentLayer(InlineRenameAdornmentProvider.AdornmentLayerName);
 
             _renameService.ActiveSessionChanged += OnActiveSessionChanged;
@@ -67,20 +69,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 _dashboardColorUpdater?.UpdateColors();
 
-                // TODO: Determine if we want a flag to change which UI is shown
-                // for now leave the new one disabled until tests are updated.
-#pragma warning disable CS0162 // Unreachable code detected
-                if (true)
-                {
-                    var newAdornment = new Dashboard(
-                        (DashboardViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new DashboardViewModel(session)),
-                        _editorFormatMapService,
-                        _textView);
+                var useInlineAdornment = _globalOptionService.GetOption(InlineRenameExperimentationOptions.UseInlineAdornment);
 
-                    _adornmentLayer.AddAdornment(AdornmentPositioningBehavior.ViewportRelative, null, null, newAdornment,
-                        (tag, adornment) => ((Dashboard)adornment).Dispose());
-                }
-                else
+                if (useInlineAdornment)
                 {
                     var adornment = new InlineRenameAdornment(
                         (InlineRenameAdornmentViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new InlineRenameAdornmentViewModel(session)),
@@ -92,6 +83,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         tag: null,
                         adornment,
                         (tag, adornment) => ((InlineRenameAdornment)adornment).Dispose());
+                }
+                else
+                {
+                    var newAdornment = new Dashboard(
+                        (DashboardViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new DashboardViewModel(session)),
+                        _editorFormatMapService,
+                        _textView);
+
+                    _adornmentLayer.AddAdornment(AdornmentPositioningBehavior.ViewportRelative, null, null, newAdornment,
+                        (tag, adornment) => ((Dashboard)adornment).Dispose());
                 }
 #pragma warning restore CS0162 // Unreachable code detected
             }
