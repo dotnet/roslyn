@@ -117,7 +117,9 @@ namespace Microsoft.CodeAnalysis.Completion
                    CompletionOptions.Default,
                    cancellationToken)
         {
+#pragma warning disable RS0030 // Do not used banned APIs
             Options = options ?? OptionValueSet.Empty;
+#pragma warning restore
         }
 
         /// <summary>
@@ -139,8 +141,11 @@ namespace Microsoft.CodeAnalysis.Completion
             Trigger = trigger;
             CompletionOptions = options;
             CancellationToken = cancellationToken;
-            Options = OptionValueSet.Empty;
             _items = new List<CompletionItem>();
+
+#pragma warning disable RS0030 // Do not used banned APIs
+            Options = OptionValueSet.Empty;
+#pragma warning restore
         }
 
         internal IReadOnlyList<CompletionItem> Items => _items;

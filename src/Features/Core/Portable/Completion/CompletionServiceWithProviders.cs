@@ -216,7 +216,9 @@ namespace Microsoft.CodeAnalysis.Completion
 
             // Publicly available options do not affect this API.
             var completionOptions = CompletionOptions.Default;
-            return ShouldTriggerCompletion(document?.Project, languageServices, text, caretPosition, trigger, completionOptions, options ?? OptionValueSet.Empty, roles);
+            var passThroughOptions = options ?? document?.Project.Solution.Options ?? OptionValueSet.Empty;
+
+            return ShouldTriggerCompletion(document?.Project, languageServices, text, caretPosition, trigger, completionOptions, passThroughOptions, roles);
         }
 
         internal sealed override bool ShouldTriggerCompletion(

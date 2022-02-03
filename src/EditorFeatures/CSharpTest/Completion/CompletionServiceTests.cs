@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
         /// Ensure that 3rd party can set options on solution and access them from within a custom completion provider.
         /// </summary>
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task PassthroughOptions1()
+        public async Task PassThroughOptions1()
         {
             using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features.AddParts(typeof(ThirdPartyCompletionProvider)));
 
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
         /// Ensure that 3rd party can set options on solution and access them from within a custom completion provider.
         /// </summary>
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task PassthroughOptions2()
+        public async Task PassThroughOptions2()
         {
             using var workspace = new TestWorkspace(composition: EditorTestCompositions.EditorFeatures.AddParts(typeof(ThirdPartyCompletionProvider)));
 
