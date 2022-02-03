@@ -478,9 +478,12 @@ class Program
             Assert.True(classifiedTokens.Any(c => c.Span.GetText().ToString() == "void" && c.ClassificationType.Classification == "keyword"));
         }
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-        public async Task AddUsingExactMatchBeforeRenameTracking()
+        [IdeTheory, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [CombinatorialData]
+        public async Task AddUsingExactMatchBeforeRenameTracking([CombinatorialRange(0, 20)] int iteration)
         {
+            _ = iteration;
+
             await SetUpEditorAsync(@"
 public class Program
 {
@@ -538,9 +541,12 @@ public class P2 { }", HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync("using System.IO;", cancellationToken: HangMitigatingCancellationToken);
         }
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public async Task GFUFuzzyMatchAfterRenameTrackingAndAfterGenerateType()
+        [IdeTheory, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [CombinatorialData]
+        public async Task GFUFuzzyMatchAfterRenameTrackingAndAfterGenerateType([CombinatorialRange(0, 20)] int iteration)
         {
+            _ = iteration;
+
             await SetUpEditorAsync(@"
 namespace N
 {
