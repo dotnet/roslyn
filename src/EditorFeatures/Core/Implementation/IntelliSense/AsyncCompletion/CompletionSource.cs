@@ -260,13 +260,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // Additionally, expanded items are usually considered complementary. The need for them only rise occasionally (it's rare when users need to add imports,)
             // and when they are needed, our hypothesis is because of their more intrusive nature (adding an import to the document) users would more likely to
             // contemplate such action thus typing slower before commit and/or spending more time examining the list, which give us some opportunities
-            // to still provide those items later before they are truly required.
+            // to still provide those items later before they are truly required.            
 
-            // No need to trigger expanded providers at all if the feature is disabled, just trigger core providers and return;
             if (!options.ShouldShowItemsFromUnimportNamspaces())
             {
+                // No need to trigger expanded providers at all if the feature is disabled, just trigger core providers and return;
                 var (context, list) = await GetCompletionContextWorkerAsync(document, trigger, triggerLocation,
                     options with { ExpandedCompletionBehavior = ExpandedCompletionMode.NonExpandedItemsOnly }, cancellationToken).ConfigureAwait(false);
+                AddPropertiesToSession(session, list, triggerLocation);
+                return context;
+            }
+
+            if (!session.TextView.Options.GetOptionValue(DefaultOptions.ResponsiveCompletionOptionId))
+            {
+                // We tie the behavior of delaying expand items to editor's "responsive completion" option.
+                // i.e. "responsive completion" disabled == always wait for all items to be calculated.
+                options = options with
+                {
+                    BlockOnExpandedCompletion = true,
+                    ExpandedCompletionBehavior = ExpandedCompletionMode.AllItems,
+                };
+                var (context, list) = await GetCompletionContextWorkerAsync(document, trigger, triggerLocation, options, cancellationToken).ConfigureAwait(false);
                 AddPropertiesToSession(session, list, triggerLocation);
                 return context;
             }
@@ -329,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 if (context2.Items.IsEmpty && context2.SuggestionItemOptions is null)
                     return context1;
 
-                var _ = ArrayBuilder<VSCompletionItem>.GetInstance(context1.Items.Length + context2.Items.Length, out var itemsBuilder);
+                var _ = PooledObjects.ArrayBuilder<VSCompletionItem>.GetInstance(context1.Items.Length + context2.Items.Length, out var itemsBuilder);
                 itemsBuilder.AddRange(context1.Items);
                 itemsBuilder.AddRange(context2.Items);
 
@@ -424,7 +438,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 document, triggerLocation, options, roslynTrigger, _roles, cancellationToken).ConfigureAwait(false);
 
             var filterSet = new FilterSet();
-            using var _ = ArrayBuilder<VSCompletionItem>.GetInstance(completionList.Items.Length, out var itemsBuilder);
+            using var _ = PooledObjects.ArrayBuilder<VSCompletionItem>.GetInstance(completionList.Items.Length, out var itemsBuilder);
 
             foreach (var roslynItem in completionList.Items)
             {

@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Completion
             public static readonly Option2<bool> ForceExpandedCompletionIndexCreation
                 = new(nameof(CompletionOptions), nameof(ForceExpandedCompletionIndexCreation), defaultValue: false);
 
-            // Test-only option
+            // Whether we should wait for the computation of expand items to finish before returning items to editor.
             // Set this to true to have a deterministic behavior for expand items. Otherwise, expand items might not
             // be included in the completion list if the calculation is slow.
             public static readonly Option2<bool> BlockOnExpandedCompletion
