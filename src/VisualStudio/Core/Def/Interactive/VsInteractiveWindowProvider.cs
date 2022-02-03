@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
 {

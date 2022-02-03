@@ -7,11 +7,17 @@ using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal partial class SolutionCrawlerRegistrationService : ISolutionCrawlerRegistrationService
     {
+        // TODO:
+        private const string LocalRegistryPath = @"Roslyn\Internal\SolutionCrawler\";
+        internal static readonly Option2<bool> EnableSolutionCrawler = new("InternalSolutionCrawlerOptions", "Solution Crawler", defaultValue: true,
+            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Solution Crawler"));
+
         /// <summary>
         /// nested class of <see cref="SolutionCrawlerRegistrationService"/> since it is tightly coupled with it.
         /// 

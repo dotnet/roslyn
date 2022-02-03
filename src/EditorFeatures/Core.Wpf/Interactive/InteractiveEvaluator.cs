@@ -26,6 +26,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Interactive
 {
     using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
+    using Microsoft.CodeAnalysis.Options;
 
     // TODO: Rename to InteractiveEvaluator https://github.com/dotnet/roslyn/issues/6441
     // The code is not specific to C#, but Interactive Window has hardcoded "CSharpInteractiveEvaluator" name.
@@ -62,6 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             = new InteractiveEvaluatorResetOptions(InteractiveHostPlatform.Desktop64);
 
         internal CSharpInteractiveEvaluator(
+            IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
             IAsynchronousOperationListener listener,
             IContentType contentType,
@@ -81,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             _commandsFactory = commandsFactory;
             _commands = commands;
 
-            _workspace = new InteractiveWindowWorkspace(hostServices);
+            _workspace = new InteractiveWindowWorkspace(hostServices, globalOptions);
 
             _session = new InteractiveSession(_workspace, threadingContext, listener, languageInfo, initialWorkingDirectory);
             _session.Host.ProcessInitialized += ProcessInitialized;
