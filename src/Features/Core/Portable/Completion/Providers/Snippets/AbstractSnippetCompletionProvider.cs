@@ -21,12 +21,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
     internal abstract class AbstractSnippetCompletionProvider : CommonCompletionProvider
     {
         private readonly SyntaxAnnotation _annotation = new();
-        private readonly SyntaxAnnotation _otherAnnotation = new();
 
         protected abstract int GetTargetCaretPosition(SyntaxNode caretTarget);
-        protected abstract SyntaxToken GetToken(CompletionItem completionItem, SyntaxTree tree, CancellationToken cancellationToken);
-        protected abstract SyntaxNode GetSyntax(SyntaxToken commonSyntaxToken);
-        protected abstract Task<Document> GenerateDocumentWithSnippetAsync(Document document, CompletionItem completionItem, TextLine line, CancellationToken cancellationToken);
+        protected abstract Task<Document> GenerateDocumentWithSnippetAsync(Document document, CompletionItem completionItem, CancellationToken cancellationToken);
+        protected abstract Task<SyntaxNode> GetAnnotatedSnippetRootAsync(Document document, CompletionItem completionItem, SyntaxAnnotation annotation, CancellationToken cancellationToken);
 
         public AbstractSnippetCompletionProvider()
         {
@@ -67,78 +65,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
 
         private async Task<Document> DetermineNewDocumentAsync(Document document, CompletionItem completionItem, CancellationToken cancellationToken)
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-            // The span we're going to replace
-            var line = text.Lines[SnippetCompletionItem.GetLine(completionItem)];
-
-            // Annotate the line we care about so we can find it after adding usings
-            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var token = GetToken(completionItem, tree, cancellationToken);
-            var annotatedRoot = tree.GetRoot(cancellationToken).ReplaceToken(token, token.WithAdditionalAnnotations(_otherAnnotation));
-            document = document.WithSyntaxRoot(annotatedRoot);
-
-            var snippetContainingDocument = await GenerateDocumentWithSnippetAsync(document, completionItem, line, cancellationToken).ConfigureAwait(false);
+            var snippetContainingDocument = await GenerateDocumentWithSnippetAsync(document, completionItem, cancellationToken).ConfigureAwait(false);
 
             if (snippetContainingDocument is null)
             {
                 return document;
             }
 
-            var insertionRoot = await GetTreeWithAddedSyntaxNodeRemovedAsync(snippetContainingDocument, cancellationToken).ConfigureAwait(false);
-            var insertionText = await GenerateInsertionTextAsync(snippetContainingDocument, cancellationToken).ConfigureAwait(false);
-            var destinationSpan = ComputeDestinationSpan(insertionRoot);
-
-            var finalText = insertionRoot.GetText(text.Encoding)
-                .Replace(destinationSpan, insertionText.Trim());
-
-            document = document.WithText(finalText);
-            var newRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var declaration = GetSyntax(newRoot.FindToken(destinationSpan.End));
-
-            document = document.WithSyntaxRoot(newRoot.ReplaceNode(declaration, declaration.WithAdditionalAnnotations(_annotation)));
-            return await Formatter.FormatAsync(document, _annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
-        }
-
-        private async Task<SyntaxNode> GetTreeWithAddedSyntaxNodeRemovedAsync(
-            Document document, CancellationToken cancellationToken)
-        {
-            document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, optionSet: null, cancellationToken).ConfigureAwait(false);
-
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var members = root.GetAnnotatedNodes(_annotation).AsImmutable();
-
-            root = root.RemoveNodes(members, SyntaxRemoveOptions.KeepLeadingTrivia);
-            Contract.ThrowIfNull(root);
-
-            var dismemberedDocument = document.WithSyntaxRoot(root);
-
-            dismemberedDocument = await Formatter.FormatAsync(dismemberedDocument, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
-            return await dismemberedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        }
-
-        private async Task<string> GenerateInsertionTextAsync(
-            Document document, CancellationToken cancellationToken)
-        {
-            document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, optionSet: null, cancellationToken).ConfigureAwait(false);
-            document = await Formatter.FormatAsync(document, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return root.GetAnnotatedNodes(_annotation).Single().ToString().Trim();
-        }
-
-        private TextSpan ComputeDestinationSpan(SyntaxNode insertionRoot)
-        {
-            var targetToken = insertionRoot.GetAnnotatedTokens(_otherAnnotation).FirstOrNull();
-            Contract.ThrowIfNull(targetToken);
-
-            var text = insertionRoot.GetText();
-            var line = text.Lines.GetLineFromPosition(targetToken.Value.Span.End);
-            var position = line.GetFirstNonWhitespacePosition();
-            Contract.ThrowIfNull(position);
-
-            var firstToken = insertionRoot.FindToken(position.Value);
-            return TextSpan.FromBounds(firstToken.SpanStart, line.End);
+            var annotatedSnippetRoot = await GetAnnotatedSnippetRootAsync(snippetContainingDocument, completionItem, _annotation, cancellationToken).ConfigureAwait(false);
+            snippetContainingDocument = snippetContainingDocument.WithSyntaxRoot(annotatedSnippetRoot);
+            return await Formatter.FormatAsync(snippetContainingDocument, _annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
     }
 }

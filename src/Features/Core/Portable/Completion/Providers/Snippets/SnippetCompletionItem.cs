@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
         {
             var props = ImmutableDictionary<string, string>.Empty
                 .Add("Line", line.ToString())
+                .Add("TokenSpanStart", token.Span.Start.ToString())
                 .Add("TokenSpanEnd", token.Span.End.ToString());
 
             return CommonCompletionItem.Create(
@@ -26,6 +27,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
                 properties: props,
                 isComplexTextEdit: true,
                 rules: CompletionItemRules.Default);
+        }
+
+        public static int GetTokenSpanStart(CompletionItem item)
+        {
+            if (item.Properties.TryGetValue("TokenSpanStart", out var text)
+                && int.TryParse(text, out var number))
+            {
+                return number;
+            }
+
+            return 0;
         }
 
         public static int GetLine(CompletionItem item)

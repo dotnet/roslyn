@@ -38,19 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
         {
         }
 
-        private static int GetSpanStart(SyntaxNode declaration)
-        {
-            return declaration switch
-            {
-                MethodDeclarationSyntax method => method.ReturnType.SpanStart,
-                LocalFunctionStatementSyntax local => local.ReturnType.SpanStart,
-                AnonymousMethodExpressionSyntax anonymous => anonymous.DelegateKeyword.SpanStart,
-                ParenthesizedLambdaExpressionSyntax parenthesizedLambda => (parenthesizedLambda.ReturnType as SyntaxNode ?? parenthesizedLambda.ParameterList).SpanStart,
-                SimpleLambdaExpressionSyntax simpleLambda => simpleLambda.Parameter.SpanStart,
-                _ => throw ExceptionUtilities.UnexpectedValue(declaration.Kind())
-            };
-        }
-
         private static SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token)
         {
             var node = token.GetAncestor(node => node.IsAsyncSupportingFunctionSyntax());
@@ -78,6 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
             var syntaxContext = (CSharpSyntaxContext)document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
             var isInsideMethod = syntaxContext.LeftToken.GetAncestors<SyntaxNode>()
                 .Any(node => node.IsKind(SyntaxKind.MethodDeclaration) ||
+                             node.IsKind(SyntaxKind.ConstructorDeclaration) ||
                              node.IsKind(SyntaxKind.LocalFunctionStatement) ||
                              node.IsKind(SyntaxKind.AnonymousMethodExpression) ||
                              node.IsKind(SyntaxKind.ParenthesizedLambdaExpression)) || syntaxContext.IsGlobalStatementContext;
@@ -90,11 +78,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var generator = SyntaxGenerator.GetGenerator(document);
             var syntaxKinds = document.GetRequiredLanguageService<ISyntaxKindsService>();
-            var completionItem = GetCompletionItem(syntaxContext.TargetToken, generator, text, position, syntaxContext.IsGlobalStatementContext);
+            var completionItem = GetCompletionItem(syntaxContext.LeftToken, text, position);
             context.AddItem(completionItem);
         }
 
-        private static CompletionItem GetCompletionItem(SyntaxToken token, SyntaxGenerator generator, SourceText text, int position, bool isGlobalStatementContext)
+        private static CompletionItem GetCompletionItem(SyntaxToken token, SourceText text, int position)
         {
             return SnippetCompletionItem.Create(
                 displayText: "Write to the Console",
@@ -106,34 +94,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
 
         protected override int GetTargetCaretPosition(SyntaxNode caretTarget)
         {
-            return caretTarget.GetLocation().SourceSpan.End;
+            return caretTarget.GetLocation().SourceSpan.End - 1;
         }
 
-        protected override SyntaxToken GetToken(CompletionItem completionItem, SyntaxTree tree, CancellationToken cancellationToken)
-        {
-            var tokenSpanEnd = SnippetCompletionItem.GetTokenSpanEnd(completionItem);
-            return tree.FindTokenOnLeftOfPosition(tokenSpanEnd, cancellationToken);
-        }
-
-        protected override SyntaxNode GetSyntax(SyntaxToken token)
-        {
-            return token.GetAncestor<MethodDeclarationSyntax>()
-                ?? token.GetAncestor<LocalFunctionStatementSyntax>()
-                ?? token.GetAncestor<AnonymousMethodExpressionSyntax>()
-                ?? token.GetAncestor<ParenthesizedLambdaExpressionSyntax>()
-                ?? (SyntaxNode?)token.GetAncestor<GlobalStatementSyntax>()
-                ?? throw ExceptionUtilities.UnexpectedValue(token);
-        }
-
-        protected override async Task<Document> GenerateDocumentWithSnippetAsync(Document document, CompletionItem completionItem, TextLine line, CancellationToken cancellationToken)
+        protected override async Task<Document> GenerateDocumentWithSnippetAsync(Document document, CompletionItem completionItem, CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var token = tree.FindTokenOnLeftOfPosition(SnippetCompletionItem.GetTokenSpanEnd(completionItem), cancellationToken);
+            var declaration = GetAsyncSupportingDeclaration(token);
+            var isAsync = generator.GetModifiers(declaration).IsAsync;
+            SyntaxNode? invocation;
+            invocation = isAsync
+                ? generator.AwaitExpression(generator.InvocationExpression(
+                    generator.MemberAccessExpression(generator.MemberAccessExpression(generator.IdentifierName("Console"),
+                    generator.IdentifierName("Out")), generator.IdentifierName("WriteLineAsync"))))
+                : generator.InvocationExpression(generator.MemberAccessExpression(generator.IdentifierName("Console"), generator.IdentifierName("WriteLine")));
+            var textChange = new TextChange(TextSpan.FromBounds(SnippetCompletionItem.GetTokenSpanStart(completionItem), SnippetCompletionItem.GetTokenSpanEnd(completionItem)),
+                invocation.NormalizeWhitespace().ToFullString());
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            text = text.WithChanges(textChange);
+            return document.WithText(text);
+        }
+
+        protected override async Task<SyntaxNode> GetAnnotatedSnippetRootAsync(Document document, CompletionItem completionItem, SyntaxAnnotation annotation, CancellationToken cancellationToken)
+        {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var editor = new SyntaxEditor(root, generator);
-            var invocation = generator.InvocationExpression(generator.MemberAccessExpression(generator.IdentifierName("Console"), generator.IdentifierName("WriteLine")));
-            var priorNode = root.FindNode(new TextSpan(line.Start, 0));
-            editor.InsertAfter(priorNode, invocation);
-            return document.WithSyntaxRoot(editor.GetChangedRoot());
+            var closestNode = root.FindNode(completionItem.Span);
+            var snippetExpressionNode = closestNode.GetAncestorOrThis<ExpressionStatementSyntax>();
+            var argumentListNode = snippetExpressionNode!.DescendantNodes().OfType<ArgumentListSyntax>().First();
+            var annotedSnippet = argumentListNode!.WithAdditionalAnnotations(annotation);
+            return root.ReplaceNode(argumentListNode!, annotedSnippet);
         }
     }
 }
