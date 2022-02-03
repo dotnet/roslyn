@@ -143,6 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal NamedTypeSymbol lazyComImportCoClassType = ErrorTypeSymbol.UnknownResultType;
             internal ThreeState lazyHasEmbeddedAttribute = ThreeState.Unknown;
             internal ThreeState lazyHasInterpolatedStringHandlerAttribute = ThreeState.Unknown;
+            internal ThreeState lazyHasRequiredMembers = ThreeState.Unknown;
 
 #if DEBUG
             internal bool IsDefaultValue()
@@ -157,7 +158,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     lazyDefaultMemberName == null &&
                     (object)lazyComImportCoClassType == (object)ErrorTypeSymbol.UnknownResultType &&
                     !lazyHasEmbeddedAttribute.HasValue() &&
-                    !lazyHasInterpolatedStringHandlerAttribute.HasValue();
+                    !lazyHasInterpolatedStringHandlerAttribute.HasValue() &&
+                    !lazyHasRequiredMembers.HasValue();
             }
 #endif
         }
@@ -824,8 +826,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        // PROTOTYPE(req): Implement
-        internal override bool HasDeclaredRequiredMembers => false;
+        internal override bool HasDeclaredRequiredMembers
+        {
+            get
+            {
+                var uncommon = GetUncommonProperties();
+                if (uncommon == s_noUncommonProperties)
+                {
+                    return false;
+                }
+
+                if (uncommon.lazyHasRequiredMembers.HasValue())
+                {
+                    return uncommon.lazyHasRequiredMembers.Value();
+                }
+
+                var hasRequiredMemberAttribute = ContainingPEModule.Module.HasAttribute(_handle, AttributeDescription.RequiredMemberAttribute);
+                uncommon.lazyHasRequiredMembers = hasRequiredMemberAttribute.ToThreeState();
+                return hasRequiredMemberAttribute;
+            }
+        }
 
         public override ImmutableArray<Symbol> GetMembers()
         {
