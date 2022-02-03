@@ -86,12 +86,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             Contract.ThrowIfNull(snapshot, "The document used for starting the inline rename session should still be open and associated with a snapshot.");
 
             var options = new SymbolRenameOptions(
-                RenameOverloads: renameInfo.MustRenameOverloads || GlobalOptions.GetOption(InlineRenameSessionOptions.Metadata.RenameOverloads),
-                RenameInStrings: GlobalOptions.GetOption(InlineRenameSessionOptions.Metadata.RenameInStrings),
-                RenameInComments: GlobalOptions.GetOption(InlineRenameSessionOptions.Metadata.RenameInComments),
-                RenameFile: GlobalOptions.GetOption(InlineRenameSessionOptions.Metadata.RenameFile));
+                RenameOverloads: renameInfo.MustRenameOverloads || GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameOverloads),
+                RenameInStrings: GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameInStrings),
+                RenameInComments: GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameInComments),
+                RenameFile: GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameFile));
 
-            var previewChanges = GlobalOptions.GetOption(InlineRenameSessionOptions.Metadata.PreviewChanges);
+            var previewChanges = GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.PreviewChanges);
 
             ActiveSession = new InlineRenameSession(
                 _threadingContext,

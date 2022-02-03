@@ -125,7 +125,7 @@ class [|Test1$$|]
                     </Workspace>, host)
 
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
-                globalOptions.SetGlobalOption(InlineRenameSessionOptions.Metadata.RenameFile, True)
+                globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameFile, True)
 
                 Dim session = StartSession(workspace)
 
@@ -245,10 +245,10 @@ class Deconstructable
                                                            Optional fileToRename As DocumentId = Nothing) As Task
 
             Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
-            globalOptions.SetGlobalOption(InlineRenameSessionOptions.Metadata.RenameOverloads, renameOverloads)
-            globalOptions.SetGlobalOption(InlineRenameSessionOptions.Metadata.RenameInStrings, renameInStrings)
-            globalOptions.SetGlobalOption(InlineRenameSessionOptions.Metadata.RenameInComments, renameInComments)
-            globalOptions.SetGlobalOption(InlineRenameSessionOptions.Metadata.RenameFile, renameFile)
+            globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameOverloads, renameOverloads)
+            globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInStrings, renameInStrings)
+            globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInComments, renameInComments)
+            globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameFile, renameFile)
 
             Dim session = StartSession(workspace)
 

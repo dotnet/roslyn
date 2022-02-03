@@ -10,6 +10,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -247,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 if (IsRenameOverloadsEditable)
                 {
-                    _session.RenameService.GlobalOptions.SetGlobalOption(InlineRenameSessionOptions.Metadata.RenameOverloads, value);
+                    _session.RenameService.GlobalOptions.SetGlobalOption(new OptionKey(InlineRenameSessionOptionsStorage.RenameOverloads), value);
                     _session.RefreshRenameSessionWithOptionsChanged(_session.Options with { RenameOverloads = value });
                 }
             }
@@ -259,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             set
             {
-                _session.RenameService.GlobalOptions.SetGlobalOption(InlineRenameSessionOptions.Metadata.RenameInStrings, value);
+                _session.RenameService.GlobalOptions.SetGlobalOption(new OptionKey(InlineRenameSessionOptionsStorage.RenameInStrings), value);
                 _session.RefreshRenameSessionWithOptionsChanged(_session.Options with { RenameInStrings = value });
             }
         }
@@ -270,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             set
             {
-                _session.RenameService.GlobalOptions.SetGlobalOption(InlineRenameSessionOptions.Metadata.RenameInComments, value);
+                _session.RenameService.GlobalOptions.SetGlobalOption(new OptionKey(InlineRenameSessionOptionsStorage.RenameInComments), value);
                 _session.RefreshRenameSessionWithOptionsChanged(_session.Options with { RenameInComments = value });
             }
         }
@@ -280,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             get => _session.Options.RenameFile;
             set
             {
-                _session.RenameService.GlobalOptions.SetGlobalOption(InlineRenameSessionOptions.Metadata.RenameFile, value);
+                _session.RenameService.GlobalOptions.SetGlobalOption(new OptionKey(InlineRenameSessionOptionsStorage.RenameFile), value);
                 _session.RefreshRenameSessionWithOptionsChanged(_session.Options with { RenameFile = value });
             }
         }
@@ -291,7 +292,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             set
             {
-                _session.RenameService.GlobalOptions.SetGlobalOption(InlineRenameSessionOptions.Metadata.PreviewChanges, value);
+                _session.RenameService.GlobalOptions.SetGlobalOption(new OptionKey(InlineRenameSessionOptionsStorage.PreviewChanges), value);
                 _session.SetPreviewChanges(value);
             }
         }

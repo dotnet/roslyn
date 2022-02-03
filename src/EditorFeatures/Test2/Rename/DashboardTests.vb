@@ -547,10 +547,10 @@ class D : B
 
             Using workspace = CreateWorkspaceWithWaiter(test, host)
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
-                globalOptions.SetGlobalOption(InlineRenameSessionOptions.Metadata.RenameOverloads, renameOverloads)
-                globalOptions.SetGlobalOption(InlineRenameSessionOptions.Metadata.RenameInStrings, renameInStrings)
-                globalOptions.SetGlobalOption(InlineRenameSessionOptions.Metadata.RenameInComments, renameInComments)
-                globalOptions.SetGlobalOption(InlineRenameSessionOptions.Metadata.RenameFile, renameFile)
+                globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameOverloads, renameOverloads)
+                globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInStrings, renameInStrings)
+                globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInComments, renameInComments)
+                globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameFile, renameFile)
 
                 Dim cursorDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
