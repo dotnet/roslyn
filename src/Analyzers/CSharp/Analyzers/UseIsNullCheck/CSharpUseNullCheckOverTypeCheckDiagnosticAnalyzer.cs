@@ -82,9 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             }
         }
 
-        private void AnalyzeIsTypeOperation(
-            OperationAnalysisContext context,
-            INamedTypeSymbol expressionType)
+        private void AnalyzeIsTypeOperation(OperationAnalysisContext context, INamedTypeSymbol? expressionType)
         {
             var operation = context.Operation;
             var syntax = operation.Syntax;
