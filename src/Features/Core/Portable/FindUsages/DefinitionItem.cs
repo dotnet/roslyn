@@ -258,7 +258,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
                                    .Add(MetadataSymbolOriginatingProjectIdDebugName, projectId.DebugName ?? "");
 
             // Find the highest level containing type to show as the "file name". For metadata locations
-            // that come from embedded source or SourceLink this will be wrong, but its _way_ too expensive
+            // that come from embedded source or SourceLink this could be wrong, as there is no reason
+            // to assume a type is defined in a filename that matches, but its _way_ too expensive
             // to try to find the right answer. For metadata-as-source locations though, it will be the same
             // as the synthesized filename, so will make sense in the majority of cases.
             var containingTypeName = MetadataAsSourceHelpers.GetTopLevelContainingNamedType(symbol).Name;

@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences.
 
         public IErrorListFilterHandler? CreateFilter(IWpfTableControl tableControl)
         {
-            // We're only replacing an existing filter, and not creating a new one.
+            // We're only replacing the "Entire Solution" filter, and not creating a new one.
             return null;
         }
 
