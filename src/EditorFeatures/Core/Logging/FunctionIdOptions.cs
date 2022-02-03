@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Linq;
 using System.Collections.Concurrent;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
@@ -26,5 +27,12 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
         public static Option2<bool> GetOption(FunctionId id)
             => s_options.GetOrAdd(id, s_optionCreator);
+
+        public static Func<FunctionId, bool> CreateFunctionIsEnabledPredicate(IGlobalOptionService globalOptions)
+        {
+            var functionIds = Enum.GetValues(typeof(FunctionId)).Cast<FunctionId>();
+            var functionIdOptions = functionIds.ToDictionary(id => id, id => globalOptions.GetOption(GetOption(id)));
+            return functionId => functionIdOptions[functionId];
+        }
     }
 }
