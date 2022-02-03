@@ -454,9 +454,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             CompletionListCache completionListCache,
             CancellationToken cancellationToken)
         {
-            var (completionList, _) = await completionService.GetCompletionsInternalAsync(document, position, completionOptions, completionTrigger, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var completionList = await completionService.GetCompletionsAsync(document, position, completionOptions, completionTrigger, cancellationToken: cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
-            if (completionList == null || completionList.Items.IsEmpty)
+            if (completionList.Items.IsEmpty)
             {
                 return null;
             }
@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return CompletionOptions.From(document.Project) with
             {
                 ShowItemsFromUnimportedNamespaces = false,
-                IsExpandedCompletion = false
+                ExpandedCompletionBehavior = ExpandedCompletionMode.NonExpandedItemsOnly
             };
         }
 
