@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool IsRequired => _underlyingProperty.IsRequired;
+        internal sealed override bool IsRequired => _underlyingProperty.IsRequired;
 
         internal override ObsoleteAttributeData ObsoleteAttributeData
         {

@@ -432,7 +432,7 @@
         <target state="translated">Les accesseurs '{0}' et '{1}' doivent tous deux être initialiseurs uniquement ou ne pas l'être</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExplicitRequiredMembers">
+      <trans-unit id="ERR_ExplicitRequiredMember">
         <source>Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.</source>
         <target state="new">Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.</target>
         <note />
@@ -1097,14 +1097,19 @@
         <target state="translated">Les modèles relationnels ne peuvent pas être utilisés pour une valeur NaN à virgule flottante.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_RequiredMembersCannotBeHidden">
+      <trans-unit id="ERR_RequiredMemberCannotBeHidden">
         <source>Required member '{0}' cannot be hidden by '{1}'.</source>
         <target state="new">Required member '{0}' cannot be hidden by '{1}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_RequiredMembersCannotBeLessVisibleThanContainingType">
-        <source>Required member '{0}' cannot be less visible than the containing type '{1}'.</source>
-        <target state="new">Required member '{0}' cannot be less visible than the containing type '{1}'.</target>
+      <trans-unit id="ERR_RequiredMemberCannotBeLessVisibleThanContainingType">
+        <source>Required member '{0}' cannot be less visible or have a setter less visible than the containing type '{1}'.</source>
+        <target state="new">Required member '{0}' cannot be less visible or have a setter less visible than the containing type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMemberMustBeSettable">
+        <source>Required member '{0}' must be settable.</source>
+        <target state="new">Required member '{0}' must be settable.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiredNameDisallowed">

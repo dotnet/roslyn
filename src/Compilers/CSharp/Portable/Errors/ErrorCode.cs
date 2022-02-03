@@ -2034,8 +2034,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_RequiredNameDisallowed = 9500,
         ERR_OverrideMustHaveRequired = 9501,
-        ERR_RequiredMembersCannotBeHidden = 9502,
-        ERR_RequiredMembersCannotBeLessVisibleThanContainingType = 9503,
-        ERR_ExplicitRequiredMembers = 9504,
+        ERR_RequiredMemberCannotBeHidden = 9502,
+        ERR_RequiredMemberCannotBeLessVisibleThanContainingType = 9503,
+        ERR_ExplicitRequiredMember = 9504,
+        ERR_RequiredMemberMustBeSettable = 9505,
     }
 }

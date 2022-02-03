@@ -205,6 +205,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool IsRequired => _underlyingField.IsRequired;
+        internal sealed override bool IsRequired => _underlyingField.IsRequired;
     }
 }

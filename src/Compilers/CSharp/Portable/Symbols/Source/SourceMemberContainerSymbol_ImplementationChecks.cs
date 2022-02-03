@@ -715,7 +715,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (hiddenMember.IsRequired())
                         {
                             // Required member '{0}' cannot be hidden by '{1}'.
-                            diagnostics.Add(ErrorCode.ERR_RequiredMembersCannotBeHidden, symbolLocation, hiddenMember, symbol);
+                            diagnostics.Add(ErrorCode.ERR_RequiredMemberCannotBeHidden, symbolLocation, hiddenMember, symbol);
                         }
 
                         return;
@@ -1424,7 +1424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (hiddenMember.IsRequired())
                         {
                             // Required member '{0}' cannot be hidden by '{1}'.
-                            diagnostics.Add(ErrorCode.ERR_RequiredMembersCannotBeHidden, hidingMemberLocation, hiddenMember, hidingMember);
+                            diagnostics.Add(ErrorCode.ERR_RequiredMemberCannotBeHidden, hidingMemberLocation, hiddenMember, hidingMember);
                             diagnosticAdded = true;
                         }
 

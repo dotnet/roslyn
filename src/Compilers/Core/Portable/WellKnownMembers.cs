@@ -3535,7 +3535,7 @@ namespace Microsoft.CodeAnalysis
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String, // Return Type
 
-                // System_Runtime_CompilerServices_RequiredMembersAttribute__ctor
+                // System_Runtime_CompilerServices_RequiredMemberAttribute__ctor
                 (byte)MemberFlags.Constructor,                                                                              // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_RequiredMemberAttribute - WellKnownType.ExtSentinel), // DeclaringTypeId
                 0,                                                                                                          // Arity

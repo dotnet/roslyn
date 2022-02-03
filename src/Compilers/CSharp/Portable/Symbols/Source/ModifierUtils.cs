@@ -422,12 +422,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if ((modifiers & DeclarationModifiers.Required) != 0
-                && symbol.Kind is SymbolKind.Property or SymbolKind.Field
-                && symbol.DeclaredAccessibility < symbol.ContainingType.DeclaredAccessibility)
+            if ((modifiers & DeclarationModifiers.Required) != 0)
             {
-                // Required member '{0}' cannot be less visible than the containing type '{1}'.
-                return new CSDiagnosticInfo(ErrorCode.ERR_RequiredMembersCannotBeLessVisibleThanContainingType, symbol, symbol.ContainingType);
+                switch (symbol)
+                {
+                    case FieldSymbol or PropertySymbol when symbol.DeclaredAccessibility < symbol.ContainingType.DeclaredAccessibility:
+                    case PropertySymbol { SetMethod.DeclaredAccessibility: var accessibility } when accessibility < symbol.ContainingType.DeclaredAccessibility:
+                        // Required member '{0}' cannot be less visible or have a setter less visible than the containing type '{1}'.
+                        return new CSDiagnosticInfo(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, symbol, symbol.ContainingType);
+                    case PropertySymbol { SetMethod: null }:
+                    case FieldSymbol when (modifiers & DeclarationModifiers.ReadOnly) != 0:
+                        // Required member '{0}' must be settable.
+                        return new CSDiagnosticInfo(ErrorCode.ERR_RequiredMemberMustBeSettable, symbol);
+                }
             }
 
             return null;
