@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime.LanguageServices
 {
-
     /// <summary>
     /// Helper class to detect <see cref="System.DateTime"/> and <see cref="DateTimeOffset"/> format
     /// strings in a document efficiently.
