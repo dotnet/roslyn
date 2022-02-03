@@ -7,10 +7,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -784,12 +782,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private bool HasNonErrorBackingField
+        private bool AllowInitializer
         {
             get
             {
-                // PROTOTYPE(semi-auto-props): Implement this.
-                return IsAutoProperty;
+                // PROTOTYPE(semi-auto-props): Fix implementation for semi auto properties.
+                return (_setMethod is null && _getMethod?.BodyShouldBeSynthesized == true) ||
+                    _setMethod?.BodyShouldBeSynthesized == true;
+            }
+        }
+
+        private bool AllowFieldAttributeTarget
+        {
+            get
+            {
+                // PROTOTYPE(semi-auto-props): Fix implementation for semi auto properties.
+                return (_setMethod is null && _getMethod?.BodyShouldBeSynthesized == true) ||
+                    _setMethod?.BodyShouldBeSynthesized == true;
+            }
+        }
+
+        private bool DisallowRefLikeTypes
+        {
+            get
+            {
+                // PROTOTYPE(semi-auto-props): Fix implementation for semi auto properties.
+                return (_setMethod is null && _getMethod?.BodyShouldBeSynthesized == true) ||
+                    _setMethod?.BodyShouldBeSynthesized == true;
             }
         }
 #nullable disable
@@ -833,7 +852,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasInitializer = (_propertyFlags & Flags.HasInitializer) != 0;
             if (hasInitializer)
             {
-                CheckInitializer(HasNonErrorBackingField, ContainingType.IsInterface, IsStatic, Location, diagnostics);
+                CheckInitializer(AllowInitializer, ContainingType.IsInterface, IsStatic, Location, diagnostics);
             }
 
             if (IsAutoPropertyWithGetAccessor)
@@ -1205,7 +1224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => AttributeLocation.Property;
 
         AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations
-            => HasNonErrorBackingField // PROTOTYPE(semi-auto-props): add tests.
+            => AllowFieldAttributeTarget
                 ? AttributeLocation.Property | AttributeLocation.Field
                 : AttributeLocation.Property;
 
@@ -1656,7 +1675,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeLocation, type);
             }
-            else if (HasNonErrorBackingField && type.IsRefLikeType && (this.IsStatic || !this.ContainingType.IsRefLikeType))
+            else if (DisallowRefLikeTypes && type.IsRefLikeType && (this.IsStatic || !this.ContainingType.IsRefLikeType))
             {
                 diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeLocation, type);
             }
