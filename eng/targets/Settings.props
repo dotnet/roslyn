@@ -166,6 +166,9 @@
     Nuget settings
   -->
   <PropertyGroup Condition="'$(RoslynEnforceCodeStyle)' != 'true'">
+    <!-- Don't warn that we are restoring .NET Framework proejct dependencies for .NET Core. -->
+    <NoWarn>$(NoWarn);NU1701</NoWarn>
+
     <!-- Opt-in to faster up-to-date check for restore -->
     <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
 
