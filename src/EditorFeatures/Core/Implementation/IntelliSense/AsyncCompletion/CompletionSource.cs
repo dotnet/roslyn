@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -28,7 +28,6 @@ using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Utilities;
 using AsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data.CompletionItem;
@@ -343,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 if (context2.Items.IsEmpty && context2.SuggestionItemOptions is null)
                     return context1;
 
-                var _ = PooledObjects.ArrayBuilder<VSCompletionItem>.GetInstance(context1.Items.Length + context2.Items.Length, out var itemsBuilder);
+                var _ = ArrayBuilder<VSCompletionItem>.GetInstance(context1.Items.Length + context2.Items.Length, out var itemsBuilder);
                 itemsBuilder.AddRange(context1.Items);
                 itemsBuilder.AddRange(context2.Items);
 
@@ -438,7 +437,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 document, triggerLocation, options, roslynTrigger, _roles, cancellationToken).ConfigureAwait(false);
 
             var filterSet = new FilterSet();
-            using var _ = PooledObjects.ArrayBuilder<VSCompletionItem>.GetInstance(completionList.Items.Length, out var itemsBuilder);
+            using var _ = ArrayBuilder<VSCompletionItem>.GetInstance(completionList.Items.Length, out var itemsBuilder);
 
             foreach (var roslynItem in completionList.Items)
             {
