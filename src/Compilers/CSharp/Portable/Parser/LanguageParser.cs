@@ -866,6 +866,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 case AttributeLocation.Assembly:
                 case AttributeLocation.Module:
+                case AttributeLocation.Main:
                     return true;
                 default:
                     return false;

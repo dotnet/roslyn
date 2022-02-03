@@ -557,6 +557,61 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestGlobalMainAttribute()
+        {
+            var text = "[main:a]";
+            var file = this.ParseFile(text);
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.AttributeLists.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(0, file.Errors().Length);
+
+            Assert.Equal(SyntaxKind.AttributeList, file.AttributeLists[0].Kind());
+            var ad = (AttributeListSyntax)file.AttributeLists[0];
+
+            Assert.NotEqual(default, ad.OpenBracketToken);
+            Assert.NotNull(ad.Target);
+            Assert.NotEqual(default, ad.Target.Identifier);
+            Assert.Equal("main", ad.Target.Identifier.ToString());
+            Assert.Equal(SyntaxKind.MainKeyword, ad.Target.Identifier.Kind());
+            Assert.NotEqual(default, ad.Target.ColonToken);
+            Assert.Equal(1, ad.Attributes.Count);
+            Assert.NotNull(ad.Attributes[0].Name);
+            Assert.Equal("a", ad.Attributes[0].Name.ToString());
+            Assert.Null(ad.Attributes[0].ArgumentList);
+            Assert.NotEqual(default, ad.CloseBracketToken);
+        }
+
+        [Fact]
+        public void TestGlobalMainAttribute_Verbatim()
+        {
+            var text = "[@main:a]";
+            var file = this.ParseFile(text);
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.AttributeLists.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(0, file.Errors().Length);
+
+            Assert.Equal(SyntaxKind.AttributeList, file.AttributeLists[0].Kind());
+            var ad = (AttributeListSyntax)file.AttributeLists[0];
+
+            Assert.NotEqual(default, ad.OpenBracketToken);
+            Assert.NotNull(ad.Target);
+            Assert.NotEqual(default, ad.Target.Identifier);
+            Assert.Equal("@main", ad.Target.Identifier.ToString());
+            Assert.Equal(SyntaxKind.IdentifierToken, ad.Target.Identifier.Kind());
+            Assert.Equal(AttributeLocation.Main, ad.Target.Identifier.ToAttributeLocation());
+            Assert.NotEqual(default, ad.Target.ColonToken);
+            Assert.Equal(1, ad.Attributes.Count);
+            Assert.NotNull(ad.Attributes[0].Name);
+            Assert.Equal("a", ad.Attributes[0].Name.ToString());
+            Assert.Null(ad.Attributes[0].ArgumentList);
+            Assert.NotEqual(default, ad.CloseBracketToken);
+        }
+
+        [Fact]
         public void TestNamespace()
         {
             var text = "namespace a { }";
