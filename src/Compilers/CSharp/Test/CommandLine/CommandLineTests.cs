@@ -1411,7 +1411,7 @@ class C
         }
 
         // The following test is failing in the Linux Debug test leg of CI.
-        // This issus is being tracked by https://github.com/dotnet/roslyn/issues/58077
+        // This issue is being tracked by https://github.com/dotnet/roslyn/issues/58077
         [ConditionalFact(typeof(WindowsOrMacOSOnly))]
         public void ArgumentParsing()
         {

@@ -1622,7 +1622,7 @@ class C
         }
 
         [Fact]
-        public void Lambda_SynthesizedDeletage_06()
+        public void Lambda_SynthesizedDelegate_06()
         {
             var source0 = MarkedSource(
 @"class C
