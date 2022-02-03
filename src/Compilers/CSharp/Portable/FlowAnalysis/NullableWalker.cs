@@ -7723,7 +7723,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case ConversionKind.ImplicitUtf8StringLiteral:
-                    resultState = NullableFlowState.NotNull; // PROTOTYPE(UTF8StringLiterals) : Adjust if we actually want it to work with 'null' value.
+                    if (targetType.IsReferenceType)
+                    {
+                        resultState = getConversionResultState(operandType);
+                    }
+                    else
+                    {
+                        resultState = NullableFlowState.NotNull;
+                    }
                     break;
 
                 case ConversionKind.ObjectCreation:

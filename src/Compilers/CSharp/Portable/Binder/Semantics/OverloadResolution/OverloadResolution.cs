@@ -1669,19 +1669,6 @@ outerDefault:
             Debug.Assert(m2.Result.IsValid);
             Debug.Assert(arguments != null);
 
-            // Prefer overloads that did not use the UTF8 string literal conversion to convert arguments.
-            // PROTOTYPE(UTF8StringLiterals) : Confirm this is the behavior we want. Similar to function types, this
-            //                                doesn't detect user defined conversions that became applicable due to
-            //                                UTF8 string literal conversions. But at the moment we do not allow
-            //                                implicit conversions like that and they are never applicable.
-            switch (RequiredUTF8StringLiteralConversion(m1), RequiredUTF8StringLiteralConversion(m2))
-            {
-                case (false, true):
-                    return BetterResult.Left;
-                case (true, false):
-                    return BetterResult.Right;
-            }
-
             // Prefer overloads that did not use the inferred type of lambdas or method groups
             // to infer generic method type arguments or to convert arguments.
             switch (RequiredFunctionType(m1), RequiredFunctionType(m2))
@@ -2137,23 +2124,6 @@ outerDefault:
             }
 
             return conversionsOpt.Any(c => c.Kind == ConversionKind.FunctionType);
-        }
-
-        /// <summary>
-        /// Returns true if the overload required a UTF8 string literal conversion to parameter types.
-        /// </summary>
-        private static bool RequiredUTF8StringLiteralConversion<TMember>(MemberResolutionResult<TMember> m)
-            where TMember : Symbol
-        {
-            Debug.Assert(m.Result.IsValid);
-
-            var conversionsOpt = m.Result.ConversionsOpt;
-            if (conversionsOpt.IsDefault)
-            {
-                return false;
-            }
-
-            return conversionsOpt.Any(c => c.Kind == ConversionKind.ImplicitUtf8StringLiteral);
         }
 
         private static BetterResult PreferValOverInOrRefInterpolatedHandlerParameters<TMember>(
