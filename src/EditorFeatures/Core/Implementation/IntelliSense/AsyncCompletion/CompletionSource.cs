@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -284,12 +284,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return context;
             }
 
-            // The use of an explicit task (instead of calling GetCompletionContextWorkerAsync w/o await) is to
-            // make sure the entire expanded item computation runs in the background.
-            var backgroundTaskCancellationToken = GetCancellationTokenForSession(session);
             var expandedItemsTask = Task.Run(async () => await GetCompletionContextWorkerAsync(document, trigger, triggerLocation,
-                options with { ExpandedCompletionBehavior = ExpandedCompletionMode.ExpandedItemsOnly }, backgroundTaskCancellationToken).ConfigureAwait(false),
-                backgroundTaskCancellationToken);
+                options with { ExpandedCompletionBehavior = ExpandedCompletionMode.ExpandedItemsOnly }, cancellationToken).ConfigureAwait(false),
+                cancellationToken);
 
             // Record how long it takes for the background task to complete.
             var stopwatch = Stopwatch.StartNew();
@@ -297,7 +294,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 AsyncCompletionLogger.LogAdditionalTicksToCompleteDelayedImportCompletionDataPoint((int)stopwatch.ElapsedMilliseconds);
                 return task.Result;
-            }, backgroundTaskCancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
+            }, cancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
 
             // Now trigger and wait for core providers to return;
             var (nonExpandedContext, nonExpandedCompletionList) = await GetCompletionContextWorkerAsync(document, trigger, triggerLocation,
@@ -320,19 +317,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             AddPropertiesToSession(session, expandedCompletionList, triggerLocation: null);
 
             return CombineCompletionContext(nonExpandedContext, expandedContext);
-
-            // Create a cancellation token associated with the session for the background expanded item task.
-            // TODO: not sure if we need a separate token, need to confirm.
-            static CancellationToken GetCancellationTokenForSession(IAsyncCompletionSession session)
-            {
-                var cancellationTokenSource = new CancellationTokenSource();
-                void HandleCancellation(object? sender, EventArgs e) => cancellationTokenSource.Cancel();
-
-                session.Dismissed += HandleCancellation;
-                session.ItemCommitted += HandleCancellation;
-
-                return cancellationTokenSource.Token;
-            }
 
             static AsyncCompletionData.CompletionContext CombineCompletionContext(AsyncCompletionData.CompletionContext context1, AsyncCompletionData.CompletionContext context2)
             {
@@ -374,21 +358,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // the results later.
                 if (session.Properties.TryGetProperty<Task<(AsyncCompletionData.CompletionContext, CompletionList)>>(ExpandedItemsTask, out var expandedItemsTask))
                 {
-                    while (true)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        if (expandedItemsTask.IsCompleted)
-                        {
-                            // Make sure the task is removed when returning expanded items,
-                            // so duplicated items won't be added in subsequent list updates.
-                            session.Properties.RemoveProperty(ExpandedItemsTask);
-                            var (expandedContext, expandedCompletionList) = await expandedItemsTask.ConfigureAwait(false);
-                            AddPropertiesToSession(session, expandedCompletionList, triggerLocation: null);
-                            return expandedContext;
-                        }
-
-                        await Task.Delay(20, cancellationToken).ConfigureAwait(false);
-                    }
+                    // Make sure the task is removed when returning expanded items,
+                    // so duplicated items won't be added in subsequent list updates.
+                    session.Properties.RemoveProperty(ExpandedItemsTask);
+                    var (expandedContext, expandedCompletionList) = await expandedItemsTask.ConfigureAwait(false);
+                    AddPropertiesToSession(session, expandedCompletionList, triggerLocation: null);
+                    return expandedContext;
                 }
 
                 // We only reach here when expanded items are disabled, but user requested them explicitly via expander.
