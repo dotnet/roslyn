@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -61,9 +62,12 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             var searchNuGetPackages = solution.Options.GetOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, document.Project.Language);
 
+            var placement = await AddImportPlacementOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+
             var options = new AddImportOptions(
                 context.Options.SearchReferenceAssemblies,
-                context.Options.HideAdvancedMembers);
+                context.Options.HideAdvancedMembers,
+                placement);
 
             var symbolSearchService = options.SearchReferenceAssemblies || searchNuGetPackages
                 ? _symbolSearchService ?? solution.Workspace.Services.GetService<ISymbolSearchService>()

@@ -20,10 +20,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 category:="Test",
                 defaultSeverity:=DiagnosticSeverity.Error,
                 isEnabledByDefault:=True)
-            Dim diagnosticItem = New DiagnosticItem(Nothing, Nothing, descriptor, ReportDiagnostic.Error, LanguageNames.VisualBasic, Nothing)
+            Dim diagnosticItem = New DiagnosticItem(projectId:=Nothing, analyzerReference:=Nothing, descriptor, ReportDiagnostic.Error, commandHandler:=Nothing)
 
-            Dim handler = New AnalyzersCommandHandler(Nothing, Nothing, Nothing, AsynchronousOperationListenerProvider.NullProvider, Nothing)
-            Dim shown = handler.DiagnosticContextMenuController.ShowContextMenu({diagnosticItem}, Nothing)
+            Dim handler = New AnalyzersCommandHandler(tracker:=Nothing, analyzerReferenceManager:=Nothing, threadingContext:=Nothing, AsynchronousOperationListenerProvider.NullProvider, serviceProvider:=Nothing)
+            Dim shown = handler.DiagnosticContextMenuController.ShowContextMenu({diagnosticItem}, location:=Nothing)
             Assert.False(shown)
         End Sub
     End Class

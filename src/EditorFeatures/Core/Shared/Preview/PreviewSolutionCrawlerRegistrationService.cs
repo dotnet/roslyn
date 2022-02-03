@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
 
             private async Task AnalyzeAsync()
             {
-                var workerBackOffTimeSpan = SolutionCrawlerTimeSpan.PreviewBackOff;
+                var workerBackOffTimeSpan = InternalSolutionCrawlerOptions.PreviewBackOffTimeSpan;
                 var incrementalAnalyzer = _owner._analyzerService.CreateIncrementalAnalyzer(_workspace);
 
                 var solution = _workspace.CurrentSolution;

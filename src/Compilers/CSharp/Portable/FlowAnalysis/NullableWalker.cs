@@ -2519,6 +2519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useLegacyWarnings: false,
                 trackMembers: false,
                 assignmentKind: AssignmentKind.Assignment);
+            Unsplit();
 
             // If the LHS has annotations, we perform an additional check for nullable value types
             CheckDisallowedNullAssignment(resultType, parameterAnnotations, equalsValue.Value.Syntax.Location);
@@ -3037,6 +3038,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 valueType = VisitOptionalImplicitConversion(initializer, targetTypeOpt: inferredType ? default : type, useLegacyWarnings: true, trackMembers: true, AssignmentKind.Assignment);
+                Unsplit();
             }
 
             if (inferredType)
@@ -3600,6 +3602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversionCompletion is not null ?
                         (conversionCompletion(type), null) :
                         VisitOptionalImplicitConversion(node.Right, type, useLegacyWarnings: false, trackMembers: true, AssignmentKind.Assignment, delayCompletionForType);
+                Unsplit();
 
                 if (delayCompletionForType)
                 {
@@ -3897,6 +3900,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var expr in expressions)
                 {
                     _ = VisitOptionalImplicitConversion(expr, elementType, useLegacyWarnings: false, trackMembers: false, AssignmentKind.Assignment);
+                    Unsplit();
                 }
             }
             else
@@ -4356,25 +4360,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Analyze operator call properly (honoring [Disallow|Allow|Maybe|NotNull] attribute annotations) https://github.com/dotnet/roslyn/issues/32671
                 var parameters = method.Parameters;
-                visitOperandConversion(binary.Left, leftOperand, leftConversion, parameters[0], leftUnderlyingType);
-                visitOperandConversion(binary.Right, rightOperand, rightConversion, parameters[1], rightUnderlyingType);
+                visitOperandConversionAndPostConditions(binary.Left, leftOperand, leftConversion, parameters[0], leftUnderlyingType);
+                visitOperandConversionAndPostConditions(binary.Right, rightOperand, rightConversion, parameters[1], rightUnderlyingType);
                 SetUpdatedSymbol(binary, binary.Method!, method);
 
-                void visitOperandConversion(
+                void visitOperandConversionAndPostConditions(
                     BoundExpression expr,
                     BoundExpression operand,
                     Conversion conversion,
                     ParameterSymbol parameter,
                     TypeWithState operandType)
                 {
-                    TypeWithAnnotations targetTypeWithNullability = parameter.TypeWithAnnotations;
+                    var parameterAnnotations = GetParameterAnnotations(parameter);
+                    var targetTypeWithNullability = ApplyLValueAnnotations(parameter.TypeWithAnnotations, parameterAnnotations);
 
                     if (isLifted && targetTypeWithNullability.Type.IsNonNullableValueType())
                     {
                         targetTypeWithNullability = TypeWithAnnotations.Create(MakeNullableOf(targetTypeWithNullability));
                     }
 
-                    _ = VisitConversion(
+                    var resultType = VisitConversion(
                         expr as BoundConversion,
                         operand,
                         conversion,
@@ -4385,6 +4390,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         useLegacyWarnings: false,
                         AssignmentKind.Argument,
                         parameter);
+                    CheckDisallowedNullAssignment(resultType, parameterAnnotations, expr.Syntax.Location, operand);
+
+                    LearnFromPostConditions(operand, parameterAnnotations);
                 }
             }
             else
@@ -6404,7 +6412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case RefKind.In:
                     {
                         // learn from post-conditions [Maybe/NotNull, Maybe/NotNullWhen] without using an assignment
-                        learnFromPostConditions(argument, parameterType, parameterAnnotations);
+                        LearnFromPostConditions(argument, parameterAnnotations);
                     }
                     break;
                 case RefKind.Ref:
@@ -6587,50 +6595,53 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return typeWithState;
             }
+        }
 
-            void learnFromPostConditions(BoundExpression argument, TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations)
+        /// <summary>
+        /// Learn from postconditions on a by-value or 'in' argument.
+        /// </summary>
+        private void LearnFromPostConditions(BoundExpression argument, FlowAnalysisAnnotations parameterAnnotations)
+        {
+            // Note: NotNull = NotNullWhen(true) + NotNullWhen(false)
+            bool notNullWhenTrue = (parameterAnnotations & FlowAnalysisAnnotations.NotNullWhenTrue) != 0;
+            bool notNullWhenFalse = (parameterAnnotations & FlowAnalysisAnnotations.NotNullWhenFalse) != 0;
+
+            // Note: MaybeNull = MaybeNullWhen(true) + MaybeNullWhen(false)
+            bool maybeNullWhenTrue = (parameterAnnotations & FlowAnalysisAnnotations.MaybeNullWhenTrue) != 0;
+            bool maybeNullWhenFalse = (parameterAnnotations & FlowAnalysisAnnotations.MaybeNullWhenFalse) != 0;
+
+            if (maybeNullWhenTrue && maybeNullWhenFalse && !IsConditionalState && !(notNullWhenTrue && notNullWhenFalse))
             {
-                // Note: NotNull = NotNullWhen(true) + NotNullWhen(false)
-                bool notNullWhenTrue = (parameterAnnotations & FlowAnalysisAnnotations.NotNullWhenTrue) != 0;
-                bool notNullWhenFalse = (parameterAnnotations & FlowAnalysisAnnotations.NotNullWhenFalse) != 0;
+                LearnFromNullTest(argument, ref State);
+            }
+            else if (notNullWhenTrue && notNullWhenFalse
+                && !IsConditionalState
+                && !(maybeNullWhenTrue || maybeNullWhenFalse))
+            {
+                LearnFromNonNullTest(argument, ref State);
+            }
+            else if (notNullWhenTrue || notNullWhenFalse || maybeNullWhenTrue || maybeNullWhenFalse)
+            {
+                Split();
 
-                // Note: MaybeNull = MaybeNullWhen(true) + MaybeNullWhen(false)
-                bool maybeNullWhenTrue = (parameterAnnotations & FlowAnalysisAnnotations.MaybeNullWhenTrue) != 0;
-                bool maybeNullWhenFalse = (parameterAnnotations & FlowAnalysisAnnotations.MaybeNullWhenFalse) != 0;
-
-                if (maybeNullWhenTrue && maybeNullWhenFalse && !IsConditionalState && !(notNullWhenTrue && notNullWhenFalse))
+                if (notNullWhenTrue)
                 {
-                    LearnFromNullTest(argument, ref State);
+                    LearnFromNonNullTest(argument, ref StateWhenTrue);
                 }
-                else if (notNullWhenTrue && notNullWhenFalse
-                    && !IsConditionalState
-                    && !(maybeNullWhenTrue || maybeNullWhenFalse))
+
+                if (notNullWhenFalse)
                 {
-                    LearnFromNonNullTest(argument, ref State);
+                    LearnFromNonNullTest(argument, ref StateWhenFalse);
                 }
-                else if (notNullWhenTrue || notNullWhenFalse || maybeNullWhenTrue || maybeNullWhenFalse)
+
+                if (maybeNullWhenTrue)
                 {
-                    Split();
+                    LearnFromNullTest(argument, ref StateWhenTrue);
+                }
 
-                    if (notNullWhenTrue)
-                    {
-                        LearnFromNonNullTest(argument, ref StateWhenTrue);
-                    }
-
-                    if (notNullWhenFalse)
-                    {
-                        LearnFromNonNullTest(argument, ref StateWhenFalse);
-                    }
-
-                    if (maybeNullWhenTrue)
-                    {
-                        LearnFromNullTest(argument, ref StateWhenTrue);
-                    }
-
-                    if (maybeNullWhenFalse)
-                    {
-                        LearnFromNullTest(argument, ref StateWhenFalse);
-                    }
+                if (maybeNullWhenFalse)
+                {
+                    LearnFromNullTest(argument, ref StateWhenFalse);
                 }
             }
         }
@@ -8271,6 +8282,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 fromExplicitCast: conversionOpt?.ExplicitCastInCode ?? false,
                 diagnosticLocation);
 
+            LearnFromPostConditions(conversionOperand, parameterAnnotations);
+
             TrackAnalyzedNullabilityThroughConversionGroup(operandType, conversionOpt, conversionOperand);
 
             return operandType;
@@ -8767,6 +8780,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var discarded = left is BoundDiscardExpression;
                     rightState = VisitOptionalImplicitConversion(right, targetTypeOpt: discarded ? default : leftLValueType, UseLegacyWarnings(left, leftLValueType), trackMembers: true, AssignmentKind.Assignment);
+                    Unsplit();
                 }
                 else
                 {
@@ -9088,6 +9102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             operandType = default;
                             valueType = VisitOptionalImplicitConversion(rightPart, lvalueType, useLegacyWarnings: true, trackMembers: true, AssignmentKind.Assignment);
+                            Unsplit();
                         }
                         valueSlot = MakeSlot(rightPart);
                     }
@@ -10761,6 +10776,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method.ReturnType, errorLocation: null, diagnostics: null);
 
             _ = VisitOptionalImplicitConversion(expr, elementType, useLegacyWarnings: false, trackMembers: false, AssignmentKind.Return);
+            Unsplit();
             return null;
         }
 

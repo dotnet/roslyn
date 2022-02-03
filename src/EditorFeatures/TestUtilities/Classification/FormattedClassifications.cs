@@ -111,6 +111,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             => New(text, ClassificationTypeNames.Keyword);
 
         [DebuggerStepThrough]
+        public static FormattedClassification PunctuationText(string text)
+            => New(text, ClassificationTypeNames.Punctuation);
+
+        [DebuggerStepThrough]
         public static FormattedClassification ControlKeyword(string text)
             => New(text, ClassificationTypeNames.ControlKeyword);
 

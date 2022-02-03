@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -19,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private CompletionItem? _suggestionModeItem;
         private OptionSet? _lazyOptionSet;
+        private bool _isExclusive;
 
         internal CompletionProvider Provider { get; }
 
@@ -41,19 +44,17 @@ namespace Microsoft.CodeAnalysis.Completion
         [Obsolete("Not used anymore. Use CompletionListSpan instead.", error: true)]
         public TextSpan DefaultItemSpan { get; }
 
-#pragma warning disable RS0030 // Do not used banned APIs
         /// <summary>
         /// The span of the document the completion list corresponds to.  It will be set initially to
         /// the result of <see cref="CompletionService.GetDefaultCompletionListSpan"/>, but it can
-        /// be overwritten during <see cref="CompletionService.GetCompletionsAsync"/>.  The purpose
-        /// of the span is to:
+        /// be overwritten during <see cref="CompletionService.GetCompletionsAsync(Document, int, CompletionOptions, CompletionTrigger, ImmutableHashSet{string}, CancellationToken)"/>.
+        /// The purpose of the span is to:
         ///     1. Signify where the completions should be presented.
         ///     2. Designate any existing text in the document that should be used for filtering.
         ///     3. Specify, by default, what portion of the text should be replaced when a completion 
         ///        item is committed.
         /// </summary>
         public TextSpan CompletionListSpan { get; set; }
-#pragma warning restore RS0030 // Do not used banned APIs
 
         /// <summary>
         /// The triggering action that caused completion to be started.
@@ -72,16 +73,23 @@ namespace Microsoft.CodeAnalysis.Completion
 
         /// <summary>
         /// Set to true if the items added here should be the only items presented to the user.
+        /// Expand items should never be exclusive.
         /// </summary>
-        public bool IsExclusive { get; set; }
+        public bool IsExclusive
+        {
+            get
+            {
+                return _isExclusive && !Provider.IsExpandItemProvider;
+            }
 
-        /// <summary>
-        /// Set to true if the corresponding provider can provide extended items with current context,
-        /// regardless of whether those items are actually added. i.e. it might be disabled by default,
-        /// but we still want to show the expander so user can explicitly request them to be added to 
-        /// completion list if we are in the appropriate context.
-        /// </summary>
-        internal bool ExpandItemsAvailable { get; set; }
+            set
+            {
+                if (value)
+                    Debug.Assert(!Provider.IsExpandItemProvider);
+
+                _isExclusive = value;
+            }
+        }
 
         /// <summary>
         /// Creates a <see cref="CompletionContext"/> instance.
@@ -99,10 +107,11 @@ namespace Microsoft.CodeAnalysis.Completion
                    position,
                    defaultSpan,
                    trigger,
-                   CompletionOptions.From(options ?? throw new ArgumentNullException(nameof(options)), document.Project.Language),
+                   // Publicly available options do not affect this API.
+                   CompletionOptions.Default,
                    cancellationToken)
         {
-            _lazyOptionSet = options;
+            _lazyOptionSet = options ?? throw new ArgumentNullException(nameof(options));
         }
 
         /// <summary>
@@ -131,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// The options that completion was started with.
         /// </summary>
         public OptionSet Options
-            => _lazyOptionSet ??= CompletionOptions.ToSet(Document.Project.Language);
+            => _lazyOptionSet ??= OptionValueSet.Empty;
 
         internal IReadOnlyList<CompletionItem> Items => _items;
 

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
 {
     internal abstract class AbstractAdornmentManagerProvider<TTag> :
         IWpfTextViewCreationListener
-        where TTag : GraphicsTag
+        where TTag : BrushTag
     {
         protected readonly IThreadingContext ThreadingContext;
         protected readonly IViewTagAggregatorFactoryService TagAggregatorFactoryService;

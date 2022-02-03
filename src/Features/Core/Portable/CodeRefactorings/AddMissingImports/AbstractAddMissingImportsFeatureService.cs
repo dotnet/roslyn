@@ -62,7 +62,8 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
             var addImportOptions = new AddImportOptions(
                 SearchReferenceAssemblies: true,
-                HideAdvancedMembers: options.HideAdvancedMembers);
+                HideAdvancedMembers: options.HideAdvancedMembers,
+                Placement: options.Placement);
 
             var unambiguousFixes = await addImportFeatureService.GetUniqueFixesAsync(
                 document, textSpan, FixableDiagnosticIds, symbolSearchService,
