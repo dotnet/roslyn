@@ -14,11 +14,11 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2" />
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="3.9.0-2.final" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Version="3.9.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.CodeAnalysis.SourceGenerators.Testing\Microsoft.CodeAnalysis.SourceGenerators.Testing.csproj" />
   </ItemGroup>
-  
+
 </Project>
