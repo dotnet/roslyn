@@ -6693,8 +6693,7 @@ namespace NS2
 
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True) _
-                    .WithChangedOption(CompletionOptions.Metadata.BlockOnExpandedCompletion, True)))
+                    .WithChangedOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)))
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForUIRenderedAsync()
@@ -6753,7 +6752,6 @@ namespace NS2
 
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.Metadata.BlockOnExpandedCompletion, True) _
                     .WithChangedOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)))
 
                 state.SendInvokeCompletionList()
@@ -6793,7 +6791,6 @@ namespace NS2
 
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.Metadata.BlockOnExpandedCompletion, True) _
                     .WithChangedOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, False)))
 
                 ' trigger completion with import completion disabled
@@ -6864,7 +6861,6 @@ namespace NS2
 
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.Metadata.BlockOnExpandedCompletion, True) _
                     .WithChangedOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)))
 
                 ' trigger completion with import completion enabled
@@ -6908,7 +6904,6 @@ namespace NS1
 
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.Metadata.BlockOnExpandedCompletion, True) _
                     .WithChangedOption(CompletionOptions.Metadata.ForceExpandedCompletionIndexCreation, True) _
                     .WithChangedOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)))
 
@@ -7353,7 +7348,6 @@ namespace NS2
 
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.Metadata.BlockOnExpandedCompletion, True) _
                     .WithChangedOption(CompletionOptions.Metadata.ForceExpandedCompletionIndexCreation, True) _
                     .WithChangedOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)))
 
@@ -7424,7 +7418,6 @@ namespace NS2
 
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.Metadata.BlockOnExpandedCompletion, True) _
                     .WithChangedOption(CompletionOptions.Metadata.ForceExpandedCompletionIndexCreation, True) _
                     .WithChangedOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)))
 
@@ -7495,7 +7488,6 @@ namespace NS2
 
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.Metadata.BlockOnExpandedCompletion, True) _
                     .WithChangedOption(CompletionOptions.Metadata.ForceExpandedCompletionIndexCreation, True) _
                     .WithChangedOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)))
 
@@ -7566,7 +7558,6 @@ namespace NS2
 
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.Metadata.BlockOnExpandedCompletion, True) _
                     .WithChangedOption(CompletionOptions.Metadata.ForceExpandedCompletionIndexCreation, True) _
                     .WithChangedOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)))
 
@@ -7638,7 +7629,6 @@ namespace NS2
 
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.Metadata.BlockOnExpandedCompletion, True) _
                     .WithChangedOption(CompletionOptions.Metadata.ForceExpandedCompletionIndexCreation, True) _
                     .WithChangedOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)))
 
@@ -7679,7 +7669,6 @@ namespace OtherNS
 
                 Dim workspace = state.Workspace
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.Metadata.BlockOnExpandedCompletion, True) _
                     .WithChangedOption(CompletionOptions.Metadata.ForceExpandedCompletionIndexCreation, True) _
                     .WithChangedOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)))
 
@@ -7794,7 +7783,6 @@ namespace NS2
                 Await state.AssertNoCompletionSession()
 
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.Metadata.BlockOnExpandedCompletion, True) _
                     .WithChangedOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)))
 
                 state.SendTypeChars("mytask")
@@ -8305,8 +8293,8 @@ namespace B
     }
 }                              </Document>)
                 state.Workspace.SetOptions(state.Workspace.Options _
-                    .WithChangedOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True) _
-                    .WithChangedOption(CompletionOptions.Metadata.BlockOnExpandedCompletion, True))
+                    .WithChangedOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True))
+
                 state.SendInvokeCompletionList()
                 state.AssertItemsInOrder(New String() {
                     "A", ' Method, properties, and imported extension methods alphabetical ordered
@@ -8625,8 +8613,7 @@ public class AA
 }</Document>,
                 showCompletionInArgumentLists:=showCompletionInArgumentLists)
                 state.Workspace.SetOptions(state.Workspace.Options _
-                                           .WithChangedOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True) _
-                                           .WithChangedOption(CompletionOptions.Metadata.BlockOnExpandedCompletion, True))
+                                           .WithChangedOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True))
 
                 Dim expectedText = $"
 using CC;
@@ -8673,8 +8660,7 @@ public class AA
 }</Document>,
                 showCompletionInArgumentLists:=showCompletionInArgumentLists)
                 state.Workspace.SetOptions(state.Workspace.Options _
-                    .WithChangedOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True) _
-                    .WithChangedOption(CompletionOptions.Metadata.BlockOnExpandedCompletion, True))
+                    .WithChangedOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True))
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -9744,8 +9730,9 @@ class C
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
                 globalOptions.SetGlobalOption(New OptionKey(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp), True)
 
+                state.TextView.Options.SetOptionValue(DefaultOptions.ResponsiveCompletionOptionId, True)
+
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.Metadata.BlockOnExpandedCompletion, False) _
                     .WithChangedOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)))
 
                 Dim completionService = DirectCast(workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
@@ -9802,8 +9789,9 @@ class C
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
                 globalOptions.SetGlobalOption(New OptionKey(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp), True)
 
+                state.TextView.Options.SetOptionValue(DefaultOptions.ResponsiveCompletionOptionId, True)
+
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.Metadata.BlockOnExpandedCompletion, False) _
                     .WithChangedOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)))
 
                 Dim completionService = DirectCast(workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)

@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.Completion
         bool ProvideDateAndTimeCompletions,
         bool ProvideRegexCompletions,
         bool ForceExpandedCompletionIndexCreation,
-        bool BlockOnExpandedCompletion,
         bool FilterOutOfScopeLocals = true,
         bool ShowXmlDocCommentCompletion = true,
         ExpandedCompletionMode ExpandedCompletionBehavior = ExpandedCompletionMode.AllItems)
@@ -49,8 +48,7 @@ namespace Microsoft.CodeAnalysis.Completion
               TypeImportCompletion: Metadata.TypeImportCompletionFeatureFlag.DefaultValue,
               ProvideDateAndTimeCompletions: Metadata.ProvideDateAndTimeCompletions.DefaultValue,
               ProvideRegexCompletions: Metadata.ProvideRegexCompletions.DefaultValue,
-              ForceExpandedCompletionIndexCreation: Metadata.ForceExpandedCompletionIndexCreation.DefaultValue,
-              BlockOnExpandedCompletion: Metadata.BlockOnExpandedCompletion.DefaultValue);
+              ForceExpandedCompletionIndexCreation: Metadata.ForceExpandedCompletionIndexCreation.DefaultValue);
 
         public static CompletionOptions From(Project project)
             => From(project.Solution.Options, project.Language);
@@ -71,8 +69,7 @@ namespace Microsoft.CodeAnalysis.Completion
               TypeImportCompletion: options.GetOption(Metadata.TypeImportCompletionFeatureFlag),
               ProvideDateAndTimeCompletions: options.GetOption(Metadata.ProvideDateAndTimeCompletions, language),
               ProvideRegexCompletions: options.GetOption(Metadata.ProvideRegexCompletions, language),
-              ForceExpandedCompletionIndexCreation: options.GetOption(Metadata.ForceExpandedCompletionIndexCreation),
-              BlockOnExpandedCompletion: options.GetOption(Metadata.BlockOnExpandedCompletion));
+              ForceExpandedCompletionIndexCreation: options.GetOption(Metadata.ForceExpandedCompletionIndexCreation));
 
         public OptionSet WithChangedOptions(OptionSet set, string language)
             => set.
@@ -90,8 +87,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 WithChangedOption(Metadata.TypeImportCompletionFeatureFlag, TypeImportCompletion).
                 WithChangedOption(Metadata.ProvideDateAndTimeCompletions, language, ProvideDateAndTimeCompletions).
                 WithChangedOption(Metadata.ProvideRegexCompletions, language, ProvideRegexCompletions).
-                WithChangedOption(Metadata.ForceExpandedCompletionIndexCreation, ForceExpandedCompletionIndexCreation).
-                WithChangedOption(Metadata.BlockOnExpandedCompletion, BlockOnExpandedCompletion);
+                WithChangedOption(Metadata.ForceExpandedCompletionIndexCreation, ForceExpandedCompletionIndexCreation);
 
         public RecommendationServiceOptions ToRecommendationServiceOptions()
             => new(
@@ -100,6 +96,12 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public OptionSet ToSet(string language)
             => WithChangedOptions(OptionValueSet.Empty, language);
+
+        public bool ShouldShowItemsFromUnimportNamspaces()
+        {
+            // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 
+            return ShowItemsFromUnimportedNamespaces ?? TypeImportCompletion;
+        }
 
         [ExportSolutionOptionProvider, Shared]
         internal sealed class Metadata : IOptionProvider
@@ -123,8 +125,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 TriggerInArgumentLists,
                 ProvideRegexCompletions,
                 ProvideDateAndTimeCompletions,
-                ForceExpandedCompletionIndexCreation,
-                BlockOnExpandedCompletion);
+                ForceExpandedCompletionIndexCreation);
 
             // feature flags
 
@@ -176,12 +177,6 @@ namespace Microsoft.CodeAnalysis.Completion
             public static readonly Option2<bool> ForceExpandedCompletionIndexCreation
                 = new(nameof(CompletionOptions), nameof(ForceExpandedCompletionIndexCreation), defaultValue: false);
 
-            // Whether we should wait for the computation of expand items to finish before returning items to editor.
-            // Set this to true to have a deterministic behavior for expand items. Otherwise, expand items might not
-            // be included in the completion list if the calculation is slow.
-            public static readonly Option2<bool> BlockOnExpandedCompletion
-                = new(nameof(CompletionOptions), nameof(BlockOnExpandedCompletion), defaultValue: false);
-
             // Embedded languages:
 
             public static PerLanguageOption2<bool> ProvideRegexCompletions =
@@ -197,19 +192,6 @@ namespace Microsoft.CodeAnalysis.Completion
                     nameof(ProvideDateAndTimeCompletions),
                     defaultValue: true,
                     storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ProvideDateAndTimeCompletions"));
-        }
-    }
-
-    internal static class CompletionOptionsExtensions
-    {
-        public static bool ShouldShowItemsFromUnimportNamspaces(this CompletionOptions options)
-        {
-            // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 
-            var importCompletionOptionValue = options.ShowItemsFromUnimportedNamespaces;
-            if (importCompletionOptionValue == false || (importCompletionOptionValue == null && !options.TypeImportCompletion))
-                return false;
-
-            return true;
         }
     }
 }

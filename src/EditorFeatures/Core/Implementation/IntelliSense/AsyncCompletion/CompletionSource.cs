@@ -269,54 +269,54 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 AddPropertiesToSession(session, list, triggerLocation);
                 return context;
             }
-
-            if (!session.TextView.Options.GetOptionValue(DefaultOptions.ResponsiveCompletionOptionId))
+            else if (!session.TextView.Options.GetOptionValue(DefaultOptions.ResponsiveCompletionOptionId))
             {
                 // We tie the behavior of delaying expand items to editor's "responsive completion" option.
                 // i.e. "responsive completion" disabled == always wait for all items to be calculated.
-                options = options with
-                {
-                    BlockOnExpandedCompletion = true,
-                    ExpandedCompletionBehavior = ExpandedCompletionMode.AllItems,
-                };
-                var (context, list) = await GetCompletionContextWorkerAsync(document, trigger, triggerLocation, options, cancellationToken).ConfigureAwait(false);
+                var (context, list) = await GetCompletionContextWorkerAsync(document, trigger, triggerLocation,
+                    options with { ExpandedCompletionBehavior = ExpandedCompletionMode.AllItems }, cancellationToken).ConfigureAwait(false);
                 AddPropertiesToSession(session, list, triggerLocation);
+                AsyncCompletionLogger.LogImportCompletionGetContext(isBlocking: true, delayed: false);
+
                 return context;
             }
-
-            var expandedItemsTask = Task.Run(async () => await GetCompletionContextWorkerAsync(document, trigger, triggerLocation,
-                options with { ExpandedCompletionBehavior = ExpandedCompletionMode.ExpandedItemsOnly }, cancellationToken).ConfigureAwait(false),
-                cancellationToken);
-
-            // Record how long it takes for the background task to complete.
-            var stopwatch = Stopwatch.StartNew();
-            expandedItemsTask = expandedItemsTask.ContinueWith(task =>
+            else
             {
-                AsyncCompletionLogger.LogAdditionalTicksToCompleteDelayedImportCompletionDataPoint((int)stopwatch.ElapsedMilliseconds);
-                return task.Result;
-            }, cancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
+                var expandedItemsTask = Task.Run(async () => await GetCompletionContextWorkerAsync(document, trigger, triggerLocation,
+                    options with { ExpandedCompletionBehavior = ExpandedCompletionMode.ExpandedItemsOnly }, cancellationToken).ConfigureAwait(false),
+                    cancellationToken);
 
-            // Now trigger and wait for core providers to return;
-            var (nonExpandedContext, nonExpandedCompletionList) = await GetCompletionContextWorkerAsync(document, trigger, triggerLocation,
-                    options with { ExpandedCompletionBehavior = ExpandedCompletionMode.NonExpandedItemsOnly }, cancellationToken).ConfigureAwait(false);
-            AddPropertiesToSession(session, nonExpandedCompletionList, triggerLocation);
+                // Record how long it takes for the background task to complete.
+                var stopwatch = Stopwatch.StartNew();
+                expandedItemsTask = expandedItemsTask.ContinueWith(task =>
+                {
+                    AsyncCompletionLogger.LogAdditionalTicksToCompleteDelayedImportCompletionDataPoint((int)stopwatch.ElapsedMilliseconds);
+                    return task.Result;
+                }, cancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
 
-            if (!expandedItemsTask.IsCompleted && !options.BlockOnExpandedCompletion)
-            {
-                // expanded item task still running. Save it to the session and return non-expanded items immediately.
-                session.Properties[ExpandedItemsTask] = expandedItemsTask;
-                AsyncCompletionLogger.LogImportCompletionGetContext(isBlocking: false, delayed: true);
+                // Now trigger and wait for core providers to return;
+                var (nonExpandedContext, nonExpandedCompletionList) = await GetCompletionContextWorkerAsync(document, trigger, triggerLocation,
+                        options with { ExpandedCompletionBehavior = ExpandedCompletionMode.NonExpandedItemsOnly }, cancellationToken).ConfigureAwait(false);
+                AddPropertiesToSession(session, nonExpandedCompletionList, triggerLocation);
 
-                return nonExpandedContext;
+                if (!expandedItemsTask.IsCompleted)
+                {
+                    // expanded item task still running. Save it to the session and return non-expanded items immediately.
+                    session.Properties[ExpandedItemsTask] = expandedItemsTask;
+                    AsyncCompletionLogger.LogImportCompletionGetContext(isBlocking: false, delayed: true);
+
+                    return nonExpandedContext;
+                }
+                else
+                {
+                    // the task of expanded item is completed, so get the result and combine it with result of non-expanded items.
+                    var (expandedContext, expandedCompletionList) = await expandedItemsTask.ConfigureAwait(false);
+                    AddPropertiesToSession(session, expandedCompletionList, triggerLocation: null);
+                    AsyncCompletionLogger.LogImportCompletionGetContext(isBlocking: false, delayed: false);
+
+                    return CombineCompletionContext(nonExpandedContext, expandedContext);
+                }
             }
-
-            AsyncCompletionLogger.LogImportCompletionGetContext(isBlocking: options.BlockOnExpandedCompletion, delayed: false);
-
-            // the task of expanded item is completed, so get the result and combine it with result of non-expanded items.
-            var (expandedContext, expandedCompletionList) = await expandedItemsTask.ConfigureAwait(false);
-            AddPropertiesToSession(session, expandedCompletionList, triggerLocation: null);
-
-            return CombineCompletionContext(nonExpandedContext, expandedContext);
 
             static AsyncCompletionData.CompletionContext CombineCompletionContext(AsyncCompletionData.CompletionContext context1, AsyncCompletionData.CompletionContext context2)
             {

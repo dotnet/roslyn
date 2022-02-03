@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return Task.FromResult(sortedItems);
         }
 
-        public Task<FilteredCompletionModel?> UpdateCompletionListAsync(
+        public async Task<FilteredCompletionModel?> UpdateCompletionListAsync(
             IAsyncCompletionSession session,
             AsyncCompletionSessionDataSnapshot data,
             CancellationToken cancellationToken)
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // so duplicated items won't be added in subsequent list updates.
                 session.Properties.RemoveProperty(CompletionSource.ExpandedItemsTask);
 
-                var (expandedContext, expandedList) = task.Result;
+                var (expandedContext, expandedList) = await task.ConfigureAwait(false);
                 if (expandedContext.Items.Length > 0)
                 {
                     var _ = ArrayBuilder<VSCompletionItem>.GetInstance(expandedContext.Items.Length + data.InitialSortedList.Length, out var itemsBuilder);
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             var updater = new CompletionListUpdater(session, data, _recentItemsManager, _globalOptions);
-            return Task.FromResult(updater.UpdateCompletionList(cancellationToken));
+            return updater.UpdateCompletionList(cancellationToken);
         }
 
         private static RoslynCompletionItem GetOrAddRoslynCompletionItem(VSCompletionItem vsItem)
