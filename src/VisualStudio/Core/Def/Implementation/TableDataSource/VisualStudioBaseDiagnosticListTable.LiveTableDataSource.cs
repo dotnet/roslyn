@@ -169,8 +169,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private void PopulateInitialData(Workspace workspace, IDiagnosticService diagnosticService)
             {
+                var diagnosticMode = _globalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
                 var diagnostics = diagnosticService.GetPushDiagnosticBuckets(
-                    workspace, projectId: null, documentId: null, InternalDiagnosticsOptions.NormalDiagnosticMode, cancellationToken: CancellationToken.None);
+                    workspace, projectId: null, documentId: null, diagnosticMode, cancellationToken: CancellationToken.None);
 
                 foreach (var bucket in diagnostics)
                 {
@@ -213,7 +214,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             public override AbstractTableEntriesSource<DiagnosticTableItem> CreateTableEntriesSource(object data)
             {
                 var item = (UpdatedEventArgs)data;
-                return new TableEntriesSource(this, item.Workspace, item.ProjectId, item.DocumentId, item.Id);
+                return new TableEntriesSource(this, item.Workspace, _globalOptions, item.ProjectId, item.DocumentId, item.Id);
             }
 
             private void ConnectToDiagnosticService(Workspace workspace, IDiagnosticService diagnosticService)
@@ -275,15 +276,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             {
                 private readonly LiveTableDataSource _source;
                 private readonly Workspace _workspace;
+                private readonly IGlobalOptionService _globalOptions;
                 private readonly ProjectId? _projectId;
                 private readonly DocumentId? _documentId;
                 private readonly object _id;
                 private readonly string _buildTool;
 
-                public TableEntriesSource(LiveTableDataSource source, Workspace workspace, ProjectId? projectId, DocumentId? documentId, object id)
+                public TableEntriesSource(LiveTableDataSource source, Workspace workspace, IGlobalOptionService globalOptions, ProjectId? projectId, DocumentId? documentId, object id)
                 {
                     _source = source;
                     _workspace = workspace;
+                    _globalOptions = globalOptions;
                     _projectId = projectId;
                     _documentId = documentId;
                     _id = id;
@@ -297,8 +300,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 public override ImmutableArray<DiagnosticTableItem> GetItems()
                 {
+                    var diagnosticMode = _globalOptions.GetDiagnosticMode(InternalDiagnosticsOptions.NormalDiagnosticMode);
                     var provider = _source._diagnosticService;
-                    var items = provider.GetPushDiagnosticsAsync(_workspace, _projectId, _documentId, _id, includeSuppressedDiagnostics: true, InternalDiagnosticsOptions.NormalDiagnosticMode, cancellationToken: CancellationToken.None)
+                    var items = provider.GetPushDiagnosticsAsync(_workspace, _projectId, _documentId, _id, includeSuppressedDiagnostics: true, diagnosticMode, cancellationToken: CancellationToken.None)
                         .AsTask()
                         .WaitAndGetResult_CanCallOnBackground(CancellationToken.None)
                                         .Where(ShouldInclude)
