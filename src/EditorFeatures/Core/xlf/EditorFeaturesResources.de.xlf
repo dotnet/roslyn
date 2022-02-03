@@ -82,11 +82,6 @@
         <target state="translated">Hilfe zu "{0}" abrufen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Get_help_for_0_from_Bing">
-        <source>Get help for '{0}' from Bing</source>
-        <target state="translated">Hilfe zu "{0}" von Bing abrufen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Gathering_Suggestions_0">
         <source>Gathering Suggestions - '{0}'</source>
         <target state="translated">Vorschläge werden gesammelt: "{0}"</target>

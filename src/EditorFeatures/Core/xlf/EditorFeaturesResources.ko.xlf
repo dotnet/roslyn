@@ -82,11 +82,6 @@
         <target state="translated">'{0}'에 대한 도움 받기</target>
         <note />
       </trans-unit>
-      <trans-unit id="Get_help_for_0_from_Bing">
-        <source>Get help for '{0}' from Bing</source>
-        <target state="translated">Bing에서 '{0}'에 대한 도움 받기</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Gathering_Suggestions_0">
         <source>Gathering Suggestions - '{0}'</source>
         <target state="translated">제안을 수집하는 중 - '{0}'</target>

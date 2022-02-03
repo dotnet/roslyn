@@ -933,9 +933,6 @@ Do you want to proceed?</value>
   <data name="Get_help_for_0" xml:space="preserve">
     <value>Get help for '{0}'</value>
   </data>
-  <data name="Get_help_for_0_from_Bing" xml:space="preserve">
-    <value>Get help for '{0}' from Bing</value>
-  </data>
   <data name="Gathering_Suggestions_0" xml:space="preserve">
     <value>Gathering Suggestions - '{0}'</value>
   </data>

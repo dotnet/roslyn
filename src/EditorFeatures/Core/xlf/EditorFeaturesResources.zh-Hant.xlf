@@ -82,11 +82,6 @@
         <target state="translated">取得 '{0}' 的說明</target>
         <note />
       </trans-unit>
-      <trans-unit id="Get_help_for_0_from_Bing">
-        <source>Get help for '{0}' from Bing</source>
-        <target state="translated">從 Bing 取得 '{0}' 的說明</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Gathering_Suggestions_0">
         <source>Gathering Suggestions - '{0}'</source>
         <target state="translated">正在蒐集建議 - '{0}'</target>
