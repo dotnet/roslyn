@@ -73,21 +73,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var keywordSpans = new List<TextSpan>();
             _highlightingService.AddHighlights(root, position, keywordSpans, cancellationToken);
 
-            if (keywordSpans.Any())
+            return keywordSpans.SelectAsArray(highlight => new DocumentHighlight
             {
-                return keywordSpans.SelectAsArray(highlight => new DocumentHighlight
-                {
-                    Kind = DocumentHighlightKind.Text,
-                    Range = ProtocolConversions.TextSpanToRange(highlight, text)
-                });
-            }
-
-            return ImmutableArray<DocumentHighlight>.Empty;
+                Kind = DocumentHighlightKind.Text,
+                Range = ProtocolConversions.TextSpanToRange(highlight, text)
+            });
         }
 
         private static async Task<ImmutableArray<DocumentHighlight>> GetReferenceHighlightsAsync(Document document, SourceText text, int position, CancellationToken cancellationToken)
         {
-            var documentHighlightService = document.Project.LanguageServices.GetRequiredService<IDocumentHighlightsService>();
+            var documentHighlightService = document.GetRequiredLanguageService<IDocumentHighlightsService>();
             var options = DocumentHighlightingOptions.From(document.Project);
             var highlights = await documentHighlightService.GetDocumentHighlightsAsync(
                 document,
