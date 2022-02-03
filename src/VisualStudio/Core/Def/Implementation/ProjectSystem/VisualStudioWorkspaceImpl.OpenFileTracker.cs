@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -18,7 +17,6 @@ using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 using Task = System.Threading.Tasks.Task;
@@ -35,16 +33,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly ForegroundThreadAffinitizedObject _foregroundAffinitization;
 
             private readonly VisualStudioWorkspaceImpl _workspace;
-            private readonly IThreadingContext _threadingContext;
             private readonly IAsynchronousOperationListener _asyncOperationListener;
 
             private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
-
-            /// <summary>
-            /// Queue to process the workspace side of the document notifications we get.  We process this in the BG to
-            /// avoid taking workspace locks on the UI thread.
-            /// </summary>
-            private readonly AsyncBatchingWorkQueue<Action<Workspace>> _workspaceApplicationQueue;
 
             #region Fields read/written to from multiple threads to track files that need to be checked
 
@@ -72,11 +63,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly ReferenceCountedDisposableCache<IVsHierarchy, HierarchyEventSink> _hierarchyEventSinkCache = new();
 
             /// <summary>
-            /// The IVsHierarchies we have subscribed to watch for any changes to this moniker. We track this per
-            /// moniker, so when a document is closed we know what we have to incrementally unsubscribe from rather than
-            /// having to unsubscribe from everything.
+            /// The IVsHierarchies we have subscribed to to watch for any changes to this moniker. We track this per moniker, so
+            /// when a document is closed we know what we have to incrementally unsubscribe from rather than having to unsubscribe from everything.
             /// </summary>
-            private readonly MultiDictionary<string, IReferenceCountedDisposable<ICacheEntry<IVsHierarchy, HierarchyEventSink>>> _watchedHierarchiesForDocumentMoniker = new();
+            private readonly MultiDictionary<string, IReferenceCountedDisposable<ICacheEntry<IVsHierarchy, HierarchyEventSink>>> _watchedHierarchiesForDocumentMoniker
+                = new();
 
             #endregion
 
@@ -92,40 +83,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// This cutoff of 10 was chosen arbitrarily and with no evidence whatsoever.</remarks>
             private const int CutoffForCheckingAllRunningDocumentTableDocuments = 10;
 
-            private OpenFileTracker(
-                VisualStudioWorkspaceImpl workspace,
-                IThreadingContext threadingContext,
-                IVsRunningDocumentTable runningDocumentTable,
-                IComponentModel componentModel)
+            private OpenFileTracker(VisualStudioWorkspaceImpl workspace, IVsRunningDocumentTable runningDocumentTable, IComponentModel componentModel)
             {
                 _workspace = workspace;
-                _threadingContext = threadingContext;
                 _foregroundAffinitization = new ForegroundThreadAffinitizedObject(workspace._threadingContext, assertIsForeground: true);
                 _asyncOperationListener = componentModel.GetService<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.Workspace);
                 _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(workspace._threadingContext,
                     componentModel.GetService<IVsEditorAdaptersFactoryService>(), runningDocumentTable, this);
-
-                _workspaceApplicationQueue = new AsyncBatchingWorkQueue<Action<Workspace>>(
-                    TimeSpan.FromMilliseconds(50),
-                    ProcessWorkspaceApplicationQueueAsync,
-                    _asyncOperationListener,
-                    threadingContext.DisposalToken);
-            }
-
-            private ValueTask ProcessWorkspaceApplicationQueueAsync(ImmutableArray<Action<Workspace>> actions, CancellationToken cancellationToken)
-            {
-                // Take the workspace lock once, then apply all the changes we have while holding it.
-                return _workspace.ApplyChangeToWorkspaceMaybeAsync(useAsync: true, w =>
-                {
-                    foreach (var action in actions)
-                    {
-                        // Canceling here means we won't process the remaining workspace work.  That's OK as we are only
-                        // canceled during shutdown, and at that point we really don't want to be doing any unnecessary work
-                        // anyways.
-                        cancellationToken.ThrowIfCancellationRequested();
-                        action(w);
-                    }
-                }, cancellationToken);
             }
 
             void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy, IVsWindowFrame? _)
@@ -144,10 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
             }
 
-            public static async Task<OpenFileTracker> CreateAsync(
-                VisualStudioWorkspaceImpl workspace,
-                IThreadingContext threadingContext,
-                IAsyncServiceProvider asyncServiceProvider)
+            public static async Task<OpenFileTracker> CreateAsync(VisualStudioWorkspaceImpl workspace, IAsyncServiceProvider asyncServiceProvider)
             {
                 var runningDocumentTable = (IVsRunningDocumentTable?)await asyncServiceProvider.GetServiceAsync(typeof(SVsRunningDocumentTable)).ConfigureAwait(true);
                 Assumes.Present(runningDocumentTable);
@@ -155,114 +116,85 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var componentModel = (IComponentModel?)await asyncServiceProvider.GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
                 Assumes.Present(componentModel);
 
-                return new OpenFileTracker(workspace, threadingContext, runningDocumentTable, componentModel);
+                return new OpenFileTracker(workspace, runningDocumentTable, componentModel);
             }
 
             private void TryOpeningDocumentsForMoniker(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy)
             {
                 _foregroundAffinitization.AssertIsForeground();
 
-                // First clear off any existing IVsHierarchies we are watching. Any ones that still matter we will
-                // resubscribe to. We could be fancy and diff, but the cost is probably negligible.  Then watch and
-                // subscribe to this hierarchy and any related ones.
-                UnsubscribeFromWatchedHierarchies(moniker);
-                WatchAndSubscribeToHierarchies(moniker, hierarchy, out var contextHierarchy, out var contextHierarchyProjectName);
-
-                _workspaceApplicationQueue.AddWork(w =>
+                _workspace.ApplyChangeToWorkspace(w =>
+                {
+                    var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
+                    if (documentIds.IsDefaultOrEmpty)
                     {
-                        var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
-                        if (documentIds.IsDefaultOrEmpty)
+                        return;
+                    }
+
+                    if (documentIds.All(w.IsDocumentOpen))
+                    {
+                        return;
+                    }
+
+                    ProjectId activeContextProjectId;
+
+                    if (documentIds.Length == 1)
+                    {
+                        activeContextProjectId = documentIds.Single().ProjectId;
+                    }
+                    else
+                    {
+                        activeContextProjectId = GetActiveContextProjectIdAndWatchHierarchies_NoLock(moniker, documentIds.Select(d => d.ProjectId), hierarchy);
+                    }
+
+                    var textContainer = textBuffer.AsTextContainer();
+
+                    foreach (var documentId in documentIds)
+                    {
+                        if (!w.IsDocumentOpen(documentId) && !_workspace._documentsNotFromFiles.Contains(documentId))
                         {
-                            return;
-                        }
-
-                        if (documentIds.All(w.IsDocumentOpen))
-                        {
-                            return;
-                        }
-
-                        var activeContextProjectId = documentIds.Length == 1
-                            ? documentIds.Single().ProjectId
-                            : GetActiveContextProjectId_NoLock(contextHierarchy, contextHierarchyProjectName, documentIds.SelectAsArray(d => d.ProjectId));
-
-                        var textContainer = textBuffer.AsTextContainer();
-
-                        foreach (var documentId in documentIds)
-                        {
-                            if (!w.IsDocumentOpen(documentId) && !_workspace._documentsNotFromFiles.Contains(documentId))
+                            var isCurrentContext = documentId.ProjectId == activeContextProjectId;
+                            if (w.CurrentSolution.ContainsDocument(documentId))
                             {
-                                var isCurrentContext = documentId.ProjectId == activeContextProjectId;
-                                if (w.CurrentSolution.ContainsDocument(documentId))
-                                {
-                                    w.OnDocumentOpened(documentId, textContainer, isCurrentContext);
-                                }
-                                else if (w.CurrentSolution.ContainsAdditionalDocument(documentId))
-                                {
-                                    w.OnAdditionalDocumentOpened(documentId, textContainer, isCurrentContext);
-                                }
-                                else
-                                {
-                                    Debug.Assert(w.CurrentSolution.ContainsAnalyzerConfigDocument(documentId));
-                                    w.OnAnalyzerConfigDocumentOpened(documentId, textContainer, isCurrentContext);
-                                }
+                                w.OnDocumentOpened(documentId, textContainer, isCurrentContext);
+                            }
+                            else if (w.CurrentSolution.ContainsAdditionalDocument(documentId))
+                            {
+                                w.OnAdditionalDocumentOpened(documentId, textContainer, isCurrentContext);
+                            }
+                            else
+                            {
+                                Debug.Assert(w.CurrentSolution.ContainsAnalyzerConfigDocument(documentId));
+                                w.OnAnalyzerConfigDocumentOpened(documentId, textContainer, isCurrentContext);
                             }
                         }
-                    });
+                    }
+                });
             }
 
-            /// <summary>
-            /// Gets the active project ID for the given hierarchy.  Only callable while holding the workspace lock.
-            /// </summary>
-            private ProjectId GetActiveContextProjectId_NoLock(
-                IVsHierarchy? contextHierarchy, string? contextProjectName, ImmutableArray<ProjectId> projectIds)
+            private ProjectId GetActiveContextProjectIdAndWatchHierarchies_NoLock(string moniker, IEnumerable<ProjectId> projectIds, IVsHierarchy? hierarchy)
             {
-                if (contextHierarchy == null)
+                _foregroundAffinitization.AssertIsForeground();
+
+                // First clear off any existing IVsHierarchies we are watching. Any ones that still matter we will resubscribe to.
+                // We could be fancy and diff, but the cost is probably negligible.
+                UnsubscribeFromWatchedHierarchies(moniker);
+
+                if (hierarchy == null)
                 {
                     // Any item in the RDT should have a hierarchy associated; in this case we don't so there's absolutely nothing
                     // we can do at this point.
                     return projectIds.First();
                 }
 
+                void WatchHierarchy(IVsHierarchy hierarchyToWatch)
+                {
+                    _watchedHierarchiesForDocumentMoniker.Add(moniker, _hierarchyEventSinkCache.GetOrCreate(hierarchyToWatch, static (h, self) => new HierarchyEventSink(h, self), this));
+                }
+
                 // Take a snapshot of the immutable data structure here to avoid mutation underneath us
                 var projectToHierarchyMap = _workspace._projectToHierarchyMap;
-
-                if (contextProjectName != null)
-                {
-                    var project = _workspace.GetProjectWithHierarchyAndName_NoLock(contextHierarchy, contextProjectName);
-
-                    if (project != null && projectIds.Contains(project.Id))
-                    {
-                        return project.Id;
-                    }
-                }
-
-                // At this point, we should hopefully have only one project that matches by hierarchy. If there's
-                // multiple, at this point we can't figure anything out better.
-                var matchingProjectId = projectIds.FirstOrDefault(id => projectToHierarchyMap.GetValueOrDefault(id, null) == contextHierarchy);
-
-                if (matchingProjectId != null)
-                {
-                    return matchingProjectId;
-                }
-
-                // If we had some trouble finding the project, we'll just pick one arbitrarily
-                return projectIds.First();
-            }
-
-            private void WatchAndSubscribeToHierarchies(string moniker, IVsHierarchy? hierarchy, out IVsHierarchy? mappedHierarchy, out string? mappedHierarchyName)
-            {
-                // Keep this method in sync with GetActiveContextProjectId_NoLockAsync
-
-                _foregroundAffinitization.AssertIsForeground();
-
-                if (hierarchy == null)
-                {
-                    // Any item in the RDT should have a hierarchy associated; in this case we don't so there's absolutely nothing
-                    // we can do at this point.
-                    mappedHierarchy = null;
-                    mappedHierarchyName = null;
-                    return;
-                }
+                var solution = _workspace.CurrentSolution;
 
                 // We now must chase to the actual hierarchy that we know about. First, we'll chase through multiple shared asset projects if
                 // we need to do so.
@@ -284,16 +216,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 // We may have multiple projects with the same hierarchy, but we can use __VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext to distinguish
                 if (ErrorHandler.Succeeded(hierarchy.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID8.VSHPROPID_ActiveIntellisenseProjectContext, out var contextProjectNameObject)))
+                {
                     WatchHierarchy(hierarchy);
 
-                mappedHierarchy = hierarchy;
-                mappedHierarchyName = contextProjectNameObject as string;
-                return;
+                    if (contextProjectNameObject is string contextProjectName)
+                    {
+                        var project = _workspace.GetProjectWithHierarchyAndName_NoLock(hierarchy, contextProjectName);
 
-                void WatchHierarchy(IVsHierarchy hierarchyToWatch)
-                {
-                    _watchedHierarchiesForDocumentMoniker.Add(moniker, _hierarchyEventSinkCache.GetOrCreate(hierarchyToWatch, static (h, self) => new HierarchyEventSink(h, self), this));
+                        if (project != null && projectIds.Contains(project.Id))
+                        {
+                            return project.Id;
+                        }
+                    }
                 }
+
+                // At this point, we should hopefully have only one project that maches by hierarchy. If there's multiple, at this point we can't figure anything
+                // out better.
+                var matchingProjectId = projectIds.FirstOrDefault(id => projectToHierarchyMap.GetValueOrDefault(id, null) == hierarchy);
+
+                if (matchingProjectId != null)
+                {
+                    return matchingProjectId;
+                }
+
+                // If we had some trouble finding the project, we'll just pick one arbitrarily
+                return projectIds.First();
             }
 
             private void UnsubscribeFromWatchedHierarchies(string moniker)
@@ -312,30 +259,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 _foregroundAffinitization.AssertIsForeground();
 
-                // First clear off any existing IVsHierarchies we are watching. Any ones that still matter we will
-                // resubscribe to. We could be fancy and diff, but the cost is probably negligible.  Then watch and
-                // subscribe to this hierarchy and any related ones.
-                UnsubscribeFromWatchedHierarchies(moniker);
-                WatchAndSubscribeToHierarchies(moniker, hierarchy, out var contextHierarchy, out var contextProjectName);
-
-                _workspaceApplicationQueue.AddWork(w =>
+                _workspace.ApplyChangeToWorkspace(w =>
+                {
+                    var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
+                    if (documentIds.IsDefaultOrEmpty || documentIds.Length == 1)
                     {
-                        var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
-                        if (documentIds.IsDefaultOrEmpty || documentIds.Length == 1)
-                        {
-                            return;
-                        }
+                        return;
+                    }
 
-                        if (!documentIds.All(w.IsDocumentOpen))
-                        {
-                            return;
-                        }
+                    if (!documentIds.All(w.IsDocumentOpen))
+                    {
+                        return;
+                    }
 
-                        var activeProjectId = GetActiveContextProjectId_NoLock(
-                            contextHierarchy, contextProjectName, documentIds.SelectAsArray(d => d.ProjectId));
-
-                        w.OnDocumentContextUpdated(documentIds.First(d => d.ProjectId == activeProjectId));
-                    });
+                    var activeProjectId = GetActiveContextProjectIdAndWatchHierarchies_NoLock(moniker, documentIds.Select(d => d.ProjectId), hierarchy);
+                    w.OnDocumentContextUpdated(documentIds.First(d => d.ProjectId == activeProjectId));
+                });
             }
 
             private void RefreshContextsForHierarchyPropertyChange(IVsHierarchy hierarchy)
@@ -362,34 +301,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 UnsubscribeFromWatchedHierarchies(moniker);
 
-                _workspaceApplicationQueue.AddWork(w =>
+                _workspace.ApplyChangeToWorkspace(w =>
+                {
+                    var documentIds = w.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
+                    if (documentIds.IsDefaultOrEmpty)
                     {
-                        var documentIds = w.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
-                        if (documentIds.IsDefaultOrEmpty)
-                        {
-                            return;
-                        }
+                        return;
+                    }
 
-                        foreach (var documentId in documentIds)
+                    foreach (var documentId in documentIds)
+                    {
+                        if (w.IsDocumentOpen(documentId) && !_workspace._documentsNotFromFiles.Contains(documentId))
                         {
-                            if (w.IsDocumentOpen(documentId) && !_workspace._documentsNotFromFiles.Contains(documentId))
+                            if (w.CurrentSolution.ContainsDocument(documentId))
                             {
-                                if (w.CurrentSolution.ContainsDocument(documentId))
-                                {
-                                    w.OnDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
-                                }
-                                else if (w.CurrentSolution.ContainsAdditionalDocument(documentId))
-                                {
-                                    w.OnAdditionalDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
-                                }
-                                else
-                                {
-                                    Debug.Assert(w.CurrentSolution.ContainsAnalyzerConfigDocument(documentId));
-                                    w.OnAnalyzerConfigDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
-                                }
+                                w.OnDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
+                            }
+                            else if (w.CurrentSolution.ContainsAdditionalDocument(documentId))
+                            {
+                                w.OnAdditionalDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
+                            }
+                            else
+                            {
+                                Debug.Assert(w.CurrentSolution.ContainsAnalyzerConfigDocument(documentId));
+                                w.OnAnalyzerConfigDocumentClosed(documentId, new FileTextLoader(moniker, defaultEncoding: null));
                             }
                         }
-                    });
+                    }
+                });
             }
 
             /// <summary>
