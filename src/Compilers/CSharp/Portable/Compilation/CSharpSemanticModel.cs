@@ -5298,24 +5298,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         public sealed override NullableContext GetNullableContext(int position)
         {
             var syntaxTree = (CSharpSyntaxTree)Root.SyntaxTree;
+
+            // IsGeneratedCode might be slow, only call it when needed:
+            NullableContextOptions getDefaultState()
+                => syntaxTree.IsGeneratedCode(Compilation.Options.SyntaxTreeOptionsProvider, CancellationToken.None)
+                    ? NullableContextOptions.Disable
+                    : Compilation.Options.NullableContextOptions;
+
             NullableContextState contextState = syntaxTree.GetNullableContextState(position);
-            var defaultState = syntaxTree.IsGeneratedCode(Compilation.Options.SyntaxTreeOptionsProvider, CancellationToken.None)
-                ? NullableContextOptions.Disable
-                : Compilation.Options.NullableContextOptions;
 
-            NullableContext context = getFlag(contextState.AnnotationsState, defaultState.AnnotationsEnabled(), NullableContext.AnnotationsContextInherited, NullableContext.AnnotationsEnabled);
-            context |= getFlag(contextState.WarningsState, defaultState.WarningsEnabled(), NullableContext.WarningsContextInherited, NullableContext.WarningsEnabled);
-
-            return context;
-
-            static NullableContext getFlag(NullableContextState.State contextState, bool defaultEnableState, NullableContext inheritedFlag, NullableContext enableFlag) =>
-                contextState switch
-                {
-                    NullableContextState.State.Enabled => enableFlag,
-                    NullableContextState.State.Disabled => NullableContext.Disabled,
-                    _ when defaultEnableState => (inheritedFlag | enableFlag),
-                    _ => inheritedFlag,
-                };
+            return contextState.AnnotationsState switch
+            {
+                NullableContextState.State.Enabled => NullableContext.AnnotationsEnabled,
+                NullableContextState.State.Disabled => NullableContext.Disabled,
+                _ when getDefaultState().AnnotationsEnabled() => NullableContext.AnnotationsContextInherited | NullableContext.AnnotationsEnabled,
+                _ => NullableContext.AnnotationsContextInherited,
+            }
+            | contextState.WarningsState switch
+            {
+                NullableContextState.State.Enabled => NullableContext.WarningsEnabled,
+                NullableContextState.State.Disabled => NullableContext.Disabled,
+                _ when getDefaultState().WarningsEnabled() => NullableContext.WarningsContextInherited | NullableContext.WarningsEnabled,
+                _ => NullableContext.WarningsContextInherited,
+            };
         }
 
         #endregion
