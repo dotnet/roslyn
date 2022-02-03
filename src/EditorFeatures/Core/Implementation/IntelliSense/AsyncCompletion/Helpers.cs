@@ -137,24 +137,5 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         // We expect that Editor will introduce this support and we will get rid of relying on the "★" then.
         public static bool IsPreferredItem(this VSCompletionItem completionItem)
             => completionItem.DisplayText.StartsWith("★");
-
-        public static ImmutableArray<EditorAsyncCompletionData.CompletionFilterWithState> CombineFilterStates(
-            ImmutableArray<EditorAsyncCompletionData.CompletionFilterWithState> states1, ImmutableArray<EditorAsyncCompletionData.CompletionFilterWithState> states2)
-        {
-            var filterStateMap = PooledDictionary<EditorAsyncCompletionData.CompletionFilter, bool>.GetInstance();
-            AddFilterState(states1);
-            AddFilterState(states2);
-
-            return filterStateMap.SelectAsArray(kvp => new EditorAsyncCompletionData.CompletionFilterWithState(kvp.Key, true, kvp.Value));
-
-            void AddFilterState(ImmutableArray<EditorAsyncCompletionData.CompletionFilterWithState> filterStates)
-            {
-                foreach (var state in filterStates)
-                {
-                    filterStateMap.TryGetValue(state.Filter, out var isSelected);
-                    filterStateMap[state.Filter] = state.IsSelected || isSelected;
-                }
-            }
-        }
     }
 }

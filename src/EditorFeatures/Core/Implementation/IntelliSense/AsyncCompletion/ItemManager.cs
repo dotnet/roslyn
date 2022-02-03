@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                     // Add expanded items into a combined list, and save it to be used for future updates during the same session.
                     session.Properties[CombinedSortedList] = combinedSortedList;
-                    var combinedFilterStates = Helpers.CombineFilterStates(expandedContext.Filters, data.SelectedFilters);
+                    var combinedFilterStates = FilterSet.CombineFilterStates(expandedContext.Filters, data.SelectedFilters);
 
                     data = new(combinedSortedList, data.Snapshot, data.Trigger, data.InitialTrigger, combinedFilterStates,
                         data.IsSoftSelected, data.DisplaySuggestionItem, data.Defaults);

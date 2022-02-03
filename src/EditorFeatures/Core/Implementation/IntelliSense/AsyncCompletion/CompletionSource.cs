@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 itemsBuilder.AddRange(context1.Items);
                 itemsBuilder.AddRange(context2.Items);
 
-                var filterStates = Helpers.CombineFilterStates(context1.Filters, context2.Filters);
+                var filterStates = FilterSet.CombineFilterStates(context1.Filters, context2.Filters);
 
                 var suggestionItem = context1.SuggestionItemOptions ?? context2.SuggestionItemOptions;
                 var hint = suggestionItem == null ? AsyncCompletionData.InitialSelectionHint.RegularSelection : AsyncCompletionData.InitialSelectionHint.SoftSelection;

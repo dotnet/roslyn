@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         public ImmutableArray<CompletionFilterWithState> GetFilterStatesInSet()
         {
-            var builder = new ArrayBuilder<CompletionFilterWithState>();
+            using var _ = ArrayBuilder<CompletionFilterWithState>.GetInstance(out var builder);
 
             // We always show expander but its selection state depends on whether it is in the set.
             builder.Add(new CompletionFilterWithState(Expander, isAvailable: true, isSelected: _vector[s_expanderMask]));
@@ -185,7 +185,42 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
             }
 
-            return builder.ToImmutableAndFree();
+            return builder.ToImmutable();
+        }
+
+        /// <summary>
+        /// Combine two filter lists while preserving the order as defined in <see cref="FilterSet"/>.
+        /// </summary>
+        public static ImmutableArray<CompletionFilterWithState> CombineFilterStates(ImmutableArray<CompletionFilterWithState> filters1, ImmutableArray<CompletionFilterWithState> filters2)
+        {
+            using var _1 = PooledDictionary<CompletionFilter, bool>.GetInstance(out var filterStateMap);
+            AddFilterState(filters1);
+            AddFilterState(filters2);
+
+            using var _2 = ArrayBuilder<CompletionFilterWithState>.GetInstance(out var builder);
+            if (filterStateMap.TryGetValue(Expander, out var isSelected))
+            {
+                builder.Add(new CompletionFilterWithState(Expander, isAvailable: true, isSelected: isSelected));
+            }
+
+            foreach (var filterWithMask in s_filters)
+            {
+                if (filterStateMap.TryGetValue(filterWithMask.Filter, out isSelected))
+                {
+                    builder.Add(new CompletionFilterWithState(filterWithMask.Filter, isAvailable: true, isSelected: isSelected));
+                }
+            }
+
+            return builder.ToImmutable();
+
+            void AddFilterState(ImmutableArray<CompletionFilterWithState> filterStates)
+            {
+                foreach (var state in filterStates)
+                {
+                    filterStateMap.TryGetValue(state.Filter, out var isSelected);
+                    filterStateMap[state.Filter] = state.IsSelected || isSelected;
+                }
+            }
         }
 
         private readonly record struct FilterWithMask(CompletionFilter Filter, int Mask);
