@@ -97,16 +97,16 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             // Publicly available options do not affect this API.
             var completionOptions = CompletionOptions.Default;
-            var passthroughOptions = options ?? document.Project.Solution.Options;
+            var passThroughOptions = options ?? document.Project.Solution.Options;
 
-            return await GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, completionOptions, passthroughOptions, trigger, roles, cancellationToken).ConfigureAwait(false);
+            return await GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, completionOptions, passThroughOptions, trigger, roles, cancellationToken).ConfigureAwait(false);
         }
 
         private protected async Task<CompletionList> GetCompletionsWithAvailabilityOfExpandedItemsAsync(
             Document document,
             int caretPosition,
             CompletionOptions options,
-            OptionSet passthroughOptions,
+            OptionSet passThroughOptions,
             CompletionTrigger trigger,
             ImmutableHashSet<string>? roles,
             CancellationToken cancellationToken)
@@ -172,9 +172,9 @@ namespace Microsoft.CodeAnalysis.Completion
                     case CompletionTriggerKind.Insertion:
                     case CompletionTriggerKind.Deletion:
 
-                        if (ShouldTriggerCompletion(document.Project, document.Project.LanguageServices, text, caretPosition, trigger, options, passthroughOptions, roles))
+                        if (ShouldTriggerCompletion(document.Project, document.Project.LanguageServices, text, caretPosition, trigger, options, passThroughOptions, roles))
                         {
-                            var triggeredProviders = providers.Where(p => p.ShouldTriggerCompletion(document.Project.LanguageServices, text, caretPosition, trigger, options, passthroughOptions)).ToImmutableArrayOrEmpty();
+                            var triggeredProviders = providers.Where(p => p.ShouldTriggerCompletion(document.Project.LanguageServices, text, caretPosition, trigger, options, passThroughOptions)).ToImmutableArrayOrEmpty();
 
                             Debug.Assert(ValidatePossibleTriggerCharacterSet(trigger.Kind, triggeredProviders, document, text, caretPosition, options));
                             return triggeredProviders.IsEmpty ? providers.ToImmutableArray() : triggeredProviders;
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         internal sealed override bool ShouldTriggerCompletion(
-            Project? project, HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options, OptionSet passthroughOptions, ImmutableHashSet<string>? roles = null)
+            Project? project, HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options, OptionSet passThroughOptions, ImmutableHashSet<string>? roles = null)
         {
             if (!options.TriggerOnTyping)
             {
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             var providers = _providerManager.GetFilteredProviders(project, roles, trigger, options);
-            return providers.Any(p => p.ShouldTriggerCompletion(languageServices, text, caretPosition, trigger, options, passthroughOptions));
+            return providers.Any(p => p.ShouldTriggerCompletion(languageServices, text, caretPosition, trigger, options, passThroughOptions));
         }
 
         internal virtual bool SupportsTriggerOnDeletion(CompletionOptions options)

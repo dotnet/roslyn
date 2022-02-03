@@ -44,9 +44,9 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="caretPosition">The position of the caret after the triggering action.</param>
         /// <param name="trigger">The triggering action.</param>
         /// <param name="options">The set of options in effect.</param>
-        internal virtual bool ShouldTriggerCompletion(HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options, OptionSet passthroughOptions)
+        internal virtual bool ShouldTriggerCompletion(HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options, OptionSet passThroughOptions)
 #pragma warning disable RS0030, CS0618 // Do not used banned/obsolete APIs
-            => ShouldTriggerCompletion(text, caretPosition, trigger, passthroughOptions);
+            => ShouldTriggerCompletion(text, caretPosition, trigger, passThroughOptions);
 #pragma warning restore
 
         /// <summary>
