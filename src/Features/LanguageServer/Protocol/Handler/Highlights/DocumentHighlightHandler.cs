@@ -104,6 +104,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             return ImmutableArray<DocumentHighlight>.Empty;
-}
+        }
     }
 }
