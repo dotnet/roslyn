@@ -34,7 +34,6 @@ namespace System.Diagnostics.CodeAnalysis
         public const string Regex = nameof(Regex);
     }
 }";
-        public static readonly string StringSyntaxAttributeCodeCSharpXml = SecurityElement.Escape(StringSyntaxAttributeCodeCSharp);
 
         public static readonly string StringSyntaxAttributeCodeVB = @"
 Namespace System.Diagnostics.CodeAnalysis
@@ -61,5 +60,8 @@ Namespace System.Diagnostics.CodeAnalysis
     End Class
 End Namespace
 ";
+
+        public static readonly string StringSyntaxAttributeCodeCSharpXml = SecurityElement.Escape(StringSyntaxAttributeCodeCSharp);
+        public static readonly string StringSyntaxAttributeCodeVBXml = SecurityElement.Escape(StringSyntaxAttributeCodeVB);
     }
 }
