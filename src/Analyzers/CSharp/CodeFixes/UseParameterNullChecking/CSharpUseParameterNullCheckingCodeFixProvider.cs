@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                         editor.ReplaceNode(nullCoalescing, parameterReferenceSyntax.WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker));
                         break;
                     case IfStatementSyntax { Else.Statement: BlockSyntax { Statements: var statementsWithinElse } } ifStatementWithElseBlock:
-                        var parent = (BlockSyntax)ifStatementWithElseBlock.Parent!;
+                        var parent = (BlockSyntax)ifStatementWithElseBlock.GetRequiredParent();
                         var newStatements = parent.Statements.ReplaceRange(ifStatementWithElseBlock, statementsWithinElse.Select(s => s.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker)));
                         editor.ReplaceNode(parent, parent.WithStatements(newStatements));
                         break;
