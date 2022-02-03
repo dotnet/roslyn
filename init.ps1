@@ -114,7 +114,7 @@ try {
 
     if ($Setup) {
         Write-Host "Installing MicroBuild SwixBuild plugin..." -ForegroundColor $HeaderColor
-        & $InstallNuGetPkgScriptPath MicroBuild.Plugins.SwixBuild -source $MicroBuildPackageSource -Verbosity $nugetVerbosity
+        & $InstallNuGetPkgScriptPath Microsoft.VisualStudioEng.MicroBuild.Plugins.SwixBuild -source $MicroBuildPackageSource -Verbosity $nugetVerbosity
     }
 
     if ($OptProf) {
