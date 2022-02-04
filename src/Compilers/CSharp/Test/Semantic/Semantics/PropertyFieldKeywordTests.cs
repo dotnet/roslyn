@@ -1393,5 +1393,32 @@ struct S
 
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
         }
+
+        [Fact]
+        public void SpeculativeSemanticModelTest()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public int P { get => 0; }
+}
+");
+            var accessorBindingData = new SourcePropertySymbolBase.AccessorBindingData();
+            comp.TestOnlyCompilationData = accessorBindingData;
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetMembers(GeneratedNames.MakeBackingFieldName("P")));
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var token = tree.GetRoot().DescendantTokens().Single(t => t.IsKind(SyntaxKind.NumericLiteralToken));
+
+            var model = comp.GetSemanticModel(comp.SyntaxTrees[0]);
+            var identifier = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(leading: default, contextualKind: SyntaxKind.FieldKeyword, text: "field", valueText: "field", trailing: default));
+            model.TryGetSpeculativeSemanticModel(token.SpanStart, identifier, out var speculativeModel);
+            Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
+
+            var fieldKeywordTypeInfo = speculativeModel.GetTypeInfo(identifier);
+            Assert.Equal(SpecialType.System_Int32, fieldKeywordTypeInfo.Type.SpecialType);
+            Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
+        }
     }
 }
