@@ -289,6 +289,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 return ClassificationTypeNames.LabelName;
             }
+            else if (token.Parent.IsKind(SyntaxKind.FunctionPointerUnmanagedCallingConvention))
+            {
+                return ClassificationTypeNames.ClassName;
+            }
             else
             {
                 return ClassificationTypeNames.Identifier;

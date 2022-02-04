@@ -38,7 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                     new SyntaxTokenClassifier(),
                     new UsingDirectiveSyntaxClassifier(),
                     new DiscardSyntaxClassifier(),
-                    new FunctionPointerCallingConventionClassifier(),
                 });
         }
 
