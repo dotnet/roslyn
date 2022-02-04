@@ -271,11 +271,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                         textSpan = new TextSpan(text.Lines[endLine].Start, endOffSet);
                     }
 
-                    var updatedClassifiedSpan = new ClassifiedSpan(textSpan.Value, classificationType);
-
                     // Omit 0-length spans created in this fashion.
-                    if (updatedClassifiedSpan.TextSpan.Length != 0)
+                    if (textSpan.Value.Length > 0)
                     {
+                        var updatedClassifiedSpan = new ClassifiedSpan(textSpan.Value, classificationType);
                         updatedClassifiedSpans.Add(updatedClassifiedSpan);
                     }
 
