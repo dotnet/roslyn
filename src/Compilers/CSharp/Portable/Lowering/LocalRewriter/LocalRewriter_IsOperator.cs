@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -20,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rewrittenTargetType = (BoundTypeExpression)VisitTypeExpression(node.TargetType);
             TypeSymbol rewrittenType = VisitType(node.Type);
 
-            return MakeIsOperator(node, node.Syntax, rewrittenOperand, rewrittenTargetType, node.Conversion, rewrittenType);
+            return MakeIsOperator(node, node.Syntax, rewrittenOperand, rewrittenTargetType, node.ConversionKind, rewrittenType);
         }
 
         private BoundExpression MakeIsOperator(
@@ -28,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             BoundExpression rewrittenOperand,
             BoundTypeExpression rewrittenTargetType,
-            Conversion conversion,
+            ConversionKind conversionKind,
             TypeSymbol rewrittenType)
         {
             if (rewrittenOperand.Kind == BoundKind.MethodGroup)
@@ -56,21 +54,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!_inExpressionLambda)
             {
-                ConstantValue constantValue = Binder.GetIsOperatorConstantResult(operandType, targetType, conversion.Kind, rewrittenOperand.ConstantValue);
+                ConstantValue constantValue = Binder.GetIsOperatorConstantResult(operandType, targetType, conversionKind, rewrittenOperand.ConstantValue);
 
                 if (constantValue != null)
                 {
                     return RewriteConstantIsOperator(syntax, rewrittenOperand, constantValue, rewrittenType);
                 }
-                else if (conversion.IsImplicit)
+                else if (conversionKind.IsImplicitConversion())
                 {
                     // operand is a reference type with bound identity or implicit conversion
                     // We can replace the "is" instruction with a null check
-                    return MakeNullCheck(syntax, rewrittenOperand, BinaryOperatorKind.NotEqual);
+                    return _factory.MakeNullCheck(syntax, rewrittenOperand, BinaryOperatorKind.NotEqual);
                 }
             }
 
-            return oldNode.Update(rewrittenOperand, rewrittenTargetType, conversion, rewrittenType);
+            return oldNode.Update(rewrittenOperand, rewrittenTargetType, conversionKind, rewrittenType);
         }
 
         private BoundExpression RewriteConstantIsOperator(

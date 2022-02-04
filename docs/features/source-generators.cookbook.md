@@ -7,7 +7,7 @@
 
 This document aims to be a guide to help the creation of source generators by providing a series of guidelines for common patterns.
 It also aims to set out what types of generators are possible under the current design, and what is expected to be explicitly out 
-of scope in the final design of the shipping feature. 
+of scope in the final design of the shipping feature.
 
 **This document expands on the details in the [full design document](source-generators.md), please ensure you have read that first.**
 
@@ -60,10 +60,9 @@ This section is broken down by user scenarios, with general solutions listed fir
 
 ### Generated class
 
-**User scenario:** As a generator author I want to be able to add a type to the compilation, that can be referenced by the users code.
+**User scenario:** As a generator author I want to be able to add a type to the compilation, that can be referenced by the user's code.
 
 **Solution:** Have the user write the code as if the type was already present. Generate the missing type based on information available in the compilation.
-
 
 **Example:**
 
@@ -83,11 +82,14 @@ public partial class UserClass
 Create a generator that will create the missing type when run:
 
 ```csharp
+[Generator]
 public class CustomGenerator : ISourceGenerator
 {
-    public void Execute(SourceGeneratorContext context)
+    public void Initialize(GeneratorInitializationContext context) {}
+
+    public void Execute(GeneratorExecutionContext context)
     {
-        context.AddSource("myGeneratedFile.cs", SourceText.From($@"
+        context.AddSource("myGeneratedFile.cs", SourceText.From(@"
 namespace GeneratedNamespace
 {
     public class GeneratedClass
@@ -97,48 +99,52 @@ namespace GeneratedNamespace
             // generated code
         }
     }
-}"));
+}", Encoding.UTF8));
     }
 }
 ```
-
 
 ### Additional file transformation
 
 **User scenario:** As a generator author I want to be able to transform an external non-C# file into an equivalent C# representation.
 
-**Solution:** Use the additional files property of the `SourceGeneratorContext` to retrieve the contents of the file, convert it to the C# representation and return it.
+**Solution:** Use the additional files property of the `GeneratorExecutionContext` to retrieve the contents of the file, convert it to the C# representation and return it.
 
 **Example:**
 
 ```csharp
+[Generator]
 public class FileTransformGenerator : ISourceGenerator
+{
+    public void Initialize(GeneratorInitializationContext context) {}
+
+    public void Execute(GeneratorExecutionContext context)
     {
-        public void Execute(SourceGeneratorContext context)
+        // find anything that matches our files
+        var myFiles = context.AnalyzerOptions.AdditionalFiles.Where(at => at.Path.EndsWith(".xml"));
+        foreach (var file in myFiles)
         {
-            // find anything that matches our files
-            var myFiles = context.AnalyzerOptions.AdditionalFiles.Where(at => at.Path.EndsWith(".xml"));
-            foreach (var file in myFiles)
-            {
-                var content = file.GetText(context.CancellationToken);
+            var content = file.GetText(context.CancellationToken);
 
-                // do some transforms based on the file context
-                string output = MyXmlToCSharpCompiler.Compile(content);
+            // do some transforms based on the file context
+            string output = MyXmlToCSharpCompiler.Compile(content);
 
-                var sourceText = SourceText.From(output);
+            var sourceText = SourceText.From(output, Encoding.UTF8);
 
-                context.AddSource($"{file.Name}generated.cs", sourceText);
-            }
+            context.AddSource($"{file.Name}generated.cs", sourceText);
         }
     }
+}
 ```
 
 ### Augment user code
 
-**User scenario:** As a generator author I want to be able to augment a users code with new functionality.
+**User scenario:** As a generator author I want to be able to inspect and augment a user's code with new functionality.
 
 **Solution:** Require the user to make the class you want to augment be a `partial class`, and mark it with e.g. a unique attribute, or name.
-Look for any classes marked for generation and generate a matching `partial class` that contains the additional functionality.
+Register a `SyntaxReceiver` that looks for any classes marked for generation and records them. Retrieve the populated `SyntaxReceiver`
+during the generation phase and use the recorded information to generate a matching `partial class` that
+contains the additional functionality.
 
 **Example:**
 
@@ -147,62 +153,115 @@ public partial class UserClass
 {
     public void UserMethod()
     {
-        // call into a method inside the class
+        // call into a generated method inside the class
         this.GeneratedMethod();
     }
 }
 ```
 
 ```csharp
+[Generator]
 public class AugmentingGenerator : ISourceGenerator
 {
-    public void Execute(SourceGeneratorContext context)
+    public void Initialize(GeneratorInitializationContext context)
     {
-        var syntaxTrees = context.Compilation.SyntaxTrees;
-        foreach (var syntaxTree in syntaxTrees)
-        {
-                // find the class to augment
-            var classToAugment = syntaxTree.GetRoot().DescendantNodes()
-                .OfType<ClassDeclarationSyntax>()
-                .Where(c => c.Name.ToString() == "UserClass")
-                .Single();
+        // Register a factory that can create our custom syntax receiver
+        context.RegisterForSyntaxNotifications(() => new MySyntaxReceiver());
+    }
 
-            var sourceText = SourceText.From($@"
-public partial class {classToAugment.Identifier.ToString()}
-{
-private void GeneratedMethod()
-{
-    // generated code
-}
-}");
-            context.AddSource("myGeneratedFile.cs", sourceText);
+    public void Execute(GeneratorExecutionContext context)
+    {
+        // the generator infrastructure will create a receiver and populate it
+        // we can retrieve the populated instance via the context
+        MySyntaxReceiver syntaxReceiver = (MySyntaxReceiver)context.SyntaxReceiver;
+
+        // get the recorded user class
+        ClassDeclarationSyntax userClass = syntaxReceiver.ClassToAugment;
+        if (userClass is null)
+        {
+            // if we didn't find the user class, there is nothing to do
+            return;
+        }
+
+        // add the generated implementation to the compilation
+        SourceText sourceText = SourceText.From($@"
+public partial class {userClass.Identifier}
+{{
+    private void GeneratedMethod()
+    {{
+        // generated code
+    }}
+}}", Encoding.UTF8);
+        context.AddSource("UserClass.Generated.cs", sourceText);
+    }
+
+    class MySyntaxReceiver : ISyntaxReceiver
+    {
+        public ClassDeclarationSyntax ClassToAugment { get; private set; }
+
+        public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
+        {
+            // Business logic to decide what we're interested in goes here
+            if (syntaxNode is ClassDeclarationSyntax cds &&
+                cds.Identifier.ValueText == "UserClass")
+            {
+                ClassToAugment = cds;
+            }
         }
     }
 }
-
 ```
 
-### Participate in the IDE experience
+### Issue Diagnostics
 
-**User scenario:** As a generator author I want to be able to interactively regenerate code as the user is editing files.
+**User Scenario:** As a generator author I want to be able to add diagnostics to the users compilation.
 
-**Solution:** We expect there to be an an opt-in set of interactive interfaces that can be implemented to allow for progressively more complex generation strategies.
-It is anticipated there will be a mechanism for providing symbol mapping for lighting up features such a 'Find all references'.
+**Solution:** Diagnostics can be added to the compilation via `GeneratorExecutionContext.ReportDiagnostic()`. These can be in response to the content of the users compilation:
+for instance if the generator is expecting a well formed `AdditionalFile` but can not parse it, the generator could emit a warning notifying the user that generation can not proceed.
+
+For code-based issues, the generator author should also consider implementing a [diagnostic analyzer](https://docs.microsoft.com/en-us/visualstudio/code-quality/roslyn-analyzers-overview?view=vs-2019) that identifies the problem, and offers a code-fix to resolve it.
+
+**Example:**
 
 ```csharp
-public class InteractiveGenerator : ISourceGenerator, IAdditionalFilesChangedGenerator
-    {
-        public void Execute(SourceGeneratorContext context)
-        {
-            // generators must always support a total generation pass
-        }
+[Generator]
+public class MyXmlGenerator : ISourceGenerator
+{
 
-        public void OnAdditionalFilesChanged(AdditionalFilesChangedContext context)
+    private static readonly DiagnosticDescriptor InvalidXmlWarning = new DiagnosticDescriptor(id: "MYXMLGEN001",
+                                                                                              title: "Couldn't parse XML file",
+                                                                                              messageFormat: "Couldn't parse XML file '{0}'.",
+                                                                                              category: "MyXmlGenerator",
+                                                                                              DiagnosticSeverity.Warning,
+                                                                                              isEnabledByDefault: true);
+
+    public void Execute(GeneratorExecutionContext context)
+    {
+        // Using the context, get any additional files that end in .xml
+        IEnumerable<AdditionalText> xmlFiles = context.AdditionalFiles.Where(at => at.Path.EndsWith(".xml", StringComparison.OrdinalIgnoreCase));
+        foreach (AdditionalText xmlFile in xmlFiles)
         {
-            // determine which file changed, and if it affects this generator
-            // regenerate only the parts that are affected by this change.
+            XmlDocument xmlDoc = new XmlDocument();
+            string text = xmlFile.GetText(context.CancellationToken).ToString();
+            try
+            {
+                xmlDoc.LoadXml(text);
+            }
+            catch (XmlException)
+            {
+                // issue warning MYXMLGEN001: Couldn't parse XML file '<path>'
+                context.ReportDiagnostic(Diagnostic.Create(InvalidXmlWarning, Location.None, xmlFile.Path));
+                continue;
+            }
+
+            // continue generation...
         }
     }
+
+    public void Initialize(GeneratorInitializationContext context)
+    {
+    }
+}
 ```
 
 ### INotifyPropertyChanged
@@ -275,6 +334,511 @@ public partial class UserClass : INotifyPropertyChanged
 
 ```
 
+### Package a generator as a NuGet package
+
+**User scenario**: As a generator author I want to package my generator as a NuGet package for consumption.
+
+**Solution:** Generators can be packaged using the same method as an Analyzer would.
+Ensure the generator is placed in the `analyzers\dotnet\cs` folder of the package for it to be automatically added to the users project on install.
+
+For example, to turn your generator project into a NuGet package at build, add the following to your project file:
+
+```xml
+  <PropertyGroup>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild> <!-- Generates a package at build -->
+    <IncludeBuildOutput>false</IncludeBuildOutput> <!-- Do not include the generator as a lib dependency -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Package the generator in the analyzer directory of the nuget package -->
+    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
+```
+
+### Use functionality from NuGet packages
+
+**User Scenario:** As a generator author I want to rely on functionality provided in NuGet packages inside my generator.
+
+**Solution:** It is possible to depend on NuGet packages inside of a generator, but special consideration has to be taken for distribution.
+
+Any *runtime* dependencies, that is, code that the end users program will need to rely on, can simply be added as a dependency of the generator NuGet package via the usual referencing mechanism.
+
+For example, consider a generator that creates code that relies on `Newtonsoft.Json`. The generator does not directly use the dependency, it just emits code that relies on the library being referenced in the users compilation. The author would add a reference to `Newtonsoft.Json` as a public dependency, and when the user adds the generator package it will referenced automatically.
+
+The generator can check the compilation for the presence of the `Newtonsoft.Json` assembly and issue a warning or error if not present.
+
+```xml
+<Project>
+  <PropertyGroup>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild> <!-- Generates a package at build -->
+    <IncludeBuildOutput>false</IncludeBuildOutput> <!-- Do not include the generator as a lib dependency -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Take a public dependency on Json.Net. Consumers of this generator will get a reference to this package -->
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+
+    <!-- Package the generator in the analyzer directory of the nuget package -->
+    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
+</Project>
+```
+
+```C#
+using System.Linq;
+
+[Generator]
+public class SerializingGenerator : ISourceGenerator
+{
+    public void Execute(GeneratorExecutionContext context)
+    {
+        // check that the users compilation references the expected library 
+        if (!context.Compilation.ReferencedAssemblyNames.Any(ai => ai.Name.Equals("Newtonsoft.Json", StringComparison.OrdinalIgnoreCase)))
+        {
+            context.ReportDiagnostic(/*error or warning*/);
+        }
+    }
+
+    public void Initialize(GeneratorInitializationContext context)
+    {
+    }
+}
+```
+
+However, any *generation-time* dependencies, that is, used by the generator while it is is running and generating code, must be packaged directly alongside the generator assembly inside the generator NuGet package. There are no automatic facilities for this, and you will need to manually specify the dependencies to include.
+
+Consider a generator that uses `Newtonsoft.Json` to encode something to json during the generation pass, but does not emit any code the relies on it being present at runtime. The author would add a reference to `Newtonsoft.Json` but make all of its assets *private*; this ensures the consumer of the generator does not inherit a dependency on the library.
+
+The author would then have to package the `Newtonsoft.Json` library alongside the generator inside of the NuGet package. This can be achieved in the following way: set the dependency to generate a path property by adding `GeneratePathProperty="true"`. This will create a new MSBuild property of the format `PKG<PackageName>` where `<PackageName>` is the package name with `.` replaced by `_`. In our example there would be an MSBuild property called `PKGNewtonsoft_Json` with a value that points to the path on disk of the binary contents of the NuGet files. We can then use that to add the binaries to the resulting NuGet package as we do with the generator itself:
+
+```xml
+<Project>
+  <PropertyGroup>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild> <!-- Generates a package at build -->
+    <IncludeBuildOutput>false</IncludeBuildOutput> <!-- Do not include the generator as a lib dependency -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Take a private dependency on Newtonsoft.Json (PrivateAssets=all) Consumers of this generator will not reference it.
+         Set GeneratePathProperty=true so we can reference the binaries via the PKGNewtonsoft_Json property -->
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" PrivateAssets="all" GeneratePathProperty="true" />
+
+    <!-- Package the generator in the analyzer directory of the nuget package -->
+    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+
+    <!-- Package the Newtonsoft.Json dependency alongside the generator assembly -->
+    <None Include="$(PkgNewtonsoft_Json)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
+</Project>
+```
+
+```C#
+[Generator]
+public class JsonUsingGenerator : ISourceGenerator
+{
+    public void Execute(GeneratorExecutionContext context)
+    {
+        // use the newtonsoft.json library, but don't add any source code that depends on it
+
+        var serializedContent = Newtonsoft.Json.JsonConvert.SerializeObject(new { a = "a", b = 4 });
+
+        context.AddSource("myGeneratedFile.cs", SourceText.From($@"
+namespace GeneratedNamespace
+{{
+    public class GeneratedClass
+    {{
+        public static const SerializedContent = {serializedContent};
+    }}
+}}", Encoding.UTF8));
+
+    }
+
+    public void Initialize(GeneratorInitializationContext context)
+    {
+    }
+}
+```
+
+### Access Analyzer Config properties
+
+**Implementation status:** Available from VS 16.7 preview3.
+
+**User Scenarios:**
+
+- As a generator author I want to access the analyzer config properties for a syntax tree or additional file.
+- As a generator author I want to access key-value pairs that customize the generator output.
+- As a user of a generator I want to be able to customize the generated code and override defaults.
+
+**Solution**: Generators can access analyzer config values via the `AnalyzerConfigOptions` property of the `GeneratorExecutionContext`. Analyzer config values can either be accessed in the context of a `SyntaxTree`, `AdditionalFile` or globally via `GlobalOptions`. Global options are 'ambient' in that they don't apply to any specific context, but will be included when requesting option within a specific context.
+
+A generator is free to use a global option to customize its output. For example, consider a generator that can optionally emit logging. The author may choose to check the value of a global analyzer config value in order to control whether or not to emit the logging code. A user can then choose to enable the setting per project via an `.editorconfig` file:
+
+```.editorconfig
+mygenerator_emit_logging = true
+```
+
+```csharp
+[Generator]
+public class MyGenerator : ISourceGenerator
+{
+    public void Execute(GeneratorExecutionContext context)
+    {
+        // control logging via analyzerconfig
+        bool emitLogging = false;
+        if (context.AnalyzerConfigOptions.GlobalOptions.TryGetValue("mygenerator_emit_logging", out var emitLoggingSwitch))
+        {
+            emitLogging = emitLoggingSwitch.Equals("true", StringComparison.OrdinalIgnoreCase);
+        }
+
+        // add the source with or without logging...
+    }
+
+    public void Initialize(GeneratorInitializationContext context)
+    {
+    }
+}
+```
+
+### Consume MSBuild properties and metadata
+
+**Implementation status:** Available from VS 16.7 preview3.
+
+**User Scenarios:**
+
+- As a generator author I want to make decisions based on the values contained in the project file
+- As a user of a generator I want to be able to customize the generated code and override defaults.
+
+**Solution:** MSBuild will automatically translate specified properties and metadata into a global analyzer config that can be read by a generator. A generator author specifies the properties and metadata they want to make available by adding items to the `CompilerVisibleProperty` and `CompilerVisibleItemMetadata` item groups. These can be added via a props or targets file when packaging the generator as a NuGet package.
+
+For example, consider a generator that creates source based on additional files, and wants to allow a user to enable or disable logging via the project file. The author would specify in their props file that they want to make the specified MSBuild property visible to the compiler:
+
+```xml
+<ItemGroup>
+    <CompilerVisibleProperty Include="MyGenerator_EnableLogging" />
+</ItemGroup>
+```
+
+The value of `MyGenerator_EnableLogging` property will then be emitted to a generated analyzer config file before build, with a name of `build_property.MyGenerator_EnableLogging`. The generator is then able read this property from via the `AnalyzerConfigOptions` property of the `GeneratorExecutionContext`:
+
+```c#
+context.AnalyzerConfigOptions.GlobalOptions.TryGetValue("build_property.MyGenerator_EnableLogging", out var emitLoggingSwitch);
+```
+
+A user can thus enable, or disable logging, by setting a property in their project file.
+
+Now, consider that the generator author wants to optionally allow opting in/out of logging on a per-additional file basis. The author can request that MSBuild emit the value of metadata for the specified file, by adding to the `CompilerVisibleItemMetadata` item group. The author specifies both the MSBuild itemType they want to read the metadata from, in this case `AdditionalFiles`, and the name of the metadata that they want to retrieve for them.
+
+```xml
+<ItemGroup>
+    <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="MyGenerator_EnableLogging" />
+</ItemGroup>
+```
+
+This value of `MyGenerator_EnableLogging` will be emitted to a generated analyzer config file, for each of the additional files in the compilation, with an item name of `build_metadata.AdditionalFiles.MyGenerator_EnableLogging`. The generator can read this value in the context of each additional file:
+
+```cs
+foreach (var file in context.AdditionalFiles)
+{
+    context.AnalyzerConfigOptions.GetOptions(file).TryGetValue("build_metadata.AdditionalFiles.MyGenerator_EnableLogging", out var perFileLoggingSwitch);
+}
+```
+
+In the users project file, the user can now annotate the individual additional files to say whether or not they want to enable logging:
+
+```xml
+<ItemGroup>
+    <AdditionalFiles Include="file1.txt" />  <!-- logging will be controlled by default, or global value -->
+    <AdditionalFiles Include="file2.txt" MyGenerator_EnableLogging="true" />  <!-- always enable logging for this file -->
+    <AdditionalFiles Include="file3.txt" MyGenerator_EnableLogging="false" /> <!-- never enable logging for this file -->
+</ItemGroup>
+```
+
+**Full Example:**
+
+MyGenerator.props:
+
+```xml
+<Project>
+    <ItemGroup>
+        <CompilerVisibleProperty Include="MyGenerator_EnableLogging" />
+        <CompilerVisibleItemMetadata Include="AdditionalFiles" MetadataName="MyGenerator_EnableLogging" />
+    </ItemGroup>
+</Project>
+```
+
+MyGenerator.csproj:
+
+```xml
+<Project>
+  <PropertyGroup>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild> <!-- Generates a package at build -->
+    <IncludeBuildOutput>false</IncludeBuildOutput> <!-- Do not include the generator as a lib dependency -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Package the generator in the analyzer directory of the nuget package -->
+    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+
+    <!-- Package the props file -->
+    <None Include="MyGenerator.props" Pack="true" PackagePath="build" Visible="false" />
+  </ItemGroup>
+</Project>
+```
+
+MyGenerator.cs:
+
+```csharp
+
+[Generator]
+public class MyGenerator : ISourceGenerator
+{
+    public void Execute(GeneratorExecutionContext context)
+    {
+        // global logging from project file
+        bool emitLoggingGlobal = false;
+        if(context.AnalyzerConfigOptions.GlobalOptions.TryGetValue("build_property.MyGenerator_EnableLogging", out var emitLoggingSwitch))
+        {
+            emitLoggingGlobal = emitLoggingSwitch.Equals("true", StringComparison.OrdinalIgnoreCase);
+        }
+
+        foreach (var file in context.AdditionalFiles)
+        {
+            // allow the user to override the global logging on a per-file basis
+            bool emitLogging = emitLoggingGlobal;
+            if (context.AnalyzerConfigOptions.GetOptions(file).TryGetValue("build_metadata.AdditionalFiles.MyGenerator_EnableLogging", out var perFileLoggingSwitch))
+            {
+                emitLogging = perFileLoggingSwitch.Equals("true", StringComparison.OrdinalIgnoreCase);
+            }
+
+            // add the source with or without logging...
+        }
+    }
+
+    public void Initialize(GeneratorInitializationContext context)
+    {
+    }
+}
+```
+
+### Unit Testing of Generators
+
+**User scenario**: As a generator author, I want to be able to unit test my generators to make development easier and ensure correctness.
+
+**Solution A**:
+
+The recommended approach is to use [Microsoft.CodeAnalysis.Testing](https://github.com/dotnet/roslyn-sdk/tree/main/src/Microsoft.CodeAnalysis.Testing#microsoftcodeanalysistesting) packages:
+
+- `Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.MSTest`
+- `Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.MSTest`
+- `Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.NUnit`
+- `Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.NUnit`
+- `Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.XUnit`
+- `Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing.XUnit`
+
+This works in the same way as analyzers and codefix testing. You add a class like the following:
+
+```csharp
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Testing;
+using Microsoft.CodeAnalysis.Testing.Verifiers;
+
+public static class CSharpSourceGeneratorVerifier<TSourceGenerator>
+    where TSourceGenerator : ISourceGenerator, new()
+{
+    public class Test : CSharpSourceGeneratorTest<TSourceGenerator, XUnitVerifier>
+    {
+        public Test()
+        {
+        }
+
+        protected override CompilationOptions CreateCompilationOptions()
+        {
+           var compilationOptions = base.CreateCompilationOptions();
+           return compilationOptions.WithSpecificDiagnosticOptions(
+                compilationOptions.SpecificDiagnosticOptions.SetItems(GetNullableWarningsFromCompiler()));
+        }
+
+        public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.Default;
+
+        private static ImmutableDictionary<string, ReportDiagnostic> GetNullableWarningsFromCompiler()
+        {
+            string[] args = { "/warnaserror:nullable" };
+            var commandLineArguments = CSharpCommandLineParser.Default.Parse(args, baseDirectory: Environment.CurrentDirectory, sdkDirectory: Environment.CurrentDirectory);
+            var nullableWarnings = commandLineArguments.CompilationOptions.SpecificDiagnosticOptions;
+
+            return nullableWarnings;
+        }
+
+        protected override ParseOptions CreateParseOptions()
+        {
+            return ((CSharpParseOptions)base.CreateParseOptions()).WithLanguageVersion(LanguageVersion);
+        }
+    }
+}
+```
+
+Then, in your test file:
+
+```csharp
+using VerifyCS = CSharpSourceGeneratorVerifier<YourGenerator>;
+```
+
+And use the following in your test method:
+
+```csharp
+var code = "initial code"
+var generated = "expected generated code";
+await new VerifyCS.Test
+{
+    TestState = 
+    {
+        Sources = { code },
+        GeneratedSources =
+        {
+            (typeof(YourGenerator), "GeneratedFileName", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha256)),
+        },
+    },
+}.RunAsync();
+```
+
+**Solution B:**
+
+Another approach without using the testing library is that a user can host the `GeneratorDriver` directly within a unit test, making the generator portion of the code relatively simple to unit test. A user will need to provide a compilation for the generator to operate on, and can then probe either the resulting compilation, or the `GeneratorDriverRunResult` of the driver to see the individual items added by the generator.
+
+Starting with a basic generator that adds a single source file:
+
+```csharp
+[Generator]
+public class CustomGenerator : ISourceGenerator
+{
+    public void Initialize(GeneratorInitializationContext context) {}
+
+    public void Execute(GeneratorExecutionContext context)
+    {
+        context.AddSource("myGeneratedFile.cs", SourceText.From(@"
+namespace GeneratedNamespace
+{
+    public class GeneratedClass
+    {
+        public static void GeneratedMethod()
+        {
+            // generated code
+        }
+    }
+}", Encoding.UTF8));
+    }
+}
+```
+
+As a user, we can host it in a unit test like so:
+
+```csharp
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
+
+namespace GeneratorTests.Tests
+{
+    [TestClass]
+    public class GeneratorTests
+    {
+        [TestMethod]
+        public void SimpleGeneratorTest()
+        {
+            // Create the 'input' compilation that the generator will act on
+            Compilation inputCompilation = CreateCompilation(@"
+namespace MyCode
+{
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+        }
+    }
+}
+");
+
+            // directly create an instance of the generator
+            // (Note: in the compiler this is loaded from an assembly, and created via reflection at runtime)
+            CustomGenerator generator = new CustomGenerator();
+
+            // Create the driver that will control the generation, passing in our generator
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
+
+            // Run the generation pass
+            // (Note: the generator driver itself is immutable, and all calls return an updated version of the driver that you should use for subsequent calls)
+            driver = driver.RunGeneratorsAndUpdateCompilation(inputCompilation, out var outputCompilation, out var diagnostics);
+
+            // We can now assert things about the resulting compilation:
+            Debug.Assert(diagnostics.IsEmpty); // there were no diagnostics created by the generators
+            Debug.Assert(outputCompilation.SyntaxTrees.Count() == 2); // we have two syntax trees, the original 'user' provided one, and the one added by the generator
+            Debug.Assert(outputCompilation.GetDiagnostics().IsEmpty); // verify the compilation with the added source has no diagnostics
+
+            // Or we can look at the results directly:
+            GeneratorDriverRunResult runResult = driver.GetRunResult();
+
+            // The runResult contains the combined results of all generators passed to the driver
+            Debug.Assert(runResult.GeneratedTrees.Length == 1);
+            Debug.Assert(runResult.Diagnostics.IsEmpty);
+
+            // Or you can access the individual results on a by-generator basis
+            GeneratorRunResult generatorResult = runResult.Results[0];
+            Debug.Assert(generatorResult.Generator == generator);
+            Debug.Assert(generatorResult.Diagnostics.IsEmpty);
+            Debug.Assert(generatorResult.GeneratedSources.Length == 1);
+            Debug.Assert(generatorResult.Exception is null);
+        }
+
+        private static Compilation CreateCompilation(string source)
+            => CSharpCompilation.Create("compilation",
+                new[] { CSharpSyntaxTree.ParseText(source) },
+                new[] { MetadataReference.CreateFromFile(typeof(Binder).GetTypeInfo().Assembly.Location) },
+                new CSharpCompilationOptions(OutputKind.ConsoleApplication));
+    }
+}
+```
+
+Note: the above example uses MSTest, but the contents of the test are easily adapted to other frameworks, such as XUnit.
+
+### Participate in the IDE experience
+
+**Implementation Status**: Not Implemented.
+
+**User scenario:** As a generator author I want to be able to interactively regenerate code as the user is editing files.
+
+**Solution:** We expect there to be an opt-in set of interactive callbacks that can be implemented to allow for progressively more complex generation strategies.
+It is anticipated there will be a mechanism for providing symbol mapping for lighting up features such as 'Find all references'.
+
+```csharp
+[Generator]
+public class InteractiveGenerator : ISourceGenerator
+{
+    public void Initialize(GeneratorInitializationContext context)
+    {
+        // Register for additional file callbacks
+        context.RegisterForAdditionalFileChanges(OnAdditionalFilesChanged);
+    }
+
+    public void Execute(GeneratorExecutionContext context)
+    {
+        // generators must always support a total generation pass
+    }
+
+    public void OnAdditionalFilesChanged(AdditionalFilesChangedContext context)
+    {
+        // determine which file changed, and if it affects this generator
+        // regenerate only the parts that are affected by this change.
+    }
+}
+```
+
+*Note*: Until these interfaces are made available, generator authors should not try and emulate 'incrementality' with caching to disk and custom up-to-date checks.
+The compiler currently provides no reliable way for a generator to detect if it is suitable to use a previous run, and any attempt to do so will
+likely lead to hard to diagnose bugs for consumers. Generator authors should always assume this is a 'full' generation, happening for the first time.
+
 ### Serialization
 
 **User Scenario**
@@ -303,14 +867,14 @@ partial class MyRecord
 }
 ```
 
-This attribute could also be used for #participate-in-the-ide-experience,
+This attribute could also be used for [Participate in the IDE experience](#participate-in-the-ide-experience),
 when the full scope of that feature is fully designed. In that scenario,
 instead of the generator finding every type marked with the given attribute,
 the compiler would notify the generator of every type marked with the given
 attribute. For now we'll assume that the types are provided to us.
 
 The first task is to decide what we want our serialization to return. Let's say
-we do a simple JSon serialization that produces a string like the following
+we do a simple JSON serialization that produces a string like the following
 
 ```json
 {
@@ -332,7 +896,7 @@ public string Serialize()
     addWithIndent($"\"Item1\": \"{this.Item1.ToString()}\",");
     addWithIndent($"\"Item2\": {this.Item2.ToString()},");
 
-    sb.AppendLine("{");
+    sb.AppendLine("}");
 
     return sb.ToString();
 
@@ -345,13 +909,13 @@ public string Serialize()
 ```
 
 Obviously this is heavily simplified -- this example only handles the `string` and `int`
-types properly and has no error recovery, but it should serve to demonstrate the kind
-of code a source generator could add to a compilation.
+types properly, adds a trailing comma to the json output and has no error recovery, but
+it should serve to demonstrate the kind of code a source generator could add to a compilation.
 
 Our next task is design a generator to generate the above code, since the
 above code is itself customized in the `// Body` section according to the
 actual properties in the class. In other words, we need to generate the code
-which will generate the JSon format. This is a generator-generator.
+which will generate the JSON format. This is a generator-generator.
 
 Let's start with a basic template. We are adding a full source generator, so we'll need
 to generate a class with the same name as the input class, with a public method called
@@ -433,7 +997,6 @@ private static string Generate(ClassDeclarationSyntax c)
                 sb.Append("\\\"");
             }
             sb.AppendLine(",\");");
-            break;
         }
     }
 
@@ -476,23 +1039,55 @@ type that opt-ed in to generated serialization. Unlike other technologies,
 this serialization mechanism happens entirely at compile time and can be
 specialized exactly to what was written in the user class.
 
-
-
 ### Auto interface implementation
 
 TODO:
 
+## Breaking Changes:
+
+**Implementation status:** Implemented in Visual Studio 16.8 preview3 / roslyn version 3.8.0-3.final onwards
+
+Between preview and release the following breaking changes were introduced:
+
+**Rename `SourceGeneratorContext` to `GeneratorExecutionContext`**  
+**Rename `IntializationContext` to `GeneratorInitializationContext`**
+
+This affects user-authored generators, as it means the base interface has changed to:
+
+```csharp
+public interface ISourceGenerator
+{
+    void Initialize(GeneratorInitializationContext context);
+    void Execute(GeneratorExecutionContext context);
+}
+```
+
+Users attempting to use a generator targeting the preview APIs against a later version of Roslyn will see an exception similar to:
+
+```csharp
+CSC : warning CS8032: An instance of analyzer Generator.HelloWorldGenerator cannot be created from Generator.dll : Method 'Initialize' in type 'Generator.HelloWorldGenerator' from assembly 'Generator, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' does not have an implementation. [Consumer.csproj]
+```
+
+The required action from the user is to rename the parameter types of the `Initialize` and `Execute` methods to match.
+
+**Rename `RunFullGeneration` to `RunGeneratorsAndUpdateCompilation`**  
+**Add `Create()` static methods to `CSharpGeneratorDriver` and obsolete the constructor.**
+
+This affects any generator authors who have written unit tests using the `CSharpGeneratorDriver`. To create a new instance
+of the generator driver, the user should no longer call `new` but use one of the `CSharpGeneratorDriver.Create()` overloads.
+The user should no longer use the `RunFullGeneration` method, and instead call `RunGeneratorsAndUpdateCompilation` with the same arguments.
+
 ## Open Issues
 
 This section track other miscellaneous TODO items:
-
-**NuGet Packaging**: How does a user package a source generator via nuget?
 
 **Framework targets**: May want to mention if we have framework requirements for the generators, e.g. they must target netstandard2.0 or similar.
 
 **Conventions**: (See TODO in [conventions](#conventions) section above). What standard conventions are we suggesting to users?
 
 **Partial methods**: Should we provide a scenario that includes partial methods? Reasons:
- - Control of name. The developer can control the name of the member
- - Generation is optional/depending on other state. Based on other information, generator might decide that the method isn't needed.
 
+- Control of name. The developer can control the name of the member
+- Generation is optional/depending on other state. Based on other information, generator might decide that the method isn't needed.
+
+**Feature detection**: Show how to create a generator that relies on specific target framework features, without depending on the TargetFramework property.

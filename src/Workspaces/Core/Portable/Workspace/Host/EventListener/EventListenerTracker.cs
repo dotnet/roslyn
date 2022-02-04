@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -53,6 +55,22 @@ namespace Microsoft.CodeAnalysis.Host
             return eventListeners.Where(l => l.Metadata.WorkspaceKinds.Contains(workspace.Kind))
                                  .Select(l => l.Value)
                                  .OfType<IEventListener<TService>>();
+        }
+
+        internal TestAccessor GetTestAccessor()
+        {
+            return new TestAccessor(this);
+        }
+
+        internal readonly struct TestAccessor
+        {
+            private readonly EventListenerTracker<TService> _eventListenerTracker;
+
+            internal TestAccessor(EventListenerTracker<TService> eventListenerTracker)
+                => _eventListenerTracker = eventListenerTracker;
+
+            internal ref readonly ImmutableArray<Lazy<IEventListener, EventListenerMetadata>> EventListeners
+                => ref _eventListenerTracker._eventListeners;
         }
     }
 }

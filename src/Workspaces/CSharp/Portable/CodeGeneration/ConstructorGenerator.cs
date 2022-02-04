@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -18,41 +19,38 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
     internal static class ConstructorGenerator
     {
-        private static MemberDeclarationSyntax LastConstructorOrField(SyntaxList<MemberDeclarationSyntax> members)
+        private static MemberDeclarationSyntax? LastConstructorOrField(SyntaxList<MemberDeclarationSyntax> members)
             => LastConstructor(members) ?? LastField(members);
 
         internal static TypeDeclarationSyntax AddConstructorTo(
             TypeDeclarationSyntax destination,
             IMethodSymbol constructor,
-            Workspace workspace,
-            CodeGenerationOptions options,
-            IList<bool> availableIndices)
+            CSharpCodeGenerationOptions options,
+            IList<bool>? availableIndices,
+            CancellationToken cancellationToken)
         {
-            var constructorDeclaration = GenerateConstructorDeclaration(
-                constructor, GetDestination(destination), workspace, options,
-                destination?.SyntaxTree.Options ?? options.ParseOptions);
+            var constructorDeclaration = GenerateConstructorDeclaration(constructor, options, cancellationToken);
 
             // Generate after the last constructor, or after the last field, or at the start of the
             // type.
             var members = Insert(destination.Members, constructorDeclaration, options,
                 availableIndices, after: LastConstructorOrField, before: FirstMember);
 
-            return AddMembersTo(destination, members);
+            return AddMembersTo(destination, members, cancellationToken);
         }
 
         internal static ConstructorDeclarationSyntax GenerateConstructorDeclaration(
-            IMethodSymbol constructor, CodeGenerationDestination destination,
-            Workspace workspace, CodeGenerationOptions options, ParseOptions parseOptions)
+            IMethodSymbol constructor,
+            CSharpCodeGenerationOptions options,
+            CancellationToken cancellationToken)
         {
-            options ??= CodeGenerationOptions.Default;
-
             var reusableSyntax = GetReuseableSyntaxNodeForSymbol<ConstructorDeclarationSyntax>(constructor, options);
             if (reusableSyntax != null)
             {
                 return reusableSyntax;
             }
 
-            var hasNoBody = !options.GenerateMethodBodies;
+            var hasNoBody = !options.Context.GenerateMethodBodies;
 
             var declaration = SyntaxFactory.ConstructorDeclaration(
                 attributeLists: AttributeGenerator.GenerateAttributeLists(constructor.GetAttributes(), options),
@@ -63,21 +61,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 body: hasNoBody ? null : GenerateBlock(constructor),
                 semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default);
 
-            declaration = UseExpressionBodyIfDesired(workspace, declaration, parseOptions);
+            declaration = UseExpressionBodyIfDesired(options, declaration);
 
             return AddFormatterAndCodeGeneratorAnnotationsTo(
-                ConditionallyAddDocumentationCommentTo(declaration, constructor, options));
+                ConditionallyAddDocumentationCommentTo(declaration, constructor, options, cancellationToken));
         }
 
         private static ConstructorDeclarationSyntax UseExpressionBodyIfDesired(
-            Workspace workspace, ConstructorDeclarationSyntax declaration, ParseOptions options)
+            CSharpCodeGenerationOptions options, ConstructorDeclarationSyntax declaration)
         {
             if (declaration.ExpressionBody == null)
             {
-                var expressionBodyPreference = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors).Value;
-                if (declaration.Body.TryConvertToArrowExpressionBody(
-                        declaration.Kind(), options, expressionBodyPreference,
-                        out var expressionBody, out var semicolonToken))
+                if (declaration.Body?.TryConvertToArrowExpressionBody(
+                    declaration.Kind(), options.Preferences.LanguageVersion, options.Preferences.PreferExpressionBodiedConstructors,
+                    out var expressionBody, out var semicolonToken) == true)
                 {
                     return declaration.WithBody(null)
                                       .WithExpressionBody(expressionBody)
@@ -88,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return declaration;
         }
 
-        private static ConstructorInitializerSyntax GenerateConstructorInitializer(
+        private static ConstructorInitializerSyntax? GenerateConstructorInitializer(
             IMethodSymbol constructor)
         {
             var thisArguments = CodeGenerationConstructorInfo.GetThisConstructorArgumentsOpt(constructor);
@@ -116,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return SyntaxFactory.Block(statements);
         }
 
-        private static SyntaxTokenList GenerateModifiers(IMethodSymbol constructor, CodeGenerationOptions options)
+        private static SyntaxTokenList GenerateModifiers(IMethodSymbol constructor, CSharpCodeGenerationOptions options)
         {
             var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
@@ -127,6 +124,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             else
             {
                 AddAccessibilityModifiers(constructor.DeclaredAccessibility, tokens, options, Accessibility.Private);
+            }
+
+            if (CodeGenerationConstructorInfo.GetIsUnsafe(constructor))
+            {
+                tokens.Add(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
             }
 
             return tokens.ToSyntaxTokenListAndFree();

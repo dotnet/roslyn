@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -17,7 +19,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeRefStruct
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MakeRefStruct), Shared]
     internal class MakeRefStructCodeFixProvider : CodeFixProvider
     {
         // Error CS8345: Field or auto-implemented property cannot be of certain type unless it is an instance member of a ref struct.
@@ -80,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeRefStruct
             return document.WithSyntaxRoot(newRoot);
         }
 
-        private StructDeclarationSyntax FindContainingStruct(SyntaxNode root, TextSpan span)
+        private static StructDeclarationSyntax FindContainingStruct(SyntaxNode root, TextSpan span)
         {
             var member = root.FindNode(span);
             // Could be declared in a class or even in a nested class inside a struct,

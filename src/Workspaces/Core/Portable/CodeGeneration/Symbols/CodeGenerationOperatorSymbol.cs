@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
 using Roslyn.Utilities;
@@ -18,18 +20,20 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ITypeSymbol returnType,
             CodeGenerationOperatorKind operatorKind,
             ImmutableArray<IParameterSymbol> parameters,
-            ImmutableArray<AttributeData> returnTypeAttributes)
+            ImmutableArray<AttributeData> returnTypeAttributes,
+            string documentationCommentXml)
             : base(containingType,
                  attributes,
                  accessibility,
                  modifiers,
-                 returnType: returnType,
+                 returnType,
                  refKind: RefKind.None,
                  explicitInterfaceImplementations: default,
-                 name: GetMetadataName(operatorKind),
+                 GetMetadataName(operatorKind),
                  typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
-                 parameters: parameters,
-                 returnTypeAttributes: returnTypeAttributes)
+                 parameters,
+                 returnTypeAttributes,
+                 documentationCommentXml)
         {
         }
 

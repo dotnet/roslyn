@@ -75,24 +75,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Compare field types
-            ImmutableArray<AnonymousTypeField> myFields = this.Fields;
-            int count = myFields.Length;
-            ImmutableArray<AnonymousTypeField> otherFields = other.Fields;
-            for (int i = 0; i < count; i++)
-            {
-                if (!myFields[i].TypeWithAnnotations.Equals(otherFields[i].TypeWithAnnotations, comparison))
-                {
-                    return false;
-                }
-            }
-
-            return true;
+            return Fields.SequenceEqual(
+                other.Fields,
+                comparison,
+                static (x, y, comparison) => x.TypeWithAnnotations.Equals(y.TypeWithAnnotations, comparison) && x.RefKind == y.RefKind);
         }
 
         /// <summary>
         /// Compares two anonymous type descriptors, takes into account fields names and types, not locations.
         /// </summary>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is AnonymousTypeDescriptor && this.Equals((AnonymousTypeDescriptor)obj, TypeCompareKind.ConsiderEverything);
         }
@@ -111,8 +103,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!newFieldTypes.IsDefault);
             Debug.Assert(newFieldTypes.Length == this.Fields.Length);
 
-            var newFields = this.Fields.SelectAsArray((field, i, types) => new AnonymousTypeField(field.Name, field.Location, types[i]), newFieldTypes);
+            var newFields = Fields.ZipAsArray(newFieldTypes, static (field, type) => new AnonymousTypeField(field.Name, field.Location, type, field.RefKind));
             return new AnonymousTypeDescriptor(newFields, this.Location);
+        }
+
+        internal AnonymousTypeDescriptor SubstituteTypes(AbstractTypeMap map, out bool changed)
+        {
+            var oldFieldTypes = Fields.SelectAsArray(f => f.TypeWithAnnotations);
+            var newFieldTypes = map.SubstituteTypes(oldFieldTypes);
+            changed = (oldFieldTypes != newFieldTypes);
+            return changed ? WithNewFieldsTypes(newFieldTypes) : this;
         }
     }
 }

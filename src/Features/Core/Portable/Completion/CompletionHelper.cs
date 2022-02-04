@@ -2,25 +2,25 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
     internal sealed class CompletionHelper
     {
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
         private readonly Dictionary<(string pattern, CultureInfo, bool includeMatchedSpans), PatternMatcher> _patternMatcherMap =
-             new Dictionary<(string pattern, CultureInfo, bool includeMatchedSpans), PatternMatcher>();
+             new();
 
-        private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
+        private static readonly CultureInfo EnUSCultureInfo = new("en-US");
         private readonly bool _isCaseSensitive;
 
         public CompletionHelper(bool isCaseSensitive)
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         /// <summary>
         /// Returns true if the completion item matches the pattern so far.  Returns 'true'
-        /// iff the completion item matches and should be included in the filtered completion
+        /// if and only if the completion item matches and should be included in the filtered completion
         /// results, or false if it should not be.
         /// </summary>
         public bool MatchesPattern(string text, string pattern, CultureInfo culture)
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Completion
             if (lastDotIndex >= 0)
             {
                 var afterDotPosition = lastDotIndex + 1;
-                var textAfterLastDot = completionItemText.Substring(afterDotPosition);
+                var textAfterLastDot = completionItemText[afterDotPosition..];
 
                 var match = GetMatchWorker(textAfterLastDot, pattern, culture, includeMatchSpans);
                 if (match != null)
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return GetMatchWorker(completionItemText, pattern, culture, includeMatchSpans);
         }
 
-        private PatternMatch? AdjustMatchedSpans(PatternMatch value, int offset)
+        private static PatternMatch? AdjustMatchedSpans(PatternMatch value, int offset)
             => value.MatchedSpans.IsDefaultOrEmpty
                 ? value
                 : value.WithMatchedSpans(value.MatchedSpans.SelectAsArray(s => new TextSpan(s.Start + offset, s.Length)));
@@ -148,18 +148,22 @@ namespace Microsoft.CodeAnalysis.Completion
             var match1 = GetMatch(item1.FilterText, pattern, includeMatchSpans: false, culture);
             var match2 = GetMatch(item2.FilterText, pattern, includeMatchSpans: false, culture);
 
-            return CompareItems(item1, match1, item2, match2);
+            return CompareItems(item1, match1, item2, match2, out _);
         }
 
-        public int CompareItems(CompletionItem item1, PatternMatch? match1, CompletionItem item2, PatternMatch? match2)
+        public int CompareItems(CompletionItem item1, PatternMatch? match1, CompletionItem item2, PatternMatch? match2, out bool onlyDifferInCaseSensitivity)
         {
+            onlyDifferInCaseSensitivity = false;
+
             if (match1 != null && match2 != null)
             {
-                var result = CompareMatches(match1.Value, match2.Value, item1, item2);
+                var result = CompareMatches(match1.Value, match2.Value, item1, item2, out onlyDifferInCaseSensitivity);
                 if (result != 0)
                 {
                     return result;
                 }
+
+                Debug.Assert(!onlyDifferInCaseSensitivity);
             }
             else if (match1 != null)
             {
@@ -194,11 +198,51 @@ namespace Microsoft.CodeAnalysis.Completion
         private static bool IsKeywordItem(CompletionItem item)
             => item.Tags.Contains(WellKnownTags.Keyword);
 
-        private int CompareMatches(PatternMatch match1, PatternMatch match2, CompletionItem item1, CompletionItem item2)
+        private int CompareMatches(
+            PatternMatch match1,
+            PatternMatch match2,
+            CompletionItem item1,
+            CompletionItem item2,
+            out bool onlyDifferInCaseSensitivity)
         {
-            // Always prefer non-expanded item regardless of the pattern matching result.
-            // This currently means unimported types will be treated as "2nd tier" results,
-            // which forces users to be more explicit about selecting them.
+            onlyDifferInCaseSensitivity = false;
+
+            // *Almost* always prefer non-expanded item regardless of the pattern matching result.
+            // Except when all non-expanded items are worse than prefix matching and there's
+            // a complete match from expanded ones. 
+            //
+            // For example, In the scenarios below, `NS2.Designer` would be selected over `System.Security.Cryptography.DES`
+            //
+            //  namespace System.Security.Cryptography
+            //  {
+            //      class DES {}
+            //  }
+            //  namespace NS2
+            //  {
+            //      class Designer {}
+            //      class C
+            //      {
+            //          des$$
+            //      }
+            //  }
+            //
+            // But in this case, `System.Security.Cryptography.DES` would be selected over `NS2.MyDesigner`
+            //
+            //  namespace System.Security.Cryptography
+            //  {
+            //      class DES {}
+            //  }
+            //  namespace NS2
+            //  {
+            //      class MyDesigner {}
+            //      class C
+            //      {
+            //          des$$
+            //      }
+            //  }
+            //
+            // This currently means items from unimported namespaces (those are the only expanded items now) 
+            // are treated as "2nd tier" results, which forces users to be more explicit about selecting them.
             var expandedDiff = CompareExpandedItem(item1, match1, item2, match2);
             if (expandedDiff != 0)
             {
@@ -218,10 +262,18 @@ namespace Microsoft.CodeAnalysis.Completion
                 return diff;
             }
 
-            var preselectionDiff = ComparePreselection(item1, item2);
-            if (preselectionDiff != 0)
+            // If two items match in case-insensitive manner, and we are in a case-insensitive language,
+            // then the preselected one is considered better, otherwise we will prefer the one matches
+            // case-sensitively. This is to make sure common items in VB like `True` and `False` are prioritized
+            // for selection when user types `t` and `f`.
+            // More details can be found in comments of https://github.com/dotnet/roslyn/issues/4892
+            if (!_isCaseSensitive)
             {
-                return preselectionDiff;
+                var preselectionDiff = ComparePreselection(item1, item2);
+                if (preselectionDiff != 0)
+                {
+                    return preselectionDiff;
+                }
             }
 
             // At this point we have two items which we're matching in a rather similar fashion.
@@ -243,12 +295,15 @@ namespace Microsoft.CodeAnalysis.Completion
 
             // Now compare the matches again in a case sensitive manner.  If everything was
             // equal up to this point, we prefer the item that better matches based on case.
-            return match1.CompareTo(match2, ignoreCase: false);
+            diff = match1.CompareTo(match2, ignoreCase: false);
+            onlyDifferInCaseSensitivity = diff != 0;
+
+            return diff;
         }
 
         // If they both seemed just as good, but they differ on preselection, then
         // item1 is better if it is preselected, otherwise it is worse.
-        private int ComparePreselection(CompletionItem item1, CompletionItem item2)
+        private static int ComparePreselection(CompletionItem item1, CompletionItem item2)
             => (item1.Rules.MatchPriority != MatchPriority.Preselect).CompareTo(item2.Rules.MatchPriority != MatchPriority.Preselect);
 
         private static int CompareExpandedItem(CompletionItem item1, PatternMatch match1, CompletionItem item2, PatternMatch match2)
@@ -256,63 +311,171 @@ namespace Microsoft.CodeAnalysis.Completion
             var isItem1Expanded = item1.Flags.IsExpanded();
             var isItem2Expanded = item2.Flags.IsExpanded();
 
+            // Consider them equal if both items are of the same kind (i.e. both expanded or non-expanded)
             if (isItem1Expanded == isItem2Expanded)
             {
                 return 0;
             }
 
-            var isItem1ExactMatch = match1.Kind == PatternMatchKind.Exact;
-            var isItem2ExactMatch = match2.Kind == PatternMatchKind.Exact;
-
-            // If neither of the items is an exact match, or both are exact matches,
-            // then we prefer non-expanded item over expanded one.
-            // 
-            // For example, suppose we have two types `Namespace1.Cafe` and `Namespace2.Cafe`, and import completion is enabled.
-            // In the scenarios below, `Namespace1.Cafe` would be selected over `Namespace2.Cafe`
-
-            //  using Namespace1;
-            //  class C
+            // Now we have two items of different kind.
+            // If neither item is exact match, we always prefer non-expanded one.
+            // For example, `NS2.MyTask` would be selected over `NS1.Tasks` 
+            //
+            //  namespace NS1
             //  {
-            //      cafe$$
+            //      class Tasks {}
             //  }
-
-            //  using Namespace1;
-            //  class C
+            //  namespace NS2
             //  {
-            //      caf$$
+            //      class MyTask {}
+            //      class C
+            //      {
+            //          task$$
+            //      }
             //  }
-
-            if (!isItem1ExactMatch && !isItem2ExactMatch
-                || match1.Kind == match2.Kind)
+            if (match1.Kind != PatternMatchKind.Exact && match2.Kind != PatternMatchKind.Exact)
             {
                 return isItem1Expanded ? 1 : -1;
             }
 
-            // We prefer expanded item over non-expanded one iff the expanded item 
-            // is an exact match whereas the non-expanded one isn't.
-            // 
-            // For example, suppose we have two types `Namespace1.Cafe1` and `Namespace2.Cafe`, and import completion is enabled.
-            // In the scenarios below, `Namespace2.Cafe` would be selected over `Namespace1.Cafe1`
-
-            //  using Namespace1;
-            //  class C
+            // Now we have two items of different kind and at least one is exact match.
+            // Prefer non-expanded item if it is prefix match or better.
+            // In the scenarios below, `NS2.Designer` would be selected over `System.Security.Cryptography.DES`
+            //
+            //  namespace System.Security.Cryptography
             //  {
-            //      cafe$$
+            //      class DES {}
             //  }
-            if (isItem1Expanded && isItem1ExactMatch)
+            //  namespace NS2
+            //  {
+            //      class Designer {}
+            //      class C
+            //      {
+            //          des$$
+            //      }
+            //  }
+            if (!isItem1Expanded && match1.Kind <= PatternMatchKind.Prefix)
             {
                 return -1;
             }
-            else if (isItem2Expanded && isItem2ExactMatch)
+
+            if (!isItem2Expanded && match2.Kind <= PatternMatchKind.Prefix)
             {
                 return 1;
             }
 
-            // Non-expanded item is the only exact match, so we definitely prefer it.
-            return isItem1Expanded ? 1 : -1;
+            // Now we are left with an expanded item with exact match and a non-expanded item with worse than prefix match.
+            // Prefer non-expanded item with exact match.
+            Debug.Assert(isItem1Expanded && match1.Kind == PatternMatchKind.Exact && !isItem2Expanded && match2.Kind > PatternMatchKind.Prefix ||
+                         isItem2Expanded && match2.Kind == PatternMatchKind.Exact && !isItem1Expanded && match1.Kind > PatternMatchKind.Prefix);
+            return isItem1Expanded ? -1 : 1;
         }
 
         public static string ConcatNamespace(string? containingNamespace, string name)
             => string.IsNullOrEmpty(containingNamespace) ? name : containingNamespace + "." + name;
+
+        internal static bool TryCreateMatchResult<T>(
+            CompletionHelper completionHelper,
+            CompletionItem item,
+            T editorCompletionItem,
+            string filterText,
+            CompletionTriggerKind initialTriggerKind,
+            CompletionFilterReason filterReason,
+            ImmutableArray<string> recentItems,
+            bool includeMatchSpans,
+            int currentIndex,
+            out MatchResult<T> matchResult)
+        {
+            // Get the match of the given completion item for the pattern provided so far. 
+            // A completion item is checked against the pattern by see if it's 
+            // CompletionItem.FilterText matches the item. That way, the pattern it checked 
+            // against terms like "IList" and not IList<>.
+            // Note that the check on filter text length is purely for efficiency, we should 
+            // get the same result with or without it.
+            var patternMatch = filterText.Length > 0
+                ? completionHelper.GetMatch(item.FilterText, filterText, includeMatchSpans, CultureInfo.CurrentCulture)
+                : null;
+
+            var matchedFilterText = MatchesFilterText(
+                item,
+                filterText,
+                initialTriggerKind,
+                filterReason,
+                recentItems,
+                patternMatch);
+
+            if (matchedFilterText || KeepAllItemsInTheList(initialTriggerKind, filterText))
+            {
+                matchResult = new MatchResult<T>(
+                    item, editorCompletionItem, matchedFilterText: matchedFilterText,
+                    patternMatch: patternMatch, currentIndex);
+
+                return true;
+            }
+
+            matchResult = default;
+            return false;
+
+            static bool MatchesFilterText(
+                CompletionItem item,
+                string filterText,
+                CompletionTriggerKind initialTriggerKind,
+                CompletionFilterReason filterReason,
+                ImmutableArray<string> recentItems,
+                PatternMatch? patternMatch)
+            {
+                // For the deletion we bake in the core logic for how matching should work.
+                // This way deletion feels the same across all languages that opt into deletion 
+                // as a completion trigger.
+
+                // Specifically, to avoid being too aggressive when matching an item during 
+                // completion, we require that the current filter text be a prefix of the 
+                // item in the list.
+                if (filterReason == CompletionFilterReason.Deletion &&
+                    initialTriggerKind == CompletionTriggerKind.Deletion)
+                {
+                    return item.FilterText.GetCaseInsensitivePrefixLength(filterText) > 0;
+                }
+
+                // If the user hasn't typed anything, and this item was preselected, or was in the
+                // MRU list, then we definitely want to include it.
+                if (filterText.Length == 0)
+                {
+                    if (item.Rules.MatchPriority > MatchPriority.Default)
+                    {
+                        return true;
+                    }
+
+                    if (!recentItems.IsDefault && GetRecentItemIndex(recentItems, item) <= 0)
+                    {
+                        return true;
+                    }
+                }
+
+                // Otherwise, the item matches filter text if a pattern match is returned.
+                return patternMatch != null;
+            }
+
+            static int GetRecentItemIndex(ImmutableArray<string> recentItems, CompletionItem item)
+            {
+                var index = recentItems.IndexOf(item.FilterText);
+                return -index;
+            }
+
+            // If the item didn't match the filter text, we still keep it in the list
+            // if one of two things is true:
+            //  1. The user has typed nothing or only typed a single character.  In this case they might
+            //     have just typed the character to get completion.  Filtering out items
+            //     here is not desirable.
+            //
+            //  2. They brought up completion with ctrl-j or through deletion.  In these
+            //     cases we just always keep all the items in the list.
+            static bool KeepAllItemsInTheList(CompletionTriggerKind initialTriggerKind, string filterText)
+            {
+                return filterText.Length <= 1 ||
+                    initialTriggerKind == CompletionTriggerKind.Invoke ||
+                    initialTriggerKind == CompletionTriggerKind.Deletion;
+            }
+        }
     }
 }

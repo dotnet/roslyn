@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -33,25 +35,89 @@ void M()
         int i = 1;
     }
 }";
-            using var workspace = CreateTestWorkspace(markup, out var locations);
-            var documentURI = locations["caret"].Single().Uri;
-            var documentText = await workspace.CurrentSolution.GetDocumentFromURI(documentURI).GetTextAsync();
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+            var documentURI = testLspServer.GetLocations("caret").Single().Uri;
+            var documentText = await testLspServer.GetCurrentSolution().GetDocuments(documentURI).Single().GetTextAsync();
 
-            var results = await RunFormatDocumentAsync(workspace.CurrentSolution, documentURI);
+            var results = await RunFormatDocumentAsync(testLspServer, documentURI);
             var actualText = ApplyTextEdits(results, documentText);
             Assert.Equal(expected, actualText);
         }
 
-        private static async Task<LSP.TextEdit[]> RunFormatDocumentAsync(Solution solution, Uri uri)
-            => await GetLanguageServer(solution).FormatDocumentAsync(solution, CreateDocumentFormattingParams(uri), new LSP.ClientCapabilities(), CancellationToken.None);
+        [Fact]
+        public async Task TestFormatDocument_UseTabsAsync()
+        {
+            var markup =
+@"class A
+{
+void M()
+{
+			int i = 1;{|caret:|}
+    }
+}";
+            var expected =
+@"class A
+{
+	void M()
+	{
+		int i = 1;
+	}
+}";
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+            var documentURI = testLspServer.GetLocations("caret").Single().Uri;
+            var documentText = await testLspServer.GetCurrentSolution().GetDocuments(documentURI).Single().GetTextAsync();
 
-        private static LSP.DocumentFormattingParams CreateDocumentFormattingParams(Uri uri)
+            var results = await RunFormatDocumentAsync(testLspServer, documentURI, insertSpaces: false, tabSize: 4);
+            var actualText = ApplyTextEdits(results, documentText);
+            Assert.Equal(expected, actualText);
+        }
+
+        [Fact]
+        public async Task TestFormatDocument_ModifyTabIndentSizeAsync()
+        {
+            var markup =
+@"class A
+{
+void M()
+{
+			int i = 1;{|caret:|}
+    }
+}";
+            var expected =
+@"class A
+{
+  void M()
+  {
+    int i = 1;
+  }
+}";
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+            var documentURI = testLspServer.GetLocations("caret").Single().Uri;
+            var documentText = await testLspServer.GetCurrentSolution().GetDocuments(documentURI).Single().GetTextAsync();
+
+            var results = await RunFormatDocumentAsync(testLspServer, documentURI, insertSpaces: true, tabSize: 2);
+            var actualText = ApplyTextEdits(results, documentText);
+            Assert.Equal(expected, actualText);
+        }
+
+        private static async Task<LSP.TextEdit[]> RunFormatDocumentAsync(
+            TestLspServer testLspServer,
+            Uri uri,
+            bool insertSpaces = true,
+            int tabSize = 4)
+        {
+            return await testLspServer.ExecuteRequestAsync<LSP.DocumentFormattingParams, LSP.TextEdit[]>(LSP.Methods.TextDocumentFormattingName,
+                CreateDocumentFormattingParams(uri, insertSpaces, tabSize), new LSP.ClientCapabilities(), null, CancellationToken.None);
+        }
+
+        private static LSP.DocumentFormattingParams CreateDocumentFormattingParams(Uri uri, bool insertSpaces, int tabSize)
             => new LSP.DocumentFormattingParams()
             {
                 TextDocument = CreateTextDocumentIdentifier(uri),
                 Options = new LSP.FormattingOptions()
                 {
-                    // TODO - Format should respect formatting options.
+                    InsertSpaces = insertSpaces,
+                    TabSize = tabSize,
                 }
             };
     }

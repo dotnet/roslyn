@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ReplaceDocCommentTextWithTag;
@@ -446,6 +448,42 @@ class C
 class C
 {
     void WriteLine<TKey>(TKey value) { }
+}");
+        }
+
+        [WorkItem(38370, "https://github.com/dotnet/roslyn/issues/38370")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        public async Task TestBaseKeyword()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+/// Testing keyword [||]base.
+class C<TKey>
+{
+}",
+
+@"
+/// Testing keyword <see langword=""base""/>.
+class C<TKey>
+{
+}");
+        }
+
+        [WorkItem(38370, "https://github.com/dotnet/roslyn/issues/38370")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceDocCommentTextWithTag)]
+        public async Task TestThisKeyword()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+/// Testing keyword [||]this.
+class C<TKey>
+{
+}",
+
+@"
+/// Testing keyword <see langword=""this""/>.
+class C<TKey>
+{
 }");
         }
     }

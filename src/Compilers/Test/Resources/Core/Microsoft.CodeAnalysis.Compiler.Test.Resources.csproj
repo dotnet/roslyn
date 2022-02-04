@@ -3,7 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <RootNamespace></RootNamespace>
     <EnableDefaultItems>false</EnableDefaultItems>
     <IsShipping>false</IsShipping>
@@ -13,16 +13,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ExpressionCompiler\*.*" LogicalName="ExpressionCompiler.%(FileName)%(Extension)" />
-    <Content Include="Analyzers\FaultyAnalyzer.cs" />
-    <EmbeddedResource Include="Analyzers\FaultyAnalyzer.dll" />
-    <Content Include="AssemblyLoadTests\Alpha.cs" />
-    <EmbeddedResource Include="AssemblyLoadTests\Alpha.dll" />
-    <Content Include="AssemblyLoadTests\Beta.cs" />
-    <EmbeddedResource Include="AssemblyLoadTests\Beta.dll" />
-    <Content Include="AssemblyLoadTests\Delta.cs" />
-    <EmbeddedResource Include="AssemblyLoadTests\Delta.dll" />
-    <Content Include="AssemblyLoadTests\Gamma.cs" />
-    <EmbeddedResource Include="AssemblyLoadTests\Gamma.dll" />
     <EmbeddedResource Include="DiagnosticTests\badresfile.res" />
     <Content Include="DiagnosticTests\ErrTestLib01.cs" />
     <EmbeddedResource Include="DiagnosticTests\ErrTestLib01.dll" />

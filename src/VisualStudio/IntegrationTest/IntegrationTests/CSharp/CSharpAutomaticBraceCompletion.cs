@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -18,8 +20,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpAutomaticBraceCompletion(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(CSharpAutomaticBraceCompletion))
+        public CSharpAutomaticBraceCompletion(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(CSharpAutomaticBraceCompletion))
         {
         }
 
@@ -59,6 +61,103 @@ class C {
 
             VisualStudio.Editor.SendKeys("}");
             VisualStudio.Editor.Verify.CurrentLineText("if (true) { }$$", assertCaretPosition: true);
+        }
+
+        /// <summary>
+        /// This is a muscle-memory test for users who rely on the following sequence:
+        /// <list type="number">
+        /// <item><description><c>Enter</c></description></item>
+        /// <item><description><c>{</c></description></item>
+        /// <item><description><c>Enter</c></description></item>
+        /// <item><description><c>}</c></description></item>
+        /// </list>
+        /// </summary>
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Braces_Overtyping_Method()
+        {
+            SetUpEditor(@"
+class C {
+    $$
+}");
+
+            VisualStudio.Editor.SendKeys("public void A()");
+            VisualStudio.Editor.SendKeys(VirtualKey.Enter, '{', VirtualKey.Enter, '}');
+
+            VisualStudio.Editor.Verify.CurrentLineText("}$$", assertCaretPosition: true);
+        }
+
+        /// <summary>
+        /// This is a muscle-memory test for users who rely on the following sequence:
+        /// <list type="number">
+        /// <item><description><c>Enter</c></description></item>
+        /// <item><description><c>{</c></description></item>
+        /// <item><description><c>Enter</c></description></item>
+        /// <item><description><c>}</c></description></item>
+        /// </list>
+        /// </summary>
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Braces_Overtyping_Property()
+        {
+            SetUpEditor(@"
+class C {
+    $$
+}");
+
+            VisualStudio.Editor.SendKeys("public int X");
+            VisualStudio.Editor.SendKeys(VirtualKey.Enter, '{', VirtualKey.Enter, '}');
+
+            VisualStudio.Editor.Verify.CurrentLineText("}$$", assertCaretPosition: true);
+        }
+
+        /// <summary>
+        /// This is a muscle-memory test for users who rely on the following sequence:
+        /// <list type="number">
+        /// <item><description><c>Enter</c></description></item>
+        /// <item><description><c>{</c></description></item>
+        /// <item><description><c>Enter</c></description></item>
+        /// <item><description><c>}</c></description></item>
+        /// </list>
+        /// </summary>
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Braces_Overtyping_CollectionInitializer()
+        {
+            SetUpEditor(@"
+using System.Collections.Generic;
+class C {
+    void Method() {
+        $$
+    }
+}");
+
+            VisualStudio.Editor.SendKeys("var x = new List<string>()");
+            VisualStudio.Editor.SendKeys(VirtualKey.Enter, '{', VirtualKey.Enter, '}');
+
+            VisualStudio.Editor.Verify.CurrentLineText("}$$", assertCaretPosition: true);
+        }
+
+        /// <summary>
+        /// This is a muscle-memory test for users who rely on the following sequence:
+        /// <list type="number">
+        /// <item><description><c>Enter</c></description></item>
+        /// <item><description><c>{</c></description></item>
+        /// <item><description><c>Enter</c></description></item>
+        /// <item><description><c>}</c></description></item>
+        /// </list>
+        /// </summary>
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Braces_Overtyping_ObjectInitializer()
+        {
+            SetUpEditor(@"
+class C {
+    void Method() {
+        $$
+    }
+}");
+
+            VisualStudio.Editor.SendKeys("var x = new object()");
+            VisualStudio.Editor.SendKeys(VirtualKey.Enter, '{', VirtualKey.Enter, '}');
+
+            VisualStudio.Editor.Verify.CurrentLineText("}$$", assertCaretPosition: true);
         }
 
         [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -666,6 +765,45 @@ class Program
 
             VisualStudio.Editor.SendKeys(";");
             VisualStudio.Editor.Verify.CurrentLineText("Main(args);$$", assertCaretPosition: true);
+        }
+
+        [WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public void Braces_InsertionOnNewLine(bool showCompletionInArgumentLists)
+        {
+            SetUpEditor(@"
+class C {
+    void Goo() {
+        $$
+    }
+}");
+
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(showCompletionInArgumentLists);
+
+            VisualStudio.Editor.SendKeys("if (true)",
+                VirtualKey.Enter,
+                "{");
+            VisualStudio.Editor.Verify.CurrentLineText("{ $$}", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Enter);
+            VisualStudio.Editor.Verify.TextContains(@"
+class C {
+    void Goo() {
+        if (true)
+        {
+
+        }
+    }
+}");
+
+            VisualStudio.Editor.SendKeys("}");
+            VisualStudio.Editor.Verify.TextContains(@"
+class C {
+    void Goo() {
+        if (true)
+        {
+        }$$
+    }
+}", assertCaretPosition: true);
         }
     }
 }

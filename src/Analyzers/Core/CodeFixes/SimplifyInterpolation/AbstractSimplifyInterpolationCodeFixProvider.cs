@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -37,6 +35,8 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
 
         internal override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
+        protected abstract AbstractSimplifyInterpolationHelpers GetHelpers();
+
         protected abstract TInterpolationSyntax WithExpression(TInterpolationSyntax interpolation, TExpressionSyntax expression);
         protected abstract TInterpolationSyntax WithAlignmentClause(TInterpolationSyntax interpolation, TInterpolationAlignmentClause alignmentClause);
         protected abstract TInterpolationSyntax WithFormatClause(TInterpolationSyntax interpolation, TInterpolationFormatClause? formatClause);
@@ -54,25 +54,30 @@ namespace Microsoft.CodeAnalysis.SimplifyInterpolation
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.RequireSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var generator = editor.Generator;
             var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
+            var helpers = GetHelpers();
+
             foreach (var diagnostic in diagnostics)
             {
                 var loc = diagnostic.AdditionalLocations[0];
-                var interpolation = semanticModel.GetOperation(loc.FindNode(getInnermostNodeForTie: true, cancellationToken)) as IInterpolationOperation;
+                var interpolation = semanticModel.GetOperation(loc.FindNode(getInnermostNodeForTie: true, cancellationToken), cancellationToken) as IInterpolationOperation;
                 if (interpolation?.Syntax is TInterpolationSyntax interpolationSyntax &&
                     interpolationSyntax.Parent is TInterpolatedStringExpressionSyntax interpolatedString)
                 {
-                    Helpers.UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
+                    helpers.UnwrapInterpolation<TInterpolationSyntax, TExpressionSyntax>(
                         document.GetRequiredLanguageService<IVirtualCharLanguageService>(),
-                        document.GetRequiredLanguageService<ISyntaxFactsService>(), interpolation, out var unwrapped,
-                        out var alignment, out var negate, out var formatString, out _);
+                        document.GetRequiredLanguageService<ISyntaxFactsService>(),
+                        interpolation, out var unwrapped, out var alignment, out var negate, out var formatString, out _);
 
                     if (unwrapped == null)
                         continue;
 
-                    alignment = negate ? (TExpressionSyntax)generator.NegateExpression(alignment) : alignment;
+                    if (alignment != null && negate)
+                    {
+                        alignment = (TExpressionSyntax)generator.NegateExpression(alignment);
+                    }
 
                     editor.ReplaceNode(
                         interpolationSyntax,

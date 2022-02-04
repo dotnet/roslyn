@@ -9,18 +9,24 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
 Imports Microsoft.CodeAnalysis.Precedence
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports System.Threading
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryParentheses
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend Class VisualBasicRemoveUnnecessaryParenthesesDiagnosticAnalyzer
         Inherits AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer(Of SyntaxKind, ParenthesizedExpressionSyntax)
 
+        Protected Overrides Function GetSyntaxKind() As SyntaxKind
+            Return SyntaxKind.ParenthesizedExpression
+        End Function
+
         Protected Overrides Function GetSyntaxFacts() As ISyntaxFacts
             Return VisualBasicSyntaxFacts.Instance
         End Function
 
         Protected Overrides Function CanRemoveParentheses(
-                parenthesizedExpression As ParenthesizedExpressionSyntax, semanticModel As SemanticModel,
+                parenthesizedExpression As ParenthesizedExpressionSyntax,
+                semanticModel As SemanticModel, cancellationToken As CancellationToken,
                 ByRef precedence As PrecedenceKind, ByRef clarifiesPrecedence As Boolean) As Boolean
 
             Return CanRemoveParenthesesHelper(

@@ -2,79 +2,80 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Declarations
     Public Class CharsetModifierKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AutoAfterDeclareTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Declare |</ClassDeclaration>, "Auto")
-        End Function
+        Inherits RecommenderTests
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AnsiAfterDeclareTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Declare |</ClassDeclaration>, "Ansi")
-        End Function
+        Public Sub AutoAfterDeclareTest()
+            VerifyRecommendationsContain(<ClassDeclaration>Declare |</ClassDeclaration>, "Auto")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function UnicodeAfterDeclareTest() As Task
-            Await VerifyRecommendationsContainAsync(<ClassDeclaration>Declare |</ClassDeclaration>, "Unicode")
-        End Function
+        Public Sub AnsiAfterDeclareTest()
+            VerifyRecommendationsContain(<ClassDeclaration>Declare |</ClassDeclaration>, "Ansi")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AutoNotAfterAnotherCharsetModifier1Test() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Declare Ansi |</ClassDeclaration>, "Auto")
-        End Function
+        Public Sub UnicodeAfterDeclareTest()
+            VerifyRecommendationsContain(<ClassDeclaration>Declare |</ClassDeclaration>, "Unicode")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AutoNotAfterAnotherCharsetModifier2Test() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Declare Auto |</ClassDeclaration>, "Auto")
-        End Function
+        Public Sub AutoNotAfterAnotherCharsetModifier1Test()
+            VerifyRecommendationsMissing(<ClassDeclaration>Declare Ansi |</ClassDeclaration>, "Auto")
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AutoNotAfterAnotherCharsetModifier3Test() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Declare Unicode |</ClassDeclaration>, "Auto")
-        End Function
+        Public Sub AutoNotAfterAnotherCharsetModifier2Test()
+            VerifyRecommendationsMissing(<ClassDeclaration>Declare Auto |</ClassDeclaration>, "Auto")
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub AutoNotAfterAnotherCharsetModifier3Test()
+            VerifyRecommendationsMissing(<ClassDeclaration>Declare Unicode |</ClassDeclaration>, "Auto")
+        End Sub
 
         <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotAfterColonTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Declare : |</ClassDeclaration>, "Unicode")
-        End Function
+        Public Sub NotAfterColonTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>Declare : |</ClassDeclaration>, "Unicode")
+        End Sub
 
         <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotAfterEolTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        Public Sub NotAfterEolTest()
+            VerifyRecommendationsMissing(
 <ClassDeclaration>Declare 
  |</ClassDeclaration>, "Unicode")
-        End Function
+        End Sub
 
         <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterExplicitLineContinuationTest() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub AfterExplicitLineContinuationTest()
+            VerifyRecommendationsContain(
 <ClassDeclaration>Declare _
  |</ClassDeclaration>, "Unicode")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub AfterExplicitLineContinuationTestCommentsAfterLineContinuation()
+            VerifyRecommendationsContain(
 <ClassDeclaration>Declare _ ' Test
  |</ClassDeclaration>, "Unicode")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuationt() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub AfterExplicitLineContinuationTestCommentsAfterLineContinuationt()
+            VerifyRecommendationsContain(
 <ClassDeclaration>Declare _
  |</ClassDeclaration>, "Unicode")
-        End Function
+        End Sub
     End Class
 End Namespace

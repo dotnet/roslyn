@@ -9,25 +9,20 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 #if CODE_STYLE
-using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
 using Formatter = Microsoft.CodeAnalysis.Formatting.FormatterHelper;
 #endif
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
-    using ISyntaxFormattingService = ISyntaxFormattingService;
-
     internal abstract class AbstractFormattingCodeFixProvider : CodeFixProvider
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.FormattingDiagnosticId);
 
         protected abstract ISyntaxFormattingService SyntaxFormattingService { get; }
-
-        public sealed override FixAllProvider GetFixAllProvider()
-            => new FixAll(this);
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -47,40 +42,26 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         private async Task<Document> FixOneAsync(CodeFixContext context, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var options = await GetOptionsAsync(context.Document, cancellationToken).ConfigureAwait(false);
-            var tree = await context.Document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await context.Document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var updatedTree = await FormattingCodeFixHelper.FixOneAsync(tree, SyntaxFormattingService, options, diagnostic, cancellationToken).ConfigureAwait(false);
             return context.Document.WithText(await updatedTree.GetTextAsync(cancellationToken).ConfigureAwait(false));
         }
 
-        private async Task<OptionSet> GetOptionsAsync(Document document, CancellationToken cancellationToken)
+        private async Task<SyntaxFormattingOptions> GetOptionsAsync(Document document, CancellationToken cancellationToken)
         {
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var analyzerConfigOptions = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree);
-
-            return analyzerConfigOptions;
+            return SyntaxFormattingService.GetFormattingOptions(analyzerConfigOptions);
         }
 
-        /// <summary>
-        /// Provide an optimized Fix All implementation that runs
-        /// <see cref="Formatter.Format(SyntaxNode, ISyntaxFormattingService, OptionSet, CancellationToken)"/> on the document(s)
-        /// included in the Fix All scope.
-        /// </summary>
-        private sealed class FixAll : DocumentBasedFixAllProvider
-        {
-            private readonly AbstractFormattingCodeFixProvider _formattingCodeFixProvider;
-
-            public FixAll(AbstractFormattingCodeFixProvider formattingCodeFixProvider)
-                => _formattingCodeFixProvider = formattingCodeFixProvider;
-
-            protected override string CodeActionTitle => CodeStyleResources.Fix_formatting;
-
-            protected override async Task<SyntaxNode> FixAllInDocumentAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics)
+        public sealed override FixAllProvider GetFixAllProvider()
+            => FixAllProvider.Create(async (context, document, diagnostics) =>
             {
-                var options = await _formattingCodeFixProvider.GetOptionsAsync(document, fixAllContext.CancellationToken).ConfigureAwait(false);
-                var syntaxRoot = await document.GetSyntaxRootAsync(fixAllContext.CancellationToken).ConfigureAwait(false);
-                var updatedSyntaxRoot = Formatter.Format(syntaxRoot, _formattingCodeFixProvider.SyntaxFormattingService, options, fixAllContext.CancellationToken);
-                return updatedSyntaxRoot;
-            }
-        }
+                var cancellationToken = context.CancellationToken;
+                var options = await GetOptionsAsync(document, cancellationToken).ConfigureAwait(false);
+                var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var updatedSyntaxRoot = Formatter.Format(syntaxRoot, this.SyntaxFormattingService, options, cancellationToken);
+                return document.WithSyntaxRoot(updatedSyntaxRoot);
+            });
     }
 }

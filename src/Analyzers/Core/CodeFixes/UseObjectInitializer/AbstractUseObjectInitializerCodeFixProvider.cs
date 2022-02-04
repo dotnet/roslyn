@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         internal sealed override CodeFixCategory CodeFixCategory => CodeFixCategory.CodeStyle;
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
-            => !diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
+            => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             // feature to keep track of all the object creation nodes as we make edits to
             // the tree.  If we didn't do this, then we wouldn't be able to find the 
             // second object-creation-node after we make the edit for the first one.
-            var workspace = document.Project.Solution.Workspace;
+            var services = document.Project.Solution.Workspace.Services;
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             var originalRoot = editor.OriginalRoot;
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             document = document.WithSyntaxRoot(originalRoot.TrackNodes(originalObjectCreationNodes));
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var currentRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var currentRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             while (originalObjectCreationNodes.Count > 0)
             {
@@ -97,10 +97,12 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 }
 
                 var statement = objectCreation.FirstAncestorOrSelf<TStatementSyntax>();
+                Contract.ThrowIfNull(statement);
+
                 var newStatement = GetNewStatement(statement, objectCreation, matches.Value)
                     .WithAdditionalAnnotations(Formatter.Annotation);
 
-                var subEditor = new SyntaxEditor(currentRoot, workspace);
+                var subEditor = new SyntaxEditor(currentRoot, services);
 
                 subEditor.ReplaceNode(statement, newStatement);
                 foreach (var match in matches)
@@ -110,7 +112,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
                 document = document.WithSyntaxRoot(subEditor.GetChangedRoot());
                 semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                currentRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                currentRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             }
 
             editor.ReplaceNode(editor.OriginalRoot, currentRoot);
@@ -123,7 +125,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(AnalyzersResources.Object_initialization_can_be_simplified, createChangedDocument)
+                : base(AnalyzersResources.Object_initialization_can_be_simplified, createChangedDocument, nameof(AnalyzersResources.Object_initialization_can_be_simplified))
             {
             }
         }

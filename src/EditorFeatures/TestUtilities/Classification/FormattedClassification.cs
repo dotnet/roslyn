@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 
@@ -44,6 +46,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 return "Regex." + $"{type}(\"{Text}\")";
             }
 
+            if (ClassificationName.StartsWith("json"))
+            {
+                var remainder = ClassificationName.Substring("json - ".Length);
+                var parts = remainder.Split(' ');
+                var type = string.Join("", parts.Select(Capitalize));
+                return "Json." + $"{type}(\"{Text}\")";
+            }
+
             switch (ClassificationName)
             {
                 case "punctuation":
@@ -64,6 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                         case ",":
                             return "Punctuation.Comma";
                     }
+
                     goto default;
 
                 case "operator":
@@ -74,6 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                         case "++":
                             return "Operators.PlusPlus";
                     }
+
                     goto default;
 
                 default:

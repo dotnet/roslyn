@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 GetNewObjectCreation(objectCreation, matches));
         }
 
-        private ObjectCreationExpressionSyntax GetNewObjectCreation(
+        private static ObjectCreationExpressionSyntax GetNewObjectCreation(
             ObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<ExpressionStatementSyntax> matches)
         {
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 objectCreation, CreateExpressions(matches));
         }
 
-        private SeparatedSyntaxList<ExpressionSyntax> CreateExpressions(
+        private static SeparatedSyntaxList<ExpressionSyntax> CreateExpressions(
             ImmutableArray<ExpressionStatementSyntax> matches)
         {
             var nodesAndTokens = new List<SyntaxNodeOrToken>();

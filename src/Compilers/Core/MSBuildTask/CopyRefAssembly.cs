@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.IO;
 using Microsoft.Build.Framework;
@@ -25,9 +23,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         public string DestinationPath { get; set; }
 
         public CopyRefAssembly()
+            : base(ErrorString.ResourceManager)
         {
-            TaskResources = ErrorString.ResourceManager;
-
             // These required properties will all be assigned by MSBuild. Suppress warnings about leaving them with
             // their default values.
             SourcePath = null!;
@@ -89,7 +86,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             catch (Exception e)
             {
                 Log.LogErrorWithCodeFromResources("Compiler_UnexpectedException");
-                ManagedCompiler.LogErrorOutput(e.ToString(), Log);
+                Log.LogErrorFromException(e, showStackTrace: true, showDetail: true, file: null);
                 return false;
             }
 

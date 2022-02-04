@@ -33,7 +33,9 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Show diagnostics for closed files;
+        <source>Underline reassigned variables;
+Display inline hints;
+Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
 Report invalid regular expressions;
@@ -78,23 +80,33 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
+Colorize regular expressions;
+Highlight related components under cursor;
+Report invalid regular expressions;
+JSON;
+Colorize JSON strings;
+Report invalid JSON strings;
+Detect and offer editor features for JSON strings;
 Use enhanced colors;
-Editor Color Scheme;</source>
-        <target state="needs-review-translation">Kapatılan dosyalara ilişkin tanılamaları göster;
+Editor Color Scheme;
+Inheritance Margin;</source>
+        <target state="needs-review-translation">Yeniden atanan değişkenleri altını çiz;
+Satır içi ipuçlarını göster;
+Kapatılan dosyalara ilişkin tanılamaları göster;
 Normal ifadeyi renklendir; 
-İmlecin altında ilgili bileşenleri vurgula; 
+İmlecin altındaki ilgili bileşenleri vurgula; 
 Geçersiz normal ifadeleri bildir;
 Tam çözüm analizini etkinleştir;
 Dış işlemde düzenleyici özellik analizi gerçekleştir;
 Kaynak koda dönüştürülen kaynaklar için gezintiyi etkinleştir;
 Using yönergeleri;
-using deyimlerini sıralarken sistem yönergelerini ilk sıraya yerleştir;
-using yönerge gruplarını ayır;
-Başvuru bütünleştirilmiş kodlarında türler için using öner;
-NuGet paketlerinde türler için using öner;
+Using yönergelerini sıralarken sistem yönergelerini en başa yerleştir;
+Using yönerge gruplarını ayır;
+Başvuru bütünleştirilmiş kodlarında türler için using yönergeleri öner;
+NuGet paketlerinde türler için using yönergeleri öner;
 Vurgulama;
 İmlecin altındaki sembole yönelik başvuruları vurgula;
-İmlecin altında ilgili anahtar sözcükleri vurgula;
+İmlecin altındaki ilgili anahtar sözcükleri vurgula;
 Ana Hat Oluşturma;
 Dosyalar açılırken ana hat oluşturma moduna gir;
 Yordam satır ayırıcılarını göster;
@@ -110,22 +122,24 @@ Bildirim düzeyinde yapılar için kılavuzları göster;
 Kod düzeyinde yapılar için kılavuzları göster;
 Düzenleyici Yardımı;
 /// için XML belge açıklamaları oluştur;
-/* */ açıklamaları yazarken her yeni satırın başına * ekle;
+/* */ açıklamaları yazılırken her yeni satırın başına * ekle;
 Yeniden adlandırma izlemesi için önizleme göster;
 Enter tuşuna basıldığında dize sabit değerlerini böl;
 string.Format çağrılarındaki geçersiz yer tutucuları bildir;
 Ayıklama Metodu;
 Özel yapıya ref veya out koyma;
-Arabirim veya Soyut Sınıfı Uygula;
-Özellik, olay ve metot eklerken, bunları;
-aynı türden başka üyelerle birlikte;
+Arabirim veya Soyut Sınıfı uygula;
+Özellik, olay ve metot eklerken bunları;
+aynı türdeki başka üyelerle birlikte;
 sona yerleştir;
 Özellik oluştururken;
-oluşturma özelliklerini tercih et;
+özel durum oluşturan özellikleri tercih et;
 otomatik özellikleri tercih et;
 normal ifade;
 normal ifade;
-Gelişmiş renkleri kullan;</target>
+Gelişmiş renkleri kullan;
+Düzenleyici Renk Düzeni;
+İçe Aktarma Kenar Boşluğu;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -136,7 +150,7 @@ Automatically format on return;
 Automatically format on paste;</source>
         <target state="translated">Yazarken otomatik biçimlendir;
 Noktalı virgül girildiğinde deyimi otomatik biçimlendir;
-Kapama küme ayracı girildiğinde otomatik biçimlendir
+Kapama küme ayracı girildiğinde otomatik biçimlendir;
 Return tuşuna basıldığında otomatik biçimlendir;
 Yapıştırma sonrasında otomatik biçimlendir;</target>
         <note>C# Formatting &gt; General options page keywords</note>
@@ -276,6 +290,7 @@ Show completion list after a character is deleted;
 Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
+Automatically complete statement on semicolon;
 Snippets behavior;
 Never include snippets;
 Always include snippets;
@@ -286,20 +301,23 @@ Only add new line on enter after end of fully typed word;
 Always add new line on enter;
 Show name suggestions;
 Show items from unimported namespaces (experimental);</source>
-        <target state="needs-review-translation">Tamamlanma listesi ayarlarını değiştir;Son kullanılan üyeyi önceden seç; Tamamlanma listesi;
-Bir karakter yazıldıktan sonra tamamlanma listesini göster;
-Bir karakter silindikten sonra tamamlanma listesini göster;
-Tamamlanma listesi öğelerinin eşleşen kısımlarını vurgula;
-Tamamlanma öğe filtrelerini göster;
+        <target state="translated">Tamamlama listesi ayarlarını değiştir;Son kullanılan üyeyi önceden seç; Tamamlama Listeleri;
+Bir karakter yazıldıktan sonra tamamlama listesini göster;
+Bir karakter silindikten sonra tamamlama listesini göster;
+Bağımsız değişken listelerinde tamamlama listelerini otomatik olarak göster (deneysel);
+Tamamlama listesi öğelerinin eşleşen kısımlarını vurgula;
+Tamamlama öğesi filtrelerini göster;
+Deyimi noktalı virgülle otomatik olarak tamamla;
 Kod parçacığı davranışı;
 Kod parçacıklarını hiçbir zaman dahil etme;
 Kod parçacıklarını her zaman dahil et;
-Bir tanımlayıcıdan sonra ?-Tab yazılırsa kod parçacıklarını dahil et;
+Bir tanımlayıcıdan sonra ?- yazılıp Sekme tuşuna basılırsa kod parçacıklarını dahil et;
 Enter tuşu davranışı;
 Enter tuşuna basıldığında hiçbir zaman yeni satır ekleme;
 Enter tuşuna basıldığında yalnızca tam bir kelime yazılmışsa sonuna yeni satır ekle;
 Enter tuşuna basıldığında her zaman yeni satır ekle;
-Ad önerilerini göster;</target>
+Ad önerilerini göster;
+İçeri aktarılmamış ad alanlarındaki öğeleri göster (deneysel);</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">

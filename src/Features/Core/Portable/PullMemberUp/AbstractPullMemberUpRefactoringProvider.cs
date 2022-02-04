@@ -16,15 +16,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 {
     internal abstract partial class AbstractPullMemberUpRefactoringProvider : CodeRefactoringProvider
     {
-        private readonly IPullMemberUpOptionsService _service;
-        private const int None = 0;
+        private IPullMemberUpOptionsService? _service;
 
         protected abstract Task<SyntaxNode> GetSelectedNodeAsync(CodeRefactoringContext context);
 
         /// <summary>
         /// Test purpose only
         /// </summary>
-        protected AbstractPullMemberUpRefactoringProvider(IPullMemberUpOptionsService service)
+        protected AbstractPullMemberUpRefactoringProvider(IPullMemberUpOptionsService? service)
             => _service = service;
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -32,7 +31,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             // Currently support to pull field, method, event, property and indexer up,
             // constructor, operator and finalizer are excluded.
             var (document, _, cancellationToken) = context;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            _service ??= document.Project.Solution.Workspace.Services.GetService<IPullMemberUpOptionsService>();
+            if (_service == null)
+            {
+                return;
+            }
 
             var selectedMemberNode = await GetSelectedNodeAsync(context).ConfigureAwait(false);
             if (selectedMemberNode == null)
@@ -40,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 return;
             }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var selectedMember = semanticModel.GetDeclaredSymbol(selectedMemberNode);
             if (selectedMember == null || selectedMember.ContainingType == null)
             {
@@ -71,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             context.RegisterRefactoring(nestedCodeAction, selectedMemberNode.Span);
         }
 
-        private ImmutableArray<INamedTypeSymbol> FindAllValidDestinations(
+        private static ImmutableArray<INamedTypeSymbol> FindAllValidDestinations(
             ISymbol selectedMember,
             Solution solution,
             CancellationToken cancellationToken)
@@ -83,6 +87,5 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
             return allDestinations.WhereAsArray(destination => MemberAndDestinationValidator.IsDestinationValid(solution, destination, cancellationToken));
         }
-
     }
 }

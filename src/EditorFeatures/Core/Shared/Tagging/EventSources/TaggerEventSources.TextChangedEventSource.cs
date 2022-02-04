@@ -14,11 +14,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         {
             private readonly ITextBuffer _subjectBuffer;
 
-            public TextChangedEventSource(ITextBuffer subjectBuffer, TaggerDelay delay)
-                : base(delay)
+            public TextChangedEventSource(ITextBuffer subjectBuffer)
             {
                 Contract.ThrowIfNull(subjectBuffer);
-
                 _subjectBuffer = subjectBuffer;
             }
 
@@ -28,12 +26,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             public override void Disconnect()
                 => _subjectBuffer.Changed -= OnTextBufferChanged;
 
-            private void OnTextBufferChanged(object sender, TextContentChangedEventArgs e)
+            private void OnTextBufferChanged(object? sender, TextContentChangedEventArgs e)
             {
                 if (e.Changes.Count == 0)
-                {
                     return;
-                }
 
                 this.RaiseChanged();
             }

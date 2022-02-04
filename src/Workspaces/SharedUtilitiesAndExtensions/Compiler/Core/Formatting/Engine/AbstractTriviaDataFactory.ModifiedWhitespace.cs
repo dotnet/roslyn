@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -17,13 +15,13 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             private readonly Whitespace? _original;
 
-            public ModifiedWhitespace(AnalyzerConfigOptions options, int lineBreaks, int indentation, bool elastic, string language)
+            public ModifiedWhitespace(SyntaxFormattingOptions options, int lineBreaks, int indentation, bool elastic, string language)
                 : base(options, lineBreaks, indentation, elastic, language)
             {
                 _original = null;
             }
 
-            public ModifiedWhitespace(AnalyzerConfigOptions options, Whitespace original, int lineBreaks, int indentation, bool elastic, string language)
+            public ModifiedWhitespace(SyntaxFormattingOptions options, Whitespace original, int lineBreaks, int indentation, bool elastic, string language)
                 : base(options, lineBreaks, indentation, elastic, language)
             {
                 Contract.ThrowIfNull(original);

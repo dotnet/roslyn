@@ -2,17 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Indentation;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using static Microsoft.CodeAnalysis.Formatting.FormattingOptions2;
 using IndentStyle = Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle;
 
@@ -20,6 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
     public class SmartIndenterEnterOnTokenTests : CSharpFormatterTestsBase
     {
+        public SmartIndenterEnterOnTokenTests(ITestOutputHelper output) : base(output) { }
+
         [WorkItem(537808, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537808")]
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartIndent)]
@@ -1347,7 +1354,136 @@ class C
                 expectedIndentation: 12);
         }
 
-        private async Task AssertIndentUsingSmartTokenFormatterAsync(
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public async Task IndentListPattern()
+        {
+            var code = @"
+class C
+{
+    void Main(object o)
+    {
+        var y = o is
+        [
+
+        ]
+    }
+}";
+            // Expected indentation probably should be 12 instead
+            // Tracked by https://github.com/dotnet/roslyn/issues/57244
+            await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+                code,
+                indentationLine: 7,
+                expectedIndentation: 8);
+        }
+
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        [WpfTheory]
+        [InlineData("x", "is < 7 and (>= 3 or > 50) or not <= 0;", 12)]
+        [InlineData("x is", "< 7 and (>= 3 or > 50) or not <= 0;", 12)]
+        [InlineData("x is <", "7 and (>= 3 or > 50) or not <= 0;", 12)]
+        [InlineData("x is < 7", "and (>= 3 or > 50) or not <= 0;", 12)]
+        [InlineData("x is < 7 and", "(>= 3 or > 50) or not <= 0;", 12)]
+        [InlineData("x is < 7 and (", ">= 3 or > 50) or not <= 0;", 12)]
+        [InlineData("x is < 7 and (>=", "3 or > 50) or not <= 0;", 12)]
+        [InlineData("x is < 7 and (>= 3", "or > 50) or not <= 0;", 12)]
+        [InlineData("x is < 7 and (>= 3 or", "> 50) or not <= 0;", 12)]
+        [InlineData("x is < 7 and (>= 3 or >", "50) or not <= 0;", 12)]
+        [InlineData("x is < 7 and (>= 3 or > 50", ") or not <= 0;", 12)]
+        [InlineData("x is < 7 and (>= 3 or > 50)", "or not <= 0;", 12)]
+        [InlineData("x is < 7 and (>= 3 or > 50) or", "not <= 0;", 12)]
+        [InlineData("x is < 7 and (>= 3 or > 50) or not", "<= 0;", 12)]
+        [InlineData("x is < 7 and (>= 3 or > 50) or not <=", "0;", 12)]
+        [InlineData("x is < 7 and (>= 3 or > 50) or not <= 0", ";", 12)]
+        public async Task IndentPatternsInLocalDeclarationCSharp9(string line1, string line2, int expectedIndentation)
+        {
+            var code = @$"
+class C
+{{
+    void M()
+    {{
+        var x = 7;
+        var y = {line1}
+{line2}
+    }}
+}}";
+            await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+                code,
+                indentationLine: 7,
+                expectedIndentation);
+        }
+
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        [WpfTheory]
+        [InlineData("x", "is < 7 and (>= 3 or > 50) or not <= 0;", 8)]
+        [InlineData("x is", "< 7 and (>= 3 or > 50) or not <= 0;", 8)]
+        [InlineData("x is <", "7 and (>= 3 or > 50) or not <= 0;", 8)]
+        [InlineData("x is < 7", "and (>= 3 or > 50) or not <= 0;", 8)]
+        [InlineData("x is < 7 and", "(>= 3 or > 50) or not <= 0;", 8)]
+        [InlineData("x is < 7 and (", ">= 3 or > 50) or not <= 0;", 8)]
+        [InlineData("x is < 7 and (>=", "3 or > 50) or not <= 0;", 8)]
+        [InlineData("x is < 7 and (>= 3", "or > 50) or not <= 0;", 8)]
+        [InlineData("x is < 7 and (>= 3 or", "> 50) or not <= 0;", 8)]
+        [InlineData("x is < 7 and (>= 3 or >", "50) or not <= 0;", 8)]
+        [InlineData("x is < 7 and (>= 3 or > 50", ") or not <= 0;", 8)]
+        [InlineData("x is < 7 and (>= 3 or > 50)", "or not <= 0;", 8)]
+        [InlineData("x is < 7 and (>= 3 or > 50) or", "not <= 0;", 8)]
+        [InlineData("x is < 7 and (>= 3 or > 50) or not", "<= 0;", 8)]
+        [InlineData("x is < 7 and (>= 3 or > 50) or not <=", "0;", 8)]
+        [InlineData("x is < 7 and (>= 3 or > 50) or not <= 0", ";", 8)]
+        public async Task IndentPatternsInFieldDeclarationCSharp9(string line1, string line2, int expectedIndentation)
+        {
+            var code = @$"
+class C
+{{
+    static int x = 7;
+    bool y = {line1}
+{line2}
+}}";
+            await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+                code,
+                indentationLine: 5,
+                expectedIndentation);
+        }
+
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        [WpfTheory]
+        [InlineData("<", "7 and (>= 3 or > 50) or not <= 0", 12)]
+        [InlineData("< 7", "and (>= 3 or > 50) or not <= 0", 12)]
+        [InlineData("< 7 and", "(>= 3 or > 50) or not <= 0", 12)]
+        [InlineData("< 7 and (", ">= 3 or > 50) or not <= 0", 12)]
+        [InlineData("< 7 and (>=", "3 or > 50) or not <= 0", 12)]
+        [InlineData("< 7 and (>= 3", "or > 50) or not <= 0", 12)]
+        [InlineData("< 7 and (>= 3 or", "> 50) or not <= 0", 12)]
+        [InlineData("< 7 and (>= 3 or >", "50) or not <= 0", 12)]
+        [InlineData("< 7 and (>= 3 or > 50", ") or not <= 0", 12)]
+        [InlineData("< 7 and (>= 3 or > 50)", "or not <= 0", 12)]
+        [InlineData("< 7 and (>= 3 or > 50) or", "not <= 0", 12)]
+        [InlineData("< 7 and (>= 3 or > 50) or not", "<= 0", 12)]
+        [InlineData("< 7 and (>= 3 or > 50) or not <=", "0", 12)]
+        public async Task IndentPatternsInSwitchCSharp9(string line1, string line2, int expectedIndentation)
+        {
+            var code = @$"
+class C
+{{
+    void M()
+    {{
+        var x = 7;
+        var y = x switch
+        {{
+            {line1}
+{line2} => true,
+            _ => false
+        }};
+    }}
+}}";
+            await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+                code,
+                indentationLine: 9,
+                expectedIndentation);
+        }
+
+        private static async Task AssertIndentUsingSmartTokenFormatterAsync(
             string code,
             char ch,
             int indentationLine,
@@ -1357,7 +1493,7 @@ class C
             await AssertIndentUsingSmartTokenFormatterAsync(code.Replace("    ", "\t"), ch, indentationLine, expectedIndentation, useTabs: true).ConfigureAwait(false);
         }
 
-        private async Task AssertIndentUsingSmartTokenFormatterAsync(
+        private static async Task AssertIndentUsingSmartTokenFormatterAsync(
             string code,
             char ch,
             int indentationLine,
@@ -1381,18 +1517,18 @@ class C
 
             var root = (await document.GetSyntaxRootAsync()) as CompilationUnitSyntax;
 
-            var optionService = workspace.Services.GetRequiredService<IOptionService>();
+            var options = await IndentationOptions.FromDocumentAsync(document, CancellationToken.None);
 
             Assert.True(
                 CSharpIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
-                    Formatter.GetDefaultFormattingRules(workspace, root.Language),
-                    root, line.AsTextLine(), optionService, await document.GetOptionsAsync(), out _));
+                    Formatter.GetDefaultFormattingRules(document),
+                    root, line.AsTextLine(), options, out _));
 
             var actualIndentation = await GetSmartTokenFormatterIndentationWorkerAsync(workspace, buffer, indentationLine, ch);
             Assert.Equal(expectedIndentation.Value, actualIndentation);
         }
 
-        private async Task AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+        private static async Task AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
             string code,
             int indentationLine,
             int? expectedIndentation,
@@ -1402,7 +1538,7 @@ class C
             await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(code.Replace("    ", "\t"), indentationLine, expectedIndentation, useTabs: true, indentStyle).ConfigureAwait(false);
         }
 
-        private async Task AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+        private static async Task AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
             string code,
             int indentationLine,
             int? expectedIndentation,
@@ -1412,7 +1548,7 @@ class C
             // create tree service
             using var workspace = TestWorkspace.CreateCSharp(code);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(SmartIndent, LanguageNames.CSharp, indentStyle)
+                .WithChangedOption(AutoFormattingOptions.Metadata.SmartIndent, LanguageNames.CSharp, indentStyle)
                 .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs)));
             var hostdoc = workspace.Documents.First();
             var buffer = hostdoc.GetTextBuffer();
@@ -1424,12 +1560,12 @@ class C
 
             var root = (await document.GetSyntaxRootAsync()) as CompilationUnitSyntax;
 
-            var optionService = workspace.Services.GetRequiredService<IOptionService>();
+            var options = await IndentationOptions.FromDocumentAsync(document, CancellationToken.None);
 
             Assert.False(
                 CSharpIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
-                    Formatter.GetDefaultFormattingRules(workspace, root.Language),
-                    root, line.AsTextLine(), optionService, await document.GetOptionsAsync(), out _));
+                    Formatter.GetDefaultFormattingRules(document),
+                    root, line.AsTextLine(), options, out _));
 
             TestIndentation(workspace, indentationLine, expectedIndentation);
         }

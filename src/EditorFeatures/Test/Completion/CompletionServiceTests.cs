@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -43,9 +45,9 @@ class Test {
 
             var document = project.Documents.Single();
             var caretPosition = workspace.DocumentWithCursor.CursorPosition ?? throw new InvalidOperationException();
-            var completions = await completionService.GetCompletionsAsync(document, caretPosition);
+            var completions = await completionService.GetCompletionsAsync(document, caretPosition, CompletionOptions.Default);
 
-            Assert.NotNull(completions);
+            Assert.False(completions.IsEmpty);
             var item = Assert.Single(completions.Items.Where(item => item.ProviderName == typeof(DebugAssertTestCompletionProvider).FullName));
             Assert.Equal("Assertion failed", item.DisplayText);
         }

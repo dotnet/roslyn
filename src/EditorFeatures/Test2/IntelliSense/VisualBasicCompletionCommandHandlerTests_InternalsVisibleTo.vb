@@ -161,6 +161,7 @@ End Namespace
                         state.SendInvokeCompletionList()
                         Await state.AssertSessionIsNothingOrNoCompletionItemLike("ClassLibrary1")
                     End Function
+
                 Await AssertNoCompletionAndCompletionDoesNotContainClassLibrary1()
                 state.SendTypeChars("("c)
                 Await state.AssertCompletionItemsDoNotContainAny("ClassLibrary1")
@@ -169,7 +170,7 @@ End Namespace
             End Using
         End Function
 
-        Private Async Function AssertCompletionListHasItems(code As String, hasItems As Boolean) As Task
+        Private Shared Async Function AssertCompletionListHasItems(code As String, hasItems As Boolean) As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary1"/>

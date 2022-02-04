@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -66,7 +68,9 @@ namespace Roslyn.Test.PdbUtilities
             ppvSig = (byte*)pinnedBuffer.AddrOfPinnedObject();
             pcbSig = signature.Length;
 
+#pragma warning disable RS0042 // Do not copy value
             _pinnedBuffers.Add(pinnedBuffer);
+#pragma warning restore RS0042 // Do not copy value
             return 0;
         }
 

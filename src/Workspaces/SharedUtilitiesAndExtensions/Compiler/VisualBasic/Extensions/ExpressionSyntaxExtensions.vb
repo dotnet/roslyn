@@ -53,15 +53,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function IsMemberAccessExpressionName(expression As ExpressionSyntax) As Boolean
+        Public Function IsSimpleMemberAccessExpressionName(expression As ExpressionSyntax) As Boolean
             Return expression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) AndAlso
                    DirectCast(expression.Parent, MemberAccessExpressionSyntax).Name Is expression
         End Function
 
         <Extension()>
         Public Function IsAnyMemberAccessExpressionName(expression As ExpressionSyntax) As Boolean
-            Return expression IsNot Nothing AndAlso
-                   TypeOf expression.Parent Is MemberAccessExpressionSyntax AndAlso
+            Return TypeOf expression?.Parent Is MemberAccessExpressionSyntax AndAlso
                    DirectCast(expression.Parent, MemberAccessExpressionSyntax).Name Is expression
         End Function
 
@@ -72,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function IsRightSideOfDot(expression As ExpressionSyntax) As Boolean
-            Return expression.IsMemberAccessExpressionName() OrElse expression.IsRightSideOfQualifiedName()
+            Return expression.IsSimpleMemberAccessExpressionName() OrElse expression.IsRightSideOfQualifiedName()
         End Function
 
         <Extension()>
@@ -220,8 +219,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End Select
         End Function
 
+#Disable Warning IDE0060 ' Remove unused parameter
         <Extension()>
         Public Function IsInOutContext(expression As ExpressionSyntax) As Boolean
+#Enable Warning IDE0060 ' Remove unused parameter
             ' NOTE(cyrusn): VB has no concept of an out context.  Even when a parameter has an
             ' '<Out>' attribute on it, it's still treated as ref by VB.  So we always return false
             ' here.
@@ -268,8 +269,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return False
         End Function
 
+#Disable Warning IDE0060 ' Remove unused parameter
         <Extension()>
         Public Function IsInInContext(expression As ExpressionSyntax) As Boolean
+#Enable Warning IDE0060 ' Remove unused parameter
             ' NOTE: VB does not support in parameters. Always return False here.
             Return False
         End Function
@@ -312,6 +315,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function IsWrittenTo(expression As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
+            If expression Is Nothing Then
+                Return False
+            End If
+
             If IsOnlyWrittenTo(expression) Then
                 Return True
             End If
@@ -336,7 +343,214 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Return True
                 End If
 
+                ' Extension method with a 'ref' parameter can write to the value it is called on.
+                If TypeOf expression.Parent Is MemberAccessExpressionSyntax Then
+                    Dim memberAccess = DirectCast(expression.Parent, MemberAccessExpressionSyntax)
+                    If memberAccess.Expression Is expression Then
+                        Dim method = TryCast(semanticModel.GetSymbolInfo(memberAccess, cancellationToken).Symbol, IMethodSymbol)
+                        If method IsNot Nothing Then
+                            If method.MethodKind = MethodKind.ReducedExtension AndAlso
+                               method.ReducedFrom.Parameters.Length > 0 AndAlso
+                               method.ReducedFrom.Parameters.First().RefKind = RefKind.Ref Then
+
+                                Return True
+                            End If
+                        End If
+                    End If
+                End If
+
                 Return False
+            End If
+
+            Return False
+        End Function
+
+        ''' <summary>
+        ''' Decompose a name or member access expression into its component parts.
+        ''' </summary>
+        ''' <param name="expression">The name or member access expression.</param>
+        ''' <param name="qualifier">The qualifier (or left-hand-side) of the name expression. This may be null if there is no qualifier.</param>
+        ''' <param name="name">The name of the expression.</param>
+        ''' <param name="arity">The number of generic type parameters.</param>
+        <Extension()>
+        Public Sub DecomposeName(expression As ExpressionSyntax, ByRef qualifier As ExpressionSyntax, ByRef name As String, ByRef arity As Integer)
+            Select Case expression.Kind
+                Case SyntaxKind.SimpleMemberAccessExpression
+                    Dim memberAccess = DirectCast(expression, MemberAccessExpressionSyntax)
+                    qualifier = memberAccess.Expression
+                    name = memberAccess.Name.Identifier.ValueText
+                    arity = memberAccess.Name.Arity
+                Case SyntaxKind.QualifiedName
+                    Dim qualifiedName = DirectCast(expression, QualifiedNameSyntax)
+                    qualifier = qualifiedName.Left
+                    name = qualifiedName.Right.Identifier.ValueText
+                    arity = qualifiedName.Arity
+                Case SyntaxKind.GenericName
+                    Dim genericName = DirectCast(expression, GenericNameSyntax)
+                    qualifier = Nothing
+                    name = genericName.Identifier.ValueText
+                    arity = genericName.Arity
+                Case SyntaxKind.IdentifierName
+                    Dim identifierName = DirectCast(expression, IdentifierNameSyntax)
+                    qualifier = Nothing
+                    name = identifierName.Identifier.ValueText
+                    arity = 0
+                Case Else
+                    qualifier = Nothing
+                    name = Nothing
+                    arity = 0
+            End Select
+        End Sub
+
+        Private Function CanReplace(symbol As ISymbol) As Boolean
+            Select Case symbol.Kind
+                Case SymbolKind.Field,
+                     SymbolKind.Local,
+                     SymbolKind.Method,
+                     SymbolKind.Parameter,
+                     SymbolKind.Property,
+                     SymbolKind.RangeVariable
+                    Return True
+            End Select
+
+            Return False
+        End Function
+
+        <Extension>
+        Public Function CanReplaceWithRValue(expression As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
+            Return expression IsNot Nothing AndAlso
+                Not expression.IsWrittenTo(semanticModel, cancellationToken) AndAlso
+                expression.CanReplaceWithLValue(semanticModel, cancellationToken)
+        End Function
+
+        <Extension>
+        Public Function CanReplaceWithLValue(expression As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
+#If False Then
+            ' Things that are definitely illegal to replace
+            If ContainsImplicitMemberAccess(expression) Then
+                Return False
+            End If
+#End If
+
+            If expression.IsKind(SyntaxKind.MyBaseExpression) OrElse
+               expression.IsKind(SyntaxKind.MyClassExpression) Then
+                Return False
+            End If
+
+            If Not (TypeOf expression Is ObjectCreationExpressionSyntax) AndAlso
+                   Not (TypeOf expression Is AnonymousObjectCreationExpressionSyntax) Then
+                Dim symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken)
+                If Not symbolInfo.GetBestOrAllSymbols().All(AddressOf CanReplace) Then
+                    ' If the expression is actually a reference to a type, then it can't be replaced
+                    ' with an arbitrary expression.
+                    Return False
+                End If
+            End If
+
+            ' Technically, you could introduce an LValue for "Goo" in "Goo()" even if "Goo" binds
+            ' to a method.  (i.e. by assigning to a Func<...> type).  However, this is so contrived
+            ' and none of the features that use this extension consider this replaceable.
+            If TypeOf expression.Parent Is InvocationExpressionSyntax Then
+
+                ' If something is being invoked, then it's either something like Goo(), Goo.Bar(), or
+                ' SomeExpr() (i.e. Blah[1]()).  In the first and second case, we only allow
+                ' replacement if Goo and Goo.Bar didn't bind to a method.  If we can't bind it, we'll
+                ' assume it's a method and we don't allow it to be replaced either.  However, if it's
+                ' an arbitrary expression, we do allow replacement.
+                If expression.IsKind(SyntaxKind.IdentifierName) OrElse expression.IsKind(SyntaxKind.SimpleMemberAccessExpression) Then
+                    Dim symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken)
+                    If Not symbolInfo.GetBestOrAllSymbols().Any() Then
+                        Return False
+                    End If
+
+                    ' don't allow it to be replaced if it is bound to an indexed property
+                    Return Not symbolInfo.GetBestOrAllSymbols().OfType(Of IMethodSymbol)().Any() AndAlso
+                           Not symbolInfo.GetBestOrAllSymbols().OfType(Of IPropertySymbol)().Any()
+                Else
+                    Return True
+                End If
+            End If
+
+            ' expression in next statement's control variables should match one in the head
+            Dim nextStatement = expression.FirstAncestorOrSelf(Of NextStatementSyntax)()
+            If nextStatement IsNot Nothing Then
+                Return False
+            End If
+
+            ' Direct parent kind checks.
+            If expression.IsParentKind(SyntaxKind.EqualsValue) OrElse
+               expression.IsParentKind(SyntaxKind.ParenthesizedExpression) OrElse
+               expression.IsParentKind(SyntaxKind.SelectStatement) OrElse
+               expression.IsParentKind(SyntaxKind.SyncLockStatement) OrElse
+               expression.IsParentKind(SyntaxKind.CollectionInitializer) OrElse
+               expression.IsParentKind(SyntaxKind.InferredFieldInitializer) OrElse
+               expression.IsParentKind(SyntaxKind.BinaryConditionalExpression) OrElse
+               expression.IsParentKind(SyntaxKind.TernaryConditionalExpression) OrElse
+               expression.IsParentKind(SyntaxKind.ReturnStatement) OrElse
+               expression.IsParentKind(SyntaxKind.YieldStatement) OrElse
+               expression.IsParentKind(SyntaxKind.XmlEmbeddedExpression) OrElse
+               expression.IsParentKind(SyntaxKind.ThrowStatement) OrElse
+               expression.IsParentKind(SyntaxKind.IfStatement) OrElse
+               expression.IsParentKind(SyntaxKind.WhileStatement) OrElse
+               expression.IsParentKind(SyntaxKind.ElseIfStatement) OrElse
+               expression.IsParentKind(SyntaxKind.ForEachStatement) OrElse
+               expression.IsParentKind(SyntaxKind.ForStatement) OrElse
+               expression.IsParentKind(SyntaxKind.ConditionalAccessExpression) OrElse
+               expression.IsParentKind(SyntaxKind.TypeOfIsExpression) OrElse
+               expression.IsParentKind(SyntaxKind.TypeOfIsNotExpression) Then
+
+                Return True
+            End If
+
+            ' Parent type checks
+            If TypeOf expression.Parent Is BinaryExpressionSyntax OrElse
+               TypeOf expression.Parent Is AssignmentStatementSyntax OrElse
+               TypeOf expression.Parent Is WhileOrUntilClauseSyntax OrElse
+               TypeOf expression.Parent Is SingleLineLambdaExpressionSyntax OrElse
+               TypeOf expression.Parent Is AwaitExpressionSyntax Then
+                Return True
+            End If
+
+            ' Specific child checks.
+            If expression.CheckParent(Of NamedFieldInitializerSyntax)(Function(n) n.Expression Is expression) OrElse
+               expression.CheckParent(Of MemberAccessExpressionSyntax)(Function(m) m.Expression Is expression) OrElse
+               expression.CheckParent(Of TryCastExpressionSyntax)(Function(t) t.Expression Is expression) OrElse
+               expression.CheckParent(Of CatchFilterClauseSyntax)(Function(c) c.Filter Is expression) OrElse
+               expression.CheckParent(Of SimpleArgumentSyntax)(Function(n) n.Expression Is expression) OrElse
+               expression.CheckParent(Of DirectCastExpressionSyntax)(Function(d) d.Expression Is expression) OrElse
+               expression.CheckParent(Of FunctionAggregationSyntax)(Function(f) f.Argument Is expression) OrElse
+               expression.CheckParent(Of RangeArgumentSyntax)(Function(r) r.UpperBound Is expression) Then
+                Return True
+            End If
+
+            ' Misc checks
+            If TypeOf expression.Parent Is ExpressionRangeVariableSyntax AndAlso
+               TypeOf expression.Parent.Parent Is QueryClauseSyntax Then
+                Dim rangeVariable = DirectCast(expression.Parent, ExpressionRangeVariableSyntax)
+                Dim selectClause = TryCast(rangeVariable.Parent, SelectClauseSyntax)
+
+                ' Can't replace the expression in a select unless its the last select clause *or*
+                ' it's a select of the form "select a = <expr>"
+                If selectClause IsNot Nothing Then
+                    If rangeVariable.NameEquals IsNot Nothing Then
+                        Return True
+                    End If
+
+                    Dim queryExpression = TryCast(selectClause.Parent, QueryExpressionSyntax)
+                    If queryExpression IsNot Nothing Then
+                        Return queryExpression.Clauses.Last() Is selectClause
+                    End If
+
+                    Dim aggregateClause = TryCast(selectClause.Parent, AggregateClauseSyntax)
+                    If aggregateClause IsNot Nothing Then
+                        Return aggregateClause.AdditionalQueryOperators().Last() Is selectClause
+                    End If
+
+                    Return False
+                End If
+
+                ' Any other query type is ok.  Note(cyrusn): This may be too broad.
+                Return True
             End If
 
             Return False

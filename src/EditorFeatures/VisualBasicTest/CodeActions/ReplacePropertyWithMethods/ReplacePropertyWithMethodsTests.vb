@@ -664,5 +664,45 @@ Class C
     End Sub
 End Class")
         End Function
+
+        <WorkItem(45171, "https://github.com/dotnet/roslyn/issues/45171")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        Public Async Function TestReferenceInObjectInitializer() As Task
+            Await TestInRegularAndScriptAsync(
+"Public Class Tweet
+    Public Property [||]Tweet As String
+End Class
+
+Class C 
+    Sub Main()
+        Dim t = New Tweet
+        Dim t1 = New Tweet With {
+            .Tweet = t.Tweet   
+        }
+
+    End Sub
+End Class",
+"Public Class Tweet
+    Private _Tweet As String
+
+    Public Function GetTweet() As String
+        Return _Tweet
+    End Function
+
+    Public Sub SetTweet(AutoPropertyValue As String)
+        _Tweet = AutoPropertyValue
+    End Sub
+End Class
+
+Class C 
+    Sub Main()
+        Dim t = New Tweet
+        Dim t1 = New Tweet With {
+            .{|Conflict:Tweet|} = t.GetTweet()
+        }
+
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace

@@ -14,14 +14,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
             Private ReadOnly _unnecessaryImports As ISet(Of ImportsClauseSyntax)
             Private ReadOnly _cancellationToken As CancellationToken
             Private ReadOnly _annotation As New SyntaxAnnotation()
-            Private ReadOnly _importsService As VisualBasicRemoveUnnecessaryImportsService
             Private ReadOnly _document As Document
 
-            Public Sub New(importsService As VisualBasicRemoveUnnecessaryImportsService,
-                           document As Document,
+            Public Sub New(document As Document,
                            unnecessaryImports As ISet(Of ImportsClauseSyntax),
                            cancellationToken As CancellationToken)
-                _importsService = importsService
                 _document = document
                 _unnecessaryImports = unnecessaryImports
                 _cancellationToken = cancellationToken
@@ -101,18 +98,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
                 Return compilationUnit.WithImports(newImports)
             End Function
 
-            Private Function ShouldPreserveTrivia(trivia As SyntaxTriviaList) As Boolean
+            Private Shared Function ShouldPreserveTrivia(trivia As SyntaxTriviaList) As Boolean
                 Return trivia.Any(Function(t) Not t.IsWhitespaceOrEndOfLine())
-            End Function
-
-            Private Function FilterLeadingTrivia(importStatement As SyntaxNode) As SyntaxTriviaList
-                ' if the import had leading trivia with something other than EOL or whitespace then we want to preserve it
-                Dim leadingTrivia = importStatement.GetLeadingTrivia()
-                If leadingTrivia.Any(Function(t) t.Kind <> SyntaxKind.EndOfLineTrivia AndAlso t.Kind <> SyntaxKind.WhitespaceTrivia) Then
-                    Return leadingTrivia
-                Else
-                    Return Nothing
-                End If
             End Function
 
             Public Overrides Function VisitCompilationUnit(node As CompilationUnitSyntax) As SyntaxNode
@@ -127,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
                 If newCompilationUnit.Imports.Count = 0 AndAlso newCompilationUnit.Options.Count = 0 Then
                     If newCompilationUnit.Attributes.Count > 0 OrElse newCompilationUnit.Members.Count > 0 Then
                         Dim firstToken = newCompilationUnit.GetFirstToken()
-                        Dim newFirstToken = _importsService.StripNewLines(_document, firstToken)
+                        Dim newFirstToken = StripNewLines(_document, firstToken)
                         newCompilationUnit = newCompilationUnit.ReplaceToken(firstToken, newFirstToken)
                     End If
                 End If

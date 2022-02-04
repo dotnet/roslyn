@@ -24,15 +24,15 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             /// <summary>
             /// Wrap the large &amp;&amp; expression after every &amp;&amp; token.
             /// </summary>
-            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(
-                SyntaxToken previousToken, SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
+            public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(
+                in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 if (_syntaxFacts.IsLogicalAndExpression(previousToken.Parent))
                 {
                     return FormattingOperations.CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                 }
 
-                return nextOperation.Invoke();
+                return nextOperation.Invoke(in previousToken, in currentToken);
             }
 
             /// <summary>

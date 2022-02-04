@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -15,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
     {
         private const string _statementPrefix = "var v = ";
 
-        private SyntaxToken GetStringToken(string text, bool allowFailure)
+        private static SyntaxToken GetStringToken(string text, bool allowFailure)
         {
             var statement = _statementPrefix + text;
             var parsedStatement = (LocalDeclarationStatementSyntax)SyntaxFactory.ParseStatement(statement);
@@ -39,21 +41,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
             }
         }
 
-        private void Test(string stringText, string expected)
+        private static void Test(string stringText, string expected)
         {
             var token = GetStringToken(stringText, allowFailure: false);
             var virtualChars = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
+            foreach (var ch in virtualChars)
+            {
+                for (var i = ch.Span.Start; i < ch.Span.End; i++)
+                    Assert.Equal(ch, virtualChars.Find(i));
+            }
+
             var actual = ConvertToString(virtualChars);
             Assert.Equal(expected, actual);
         }
 
-        private void TestFailure(string stringText)
+        private static void TestFailure(string stringText)
         {
             var token = GetStringToken(stringText, allowFailure: true);
             if (token == default)
-            {
                 return;
-            }
 
             var virtualChars = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
             Assert.True(virtualChars.IsDefault);
@@ -263,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
         public void TestEscapedQuoteInVerbatimString()
             => Test("@\"a\"\"a\"", @"['a',[2,3]]['\u0022',[3,5]]['a',[5,6]]");
 
-        private string ConvertToString(VirtualCharSequence virtualChars)
+        private static string ConvertToString(VirtualCharSequence virtualChars)
         {
             var strings = ArrayBuilder<string>.GetInstance();
             foreach (var ch in virtualChars)
@@ -274,10 +280,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
             return string.Join("", strings.ToImmutableAndFree());
         }
 
-        private string ConvertToString(VirtualChar vc)
+        private static string ConvertToString(VirtualChar vc)
             => $"[{ConvertRuneToString(vc)},[{vc.Span.Start - _statementPrefix.Length},{vc.Span.End - _statementPrefix.Length}]]";
 
-        private string ConvertRuneToString(VirtualChar c)
+        private static string ConvertRuneToString(VirtualChar c)
             => PrintAsUnicodeEscape(c)
                 ? c <= char.MaxValue ? $"'\\u{(int)c.Value:X4}'" : $"'\\U{(int)c.Value:X8}'"
                 : $"'{(char)c.Value}'";

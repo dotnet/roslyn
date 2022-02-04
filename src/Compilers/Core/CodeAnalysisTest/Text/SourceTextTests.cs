@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -220,13 +222,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
             Assert.False(SourceText.IsBinary(encoding.GetString(new byte[] { 0x81, 0x8D, 0x8F, 0x90, 0x9D })));
             // Unicode string: äëïöüû
             Assert.False(SourceText.IsBinary("abc def baz aeiouy \u00E4\u00EB\u00EF\u00F6\u00FC\u00FB"));
-            Assert.True(SourceText.IsBinary(encoding.GetString(TestResources.NetFX.v4_0_30319.System)));
+            Assert.True(SourceText.IsBinary(encoding.GetString(TestMetadata.ResourcesNet451.System)));
         }
 
         [Fact]
         public void FromThrowsIfBinary()
         {
-            var bytes = TestResources.NetFX.v4_0_30319.System;
+            var bytes = TestMetadata.ResourcesNet451.System;
             Assert.Throws<InvalidDataException>(() => SourceText.From(bytes, bytes.Length, throwIfBinaryDetected: true));
 
             var stream = new MemoryStream(bytes);

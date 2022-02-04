@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 
@@ -12,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private class Node<TExtension, TMetadata>
         {
             public readonly Lazy<TExtension, TMetadata> Extension;
-            public readonly HashSet<Node<TExtension, TMetadata>> ExtensionsBeforeMeSet = new HashSet<Node<TExtension, TMetadata>>();
+            public readonly HashSet<Node<TExtension, TMetadata>> ExtensionsBeforeMeSet = new();
 
             public Node(Lazy<TExtension, TMetadata> extension)
                 => this.Extension = extension;

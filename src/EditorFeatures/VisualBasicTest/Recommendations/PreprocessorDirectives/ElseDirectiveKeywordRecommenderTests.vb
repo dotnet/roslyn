@@ -4,46 +4,48 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.PreprocessorDirectives
     Public Class ElseDirectiveKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function HashElseNotInFileTest() As Task
-            Await VerifyRecommendationsMissingAsync(<File>|</File>, "#Else")
-        End Function
+        Inherits RecommenderTests
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function HashElseInFileAfterIfTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>
+        Public Sub HashElseNotInFileTest()
+            VerifyRecommendationsMissing(<File>|</File>, "#Else")
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub HashElseInFileAfterIfTest()
+            VerifyRecommendationsContain(<File>
 #If True Then
 |</File>, "#Else")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function HashElseInFileAfterElseIfTest() As Task
-            Await VerifyRecommendationsContainAsync(<File>
+        Public Sub HashElseInFileAfterElseIfTest()
+            VerifyRecommendationsContain(<File>
 #If True Then
 #ElseIf True Then
 |</File>, "#Else")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function HashElseNotInFileAfterElse1Test() As Task
-            Await VerifyRecommendationsMissingAsync(<File>
+        Public Sub HashElseNotInFileAfterElse1Test()
+            VerifyRecommendationsMissing(<File>
 #If True Then
 #Else
 |</File>, "#Else")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function HashElseNotInFileAfterElse2Test() As Task
-            Await VerifyRecommendationsMissingAsync(<File>
+        Public Sub HashElseNotInFileAfterElse2Test()
+            VerifyRecommendationsMissing(<File>
 #If True Then
 #ElseIf True Then
 #Else
 |</File>, "#Else")
-        End Function
+        End Sub
     End Class
 End Namespace

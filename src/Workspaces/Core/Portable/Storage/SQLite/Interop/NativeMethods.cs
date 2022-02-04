@@ -2,9 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using SQLitePCL;
 
@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
     [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Name chosen to match SQLitePCL.raw")]
     internal static class NativeMethods
     {
-        public static SafeSqliteHandle sqlite3_open_v2(string filename, int flags, string vfs, out Result result)
+        public static SafeSqliteHandle sqlite3_open_v2(string filename, int flags, string? vfs, out Result result)
         {
             result = (Result)raw.sqlite3_open_v2(filename, out var wrapper, flags, vfs);
             if (result != Result.OK)
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         {
             using var _ = db.Lease();
 
-            result = (Result)raw.sqlite3_prepare_v2(db.DangerousGetHandle(), sql, out var wrapper);
+            result = (Result)raw.sqlite3_prepare_v2(db.DangerousGetWrapper(), sql, out var wrapper);
             if (result != (int)Result.OK)
             {
                 wrapper = null;
@@ -57,11 +57,11 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             }
         }
 
-        public static SafeSqliteBlobHandle sqlite3_blob_open(SafeSqliteHandle db, string sdb, string table, string col, long rowid, int flags, out Result result)
+        public static SafeSqliteBlobHandle sqlite3_blob_open(SafeSqliteHandle db, utf8z sdb, utf8z table, utf8z col, long rowid, int flags, out Result result)
         {
             using var _ = db.Lease();
 
-            result = (Result)raw.sqlite3_blob_open(db.DangerousGetHandle(), sdb, table, col, rowid, flags, out var wrapper);
+            result = (Result)raw.sqlite3_blob_open(db.DangerousGetWrapper(), sdb, table, col, rowid, flags, out var wrapper);
             if (result != (int)Result.OK)
             {
                 wrapper = null;
@@ -83,90 +83,106 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         public static string sqlite3_errmsg(SafeSqliteHandle db)
         {
             using var _ = db.Lease();
-            return raw.sqlite3_errmsg(db.DangerousGetHandle());
+            return raw.sqlite3_errmsg(db.DangerousGetWrapper()).utf8_to_string();
         }
 
         public static string sqlite3_errstr(int rc)
         {
-            return raw.sqlite3_errstr(rc);
+            return raw.sqlite3_errstr(rc).utf8_to_string();
         }
 
         public static int sqlite3_extended_errcode(SafeSqliteHandle db)
         {
             using var _ = db.Lease();
-            return raw.sqlite3_extended_errcode(db.DangerousGetHandle());
+            return raw.sqlite3_extended_errcode(db.DangerousGetWrapper());
         }
 
         public static Result sqlite3_busy_timeout(SafeSqliteHandle db, int ms)
         {
             using var _ = db.Lease();
-            return (Result)raw.sqlite3_busy_timeout(db.DangerousGetHandle(), ms);
+            return (Result)raw.sqlite3_busy_timeout(db.DangerousGetWrapper(), ms);
         }
 
         public static long sqlite3_last_insert_rowid(SafeSqliteHandle db)
         {
             using var _ = db.Lease();
-            return raw.sqlite3_last_insert_rowid(db.DangerousGetHandle());
+            return raw.sqlite3_last_insert_rowid(db.DangerousGetWrapper());
         }
 
         public static int sqlite3_blob_bytes(SafeSqliteBlobHandle blob)
         {
             using var _ = blob.Lease();
-            return raw.sqlite3_blob_bytes(blob.DangerousGetHandle());
+            return raw.sqlite3_blob_bytes(blob.DangerousGetWrapper());
         }
 
-        public static Result sqlite3_blob_read(SafeSqliteBlobHandle blob, byte[] b, int n, int offset)
+        public static Result sqlite3_blob_read(SafeSqliteBlobHandle blob, Span<byte> bytes, int offset)
         {
             using var _ = blob.Lease();
-            return (Result)raw.sqlite3_blob_read(blob.DangerousGetHandle(), b, n, offset);
+            return (Result)raw.sqlite3_blob_read(blob.DangerousGetWrapper(), bytes, offset);
         }
 
         public static Result sqlite3_reset(SafeSqliteStatementHandle stmt)
         {
             using var _ = stmt.Lease();
-            return (Result)raw.sqlite3_reset(stmt.DangerousGetHandle());
+            return (Result)raw.sqlite3_reset(stmt.DangerousGetWrapper());
         }
 
         public static Result sqlite3_step(SafeSqliteStatementHandle stmt)
         {
             using var _ = stmt.Lease();
-            return (Result)raw.sqlite3_step(stmt.DangerousGetHandle());
+            return (Result)raw.sqlite3_step(stmt.DangerousGetWrapper());
         }
 
         public static Result sqlite3_bind_text(SafeSqliteStatementHandle stmt, int index, string val)
         {
             using var _ = stmt.Lease();
-            return (Result)raw.sqlite3_bind_text(stmt.DangerousGetHandle(), index, val);
+            return (Result)raw.sqlite3_bind_text(stmt.DangerousGetWrapper(), index, val);
+        }
+
+        /// <summary>
+        /// <paramref name="val"><see cref="Encoding.UTF8"/> encoded bytes of a text value.  Span
+        /// should not be NUL-terminated.</paramref>
+        /// </summary>
+        public static Result sqlite3_bind_text(SafeSqliteStatementHandle stmt, int index, ReadOnlySpan<byte> val)
+        {
+            using var _ = stmt.Lease();
+            return (Result)raw.sqlite3_bind_text(stmt.DangerousGetWrapper(), index, val);
         }
 
         public static Result sqlite3_bind_int64(SafeSqliteStatementHandle stmt, int index, long val)
         {
             using var _ = stmt.Lease();
-            return (Result)raw.sqlite3_bind_int64(stmt.DangerousGetHandle(), index, val);
+            return (Result)raw.sqlite3_bind_int64(stmt.DangerousGetWrapper(), index, val);
         }
 
-        public static byte[] sqlite3_column_blob(SafeSqliteStatementHandle stmt, int index)
+        public static Result sqlite3_bind_blob(SafeSqliteStatementHandle stmt, int index, ReadOnlySpan<byte> bytes)
         {
             using var _ = stmt.Lease();
-            return raw.sqlite3_column_blob(stmt.DangerousGetHandle(), index);
+            return (Result)raw.sqlite3_bind_blob(stmt.DangerousGetWrapper(), index, bytes);
         }
 
         public static int sqlite3_column_int(SafeSqliteStatementHandle stmt, int index)
         {
             using var _ = stmt.Lease();
-            return raw.sqlite3_column_int(stmt.DangerousGetHandle(), index);
+            return raw.sqlite3_column_int(stmt.DangerousGetWrapper(), index);
         }
 
         public static long sqlite3_column_int64(SafeSqliteStatementHandle stmt, int index)
         {
             using var _ = stmt.Lease();
-            return raw.sqlite3_column_int64(stmt.DangerousGetHandle(), index);
+            return raw.sqlite3_column_int64(stmt.DangerousGetWrapper(), index);
         }
 
         public static string sqlite3_column_text(SafeSqliteStatementHandle stmt, int index)
         {
             using var _ = stmt.Lease();
-            return raw.sqlite3_column_text(stmt.DangerousGetHandle(), index);
+            return raw.sqlite3_column_text(stmt.DangerousGetWrapper(), index).utf8_to_string();
+        }
+
+        public static int sqlite3_clear_bindings(SafeSqliteStatementHandle stmt)
+        {
+            using var _ = stmt.Lease();
+            return raw.sqlite3_clear_bindings(stmt.DangerousGetWrapper());
         }
     }
 }

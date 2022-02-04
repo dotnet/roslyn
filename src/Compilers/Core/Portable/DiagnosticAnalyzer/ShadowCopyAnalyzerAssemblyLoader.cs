@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -34,7 +33,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private int _assemblyDirectoryId;
 
-        public ShadowCopyAnalyzerAssemblyLoader(string baseDirectory = null)
+        public ShadowCopyAnalyzerAssemblyLoader(string? baseDirectory = null)
         {
             if (baseDirectory != null)
             {
@@ -48,11 +47,15 @@ namespace Microsoft.CodeAnalysis
             _shadowCopyDirectoryAndMutex = new Lazy<(string directory, Mutex)>(
                 () => CreateUniqueDirectoryForProcess(), LazyThreadSafetyMode.ExecutionAndPublication);
 
-            DeleteLeftoverDirectoriesTask = Task.Run((Action)DeleteLeftoverDirectories);
+            DeleteLeftoverDirectoriesTask = Task.Run(DeleteLeftoverDirectories);
         }
 
         private void DeleteLeftoverDirectories()
         {
+            // Avoid first chance exception
+            if (!Directory.Exists(_baseDirectory))
+                return;
+
             IEnumerable<string> subDirectories;
             try
             {
@@ -66,7 +69,7 @@ namespace Microsoft.CodeAnalysis
             foreach (var subDirectory in subDirectories)
             {
                 string name = Path.GetFileName(subDirectory).ToLowerInvariant();
-                Mutex mutex = null;
+                Mutex? mutex = null;
                 try
                 {
                     // We only want to try deleting the directory if no-one else is currently
@@ -92,12 +95,11 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected override Assembly LoadImpl(string fullPath)
+        protected override string GetPathToLoad(string fullPath)
         {
             string assemblyDirectory = CreateUniqueDirectoryForAssembly();
             string shadowCopyPath = CopyFileAndResources(fullPath, assemblyDirectory);
-
-            return base.LoadImpl(shadowCopyPath);
+            return shadowCopyPath;
         }
 
         private static string CopyFileAndResources(string fullPath, string assemblyDirectory)
@@ -107,7 +109,7 @@ namespace Microsoft.CodeAnalysis
 
             CopyFile(fullPath, shadowCopyPath);
 
-            string originalDirectory = Path.GetDirectoryName(fullPath);
+            string originalDirectory = Path.GetDirectoryName(fullPath)!;
             string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileNameWithExtension);
             string resourcesNameWithoutExtension = fileNameWithoutExtension + ".resources";
             string resourcesNameWithExtension = resourcesNameWithoutExtension + ".dll";

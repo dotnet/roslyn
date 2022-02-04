@@ -254,7 +254,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 End If
             End Sub
 
-            Friend Function IsElementName(name As XmlNameSyntax) As Boolean
+            Friend Shared Function IsElementName(name As XmlNameSyntax) As Boolean
                 Dim parent = name.Parent
                 Dim startParent = TryCast(parent, XmlElementStartTagSyntax)
                 If startParent IsNot Nothing AndAlso startParent.Name Is name Then

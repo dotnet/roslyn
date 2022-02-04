@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             Return TrySimplify(expression, semanticModel, replacementNode, issueSpan)
         End Function
 
-        Private Function TryReduceExplicitName(
+        Private Shared Function TryReduceExplicitName(
             expression As ExpressionSyntax,
             semanticModel As SemanticModel,
             <Out> ByRef replacementNode As ExpressionSyntax,
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             Return False
         End Function
 
-        Private Function TryReduce(
+        Private Shared Function TryReduce(
             memberAccess As MemberAccessExpressionSyntax,
             semanticModel As SemanticModel,
             <Out()> ByRef replacementNode As ExpressionSyntax,
@@ -164,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             Return False
         End Function
 
-        Private Overloads Function TrySimplify(
+        Private Overloads Shared Function TrySimplify(
             expression As ExpressionSyntax,
             semanticModel As SemanticModel,
             <Out> ByRef replacementNode As ExpressionSyntax,
@@ -212,13 +212,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             Return False
         End Function
 
-        Private Function ReplacementChangesSemantics(originalExpression As ExpressionSyntax, replacedExpression As ExpressionSyntax, semanticModel As SemanticModel) As Boolean
+        Private Shared Function ReplacementChangesSemantics(originalExpression As ExpressionSyntax, replacedExpression As ExpressionSyntax, semanticModel As SemanticModel) As Boolean
             Dim speculationAnalyzer = New SpeculationAnalyzer(originalExpression, replacedExpression, semanticModel, CancellationToken.None)
             Return speculationAnalyzer.ReplacementChangesSemantics()
         End Function
 
         ' Note: The caller needs to verify that replacement doesn't change semantics of the original expression.
-        Private Function TrySimplifyMemberAccessOrQualifiedName(
+        Private Shared Function TrySimplifyMemberAccessOrQualifiedName(
             left As ExpressionSyntax,
             right As ExpressionSyntax,
             semanticModel As SemanticModel,
@@ -264,14 +264,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             Return False
         End Function
 
-        Private Function TryOmitModuleName(memberAccess As MemberAccessExpressionSyntax,
+        Private Shared Function TryOmitModuleName(memberAccess As MemberAccessExpressionSyntax,
                                            semanticModel As SemanticModel,
                                            symbol As ISymbol,
                                            <Out> ByRef replacementNode As ExpressionSyntax,
                                            <Out> ByRef issueSpan As TextSpan,
                                            cancellationToken As CancellationToken) As Boolean
             If memberAccess.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) Then
-                Dim symbolForMemberAccess = semanticModel.GetSymbolInfo(DirectCast(memberAccess.Parent, MemberAccessExpressionSyntax)).Symbol
+                Dim symbolForMemberAccess = semanticModel.GetSymbolInfo(DirectCast(memberAccess.Parent, MemberAccessExpressionSyntax), cancellationToken).Symbol
                 If symbolForMemberAccess.IsModuleMember Then
                     replacementNode = memberAccess.Expression.WithLeadingTrivia(memberAccess.GetLeadingTrivia())
                     issueSpan = memberAccess.Name.Span
@@ -289,14 +289,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
         End Function
 
         Private Shared Function CanReplaceWithReducedName(
-            memberAccess As MemberAccessExpressionSyntax,
-            reducedNode As ExpressionSyntax,
-            semanticModel As SemanticModel,
-            symbol As ISymbol,
-            cancellationToken As CancellationToken
-        ) As Boolean
+                memberAccess As MemberAccessExpressionSyntax,
+                reducedNode As ExpressionSyntax,
+                semanticModel As SemanticModel,
+                symbol As ISymbol,
+                cancellationToken As CancellationToken) As Boolean
             If Not IsMeOrNamedTypeOrNamespace(memberAccess.Expression, semanticModel) Then
                 Return False
+            End If
+
+            ' A static reference off of 'me' can always be replaced with a direct reference to that static symbol
+            ' without changing semantics.
+            If memberAccess.Expression.IsKind(SyntaxKind.MeExpression) AndAlso symbol.IsStatic Then
+                Return True
             End If
 
             ' See if we can simplify a member access expression of the form E.M or E.M() to M or M()

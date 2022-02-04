@@ -1,10 +1,12 @@
 [CmdletBinding(PositionalBinding=$false)]
 Param(
-  [string] $verbosity = "minimal",
+  [string] $verbosity = 'minimal',
   [bool] $warnAsError = $true,
   [bool] $nodeReuse = $true,
   [switch] $ci,
   [switch] $prepareMachine,
+  [switch] $excludePrereleaseVS,
+  [string] $msbuildEngine = $null,
   [Parameter(ValueFromRemainingArguments=$true)][String[]]$extraArgs
 )
 
@@ -18,9 +20,8 @@ try {
   MSBuild @extraArgs
 } 
 catch {
-  Write-Host $_
-  Write-Host $_.Exception
   Write-Host $_.ScriptStackTrace
+  Write-PipelineTelemetryError -Category 'Build' -Message $_
   ExitWithExitCode 1
 }
 

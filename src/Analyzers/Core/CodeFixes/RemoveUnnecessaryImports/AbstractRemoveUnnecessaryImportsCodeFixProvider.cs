@@ -32,17 +32,17 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 
         protected abstract string GetTitle();
 
-        private Task<Document> RemoveUnnecessaryImportsAsync(
+        private static Task<Document> RemoveUnnecessaryImportsAsync(
             Document document, CancellationToken cancellationToken)
         {
-            var service = document.GetLanguageService<IRemoveUnnecessaryImportsService>();
+            var service = document.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
             return service.RemoveUnnecessaryImportsAsync(document, cancellationToken);
         }
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+                : base(title, createChangedDocument, title)
             {
             }
         }

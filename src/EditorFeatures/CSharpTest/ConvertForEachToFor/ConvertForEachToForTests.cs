@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -10,7 +11,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -25,10 +26,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForEachToFor
 
         private readonly CodeStyleOption2<bool> onWithSilent = new CodeStyleOption2<bool>(true, NotificationOption2.Silent);
 
-        private IDictionary<OptionKey2, object> ImplicitTypeEverywhere => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithSilent),
-            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent),
-            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent));
+        private OptionsCollection ImplicitTypeEverywhere
+            => new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, onWithSilent },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent },
+            };
 
         [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
@@ -1948,6 +1952,41 @@ class Test
 }
 ";
             await TestMissingAsync(text);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [WorkItem(48950, "https://github.com/dotnet/roslyn/issues/48950")]
+        public async Task NullableReferenceVar()
+        {
+            var text = @"
+#nullable enable
+class Test
+{
+    void Method()
+    {
+        foreach [||] (var s in new string[10])
+        {
+            Console.WriteLine(s);
+        }
+    }
+}
+";
+            var expected = @"
+#nullable enable
+class Test
+{
+    void Method()
+    {
+        var {|Rename:array|} = new string[10];
+        for (var {|Rename:i|} = 0; i < array.Length; i++)
+        {
+            var s = array[i];
+            Console.WriteLine(s);
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected, options: ImplicitTypeEverywhere);
         }
     }
 }

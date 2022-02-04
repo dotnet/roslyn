@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -9,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
@@ -26,11 +29,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
         private readonly IThreadingContext _threadingContext;
         private readonly ITextBufferUndoManagerProvider _undoManager;
         private readonly IInlineRenameService _renameService;
+        private readonly IGlobalOptionService _globalOptions;
 
         public AbstractExtractMethodCommandHandler(
             IThreadingContext threadingContext,
             ITextBufferUndoManagerProvider undoManager,
-            IInlineRenameService renameService)
+            IInlineRenameService renameService,
+            IGlobalOptionService globalOptions)
         {
             Contract.ThrowIfNull(threadingContext);
             Contract.ThrowIfNull(undoManager);
@@ -39,6 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
             _threadingContext = threadingContext;
             _undoManager = undoManager;
             _renameService = renameService;
+            _globalOptions = globalOptions;
         }
         public string DisplayName => EditorFeaturesResources.Extract_Method;
 
@@ -100,14 +106,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
                 return false;
             }
 
+            var options = ExtractMethodOptions.From(document.Project);
             var result = ExtractMethodService.ExtractMethodAsync(
-                document, spans.Single().Span.ToTextSpan(), localFunction: false, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
+                document, spans.Single().Span.ToTextSpan(), localFunction: false, options, cancellationToken).WaitAndGetResult(cancellationToken);
             Contract.ThrowIfNull(result);
 
             if (!result.Succeeded && !result.SucceededWithSuggestion)
             {
                 // if it failed due to out/ref parameter in async method, try it with different option
-                var newResult = TryWithoutMakingValueTypesRef(document, spans, result, cancellationToken);
+                var newResult = TryWithoutMakingValueTypesRef(document, spans, result, options, cancellationToken);
                 if (newResult != null)
                 {
                     var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
@@ -173,9 +180,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
             var notificationService = solution.Workspace.Services.GetService<INotificationService>();
 
             // see whether we will allow best effort extraction and if it is possible.
-            if (!solution.Options.GetOption(ExtractMethodOptions.AllowBestEffort, project.Language) ||
+            if (!_globalOptions.GetOption(ExtractMethodPresentationOptions.AllowBestEffort, document.Project.Language) ||
                 !result.Status.HasBestEffort() ||
-                result.Document == null)
+                result.DocumentWithoutFinalFormatting == null)
             {
                 if (notificationService != null)
                 {
@@ -207,11 +214,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
         }
 
         private static ExtractMethodResult TryWithoutMakingValueTypesRef(
-            Document document, NormalizedSnapshotSpanCollection spans, ExtractMethodResult result, CancellationToken cancellationToken)
+            Document document, NormalizedSnapshotSpanCollection spans, ExtractMethodResult result, ExtractMethodOptions options, CancellationToken cancellationToken)
         {
-            var options = document.Project.Solution.Options;
-
-            if (options.GetOption(ExtractMethodOptions.DontPutOutOrRefOnStruct, document.Project.Language) || !result.Reasons.IsSingle())
+            if (options.DontPutOutOrRefOnStruct || !result.Reasons.IsSingle())
             {
                 return null;
             }
@@ -220,9 +225,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
             var length = FeaturesResources.Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket.IndexOf(':');
             if (reason != null && length > 0 && reason.IndexOf(FeaturesResources.Asynchronous_method_cannot_have_ref_out_parameters_colon_bracket_0_bracket.Substring(0, length), 0, length, StringComparison.Ordinal) >= 0)
             {
-                options = options.WithChangedOption(ExtractMethodOptions.DontPutOutOrRefOnStruct, document.Project.Language, true);
                 var newResult = ExtractMethodService.ExtractMethodAsync(
-                    document, spans.Single().Span.ToTextSpan(), localFunction: false, options, cancellationToken).WaitAndGetResult(cancellationToken);
+                    document,
+                    spans.Single().Span.ToTextSpan(),
+                    localFunction: false,
+                    options with { DontPutOutOrRefOnStruct = true },
+                    cancellationToken).WaitAndGetResult(cancellationToken);
 
                 // retry succeeded, return new result
                 if (newResult.Succeeded || newResult.SucceededWithSuggestion)
@@ -242,7 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
             using var undoTransaction = _undoManager.GetTextBufferUndoManager(subjectBuffer).TextBufferUndoHistory.CreateTransaction("Extract Method");
 
             // apply extract method code to buffer
-            var document = extractMethodResult.Document;
+            var (document, _) = extractMethodResult.GetFormattedDocumentAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             document.Project.Solution.Workspace.ApplyDocumentChanges(document, cancellationToken);
 
             // apply changes

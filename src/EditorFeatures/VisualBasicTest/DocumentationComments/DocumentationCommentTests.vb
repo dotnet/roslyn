@@ -2,18 +2,19 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 Imports Microsoft.VisualStudio.Commanding
-Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.DocumentationComments
     Public Class DocumentationCommentTests
         Inherits AbstractDocumentationCommentTests
+
+        Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeatures.AddParts(GetType(CommitConnectionListener))
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Sub TestTypingCharacter_Class_AutoGenerateXmlDocCommentsOff()
@@ -843,7 +844,7 @@ End Class
 ''' $$
 ''' </summary>
 Class C
-    
+
 End Class
 "
             VerifyInsertCommentCommand(code, expected)
@@ -862,7 +863,7 @@ End Class
 ''' $$
 ''' </summary>
 Class C
-    
+
 End Class
 "
             VerifyInsertCommentCommand(code, expected, autoGenerateXmlDocComments:=False)
@@ -1199,16 +1200,12 @@ End Class
             VerifyOpenLineBelow(code, expected, useTabs:=True)
         End Sub
 
-        Friend Overrides Function CreateCommandHandler(
-            waitIndicator As IWaitIndicator,
-            undoHistoryRegistry As ITextUndoHistoryRegistry,
-            editorOperationsFactoryService As IEditorOperationsFactoryService) As ICommandHandler
-
-            Return New DocumentationCommentCommandHandler(waitIndicator, undoHistoryRegistry, editorOperationsFactoryService)
+        Friend Overrides Function CreateCommandHandler(workspace As TestWorkspace) As ICommandHandler
+            Return workspace.ExportProvider.GetCommandHandler(Of DocumentationCommentCommandHandler)(PredefinedCommandHandlerNames.DocumentationComments, ContentTypeNames.VisualBasicContentType)
         End Function
 
         Protected Overrides Function CreateTestWorkspace(code As String) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(code, exportProvider:=ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithoutPartsOfType(GetType(CommitConnectionListener))).CreateExportProvider())
+            Return TestWorkspace.CreateVisualBasic(code, composition:=s_composition)
         End Function
 
         Protected Overrides ReadOnly Property DocumentationCommentCharacter As Char

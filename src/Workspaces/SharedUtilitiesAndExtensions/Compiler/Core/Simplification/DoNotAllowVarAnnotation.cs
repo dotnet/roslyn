@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Simplification
     /// </summary>
     internal class DoNotAllowVarAnnotation
     {
-        public static readonly SyntaxAnnotation Annotation = new SyntaxAnnotation(Kind);
+        public static readonly SyntaxAnnotation Annotation = new(Kind);
         public const string Kind = "DoNotAllowVar";
     }
 }

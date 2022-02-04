@@ -1,7 +1,8 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 // < auto-generated />
+#nullable enable
 using System;
 using System.ComponentModel;
 using Microsoft.CodeAnalysis.FlowAnalysis;
@@ -155,7 +156,7 @@ namespace Microsoft.CodeAnalysis
         Increment = 0x42,
         /// <summary>Indicates an <see cref="IThrowOperation"/>.</summary>
         Throw = 0x43,
-        /// <summary>Indicates an <see cref="IIncrementOrDecrementOperation"/>. This is used as an decrement operator</summary>
+        /// <summary>Indicates an <see cref="IIncrementOrDecrementOperation"/>. This is used as a decrement operator</summary>
         Decrement = 0x44,
         /// <summary>Indicates an <see cref="IDeconstructionAssignmentOperation"/>.</summary>
         DeconstructionAssignment = 0x45,
@@ -244,5 +245,35 @@ namespace Microsoft.CodeAnalysis
         PropertySubpattern = 0x6b,
         /// <summary>Indicates an <see cref="IUsingDeclarationOperation"/>.</summary>
         UsingDeclaration = 0x6c,
+        /// <summary>Indicates an <see cref="INegatedPatternOperation"/>.</summary>
+        NegatedPattern = 0x6d,
+        /// <summary>Indicates an <see cref="IBinaryPatternOperation"/>.</summary>
+        BinaryPattern = 0x6e,
+        /// <summary>Indicates an <see cref="ITypePatternOperation"/>.</summary>
+        TypePattern = 0x6f,
+        /// <summary>Indicates an <see cref="IRelationalPatternOperation"/>.</summary>
+        RelationalPattern = 0x70,
+        /// <summary>Indicates an <see cref="IWithOperation"/>.</summary>
+        With = 0x71,
+        /// <summary>Indicates an <see cref="IInterpolatedStringHandlerCreationOperation"/>.</summary>
+        InterpolatedStringHandlerCreation = 0x72,
+        /// <summary>Indicates an <see cref="IInterpolatedStringAdditionOperation"/>.</summary>
+        InterpolatedStringAddition = 0x73,
+        /// <summary>Indicates an <see cref="IInterpolatedStringAppendOperation"/>. This append is of a literal component</summary>
+        InterpolatedStringAppendLiteral = 0x74,
+        /// <summary>Indicates an <see cref="IInterpolatedStringAppendOperation"/>. This append is of an interpolation component</summary>
+        InterpolatedStringAppendFormatted = 0x75,
+        /// <summary>Indicates an <see cref="IInterpolatedStringAppendOperation"/>. This append is invalid</summary>
+        InterpolatedStringAppendInvalid = 0x76,
+        /// <summary>Indicates an <see cref="IInterpolatedStringHandlerArgumentPlaceholderOperation"/>.</summary>
+        InterpolatedStringHandlerArgumentPlaceholder = 0x77,
+        /// <summary>Indicates an <see cref="IFunctionPointerInvocationOperation"/>.</summary>
+        FunctionPointerInvocation = 0x78,
+        /// <summary>Indicates an <see cref="IListPatternOperation"/>.</summary>
+        ListPattern = 0x79,
+        /// <summary>Indicates an <see cref="ISlicePatternOperation"/>.</summary>
+        SlicePattern = 0x7a,
+        /// <summary>Indicates an <see cref="IImplicitIndexerReferenceOperation"/>.</summary>
+        ImplicitIndexerReference = 0x7b,
     }
 }

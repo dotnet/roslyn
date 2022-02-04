@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             Return newStatement.WithLeadingTrivia(totalTrivia)
         End Function
 
-        Private Function GetNewObjectCreation(
+        Private Shared Function GetNewObjectCreation(
                 objectCreation As ObjectCreationExpressionSyntax,
                 matches As ImmutableArray(Of ExpressionStatementSyntax)) As ObjectCreationExpressionSyntax
 
@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
                     CreateCollectionInitializer(matches)))
         End Function
 
-        Private Function CreateCollectionInitializer(
+        Private Shared Function CreateCollectionInitializer(
                 matches As ImmutableArray(Of ExpressionStatementSyntax)) As CollectionInitializerSyntax
             Dim nodesAndTokens = New List(Of SyntaxNodeOrToken)
 

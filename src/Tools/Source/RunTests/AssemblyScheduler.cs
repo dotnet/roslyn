@@ -2,48 +2,80 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace RunTests
 {
-    internal struct AssemblyInfo
+    internal readonly struct AssemblyInfo
     {
-        internal readonly string AssemblyPath;
-        internal readonly string DisplayName;
-        internal readonly string ResultsFileName;
-        internal readonly string ExtraArguments;
+        internal PartitionInfo PartitionInfo { get; }
+        internal string TargetFramework { get; }
+        internal string Platform { get; }
 
-        internal AssemblyInfo(
+        internal string AssemblyPath => PartitionInfo.AssemblyPath;
+        internal string AssemblyName => Path.GetFileName(PartitionInfo.AssemblyPath);
+        internal string DisplayName => PartitionInfo.DisplayName;
+
+        internal AssemblyInfo(PartitionInfo partitionInfo, string targetFramework, string platform)
+        {
+            PartitionInfo = partitionInfo;
+            TargetFramework = targetFramework;
+            Platform = platform;
+        }
+    }
+
+    internal readonly struct PartitionInfo
+    {
+        internal int? AssemblyPartitionId { get; }
+        internal string AssemblyPath { get; }
+        internal string DisplayName { get; }
+
+        /// <summary>
+        /// Specific set of types to test in the assembly. Will be empty when testing the entire assembly
+        /// </summary>
+        internal readonly ImmutableArray<TypeInfo> TypeInfoList;
+
+        internal PartitionInfo(
+            int assemblyPartitionId,
             string assemblyPath,
             string displayName,
-            string resultsFileName,
-            string extraArguments)
+            ImmutableArray<TypeInfo> typeInfoList)
         {
+            AssemblyPartitionId = assemblyPartitionId;
             AssemblyPath = assemblyPath;
             DisplayName = displayName;
-            ResultsFileName = resultsFileName;
-            ExtraArguments = extraArguments;
+            TypeInfoList = typeInfoList;
         }
 
-        internal AssemblyInfo(string assemblyPath, string targetFrameworkMoniker, string architecture, bool useHmtl)
+        internal PartitionInfo(string assemblyPath)
         {
+            AssemblyPartitionId = null;
             AssemblyPath = assemblyPath;
             DisplayName = Path.GetFileName(assemblyPath);
-
-            var suffix = useHmtl ? "html" : "xml";
-            ResultsFileName = $"{DisplayName}_{targetFrameworkMoniker}_{architecture}.{suffix}";
-            ExtraArguments = string.Empty;
+            TypeInfoList = ImmutableArray<TypeInfo>.Empty;
         }
 
         public override string ToString() => DisplayName;
+    }
+
+    public readonly struct TypeInfo
+    {
+        internal readonly string FullName;
+        internal readonly int MethodCount;
+
+        internal TypeInfo(string fullName, int methodCount)
+        {
+            FullName = fullName;
+            MethodCount = methodCount;
+        }
     }
 
     internal sealed class AssemblyScheduler
@@ -58,127 +90,76 @@ namespace RunTests
         /// </summary>
         private const string EventListenerGuardFullName = "Microsoft.CodeAnalysis.UnitTests.EventListenerGuard";
 
-        private struct TypeInfo
+        private static class AssemblyInfoBuilder
         {
-            internal readonly string FullName;
-            internal readonly int MethodCount;
-
-            internal TypeInfo(string fullName, int methodCount)
+            internal static void Build(string assemblyPath, int methodLimit, List<TypeInfo> typeInfoList, out ImmutableArray<PartitionInfo> partitionInfoList)
             {
-                FullName = fullName;
-                MethodCount = methodCount;
-            }
-        }
-
-        private struct Partition
-        {
-            internal readonly string AssemblyPath;
-            internal readonly int Id;
-            internal List<TypeInfo> TypeInfoList;
-
-            internal Partition(string assemblyPath, int id, List<TypeInfo> typeInfoList)
-            {
-                AssemblyPath = assemblyPath;
-                Id = id;
-                TypeInfoList = typeInfoList;
-            }
-        }
-
-        private sealed class AssemblyInfoBuilder
-        {
-            private readonly List<Partition> _partitionList = new List<Partition>();
-            private readonly List<AssemblyInfo> _assemblyInfoList = new List<AssemblyInfo>();
-            private readonly StringBuilder _builder = new StringBuilder();
-            private readonly string _assemblyPath;
-            private readonly int _methodLimit;
-            private readonly bool _useHtml;
-            private readonly bool _hasEventListenerGuard;
-            private int _currentId;
-            private List<TypeInfo> _currentTypeInfoList = new List<TypeInfo>();
-
-            private AssemblyInfoBuilder(string assemblyPath, int methodLimit, bool useHtml, bool hasEventListenerGuard)
-            {
-                _assemblyPath = assemblyPath;
-                _useHtml = useHtml;
-                _methodLimit = methodLimit;
-                _hasEventListenerGuard = hasEventListenerGuard;
-            }
-
-            internal static void Build(string assemblyPath, int methodLimit, bool useHtml, List<TypeInfo> typeInfoList, out List<Partition> partitionList, out List<AssemblyInfo> assemblyInfoList)
-            {
+                var list = new List<PartitionInfo>();
                 var hasEventListenerGuard = typeInfoList.Any(x => x.FullName == EventListenerGuardFullName);
-                var builder = new AssemblyInfoBuilder(assemblyPath, methodLimit, useHtml, hasEventListenerGuard);
-                builder.Build(typeInfoList);
-                partitionList = builder._partitionList;
-                assemblyInfoList = builder._assemblyInfoList;
-            }
+                var currentTypeInfoList = new List<TypeInfo>();
+                var currentClassNameLengthSum = -1;
+                var currentId = 0;
 
-            private void Build(List<TypeInfo> typeInfoList)
-            {
                 BeginPartition();
 
                 foreach (var typeInfo in typeInfoList)
                 {
-                    _currentTypeInfoList.Add(typeInfo);
-                    _builder.Append($@"-class ""{typeInfo.FullName}"" ");
+                    currentTypeInfoList.Add(typeInfo);
+                    currentClassNameLengthSum += typeInfo.FullName.Length;
                     CheckForPartitionLimit(done: false);
                 }
 
                 CheckForPartitionLimit(done: true);
-            }
 
-            private void BeginPartition()
-            {
-                _currentId++;
-                _currentTypeInfoList = new List<TypeInfo>();
-                _builder.Length = 0;
+                partitionInfoList = ImmutableArray.CreateRange(list);
 
-                // Ensure the EventListenerGuard is in every partition.
-                if (_hasEventListenerGuard)
+                void BeginPartition()
                 {
-                    _builder.Append($@"-class ""{EventListenerGuardFullName}"" ");
-                }
-            }
+                    currentId++;
+                    currentTypeInfoList.Clear();
+                    currentClassNameLengthSum = 0;
 
-            private void CheckForPartitionLimit(bool done)
-            {
-                if (done)
-                {
-                    // The builder is done looking at types.  If there are any TypeInfo that have not
-                    // been added to a partition then do it now.
-                    if (_currentTypeInfoList.Count > 0)
+                    // Ensure the EventListenerGuard is in every partition.
+                    if (hasEventListenerGuard)
                     {
-                        FinishPartition();
+                        currentClassNameLengthSum += EventListenerGuardFullName.Length;
+                    }
+                }
+
+                void CheckForPartitionLimit(bool done)
+                {
+                    if (done)
+                    {
+                        // The builder is done looking at types.  If there are any TypeInfo that have not
+                        // been added to a partition then do it now.
+                        if (currentTypeInfoList.Count > 0)
+                        {
+                            FinishPartition();
+                        }
+
+                        return;
                     }
 
-                    return;
+                    // One item we have to consider here is the maximum command line length in 
+                    // Windows which is 32767 characters (XP is smaller but don't care).  Once
+                    // we get close then create a partition and move on. 
+                    if (currentTypeInfoList.Sum(x => x.MethodCount) >= methodLimit ||
+                        currentClassNameLengthSum > 25000)
+                    {
+                        FinishPartition();
+                        BeginPartition();
+                    }
+
+                    void FinishPartition()
+                    {
+                        var partitionInfo = new PartitionInfo(
+                            currentId,
+                            assemblyPath,
+                            $"{Path.GetFileName(assemblyPath)}.{currentId}",
+                            ImmutableArray.CreateRange(currentTypeInfoList));
+                        list.Add(partitionInfo);
+                    }
                 }
-
-                // One item we have to consider here is the maximum command line length in 
-                // Windows which is 32767 characters (XP is smaller but don't care).  Once
-                // we get close then create a partition and move on. 
-                if (_currentTypeInfoList.Sum(x => x.MethodCount) >= _methodLimit ||
-                    _builder.Length > 25000)
-                {
-                    FinishPartition();
-                    BeginPartition();
-                }
-            }
-
-            private void FinishPartition()
-            {
-                var assemblyName = Path.GetFileName(_assemblyPath);
-                var displayName = $"{assemblyName}.{_currentId}";
-                var suffix = _useHtml ? "html" : "xml";
-                var resultsFileName = $"{assemblyName}.{_currentId}.{suffix}";
-                var assemblyInfo = new AssemblyInfo(
-                    _assemblyPath,
-                    displayName,
-                    resultsFileName,
-                    _builder.ToString());
-
-                _partitionList.Add(new Partition(_assemblyPath, _currentId, _currentTypeInfoList));
-                _assemblyInfoList.Add(assemblyInfo);
             }
         }
 
@@ -187,39 +168,36 @@ namespace RunTests
         /// </summary>
         internal const int DefaultMethodLimit = 2000;
 
+        /// <summary>
+        /// Number of methods to include per Helix work item.
+        /// </summary>
+        internal const int HelixMethodLimit = 500;
+
         private readonly Options _options;
         private readonly int _methodLimit;
 
-        internal AssemblyScheduler(Options options, int methodLimit = DefaultMethodLimit)
+        internal AssemblyScheduler(Options options)
         {
             _options = options;
-            _methodLimit = methodLimit;
+            _methodLimit = options.UseHelix ? AssemblyScheduler.HelixMethodLimit : AssemblyScheduler.DefaultMethodLimit;
         }
 
-        internal IEnumerable<AssemblyInfo> Schedule(IEnumerable<string> assemblyPaths)
+        public ImmutableArray<PartitionInfo> Schedule(string assemblyPath, bool force = false)
         {
-            var list = new List<AssemblyInfo>();
-            foreach (var assemblyPath in assemblyPaths)
+            if (_options.Sequential)
             {
-                list.AddRange(Schedule(assemblyPath));
+                return ImmutableArray.Create(new PartitionInfo(assemblyPath));
             }
 
-            return list;
-        }
-
-        public IEnumerable<AssemblyInfo> Schedule(string assemblyPath, bool force = false)
-        {
             var typeInfoList = GetTypeInfoList(assemblyPath);
-            var assemblyInfoList = new List<AssemblyInfo>();
-            var partitionList = new List<Partition>();
-            AssemblyInfoBuilder.Build(assemblyPath, _methodLimit, _options.UseHtml, typeInfoList, out partitionList, out assemblyInfoList);
+            AssemblyInfoBuilder.Build(assemblyPath, _methodLimit, typeInfoList, out var partitionList);
 
             // If the scheduling didn't actually produce multiple partition then send back an unpartitioned
             // representation.
-            if (assemblyInfoList.Count == 1 && !force)
+            if (partitionList.Length == 1 && !force)
             {
                 Logger.Log($"Assembly schedule produced a single partition {assemblyPath}");
-                return new[] { CreateAssemblyInfo(assemblyPath) };
+                return ImmutableArray.Create(new PartitionInfo(assemblyPath));
             }
 
             Logger.Log($"Assembly Schedule: {Path.GetFileName(assemblyPath)}");
@@ -227,19 +205,14 @@ namespace RunTests
             {
                 var methodCount = partition.TypeInfoList.Sum(x => x.MethodCount);
                 var delta = methodCount - _methodLimit;
-                Logger.Log($"  Partition: {partition.Id} method count {methodCount} delta {delta}");
+                Logger.Log($"  Partition: {partition.AssemblyPartitionId} method count {methodCount} delta {delta}");
                 foreach (var typeInfo in partition.TypeInfoList)
                 {
                     Logger.Log($"    {typeInfo.FullName} {typeInfo.MethodCount}");
                 }
             }
 
-            return assemblyInfoList;
-        }
-
-        public AssemblyInfo CreateAssemblyInfo(string assemblyPath)
-        {
-            return new AssemblyInfo(assemblyPath, _options.TargetFrameworkMoniker, _options.Test64 ? "x64" : "x86", _options.UseHtml);
+            return partitionList;
         }
 
         private static List<TypeInfo> GetTypeInfoList(string assemblyPath)
@@ -311,8 +284,8 @@ namespace RunTests
             // The case we still have to consider at this point is a class with 0 defined methods, 
             // inheritting from a class with > 0 defined test methods.  That is a completely valid
             // xunit scenario.  For now we're just going to exclude types that inherit from object
-            // because they clearly don't fit that category.
-            return !(InheritsFromObject(reader, type) ?? false);
+            // or other built-in base types because they clearly don't fit that category.
+            return !InheritsFromFrameworkBaseType(reader, type);
         }
 
         private static int GetMethodCount(MetadataReader reader, TypeDefinition type)
@@ -323,11 +296,6 @@ namespace RunTests
                 var methodDefinition = reader.GetMethodDefinition(handle);
                 if (methodDefinition.GetCustomAttributes().Count == 0 ||
                     !IsValidIdentifier(reader, methodDefinition.Name))
-                {
-                    continue;
-                }
-
-                if (MethodAttributes.Public != (methodDefinition.Attributes & MethodAttributes.Public))
                 {
                     continue;
                 }
@@ -355,17 +323,17 @@ namespace RunTests
             return true;
         }
 
-        private static bool? InheritsFromObject(MetadataReader reader, TypeDefinition type)
+        private static bool InheritsFromFrameworkBaseType(MetadataReader reader, TypeDefinition type)
         {
             if (type.BaseType.Kind != HandleKind.TypeReference)
             {
-                return null;
+                return false;
             }
 
             var typeRef = reader.GetTypeReference((TypeReferenceHandle)type.BaseType);
             return
                 reader.GetString(typeRef.Namespace) == "System" &&
-                reader.GetString(typeRef.Name) == "Object";
+                reader.GetString(typeRef.Name) is "Object" or "ValueType" or "Enum";
         }
 
         private static string GetFullName(MetadataReader reader, TypeDefinition type)

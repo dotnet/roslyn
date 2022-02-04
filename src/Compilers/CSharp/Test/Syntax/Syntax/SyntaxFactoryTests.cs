@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Globalization;
 using System.Linq;
@@ -491,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 .NormalizeWhitespace();
 
             // no space between int and ?
-            Assert.Equal("class C\r\n{\r\n    int? P\r\n    {\r\n    }\r\n}", syntaxNode.ToFullString());
+            Assert.Equal("class C\r\n{\r\n    int? P { }\r\n}", syntaxNode.ToFullString());
         }
 
         [Fact]
@@ -514,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 .NormalizeWhitespace();
 
             // no space between DateTime and ?
-            Assert.Equal("class C\r\n{\r\n    DateTime? P\r\n    {\r\n    }\r\n}", syntaxNode.ToFullString());
+            Assert.Equal("class C\r\n{\r\n    DateTime? P { }\r\n}", syntaxNode.ToFullString());
         }
 
         [Fact]
@@ -587,6 +589,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 parameterList: SyntaxFactory.ParameterList(),
                 body: SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1)));
             Assert.Equal(fullySpecified.ToFullString(), lambda.ToFullString());
+        }
+
+        [Fact]
+        public void TestParseNameWithOptions()
+        {
+            var type = "delegate*<void>";
+
+            var parsedWith8 = SyntaxFactory.ParseTypeName(type, options: TestOptions.Regular8);
+            parsedWith8.GetDiagnostics().Verify(
+                // (1,1): error CS8400: Feature 'function pointers' is not available in C# 8.0. Please use language version 9.0 or greater.
+                // delegate*<void>
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "delegate*<void>").WithArguments("function pointers", "9.0").WithLocation(1, 1)
+            );
+
+            var parsedWithPreview = SyntaxFactory.ParseTypeName(type, options: TestOptions.Regular9);
+            parsedWithPreview.GetDiagnostics().Verify();
         }
     }
 }

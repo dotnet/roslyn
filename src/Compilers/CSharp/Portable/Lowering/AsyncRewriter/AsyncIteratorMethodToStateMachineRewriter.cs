@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -23,13 +25,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly AsyncIteratorInfo _asyncIteratorInfo;
 
         /// <summary>
+        /// Where should we jump to to continue the execution of disposal path.
+        ///
         /// Initially, this is the method's return value label (<see cref="AsyncMethodToStateMachineRewriter._exprReturnLabel"/>).
         /// Inside a `try` or `catch` with a `finally`, we'll use the label directly preceding the `finally`.
         /// Inside a `try` or `catch` with an extracted `finally`, we will use the label preceding the extracted `finally`.
-        /// Inside a `finally`, we will use the label terminating the `finally` (to avoid restrictions with leave opcode).
+        /// Inside a `finally`, we'll have no/null label (disposal continues without a jump).
         /// </summary>
-        private LabelSymbol _enclosingFinallyEntryOrFinallyExitOrExitLabel;
-        private ArrayBuilder<LabelSymbol> _previousDisposalLabels;
+        private LabelSymbol _currentDisposalLabel;
 
         /// <summary>
         /// We use _exprReturnLabel for normal end of method (ie. no more values) and `yield break;`.
@@ -54,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             VariableSlotAllocator slotAllocatorOpt,
             int nextFreeHoistedLocalSlot,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
             : base(method, methodOrdinal, asyncMethodBuilderMemberCollection, F,
                   state, builder, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals,
                   slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
@@ -62,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(asyncIteratorInfo != null);
 
             _asyncIteratorInfo = asyncIteratorInfo;
-            _enclosingFinallyEntryOrFinallyExitOrExitLabel = _exprReturnLabel;
+            _currentDisposalLabel = _exprReturnLabel;
             _exprReturnLabelTrue = F.GenerateLabel("yieldReturn");
         }
 
@@ -72,8 +75,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // ... this.state = FinishedState; ...
 
             // if (this.combinedTokens != null) { this.combinedTokens.Dispose(); this.combinedTokens = null; } // for enumerables only
-            // this.promiseOfValueOrEnd.SetResult(false);
+            // _current = default;
             // this.builder.Complete();
+            // this.promiseOfValueOrEnd.SetResult(false);
             // return;
             // _exprReturnLabelTrue:
             // this.promiseOfValueOrEnd.SetResult(true);
@@ -87,9 +91,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddDisposeCombinedTokensIfNeeded(builder);
 
             builder.AddRange(
+                // _current = default;
+                GenerateClearCurrent(),
+                GenerateCompleteOnBuilder(),
                 // this.promiseOfValueOrEnd.SetResult(false);
                 generateSetResultOnPromise(false),
-                GenerateCompleteOnBuilder(),
                 F.Return(),
                 F.Label(_exprReturnLabelTrue),
                 // this.promiseOfValueOrEnd.SetResult(true);
@@ -104,6 +110,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundFieldAccess promiseField = F.InstanceField(_asyncIteratorInfo.PromiseOfValueOrEndField);
                 return F.ExpressionStatement(F.Call(promiseField, _asyncIteratorInfo.SetResultMethod, F.Literal(result)));
             }
+        }
+
+        private BoundExpressionStatement GenerateClearCurrent()
+        {
+            // _current = default;
+            var currentField = _asyncIteratorInfo.CurrentField;
+            return F.Assignment(F.InstanceField(currentField), F.Default(currentField.Type));
         }
 
         private BoundExpressionStatement GenerateCompleteOnBuilder()
@@ -140,36 +153,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             // if (this.combinedTokens != null) { this.combinedTokens.Dispose(); this.combinedTokens = null; } // for enumerables only
             AddDisposeCombinedTokensIfNeeded(builder);
 
+            // _current = default;
+            builder.Add(GenerateClearCurrent());
+
+            // this.builder.Complete();
+            builder.Add(GenerateCompleteOnBuilder());
+
             // _promiseOfValueOrEnd.SetException(ex);
             builder.Add(F.ExpressionStatement(F.Call(
                 F.InstanceField(_asyncIteratorInfo.PromiseOfValueOrEndField),
                 _asyncIteratorInfo.SetExceptionMethod,
                 F.Local(exceptionLocal))));
 
-            // this.builder.Complete();
-            builder.Add(GenerateCompleteOnBuilder());
-
             return F.Block(builder.ToImmutableAndFree());
         }
 
-        private BoundStatement GenerateJumpToCurrentFinallyOrExit()
+        private BoundStatement GenerateJumpToCurrentDisposalLabel()
         {
-            Debug.Assert((object)_enclosingFinallyEntryOrFinallyExitOrExitLabel != null);
+            Debug.Assert(_currentDisposalLabel is object);
             return F.If(
                 // if (disposeMode)
                 F.InstanceField(_asyncIteratorInfo.DisposeModeField),
-                // goto finallyOrExitLabel;
-                thenClause: F.Goto(_enclosingFinallyEntryOrFinallyExitOrExitLabel));
+                // goto currentDisposalLabel;
+                thenClause: F.Goto(_currentDisposalLabel));
         }
 
-        private BoundStatement AppendJumpToCurrentFinallyOrExit(BoundStatement node)
+        private BoundStatement AppendJumpToCurrentDisposalLabel(BoundStatement node)
         {
+            Debug.Assert(_currentDisposalLabel is object);
             // Append:
-            //  if (disposeMode) goto _enclosingFinallyOrExitLabel;
+            //  if (disposeMode) goto currentDisposalLabel;
 
             return F.Block(
                 node,
-                GenerateJumpToCurrentFinallyOrExit());
+                GenerateJumpToCurrentDisposalLabel());
         }
 
         protected override BoundBinaryOperator ShouldEnterFinallyBlock()
@@ -205,9 +222,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var rewrittenBody = (BoundStatement)Visit(body);
 
+            Debug.Assert(_exprReturnLabel.Equals(_currentDisposalLabel));
             return F.Block(
                 F.Label(resumeLabel), // initialStateResumeLabel:
-                GenerateJumpToCurrentFinallyOrExit(), // if (disposeMode) goto _exprReturnLabel;
+                GenerateJumpToCurrentDisposalLabel(), // if (disposeMode) goto _exprReturnLabel;
                 GenerateSetBothStates(StateMachineStates.NotStartedStateMachine), // this.state = cachedState = -1;
                 rewrittenBody);
         }
@@ -221,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     <next_state_label>: ;
             //     <hidden sequence point>
             //     this.state = cachedState = NotStartedStateMachine;
-            //     if (disposeMode) goto _enclosingFinallyOrExitLabel;
+            //     if (disposeMode) goto currentDisposalLabel;
 
             // Note: at label _exprReturnLabelTrue we have:
             //  _promiseOfValueOrEnd.SetResult(true);
@@ -255,9 +273,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // this.state = cachedState = NotStartedStateMachine
                 GenerateSetBothStates(StateMachineStates.NotStartedStateMachine));
 
+            Debug.Assert(_currentDisposalLabel is object); // no yield return allowed inside a finally
             blockBuilder.Add(
-                // if (disposeMode) goto _enclosingFinallyOrExitLabel;
-                GenerateJumpToCurrentFinallyOrExit());
+                // if (disposeMode) goto currentDisposalLabel;
+                GenerateJumpToCurrentDisposalLabel());
 
             blockBuilder.Add(
                 F.HiddenSequencePoint());
@@ -271,13 +290,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Produce:
             //  disposeMode = true;
-            //  goto _enclosingFinallyOrExitLabel;
+            //  goto currentDisposalLabel;
 
+            Debug.Assert(_currentDisposalLabel is object); // no yield break allowed inside a finally
             return F.Block(
                 // disposeMode = true;
                 SetDisposeMode(true),
-                // goto _enclosingFinallyOrExitLabel;
-                F.Goto(_enclosingFinallyEntryOrFinallyExitOrExitLabel));
+                // goto currentDisposalLabel;
+                F.Goto(_currentDisposalLabel));
         }
 
         private BoundExpressionStatement SetDisposeMode(bool value)
@@ -292,60 +312,46 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// to restore execution from a given state, without executing other code to get there).
         ///
         /// From there, we don't want normal code flow:
-        /// - from `yield return`, we'll jump to the enclosing `finally` (or method exit)
-        /// - after finishing a `finally`, we'll jump to the next enclosing `finally` (or method exit)
+        /// - from `yield return` within a try, we'll jump to its `finally` if it has one (or method exit)
+        /// - after finishing a `finally` within a `finally`, we'll continue
+        /// - after finishing a `finally` within a `try`, jump to the its `finally` if it has one (or method exit)
         ///
         /// Some `finally` clauses may have already been rewritten and extracted to a plain block (<see cref="AsyncExceptionHandlerRewriter"/>).
         /// In those cases, we saved the finally-entry label in <see cref="BoundTryStatement.FinallyLabelOpt"/>.
         /// </summary>
         public override BoundNode VisitTryStatement(BoundTryStatement node)
         {
-            _previousDisposalLabels ??= new ArrayBuilder<LabelSymbol>();
-            _previousDisposalLabels.Push(_enclosingFinallyEntryOrFinallyExitOrExitLabel);
-
-            var finallyExit = F.GenerateLabel("finallyExit");
-            _previousDisposalLabels.Push(finallyExit);
-
-            if (node.FinallyBlockOpt != null)
+            var savedDisposalLabel = _currentDisposalLabel;
+            if (node.FinallyBlockOpt is object)
             {
                 var finallyEntry = F.GenerateLabel("finallyEntry");
-                _enclosingFinallyEntryOrFinallyExitOrExitLabel = finallyEntry;
+                _currentDisposalLabel = finallyEntry;
 
                 // Add finallyEntry label:
                 //  try
                 //  {
                 //      ...
                 //      finallyEntry:
-
-                // Add finallyExit label:
-                //  finally
-                //  {
-                //      ...
-                //      finallyExit:
                 //  }
+
                 node = node.Update(
                     tryBlock: F.Block(node.TryBlock, F.Label(finallyEntry)),
-                    node.CatchBlocks, F.Block(node.FinallyBlockOpt, F.Label(finallyExit)), node.FinallyLabelOpt, node.PreferFaultHandler);
+                    node.CatchBlocks, node.FinallyBlockOpt, node.FinallyLabelOpt, node.PreferFaultHandler);
             }
-            else if ((object)node.FinallyLabelOpt != null)
+            else if (node.FinallyLabelOpt is object)
             {
-                _enclosingFinallyEntryOrFinallyExitOrExitLabel = node.FinallyLabelOpt;
+                _currentDisposalLabel = node.FinallyLabelOpt;
             }
 
             var result = (BoundStatement)base.VisitTryStatement(node);
 
-            // While inside the try and catch blocks, we'll use the current finallyEntry label for disposal
-            // As soon as we close the try and catch blocks (ie. possibly enter the finally block), we'll use the finallyExit label for disposal (restored/popped from the stack by CloseTryCatchBlocks)
-            Debug.Assert(_enclosingFinallyEntryOrFinallyExitOrExitLabel == finallyExit);
+            _currentDisposalLabel = savedDisposalLabel;
 
-            // When exiting the try statement, we restore the previous disposal label.
-            _enclosingFinallyEntryOrFinallyExitOrExitLabel = _previousDisposalLabels.Pop();
-
-            if (node.FinallyBlockOpt != null)
+            if (node.FinallyBlockOpt != null && _currentDisposalLabel is object)
             {
                 // Append:
-                //  if (disposeMode) /* jump to parent's finally or exit */
-                result = AppendJumpToCurrentFinallyOrExit(result);
+                //  if (disposeMode) goto currentDisposalLabel;
+                result = AppendJumpToCurrentDisposalLabel(result);
             }
 
             // Note: we add this jump to extracted `finally` blocks as well, using `VisitExtractedFinallyBlock` below
@@ -353,9 +359,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        protected override void CloseTryCatchBlocks()
+        protected override BoundBlock VisitFinally(BoundBlock finallyBlock)
         {
-            _enclosingFinallyEntryOrFinallyExitOrExitLabel = _previousDisposalLabels.Pop();
+            // within a finally, continuing disposal doesn't require any jump
+            var savedDisposalLabel = _currentDisposalLabel;
+            _currentDisposalLabel = null;
+            var result = base.VisitFinally(finallyBlock);
+            _currentDisposalLabel = savedDisposalLabel;
+            return result;
         }
 
         /// <summary>
@@ -364,10 +375,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public override BoundNode VisitExtractedFinallyBlock(BoundExtractedFinallyBlock extractedFinally)
         {
-            // Remove the wrapping and append:
-            //  if (disposeMode) goto enclosingFinallyOrExitLabel;
+            // Remove the wrapping and optionally append:
+            //  if (disposeMode) goto currentDisposalLabel;
 
-            return AppendJumpToCurrentFinallyOrExit((BoundStatement)VisitBlock(extractedFinally.FinallyBlock));
+            BoundStatement result = VisitFinally(extractedFinally.FinallyBlock);
+
+            if (_currentDisposalLabel is object)
+            {
+                result = AppendJumpToCurrentDisposalLabel(result);
+            }
+
+            return result;
         }
 
         #endregion Visitors

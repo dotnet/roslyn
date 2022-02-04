@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -100,7 +102,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             State state,
             CancellationToken cancellationToken)
         {
-            var result = ArrayBuilder<CodeAction>.GetInstance();
+            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
 
             var generateNewTypeInDialog = false;
             if (state.NamespaceToGenerateInOpt != null)
@@ -120,26 +122,22 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 var generateIntoContaining = IsGeneratingIntoContainingNamespace(document, node, state, cancellationToken);
 
                 if ((isSimpleName || generateIntoContaining) &&
-                    CanGenerateIntoContainingNamespace(document, node, state, cancellationToken))
+                    CanGenerateIntoContainingNamespace(document, node, cancellationToken))
                 {
                     result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, intoNamespace: true, inNewFile: false));
                 }
             }
 
             if (state.TypeToGenerateInOpt != null)
-            {
                 result.Add(new GenerateTypeCodeAction((TService)this, document.Document, state, intoNamespace: false, inNewFile: false));
-            }
 
             if (generateNewTypeInDialog)
-            {
                 result.Add(new GenerateTypeCodeActionWithOption((TService)this, document.Document, state));
-            }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
-        private bool CanGenerateIntoContainingNamespace(SemanticDocument semanticDocument, SyntaxNode node, State state, CancellationToken cancellationToken)
+        private static bool CanGenerateIntoContainingNamespace(SemanticDocument semanticDocument, SyntaxNode node, CancellationToken cancellationToken)
         {
             var containingNamespace = semanticDocument.SemanticModel.GetEnclosingNamespace(node.SpanStart, cancellationToken);
 
@@ -156,7 +154,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 semanticDocument.Document.GetLanguageService<ICodeGenerationService>().CanAddTo(decl, semanticDocument.Project.Solution, cancellationToken);
         }
 
-        private bool IsGeneratingIntoContainingNamespace(
+        private static bool IsGeneratingIntoContainingNamespace(
             SemanticDocument document,
             SyntaxNode node,
             State state,
@@ -181,7 +179,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 : state.Name;
         }
 
-        protected ImmutableArray<ITypeParameterSymbol> GetTypeParameters(
+        protected static ImmutableArray<ITypeParameterSymbol> GetTypeParameters(
             State state,
             SemanticModel semanticModel,
             IEnumerable<SyntaxNode> typeArguments,
@@ -189,7 +187,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
         {
             var arguments = typeArguments.ToList();
             var arity = arguments.Count;
-            var typeParameters = ArrayBuilder<ITypeParameterSymbol>.GetInstance();
+            using var _ = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var typeParameters);
 
             // For anything that was a type parameter, just use the name (if we haven't already
             // used it).  Otherwise, synthesize new names for the parameters.
@@ -227,15 +225,13 @@ namespace Microsoft.CodeAnalysis.GenerateType
             for (var i = 0; i < names.Count; i++)
             {
                 if (typeParameters[i] == null || typeParameters[i].Name != names[i])
-                {
                     typeParameters[i] = CodeGenerationSymbolFactory.CreateTypeParameterSymbol(names[i]);
-                }
             }
 
-            return typeParameters.ToImmutableAndFree();
+            return typeParameters.ToImmutable();
         }
 
-        protected Accessibility DetermineDefaultAccessibility(
+        protected static Accessibility DetermineDefaultAccessibility(
             State state,
             SemanticModel semanticModel,
             bool intoNamespace,
@@ -275,7 +271,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             return availableOuterTypeParameters.Concat(availableInnerTypeParameters).ToList();
         }
 
-        protected async Task<bool> IsWithinTheImportingNamespaceAsync(Document document, int triggeringPosition, string includeUsingsOrImports, CancellationToken cancellationToken)
+        protected static async Task<bool> IsWithinTheImportingNamespaceAsync(Document document, int triggeringPosition, string includeUsingsOrImports, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             if (semanticModel != null)
@@ -290,7 +286,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             return false;
         }
 
-        protected bool GeneratedTypesMustBePublic(Project project)
+        protected static bool GeneratedTypesMustBePublic(Project project)
         {
             var projectInfoService = project.Solution.Workspace.Services.GetService<IProjectInfoService>();
             if (projectInfoService != null)

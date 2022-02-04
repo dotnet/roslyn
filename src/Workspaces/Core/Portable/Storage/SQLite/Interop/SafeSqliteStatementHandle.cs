@@ -2,24 +2,56 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
+using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using SQLitePCL;
 
 namespace Microsoft.CodeAnalysis.SQLite.Interop
 {
-    internal sealed class SafeSqliteStatementHandle : SafeSqliteChildHandle<sqlite3_stmt>
+    internal sealed class SafeSqliteStatementHandle : SafeHandle
     {
+        private readonly sqlite3_stmt? _wrapper;
+        private readonly SafeHandleLease _lease;
+        private readonly SafeHandleLease _sqliteLease;
+
         public SafeSqliteStatementHandle(SafeSqliteHandle sqliteHandle, sqlite3_stmt? wrapper)
-            : base(sqliteHandle, wrapper?.ptr ?? IntPtr.Zero, wrapper)
+            : base(invalidHandleValue: IntPtr.Zero, ownsHandle: true)
         {
+            _wrapper = wrapper;
+            if (wrapper is not null)
+            {
+                _lease = wrapper.Lease();
+                SetHandle(wrapper.DangerousGetHandle());
+            }
+            else
+            {
+                _lease = default;
+                SetHandle(IntPtr.Zero);
+            }
+
+            _sqliteLease = sqliteHandle.Lease();
         }
 
-        protected override bool ReleaseChildHandle()
+        public override bool IsInvalid => handle == IntPtr.Zero;
+
+        public sqlite3_stmt DangerousGetWrapper()
+            => _wrapper!;
+
+        protected override bool ReleaseHandle()
         {
-            var result = (Result)raw.sqlite3_finalize(Wrapper);
-            return result == Result.OK;
+            try
+            {
+                using var _ = _wrapper;
+
+                _lease.Dispose();
+                SetHandle(IntPtr.Zero);
+                return true;
+            }
+            finally
+            {
+                _sqliteLease.Dispose();
+            }
         }
     }
 }

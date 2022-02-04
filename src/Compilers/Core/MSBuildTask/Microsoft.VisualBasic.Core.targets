@@ -103,6 +103,7 @@
          RuntimeMetadataVersion="$(RuntimeMetadataVersion)"
          SdkPath="$(FrameworkPathOverride)"
          SharedCompilationId="$(SharedCompilationId)"
+         SkipAnalyzers="$(_SkipAnalyzers)"
          SkipCompilerExecution="$(SkipCompilerExecution)"
          Sources="@(Compile)"
          SubsystemVersion="$(SubsystemVersion)"

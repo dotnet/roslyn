@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -13,9 +11,9 @@ namespace Microsoft.CodeAnalysis.Options
     /// </summary>
     internal sealed class RoamingProfileStorageLocation : OptionStorageLocation2
     {
-        private readonly Func<string, string> _keyNameFromLanguageName;
+        private readonly Func<string?, string> _keyNameFromLanguageName;
 
-        public string GetKeyNameForLanguage(string languageName)
+        public string GetKeyNameForLanguage(string? languageName)
         {
             var unsubstitutedKeyName = _keyNameFromLanguageName(languageName);
 
@@ -40,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Options
         /// Creates a <see cref="RoamingProfileStorageLocation"/> that has different key names for different languages.
         /// </summary>
         /// <param name="keyNameFromLanguageName">A function that maps from a <see cref="LanguageNames"/> value to the key name.</param>
-        public RoamingProfileStorageLocation(Func<string, string> keyNameFromLanguageName)
+        public RoamingProfileStorageLocation(Func<string?, string> keyNameFromLanguageName)
             => _keyNameFromLanguageName = keyNameFromLanguageName;
     }
 }

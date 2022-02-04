@@ -10,11 +10,12 @@ Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.CodeCleanup.Providers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Formatting
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
     <[UseExportProvider]>
     Public Class CaseCorrectionServiceTests
-        Private Async Function TestAsync(input As XElement, expected As XElement, Optional interProject As Boolean = False) As Tasks.Task
+        Private Shared Async Function TestAsync(input As XElement, expected As XElement, Optional interProject As Boolean = False) As Tasks.Task
             If (interProject) Then
                 Await TestAsync(input, expected.NormalizedValue)
             Else
@@ -22,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
             End If
         End Function
 
-        Private Async Function TestAsync(input As String, expected As String) As Tasks.Task
+        Private Shared Async Function TestAsync(input As String, expected As String) As Tasks.Task
             Using workspace = TestWorkspace.CreateVisualBasic(input)
                 Await TestAsync(expected, workspace)
             End Using
@@ -33,10 +34,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
             Dim buffer = hostDocument.GetTextBuffer()
             Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
             Dim span = (Await document.GetSyntaxRootAsync()).FullSpan
+            Dim options = Await SyntaxFormattingOptions.FromDocumentAsync(document, CancellationToken.None)
 
             Dim service = document.GetLanguageService(Of ICodeCleanerService)
             Dim newDocument = Await service.CleanupAsync(
-                document, ImmutableArray.Create(span),
+                document, ImmutableArray.Create(span), options,
                 ImmutableArray.Create(Of ICodeCleanupProvider)(New CaseCorrectionCodeCleanupProvider()),
                 CancellationToken.None)
 
@@ -46,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
             Assert.Equal(expected, actual)
         End Function
 
-        Private Async Function TestAsync(input As XElement, expected As String) As Tasks.Task
+        Private Shared Async Function TestAsync(input As XElement, expected As String) As Tasks.Task
             Using workspace = TestWorkspace.Create(input)
                 Await TestAsync(expected, workspace)
             End Using

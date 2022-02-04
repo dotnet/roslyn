@@ -144,7 +144,6 @@ Public Class ParseTree
         Return Nothing
     End Function
 
-
     Public Function ParseOneNodeKind(typeString As String, referencingNode As XNode) As ParseNodeKind
         If (NodeKinds.ContainsKey(typeString)) Then
             Return NodeKinds(typeString)
@@ -483,7 +482,6 @@ Public Class ParseNodeField
         End Get
     End Property
 
-
 End Class
 
 ' Defines a child node with a node structure. A child can be a single child
@@ -607,7 +605,6 @@ Public Class ParseNodeChild
         End Get
     End Property
 
-
     ' Gets the child type. Could return a NodeKind, List(NodeKind) containing the allowable node kinds of the child.
     Public ReadOnly Property ChildKind() As Object
         Get
@@ -691,7 +688,6 @@ Public Class ParseEnumerator
             Return Convert.ToInt64(ValueString, 16)
         End Get
     End Property
-
 
 End Class
 

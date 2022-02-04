@@ -2,18 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.DocumentationComments;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -23,11 +24,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 {
     internal abstract partial class AbstractMetadataAsSourceService : IMetadataAsSourceService
     {
-        private readonly ICodeGenerationService _codeGenerationService;
-
-        protected AbstractMetadataAsSourceService(ICodeGenerationService codeGenerationService)
-            => _codeGenerationService = codeGenerationService;
-
         public async Task<Document> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, CancellationToken cancellationToken)
         {
             if (document == null)
@@ -38,48 +34,42 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             var newSemanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var rootNamespace = newSemanticModel.GetEnclosingNamespace(0, cancellationToken);
 
+            var context = new CodeGenerationContext(
+                contextLocation: newSemanticModel.SyntaxTree.GetLocation(new TextSpan()),
+                generateMethodBodies: false,
+                generateDocumentationComments: true,
+                mergeAttributes: false,
+                autoInsertionLocation: false);
+
             // Add the interface of the symbol to the top of the root namespace
             document = await CodeGenerator.AddNamespaceOrTypeDeclarationAsync(
                 document.Project.Solution,
                 rootNamespace,
                 CreateCodeGenerationSymbol(document, symbol),
-                CreateCodeGenerationOptions(newSemanticModel.SyntaxTree.GetLocation(new TextSpan()), symbol),
+                context,
                 cancellationToken).ConfigureAwait(false);
 
-            document = await RemoveSimplifierAnnotationsFromImportsAsync(document, cancellationToken).ConfigureAwait(false);
+            document = await AddNullableRegionsAsync(document, cancellationToken).ConfigureAwait(false);
 
             var docCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
             var docWithDocComments = await ConvertDocCommentsToRegularCommentsAsync(document, docCommentFormattingService, cancellationToken).ConfigureAwait(false);
 
             var docWithAssemblyInfo = await AddAssemblyInfoRegionAsync(docWithDocComments, symbolCompilation, symbol.GetOriginalUnreducedDefinition(), cancellationToken).ConfigureAwait(false);
             var node = await docWithAssemblyInfo.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var options = await SyntaxFormattingOptions.FromDocumentAsync(docWithAssemblyInfo, cancellationToken).ConfigureAwait(false);
+
             var formattedDoc = await Formatter.FormatAsync(
-                docWithAssemblyInfo, SpecializedCollections.SingletonEnumerable(node.FullSpan), options: null, rules: GetFormattingRules(docWithAssemblyInfo), cancellationToken: cancellationToken).ConfigureAwait(false);
+                docWithAssemblyInfo,
+                SpecializedCollections.SingletonEnumerable(node.FullSpan),
+                options,
+                GetFormattingRules(docWithAssemblyInfo),
+                cancellationToken).ConfigureAwait(false);
 
             var reducers = GetReducers();
             return await Simplifier.ReduceAsync(formattedDoc, reducers, null, cancellationToken).ConfigureAwait(false);
         }
 
-        /// <summary>
-        /// <see cref="ImportAdderService"/> adds <see cref="Simplifier.Annotation"/> to Import Directives it adds,
-        /// which causes the <see cref="Simplifier"/> to remove import directives when thety are only used by attributes.
-        /// Presumably this is because MetadataAsSource isn't actually semantically valid code.
-        /// 
-        /// To fix this we remove these annotations.
-        /// </summary>
-        private static async Task<Document> RemoveSimplifierAnnotationsFromImportsAsync(Document document, CancellationToken cancellationToken)
-        {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-
-            var importDirectives = (await document.GetSyntaxRootAsync().ConfigureAwait(false))
-                .DescendantNodesAndSelf()
-                .Where(syntaxFacts.IsUsingOrExternOrImport);
-
-            return await document.ReplaceNodesAsync(
-                importDirectives,
-                (o, c) => c.WithoutAnnotations(Simplifier.Annotation),
-                cancellationToken).ConfigureAwait(false);
-        }
+        protected abstract Task<Document> AddNullableRegionsAsync(Document document, CancellationToken cancellationToken);
 
         /// <summary>
         /// provide formatting rules to be used when formatting MAS file
@@ -121,16 +111,6 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     topLevelNamespaceSymbol.ToDisplayString(SymbolDisplayFormats.NameFormat),
                     null,
                     new[] { wrappedType });
-        }
-
-        private static CodeGenerationOptions CreateCodeGenerationOptions(Location contextLocation, ISymbol symbol)
-        {
-            return new CodeGenerationOptions(
-                contextLocation: contextLocation,
-                generateMethodBodies: false,
-                generateDocumentationComments: true,
-                mergeAttributes: false,
-                autoInsertionLocation: false);
         }
     }
 }

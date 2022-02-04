@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExtractMethod;
@@ -21,8 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
         {
         }
 
-        protected override CSharpSelectionValidator CreateSelectionValidator(SemanticDocument document, TextSpan textSpan, OptionSet options)
-            => new CSharpSelectionValidator(document, textSpan, options);
+        protected override CSharpSelectionValidator CreateSelectionValidator(SemanticDocument document, TextSpan textSpan, bool localFunction, ExtractMethodOptions options)
+            => new CSharpSelectionValidator(document, textSpan, localFunction, options);
 
         protected override CSharpMethodExtractor CreateMethodExtractor(CSharpSelectionResult selectionResult, bool localFunction)
             => new CSharpMethodExtractor(selectionResult, localFunction);

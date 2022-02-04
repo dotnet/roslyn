@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -22,7 +24,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(InvokeDelegateWithConditionalAccessCodeFixProvider)), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.InvokeDelegateWithConditionalAccess), Shared]
     internal partial class InvokeDelegateWithConditionalAccessCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
@@ -38,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
         // Filter out the diagnostics we created for the faded out code.  We don't want
         // to try to fix those as well as the normal diagnostics we created.
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
-            => !diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
+            => !diagnostic.Properties.ContainsKey(WellKnownDiagnosticTags.Unnecessary);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -61,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             return Task.CompletedTask;
         }
 
-        private void AddEdits(
+        private static void AddEdits(
             SyntaxEditor editor, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             if (diagnostic.Properties[Constants.Kind] == Constants.VariableAndIfStatementForm)
@@ -75,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             }
         }
 
-        private void HandleSingleIfStatementForm(
+        private static void HandleSingleIfStatementForm(
             SyntaxEditor editor,
             Diagnostic diagnostic,
             CancellationToken cancellationToken)
@@ -108,6 +110,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
             }
 
             newStatement = newStatement.WithAdditionalAnnotations(Formatter.Annotation);
+            newStatement = AppendTriviaWithoutEndOfLines(newStatement, ifStatement);
+
             cancellationToken.ThrowIfCancellationRequested();
 
             editor.ReplaceNode(ifStatement, newStatement);
@@ -141,16 +145,28 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
                         SyntaxFactory.MemberBindingExpression(SyntaxFactory.IdentifierName(nameof(Action.Invoke))), invocationExpression.ArgumentList)));
 
             newStatement = newStatement.WithAdditionalAnnotations(Formatter.Annotation);
+            newStatement = AppendTriviaWithoutEndOfLines(newStatement, ifStatement);
 
             editor.ReplaceNode(ifStatement, newStatement);
             editor.RemoveNode(localDeclarationStatement, SyntaxRemoveOptions.KeepLeadingTrivia | SyntaxRemoveOptions.AddElasticMarker);
             cancellationToken.ThrowIfCancellationRequested();
         }
 
+        private static T AppendTriviaWithoutEndOfLines<T>(T newStatement, IfStatementSyntax ifStatement) where T : SyntaxNode
+        {
+            // We're combining trivia from the delegate invocation and the end of the if statement
+            // but we don't want two EndOfLines so we ignore the one on the invocation (if it exists)
+            var expressionTrivia = newStatement.GetTrailingTrivia();
+            var expressionTriviaWithoutEndOfLine = expressionTrivia.Where(t => !t.IsKind(SyntaxKind.EndOfLineTrivia));
+            var ifStatementTrivia = ifStatement.GetTrailingTrivia();
+
+            return newStatement.WithTrailingTrivia(expressionTriviaWithoutEndOfLine.Concat(ifStatementTrivia));
+        }
+
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpAnalyzersResources.Delegate_invocation_can_be_simplified, createChangedDocument)
+                : base(CSharpAnalyzersResources.Delegate_invocation_can_be_simplified, createChangedDocument, nameof(CSharpAnalyzersResources.Delegate_invocation_can_be_simplified))
             {
             }
         }

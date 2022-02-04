@@ -33,7 +33,9 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Show diagnostics for closed files;
+        <source>Underline reassigned variables;
+Display inline hints;
+Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
 Report invalid regular expressions;
@@ -78,17 +80,27 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
+Colorize regular expressions;
+Highlight related components under cursor;
+Report invalid regular expressions;
+JSON;
+Colorize JSON strings;
+Report invalid JSON strings;
+Detect and offer editor features for JSON strings;
 Use enhanced colors;
-Editor Color Scheme;</source>
-        <target state="needs-review-translation">顯示已關閉檔案的診斷;
-為規則運算式標示色彩; 
+Editor Color Scheme;
+Inheritance Margin;</source>
+        <target state="needs-review-translation">為重新指派的變數加上底線;
+顯示內嵌提示;
+顯示已關閉檔案的診斷;
+為規則運算式添加色彩; 
 醒目提示游標下的相關元件; 
 回報無效的規則運算式;
 啟用完整解決方案分析;
 在外部處理序中執行編輯器功能分析;
-允許瀏覽到反向組譯的來源;
-Using 指示詞;
-排序 using 時先放置系統指示詞;
+啟用瀏覽至反向組譯的來源;
+using 指示詞;
+排序使 using 先放置系統指示詞;
 分隔 using 指示詞群組;
 為參考組件中的類型建議 using;
 為 NuGet 套件中的類型建議 using;
@@ -100,11 +112,11 @@ Using 指示詞;
 顯示程序行分隔符號;
 顯示宣告層級建構的大綱;
 顯示程式碼層級建構的大綱;
-顯示註解和前置處理器區域的大綱;
+顯示註解與前置處理器區域的大綱;
 在摺疊到定義時摺疊區域;
-淡化;
-淡化未使用的 using;
-淡化無法執行到的程式碼;
+漸層;
+淡出未使用的 using;
+淡出無法執行到的程式碼;
 區塊結構輔助線;
 顯示宣告層級建構的輔助線;
 顯示程式碼層級建構的輔助線;
@@ -113,19 +125,21 @@ Using 指示詞;
 在撰寫 /* */ 註解時，於新行開頭插入 *;
 顯示重新命名追蹤的預覽;
 在按 Enter 鍵時分割字串常值;
-回報 string.Format 呼叫中的無效預留位置;
+回報 string.Format 呼叫中無效的預留位置;
 擷取方法;
 不要在自訂結構上放置 ref 或 out;
 實作介面或抽象類別;
 在插入屬性、事件和方法時，予以放置;
-並隨同其他同種類的成員;
-在結尾;
-在產生屬性時;
+隨同其他同種類的成員;
+結尾處;
+產生屬性時;
 建議使用擲回屬性;
 建議使用自動屬性;
 regex;
 規則運算式;
-使用增強色彩;</target>
+使用進階色彩;
+編輯器色彩配置;
+繼承頁面邊界</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -276,6 +290,7 @@ Show completion list after a character is deleted;
 Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
+Automatically complete statement on semicolon;
 Snippets behavior;
 Never include snippets;
 Always include snippets;
@@ -286,20 +301,23 @@ Only add new line on enter after end of fully typed word;
 Always add new line on enter;
 Show name suggestions;
 Show items from unimported namespaces (experimental);</source>
-        <target state="needs-review-translation">變更完成清單設定;預先選取最近使用的成員; 完成清單;
-在鍵入字元後顯示完成清單;
-在刪除字元後顯示完成清單;
-醒目提示完成清單項目的相符部分;
+        <target state="translated">變更自動完成清單設定;預先選取最近使用的成員; 自動完成清單;
+在鍵入字元後顯示自動完成清單;
+在刪除字元後顯示自動完成清單;
+自動在引數清單中顯示自動完成清單 (實驗性);
+醒目提示自動完成清單項目的相符部分;
 顯示完成項目篩選;
+在遇到分號時自動完成陳述式;
 程式碼片段行為;
-永不包含程式碼片段;
-永遠包含程式碼片段;
+一律不包含程式碼片段;
+一律包含程式碼片段;
 在識別碼後鍵入 ?-Tab 時包含程式碼片段;
-輸入按鍵行為;
-永不在按下 enter 鍵時新增行;
-只在按下 enter 鍵時，於完整鍵入的文字結尾後新增行;
-永遠在按下 enter 鍵時新增行;
-顯示名稱建議;</target>
+Enter 鍵行為;
+一律不在按下 Enter 鍵時新增一行程式碼;
+只在按下 Enter 鍵時，於完整鍵入的文字結尾後新增一行程式碼;
+一律在按下 Enter 鍵時新增一行程式碼;
+顯示名稱建議;
+顯示未匯入命名空間中的項目 (實驗性);</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">

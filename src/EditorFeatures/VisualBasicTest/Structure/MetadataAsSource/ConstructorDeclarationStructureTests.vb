@@ -33,8 +33,6 @@ End Class
                 Region("textspan", "hint", "Sub New() " & VisualBasicOutliningHelpers.Ellipsis, autoCollapse:=True))
         End Function
 
-
-
         <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>
         Public Async Function WithAttributes() As Task
             Dim code = "

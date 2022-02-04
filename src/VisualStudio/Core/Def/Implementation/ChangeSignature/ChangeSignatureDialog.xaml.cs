@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -20,15 +23,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         private readonly ChangeSignatureDialogViewModel _viewModel;
 
         // Expose localized strings for binding
-        public string ChangeSignatureDialogTitle { get { return ServicesVSResources.Change_Signature; } }
-        public string Parameters { get { return ServicesVSResources.Parameters_colon2; } }
-        public string PreviewMethodSignature { get { return ServicesVSResources.Preview_method_signature_colon; } }
-        public string PreviewReferenceChanges { get { return ServicesVSResources.Preview_reference_changes; } }
-        public string Remove { get { return ServicesVSResources.Re_move; } }
-        public string Restore { get { return ServicesVSResources.Restore; } }
-        public string Add { get { return ServicesVSResources.Add; } }
-        public string OK { get { return ServicesVSResources.OK; } }
-        public string Cancel { get { return ServicesVSResources.Cancel; } }
+        public static string ChangeSignatureDialogTitle { get { return ServicesVSResources.Change_Signature; } }
+        public static string CurrentParameter { get { return ServicesVSResources.Current_parameter; } }
+        public static string Parameters { get { return ServicesVSResources.Parameters_colon2; } }
+        public static string PreviewMethodSignature { get { return ServicesVSResources.Preview_method_signature_colon; } }
+        public static string PreviewReferenceChanges { get { return ServicesVSResources.Preview_reference_changes; } }
+        public static string Remove { get { return ServicesVSResources.Re_move; } }
+        public static string Restore { get { return ServicesVSResources.Restore; } }
+        public static string Add { get { return ServicesVSResources.Add; } }
+        public static string OK { get { return ServicesVSResources.OK; } }
+        public static string Cancel { get { return ServicesVSResources.Cancel; } }
+        public static string WarningTypeDoesNotBind { get { return ServicesVSResources.Warning_colon_type_does_not_bind; } }
+        public static string WarningDuplicateParameterName { get { return ServicesVSResources.Warning_colon_duplicate_parameter_name; } }
 
         public Brush ParameterText { get; }
         public Brush RemovedParameterText { get; }
@@ -81,6 +87,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private void MoveUp_Click(object sender, EventArgs e)
         {
+            MoveUp_UpdateSelectedIndex();
+            SetFocusToSelectedRow(false);
+        }
+
+        private void MoveUp_Click_FocusRow(object sender, EventArgs e)
+        {
+            MoveUp_UpdateSelectedIndex();
+            SetFocusToSelectedRow(true);
+        }
+
+        private void MoveUp_UpdateSelectedIndex()
+        {
             var oldSelectedIndex = Members.SelectedIndex;
             if (_viewModel.CanMoveUp && oldSelectedIndex >= 0)
             {
@@ -88,11 +106,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 Members.Items.Refresh();
                 Members.SelectedIndex = oldSelectedIndex - 1;
             }
-
-            SetFocusToSelectedRow();
         }
 
         private void MoveDown_Click(object sender, EventArgs e)
+        {
+            MoveDown_UpdateSelectedIndex();
+            SetFocusToSelectedRow(false);
+        }
+
+        private void MoveDown_Click_FocusRow(object sender, EventArgs e)
+        {
+            MoveDown_UpdateSelectedIndex();
+            SetFocusToSelectedRow(true);
+        }
+
+        private void MoveDown_UpdateSelectedIndex()
         {
             var oldSelectedIndex = Members.SelectedIndex;
             if (_viewModel.CanMoveDown && oldSelectedIndex >= 0)
@@ -101,8 +129,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 Members.Items.Refresh();
                 Members.SelectedIndex = oldSelectedIndex + 1;
             }
-
-            SetFocusToSelectedRow();
         }
 
         private void Remove_Click(object sender, RoutedEventArgs e)
@@ -113,7 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 Members.Items.Refresh();
             }
 
-            SetFocusToSelectedRow();
+            SetFocusToSelectedRow(true);
         }
 
         private void Restore_Click(object sender, RoutedEventArgs e)
@@ -124,7 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 Members.Items.Refresh();
             }
 
-            SetFocusToSelectedRow();
+            SetFocusToSelectedRow(true);
         }
 
         private void Add_Click(object sender, RoutedEventArgs e)
@@ -133,40 +159,68 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             var dialog = new AddParameterDialog(addParameterViewModel);
             var result = dialog.ShowModal();
 
+            ChangeSignatureLogger.LogAddParameterDialogLaunched();
+
             if (result.HasValue && result.Value)
             {
+                ChangeSignatureLogger.LogAddParameterDialogCommitted();
+
                 var addedParameter = new AddedParameter(
                     addParameterViewModel.TypeSymbol,
                     addParameterViewModel.TypeName,
                     addParameterViewModel.ParameterName,
-                    string.IsNullOrWhiteSpace(addParameterViewModel.CallSiteValue)
-                    ? ServicesVSResources.ChangeSignature_NewParameterIntroduceTODOVariable
-                    : addParameterViewModel.CallSiteValue);
+                    GetCallSiteKind(addParameterViewModel),
+                    addParameterViewModel.IsCallsiteRegularValue ? addParameterViewModel.CallSiteValue : string.Empty,
+                    addParameterViewModel.IsRequired,
+                    addParameterViewModel.IsRequired ? string.Empty : addParameterViewModel.DefaultValue,
+                    addParameterViewModel.TypeBinds);
 
                 _viewModel.AddParameter(addedParameter);
             }
 
-            SetFocusToSelectedRow();
+            SetFocusToSelectedRow(false);
         }
 
-        private void SetFocusToSelectedRow()
+        private static CallSiteKind GetCallSiteKind(AddParameterDialogViewModel addParameterViewModel)
+        {
+            if (addParameterViewModel.IsCallsiteInferred)
+                return CallSiteKind.Inferred;
+
+            if (addParameterViewModel.IsCallsiteOmitted)
+                return CallSiteKind.Omitted;
+
+            if (addParameterViewModel.IsCallsiteTodo)
+                return CallSiteKind.Todo;
+
+            Debug.Assert(addParameterViewModel.IsCallsiteRegularValue);
+
+            return addParameterViewModel.UseNamedArguments
+                ? CallSiteKind.ValueWithName
+                : CallSiteKind.Value;
+        }
+
+        private void SetFocusToSelectedRow(bool focusRow)
         {
             if (Members.SelectedIndex >= 0)
             {
-                if (!(Members.ItemContainerGenerator.ContainerFromIndex(Members.SelectedIndex) is DataGridRow row))
+                if (Members.ItemContainerGenerator.ContainerFromIndex(Members.SelectedIndex) is not DataGridRow row)
                 {
                     Members.ScrollIntoView(Members.SelectedItem);
                     row = Members.ItemContainerGenerator.ContainerFromIndex(Members.SelectedIndex) as DataGridRow;
                 }
 
-                if (row != null)
+                if (row != null && focusRow)
                 {
+                    // This line is required primarily for accessibility purposes to ensure the screenreader always
+                    // focuses on individual rows rather than the parent DataGrid.
+                    Members.UpdateLayout();
+
                     FocusRow(row);
                 }
             }
         }
 
-        private void FocusRow(DataGridRow row)
+        private static void FocusRow(DataGridRow row)
         {
             var cell = row.FindDescendant<DataGridCell>();
             if (cell != null)
@@ -187,7 +241,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 }
             }
 
-            SetFocusToSelectedRow();
+            SetFocusToSelectedRow(true);
         }
 
         private void MoveSelectionDown_Click(object sender, EventArgs e)
@@ -198,17 +252,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 Members.SelectedIndex = oldSelectedIndex + 1;
             }
 
-            SetFocusToSelectedRow();
+            SetFocusToSelectedRow(true);
         }
 
         private void Members_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
         {
+            if (Members.CurrentItem != null)
+            {
+                // When it has a valid value, CurrentItem is generally more up-to-date than SelectedIndex.
+                // For example, if the user clicks on an out of view item in the parameter list (i.e. the
+                // parameter list is long and the user scrolls to click another parameter farther down/up
+                // in the list), CurrentItem will update immediately while SelectedIndex will not.
+                Members.SelectedIndex = Members.Items.IndexOf(Members.CurrentItem);
+            }
+
             if (Members.SelectedIndex == -1)
             {
                 Members.SelectedIndex = _viewModel.GetStartingSelectionIndex();
             }
 
-            SetFocusToSelectedRow();
+            SetFocusToSelectedRow(true);
         }
 
         private void ToggleRemovedState(object sender, ExecutedRoutedEventArgs e)
@@ -223,11 +286,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             }
 
             Members.Items.Refresh();
-            SetFocusToSelectedRow();
+            SetFocusToSelectedRow(true);
         }
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {

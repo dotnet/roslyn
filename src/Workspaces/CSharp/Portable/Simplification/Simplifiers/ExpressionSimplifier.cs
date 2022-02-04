@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 {
     internal class ExpressionSimplifier : AbstractCSharpSimplifier<ExpressionSyntax, ExpressionSyntax>
     {
-        public static readonly ExpressionSimplifier Instance = new ExpressionSimplifier();
+        public static readonly ExpressionSimplifier Instance = new();
 
         private ExpressionSimplifier()
         {
@@ -400,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
         {
             var constructor = memberAccess.Ancestors().OfType<ConstructorDeclarationSyntax>().SingleOrDefault();
 
-            if (constructor == null || constructor.Parent.Kind() != SyntaxKind.StructDeclaration)
+            if (constructor == null || !constructor.Parent.IsKind(SyntaxKind.StructDeclaration, SyntaxKind.RecordStructDeclaration))
             {
                 return false;
             }
@@ -456,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers
 
                         if (containingType != null && !containingType.Equals(leftSymbol))
                         {
-                            if (leftSymbol is INamedTypeSymbol namedType &&
+                            if (leftSymbol is INamedTypeSymbol &&
                                 containingType.TypeArguments.Length != 0)
                             {
                                 return false;

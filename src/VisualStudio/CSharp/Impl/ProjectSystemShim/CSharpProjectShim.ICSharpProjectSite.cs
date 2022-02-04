@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -65,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
         public int OnImportAddedEx(string filename, string project, CompilerOptions optionID)
         {
-            if (optionID != CompilerOptions.OPTID_IMPORTS && optionID != CompilerOptions.OPTID_IMPORTSUSINGNOPIA)
+            if (optionID is not CompilerOptions.OPTID_IMPORTS and not CompilerOptions.OPTID_IMPORTSUSINGNOPIA)
             {
                 throw new ArgumentException("optionID was an unexpected value.", nameof(optionID));
             }

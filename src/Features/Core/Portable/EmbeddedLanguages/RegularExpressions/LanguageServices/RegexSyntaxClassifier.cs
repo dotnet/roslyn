@@ -2,15 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
     using static EmbeddedSyntaxHelpers;
 
@@ -35,31 +38,19 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         }
 
         public override void AddClassifications(
-            Workspace workspace, SyntaxToken token, SemanticModel semanticModel,
+            SyntaxToken token, SemanticModel semanticModel, ClassificationOptions options,
             ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             if (_info.StringLiteralTokenKind != token.RawKind)
-            {
                 return;
-            }
 
-            if (!workspace.Options.GetOption(RegularExpressionsOptions.ColorizeRegexPatterns, semanticModel.Language))
-            {
+            if (!options.ColorizeRegexPatterns)
                 return;
-            }
 
-            // Do some quick syntactic checks before doing any complex work.
-            if (!RegexPatternDetector.IsPossiblyPatternToken(token, _info.SyntaxFacts))
-            {
-                return;
-            }
-
-            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, _info);
-            var tree = detector?.TryParseRegexPattern(token, cancellationToken);
+            var detector = RegexLanguageDetector.GetOrCreate(semanticModel.Compilation, _info);
+            var tree = detector.TryParseString(token, semanticModel, cancellationToken);
             if (tree == null)
-            {
                 return;
-            }
 
             var visitor = s_visitorPool.Allocate();
             try
@@ -244,7 +235,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             public void Visit(RegexNegativeLookbehindGroupingNode node)
                 => ClassifyGrouping(node);
 
-            public void Visit(RegexNonBacktrackingGroupingNode node)
+            public void Visit(RegexAtomicGroupingNode node)
                 => ClassifyGrouping(node);
 
             public void Visit(RegexCaptureGroupingNode node)
@@ -325,7 +316,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             }
 
             public void Visit(RegexAlternationNode node)
-                => AddClassification(node.BarToken, ClassificationTypeNames.RegexAlternation);
+            {
+                for (var i = 1; i < node.SequenceList.NodesAndTokens.Length; i += 2)
+                    AddClassification(node.SequenceList.NodesAndTokens[i].Token, ClassificationTypeNames.RegexAlternation);
+            }
 
             public void Visit(RegexSimpleEscapeNode node)
                 => ClassifyWholeNode(node, node.IsSelfEscape()

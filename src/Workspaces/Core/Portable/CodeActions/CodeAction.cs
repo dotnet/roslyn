@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CaseCorrection;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -66,6 +65,19 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         internal virtual ImmutableArray<CodeAction> NestedCodeActions
             => ImmutableArray<CodeAction>.Empty;
+
+        /// <summary>
+        /// Gets custom tags for the CodeAction.
+        /// </summary>
+        internal ImmutableArray<string> CustomTags { get; set; } = ImmutableArray<string>.Empty;
+
+        /// <summary>
+        /// Used by the CodeFixService and CodeRefactoringService to add the Provider Name as a CustomTag.
+        /// </summary>
+        internal void AddCustomTag(string tag)
+        {
+            CustomTags = CustomTags.Add(tag);
+        }
 
         /// <summary>
         /// The sequence of operations that define the code action.
@@ -142,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// Computes all changes for an entire solution.
         /// Override this method if you want to implement a <see cref="CodeAction"/> subclass that changes more than one document.
         /// </summary>
-        protected async virtual Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
+        protected virtual async Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
         {
             var changedDocument = await GetChangedDocumentAsync(cancellationToken).ConfigureAwait(false);
             if (changedDocument == null)
@@ -170,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </remarks>
         /// <exception cref="NotSupportedException">If this code action does not support changing a single document.</exception>
         protected virtual Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
-            => throw new NotSupportedException();
+            => throw new NotSupportedException(GetType().FullName);
 
         /// <summary>
         /// used by batch fixer engine to get new solution
@@ -271,8 +283,10 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             if (document.SupportsSyntaxTree)
             {
+                var addImportOptions = await AddImportPlacementOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+
                 document = await ImportAdder.AddImportsFromSymbolAnnotationAsync(
-                    document, Simplifier.AddImportsAnnotation, safe: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    document, Simplifier.AddImportsAnnotation, addImportOptions, cancellationToken).ConfigureAwait(false);
 
                 document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 
@@ -287,17 +301,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
             return document;
         }
-
-        internal virtual bool PerformFinalApplicabilityCheck => false;
-
-        /// <summary>
-        /// Called by the CodeActions on the UI thread to determine if the CodeAction is still
-        /// applicable and should be presented to the user.  CodeActions can override this if they
-        /// need to do any final checking that must be performed on the UI thread (for example
-        /// accessing and querying the Visual Studio DTE).
-        /// </summary>
-        internal virtual bool IsApplicable(Workspace workspace)
-            => true;
 
         #region Factories for standard code actions
 
@@ -371,7 +374,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         internal abstract class SimpleCodeAction : CodeAction
         {
-            public SimpleCodeAction(string title, string? equivalenceKey)
+            public SimpleCodeAction(
+                string title,
+                string? equivalenceKey)
             {
                 Title = title;
                 EquivalenceKey = equivalenceKey;
@@ -384,8 +389,10 @@ namespace Microsoft.CodeAnalysis.CodeActions
         internal class CodeActionWithNestedActions : SimpleCodeAction
         {
             public CodeActionWithNestedActions(
-                string title, ImmutableArray<CodeAction> nestedActions,
-                bool isInlinable, CodeActionPriority priority = CodeActionPriority.Medium)
+                string title,
+                ImmutableArray<CodeAction> nestedActions,
+                bool isInlinable,
+                CodeActionPriority priority = CodeActionPriority.Medium)
                 : base(title, ComputeEquivalenceKey(nestedActions))
             {
                 Debug.Assert(nestedActions.Length > 0);
@@ -423,7 +430,10 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             private readonly Func<CancellationToken, Task<Document>> _createChangedDocument;
 
-            public DocumentChangeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string? equivalenceKey = null)
+            public DocumentChangeAction(
+                string title,
+                Func<CancellationToken, Task<Document>> createChangedDocument,
+                string? equivalenceKey)
                 : base(title, equivalenceKey)
             {
                 _createChangedDocument = createChangedDocument;
@@ -437,7 +447,10 @@ namespace Microsoft.CodeAnalysis.CodeActions
         {
             private readonly Func<CancellationToken, Task<Solution>> _createChangedSolution;
 
-            public SolutionChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string? equivalenceKey = null)
+            public SolutionChangeAction(
+                string title,
+                Func<CancellationToken, Task<Solution>> createChangedSolution,
+                string? equivalenceKey)
                 : base(title, equivalenceKey)
             {
                 _createChangedSolution = createChangedSolution;
@@ -449,7 +462,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         internal class NoChangeAction : SimpleCodeAction
         {
-            public NoChangeAction(string title, string? equivalenceKey = null)
+            public NoChangeAction(
+                string title,
+                string? equivalenceKey)
                 : base(title, equivalenceKey)
             {
             }

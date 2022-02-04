@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.ProjectTelemetry
 {
@@ -15,6 +14,6 @@ namespace Microsoft.CodeAnalysis.ProjectTelemetry
     /// </summary>
     internal interface IProjectTelemetryListener
     {
-        Task ReportProjectTelemetryDataAsync(ProjectTelemetryData data, CancellationToken cancellationToken);
+        ValueTask ReportProjectTelemetryDataAsync(ProjectTelemetryData data, CancellationToken cancellationToken);
     }
 }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 
 namespace Microsoft.CodeAnalysis.Options
@@ -13,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Options
     /// </summary>
     internal sealed class OptionGroup
     {
-        public static readonly OptionGroup Default = new OptionGroup(string.Empty, int.MaxValue);
+        public static readonly OptionGroup Default = new(string.Empty, int.MaxValue);
 
         public OptionGroup(string description, int priority)
         {

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic.DocumentationComments;
@@ -48,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocCommentFormatting
             results in <c>p</c>'s having the value (2,8).
             </example>";
 
-            var expected = "This method changes the point's location by the given x- and y-offsets. For example:\r\n\r\nPoint p = new Point(3,5); p.Translate(-1,3);\r\n\r\nresults in p's having the value (2,8).";
+            var expected = "This method changes the point's location by the given x- and y-offsets. For example:\r\n\r\n            Point p = new Point(3,5);\r\n            p.Translate(-1,3);\r\n            \r\n\r\nresults in p's having the value (2,8).";
 
             TestFormat(comment, expected);
         }

@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
     {
         public CSharpUseCompoundCoalesceAssignmentDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseCoalesceCompoundAssignmentDiagnosticId,
+                   EnforceOnBuildValues.UseCoalesceCompoundAssignment,
                    CodeStyleOptions2.PreferCompoundAssignment,
                    new LocalizableResourceString(nameof(AnalyzersResources.Use_compound_assignment), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
@@ -36,6 +37,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
         {
             var cancellationToken = context.CancellationToken;
             var semanticModel = context.SemanticModel;
+            var options = (CSharpParseOptions)semanticModel.SyntaxTree.Options;
+            if (options.LanguageVersion < LanguageVersion.CSharp8)
+                return;
+
             var coalesceExpression = (BinaryExpressionSyntax)context.Node;
 
             var option = context.GetOption(CodeStyleOptions2.PreferCompoundAssignment, coalesceExpression.Language);
@@ -47,10 +52,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment
             var coalesceLeft = coalesceExpression.Left;
             var coalesceRight = coalesceExpression.Right;
 
-            if (!(coalesceRight is ParenthesizedExpressionSyntax parenthesizedExpr))
+            if (coalesceRight is not ParenthesizedExpressionSyntax parenthesizedExpr)
                 return;
 
-            if (!(parenthesizedExpr.Expression is AssignmentExpressionSyntax assignment))
+            if (parenthesizedExpr.Expression is not AssignmentExpressionSyntax assignment)
                 return;
 
             if (assignment.Kind() != SyntaxKind.SimpleAssignmentExpression)

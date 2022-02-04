@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -16,9 +14,8 @@ namespace Microsoft.CodeAnalysis.Classification
 {
     internal partial class AbstractSyntaxClassificationService
     {
-        private struct Worker
+        private readonly ref struct Worker
         {
-            private readonly Workspace _workspace;
             private readonly SemanticModel _semanticModel;
             private readonly SyntaxTree _syntaxTree;
             private readonly TextSpan _textSpan;
@@ -28,17 +25,17 @@ namespace Microsoft.CodeAnalysis.Classification
             private readonly Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> _getTokenClassifiers;
             private readonly HashSet<ClassifiedSpan> _set;
             private readonly Stack<SyntaxNodeOrToken> _pendingNodes;
+            private readonly ClassificationOptions _options;
 
             private Worker(
-                Workspace workspace,
                 SemanticModel semanticModel,
                 TextSpan textSpan,
                 ArrayBuilder<ClassifiedSpan> list,
                 Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
                 Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers,
+                ClassificationOptions options,
                 CancellationToken cancellationToken)
             {
-                _workspace = workspace;
                 _getNodeClassifiers = getNodeClassifiers;
                 _getTokenClassifiers = getTokenClassifiers;
                 _semanticModel = semanticModel;
@@ -46,6 +43,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 _textSpan = textSpan;
                 _list = list;
                 _cancellationToken = cancellationToken;
+                _options = options;
 
                 // get one from pool
                 _set = SharedPools.Default<HashSet<ClassifiedSpan>>().AllocateAndClear();
@@ -53,15 +51,15 @@ namespace Microsoft.CodeAnalysis.Classification
             }
 
             internal static void Classify(
-                Workspace workspace,
                 SemanticModel semanticModel,
                 TextSpan textSpan,
                 ArrayBuilder<ClassifiedSpan> list,
                 Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
                 Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers,
+                ClassificationOptions options,
                 CancellationToken cancellationToken)
             {
-                var worker = new Worker(workspace, semanticModel, textSpan, list, getNodeClassifiers, getTokenClassifiers, cancellationToken);
+                var worker = new Worker(semanticModel, textSpan, list, getNodeClassifiers, getTokenClassifiers, options, cancellationToken);
 
                 try
                 {
@@ -130,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Classification
                     _cancellationToken.ThrowIfCancellationRequested();
 
                     result.Clear();
-                    classifier.AddClassifications(_workspace, syntax, _semanticModel, result, _cancellationToken);
+                    classifier.AddClassifications(syntax, _semanticModel, _options, result, _cancellationToken);
                     AddClassifications(result);
                 }
             }
@@ -165,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Classification
                     _cancellationToken.ThrowIfCancellationRequested();
 
                     result.Clear();
-                    classifier.AddClassifications(_workspace, syntax, _semanticModel, result, _cancellationToken);
+                    classifier.AddClassifications(syntax, _semanticModel, _options, result, _cancellationToken);
                     AddClassifications(result);
                 }
 

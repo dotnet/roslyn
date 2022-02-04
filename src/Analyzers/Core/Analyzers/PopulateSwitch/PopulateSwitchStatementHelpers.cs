@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -115,7 +113,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
             foreach (var member in enumType.GetMembers())
             {
                 // skip `.ctor` and `__value`
-                if (!(member is IFieldSymbol fieldSymbol) || fieldSymbol.Type.SpecialType != SpecialType.None)
+                if (member is not IFieldSymbol fieldSymbol || fieldSymbol.Type.SpecialType != SpecialType.None)
                 {
                     continue;
                 }

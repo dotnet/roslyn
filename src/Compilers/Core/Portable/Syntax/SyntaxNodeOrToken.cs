@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -130,6 +128,15 @@ namespace Microsoft.CodeAnalysis
         internal GreenNode? UnderlyingNode => _token ?? _nodeOrParent?.Green;
 
         internal int Position => _position;
+
+        internal GreenNode RequiredUnderlyingNode
+        {
+            get
+            {
+                Debug.Assert(UnderlyingNode is not null);
+                return UnderlyingNode;
+            }
+        }
 
         /// <summary>
         /// Determines whether this <see cref="SyntaxNodeOrToken"/> is wrapping a token.
@@ -553,7 +560,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Determines if this node or token has the specific annotation.
         /// </summary>
-        public bool HasAnnotation(SyntaxAnnotation annotation)
+        public bool HasAnnotation([NotNullWhen(true)] SyntaxAnnotation? annotation)
         {
             if (_token != null)
             {
@@ -750,6 +757,12 @@ namespace Microsoft.CodeAnalysis
 
             return (thisUnderlying == otherUnderlying) || (thisUnderlying != null && thisUnderlying.IsEquivalentTo(otherUnderlying));
         }
+
+        /// <summary>
+        /// See <see cref="SyntaxNode.IsIncrementallyIdenticalTo"/> and <see cref="SyntaxToken.IsIncrementallyIdenticalTo"/>.
+        /// </summary>
+        public bool IsIncrementallyIdenticalTo(SyntaxNodeOrToken other)
+            => this.UnderlyingNode != null && this.UnderlyingNode == other.UnderlyingNode;
 
         /// <summary>
         /// Returns a new <see cref="SyntaxNodeOrToken"/> that wraps the supplied token.

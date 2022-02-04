@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -22,7 +20,7 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
 {
     using static SimplifyBooleanExpressionConstants;
 
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.SimplifyConditionalExpression), Shared]
     internal sealed class SimplifyConditionalCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
@@ -53,7 +51,7 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
             var generator = SyntaxGenerator.GetGenerator(document);
             var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var diagnostic in diagnostics)
             {
@@ -73,7 +71,7 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
                 {
                     var right = diagnostic.Properties.ContainsKey(WhenTrue) ? whenTrue : whenFalse;
                     replacement = generator.LogicalAndExpression(condition, right);
-                };
+                }
 
                 editor.ReplaceNode(
                     expr, generatorInternal.AddParentheses(replacement.WithTriviaFrom(expr)));

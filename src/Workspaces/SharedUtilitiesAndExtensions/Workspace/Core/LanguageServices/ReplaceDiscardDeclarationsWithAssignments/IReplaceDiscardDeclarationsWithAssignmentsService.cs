@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -27,6 +29,6 @@ namespace Microsoft.CodeAnalysis.ReplaceDiscardDeclarationsWithAssignments
         /// where the code transformation wants to generate new discard assignment(s), which would be a compiler error.
         /// This method replaces such discard variable declarations with discard assignments.
         /// </summary>
-        Task<SyntaxNode> ReplaceAsync(SyntaxNode memberDeclaration, SemanticModel semanticModel, Workspace workspace, CancellationToken cancellationToken);
+        Task<SyntaxNode> ReplaceAsync(SyntaxNode memberDeclaration, SemanticModel semanticModel, HostWorkspaceServices services, CancellationToken cancellationToken);
     }
 }

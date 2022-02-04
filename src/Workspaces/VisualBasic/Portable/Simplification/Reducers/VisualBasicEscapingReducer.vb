@@ -19,7 +19,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             MyBase.New(s_pool)
         End Sub
 
+#Disable Warning IDE0060 ' Remove unused parameter - False positive, used as a delegate in a nested type.
+        ' https://github.com/dotnet/roslyn/issues/44226
         Private Shared Function TryUnescapeToken(identifier As SyntaxToken, semanticModel As SemanticModel, optionSet As OptionSet, cancellationToken As CancellationToken) As SyntaxToken
+#Enable Warning IDE0060 ' Remove unused parameter
             If Not identifier.IsBracketed Then
                 Return identifier
             End If

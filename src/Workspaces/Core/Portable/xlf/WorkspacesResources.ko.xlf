@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../WorkspacesResources.resx">
     <body>
+      <trans-unit id="A_project_may_not_reference_itself">
+        <source>A project may not reference itself.</source>
+        <target state="translated">프로젝트는 자신을 참조할 수 없습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adding_analyzer_config_documents_is_not_supported">
         <source>Adding analyzer config documents is not supported.</source>
         <target state="translated">분석기 구성 문서 추가는 지원되지 않습니다.</target>
@@ -17,6 +22,11 @@
         <target state="translated">C# 파일</target>
         <note />
       </trans-unit>
+      <trans-unit id="Cannot_apply_action_that_is_not_in_0">
+        <source>Cannot apply action that is not in '{0}'</source>
+        <target state="translated">'{0}'에 없는 작업을 적용할 수 없습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_analyzer_config_documents_is_not_supported">
         <source>Changing analyzer config documents is not supported.</source>
         <target state="translated">분석기 구성 문서 변경은 지원되지 않습니다.</target>
@@ -26,6 +36,11 @@
         <source>Changing document '{0}' is not supported.</source>
         <target state="translated">'{0}' 문서 변경은 지원되지 않습니다.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="CodeAction_{0}_did_not_produce_a_changed_solution">
+        <source>CodeAction '{0}' did not produce a changed solution</source>
+        <target state="translated">CodeAction '{0}'이(가) 변경된 솔루션을 생성하지 않았습니다.</target>
+        <note>"CodeAction" is a specific type, and {0} represents the title shown by the action.</note>
       </trans-unit>
       <trans-unit id="Core_EditorConfig_Options">
         <source>Core EditorConfig Options</source>
@@ -64,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Only_submission_project_can_reference_submission_projects">
         <source>Only submission project can reference submission projects.</source>
-        <target state="new">Only submission project can reference submission projects.</target>
+        <target state="translated">제출 프로젝트만 제출 프로젝트를 참조할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Options_did_not_come_from_specified_Solution">
@@ -72,9 +87,14 @@
         <target state="translated">옵션을 지정된 솔루션에서 가져오지 않음</target>
         <note />
       </trans-unit>
+      <trans-unit id="Predefined_conversion_from_0_to_1">
+        <source>Predefined conversion from {0} to {1}.</source>
+        <target state="translated">{0}에서 {1}(으)로의 미리 정의된 변환입니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Project_does_not_contain_specified_reference">
         <source>Project does not contain specified reference</source>
-        <target state="new">Project does not contain specified reference</target>
+        <target state="translated">지정된 참조가 프로젝트에 포함되어 있지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Refactoring_Only">
@@ -92,9 +112,14 @@
         <target state="translated">분석기 구성 문서 제거는 지원되지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Rename_0_to_1">
+        <source>Rename '{0}' to '{1}'</source>
+        <target state="translated">'{1}'(으)로 '{0}' 이름 바꾸기</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Solution_does_not_contain_specified_reference">
         <source>Solution does not contain specified reference</source>
-        <target state="new">Solution does not contain specified reference</target>
+        <target state="translated">지정된 참조가 솔루션에 포함되어 있지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
@@ -159,7 +184,7 @@
       </trans-unit>
       <trans-unit id="Duplicate_source_file_0_in_project_1">
         <source>Duplicate source file '{0}' in project '{1}'</source>
-        <target state="translated">{1}' 프로젝트에서 중복된 '{0}' 소스 파일입니다.</target>
+        <target state="translated">'{1}' 프로젝트에서 중복된 '{0}' 소스 파일입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_projects_is_not_supported">
@@ -172,19 +197,34 @@
         <target state="translated">프로젝트 추가가 지원되지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbols_project_could_not_be_found_in_the_provided_solution">
+        <source>Symbol's project could not be found in the provided solution</source>
+        <target state="translated">제공된 솔루션에서 기호의 프로젝트를 찾을 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sync_namespace_to_folder_structure">
+        <source>Sync namespace to folder structure</source>
+        <target state="translated">네임스페이스를 폴더 구조로 동기화</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_contents_of_a_SourceGeneratedDocument_may_not_be_changed">
+        <source>The contents of a SourceGeneratedDocument may not be changed.</source>
+        <target state="translated">SourceGeneratedDocument의 콘텐츠는 변경할 수 없습니다.</target>
+        <note>{locked:SourceGeneratedDocument}</note>
+      </trans-unit>
       <trans-unit id="The_project_already_contains_the_specified_reference">
         <source>The project already contains the specified reference.</source>
-        <target state="new">The project already contains the specified reference.</target>
+        <target state="translated">지정된 참조가 이미 프로젝트에 포함되어 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_solution_already_contains_the_specified_reference">
         <source>The solution already contains the specified reference.</source>
-        <target state="new">The solution already contains the specified reference.</target>
+        <target state="translated">지정된 참조가 이미 솔루션에 포함되어 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown">
         <source>Unknown</source>
-        <target state="new">Unknown</target>
+        <target state="translated">알 수 없음</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Basic_files">
@@ -209,7 +249,7 @@
       </trans-unit>
       <trans-unit id="_0_is_in_a_different_project">
         <source>{0} is in a different project.</source>
-        <target state="new">{0} is in a different project.</target>
+        <target state="translated">{0}이(가) 다른 프로젝트에 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_part_of_the_workspace">
@@ -234,7 +274,7 @@
       </trans-unit>
       <trans-unit id="Adding_project_reference_from_0_to_1_will_cause_a_circular_reference">
         <source>Adding project reference from '{0}' to '{1}' will cause a circular reference.</source>
-        <target state="translated">{0}'에서 '{1}'(으)로 프로젝트 참조를 추가하면 순환 참조가 됩니다.</target>
+        <target state="translated">'{0}'에서 '{1}'(으)로 프로젝트 참조를 추가하면 순환 참조가 됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Metadata_is_not_referenced">
@@ -264,7 +304,7 @@
       </trans-unit>
       <trans-unit id="The_language_0_is_not_supported">
         <source>The language '{0}' is not supported.</source>
-        <target state="translated">{0}' 언어는 지원되지 않습니다.</target>
+        <target state="translated">'{0}' 언어는 지원되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_solution_already_contains_the_specified_project">
@@ -280,11 +320,6 @@
       <trans-unit id="The_project_already_references_the_target_project">
         <source>The project already references the target project.</source>
         <target state="translated">프로젝트가 대상 프로젝트를 이미 참조하고 있습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_project_already_transitively_references_the_target_project">
-        <source>The project already transitively references the target project.</source>
-        <target state="translated">프로젝트가 대상 프로젝트를 이미 타동적으로 참조하고 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_solution_already_contains_the_specified_document">
@@ -404,7 +439,7 @@
       </trans-unit>
       <trans-unit id="Name_can_be_simplified">
         <source>Name can be simplified.</source>
-        <target state="translated">이름을 간단하게 줄일 수 있습니다.</target>
+        <target state="translated">이름을 단순화할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_identifier">
@@ -429,12 +464,12 @@
       </trans-unit>
       <trans-unit id="Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language">
         <source>Cannot open project '{0}' because the file extension '{1}' is not associated with a language.</source>
-        <target state="translated">{1}' 파일 확장명이 언어에 연결되어 있지 않아 '{0}' 프로젝트를 열 수 없습니다.</target>
+        <target state="translated">'{1}' 파일 확장명이 언어에 연결되어 있지 않아 '{0}' 프로젝트를 열 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_open_project_0_because_the_language_1_is_not_supported">
         <source>Cannot open project '{0}' because the language '{1}' is not supported.</source>
-        <target state="translated">{1}' 언어를 지원하지 않아 '{0}' 프로젝트를 열 수 없습니다.</target>
+        <target state="translated">'{1}' 언어를 지원하지 않아 '{0}' 프로젝트를 열 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_project_file_path_colon_0">
@@ -449,17 +484,17 @@
       </trans-unit>
       <trans-unit id="Project_file_not_found_colon_0">
         <source>Project file not found: '{0}'</source>
-        <target state="translated">{0}' 프로젝트 파일을 찾을 수 없습니다.</target>
+        <target state="translated">'{0}' 프로젝트 파일을 찾을 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Solution_file_not_found_colon_0">
         <source>Solution file not found: '{0}'</source>
-        <target state="translated">{0}' 솔루션 파일을 찾을 수 없습니다.</target>
+        <target state="translated">'{0}' 솔루션 파일을 찾을 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unmerged_change_from_project_0">
         <source>Unmerged change from project '{0}'</source>
-        <target state="translated">{0}' 프로젝트에서 병합되지 않은 변경 내용</target>
+        <target state="translated">'{0}' 프로젝트에서 병합되지 않은 변경 내용</target>
         <note />
       </trans-unit>
       <trans-unit id="Added_colon">
@@ -554,7 +589,7 @@
       </trans-unit>
       <trans-unit id="Service_of_type_0_is_required_to_accomplish_the_task_but_is_not_available_from_the_workspace">
         <source>Service of type '{0}' is required to accomplish the task but is not available from the workspace.</source>
-        <target state="translated">{0}' 유형의 서비스가 작업을 수행하는 데 필요하지만 작업 영역에서 사용할 수 없습니다.</target>
+        <target state="translated">'{0}' 유형의 서비스가 작업을 수행하는 데 필요하지만 작업 영역에서 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="At_least_one_diagnostic_must_be_supplied">
@@ -569,12 +604,12 @@
       </trans-unit>
       <trans-unit id="Cannot_deserialize_type_0">
         <source>Cannot deserialize type '{0}'.</source>
-        <target state="translated">{0}' 형식을 역직렬화할 수 없습니다.</target>
+        <target state="translated">'{0}' 형식을 역직렬화할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_serialize_type_0">
         <source>Cannot serialize type '{0}'.</source>
-        <target state="translated">{0}' 형식을 직렬화할 수 없습니다.</target>
+        <target state="translated">'{0}' 형식을 직렬화할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_type_0_is_not_understood_by_the_serialization_binder">
@@ -584,7 +619,7 @@
       </trans-unit>
       <trans-unit id="Label_for_node_0_is_invalid_it_must_be_within_bracket_0_1">
         <source>Label for node '{0}' is invalid, it must be within [0, {1}).</source>
-        <target state="translated">{0}' 노드의 레이블이 잘못되었습니다. [0, {1}) 내에 있어야 합니다.</target>
+        <target state="translated">'{0}' 노드의 레이블이 잘못되었습니다. [0, {1}) 내에 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Matching_nodes_0_and_1_must_have_the_same_label">
@@ -594,17 +629,17 @@
       </trans-unit>
       <trans-unit id="Node_0_must_be_contained_in_the_new_tree">
         <source>Node '{0}' must be contained in the new tree.</source>
-        <target state="translated">{0}' 노드가 새 트리에 포함되어야 합니다.</target>
+        <target state="translated">'{0}' 노드가 새 트리에 포함되어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Node_0_must_be_contained_in_the_old_tree">
         <source>Node '{0}' must be contained in the old tree.</source>
-        <target state="translated">{0}' 노드가 이전 트리에 포함되어야 합니다.</target>
+        <target state="translated">'{0}' 노드가 이전 트리에 포함되어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_member_0_is_not_declared_within_the_declaration_of_the_symbol">
         <source>The member '{0}' is not declared within the declaration of the symbol.</source>
-        <target state="translated">{0}' 멤버가 기호의 선언 내에서 선언되지 않았습니다.</target>
+        <target state="translated">'{0}' 멤버가 기호의 선언 내에서 선언되지 않았습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_position_is_not_within_the_symbol_s_declaration">
@@ -684,7 +719,7 @@
       </trans-unit>
       <trans-unit id="Deserialization_reader_for_0_read_incorrect_number_of_values">
         <source>Deserialization reader for '{0}' read incorrect number of values.</source>
-        <target state="translated">{0}'에 대한 역직렬화 판독기가 잘못된 숫자 값을 읽습니다.</target>
+        <target state="translated">'{0}'에 대한 역직렬화 판독기가 잘못된 숫자 값을 읽습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Async_Method">

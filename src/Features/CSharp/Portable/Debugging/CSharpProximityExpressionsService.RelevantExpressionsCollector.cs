@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -110,7 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
                 ExpressionSyntax component,
                 IList<string> expressions)
             {
-                if (!_includeDeclarations) return;
+                if (!_includeDeclarations)
+                    return;
 
                 switch (component.Kind())
                 {
@@ -137,14 +140,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
                 VariableDesignationSyntax component,
                 IList<string> expressions)
             {
-                if (!_includeDeclarations) return;
+                if (!_includeDeclarations)
+                    return;
 
                 switch (component.Kind())
                 {
                     case SyntaxKind.ParenthesizedVariableDesignation:
                         {
                             var t = (ParenthesizedVariableDesignationSyntax)component;
-                            foreach (var v in t.Variables) AddVariableExpressions(v, expressions);
+                            foreach (var v in t.Variables)
+                                AddVariableExpressions(v, expressions);
                             break;
                         }
                     case SyntaxKind.SingleVariableDesignation:

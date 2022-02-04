@@ -24,8 +24,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
     Partial Friend Class VisualBasicGenerateTypeService
         Inherits AbstractGenerateTypeService(Of VisualBasicGenerateTypeService, SimpleNameSyntax, ObjectCreationExpressionSyntax, ExpressionSyntax, TypeBlockSyntax, ArgumentSyntax)
 
-        Private Shared ReadOnly s_annotation As SyntaxAnnotation = New SyntaxAnnotation
-
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
@@ -212,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                             If nameOrMemberAccessExpression.Parent IsNot Nothing AndAlso TypeOf nameOrMemberAccessExpression.Parent Is QualifiedNameSyntax Then
                                 Return True
                             Else
-                                throw ExceptionUtilities.Unreachable
+                                Throw ExceptionUtilities.Unreachable
                             End If
                         Else
                             ' Case : NSOrSomething.GenType
@@ -356,7 +354,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             Return True
         End Function
 
-        Private Function GetMemberGroupIfPresent(semanticModel As SemanticModel, expression As ExpressionSyntax, cancellationToken As CancellationToken) As IMethodSymbol
+        Private Shared Function GetMemberGroupIfPresent(semanticModel As SemanticModel, expression As ExpressionSyntax, cancellationToken As CancellationToken) As IMethodSymbol
             If expression Is Nothing Then
                 Return Nothing
             End If
@@ -381,7 +379,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                 Dim typeArguments = If(state.SimpleName.Arity = genericName.TypeArgumentList.Arguments.Count,
                     genericName.TypeArgumentList.Arguments.OfType(Of SyntaxNode)().ToList(),
                     Enumerable.Repeat(Of SyntaxNode)(Nothing, state.SimpleName.Arity))
-                Return Me.GetTypeParameters(state, semanticModel, typeArguments, cancellationToken)
+                Return GetTypeParameters(state, semanticModel, typeArguments, cancellationToken)
             End If
 
             Return ImmutableArray(Of ITypeParameterSymbol).Empty
@@ -433,7 +431,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                 Dim containerList = New List(Of String)(containers)
                 Dim enclosingNamespace = GetDeclaringNamespace(containerList, 0, compilationUnit)
                 If enclosingNamespace IsNot Nothing Then
-                    Dim enclosingNamespaceSymbol = semanticModel.GetSymbolInfo(enclosingNamespace.Name)
+                    Dim enclosingNamespaceSymbol = semanticModel.GetSymbolInfo(enclosingNamespace.Name, cancellationToken)
                     If enclosingNamespaceSymbol.Symbol IsNot Nothing Then
                         Return (DirectCast(enclosingNamespaceSymbol.Symbol, INamespaceSymbol),
                                 namedTypeSymbol,
@@ -457,7 +455,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
 
         Private Function GetDeclaringNamespace(containers As List(Of String), indexDone As Integer, compilationUnit As CompilationUnitSyntax) As NamespaceStatementSyntax
             For Each member In compilationUnit.Members
-                Dim namespaceDeclaration = GetDeclaringNamespace(containers, 0, member)
+                Dim namespaceDeclaration = GetDeclaringNamespace(containers, indexDone, member)
                 If namespaceDeclaration IsNot Nothing Then
                     Return namespaceDeclaration
                 End If
@@ -512,7 +510,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             Return namespaceContainers.Count
         End Function
 
-        Private Function IdentifierMatches(indexDone As Integer, namespaceContainers As List(Of String), containers As List(Of String)) As Boolean
+        Private Shared Function IdentifierMatches(indexDone As Integer, namespaceContainers As List(Of String), containers As List(Of String)) As Boolean
             For index = 0 To namespaceContainers.Count - 1
                 If Not namespaceContainers(index).Equals(containers(indexDone + index), StringComparison.OrdinalIgnoreCase) Then
                     Return False
@@ -602,7 +600,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             Return False
         End Function
 
-        Private Function IsAllContainingTypeBlocksPublic(node As SyntaxNode) As Boolean
+        Private Shared Function IsAllContainingTypeBlocksPublic(node As SyntaxNode) As Boolean
             ' Make sure all the Ancestoral Type Blocks are Declared with Public Access Modifiers
             Dim containingTypeBlocks = node.GetAncestorsOrThis(Of TypeBlockSyntax)()
             If containingTypeBlocks.Count() = 0 Then
@@ -679,7 +677,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             Return updatedSolution
         End Function
 
-        Private Function GetPropertyType(propIdentifierName As SimpleNameSyntax,
+        Private Shared Function GetPropertyType(propIdentifierName As SimpleNameSyntax,
                                          semanticModel As SemanticModel,
                                          typeInference As ITypeInferenceService,
                                          cancellationToken As CancellationToken) As ITypeSymbol
@@ -688,10 +686,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             If fieldInitializer IsNot Nothing Then
                 Return typeInference.InferType(semanticModel, fieldInitializer.Name, True, cancellationToken)
             End If
+
             Return Nothing
         End Function
 
-        Private Function GenerateProperty(propertyName As SimpleNameSyntax, typeSymbol As ITypeSymbol) As IPropertySymbol
+        Private Shared Function GenerateProperty(propertyName As SimpleNameSyntax, typeSymbol As ITypeSymbol) As IPropertySymbol
             Return CodeGenerationSymbolFactory.CreatePropertySymbol(
                 attributes:=ImmutableArray(Of AttributeData).Empty,
                 accessibility:=Accessibility.Public,
@@ -711,8 +710,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                                                       typeInferenceService As ITypeInferenceService,
                                                       cancellationToken As CancellationToken,
                                                       ByRef propertySymbol As IPropertySymbol) As Boolean
-            propertySymbol = Nothing
-
             Dim typeSymbol = GetPropertyType(propertyName, semanticModel, typeInferenceService, cancellationToken)
             If typeSymbol Is Nothing OrElse TypeOf typeSymbol Is IErrorTypeSymbol Then
                 propertySymbol = GenerateProperty(propertyName, semanticModel.Compilation.ObjectType)
@@ -721,43 +718,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
 
             propertySymbol = GenerateProperty(propertyName, typeSymbol)
             Return propertySymbol IsNot Nothing
-        End Function
-
-        Friend Overrides Function GetDelegatingConstructor(document As SemanticDocument,
-                                                           objectCreation As ObjectCreationExpressionSyntax,
-                                                           namedType As INamedTypeSymbol,
-                                                           candidates As ISet(Of IMethodSymbol),
-                                                           cancellationToken As CancellationToken) As IMethodSymbol
-            Dim model = document.SemanticModel
-            Dim oldNode = objectCreation _
-                .AncestorsAndSelf(ascendOutOfTrivia:=False) _
-                .Where(Function(node) SpeculationAnalyzer.CanSpeculateOnNode(node)) _
-                .LastOrDefault()
-
-            Dim typeNameToReplace = objectCreation.Type
-            Dim newTypeName = namedType.GenerateTypeSyntax()
-            Dim newObjectCreation = objectCreation.WithType(newTypeName).WithAdditionalAnnotations(s_annotation)
-            Dim newNode = oldNode.ReplaceNode(objectCreation, newObjectCreation)
-
-            Dim speculativeModel = SpeculationAnalyzer.CreateSpeculativeSemanticModelForNode(oldNode, newNode, model)
-            If speculativeModel IsNot Nothing Then
-                newObjectCreation = DirectCast(newNode.GetAnnotatedNodes(s_annotation).Single(), ObjectCreationExpressionSyntax)
-                Dim symbolInfo = speculativeModel.GetSymbolInfo(newObjectCreation, cancellationToken)
-                Dim parameterTypes As IList(Of ITypeSymbol) = GetSpeculativeArgumentTypes(speculativeModel, newObjectCreation)
-                Return GenerateConstructorHelpers.GetDelegatingConstructor(
-                    document, symbolInfo, candidates, namedType, parameterTypes)
-            End If
-
-            Return Nothing
-        End Function
-
-        Private Shared Function GetSpeculativeArgumentTypes(model As SemanticModel, newObjectCreation As ObjectCreationExpressionSyntax) As IList(Of ITypeSymbol)
-            Return If(newObjectCreation.ArgumentList Is Nothing,
-                      SpecializedCollections.EmptyList(Of ITypeSymbol),
-                      newObjectCreation.ArgumentList.Arguments.Select(
-                          Function(a)
-                              Return If(a.GetExpression() Is Nothing, Nothing, model.GetTypeInfo(a.GetExpression()).ConvertedType)
-                          End Function).ToList())
         End Function
     End Class
 End Namespace

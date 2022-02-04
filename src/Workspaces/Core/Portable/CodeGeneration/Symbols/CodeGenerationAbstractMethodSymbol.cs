@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -22,13 +25,15 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             string name,
-            ImmutableArray<AttributeData> returnTypeAttributes)
-            : base(containingType, attributes, declaredAccessibility, modifiers, name)
+            ImmutableArray<AttributeData> returnTypeAttributes,
+            string documentationCommentXml = null)
+            : base(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, documentationCommentXml)
         {
             _returnTypeAttributes = returnTypeAttributes.NullToEmpty();
         }
 
         public abstract int Arity { get; }
+        public abstract System.Reflection.MethodImplAttributes MethodImplementationFlags { get; }
         public abstract bool ReturnsVoid { get; }
         public abstract bool ReturnsByRef { get; }
         public abstract bool ReturnsByRefReadonly { get; }
@@ -39,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract ImmutableArray<IParameterSymbol> Parameters { get; }
         public abstract IMethodSymbol ConstructedFrom { get; }
         public abstract bool IsReadOnly { get; }
+        public abstract bool IsInitOnly { get; }
         public abstract IMethodSymbol OverriddenMethod { get; }
         public abstract IMethodSymbol ReducedFrom { get; }
         public abstract ITypeSymbol GetTypeInferredDuringReduction(ITypeParameterSymbol reducedFromTypeParameter);
@@ -46,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract ImmutableArray<IMethodSymbol> ExplicitInterfaceImplementations { get; }
         public abstract IMethodSymbol PartialDefinitionPart { get; }
         public abstract IMethodSymbol PartialImplementationPart { get; }
+        public abstract bool IsPartialDefinition { get; }
 
         public NullableAnnotation ReceiverNullableAnnotation => ReceiverType.NullableAnnotation;
         public NullableAnnotation ReturnNullableAnnotation => ReturnType.NullableAnnotation;
@@ -88,6 +95,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public INamedTypeSymbol AssociatedAnonymousDelegate => null;
 
         public bool IsConditional => false;
+
+        public SignatureCallingConvention CallingConvention => SignatureCallingConvention.Default;
+
+        public ImmutableArray<INamedTypeSymbol> UnmanagedCallingConventionTypes => ImmutableArray<INamedTypeSymbol>.Empty;
 
         public IMethodSymbol Construct(params ITypeSymbol[] typeArguments)
             => new CodeGenerationConstructedMethodSymbol(this, typeArguments.ToImmutableArray());

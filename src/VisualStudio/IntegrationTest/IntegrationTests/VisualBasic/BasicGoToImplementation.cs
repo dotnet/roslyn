@@ -17,8 +17,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicGoToImplementation(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-                    : base(instanceFactory, testOutputHelper, nameof(BasicGoToImplementation))
+        public BasicGoToImplementation(VisualStudioInstanceFactory instanceFactory)
+                    : base(instanceFactory, nameof(BasicGoToImplementation))
         {
         }
 
@@ -38,7 +38,7 @@ End Class");
 @"Interface IGoo 
 End Interface");
             VisualStudio.Editor.PlaceCaret("Interface IGoo");
-            VisualStudio.Editor.GoToImplementation();
+            VisualStudio.Editor.GoToImplementation("FileImplementation.vb");
             VisualStudio.Editor.Verify.TextContains(@"Class Implementation$$", assertCaretPosition: true);
             Assert.False(VisualStudio.Shell.IsActiveTabProvisional());
         }

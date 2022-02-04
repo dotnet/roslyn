@@ -1,0 +1,18 @@
+<Project>
+
+  <PropertyGroup>
+    <GitHubRepositoryName>roslyn</GitHubRepositoryName>
+    <SourceBuildManagedOnly>true</SourceBuildManagedOnly>
+  </PropertyGroup>
+
+  <!--
+    The build script passes in the full path of the sln to build.  This must be overridden in order to build
+    the cloned source in the inner build.
+  -->
+  <Target Name="ConfigureInnerBuildArg" BeforeTargets="GetSourceBuildCommandConfiguration">
+    <PropertyGroup>
+      <InnerBuildArgs>$(InnerBuildArgs) /p:Projects="$(InnerSourceBuildRepoRoot)\Roslyn.sln"</InnerBuildArgs>
+    </PropertyGroup>
+  </Target>
+
+</Project>

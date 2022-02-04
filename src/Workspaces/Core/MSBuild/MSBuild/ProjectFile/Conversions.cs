@@ -11,13 +11,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
     /// </summary>
     internal static class Conversions
     {
-        public static bool ToBool(string value)
+        public static bool ToBool(string? value)
             => value != null
             && (string.Equals(bool.TrueString, value, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals("On", value, StringComparison.OrdinalIgnoreCase));
 
-
-        public static int ToInt(string value)
+        public static int ToInt(string? value)
         {
             if (value == null)
             {
@@ -25,12 +24,16 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
             else
             {
-                int.TryParse(value, out var result);
-                return result;
+                if (int.TryParse(value, out var result))
+                {
+                    return result;
+                }
+
+                return 0;
             }
         }
 
-        public static ulong ToULong(string value)
+        public static ulong ToULong(string? value)
         {
             if (value == null)
             {
@@ -38,12 +41,16 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
             else
             {
-                ulong.TryParse(value, out var result);
-                return result;
+                if (ulong.TryParse(value, out var result))
+                {
+                    return result;
+                }
+
+                return 0;
             }
         }
 
-        public static TEnum? ToEnum<TEnum>(string value, bool ignoreCase)
+        public static TEnum? ToEnum<TEnum>(string? value, bool ignoreCase)
             where TEnum : struct
         {
             if (value == null)

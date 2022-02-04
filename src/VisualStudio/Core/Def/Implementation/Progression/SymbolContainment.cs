@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -33,11 +35,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             return progressionLanguageService.GetTopLevelNodesFromDocument(root, cancellationToken);
         }
 
-        public static async Task<ImmutableArray<SymbolAndProjectId>> GetContainedSymbolsAsync(Document document, CancellationToken cancellationToken)
+        public static async Task<ImmutableArray<ISymbol>> GetContainedSymbolsAsync(Document document, CancellationToken cancellationToken)
         {
             var syntaxNodes = await GetContainedSyntaxNodesAsync(document, cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            using var _ = ArrayBuilder<SymbolAndProjectId>.GetInstance(out var symbols);
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
 
             foreach (var syntaxNode in syntaxNodes)
             {
@@ -48,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     !string.IsNullOrEmpty(symbol.Name) &&
                     IsTopLevelSymbol(symbol))
                 {
-                    symbols.Add(new SymbolAndProjectId(symbol, document.Project.Id));
+                    symbols.Add(symbol);
                 }
             }
 
@@ -71,9 +73,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
         }
 
-        public static IEnumerable<SymbolAndProjectId> GetContainedSymbols(SymbolAndProjectId symbolAndProjectId)
+        public static IEnumerable<ISymbol> GetContainedSymbols(ISymbol symbol)
         {
-            if (symbolAndProjectId.Symbol is INamedTypeSymbol namedType)
+            if (symbol is INamedTypeSymbol namedType)
             {
                 foreach (var member in namedType.GetMembers())
                 {
@@ -89,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                     if (!string.IsNullOrEmpty(member.Name))
                     {
-                        yield return symbolAndProjectId.WithSymbol(member);
+                        yield return member;
                     }
                 }
             }

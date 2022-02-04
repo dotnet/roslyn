@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
@@ -40,5 +39,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void FillTypeField(string typeName)
             => _inProc.FillTypeField(typeName);
+
+        public void SetCallSiteTodo()
+            => _inProc.SetCallSiteTodo();
     }
 }

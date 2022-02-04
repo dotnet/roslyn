@@ -23,15 +23,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 </Project>
             </Workspace>
 
-            Dim exportProvider = ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(GetType(TestCompletionProvider))).CreateExportProvider()
-            Using workspace = TestWorkspace.Create(workspaceDefinition, exportProvider:=exportProvider)
+            Dim composition = EditorTestCompositions.EditorFeatures.AddParts(
+                GetType(NoCompilationContentTypeDefinitions),
+                GetType(NoCompilationContentTypeLanguageService),
+                GetType(TestCompletionProvider))
+
+            Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=composition)
                 Dim document = workspace.CurrentSolution.Projects.First.Documents.First
                 Dim completionService = New TestCompletionService(workspace)
 
                 Dim list = Await completionService.GetCompletionsAsync(
-                    document, caretPosition:=0, trigger:=CompletionTrigger.Invoke)
+                    document, caretPosition:=0, options:=CompletionOptions.Default, trigger:=CompletionTrigger.Invoke)
 
-                Assert.NotNull(list)
                 Assert.NotEmpty(list.Items)
                 Assert.True(list.Items.Length = 1, "Completion list contained more than one item")
                 Assert.Equal("Completion Item From Test Completion Provider", list.Items.First.DisplayText)
@@ -50,6 +53,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     Return "NoCompilation"
                 End Get
             End Property
+
+            Friend Overrides Function GetRules(options As CompletionOptions) As CompletionRules
+                Return CompletionRules.Default
+            End Function
         End Class
 
         <ExportCompletionProvider(NameOf(TestCompletionProvider), "NoCompilation")>

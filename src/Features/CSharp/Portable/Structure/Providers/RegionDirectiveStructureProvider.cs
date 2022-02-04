@@ -5,8 +5,7 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 
@@ -31,10 +30,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
         }
 
         protected override void CollectBlockSpans(
+            SyntaxToken previousToken,
             RegionDirectiveTriviaSyntax regionDirective,
-            ArrayBuilder<BlockSpan> spans,
-            bool isMetadataAsSource,
-            OptionSet options,
+            ref TemporaryArray<BlockSpan> spans,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
             var match = regionDirective.GetMatchingDirective(cancellationToken);
@@ -48,8 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 //   #endregion
                 //
                 // For other files, auto-collapse regions based on the user option.
-                var autoCollapse = isMetadataAsSource || options.GetOption(
-                    BlockStructureOptions.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp);
+                var autoCollapse = options.IsMetadataAsSource || options.CollapseRegionsWhenCollapsingToDefinitions;
 
                 spans.Add(new BlockSpan(
                     isCollapsible: true,
@@ -57,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                     type: BlockTypes.PreprocessorRegion,
                     bannerText: GetBannerText(regionDirective),
                     autoCollapse: autoCollapse,
-                    isDefaultCollapsed: !isMetadataAsSource));
+                    isDefaultCollapsed: !options.IsMetadataAsSource));
             }
         }
     }

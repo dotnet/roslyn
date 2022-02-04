@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     return Task.FromResult<IEnumerable<Diagnostic>>(diagnostics);
                 }
 
-                return Task.FromResult(SpecializedCollections.EmptyEnumerable<Diagnostic>());
+                return SpecializedTasks.EmptyEnumerable<Diagnostic>();
             }
 
             public override Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project, CancellationToken cancellationToken)
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     return Task.FromResult<IEnumerable<Diagnostic>>(diagnostics);
                 }
 
-                return Task.FromResult(SpecializedCollections.EmptyEnumerable<Diagnostic>());
+                return SpecializedTasks.EmptyEnumerable<Diagnostic>();
             }
         }
     }

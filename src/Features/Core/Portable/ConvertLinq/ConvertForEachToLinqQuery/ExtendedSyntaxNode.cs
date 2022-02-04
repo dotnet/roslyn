@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
             SyntaxNode node,
             IEnumerable<SyntaxToken> extraLeadingTokens,
             IEnumerable<SyntaxToken> extraTrailingTokens)
-         : this(node, extraLeadingTokens.GetTrivia(), extraTrailingTokens.GetTrivia())
+            : this(node, extraLeadingTokens.GetTrivia(), extraTrailingTokens.GetTrivia())
         {
         }
 

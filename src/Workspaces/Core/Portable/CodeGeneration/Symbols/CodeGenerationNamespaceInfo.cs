@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
@@ -11,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     internal class CodeGenerationNamespaceInfo
     {
         private static readonly ConditionalWeakTable<INamespaceSymbol, CodeGenerationNamespaceInfo> s_namespaceToInfoMap =
-            new ConditionalWeakTable<INamespaceSymbol, CodeGenerationNamespaceInfo>();
+            new();
 
         private readonly IList<ISymbol> _imports;
 

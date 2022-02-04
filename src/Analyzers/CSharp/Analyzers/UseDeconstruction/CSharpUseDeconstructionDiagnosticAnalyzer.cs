@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
     {
         public CSharpUseDeconstructionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseDeconstructionDiagnosticId,
+                   EnforceOnBuildValues.UseDeconstruction,
                    CSharpCodeStyleOptions.PreferDeconstructedVariableDeclaration,
                    LanguageNames.CSharp,
                    new LocalizableResourceString(nameof(CSharpAnalyzersResources.Deconstruct_variable_declaration), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
@@ -63,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
         {
             if (!TryAnalyzeVariableDeclaration(
                     context.SemanticModel, variableDeclaration, out _,
-                    out var memberAccessExpressions, context.CancellationToken))
+                    out _, context.CancellationToken))
             {
                 return;
             }
@@ -81,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
         {
             if (!TryAnalyzeForEachStatement(
                     context.SemanticModel, forEachStatement, out _,
-                    out var memberAccessExpressions, context.CancellationToken))
+                    out _, context.CancellationToken))
             {
                 return;
             }
@@ -97,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
         public static bool TryAnalyzeVariableDeclaration(
             SemanticModel semanticModel,
             VariableDeclarationSyntax variableDeclaration,
-            out INamedTypeSymbol tupleType,
+            [NotNullWhen(true)] out INamedTypeSymbol? tupleType,
             out ImmutableArray<MemberAccessExpressionSyntax> memberAccessExpressions,
             CancellationToken cancellationToken)
         {
@@ -124,22 +126,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 return false;
             }
 
-            var local = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator, cancellationToken);
+            var local = (ILocalSymbol)semanticModel.GetRequiredDeclaredSymbol(declarator, cancellationToken);
+
             var initializerConversion = semanticModel.GetConversion(declarator.Initializer.Value, cancellationToken);
 
             return TryAnalyze(
                 semanticModel, local, variableDeclaration.Type, declarator.Identifier, initializerConversion,
-                variableDeclaration.Parent.Parent, out tupleType, out memberAccessExpressions, cancellationToken);
+                variableDeclaration.GetRequiredParent().GetRequiredParent(), out tupleType, out memberAccessExpressions, cancellationToken);
         }
 
         public static bool TryAnalyzeForEachStatement(
             SemanticModel semanticModel,
             ForEachStatementSyntax forEachStatement,
-            out INamedTypeSymbol tupleType,
+            [NotNullWhen(true)] out INamedTypeSymbol? tupleType,
             out ImmutableArray<MemberAccessExpressionSyntax> memberAccessExpressions,
             CancellationToken cancellationToken)
         {
-            var local = semanticModel.GetDeclaredSymbol(forEachStatement, cancellationToken);
+            var local = (ILocalSymbol)semanticModel.GetRequiredDeclaredSymbol(forEachStatement, cancellationToken);
             var elementConversion = semanticModel.GetForEachStatementInfo(forEachStatement).ElementConversion;
 
             return TryAnalyze(
@@ -154,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             SyntaxToken identifier,
             Conversion conversion,
             SyntaxNode searchScope,
-            out INamedTypeSymbol tupleType,
+            [NotNullWhen(true)] out INamedTypeSymbol? tupleType,
             out ImmutableArray<MemberAccessExpressionSyntax> memberAccessExpressions,
             CancellationToken cancellationToken)
         {
@@ -204,8 +207,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                     return false;
                 }
             }
-
-            var variableName = identifier.ValueText;
 
             using var _ = ArrayBuilder<MemberAccessExpressionSyntax>.GetInstance(out var references);
 
@@ -259,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 return true;
             }
 
-            if (type.IsKind(SyntaxKind.TupleType, out TupleTypeSyntax tupleType))
+            if (type.IsKind(SyntaxKind.TupleType, out TupleTypeSyntax? tupleType))
             {
                 // '(int x, int y) t' can be convered to '(int x, int y)'.  So all the elements
                 // need names.
@@ -267,9 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 foreach (var element in tupleType.Elements)
                 {
                     if (element.Identifier.IsKind(SyntaxKind.None))
-                    {
                         return false;
-                    }
                 }
 
                 return true;
@@ -291,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                     var symbol = semanticModel.GetSymbolInfo(identifierName, cancellationToken).GetAnySymbol();
                     if (local.Equals(symbol))
                     {
-                        if (!(identifierName.Parent is MemberAccessExpressionSyntax memberAccess))
+                        if (identifierName.Parent is not MemberAccessExpressionSyntax memberAccess)
                         {
                             // We referenced the local in a location where we're not accessing a 
                             // field off of it.  i.e. Console.WriteLine(tupleLocal);
@@ -299,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                         }
 
                         var member = semanticModel.GetSymbolInfo(memberAccess, cancellationToken).GetAnySymbol();
-                        if (!(member is IFieldSymbol field))
+                        if (member is not IFieldSymbol field)
                         {
                             // Accessed some non-field member of it (like .ToString()).
                             return false;

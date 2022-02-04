@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Partial Friend Class VisualBasicTriviaFormatter
         Inherits AbstractTriviaFormatter
 
-        Private _lineContinuationTrivia As SyntaxTrivia = SyntaxFactory.LineContinuationTrivia("_")
+        Private ReadOnly _lineContinuationTrivia As SyntaxTrivia = SyntaxFactory.LineContinuationTrivia("_")
         Private _newLine As SyntaxTrivia
 
         Private _succeeded As Boolean = True
@@ -54,8 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Protected Overrides Function CreateEndOfLine() As SyntaxTrivia
             If _newLine = Nothing Then
-                Dim text = Me.Context.Options.GetOption(FormattingOptions2.NewLine)
-                _newLine = SyntaxFactory.EndOfLine(text)
+                _newLine = SyntaxFactory.EndOfLine(Context.Options.NewLine)
             End If
 
             Return _newLine
@@ -65,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
             ' line continuation
             If trivia2.Kind = SyntaxKind.LineContinuationTrivia Then
-                Return LineColumnRule.ForceSpacesOrUseAbsoluteIndentation(spacesOrIndentation:=1)
+                Return LineColumnRule.ForceSpacesOrUseFollowIndentation(indentation:=0)
             End If
 
             If IsStartOrEndOfFile(trivia1, trivia2) Then
@@ -285,9 +284,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 forceIndentation:=True,
                 indentation:=indentation,
                 indentationDelta:=0,
-                useTab:=Me.Options.GetOption(FormattingOptions2.UseTabs),
-                tabSize:=Me.Options.GetOption(FormattingOptions2.TabSize),
-                newLine:=Me.Options.GetOption(FormattingOptions2.NewLine))
+                useTab:=Options.UseTabs,
+                tabSize:=Options.TabSize,
+                newLine:=Options.NewLine)
 
             If text = singlelineDocComments Then
                 Return trivia
@@ -299,5 +298,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return singlelineDocCommentTrivia.ElementAt(0)
         End Function
 
+        Protected Overrides Function LineContinuationFollowedByWhitespaceComment(trivia As SyntaxTrivia, nextTrivia As SyntaxTrivia) As Boolean
+            Return trivia.Kind = SyntaxKind.LineContinuationTrivia AndAlso nextTrivia.Kind = SyntaxKind.CommentTrivia
+        End Function
+
+        Protected Overrides Function IsVisualBasicComment(trivia As SyntaxTrivia) As Boolean
+            Return trivia.Kind = SyntaxKind.CommentTrivia
+        End Function
     End Class
 End Namespace

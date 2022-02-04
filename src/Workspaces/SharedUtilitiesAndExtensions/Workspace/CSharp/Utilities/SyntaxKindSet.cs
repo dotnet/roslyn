@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
@@ -56,44 +59,55 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 SyntaxKind.VolatileKeyword,
             };
 
-        public static readonly ISet<SyntaxKind> AllLocalFunctionModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
-        {
-            SyntaxKind.AsyncKeyword,
-            SyntaxKind.UnsafeKeyword,
-            SyntaxKind.ExternKeyword,
-            SyntaxKind.StaticKeyword
-        };
-
         public static readonly ISet<SyntaxKind> AllTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
             SyntaxKind.InterfaceDeclaration,
             SyntaxKind.ClassDeclaration,
+            SyntaxKind.RecordDeclaration,
             SyntaxKind.StructDeclaration,
-            SyntaxKind.EnumDeclaration
+            SyntaxKind.RecordStructDeclaration,
+            SyntaxKind.EnumDeclaration,
         };
 
-        public static readonly ISet<SyntaxKind> ClassInterfaceStructTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        public static readonly ISet<SyntaxKind> ClassInterfaceStructRecordTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
             SyntaxKind.InterfaceDeclaration,
             SyntaxKind.ClassDeclaration,
+            SyntaxKind.RecordDeclaration,
             SyntaxKind.StructDeclaration,
+            SyntaxKind.RecordStructDeclaration,
         };
 
-        public static readonly ISet<SyntaxKind> ClassInterfaceTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        public static readonly ISet<SyntaxKind> ClassInterfaceRecordTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
             SyntaxKind.InterfaceDeclaration,
             SyntaxKind.ClassDeclaration,
+            SyntaxKind.RecordDeclaration,
         };
 
-        public static readonly ISet<SyntaxKind> ClassStructTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        public static readonly ISet<SyntaxKind> ClassRecordTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
             SyntaxKind.ClassDeclaration,
+            SyntaxKind.RecordDeclaration,
+        };
+
+        public static readonly ISet<SyntaxKind> ClassStructRecordTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        {
+            SyntaxKind.ClassDeclaration,
+            SyntaxKind.RecordDeclaration,
             SyntaxKind.StructDeclaration,
+            SyntaxKind.RecordStructDeclaration,
         };
 
         public static readonly ISet<SyntaxKind> StructOnlyTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
         {
             SyntaxKind.StructDeclaration,
+            SyntaxKind.RecordStructDeclaration,
+        };
+
+        public static readonly ISet<SyntaxKind> InterfaceOnlyTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        {
+            SyntaxKind.InterfaceDeclaration,
         };
     }
 }

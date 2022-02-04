@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 // LICENSING NOTE: The license for this file is from the originating 
 // source and not the general https://github.com/dotnet/roslyn license.
 // See https://github.com/dotnet/corefx/blob/68b76c30eafb3647c11e3f766a2645b130ca1448/src/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexCharClass.cs
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     using static FeaturesResources;
 
     /// <summary>
-    /// Minimal copy of https://github.com/dotnet/corefx/blob/master/src/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexCharClass.cs
+    /// Minimal copy of https://github.com/dotnet/corefx/blob/main/src/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexCharClass.cs
     /// Used to accurately determine if something is a WordChar according to the .NET regex engine.
     /// </summary>
     internal static class RegexCharClass
@@ -35,7 +37,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         private const string WordClass = "\u0000\u0000\u000A\u0000\u0002\u0004\u0005\u0003\u0001\u0006\u0009\u0013\u0000";
 
         public static readonly Dictionary<string, (string shortDescription, string longDescription)> EscapeCategories =
-            new Dictionary<string, (string, string)>
+            new()
             {
                 // Others
                 { "Cc", (Regex_other_control, "") },
@@ -269,7 +271,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             // reverse this check.
             Debug.Assert((SETSTART & 0x1) == 1, "If SETSTART is not odd, the calculation below this will be reversed");
             if ((min & 0x1) == (start & 0x1))
+            {
                 return true;
+            }
             else
             {
                 if (myCategoryLength == 0)
@@ -292,7 +296,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 if (curcat == 0)
                 {
                     // zero is our marker for a group of categories - treated as a unit
-                    if (CharInCategoryGroup(ch, chcategory, set, ref i))
+                    if (CharInCategoryGroup(chcategory, set, ref i))
                         return true;
                 }
                 else if (curcat > 0)
@@ -302,13 +306,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     if (curcat == SpaceConst)
                     {
                         if (char.IsWhiteSpace(ch))
+                        {
                             return true;
+                        }
                         else
                         {
                             i++;
                             continue;
                         }
                     }
+
                     --curcat;
 
                     if (chcategory == (UnicodeCategory)curcat)
@@ -320,7 +327,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     if (curcat == NotSpaceConst)
                     {
                         if (!char.IsWhiteSpace(ch))
+                        {
                             return true;
+                        }
                         else
                         {
                             i++;
@@ -335,8 +344,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     if (chcategory != (UnicodeCategory)curcat)
                         return true;
                 }
+
                 i++;
             }
+
             return false;
         }
 
@@ -344,7 +355,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         /// This is used for categories which are composed of other categories - L, N, Z, W...
         /// These groups need special treatment when they are negated
         /// </summary>
-        private static bool CharInCategoryGroup(char ch, UnicodeCategory chcategory, string category, ref int i)
+        private static bool CharInCategoryGroup(UnicodeCategory chcategory, string category, ref int i)
         {
             i++;
 
@@ -362,9 +373,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                         if (chcategory == (UnicodeCategory)curcat)
                             answer = true;
                     }
+
                     i++;
                     curcat = (short)category[i];
                 }
+
                 return answer;
             }
             else
@@ -382,9 +395,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                         if (chcategory == (UnicodeCategory)curcat)
                             answer = false;
                     }
+
                     i++;
                     curcat = unchecked((short)category[i]);
                 }
+
                 return answer;
             }
         }

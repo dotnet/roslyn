@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -131,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
         }
 
-        internal sealed override LexicalSortKey GetLexicalSortKey()
+        internal override LexicalSortKey GetLexicalSortKey()
         {
             //For the sake of matching the metadata output of the native compiler, make synthesized constructors appear last in the metadata.
             //This is not critical, but it makes it easier on tools that are comparing metadata.
@@ -268,13 +270,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return containingType.CalculateSyntaxOffsetInSynthesizedConstructor(localPosition, localTree, isStatic: false);
         }
 
-        internal sealed override DiagnosticInfo GetUseSiteDiagnostic()
+        internal sealed override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            return ReturnTypeWithAnnotations.Type.GetUseSiteDiagnostic();
+            var result = new UseSiteInfo<AssemblySymbol>(PrimaryDependency);
+            MergeUseSiteInfo(ref result, ReturnTypeWithAnnotations.Type.GetUseSiteInfo());
+            return result;
         }
+
+        internal sealed override bool IsNullableAnalysisEnabled() =>
+            (ContainingType as SourceMemberContainerTypeSymbol)?.IsNullableEnabledForConstructorsAndInitializers(useStatic: false) ?? false;
+
         #endregion
 
-        protected void GenerateMethodBodyCore(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        protected void GenerateMethodBodyCore(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             var factory = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
             factory.CurrentFunction = this;
@@ -303,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             factory.CloseMethod(block);
         }
 
-        protected virtual void GenerateMethodBodyStatements(SyntheticBoundNodeFactory factory, ArrayBuilder<BoundStatement> statements, DiagnosticBag diagnostics)
+        internal virtual void GenerateMethodBodyStatements(SyntheticBoundNodeFactory factory, ArrayBuilder<BoundStatement> statements, BindingDiagnosticBag diagnostics)
         {
             // overridden in a derived class to add extra statements to the body of the generated constructor
         }

@@ -13,15 +13,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Common
     [Serializable]
     public class Signature : IEquatable<Signature>
     {
-        public string Content { get; set; }
+        public string? Content { get; set; }
 
-        public Parameter CurrentParameter { get; set; }
+        public Parameter? CurrentParameter { get; set; }
 
-        public string Documentation { get; set; }
+        public string? Documentation { get; set; }
 
-        public Parameter[] Parameters { get; set; }
+        public Parameter[]? Parameters { get; set; }
 
-        public string PrettyPrintedContent { get; set; }
+        public string? PrettyPrintedContent { get; set; }
 
         public Signature() { }
 
@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Common
             PrettyPrintedContent = actual.PrettyPrintedContent;
         }
 
-        public bool Equals(Signature other)
+        public bool Equals(Signature? other)
             => other != null
             && Comparison.AreStringValuesEqual(Content, other.Content)
             && Equals(CurrentParameter, other.CurrentParameter)
@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Common
             && Comparison.AreStringValuesEqual(Documentation, other.Documentation)
             && Comparison.AreArraysEqual(Parameters, other.Parameters);
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
             => Equals(obj as Signature);
 
         public override int GetHashCode()

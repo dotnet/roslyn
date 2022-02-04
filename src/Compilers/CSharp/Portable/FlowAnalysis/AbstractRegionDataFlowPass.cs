@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -45,6 +47,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             MakeSlots(node.Symbol.Parameters);
             return base.VisitLocalFunctionStatement(node);
+        }
+
+        public override BoundNode VisitNameOfOperator(BoundNameOfOperator node)
+        {
+            return node;
         }
 
         private void MakeSlots(ImmutableArray<ParameterSymbol> parameters)

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1678,8 +1680,9 @@ new public bool this[int index] { get; }
             ParseAndValidate(test,
                 new ErrorDescription { Code = 1001, Line = 1, Column = 13 },
                 new ErrorDescription { Code = 1003, Line = 1, Column = 13 },
-                new ErrorDescription { Code = 1003, Line = 1, Column = 17 },
-                new ErrorDescription { Code = 1514, Line = 1, Column = 17 },
+                new ErrorDescription { Code = 1003, Line = 1, Column = 16 },
+                new ErrorDescription { Code = 1514, Line = 1, Column = 16 },
+                new ErrorDescription { Code = 1014, Line = 1, Column = 16 },
                 new ErrorDescription { Code = 1513, Line = 1, Column = 17 });
 
             CreateCompilation(test).VerifyDiagnostics(
@@ -1689,12 +1692,15 @@ new public bool this[int index] { get; }
                 // (1,13): error CS1001: Identifier expected
                 // string this ="";
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "=").WithLocation(1, 13),
-                // (1,17): error CS1003: Syntax error, ']' expected
+                // (1,16): error CS1003: Syntax error, ']' expected
                 // string this ="";
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]", "").WithLocation(1, 17),
-                // (1,17): error CS1514: { expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(1, 16),
+                // (1,16): error CS1514: { expected
                 // string this ="";
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "").WithLocation(1, 17),
+                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(1, 16),
+                // (1,16): error CS1014: A get or set accessor expected
+                // string this ="";
+                Diagnostic(ErrorCode.ERR_GetOrSetExpected, ";").WithLocation(1, 16),
                 // (1,17): error CS1513: } expected
                 // string this ="";
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 17),
@@ -1947,15 +1953,15 @@ partial void Goo(){};
         public void EnumDeclaration()
         {
             var test = @"
-partial enum en {};
+partial enum @en {};
 ";
             CreateCompilation(test).VerifyDiagnostics(
-                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
-                // partial enum en {};
+                // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // partial enum @en {};
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1),
-                // (2,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
-                // partial enum en {};
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "en").WithLocation(2, 14));
+                // (2,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // partial enum @en {};
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "@en").WithLocation(2, 14));
         }
 
         [Fact]
@@ -2559,11 +2565,11 @@ fixed int x[10];
         {
             // pointer decl
             string test = @"a.b * c;";
-            ParseAndValidate(test, TestOptions.Regular);
+            ParseAndValidate(test, TestOptions.Regular9);
 
             // pointer decl
             test = @"a.b * c";
-            ParseAndValidate(test, TestOptions.Regular, new[] { new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 1, Column = 8 } }); // expected ';'
+            ParseAndValidate(test, TestOptions.Regular9, new[] { new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 1, Column = 8 } }); // expected ';'
 
             // multiplication
             test = @"a.b * c;";

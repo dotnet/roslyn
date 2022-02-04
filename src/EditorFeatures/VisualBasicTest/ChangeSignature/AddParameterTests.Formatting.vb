@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
     Partial Public Class ChangeSignatureTests
         Inherits AbstractChangeSignatureTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_Formatting_KeepCountsPerLine() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -28,7 +28,7 @@ End Class
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(5),
                 New AddedParameterOrExistingIndex(4),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(3),
                 New AddedParameterOrExistingIndex(2),
                 New AddedParameterOrExistingIndex(1),
@@ -48,7 +48,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_Formatting_SubMethods() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -61,7 +61,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -75,7 +75,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_Formatting_FunctionMethods() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -88,7 +88,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -102,7 +102,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_Formatting_Events() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -112,7 +112,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -123,7 +123,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_Formatting_CustomEvents() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -143,7 +143,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -164,7 +164,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_Formatting_Constructors() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -180,7 +180,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -197,7 +197,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_Formatting_Properties() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -220,7 +220,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -244,7 +244,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_Formatting_Attribute() As Task
             Dim markup = <Text><![CDATA[
 <Custom(1,
@@ -257,11 +257,11 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 <Custom(2,
-    x:=1, newIntegerParameter:=12345)>
+    12345, 1)>
 Class CustomAttribute
     Inherits Attribute
     Sub New(y As Integer, newIntegerParameter As Integer, x As Integer)
@@ -271,7 +271,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_Formatting_DelegateFunction() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -281,7 +281,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -292,7 +292,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_Formatting_MultilineSubLambda() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -306,7 +306,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -321,7 +321,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_Formatting_MultilineFunctionLambda() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -336,7 +336,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -352,7 +352,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_Formatting_SingleLineSubLambda() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -365,7 +365,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C
@@ -379,7 +379,7 @@ End Class
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=updatedSignature, expectedUpdatedInvocationDocumentCode:=expectedUpdatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_Formatting_SingleLineFunctionLambda() As Task
             Dim markup = <Text><![CDATA[
 Class C
@@ -392,7 +392,7 @@ End Class
 ]]></Text>.NormalizedValue()
             Dim updatedSignature = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim expectedUpdatedCode = <Text><![CDATA[
 Class C

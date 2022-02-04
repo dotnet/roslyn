@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
         Private Sub New()
         End Sub
 
-        Private Function IsCommaOfNewConditional(token As SyntaxToken) As Boolean
+        Private Shared Function IsCommaOfNewConditional(token As SyntaxToken) As Boolean
             If token.Kind() = SyntaxKind.CommaToken Then
                 Return token.Parent.HasAnnotation(
                         UseConditionalExpressionCodeFixHelpers.SpecializedFormattingAnnotation)
@@ -38,14 +38,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
         End Function
 
         Public Overrides Function GetAdjustNewLinesOperationSlow(
-                previousToken As SyntaxToken, currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
+                ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
             If IsCommaOfNewConditional(previousToken) Then
                 ' We want to force the expressions after the commas to be put on the 
                 ' next line.
                 Return FormattingOperations.CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLines)
             End If
 
-            Return nextOperation.Invoke()
+            Return nextOperation.Invoke(previousToken, currentToken)
         End Function
 
         Public Overrides Sub AddIndentBlockOperationsSlow(

@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
     Partial Public Class ChangeSignatureTests
         Inherits AbstractChangeSignatureTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddRemoveParameters() As Task
 
             Dim markup = <Text><![CDATA[
@@ -52,7 +52,7 @@ End Module
             Dim permutation = {
                 New AddedParameterOrExistingIndex(0),
                 New AddedParameterOrExistingIndex(3),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1),
                 New AddedParameterOrExistingIndex(5)}
             Dim updatedCode = <Text><![CDATA[
@@ -94,7 +94,7 @@ End Module
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameterToParameterlessMethod() As Task
 
             Dim markup = <Text><![CDATA[
@@ -106,7 +106,7 @@ End Module
 
 ]]></Text>.NormalizedValue()
             Dim permutation = {
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer")}
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer")}
             Dim updatedCode = <Text><![CDATA[
 Module Program
     Sub M(newIntegerParameter As Integer)
@@ -119,7 +119,7 @@ End Module
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_Parameters() As Task
 
             Dim markup = <Text><![CDATA[
@@ -129,7 +129,7 @@ Class C
 End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -141,7 +141,7 @@ End Class]]></Text>.NormalizedValue()
 
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_ParametersAndArguments() As Task
 
             Dim markup = <Text><![CDATA[
@@ -152,7 +152,7 @@ Class C
 End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -164,7 +164,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_ParametersAndArgumentsOfNestedCalls() As Task
 
             Dim markup = <Text><![CDATA[
@@ -175,7 +175,7 @@ Class C
 End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -187,7 +187,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_ReorderConstructorParametersAndArguments() As Task
 
             Dim markup = <Text><![CDATA[
@@ -210,7 +210,7 @@ Class C
 End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class D
@@ -234,7 +234,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_ReorderAttributeConstructorParametersAndArguments() As Task
 
             Dim markup = <Text><![CDATA[
@@ -247,10 +247,10 @@ Class C
 End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
-<C("two", x:=1, newIntegerParameter:=12345)>
+<C("two", 12345, 1)>
 Class C
     Inherits Attribute
 
@@ -261,7 +261,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_ExtensionMethodParametersAndArguments_StaticCall() As Task
 
             Dim markup = <Text><![CDATA[
@@ -279,7 +279,7 @@ End Module]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(0),
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1),
                 New AddedParameterOrExistingIndex(5),
                 New AddedParameterOrExistingIndex(4),
@@ -303,7 +303,7 @@ End Module]]></Text>.NormalizedValue()
                                                      expectedUpdatedInvocationDocumentCode:=updatedCode, expectedSelectedIndex:=0)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_ReorderExtensionMethodParametersAndArguments_ExtensionCall() As Task
 
             Dim markup = <Text><![CDATA[
@@ -322,7 +322,7 @@ End Module]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(0),
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1),
                 New AddedParameterOrExistingIndex(5),
                 New AddedParameterOrExistingIndex(4),
@@ -344,7 +344,7 @@ End Module]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_ReorderParamsMethodParametersAndArguments_ParamsAsArray() As Task
 
             Dim markup = <Text><![CDATA[
@@ -356,7 +356,7 @@ End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(1),
                 New AddedParameterOrExistingIndex(0),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(2)}
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -368,7 +368,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_ReorderParamsMethodParametersAndArguments_ParamsExpanded() As Task
 
             Dim markup = <Text><![CDATA[
@@ -380,7 +380,7 @@ End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(1),
                 New AddedParameterOrExistingIndex(0),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(2)}
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -392,7 +392,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_ReorderExtensionAndParamsMethodParametersAndArguments_VariedCallsites() As Task
 
             Dim markup = <Text><![CDATA[
@@ -416,7 +416,7 @@ End Module]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(0),
                 New AddedParameterOrExistingIndex(2),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(1),
                 New AddedParameterOrExistingIndex(3)}
             Dim updatedCode = <Text><![CDATA[
@@ -441,7 +441,7 @@ End Module]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_ReorderIndexerParametersAndArguments() As Task
 
             Dim markup = <Text><![CDATA[
@@ -462,7 +462,7 @@ Class C
 End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -484,7 +484,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_ReorderParamTagsInDocComments_OnIndividualLines() As Task
 
             Dim markup = <Text><![CDATA[
@@ -498,7 +498,7 @@ End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(2),
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -513,7 +513,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_ReorderParamTagsInDocComments_OnSameLine() As Task
 
             Dim markup = <Text><![CDATA[
@@ -525,7 +525,7 @@ End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(2),
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -538,7 +538,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_ReorderParamTagsInDocComments_OutOfOrder_MaintainsOrder() As Task
 
             Dim markup = <Text><![CDATA[
@@ -552,7 +552,7 @@ End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(2),
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -566,7 +566,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_ReorderParamTagsInDocComments_InsufficientTags_MaintainsOrder() As Task
 
             Dim markup = <Text><![CDATA[
@@ -579,7 +579,7 @@ End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(2),
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -592,7 +592,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_ReorderParamTagsInDocComments_ExcessiveTags_MaintainsOrder() As Task
 
             Dim markup = <Text><![CDATA[
@@ -607,7 +607,7 @@ End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(2),
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -622,7 +622,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_ReorderParamTagsInDocComments_IncorrectlyNamedTags_MaintainsOrder() As Task
 
             Dim markup = <Text><![CDATA[
@@ -636,7 +636,7 @@ End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(2),
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -650,7 +650,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_ReorderParamTagsInDocComments_OnFunctions() As Task
 
             Dim markup = <Text><![CDATA[
@@ -665,7 +665,7 @@ End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(2),
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -681,7 +681,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_ReorderParamTagsInDocComments_OnConstructors() As Task
 
             Dim markup = <Text><![CDATA[
@@ -695,7 +695,7 @@ End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(2),
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -710,7 +710,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_ReorderParamTagsInDocComments_OnProperties() As Task
 
             Dim markup = <Text><![CDATA[
@@ -729,7 +729,7 @@ End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(2),
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -749,7 +749,7 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function TestAddParameter_ReorderParametersInCrefs() As Task
 
             Dim markup = <Text><![CDATA[
@@ -762,7 +762,7 @@ Class C
 End Class]]></Text>.NormalizedValue()
             Dim permutation = {
                 New AddedParameterOrExistingIndex(1),
-                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
                 New AddedParameterOrExistingIndex(0)}
             Dim updatedCode = <Text><![CDATA[
 Class C
@@ -770,6 +770,87 @@ Class C
     ''' See <see cref="M(String, Integer, Integer)"/> and <see cref="M"/>
     ''' </summary>
     Sub M(y As String, newIntegerParameter As Integer, x As Integer)
+    End Sub
+End Class]]></Text>.NormalizedValue()
+
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
+        End Function
+
+        <WorkItem(49941, "https://github.com/dotnet/roslyn/issues/49941")>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        Public Async Function TestAddParameter_AddToInvocationWithoutParens() As Task
+
+            Dim markup = <Text><![CDATA[
+Class C
+    Sub M()
+        $$M
+        M()
+    End Sub
+End Class]]></Text>.NormalizedValue()
+            Dim permutation = {New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer")}
+            Dim updatedCode = <Text><![CDATA[
+Class C
+    Sub M(newIntegerParameter As Integer)
+        M(12345)
+        M(12345)
+    End Sub
+End Class]]></Text>.NormalizedValue()
+
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
+        End Function
+
+        <WorkItem(49941, "https://github.com/dotnet/roslyn/issues/49941")>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        Public Async Function TestAddParameter_AddToInvocationWithoutParens_WithOptionalParam() As Task
+
+            Dim markup = <Text><![CDATA[
+Class C
+    Sub M(Optional s As String = "str")
+        $$M
+        M()
+        M("test")
+    End Sub
+End Class]]></Text>.NormalizedValue()
+            Dim permutation = {
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "newIntegerParameter", CallSiteKind.Value, "12345"), "Integer"),
+                New AddedParameterOrExistingIndex(0)}
+            Dim updatedCode = <Text><![CDATA[
+Class C
+    Sub M(newIntegerParameter As Integer, Optional s As String = "str")
+        M(12345)
+        M(12345)
+        M(12345, "test")
+    End Sub
+End Class]]></Text>.NormalizedValue()
+
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
+        End Function
+
+        <WorkItem(49941, "https://github.com/dotnet/roslyn/issues/49941")>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        Public Async Function TestAddParameter_NoLastWhitespaceTrivia() As Task
+
+            Dim markup = <Text><![CDATA[
+Class C
+''' <summary>
+''' </summary>
+''' <param name="a"></param>
+Sub $$M(a As Integer)
+End Sub
+End Class]]></Text>.NormalizedValue()
+            Dim permutation =
+            {
+                New AddedParameterOrExistingIndex(0),
+                New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Integer", "b", CallSiteKind.Value), "Integer")
+            }
+
+            Dim updatedCode = <Text><![CDATA[
+Class C
+    ''' <summary>
+    ''' </summary>
+    ''' <param name="a"></param>
+    ''' <param name="b"></param>
+    Sub M(a As Integer, b As Integer)
     End Sub
 End Class]]></Text>.NormalizedValue()
 

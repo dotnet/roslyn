@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.NamingRuleId);
 
-        public override FixAllProvider GetFixAllProvider()
+        public override FixAllProvider? GetFixAllProvider()
         {
             // Currently Fix All is not supported for naming style violations.
             return null;
@@ -55,10 +55,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
             var document = context.Document;
             var span = context.Span;
 
-            var root = await document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             var node = root.FindNode(span);
 
-            if (document.GetLanguageService<ISyntaxFactsService>().IsIdentifierName(node))
+            if (document.GetRequiredLanguageService<ISyntaxFactsService>().IsIdentifierName(node))
             {
                 // The location we get from the analyzer only contains the identifier token and when we get its containing node,
                 // it is usually the right one (such as a variable declarator, designation or a foreach statement)
@@ -68,7 +68,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
                 node = node.Parent;
             }
 
-            var model = await document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+            if (node == null)
+                return;
+
+            var model = await document.GetRequiredSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
             var symbol = model.GetDeclaredSymbol(node, context.CancellationToken);
 
             // TODO: We should always be able to find the symbol that generated this diagnostic,
@@ -84,12 +87,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
             var fixedNames = style.MakeCompliant(symbol.Name);
             foreach (var fixedName in fixedNames)
             {
-                var solution = context.Document.Project.Solution;
                 context.RegisterCodeFix(
                     new FixNameCodeAction(
-                        solution,
+#if !CODE_STYLE
+                        document.Project.Solution,
                         symbol,
                         fixedName,
+#endif
                         string.Format(CodeFixesResources.Fix_Name_Violation_colon_0, fixedName),
                         c => FixAsync(document, symbol, fixedName, c),
                         equivalenceKey: nameof(NamingStyleCodeFixProvider)),
@@ -108,24 +112,31 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
 
         private class FixNameCodeAction : CodeAction
         {
+#if !CODE_STYLE
             private readonly Solution _startingSolution;
             private readonly ISymbol _symbol;
             private readonly string _newName;
+#endif
+
             private readonly string _title;
             private readonly Func<CancellationToken, Task<Solution>> _createChangedSolutionAsync;
             private readonly string _equivalenceKey;
 
             public FixNameCodeAction(
+#if !CODE_STYLE
                 Solution startingSolution,
                 ISymbol symbol,
                 string newName,
+#endif
                 string title,
                 Func<CancellationToken, Task<Solution>> createChangedSolutionAsync,
                 string equivalenceKey)
             {
+#if !CODE_STYLE
                 _startingSolution = startingSolution;
                 _symbol = symbol;
                 _newName = newName;
+#endif
                 _title = title;
                 _createChangedSolutionAsync = createChangedSolutionAsync;
                 _equivalenceKey = equivalenceKey;
@@ -144,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
 #if CODE_STYLE  // https://github.com/dotnet/roslyn/issues/42218 tracks removing this conditional code.
                 return SpecializedCollections.SingletonEnumerable(codeAction);
 #else
-                var factory = _startingSolution.Workspace.Services.GetService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
+                var factory = _startingSolution.Workspace.Services.GetRequiredService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
                 return new CodeActionOperation[]
                 {
                     codeAction,

@@ -2,13 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -56,11 +60,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
         }
     }
 
-    internal class FSharpInlineRenameReplacementInfo : IInlineRenameReplacementInfo
+    [Obsolete]
+    internal class FSharpInlineRenameReplacementInfoLegacyWrapper : IInlineRenameReplacementInfo
     {
         private readonly IFSharpInlineRenameReplacementInfo _info;
 
-        public FSharpInlineRenameReplacementInfo(IFSharpInlineRenameReplacementInfo info)
+        public FSharpInlineRenameReplacementInfoLegacyWrapper(IFSharpInlineRenameReplacementInfo info)
         {
             _info = info;
         }
@@ -78,12 +83,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
         }
     }
 
-    internal class FSharpInlineRenameLocationSet : IInlineRenameLocationSet
+    [Obsolete]
+    internal class FSharpInlineRenameLocationSetLegacyWrapper : IInlineRenameLocationSet
     {
         private readonly IFSharpInlineRenameLocationSet _set;
         private readonly IList<InlineRenameLocation> _locations;
 
-        public FSharpInlineRenameLocationSet(IFSharpInlineRenameLocationSet set)
+        public FSharpInlineRenameLocationSetLegacyWrapper(IFSharpInlineRenameLocationSet set)
         {
             _set = set;
             _locations = set.Locations?.Select(x => new InlineRenameLocation(x.Document, x.TextSpan)).ToList();
@@ -96,7 +102,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             var info = await _set.GetReplacementsAsync(replacementText, optionSet, cancellationToken).ConfigureAwait(false);
             if (info != null)
             {
-                return new FSharpInlineRenameReplacementInfo(info);
+                return new FSharpInlineRenameReplacementInfoLegacyWrapper(info);
             }
             else
             {
@@ -105,11 +111,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
         }
     }
 
-    internal class FSharpInlineRenameInfo : IInlineRenameInfo
+    [Obsolete]
+    internal class FSharpInlineRenameInfoLegacyWrapper : IInlineRenameInfo
     {
         private readonly IFSharpInlineRenameInfo _info;
 
-        public FSharpInlineRenameInfo(IFSharpInlineRenameInfo info)
+        public FSharpInlineRenameInfoLegacyWrapper(IFSharpInlineRenameInfo info)
         {
             _info = info;
         }
@@ -130,12 +137,15 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 
         public Glyph Glyph => FSharpGlyphHelpers.ConvertTo(_info.Glyph);
 
+        // This property isn't currently supported in F# since it would involve modifying the IFSharpInlineRenameInfo interface.
+        public ImmutableArray<DocumentSpan> DefinitionLocations => default;
+
         public async Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken)
         {
             var set = await _info.FindRenameLocationsAsync(optionSet, cancellationToken).ConfigureAwait(false);
             if (set != null)
             {
-                return new FSharpInlineRenameLocationSet(set);
+                return new FSharpInlineRenameLocationSetLegacyWrapper(set);
             }
             else
             {
@@ -143,7 +153,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             }
         }
 
-        public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string replacementText, CancellationToken cancellationToken)
+        public TextSpan? GetConflictEditSpan(InlineRenameLocation location, string triggerText, string replacementText, CancellationToken cancellationToken)
         {
             return _info.GetConflictEditSpan(new FSharpInlineRenameLocation(location.Document, location.TextSpan), replacementText, cancellationToken);
         }
@@ -153,7 +163,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
             return _info.GetFinalSymbolName(replacementText);
         }
 
-        public TextSpan GetReferenceEditSpan(InlineRenameLocation location, CancellationToken cancellationToken)
+        public TextSpan GetReferenceEditSpan(InlineRenameLocation location, string triggerText, CancellationToken cancellationToken)
         {
             return _info.GetReferenceEditSpan(new FSharpInlineRenameLocation(location.Document, location.TextSpan), cancellationToken);
         }
@@ -169,30 +179,42 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
         }
     }
 
+#nullable enable
     [Shared]
     [ExportLanguageService(typeof(IEditorInlineRenameService), LanguageNames.FSharp)]
     internal class FSharpEditorInlineRenameService : IEditorInlineRenameService
     {
-        private readonly IFSharpEditorInlineRenameService _service;
+        [Obsolete]
+        private readonly IFSharpEditorInlineRenameService? _legacyService;
+
+        private readonly FSharpInlineRenameServiceImplementation? _service;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FSharpEditorInlineRenameService(IFSharpEditorInlineRenameService service)
+        public FSharpEditorInlineRenameService(
+            [Import(AllowDefault = true)] IFSharpEditorInlineRenameService? legacyService,
+            [Import(AllowDefault = true)] FSharpInlineRenameServiceImplementation? service)
         {
+            _legacyService = legacyService;
             _service = service;
         }
 
         public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var info = await _service.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
-            if (info != null)
+#pragma warning disable CS0612 // Type or member is obsolete
+            if (_legacyService != null)
             {
-                return new FSharpInlineRenameInfo(info);
+                var info = await _legacyService.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
+                return (info != null) ? new FSharpInlineRenameInfoLegacyWrapper(info) : AbstractEditorInlineRenameService.DefaultFailureInfo;
             }
-            else
+#pragma warning restore CS0612 // Type or member is obsolete
+
+            if (_service != null)
             {
-                return null;
+                return await _service.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false) ?? AbstractEditorInlineRenameService.DefaultFailureInfo;
             }
+
+            return AbstractEditorInlineRenameService.DefaultFailureInfo;
         }
     }
 }

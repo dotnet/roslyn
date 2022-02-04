@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Public Class MockCompletionPresenterProvider
         Implements ICompletionPresenterProvider
 
-        Private _presenters As Dictionary(Of ITextView, ICompletionPresenter) = New Dictionary(Of ITextView, ICompletionPresenter)()
+        Private ReadOnly _presenters As Dictionary(Of ITextView, ICompletionPresenter) = New Dictionary(Of ITextView, ICompletionPresenter)()
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
@@ -37,6 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             If Not _presenters.ContainsKey(textView) Then
                 _presenters(textView) = New MockCompletionPresenter(textView)
             End If
+
             Return _presenters(textView)
         End Function
     End Class

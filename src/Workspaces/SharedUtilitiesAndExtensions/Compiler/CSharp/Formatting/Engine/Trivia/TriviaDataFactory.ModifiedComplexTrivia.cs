@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -20,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             private readonly ComplexTrivia _original;
 
-            public ModifiedComplexTrivia(AnalyzerConfigOptions options, ComplexTrivia original, int lineBreaks, int space)
+            public ModifiedComplexTrivia(SyntaxFormattingOptions options, ComplexTrivia original, int lineBreaks, int space)
                 : base(options, original.Token1.Language)
             {
                 Contract.ThrowIfNull(original);

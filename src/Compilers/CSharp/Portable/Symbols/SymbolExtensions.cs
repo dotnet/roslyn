@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -46,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns true if the members of superType are accessible from subType due to inheritance.
         /// </summary>
-        public static bool IsAccessibleViaInheritance(this NamedTypeSymbol superType, NamedTypeSymbol subType, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
+        public static bool IsAccessibleViaInheritance(this NamedTypeSymbol superType, NamedTypeSymbol subType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // NOTE: we don't use strict inheritance.  Instead we ignore constructed generic types
             // and only consider the unconstructed types.  Ecma-334, 4th edition contained the
@@ -62,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol originalSuperType = superType.OriginalDefinition;
             for (NamedTypeSymbol? current = subType;
                 (object?)current != null;
-                current = current.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
+                current = current.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
             {
                 if (ReferenceEquals(current.OriginalDefinition, originalSuperType))
                 {
@@ -72,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (originalSuperType.IsInterface)
             {
-                foreach (NamedTypeSymbol current in subType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
+                foreach (NamedTypeSymbol current in subType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteInfo))
                 {
                     if (ReferenceEquals(current.OriginalDefinition, originalSuperType))
                     {
@@ -86,14 +84,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return superType.TypeKind == TypeKind.Submission && subType.TypeKind == TypeKind.Submission;
         }
 
-        public static bool IsNoMoreVisibleThan(this Symbol symbol, TypeSymbol type, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
+        public static bool IsNoMoreVisibleThan(this Symbol symbol, TypeSymbol type, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            return type.IsAtLeastAsVisibleAs(symbol, ref useSiteDiagnostics);
+            return type.IsAtLeastAsVisibleAs(symbol, ref useSiteInfo);
         }
 
-        public static bool IsNoMoreVisibleThan(this Symbol symbol, TypeWithAnnotations type, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
+        public static bool IsNoMoreVisibleThan(this Symbol symbol, TypeWithAnnotations type, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            return type.IsAtLeastAsVisibleAs(symbol, ref useSiteDiagnostics);
+            return type.IsAtLeastAsVisibleAs(symbol, ref useSiteInfo);
+        }
+
+        internal static void AddUseSiteInfo(this Symbol? symbol, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool addDiagnostics = true)
+        {
+            if (symbol is null)
+            {
+                return;
+            }
+
+            if (!useSiteInfo.AccumulatesDiagnostics)
+            {
+                Debug.Assert(!useSiteInfo.AccumulatesDependencies);
+                return;
+            }
+
+            var info = symbol.GetUseSiteInfo();
+
+            if (addDiagnostics)
+            {
+                useSiteInfo.AddDiagnostics(info);
+            }
+
+            useSiteInfo.AddDependencies(info);
         }
 
         public static LocalizableErrorArgument GetKindText(this Symbol symbol)
@@ -250,6 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.ErrorType:
                 case SymbolKind.NamedType:
                 case SymbolKind.PointerType:
+                case SymbolKind.FunctionPointerType:
                 case SymbolKind.TypeParameter:
                     return true;
                 case SymbolKind.Alias:
@@ -265,16 +287,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return symbol.DeclaringCompilation.Options.AllowUnsafe;
         }
 
-        internal static void CheckUnsafeModifier(this Symbol symbol, DeclarationModifiers modifiers, DiagnosticBag diagnostics)
+        internal static void CheckUnsafeModifier(this Symbol symbol, DeclarationModifiers modifiers, BindingDiagnosticBag diagnostics)
         {
             symbol.CheckUnsafeModifier(modifiers, symbol.Locations[0], diagnostics);
         }
 
-        internal static void CheckUnsafeModifier(this Symbol symbol, DeclarationModifiers modifiers, Location errorLocation, DiagnosticBag diagnostics)
+        internal static void CheckUnsafeModifier(this Symbol symbol, DeclarationModifiers modifiers, Location errorLocation, BindingDiagnosticBag diagnostics)
         {
             if (((modifiers & DeclarationModifiers.Unsafe) == DeclarationModifiers.Unsafe) && !symbol.CompilationAllowsUnsafe())
             {
-                Debug.Assert(errorLocation != null);
+                RoslynDebug.Assert(errorLocation != null);
                 diagnostics.Add(ErrorCode.ERR_IllegalUnsafe, errorLocation);
             }
         }
@@ -419,6 +441,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return returnType;
         }
 
+        internal static FlowAnalysisAnnotations GetFlowAnalysisAnnotations(this PropertySymbol property)
+        {
+            var annotations = property.GetOwnOrInheritedGetMethod()?.ReturnTypeFlowAnalysisAnnotations ?? FlowAnalysisAnnotations.None;
+            if (property.GetOwnOrInheritedSetMethod()?.Parameters.Last().FlowAnalysisAnnotations is { } setterAnnotations)
+            {
+                annotations |= setterAnnotations;
+            }
+            else if (property is SourcePropertySymbolBase sourceProperty)
+            {
+                // When an auto-property without a setter has an AllowNull annotation,
+                // we need to search for its flow analysis annotations in a more roundabout way
+                // in order to properly handle assignment to the property (e.g. in a constructor).
+                if (sourceProperty.HasAllowNull)
+                {
+                    annotations |= FlowAnalysisAnnotations.AllowNull;
+                }
+                if (sourceProperty.HasDisallowNull)
+                {
+                    annotations |= FlowAnalysisAnnotations.DisallowNull;
+                }
+            }
+
+            return annotations;
+        }
+
+        internal static FlowAnalysisAnnotations GetFlowAnalysisAnnotations(this Symbol? symbol)
+        {
+            return symbol switch
+            {
+                MethodSymbol method => method.ReturnTypeFlowAnalysisAnnotations,
+                PropertySymbol property => property.GetFlowAnalysisAnnotations(),
+                ParameterSymbol parameter => parameter.FlowAnalysisAnnotations,
+                FieldSymbol field => field.FlowAnalysisAnnotations,
+                _ => FlowAnalysisAnnotations.None
+            };
+        }
+
         internal static void GetTypeOrReturnType(this Symbol symbol, out RefKind refKind, out TypeWithAnnotations returnType,
                                                  out ImmutableArray<CustomModifier> refCustomModifiers)
         {
@@ -472,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsImplementableInterfaceMember(this Symbol symbol)
         {
-            return !symbol.IsStatic && !symbol.IsSealed && (symbol.IsAbstract || symbol.IsVirtual) && (symbol.ContainingType?.IsInterface ?? false);
+            return !symbol.IsSealed && (symbol.IsAbstract || symbol.IsVirtual) && (symbol.ContainingType?.IsInterface ?? false);
         }
 
         internal static bool RequiresInstanceReceiver(this Symbol symbol)
@@ -606,6 +665,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static IPointerTypeSymbol? GetPublicSymbol(this PointerTypeSymbol? symbol)
         {
             return symbol.GetPublicSymbol<IPointerTypeSymbol>();
+        }
+
+        [return: NotNullIfNotNull("symbol")]
+        internal static IFunctionPointerTypeSymbol? GetPublicSymbol(this FunctionPointerTypeSymbol? symbol)
+        {
+            return symbol.GetPublicSymbol<IFunctionPointerTypeSymbol>();
         }
 
         [return: NotNullIfNotNull("symbol")]
@@ -743,6 +808,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static PropertySymbol? GetSymbol(this IPropertySymbol? symbol)
         {
             return symbol.GetSymbol<PropertySymbol>();
+        }
+
+        [return: NotNullIfNotNull("symbol")]
+        internal static FunctionPointerTypeSymbol? GetSymbol(this IFunctionPointerTypeSymbol? symbol)
+        {
+            return symbol.GetSymbol<FunctionPointerTypeSymbol>();
+        }
+
+        /// <summary>
+        /// Returns true if the method has a [AsyncMethodBuilder(typeof(B))] attribute. If so it returns type B.
+        /// Validation of builder type B is left for elsewhere. This method returns B without validation of any kind.
+        /// </summary>
+        internal static bool HasAsyncMethodBuilderAttribute(this Symbol symbol, [NotNullWhen(true)] out object? builderArgument)
+        {
+            Debug.Assert(symbol is not null);
+
+            // Find the AsyncMethodBuilder attribute.
+            foreach (var attr in symbol.GetAttributes())
+            {
+                if (attr.IsTargetAttribute(symbol, AttributeDescription.AsyncMethodBuilderAttribute)
+                    && attr.CommonConstructorArguments.Length == 1
+                    && attr.CommonConstructorArguments[0].Kind == TypedConstantKind.Type)
+                {
+                    builderArgument = attr.CommonConstructorArguments[0].ValueInternal!;
+                    return true;
+                }
+            }
+
+            builderArgument = null;
+            return false;
         }
     }
 }

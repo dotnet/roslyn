@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.NamingStyles;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
@@ -23,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         protected NamingStyleDiagnosticAnalyzerBase()
             : base(IDEDiagnosticIds.NamingRuleId,
+                   EnforceOnBuildValues.NamingRule,
                    option: null,    // No unique option to configure the diagnosticId
                    s_localizableTitleNamingStyle,
                    s_localizableMessageFormat)
@@ -42,12 +44,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         // see https://github.com/dotnet/roslyn/issues/14061
         protected abstract ImmutableArray<TLanguageKindEnum> SupportedSyntaxKinds { get; }
 
+        protected abstract bool ShouldIgnore(ISymbol symbol);
+
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(CompilationStartAction);
 
         private void CompilationStartAction(CompilationStartAnalysisContext context)
         {
-            var idToCachedResult = new ConcurrentDictionary<Guid, ConcurrentDictionary<string, string>>(
+            var idToCachedResult = new ConcurrentDictionary<Guid, ConcurrentDictionary<string, string?>>(
                 concurrencyLevel: 2, capacity: 0);
 
             context.RegisterSymbolAction(SymbolAction, _symbolKinds);
@@ -94,17 +98,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }
         }
 
-        private static readonly Func<Guid, ConcurrentDictionary<string, string>> s_createCache =
-            _ => new ConcurrentDictionary<string, string>(concurrencyLevel: 2, capacity: 0);
+        private static readonly Func<Guid, ConcurrentDictionary<string, string?>> s_createCache =
+            _ => new ConcurrentDictionary<string, string?>(concurrencyLevel: 2, capacity: 0);
 
-        private Diagnostic TryGetDiagnostic(
+        private Diagnostic? TryGetDiagnostic(
             Compilation compilation,
             ISymbol symbol,
             AnalyzerOptions options,
-            ConcurrentDictionary<Guid, ConcurrentDictionary<string, string>> idToCachedResult,
+            ConcurrentDictionary<Guid, ConcurrentDictionary<string, string?>> idToCachedResult,
             CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(symbol.Name))
+            {
+                return null;
+            }
+
+            if (symbol is IMethodSymbol methodSymbol && methodSymbol.IsEntryPoint(compilation.TaskType(), compilation.TaskOfTType()))
+            {
+                return null;
+            }
+
+            if (ShouldIgnore(symbol))
+            {
+                return null;
+            }
+
+            if (symbol.IsSymbolWithSpecialDiscardName())
             {
                 return null;
             }
@@ -140,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return null;
             }
 
-            var builder = ImmutableDictionary.CreateBuilder<string, string>();
+            var builder = ImmutableDictionary.CreateBuilder<string, string?>();
             builder[nameof(NamingStyle)] = applicableRule.NamingStyle.CreateXElement().ToString();
             builder["OptionName"] = nameof(NamingStyleOptions.NamingPreferences);
             builder["OptionLanguage"] = compilation.Language;
@@ -148,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             return DiagnosticHelper.Create(Descriptor, symbol.Locations.First(), applicableRule.EnforcementLevel, additionalLocations: null, builder.ToImmutable(), failureReason);
         }
 
-        private static NamingStylePreferences GetNamingStylePreferences(
+        private static NamingStylePreferences? GetNamingStylePreferences(
             Compilation compilation,
             ISymbol symbol,
             AnalyzerOptions options,

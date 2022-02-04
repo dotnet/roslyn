@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         /// Optional paired overload that takes a <see cref="T:System.Range"/>/<see cref="T:System.Index"/> parameter instead.
         /// </summary>
         [SuppressMessage("Documentation", "CA1200:Avoid using cref tags with a prefix", Justification = "Required to avoid ambiguous reference warnings.")]
-        public readonly IMethodSymbol OverloadedMethodOpt;
+        public readonly IMethodSymbol? OverloadedMethodOpt;
 
         public MemberInfo(
             IPropertySymbol lengthLikeProperty,
-            IMethodSymbol overloadedMethodOpt)
+            IMethodSymbol? overloadedMethodOpt)
         {
             LengthLikeProperty = lengthLikeProperty;
             OverloadedMethodOpt = overloadedMethodOpt;

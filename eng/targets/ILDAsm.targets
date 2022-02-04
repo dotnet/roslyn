@@ -1,0 +1,31 @@
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project>
+  <!-- 
+    This logic is adding the ILDASM executable to the runtime directory of all projects that include
+    this target file. The build provenance tools need this to decompile IL for debugging purposes.
+  -->
+  <ItemGroup>
+    <Content Include="$(NuGetPackageRoot)\runtime.win-x64.microsoft.netcore.ildasm\$(runtimeWinX64MicrosoftNETCoreILDAsmPackageVersion)\runtimes\**\*.*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <LinkBase>runtimes</LinkBase>
+      <Visible>false</Visible>
+      <Pack>false</Pack>
+    </Content>
+    <Content Include="$(NuGetPackageRoot)\runtime.linux-x64.microsoft.netcore.ildasm\$(runtimeLinuxX64MicrosoftNETCoreILDAsmPackageVersion)\runtimes\**\*.*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <LinkBase>runtimes</LinkBase>
+      <Visible>false</Visible>
+      <Pack>false</Pack>
+    </Content>
+    <Content Include="$(NuGetPackageRoot)\runtime.osx-x64.microsoft.netcore.ildasm\$(runtimeOSXX64MicrosoftNETCoreILDAsmPackageVersion)\runtimes\**\*.*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <LinkBase>runtimes</LinkBase>
+      <Visible>false</Visible>
+      <Pack>false</Pack>
+    </Content>
+
+    <PackageReference Include="runtime.win-x64.Microsoft.NETCore.ILDAsm" Version="$(runtimeWinX64MicrosoftNETCoreILDAsmPackageVersion)" ExcludeAssets="all" />
+    <PackageReference Include="runtime.linux-x64.Microsoft.NETCore.ILDAsm" Version="$(runtimeLinuxX64MicrosoftNETCoreILDAsmPackageVersion)" ExcludeAssets="all" />
+    <PackageReference Include="runtime.osx-x64.Microsoft.NETCore.ILDAsm" Version="$(runtimeOSXX64MicrosoftNETCoreILDAsmPackageVersion)" ExcludeAssets="all" />
+  </ItemGroup>
+</Project>

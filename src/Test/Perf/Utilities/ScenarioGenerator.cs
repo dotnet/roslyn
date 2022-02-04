@@ -1,6 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
+#nullable disable
+
 using System.Collections.Generic;
 using System.IO;
 using static Roslyn.Test.Performance.Utilities.TestUtilities;
@@ -10,8 +13,8 @@ namespace Roslyn.Test.Performance.Utilities
     public class ScenarioGenerator
     {
         private const string KernelProviderGuid = @"{9e814aad-3204-11d2-9a82-006008a86939}";
-        private string _fullPath;
-        private List<string> _buffer;
+        private readonly string _fullPath;
+        private readonly List<string> _buffer;
 
         public ScenarioGenerator()
         {

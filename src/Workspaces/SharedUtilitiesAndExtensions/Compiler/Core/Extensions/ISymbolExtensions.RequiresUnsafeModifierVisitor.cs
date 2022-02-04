@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         private class RequiresUnsafeModifierVisitor : SymbolVisitor<bool>
         {
-            private readonly HashSet<ISymbol> _visited = new HashSet<ISymbol>();
+            private readonly HashSet<ISymbol> _visited = new();
 
             public override bool DefaultVisit(ISymbol node)
             {
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             public override bool VisitDynamicType(IDynamicTypeSymbol symbol)
             {
-                // The dynamic type is never unsafe (well....you know what I mean
+                // The dynamic type is never unsafe (well....you know what I mean)
                 return false;
             }
 
@@ -62,6 +62,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             public override bool VisitPointerType(IPointerTypeSymbol symbol)
+            {
+                if (!_visited.Add(symbol))
+                {
+                    return false;
+                }
+
+                return true;
+            }
+
+            public override bool VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
             {
                 if (!_visited.Add(symbol))
                 {

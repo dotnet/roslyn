@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 namespace Microsoft.CodeAnalysis.Host.Mef
 {
     /// <summary>
@@ -11,6 +13,11 @@ namespace Microsoft.CodeAnalysis.Host.Mef
     /// </summary>
     public static class ServiceLayer
     {
+        /// <summary>
+        /// Service layer that overrides <see cref="Editor"/>, <see cref="Desktop"/> and <see cref="Default"/>.
+        /// </summary>
+        internal const string Test = nameof(Test);
+
         /// <summary>
         /// Service layer that overrides <see cref="Editor"/>, <see cref="Desktop"/> and <see cref="Default"/>.
         /// </summary>

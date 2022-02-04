@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 
 namespace Microsoft.CodeAnalysis.Formatting.Rules
@@ -35,8 +33,25 @@ namespace Microsoft.CodeAnalysis.Formatting.Rules
         RelativePositionMask = RelativeToFirstTokenOnBaseTokenLine | RelativePosition,
 
         /// <summary>
-        /// Mask for position options
+        /// Mask for position options.
         /// </summary>
-        PositionMask = RelativeToFirstTokenOnBaseTokenLine | RelativePosition | AbsolutePosition
+        /// <remarks>
+        /// Each <see cref="IndentBlockOperation"/> specifies one of the position options to indicate the primary
+        /// behavior for the operation.
+        /// </remarks>
+        PositionMask = RelativeToFirstTokenOnBaseTokenLine | RelativePosition | AbsolutePosition,
+
+        /// <summary>
+        /// Increase the <see cref="IndentBlockOperation.IndentationDeltaOrPosition"/> if the block is part of a
+        /// condition of the anchor token. For example:
+        /// 
+        /// <code>
+        /// if (value is
+        ///     { // This open brace token is part of a condition of the 'if' token.
+        ///         Length: 2
+        ///     })
+        /// </code>
+        /// </summary>
+        IndentIfConditionOfAnchorToken = 0x10,
     }
 }

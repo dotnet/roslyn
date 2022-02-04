@@ -11,8 +11,8 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    [ExportOptionProvider, Shared]
-    internal class InternalDiagnosticsOptionsProvider : IOptionProvider
+    [ExportSolutionOptionProvider, Shared]
+    internal sealed class InternalDiagnosticsOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -21,8 +21,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            InternalDiagnosticsOptions.CompilationEndCodeFix,
-            InternalDiagnosticsOptions.UseCompilationEndCodeFixHeuristic,
             InternalDiagnosticsOptions.PreferLiveErrorsOnOpenedFiles,
             InternalDiagnosticsOptions.PreferBuildErrorsOverLiveErrors);
     }

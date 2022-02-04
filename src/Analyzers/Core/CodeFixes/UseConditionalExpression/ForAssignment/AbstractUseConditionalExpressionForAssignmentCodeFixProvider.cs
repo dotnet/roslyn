@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -65,7 +63,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             var ifStatement = diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var ifOperation = (IConditionalOperation)semanticModel.GetOperation(ifStatement)!;
+            var ifOperation = (IConditionalOperation)semanticModel.GetOperation(ifStatement, cancellationToken)!;
 
             if (!UseConditionalExpressionForAssignmentHelpers.TryMatchPattern(
                     syntaxFacts, ifOperation,
@@ -161,7 +159,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             ILocalSymbol? local = null;
             if (trueAssignment != null)
             {
-                if (!(trueAssignment.Target is ILocalReferenceOperation trueLocal))
+                if (trueAssignment.Target is not ILocalReferenceOperation trueLocal)
                     return false;
 
                 local = trueLocal.Local;
@@ -169,7 +167,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             if (falseAssignment != null)
             {
-                if (!(falseAssignment.Target is ILocalReferenceOperation falseLocal))
+                if (falseAssignment.Target is not ILocalReferenceOperation falseLocal)
                     return false;
 
                 // See if both assignments are to the same local.
@@ -184,7 +182,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return false;
 
             // If so, see if that local was declared immediately above the if-statement.
-            if (!(ifOperation.Parent is IBlockOperation parentBlock))
+            if (ifOperation.Parent is not IBlockOperation parentBlock)
             {
                 return false;
             }
@@ -232,8 +230,8 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 var unwrapped = UnwrapImplicitConversion(variableInitializer.Value);
                 // the variable has to either not have an initializer, or it needs to be basic
                 // literal/default expression.
-                if (!(unwrapped is ILiteralOperation) &&
-                    !(unwrapped is IDefaultValueOperation))
+                if (unwrapped is not ILiteralOperation and
+                    not IDefaultValueOperation)
                 {
                     return false;
                 }
@@ -252,7 +250,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
                 return true;
             }
 
-            foreach (var child in operation.Children)
+            foreach (var child in operation.ChildOperations)
             {
                 if (ReferencesLocalVariable(child, variable))
                 {

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -31,6 +29,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (prologue != null)
             {
                 builder.Insert(0, prologue);
+            }
+            else if (node == _rootStatement && _factory.TopLevelMethod is SynthesizedSimpleProgramEntryPointSymbol entryPoint)
+            {
+                builder.Insert(0, _factory.HiddenSequencePoint());
             }
 
             BoundStatement? epilogue = _instrumenter.CreateBlockEpilogue(node);

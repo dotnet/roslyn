@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -53,10 +51,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// It is quite common for multiple projects to have the same set of analyzer references, yet we will create
         /// multiple instances of the analyzer list and thus not share the info.
         /// </remarks>
-        private ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, StrongBox<ImmutableDictionary<string, SkippedHostAnalyzersInfo>>> _skippedHostAnalyzers;
+        private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, StrongBox<ImmutableDictionary<string, SkippedHostAnalyzersInfo>>> _skippedHostAnalyzers;
 
-        internal HostDiagnosticAnalyzers(IEnumerable<AnalyzerReference> hostAnalyzerReferences)
+        internal HostDiagnosticAnalyzers(IReadOnlyList<AnalyzerReference> hostAnalyzerReferences)
         {
+            HostAnalyzerReferences = hostAnalyzerReferences;
             _hostAnalyzerReferencesMap = CreateAnalyzerReferencesMap(hostAnalyzerReferences);
             _hostDiagnosticAnalyzersPerLanguageMap = new ConcurrentDictionary<string, ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>>>(concurrencyLevel: 2, capacity: 2);
             _lazyHostDiagnosticAnalyzersPerReferenceMap = new Lazy<ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>>>(() => CreateDiagnosticAnalyzersPerReferenceMap(_hostAnalyzerReferencesMap), isThreadSafe: true);
@@ -66,10 +65,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// It returns a map with <see cref="AnalyzerReference.Id"/> as key and <see cref="AnalyzerReference"/> as value
+        /// List of host <see cref="AnalyzerReference"/>s
         /// </summary>
-        public ImmutableDictionary<object, AnalyzerReference> GetHostAnalyzerReferencesMap()
-            => _hostAnalyzerReferencesMap;
+        public IReadOnlyList<AnalyzerReference> HostAnalyzerReferences { get; }
 
         /// <summary>
         /// Get <see cref="AnalyzerReference"/> identity and <see cref="DiagnosticAnalyzer"/>s map for given <paramref name="language"/>
@@ -158,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableDictionary<object, AnalyzerReference> CreateProjectAnalyzerReferencesMap(IReadOnlyList<AnalyzerReference> projectAnalyzerReferences)
             => CreateAnalyzerReferencesMap(projectAnalyzerReferences.Where(reference => !_hostAnalyzerReferencesMap.ContainsKey(reference.Id)));
 
-        private ImmutableDictionary<object, ImmutableArray<DiagnosticDescriptor>> CreateDiagnosticDescriptorsPerReference(
+        private static ImmutableDictionary<object, ImmutableArray<DiagnosticDescriptor>> CreateDiagnosticDescriptorsPerReference(
             DiagnosticAnalyzerInfoCache infoCache,
             ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> analyzersMap)
         {

@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 
 namespace Roslyn.Utilities
 {
-    static internal class ComparerWithState
+    internal static class ComparerWithState
     {
         public static int CompareTo<T, S>(T first, T second, S state, ImmutableArray<Func<T, S, IComparable>> comparableMethods)
         {

@@ -2,14 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -26,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
     internal sealed class CSharpUseImplicitTypeHelper : CSharpTypeStyleHelper
     {
-        public static readonly CSharpUseImplicitTypeHelper Instance = new CSharpUseImplicitTypeHelper();
+        public static readonly CSharpUseImplicitTypeHelper Instance = new();
 
         private CSharpUseImplicitTypeHelper()
         {
@@ -50,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 typeName, semanticModel, optionSet, cancellationToken);
         }
 
-        protected override bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+        public override bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, CancellationToken cancellationToken)
         {
             var type = variableDeclaration.Type.StripRefIfNeeded();
             if (type.IsVar)
@@ -60,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             }
 
             // The base analyzer may impose further limitations
-            return base.ShouldAnalyzeVariableDeclaration(variableDeclaration, semanticModel, cancellationToken);
+            return base.ShouldAnalyzeVariableDeclaration(variableDeclaration, cancellationToken);
         }
 
         protected override bool ShouldAnalyzeForEachStatement(ForEachStatementSyntax forEachStatement, SemanticModel semanticModel, CancellationToken cancellationToken)
@@ -170,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             return false;
         }
 
-        private bool TryAnalyzeDeclarationExpression(
+        private static bool TryAnalyzeDeclarationExpression(
             DeclarationExpressionSyntax declarationExpression,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
@@ -211,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 declarationType, newDeclarationType);
         }
 
-        private bool IsSafeToSwitchToVarWithoutNeedingSpeculation(DeclarationExpressionSyntax declarationExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
+        private static bool IsSafeToSwitchToVarWithoutNeedingSpeculation(DeclarationExpressionSyntax declarationExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             // It's not always safe to convert a decl expression like "Method(out int i)" to
             // "Method(out var i)".  Changing to 'var' may cause overload resolution errors.
@@ -223,9 +222,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             // If there was only one member in the group, and it was non-generic itself, then this
             // change is commonly safe to make without having to actually change to `var` and
             // speculatively determine if the change is ok or not.
-            if (!(declarationExpression.Parent is ArgumentSyntax argument) ||
-                !(argument.Parent is ArgumentListSyntax argumentList) ||
-                !(argumentList.Parent is InvocationExpressionSyntax invocationExpression))
+            if (declarationExpression.Parent is not ArgumentSyntax argument ||
+                argument.Parent is not ArgumentListSyntax argumentList ||
+                argumentList.Parent is not InvocationExpressionSyntax invocationExpression)
             {
                 return false;
             }
@@ -246,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             // different names for those tuple elements.  Check and make sure the types are the
             // same before proceeding.
 
-            var invocationOp = semanticModel.GetOperation(invocationExpression) as IInvocationOperation;
+            var invocationOp = semanticModel.GetOperation(invocationExpression, cancellationToken) as IInvocationOperation;
             if (invocationOp == null)
                 return false;
 
@@ -286,14 +285,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return false;
             }
 
-            // cannot use implicit typing on method group or on dynamic
-            var declaredType = semanticModel.GetTypeInfo(typeName.StripRefIfNeeded(), cancellationToken).Type;
-            if (declaredType != null && declaredType.TypeKind == TypeKind.Dynamic)
+            // var cannot be used with target typed new
+            if (expression.IsKind(SyntaxKind.ImplicitObjectCreationExpression))
             {
                 return false;
             }
 
-            if (IsSwitchExpressionAndCannotUseVar(typeName, initializer, semanticModel))
+            // cannot use implicit typing on method group or on dynamic
+            var declaredType = semanticModel.GetTypeInfo(typeName.StripRefIfNeeded(), cancellationToken).Type;
+            if (declaredType != null && declaredType.TypeKind == TypeKind.Dynamic)
             {
                 return false;
             }
@@ -355,48 +355,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
             // The base analyzer may impose further limitations
             return base.ShouldAnalyzeDeclarationExpression(declaration, semanticModel, cancellationToken);
-        }
-
-        private bool IsSwitchExpressionAndCannotUseVar(TypeSyntax typeName, ExpressionSyntax initializer, SemanticModel semanticModel)
-        {
-            if (initializer.IsKind(SyntaxKind.SwitchExpression))
-            {
-                // We compare the variable declaration type to each arm's type to see if there is an exact match, or if the
-                // arm type inherits from the variable declaration type. If not, we must use the explicit type instead of var.
-                // Even if 'true' is returned from this method, it is not guaranteed that we can use var. Further checks should occur
-                // after this method is called, such as checking if multiple implicit coversions exist.
-                var declarationType = semanticModel.GetTypeInfo(typeName).Type;
-                var noValidTypeExpressions = true;
-                if (declarationType != null)
-                {
-                    foreach (var arm in ((SwitchExpressionSyntax)initializer).Arms)
-                    {
-                        var expression = arm.Expression;
-                        if (expression.IsKind(SyntaxKind.ParenthesizedExpression, out ParenthesizedExpressionSyntax? parenExpression))
-                        {
-                            expression = parenExpression.WalkDownParentheses();
-                        }
-
-                        if (!expression.IsKind(SyntaxKind.ThrowExpression) && !expression.IsKind(SyntaxKind.NullLiteralExpression) && !expression.IsKind(SyntaxKind.DefaultLiteralExpression))
-                        {
-                            noValidTypeExpressions = false;
-                            var expressionType = semanticModel.GetTypeInfo(expression).Type;
-                            if (expressionType != null && !expressionType.InheritsFromOrEquals(declarationType))
-                            {
-                                return true;
-                            }
-                        }
-                    }
-                }
-
-                // If all arms are either throw statements, null literal expressions, or default literal expressions, return true.
-                if (noValidTypeExpressions)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
     }
 }

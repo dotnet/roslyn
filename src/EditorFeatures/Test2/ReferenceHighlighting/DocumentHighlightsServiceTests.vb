@@ -4,16 +4,17 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.DocumentHighlighting
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
-    <[UseExportProvider]>
+    <UseExportProvider, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
     Public Class DocumentHighlightsServiceTests
 
         <WorkItem(441151, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/441151")>
-        <Fact, Trait(Traits.Feature, Traits.Features.ReferenceHighlighting)>
-        Public Async Function TestMultipleLanguagesPassedToAPI() As Task
+        <Theory, CombinatorialData>
+        Public Async Function TestMultipleLanguagesPassedToAPI(testHost As TestHost) As Task
             Dim workspaceElement =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -34,16 +35,21 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
                         </Document>
                     </Project>
                 </Workspace>
-            Using workspace = TestWorkspace.Create(workspaceElement)
+            Using workspace = TestWorkspace.Create(workspaceElement, composition:=EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost))
                 Dim position = workspace.DocumentWithCursor.CursorPosition.Value
 
                 Dim solution = workspace.CurrentSolution
                 Dim csharpDocument = solution.Projects.Single(Function(p) p.Language = LanguageNames.CSharp).Documents.Single()
                 Dim vbDocument = solution.Projects.Single(Function(p) p.Language = LanguageNames.VisualBasic).Documents.Single()
+                Dim options = New DocumentHighlightingOptions()
 
-                Dim service = csharpDocument.GetLanguageService(Of Microsoft.CodeAnalysis.DocumentHighlighting.IDocumentHighlightsService)
-                Await service.GetDocumentHighlightsAsync(
-                    csharpDocument, position, ImmutableHashSet.Create(csharpDocument, vbDocument), CancellationToken.None)
+                Dim service = csharpDocument.GetLanguageService(Of IDocumentHighlightsService)
+                Dim highlights = Await service.GetDocumentHighlightsAsync(
+                    csharpDocument, position, ImmutableHashSet.Create(csharpDocument, vbDocument), options, CancellationToken.None)
+
+                AssertEx.Equal(
+                    {"Test1.cs: Reference [102..108)"},
+                    highlights.Select(Function(h) $"{h.Document.Name}: {String.Join(",", h.HighlightSpans.Select(Function(span) $"{span.Kind} {span.TextSpan}"))}"))
             End Using
         End Function
     End Class

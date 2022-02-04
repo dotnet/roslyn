@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -14,9 +12,9 @@ namespace Microsoft.CodeAnalysis.QuickInfo
     {
         private class ErrorVisitor : SymbolVisitor<bool>
         {
-            private static readonly ErrorVisitor s_instance = new ErrorVisitor();
+            private static readonly ErrorVisitor s_instance = new();
 
-            public static bool ContainsError(ISymbol symbol)
+            public static bool ContainsError(ISymbol? symbol)
                 => s_instance.Visit(symbol);
 
             public override bool DefaultVisit(ISymbol symbol)

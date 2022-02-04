@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
@@ -9,7 +11,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Persistence
 {
-    [ExportWorkspaceService(typeof(IProjectCacheHostService), "NotKeptAlive"), Shared]
+    [ExportWorkspaceService(typeof(IProjectCacheHostService), ServiceLayer.Test), Shared, PartNotDiscoverable]
     public class TestProjectCacheService : IProjectCacheHostService
     {
         [ImportingConstructor]
@@ -17,6 +19,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Persistence
         public TestProjectCacheService()
         {
         }
+
+        public int MinimumLengthForRecoverableTree
+            => 0;
 
         T IProjectCacheHostService.CacheObjectIfCachingEnabledForKey<T>(ProjectId key, ICachedObjectOwner owner, T instance)
             => instance;

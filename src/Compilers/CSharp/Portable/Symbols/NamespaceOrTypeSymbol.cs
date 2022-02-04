@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
@@ -197,13 +196,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxKind kind,
             CSharpSyntaxNode syntax)
         {
-            Debug.Assert(
-                kind == SyntaxKind.ClassDeclaration ||
-                kind == SyntaxKind.StructDeclaration ||
-                kind == SyntaxKind.InterfaceDeclaration ||
-                kind == SyntaxKind.EnumDeclaration ||
-                kind == SyntaxKind.DelegateDeclaration);
-
             TypeKind typeKind = kind.ToDeclarationKind().ToTypeKind();
 
             foreach (var member in GetTypeMembers(name, arity))
@@ -213,8 +205,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (syntax != null)
                     {
-                        foreach (var loc in memberT.Locations)
+                        // PERF: Avoid accessing Locations for performance, but assert that the alternative approach is
+                        // equivalent.
+                        Debug.Assert(memberT.MergedDeclaration.Declarations.SelectAsArray(decl => decl.NameLocation).SequenceEqual(memberT.Locations));
+                        foreach (var declaration in memberT.MergedDeclaration.Declarations)
                         {
+                            var loc = declaration.NameLocation;
                             if (loc.IsInSource && loc.SourceTree == syntax.SyntaxTree && syntax.Span.Contains(loc.SourceSpan))
                             {
                                 return memberT;

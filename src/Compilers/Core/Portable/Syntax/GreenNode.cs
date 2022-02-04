@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -518,7 +516,7 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        public bool HasAnnotation(SyntaxAnnotation annotation)
+        public bool HasAnnotation([NotNullWhen(true)] SyntaxAnnotation? annotation)
         {
             var annotations = this.GetAnnotations();
             if (annotations == s_noAnnotations)
@@ -906,34 +904,63 @@ namespace Microsoft.CodeAnalysis
         public abstract SyntaxToken CreateSeparator<TNode>(SyntaxNode element) where TNode : SyntaxNode;
         public abstract bool IsTriviaWithEndOfLine(); // trivia node has end of line
 
-        public virtual GreenNode? CreateList(IEnumerable<GreenNode>? nodes, bool alwaysCreateListNode = false)
-        {
-            if (nodes == null)
+        /*
+         * There are 3 overloads of this, because most callers already know what they have is a List<T> and only transform it.
+         * In those cases List<TFrom> performs much better.
+         * In other cases, the type is unknown / is IEnumerable<T>, where we try to find the best match.
+         * There is another overload for IReadOnlyList, since most collections already implement this, so checking for it will
+         * perform better then copying to a List<T>, though not as good as List<T> directly.
+         */
+        public static GreenNode? CreateList<TFrom>(IEnumerable<TFrom>? enumerable, Func<TFrom, GreenNode> select)
+            => enumerable switch
             {
-                return null;
-            }
+                null => null,
+                List<TFrom> l => CreateList(l, select),
+                IReadOnlyList<TFrom> l => CreateList(l, select),
+                _ => CreateList(enumerable.ToList(), select)
+            };
 
-            var list = nodes.ToArray();
-
-            switch (list.Length)
+        public static GreenNode? CreateList<TFrom>(List<TFrom> list, Func<TFrom, GreenNode> select)
+        {
+            switch (list.Count)
             {
                 case 0:
                     return null;
                 case 1:
-                    if (alwaysCreateListNode)
-                    {
-                        goto default;
-                    }
-                    else
-                    {
-                        return list[0];
-                    }
+                    return select(list[0]);
                 case 2:
-                    return SyntaxList.List(list[0], list[1]);
+                    return SyntaxList.List(select(list[0]), select(list[1]));
                 case 3:
-                    return SyntaxList.List(list[0], list[1], list[2]);
+                    return SyntaxList.List(select(list[0]), select(list[1]), select(list[2]));
                 default:
-                    return SyntaxList.List(list);
+                    {
+                        var array = new ArrayElement<GreenNode>[list.Count];
+                        for (int i = 0; i < array.Length; i++)
+                            array[i].Value = select(list[i]);
+                        return SyntaxList.List(array);
+                    }
+            }
+        }
+
+        public static GreenNode? CreateList<TFrom>(IReadOnlyList<TFrom> list, Func<TFrom, GreenNode> select)
+        {
+            switch (list.Count)
+            {
+                case 0:
+                    return null;
+                case 1:
+                    return select(list[0]);
+                case 2:
+                    return SyntaxList.List(select(list[0]), select(list[1]));
+                case 3:
+                    return SyntaxList.List(select(list[0]), select(list[1]), select(list[2]));
+                default:
+                    {
+                        var array = new ArrayElement<GreenNode>[list.Count];
+                        for (int i = 0; i < array.Length; i++)
+                            array[i].Value = select(list[i]);
+                        return SyntaxList.List(array);
+                    }
             }
         }
 

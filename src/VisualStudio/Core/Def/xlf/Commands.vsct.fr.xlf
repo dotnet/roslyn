@@ -7,6 +7,96 @@
         <target state="translated">Exécuter l'&amp;analyse du code durant la sélection</target>
         <note />
       </trans-unit>
+      <trans-unit id="cmdIdShowStackTraceExplorer|ButtonText">
+        <source>Stack Trace Explorer</source>
+        <target state="translated">Explorateur de traces de pile</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdShowStackTraceExplorer|CommandName">
+        <source>ShowStackTraceExplorerCommandName</source>
+        <target state="translated">ShowStackTraceExplorerCommandName</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdIdShowStackTraceExplorer|LocCanonicalName">
+        <source>ShowStackTraceExplorer</source>
+        <target state="translated">ShowStackTraceExplorer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeCurrentFile|ButtonText">
+        <source>&amp;Current Document</source>
+        <target state="translated">Document a&amp;ctif</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeCurrentFile|CommandName">
+        <source>AnalysisScopeCurrentDocument</source>
+        <target state="translated">AnalysisScopeCurrentDocument</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeCurrentFile|LocCanonicalName">
+        <source>Current Document</source>
+        <target state="translated">Document actif</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeDefault|ButtonText">
+        <source>&amp;Default</source>
+        <target state="translated">Par &amp;défaut</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeDefault|CommandName">
+        <source>AnalysisScopeDefault</source>
+        <target state="translated">AnalysisScopeDefault</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeDefault|LocCanonicalName">
+        <source>Default</source>
+        <target state="translated">Par défaut</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeEntireSolution|ButtonText">
+        <source>&amp;Entire Solution</source>
+        <target state="translated">&amp;Solution complète</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeEntireSolution|CommandName">
+        <source>AnalysisScopeEntireSolution</source>
+        <target state="translated">AnalysisScopeEntireSolution</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeEntireSolution|LocCanonicalName">
+        <source>Entire Solution</source>
+        <target state="translated">Solution complète</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeOpenFiles|ButtonText">
+        <source>&amp;Open Documents</source>
+        <target state="translated">Documents &amp;ouverts</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeOpenFiles|CommandName">
+        <source>AnalysisScopeOpenDocuments</source>
+        <target state="translated">AnalysisScopeOpenDocuments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeOpenFiles|LocCanonicalName">
+        <source>Open Documents</source>
+        <target state="translated">Documents ouverts</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeSubMenu|ButtonText">
+        <source>Set Analysis Scope</source>
+        <target state="translated">Définir l’étendue de l’analyse</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeSubMenu|CommandName">
+        <source>Set Analysis Scope</source>
+        <target state="translated">Définir l’étendue de l’analyse</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidAnalysisScopeSubMenu|LocCanonicalName">
+        <source>SetAnalysisScope</source>
+        <target state="translated">SetAnalysisScope</target>
+        <note />
+      </trans-unit>
       <trans-unit id="cmdidCSharpOrganizeSortUsings|ButtonText">
         <source>Sort &amp;Usings</source>
         <target state="translated">Trier les &amp;using</target>
@@ -39,107 +129,107 @@
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityDefault|ButtonText">
         <source>&amp;Default</source>
-        <target state="translated">&amp;Default</target>
+        <target state="new">&amp;Default</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityDefault|CommandName">
         <source>ErrorListSetSeverityDefault</source>
-        <target state="translated">ErrorListSetSeverityDefault</target>
+        <target state="new">ErrorListSetSeverityDefault</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityDefault|LocCanonicalName">
         <source>Default</source>
-        <target state="translated">Default</target>
+        <target state="new">Default</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityError|ButtonText">
         <source>&amp;Error</source>
-        <target state="translated">&amp;Error</target>
+        <target state="new">&amp;Error</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityError|CommandName">
         <source>ErrorListSetSeverityError</source>
-        <target state="translated">ErrorListSetSeverityError</target>
+        <target state="new">ErrorListSetSeverityError</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityError|LocCanonicalName">
         <source>Error</source>
-        <target state="translated">Error</target>
+        <target state="new">Error</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityHidden|ButtonText">
         <source>&amp;Silent</source>
-        <target state="translated">&amp;Silent</target>
+        <target state="new">&amp;Silent</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityHidden|CommandName">
         <source>ErrorListSetSeverityHidden</source>
-        <target state="translated">ErrorListSetSeverityHidden</target>
+        <target state="new">ErrorListSetSeverityHidden</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityHidden|LocCanonicalName">
         <source>Silent</source>
-        <target state="translated">Silent</target>
+        <target state="new">Silent</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityInfo|ButtonText">
         <source>&amp;Suggestion</source>
-        <target state="translated">&amp;Suggestion</target>
+        <target state="new">&amp;Suggestion</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityInfo|CommandName">
         <source>ErrorListSetSeverityInfo</source>
-        <target state="translated">ErrorListSetSeverityInfo</target>
+        <target state="new">ErrorListSetSeverityInfo</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityInfo|LocCanonicalName">
         <source>Suggestion</source>
-        <target state="translated">Suggestion</target>
+        <target state="new">Suggestion</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityNone|ButtonText">
         <source>&amp;None</source>
-        <target state="translated">&amp;None</target>
+        <target state="new">&amp;None</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityNone|CommandName">
         <source>ErrorListSetSeverityNone</source>
-        <target state="translated">ErrorListSetSeverityNone</target>
+        <target state="new">ErrorListSetSeverityNone</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityNone|LocCanonicalName">
         <source>None</source>
-        <target state="translated">None</target>
+        <target state="new">None</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeveritySubMenu|ButtonText">
         <source>Set severity</source>
-        <target state="translated">Set severity</target>
+        <target state="new">Set severity</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeveritySubMenu|CommandName">
         <source>Set severity</source>
-        <target state="translated">Set severity</target>
+        <target state="new">Set severity</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeveritySubMenu|LocCanonicalName">
         <source>Set severity</source>
-        <target state="translated">Set severity</target>
+        <target state="new">Set severity</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityWarning|ButtonText">
         <source>&amp;Warning</source>
-        <target state="translated">&amp;Warning</target>
+        <target state="new">&amp;Warning</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityWarning|CommandName">
         <source>ErrorListSetSeverityWarning</source>
-        <target state="translated">ErrorListSetSeverityWarning</target>
+        <target state="new">ErrorListSetSeverityWarning</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidErrorListSetSeverityWarning|LocCanonicalName">
         <source>Warning</source>
-        <target state="translated">Warning</target>
+        <target state="new">Warning</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidProjectContextAddAnalyzer|ButtonText">
@@ -210,6 +300,21 @@
       <trans-unit id="cmdidOpenRuleSet|CommandName">
         <source>OpenActiveRuleSet</source>
         <target state="translated">OpenActiveRuleSet</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidRemoveUnusedReferences|ButtonText">
+        <source>Remove Unused References...</source>
+        <target state="translated">Supprimer les références inutilisées...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidRemoveUnusedReferences|CommandName">
+        <source>RemoveUnusedReferences</source>
+        <target state="translated">RemoveUnusedReferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidRemoveUnusedReferences|LocCanonicalName">
+        <source>RemoveUnusedReferences</source>
+        <target state="translated">RemoveUnusedReferences</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidRunCodeAnalysisForProject|ButtonText">
@@ -403,8 +508,38 @@
         <note />
       </trans-unit>
       <trans-unit id="cmdidGoToImplementation|CommandName">
-        <source>GoToImplementation</source>
-        <target state="translated">GoToImplementation</target>
+        <source>Go To Implementation</source>
+        <target state="translated">Accéder à l'implémentation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSyncNamespaces|ButtonText">
+        <source>Sync &amp;Namespaces</source>
+        <target state="translated">&amp;Synchroniser les espaces de noms</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSyncNamespaces|CommandName">
+        <source>SyncNamespaces</source>
+        <target state="translated">SyncNamespaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidSyncNamespaces|LocCanonicalName">
+        <source>SyncNamespaces</source>
+        <target state="translated">SyncNamespaces</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidshowValueTracking|ButtonText">
+        <source>Track Value Source</source>
+        <target state="translated">Suivre la valeur source</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidshowValueTracking|CommandName">
+        <source>ShowValueTrackingCommandName</source>
+        <target state="translated">ShowValueTrackingCommandName</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="cmdidshowValueTracking|LocCanonicalName">
+        <source>ShowValueTracking</source>
+        <target state="translated">ShowValueTracking</target>
         <note />
       </trans-unit>
       <trans-unit id="guidCSharpInteractiveCommandSet|cmdidResetInteractiveFromProject|ButtonText">

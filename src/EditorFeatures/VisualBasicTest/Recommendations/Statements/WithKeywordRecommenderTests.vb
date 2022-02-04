@@ -4,85 +4,87 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Statements
     Public Class WithKeywordRecommenderTests
-        <Fact>
-        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function WithInMethodBodyTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>|</MethodBody>, "With")
-        End Function
+        Inherits RecommenderTests
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function WithInLambdaTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub WithInMethodBodyTest()
+            VerifyRecommendationsContain(<MethodBody>|</MethodBody>, "With")
+        End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub WithInLambdaTest()
+            VerifyRecommendationsContain(<MethodBody>
 Dim x = Sub()
 |
         End Sub</MethodBody>, "With")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function WithAfterStatementTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub WithAfterStatementTest()
+            VerifyRecommendationsContain(<MethodBody>
 Dim x
 |</MethodBody>, "With")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function WithNotAfterExitKeywordTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>
+        Public Sub WithNotAfterExitKeywordTest()
+            VerifyRecommendationsMissing(<MethodBody>
 With
 Exit |
 Loop</MethodBody>, "With")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function WithNotAfterContinueKeywordTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>
+        Public Sub WithNotAfterContinueKeywordTest()
+            VerifyRecommendationsMissing(<MethodBody>
 With
 Continue |
 Loop</MethodBody>, "With")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function WithNotAfterContinueKeywordOutsideLoopTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>
+        Public Sub WithNotAfterContinueKeywordOutsideLoopTest()
+            VerifyRecommendationsMissing(<MethodBody>
 Continue |
 </MethodBody>, "With")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function WithNotAfterExitKeywordOutsideLoopTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>
+        Public Sub WithNotAfterExitKeywordOutsideLoopTest()
+            VerifyRecommendationsMissing(<MethodBody>
 Exit |
 </MethodBody>, "With")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function WithNotAfterExitInsideLambdaInsideWithBlockTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>
+        Public Sub WithNotAfterExitInsideLambdaInsideWithBlockTest()
+            VerifyRecommendationsMissing(<MethodBody>
 While
 Dim x = Sub()
             Exit |
         End Sub
 Loop
 </MethodBody>, "With")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function WithAfterExitInsideWhileLoopInsideLambdaTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>
+        Public Sub WithAfterExitInsideWhileLoopInsideLambdaTest()
+            VerifyRecommendationsMissing(<MethodBody>
 Dim x = Sub()
             With x
                 Exit |
             Loop
         End Sub
 </MethodBody>, "With")
-        End Function
+        End Sub
     End Class
 End Namespace

@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
     Partial Friend Class InvocationExpressionSignatureHelpProvider
 
-        Private Function GetAccessibleMembers(invocationExpression As InvocationExpressionSyntax,
+        Private Shared Function GetAccessibleMembers(invocationExpression As InvocationExpressionSyntax,
                                              semanticModel As SemanticModel,
                                              within As ISymbol,
                                              memberGroup As IEnumerable(Of ISymbol),
@@ -35,17 +35,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return memberGroup.Where(Function(m) m.IsAccessibleWithin(within, throughType)).ToImmutableArray()
         End Function
 
-        Private Function GetMemberGroupItems(accessibleMembers As ImmutableArray(Of ISymbol),
+        Private Shared Function GetMemberGroupItems(accessibleMembers As ImmutableArray(Of ISymbol),
                                              document As Document,
                                              invocationExpression As InvocationExpressionSyntax,
-                                             semanticModel As SemanticModel,
-                                             cancellationToken As CancellationToken) As IEnumerable(Of SignatureHelpItem)
+                                             semanticModel As SemanticModel) As IEnumerable(Of SignatureHelpItem)
             If accessibleMembers.Length = 0 Then
                 Return SpecializedCollections.EmptyEnumerable(Of SignatureHelpItem)()
             End If
 
             Return accessibleMembers.Select(
-                Function(s) ConvertMemberGroupMember(document, s, invocationExpression.SpanStart, semanticModel, cancellationToken))
+                Function(s) ConvertMemberGroupMember(document, s, invocationExpression.SpanStart, semanticModel))
         End Function
     End Class
 End Namespace

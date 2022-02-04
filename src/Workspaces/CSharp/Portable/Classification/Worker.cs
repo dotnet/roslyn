@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
@@ -124,7 +122,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             // comments out a file).  Try to skip as many as possible if they're not actually in the span
             // we care about classifying.
             var classificationSpanStart = _textSpan.Start;
-            var classificationSpanEnd = _textSpan.End;
 
             // First, skip all the trivia before the span we care about.
             var enumerator = list.GetEnumerator();
@@ -205,6 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 case SyntaxKind.ErrorDirectiveTrivia:
                 case SyntaxKind.WarningDirectiveTrivia:
                 case SyntaxKind.LineDirectiveTrivia:
+                case SyntaxKind.LineSpanDirectiveTrivia:
                 case SyntaxKind.PragmaWarningDirectiveTrivia:
                 case SyntaxKind.PragmaChecksumDirectiveTrivia:
                 case SyntaxKind.ReferenceDirectiveTrivia:

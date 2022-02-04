@@ -27,5 +27,10 @@ namespace Microsoft.CodeAnalysis.Editor
             Solution = solution;
             TodoItems = todoItems;
         }
+
+        /// <summary>
+        /// <see cref="DocumentId"/> this update is associated with.
+        /// </summary>
+        public new DocumentId DocumentId => base.DocumentId!;
     }
 }

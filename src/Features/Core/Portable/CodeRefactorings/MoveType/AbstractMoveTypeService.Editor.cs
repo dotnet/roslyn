@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -58,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             public static Editor GetEditor(MoveTypeOperationKind operationKind, TService service, State state, string fileName, CancellationToken cancellationToken)
                 => operationKind switch
                 {
-                    MoveTypeOperationKind.MoveType => (Editor)new MoveTypeEditor(service, state, fileName, cancellationToken),
+                    MoveTypeOperationKind.MoveType => new MoveTypeEditor(service, state, fileName, cancellationToken),
                     MoveTypeOperationKind.RenameType => new RenameTypeEditor(service, state, fileName, cancellationToken),
                     MoveTypeOperationKind.RenameFile => new RenameFileEditor(service, state, fileName, cancellationToken),
                     MoveTypeOperationKind.MoveTypeNamespaceScope => new MoveTypeNamespaceScopeEditor(service, state, fileName, cancellationToken),

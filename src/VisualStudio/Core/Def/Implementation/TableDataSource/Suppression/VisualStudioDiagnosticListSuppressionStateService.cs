@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -31,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     {
         private readonly VisualStudioWorkspace _workspace;
         private readonly IVsUIShell _shellService;
-        private readonly IWpfTableControl _tableControl;
+        private readonly IWpfTableControl? _tableControl;
 
         private int _selectedActiveItems;
         private int _selectedSuppressedItems;
@@ -185,7 +187,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         /// Returns true if an entry's suppression state can be modified.
         /// </summary>
         /// <returns></returns>
-        private static bool IsEntryWithConfigurableSuppressionState(DiagnosticData entry)
+        private static bool IsEntryWithConfigurableSuppressionState([NotNullWhen(true)] DiagnosticData? entry)
         {
             // Compiler diagnostics with severity 'Error' are not configurable.
             // Additionally, diagnostics coming from build are from a snapshot (as opposed to live diagnostics) and cannot be configured.
@@ -194,7 +196,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 !entry.IsBuildDiagnostic();
         }
 
-        private static AbstractTableEntriesSnapshot<DiagnosticTableItem> GetEntriesSnapshot(ITableEntryHandle entryHandle, out int index)
+        private static AbstractTableEntriesSnapshot<DiagnosticTableItem>? GetEntriesSnapshot(ITableEntryHandle entryHandle, out int index)
         {
             if (!entryHandle.TryGetSnapshot(out var snapshot, out index))
             {
@@ -210,16 +212,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         /// </summary>
         public async Task<ImmutableArray<DiagnosticData>> GetSelectedItemsAsync(bool isAddSuppression, CancellationToken cancellationToken)
         {
+            Contract.ThrowIfNull(_tableControl);
+
             var builder = ArrayBuilder<DiagnosticData>.GetInstance();
 
-            Dictionary<string, Project> projectNameToProjectMapOpt = null;
-            Dictionary<Project, ImmutableDictionary<string, Document>> filePathToDocumentMapOpt = null;
+            Dictionary<string, Project>? projectNameToProjectMap = null;
+            Dictionary<Project, ImmutableDictionary<string, Document>>? filePathToDocumentMap = null;
 
             foreach (var entryHandle in _tableControl.SelectedEntries)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                DiagnosticData diagnosticData = null;
+                DiagnosticData? diagnosticData = null;
                 var roslynSnapshot = GetEntriesSnapshot(entryHandle, out var index);
                 if (roslynSnapshot != null)
                 {
@@ -234,47 +238,47 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         continue;
                     }
 
-                    string filePath = null;
+                    string? filePath = null;
                     var line = -1; // FxCop only supports line, not column.
-                    DiagnosticDataLocation location = null;
+                    DiagnosticDataLocation? location = null;
 
                     if (entryHandle.TryGetValue(StandardTableColumnDefinitions.ErrorCode, out string errorCode) && !string.IsNullOrEmpty(errorCode) &&
                         entryHandle.TryGetValue(StandardTableColumnDefinitions.ErrorCategory, out string category) && !string.IsNullOrEmpty(category) &&
                         entryHandle.TryGetValue(StandardTableColumnDefinitions.Text, out string message) && !string.IsNullOrEmpty(message) &&
                         entryHandle.TryGetValue(StandardTableColumnDefinitions.ProjectName, out string projectName) && !string.IsNullOrEmpty(projectName))
                     {
-                        if (projectNameToProjectMapOpt == null)
+                        if (projectNameToProjectMap == null)
                         {
-                            projectNameToProjectMapOpt = new Dictionary<string, Project>();
+                            projectNameToProjectMap = new Dictionary<string, Project>();
                             foreach (var p in _workspace.CurrentSolution.Projects)
                             {
-                                projectNameToProjectMapOpt[p.Name] = p;
+                                projectNameToProjectMap[p.Name] = p;
                             }
                         }
 
                         cancellationToken.ThrowIfCancellationRequested();
-                        if (!projectNameToProjectMapOpt.TryGetValue(projectName, out var project))
+                        if (!projectNameToProjectMap.TryGetValue(projectName, out var project))
                         {
                             // bail out
                             continue;
                         }
 
-                        Document document = null;
+                        Document? document = null;
                         var hasLocation = (entryHandle.TryGetValue(StandardTableColumnDefinitions.DocumentName, out filePath) && !string.IsNullOrEmpty(filePath)) &&
                             (entryHandle.TryGetValue(StandardTableColumnDefinitions.Line, out line) && line >= 0);
                         if (hasLocation)
                         {
-                            if (string.IsNullOrEmpty(filePath) || line < 0)
+                            if (RoslynString.IsNullOrEmpty(filePath) || line < 0)
                             {
                                 // bail out
                                 continue;
                             }
 
-                            filePathToDocumentMapOpt ??= new Dictionary<Project, ImmutableDictionary<string, Document>>();
-                            if (!filePathToDocumentMapOpt.TryGetValue(project, out var filePathMap))
+                            filePathToDocumentMap ??= new Dictionary<Project, ImmutableDictionary<string, Document>>();
+                            if (!filePathToDocumentMap.TryGetValue(project, out var filePathMap))
                             {
                                 filePathMap = await GetFilePathToDocumentMapAsync(project, cancellationToken).ConfigureAwait(false);
-                                filePathToDocumentMapOpt[project] = filePathMap;
+                                filePathToDocumentMap[project] = filePathMap;
                             }
 
                             if (!filePathMap.TryGetValue(filePath, out document))
@@ -283,7 +287,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                                 continue;
                             }
 
-                            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                             var linePosition = new LinePosition(line, 0);
                             var linePositionSpan = new LinePositionSpan(start: linePosition, end: linePosition);
                             var textSpan = (await tree.GetTextAsync(cancellationToken).ConfigureAwait(false)).Lines.GetTextSpan(linePositionSpan);
@@ -301,7 +305,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             id: errorCode,
                             category: category,
                             message: message,
-                            enuMessageForBingSearch: message,
                             severity: DiagnosticSeverity.Warning,
                             defaultSeverity: DiagnosticSeverity.Warning,
                             isEnabledByDefault: true,
@@ -310,7 +313,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             title: message,
                             location: location,
                             customTags: SuppressionHelpers.SynthesizedExternalSourceDiagnosticCustomTags,
-                            properties: ImmutableDictionary<string, string>.Empty,
+                            properties: ImmutableDictionary<string, string?>.Empty,
                             projectId: project.Id);
                     }
                 }
@@ -331,7 +334,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var filePath = tree.FilePath;
                 if (filePath != null)
                 {

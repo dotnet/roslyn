@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pt-BR" original="../WorkspacesResources.resx">
     <body>
+      <trans-unit id="A_project_may_not_reference_itself">
+        <source>A project may not reference itself.</source>
+        <target state="translated">Um projeto não pode fazer referência a si mesmo.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adding_analyzer_config_documents_is_not_supported">
         <source>Adding analyzer config documents is not supported.</source>
         <target state="translated">Não há suporte para a adição de documentos da configuração do analisador.</target>
@@ -17,6 +22,11 @@
         <target state="translated">Arquivos C#</target>
         <note />
       </trans-unit>
+      <trans-unit id="Cannot_apply_action_that_is_not_in_0">
+        <source>Cannot apply action that is not in '{0}'</source>
+        <target state="translated">Não é possível aplicar ação que não esteja em '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_analyzer_config_documents_is_not_supported">
         <source>Changing analyzer config documents is not supported.</source>
         <target state="translated">Não há suporte para a alteração dos documentos da configuração do analisador.</target>
@@ -26,6 +36,11 @@
         <source>Changing document '{0}' is not supported.</source>
         <target state="translated">Não há suporte para alterar o documento '{0}'.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="CodeAction_{0}_did_not_produce_a_changed_solution">
+        <source>CodeAction '{0}' did not produce a changed solution</source>
+        <target state="translated">A CodeAction '{0}' não produziu uma solução alterada</target>
+        <note>"CodeAction" is a specific type, and {0} represents the title shown by the action.</note>
       </trans-unit>
       <trans-unit id="Core_EditorConfig_Options">
         <source>Core EditorConfig Options</source>
@@ -64,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Only_submission_project_can_reference_submission_projects">
         <source>Only submission project can reference submission projects.</source>
-        <target state="new">Only submission project can reference submission projects.</target>
+        <target state="translated">Somente o projeto de envio pode fazer referência a projetos de envio.</target>
         <note />
       </trans-unit>
       <trans-unit id="Options_did_not_come_from_specified_Solution">
@@ -72,9 +87,14 @@
         <target state="translated">As opções não vieram da Solução especificada</target>
         <note />
       </trans-unit>
+      <trans-unit id="Predefined_conversion_from_0_to_1">
+        <source>Predefined conversion from {0} to {1}.</source>
+        <target state="translated">Conversão predefinida de {0} em {1}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Project_does_not_contain_specified_reference">
         <source>Project does not contain specified reference</source>
-        <target state="new">Project does not contain specified reference</target>
+        <target state="translated">O projeto não contém a referência especificada</target>
         <note />
       </trans-unit>
       <trans-unit id="Refactoring_Only">
@@ -92,9 +112,14 @@
         <target state="translated">Não há suporte para a remoção de documentos da configuração do analisador.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Rename_0_to_1">
+        <source>Rename '{0}' to '{1}'</source>
+        <target state="translated">Renomear "{0}" para "{1}"</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Solution_does_not_contain_specified_reference">
         <source>Solution does not contain specified reference</source>
-        <target state="new">Solution does not contain specified reference</target>
+        <target state="translated">A solução não contém a referência especificada</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
@@ -172,19 +197,34 @@
         <target state="translated">Não há suporte para adicionar projetos.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbols_project_could_not_be_found_in_the_provided_solution">
+        <source>Symbol's project could not be found in the provided solution</source>
+        <target state="translated">Não foi possível encontrar o projeto do símbolo na solução fornecida</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sync_namespace_to_folder_structure">
+        <source>Sync namespace to folder structure</source>
+        <target state="translated">Sincronizar namespace com a estrutura de pasta</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_contents_of_a_SourceGeneratedDocument_may_not_be_changed">
+        <source>The contents of a SourceGeneratedDocument may not be changed.</source>
+        <target state="translated">O conteúdo de um SourceGeneratedDocument não pode ser alterado.</target>
+        <note>{locked:SourceGeneratedDocument}</note>
+      </trans-unit>
       <trans-unit id="The_project_already_contains_the_specified_reference">
         <source>The project already contains the specified reference.</source>
-        <target state="new">The project already contains the specified reference.</target>
+        <target state="translated">O projeto já contém a referência especificada.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_solution_already_contains_the_specified_reference">
         <source>The solution already contains the specified reference.</source>
-        <target state="new">The solution already contains the specified reference.</target>
+        <target state="translated">A solução já contém a referência especificada.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown">
         <source>Unknown</source>
-        <target state="new">Unknown</target>
+        <target state="translated">Desconhecido</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Basic_files">
@@ -209,7 +249,7 @@
       </trans-unit>
       <trans-unit id="_0_is_in_a_different_project">
         <source>{0} is in a different project.</source>
-        <target state="new">{0} is in a different project.</target>
+        <target state="translated">{0} está em um projeto diferente.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_part_of_the_workspace">
@@ -224,12 +264,12 @@
       </trans-unit>
       <trans-unit id="_0_is_not_referenced">
         <source>'{0}' is not referenced.</source>
-        <target state="translated">'"{0}" não é referenciado.</target>
+        <target state="translated">"{0}" não é referenciado.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_already_referenced">
         <source>'{0}' is already referenced.</source>
-        <target state="translated">'"{0}" já está referenciado.</target>
+        <target state="translated">"{0}" já está referenciado.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_project_reference_from_0_to_1_will_cause_a_circular_reference">
@@ -282,11 +322,6 @@
         <target state="translated">O projeto já referencia o projeto de destino.</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_project_already_transitively_references_the_target_project">
-        <source>The project already transitively references the target project.</source>
-        <target state="translated">O projeto já referencia transitivamente o projeto de destino.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="The_solution_already_contains_the_specified_document">
         <source>The solution already contains the specified document.</source>
         <target state="translated">A solução já contém o documento especificado.</target>
@@ -299,7 +334,7 @@
       </trans-unit>
       <trans-unit id="_0_is_not_open">
         <source>'{0}' is not open.</source>
-        <target state="translated">'"{0}" não está aberto.</target>
+        <target state="translated">"{0}" não está aberto.</target>
         <note />
       </trans-unit>
       <trans-unit id="A_language_name_cannot_be_specified_for_this_option">

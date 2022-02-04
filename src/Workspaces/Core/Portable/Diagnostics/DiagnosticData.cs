@@ -2,51 +2,79 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
+    [DataContract]
     internal sealed class DiagnosticData : IEquatable<DiagnosticData?>
     {
+        [DataMember(Order = 0)]
         public readonly string Id;
-        public readonly string Category;
-        public readonly string? Message;
-        public readonly string? ENUMessageForBingSearch;
 
+        [DataMember(Order = 1)]
+        public readonly string Category;
+
+        [DataMember(Order = 2)]
+        public readonly string? Message;
+
+        [DataMember(Order = 3)]
         public readonly DiagnosticSeverity Severity;
+
+        [DataMember(Order = 4)]
         public readonly DiagnosticSeverity DefaultSeverity;
+
+        [DataMember(Order = 5)]
         public readonly bool IsEnabledByDefault;
+
+        [DataMember(Order = 6)]
         public readonly int WarningLevel;
-        public readonly IReadOnlyList<string> CustomTags;
+
+        [DataMember(Order = 7)]
+        public readonly ImmutableArray<string> CustomTags;
+
+        [DataMember(Order = 8)]
         public readonly ImmutableDictionary<string, string?> Properties;
 
+        [DataMember(Order = 9)]
         public readonly ProjectId? ProjectId;
+
+        [DataMember(Order = 10)]
         public readonly DiagnosticDataLocation? DataLocation;
-        public readonly IReadOnlyCollection<DiagnosticDataLocation> AdditionalLocations;
+
+        [DataMember(Order = 11)]
+        public readonly ImmutableArray<DiagnosticDataLocation> AdditionalLocations;
 
         /// <summary>
         /// Language name (<see cref="LanguageNames"/>) or null if the diagnostic is not associated with source code.
         /// </summary>
+        [DataMember(Order = 12)]
         public readonly string? Language;
 
+        [DataMember(Order = 13)]
         public readonly string? Title;
+
+        [DataMember(Order = 14)]
         public readonly string? Description;
+
+        [DataMember(Order = 15)]
         public readonly string? HelpLink;
+
+        [DataMember(Order = 16)]
         public readonly bool IsSuppressed;
 
         /// <summary>
@@ -59,16 +87,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             string id,
             string category,
             string? message,
-            string? enuMessageForBingSearch,
             DiagnosticSeverity severity,
             DiagnosticSeverity defaultSeverity,
             bool isEnabledByDefault,
             int warningLevel,
-            IReadOnlyList<string> customTags,
+            ImmutableArray<string> customTags,
             ImmutableDictionary<string, string?> properties,
             ProjectId? projectId,
             DiagnosticDataLocation? location = null,
-            IReadOnlyCollection<DiagnosticDataLocation>? additionalLocations = null,
+            ImmutableArray<DiagnosticDataLocation> additionalLocations = default,
             string? language = null,
             string? title = null,
             string? description = null,
@@ -78,7 +105,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Id = id;
             Category = category;
             Message = message;
-            ENUMessageForBingSearch = enuMessageForBingSearch;
 
             Severity = severity;
             DefaultSeverity = defaultSeverity;
@@ -89,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             ProjectId = projectId;
             DataLocation = location;
-            AdditionalLocations = additionalLocations ?? Array.Empty<DiagnosticDataLocation>();
+            AdditionalLocations = additionalLocations.NullToEmpty();
 
             Language = language;
             Title = title;
@@ -197,7 +223,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 id: Id,
                 category: Category,
                 message: Message,
-                enuMessageForBingSearch: ENUMessageForBingSearch,
                 severity: Severity,
                 defaultSeverity: DefaultSeverity,
                 isEnabledByDefault: IsEnabledByDefault,
@@ -219,6 +244,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var location = await DataLocation.ConvertLocationAsync(project, cancellationToken).ConfigureAwait(false);
             var additionalLocations = await AdditionalLocations.ConvertLocationsAsync(project, cancellationToken).ConfigureAwait(false);
 
+            return ToDiagnostic(location, additionalLocations);
+        }
+
+        public Diagnostic ToDiagnostic(Location location, ImmutableArray<Location> additionalLocations)
+        {
             return Diagnostic.Create(
                 Id, Category, Message, Severity, DefaultSeverity,
                 IsEnabledByDefault, WarningLevel, IsSuppressed, Title, Description, HelpLink,
@@ -301,7 +331,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private static DiagnosticDataLocation? CreateLocation(Document? document, Location location)
+        private static DiagnosticDataLocation? CreateLocation(TextDocument? document, Location location)
         {
             if (document == null)
             {
@@ -325,30 +355,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 mappedLineInfo.GetMappedFilePathIfExist(), mappedStartLine, mappedStartColumn, mappedEndLine, mappedEndColumn);
         }
 
-        public static DiagnosticData Create(Diagnostic diagnostic, OptionSet options)
-        {
-            Debug.Assert(diagnostic.Location == null || !diagnostic.Location.IsInSource);
-            return Create(diagnostic, projectId: null, language: null, options, location: null, additionalLocations: null, additionalProperties: null);
-        }
+        public static DiagnosticData Create(Diagnostic diagnostic, Project? project)
+            => Create(diagnostic, project?.Id, project?.Language, location: null, additionalLocations: default, additionalProperties: null);
 
-        public static DiagnosticData Create(Diagnostic diagnostic, Project project)
-        {
-            Debug.Assert(diagnostic.Location == null || !diagnostic.Location.IsInSource);
-            return Create(diagnostic, project.Id, project.Language, project.Solution.Options, location: null, additionalLocations: null, additionalProperties: null);
-        }
-
-        public static DiagnosticData Create(Diagnostic diagnostic, Document document)
+        public static DiagnosticData Create(Diagnostic diagnostic, TextDocument document)
         {
             var project = document.Project;
             var location = CreateLocation(document, diagnostic.Location);
 
-            var additionalLocations = diagnostic.AdditionalLocations.Count == 0
-                ? (IReadOnlyCollection<DiagnosticDataLocation>)Array.Empty<DiagnosticDataLocation>()
-                : diagnostic.AdditionalLocations.Where(loc => loc.IsInSource)
-                                                .Select(loc => CreateLocation(document.Project.GetDocument(loc.SourceTree), loc))
-                                                .WhereNotNull()
-                                                .ToReadOnlyCollection();
-
+            var additionalLocations = GetAdditionalLocations(document, diagnostic);
             var additionalProperties = GetAdditionalProperties(document, diagnostic);
 
             var documentPropertiesService = document.Services.GetService<DocumentPropertiesService>();
@@ -367,7 +382,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return Create(diagnostic,
                 project.Id,
                 project.Language,
-                project.Solution.Options,
                 location,
                 additionalLocations,
                 additionalProperties);
@@ -377,21 +391,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Diagnostic diagnostic,
             ProjectId? projectId,
             string? language,
-            OptionSet options,
             DiagnosticDataLocation? location,
-            IReadOnlyCollection<DiagnosticDataLocation>? additionalLocations,
+            ImmutableArray<DiagnosticDataLocation> additionalLocations,
             ImmutableDictionary<string, string?>? additionalProperties)
         {
             return new DiagnosticData(
                 diagnostic.Id,
                 diagnostic.Descriptor.Category,
                 diagnostic.GetMessage(CultureInfo.CurrentUICulture),
-                diagnostic.GetBingHelpMessage(options),
                 diagnostic.Severity,
                 diagnostic.DefaultSeverity,
                 diagnostic.Descriptor.IsEnabledByDefault,
                 diagnostic.WarningLevel,
-                diagnostic.Descriptor.CustomTags.AsImmutableOrEmpty(),
+                diagnostic.Descriptor.ImmutableCustomTags(),
                 (additionalProperties == null) ? diagnostic.Properties : diagnostic.Properties.AddRange(additionalProperties),
                 projectId,
                 location,
@@ -403,10 +415,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 isSuppressed: diagnostic.IsSuppressed);
         }
 
-        private static ImmutableDictionary<string, string?>? GetAdditionalProperties(Document document, Diagnostic diagnostic)
+        private static ImmutableDictionary<string, string?>? GetAdditionalProperties(TextDocument document, Diagnostic diagnostic)
         {
-            var service = document.GetLanguageService<IDiagnosticPropertiesService>();
+            var service = document.Project.GetLanguageService<IDiagnosticPropertiesService>();
             return service?.GetAdditionalProperties(diagnostic);
+        }
+
+        private static ImmutableArray<DiagnosticDataLocation> GetAdditionalLocations(TextDocument document, Diagnostic diagnostic)
+        {
+            if (diagnostic.AdditionalLocations.Count == 0)
+            {
+                return ImmutableArray<DiagnosticDataLocation>.Empty;
+            }
+
+            using var _ = ArrayBuilder<DiagnosticDataLocation>.GetInstance(diagnostic.AdditionalLocations.Count, out var builder);
+            foreach (var location in diagnostic.AdditionalLocations)
+            {
+                if (location.IsInSource)
+                {
+                    builder.AddIfNotNull(CreateLocation(document.Project.GetDocument(location.SourceTree), location));
+                }
+                else if (location.Kind == LocationKind.ExternalFile)
+                {
+                    var textDocumentId = document.Project.GetDocumentForExternalLocation(location);
+                    builder.AddIfNotNull(CreateLocation(document.Project.GetTextDocument(textDocumentId), location));
+                }
+            }
+
+            return builder.ToImmutable();
         }
 
         /// <summary>
@@ -465,7 +501,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private static void GetLocationInfo(Document document, Location location, out TextSpan sourceSpan, out FileLinePositionSpan originalLineInfo, out FileLinePositionSpan mappedLineInfo)
+        private static void GetLocationInfo(TextDocument document, Location location, out TextSpan sourceSpan, out FileLinePositionSpan originalLineInfo, out FileLinePositionSpan mappedLineInfo)
         {
             var diagnosticSpanMappingService = document.Project.Solution.Workspace.Services.GetService<IWorkspaceVenusSpanMappingService>();
             if (diagnosticSpanMappingService != null)
@@ -482,11 +518,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Returns true if the diagnostic was generated by an explicit build, not live analysis.
         /// </summary>
-        /// <returns></returns>
         internal bool IsBuildDiagnostic()
         {
             return Properties.TryGetValue(WellKnownDiagnosticPropertyNames.Origin, out var value) &&
                 value == WellKnownDiagnosticTags.Build;
         }
+
+        // TODO: the value stored in HelpLink should already be valid URI (https://github.com/dotnet/roslyn/issues/59205)
+        internal Uri? GetValidHelpLinkUri()
+            => Uri.TryCreate(HelpLink, UriKind.Absolute, out var uri) ? uri : null;
     }
 }

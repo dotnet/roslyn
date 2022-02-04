@@ -4,6 +4,18 @@
   <Import Project="VisualStudio.targets"/>
   <Import Project="XUnit.targets" Condition="'$(IsTestProject)' == 'true'" />
 
+  <!--
+    Work around .editorconfig evaluation bugs in command line builds.
+    https://github.com/dotnet/roslyn/issues/43371
+  -->
+  <Target Name="MapToAbsoluteFilePaths" BeforeTargets="CoreCompile" Condition="'$(DesignTimeBuild)' != 'true'">
+    <ItemGroup>
+      <_AbsoluteCompile Include="@(Compile->'%(FullPath)')" />
+      <Compile Remove="@(Compile)" />
+      <Compile Include="@(_AbsoluteCompile)" />
+    </ItemGroup>
+  </Target>
+
   <PropertyGroup>
     <FileAlignment>512</FileAlignment>
 
@@ -11,7 +23,7 @@
       Only generate our runtimeconfig.json files for net core apps. It's unnecessary in desktop projects
       but gets included in lots of output items like VSIX.
     -->
-    <GenerateRuntimeConfigurationFiles Condition="'$(TargetFramework)' != 'netcoreapp3.1'">false</GenerateRuntimeConfigurationFiles>
+    <GenerateRuntimeConfigurationFiles Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'">false</GenerateRuntimeConfigurationFiles>
 
     <!--
       When building a .NET Core exe make sure to include the template runtimeconfig.json file 
@@ -23,20 +35,35 @@
       Disable nullable warnings when targeting anything other than our supported .NET core version(s). 
       This condition will be evaluated multiple times in multi-targeted projects hence need to be careful
       to only set in the inner builds, not the outer build where only $(TargetFrameworks) is defined.
+      We still check $(TargetFrameworks) for empty though, because for single-targeted builds we want to
+      allow nullable warnings regardless of target framework.
     -->
-    <DisableNullableWarnings Condition="'$(DisableNullableWarnings)' == '' AND $(TargetFrameworks.Contains('netcoreapp3.1')) AND '$(TargetFramework)' != '' AND '$(TargetFramework)' != 'netcoreapp3.1'">true</DisableNullableWarnings>
+    <DisableNullableWarnings Condition="'$(DisableNullableWarnings)' == '' AND  '$(TargetFrameworks)' != '' AND '$(TargetFramework)' != '' AND '$(TargetFrameworkIdentifier)' != '.NETCoreApp'">true</DisableNullableWarnings>
+
+    <!--
+      Disable code style analyzers in "older" targets for a multi-targeted project. These analyzers don't
+      impact the correctness of the output, so we avoid the performance overhead where it's easy to do so.
+    -->
+    <RoslynCheckCodeStyle Condition="'$(RoslynCheckCodeStyle)' == '' AND '$(DisableNullableWarnings)' == 'true'">false</RoslynCheckCodeStyle>
+    <RoslynCheckCodeStyle Condition="'$(RoslynCheckCodeStyle)' == '' AND ('$(ContinuousIntegrationBuild)' != 'true' OR '$(RoslynEnforceCodeStyle)' == 'true')">true</RoslynCheckCodeStyle>
+  </PropertyGroup>
+
+  <!--
+    PERF: Set default value for 'RunAnalyzersDuringBuild' to determine if analyzers should be executed.
+          Default to 'false' in all non-CI builds to improve local build time (i.e. csc/vbc invocations both inside Visual Studio and from command line prompt), except if:
+            1. We are enforcing code style, i.e. '$(RoslynEnforceCodeStyle)' == 'true' OR
+            2. We are explicitly running code analysis via "Run Code Analysis" command, i.e. '$(RunCodeAnalysis)' == 'true'.
+          Otherwise, default to 'true'.
+  -->
+  <PropertyGroup Condition="'$(RunAnalyzersDuringBuild)' == ''">
+    <RunAnalyzersDuringBuild Condition="'$(RoslynEnforceCodeStyle)' != 'true' AND '$(RunCodeAnalysis)' != 'true'">false</RunAnalyzersDuringBuild>
+    <RunAnalyzersDuringBuild Condition="'$(RunAnalyzersDuringBuild)' == ''">true</RunAnalyzersDuringBuild>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(DisableNullableWarnings)' == 'true'">
     <NoWarn>$(NoWarn);Nullable</NoWarn>
   </PropertyGroup>
   
-  <!-- Workaround for https://github.com/dotnet/roslyn/issues/42166 -->
-  <!-- PERF: This property group prevents the analyzers from CodeStyle NuGet package from being executed by default in all explicit builds (i.e. csc/vbc invocations both inside Visual Studio and from command line prompt) -->
-  <PropertyGroup Condition="'$(DesignTimeBuild)' != 'true'">
-    <NoWarn>$(NoWarn);IDE0004;IDE0004WithoutSuggestion;IDE0005;IDE0007;IDE0007WithoutSuggestion;IDE0008;IDE0008WithoutSuggestion;IDE0009;IDE0009WithoutSuggestion;IDE0010;IDE0010WithoutSuggestion;IDE0011;IDE0011WithoutSuggestion;IDE0016;IDE0016WithoutSuggestion;IDE0017;IDE0017WithoutSuggestion;IDE0018;IDE0018WithoutSuggestion;IDE0019;IDE0019WithoutSuggestion;IDE0020;IDE0020WithoutSuggestion;IDE0021;IDE0022;IDE0023;IDE0024;IDE0025;IDE0026;IDE0027;IDE0028;IDE0028WithoutSuggestion;IDE0029;IDE0029WithoutSuggestion;IDE0030;IDE0030WithoutSuggestion;IDE0031;IDE0031WithoutSuggestion;IDE0032;IDE0032WithoutSuggestion;IDE0033;IDE0033WithoutSuggestion;IDE0034;IDE0034WithoutSuggestion;IDE0035;IDE0035WithoutSuggestion;IDE0036;IDE0036WithoutSuggestion;IDE0037;IDE0037WithoutSuggestion;IDE0040;IDE0040WithoutSuggestion;IDE0041;IDE0041WithoutSuggestion;IDE0042;IDE0042WithoutSuggestion;IDE0043;IDE0044;IDE0044WithoutSuggestion;IDE0045;IDE0045WithoutSuggestion;IDE0046;IDE0046WithoutSuggestion;IDE0047;IDE0048;IDE0048WithoutSuggestion;IDE0050;IDE0050WithoutSuggestion;IDE0051;IDE0052;IDE0054;IDE0054WithoutSuggestion;IDE0055;IDE0056;IDE0056WithoutSuggestion;IDE0057;IDE0057WithoutSuggestion;IDE0058;IDE0059;IDE0060;IDE0061;IDE0062;IDE0062WithoutSuggestion;IDE0063;IDE0063WithoutSuggestion;IDE0064;IDE0065;IDE0066;IDE0066WithoutSuggestion;IDE0070;IDE0070WithoutSuggestion;IDE0071;IDE0071WithoutSuggestion;IDE0072;IDE0072WithoutSuggestion;IDE0073;IDE0073WithoutSuggestion;IDE0074;IDE0074WithoutSuggestion;IDE0075;IDE0075WithoutSuggestion;IDE1005;IDE1005WithoutSuggestion;IDE1006;IDE1006WithoutSuggestion</NoWarn>
-  </PropertyGroup>
-
   <ItemGroup Condition="'$(Language)' == 'CSharp' and '$(TargetFramework)' == 'net20'">
     <_ExplicitReference Include="$(FrameworkPathOverride)\mscorlib.dll" />
   </ItemGroup>
@@ -73,11 +100,15 @@
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
   </PropertyGroup>
 
-  <!-- Rulesets -->
-  <PropertyGroup Condition="'$(CodeAnalysisRuleSet)' == ''">
-    <CodeAnalysisRuleSet Condition="'$(IsShipping)' == 'true'">$(RepositoryEngineeringDir)config\rulesets\Shipping.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRuleSet Condition="'$(IsShipping)' != 'true'">$(RepositoryEngineeringDir)config\rulesets\NonShipping.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
+  <!-- Global Analyzer Config -->
+  <ItemGroup>
+    <!-- Always include Common.globalconfig -->
+    <EditorConfigFiles Include="$(RepositoryEngineeringDir)config\globalconfigs\Common.globalconfig" />
+    <!-- Include Shipping.globalconfig for shipping projects -->
+    <EditorConfigFiles Condition="'$(IsShipping)' == 'true'" Include="$(RepositoryEngineeringDir)config\globalconfigs\Shipping.globalconfig" />
+    <!-- Include NonShipping.globalconfig for non-shipping projects -->
+    <EditorConfigFiles Condition="'$(IsShipping)' != 'true'" Include="$(RepositoryEngineeringDir)config\globalconfigs\NonShipping.globalconfig" />
+  </ItemGroup>
 
   <!--
     Some dependencies bring in references to UIAutomationClient and UIAutomationTypes. These conflict with the faster
@@ -137,17 +168,6 @@
                  Condition="$(_VersionComparisonResult) &lt; 0"/>
   </Target> 
 
-  <Target Name="DisableAnalyzers"
-          BeforeTargets="CoreCompile"
-          Condition="'$(UseRoslynAnalyzers)' == 'false'">
-    <!--
-      Disable analyzers via an MSBuild property settable on the command line.
-    -->
-    <ItemGroup>
-      <Analyzer Remove="@(Analyzer)" />
-    </ItemGroup>
-  </Target>
-
   <!-- 
     This target is used to copy referenced projects to a sub-directory vs. the direct output 
     directory of the build. Useful when the referenced project is an EXE and the referencing 
@@ -171,6 +191,11 @@
   -->
   <ItemGroup>
     <AdditionalFiles Include="@(PublicAPI)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Include BannedSymbols covering all projects -->
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)..\config\BannedSymbols.txt" />
   </ItemGroup>
 
   <ItemGroup>
@@ -333,5 +358,23 @@
 
     <Error Text="Unit test project TargetFileName must end with '.IntegrationTests.dll': '$(TargetFileName)'"
            Condition="$(IsIntegrationTestProject) != $(TargetFileName.EndsWith('.IntegrationTests.dll'))" />
+  </Target>
+
+  <!-- Work around for https://github.com/dotnet/sdk/issues/10591 -->
+  <Target Name="WorkAroundDotnetSdk10591"
+          AfterTargets="ResolveTargetingPackAssets"
+          Condition="'$(Language)' == 'VB' AND '$(VBRuntime)' == 'Embed'">
+    <ItemGroup>
+      <Reference Remove="@(Reference)" Condition=" '%(FileName)' == 'Microsoft.VisualBasic' or '%(FileName)' == 'Microsoft.VisualBasic.Core' " />
+    </ItemGroup>
+  </Target>
+
+  <!-- Workaround for https://github.com/dotnet/msbuild/issues/7161 -->
+  <Target Name="WorkaroundDotnetMsbuild7161"
+          AfterTargets="_CopyFilesMarkedCopyLocal"
+          Condition="'$(BuildingInsideVisualStudio)' == 'true' AND '@(ReferenceCopyLocalPaths)' != ''">
+    <Touch Files="@(CopyUpToDateMarker)"
+           AlwaysCreate="true"
+           Condition="'@(ReferencesCopiedInThisBuild)' != ''"/>
   </Target>
 </Project>

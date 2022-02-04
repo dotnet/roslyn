@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -9,6 +11,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -72,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // At this point, we know method originated with a DestructorDeclarationSyntax in source,
                 // so it can't have the "new" modifier.
                 // First is fine, since there should only be one, since there are no parameters.
-                method = method.GetFirstRuntimeOverriddenMethodIgnoringNewSlot(ignoreInterfaceImplementationChanges: true);
+                method = method.GetFirstRuntimeOverriddenMethodIgnoringNewSlot(out _);
                 skipFirstMethodKindCheck = false;
             }
 
@@ -143,6 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
         /// <summary>
         /// Returns whether this method is async and returns void.
         /// </summary>
@@ -152,21 +157,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns whether this method is async and returns a task.
+        /// Returns whether this method is async and returns a task, task-like, or other type with a method-level builder.
         /// </summary>
-        public static bool IsAsyncReturningTask(this MethodSymbol method, CSharpCompilation compilation)
+        public static bool IsAsyncEffectivelyReturningTask(this MethodSymbol method, CSharpCompilation compilation)
         {
             return method.IsAsync
-                && method.ReturnType.IsNonGenericTaskType(compilation);
+                && method.ReturnType is NamedTypeSymbol { Arity: 0 }
+                && (method.HasAsyncMethodBuilderAttribute(builderArgument: out _) || method.ReturnType.IsNonGenericTaskType(compilation));
         }
 
         /// <summary>
-        /// Returns whether this method is async and returns a generic task.
+        /// Returns whether this method is async and returns a generic task, task-like, or other type with a method-level builder.
         /// </summary>
-        public static bool IsAsyncReturningGenericTask(this MethodSymbol method, CSharpCompilation compilation)
+        public static bool IsAsyncEffectivelyReturningGenericTask(this MethodSymbol method, CSharpCompilation compilation)
         {
             return method.IsAsync
-                && method.ReturnType.IsGenericTaskType(compilation);
+                && method.ReturnType is NamedTypeSymbol { Arity: 1 }
+                && (method.HasAsyncMethodBuilderAttribute(builderArgument: out _) || method.ReturnType.IsGenericTaskType(compilation));
         }
 
         /// <summary>
@@ -189,12 +196,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static CSharpSyntaxNode ExtractReturnTypeSyntax(this MethodSymbol method)
         {
+            if (method is SynthesizedSimpleProgramEntryPointSymbol synthesized)
+            {
+                return (CSharpSyntaxNode)synthesized.ReturnTypeSyntax;
+            }
+
             method = method.PartialDefinitionPart ?? method;
             foreach (var reference in method.DeclaringSyntaxReferences)
             {
-                if (reference.GetSyntax() is MethodDeclarationSyntax methodDeclaration)
+                SyntaxNode node = reference.GetSyntax();
+                if (node is MethodDeclarationSyntax methodDeclaration)
                 {
                     return methodDeclaration.ReturnType;
+                }
+                else if (node is LocalFunctionStatementSyntax statement)
+                {
+                    return statement.ReturnType;
                 }
             }
 

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -18,10 +16,10 @@ namespace Microsoft.CodeAnalysis.Formatting
 {
     internal class ChainedFormattingRules
     {
-        private static readonly ConcurrentDictionary<(Type type, string name), Type?> s_typeImplementingMethod = new ConcurrentDictionary<(Type type, string name), Type?>();
+        private static readonly ConcurrentDictionary<(Type type, string name), Type?> s_typeImplementingMethod = new();
 
         private readonly ImmutableArray<AbstractFormattingRule> _formattingRules;
-        private readonly AnalyzerConfigOptions _options;
+        private readonly SyntaxFormattingOptions _options;
 
         private readonly ImmutableArray<AbstractFormattingRule> _addSuppressOperationsRules;
         private readonly ImmutableArray<AbstractFormattingRule> _addAnchorIndentationOperationsRules;
@@ -30,10 +28,9 @@ namespace Microsoft.CodeAnalysis.Formatting
         private readonly ImmutableArray<AbstractFormattingRule> _getAdjustNewLinesOperationRules;
         private readonly ImmutableArray<AbstractFormattingRule> _getAdjustSpacesOperationRules;
 
-        public ChainedFormattingRules(IEnumerable<AbstractFormattingRule> formattingRules, AnalyzerConfigOptions options)
+        public ChainedFormattingRules(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxFormattingOptions options)
         {
             Contract.ThrowIfNull(formattingRules);
-            Contract.ThrowIfNull(options);
 
             _formattingRules = formattingRules.Select(rule => rule.WithOptions(options)).ToImmutableArray();
             _options = options;
@@ -72,14 +69,14 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public AdjustNewLinesOperation? GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken)
         {
-            var action = new NextGetAdjustNewLinesOperation(_getAdjustNewLinesOperationRules, index: 0, previousToken, currentToken);
-            return action.Invoke();
+            var action = new NextGetAdjustNewLinesOperation(_getAdjustNewLinesOperationRules, index: 0);
+            return action.Invoke(in previousToken, in currentToken);
         }
 
         public AdjustSpacesOperation? GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken)
         {
-            var action = new NextGetAdjustSpacesOperation(_getAdjustSpacesOperationRules, index: 0, previousToken, currentToken);
-            return action.Invoke();
+            var action = new NextGetAdjustSpacesOperation(_getAdjustSpacesOperationRules, index: 0);
+            return action.Invoke(in previousToken, in currentToken);
         }
 
         private static ImmutableArray<AbstractFormattingRule> FilterToRulesImplementingMethod(ImmutableArray<AbstractFormattingRule> rules, string name)

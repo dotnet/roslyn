@@ -102,6 +102,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup
                     Return True
                 End If
             End If
+
             Return False
         End Function
 
@@ -141,6 +142,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup
                     End Select
                 End If
             End If
+
             Return False
         End Function
 

@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -30,12 +29,12 @@ namespace Microsoft.CodeAnalysis
         /// the same trivia with potentially rewritten sub structure.</param>
         public static TRoot ReplaceSyntax<TRoot>(
             this TRoot root,
-            IEnumerable<SyntaxNode> nodes,
-            Func<SyntaxNode, SyntaxNode, SyntaxNode> computeReplacementNode,
-            IEnumerable<SyntaxToken> tokens,
-            Func<SyntaxToken, SyntaxToken, SyntaxToken> computeReplacementToken,
-            IEnumerable<SyntaxTrivia> trivia,
-            Func<SyntaxTrivia, SyntaxTrivia, SyntaxTrivia> computeReplacementTrivia)
+            IEnumerable<SyntaxNode>? nodes,
+            Func<SyntaxNode, SyntaxNode, SyntaxNode>? computeReplacementNode,
+            IEnumerable<SyntaxToken>? tokens,
+            Func<SyntaxToken, SyntaxToken, SyntaxToken>? computeReplacementToken,
+            IEnumerable<SyntaxTrivia>? trivia,
+            Func<SyntaxTrivia, SyntaxTrivia, SyntaxTrivia>? computeReplacementTrivia)
             where TRoot : SyntaxNode
         {
             return (TRoot)root.ReplaceCore(
@@ -260,12 +259,13 @@ namespace Microsoft.CodeAnalysis
         /// <param name="root">The root node from which to remove a descendant node from.</param>
         /// <param name="node">The node to remove.</param>
         /// <param name="options">Options that determine how the node's trivia is treated.</param>
-        public static TRoot RemoveNode<TRoot>(this TRoot root,
+        /// <returns>New root or null if the root node itself is removed.</returns>
+        public static TRoot? RemoveNode<TRoot>(this TRoot root,
             SyntaxNode node,
             SyntaxRemoveOptions options)
             where TRoot : SyntaxNode
         {
-            return (TRoot)root.RemoveNodesCore(new[] { node }, options);
+            return (TRoot?)root.RemoveNodesCore(new[] { node }, options);
         }
 
         /// <summary>
@@ -275,13 +275,13 @@ namespace Microsoft.CodeAnalysis
         /// <param name="root">The root node from which to remove a descendant node from.</param>
         /// <param name="nodes">The nodes to remove.</param>
         /// <param name="options">Options that determine how the nodes' trivia is treated.</param>
-        public static TRoot RemoveNodes<TRoot>(
+        public static TRoot? RemoveNodes<TRoot>(
             this TRoot root,
             IEnumerable<SyntaxNode> nodes,
             SyntaxRemoveOptions options)
             where TRoot : SyntaxNode
         {
-            return (TRoot)root.RemoveNodesCore(nodes, options);
+            return (TRoot?)root.RemoveNodesCore(nodes, options);
         }
 
         internal const string DefaultIndentation = "    ";
@@ -430,7 +430,8 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Attaches the node to a SyntaxTree that the same options as <paramref name="oldTree"/>
         /// </summary>
-        internal static SyntaxNode? AsRootOfNewTreeWithOptionsFrom(this SyntaxNode node, SyntaxTree oldTree)
+        [return: NotNullIfNotNull("node")]
+        internal static SyntaxNode? AsRootOfNewTreeWithOptionsFrom(this SyntaxNode? node, SyntaxTree oldTree)
         {
             return node != null ? oldTree.WithRootAndOptions(node, oldTree.Options).GetRoot() : null;
         }

@@ -1422,7 +1422,8 @@ BC42038: This expression will always evaluate to Nothing (due to null propagatio
             Next
         End Sub
 
-        <Fact, WorkItem(529600, "DevDiv"), WorkItem(37572, "https://github.com/dotnet/roslyn/issues/37572")>
+        <ConditionalFact(GetType(NoIOperationValidation))>
+        <WorkItem(43019, "https://github.com/dotnet/roslyn/issues/43019"), WorkItem(529600, "DevDiv"), WorkItem(37572, "https://github.com/dotnet/roslyn/issues/37572")>
         Public Sub Bug529600()
 
             Dim compilationDef =
@@ -1478,9 +1479,32 @@ End Module
 
             Assert.Equal(ERRID.ERR_ConstantStringTooLong, err.Code)
             Assert.Equal("Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.", err.GetMessage(EnsureEnglishUICulture.PreferredOrNull))
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model = compilation.GetSemanticModel(tree)
+
+            Dim fieldInitializerOperations = tree.GetRoot().DescendantNodes().OfType(Of VariableDeclaratorSyntax)().
+                Select(Function(v) v.Initializer.Value).
+                Select(Function(i) model.GetOperation(i))
+
+            Dim numChildren = 0
+
+            For Each iop in fieldInitializerOperations
+                EnumerateChildren(iop, numChildren)
+            Next
+
+            Assert.Equal(1203, numChildren)
         End Sub
 
-        <Fact, WorkItem(37572, "https://github.com/dotnet/roslyn/issues/37572")>
+        Private Sub EnumerateChildren(iop As IOperation, ByRef numChildren as Integer)
+            numChildren += 1
+            Assert.NotNull(iop)
+            For Each child In iop.ChildOperations
+                EnumerateChildren(child, numChildren)
+            Next
+        End Sub
+
+        <ConditionalFact(GetType(NoIOperationValidation), AlwaysSkip:="https://github.com/dotnet/roslyn/issues/57806"), WorkItem(43019, "https://github.com/dotnet/roslyn/issues/43019"), WorkItem(37572, "https://github.com/dotnet/roslyn/issues/37572")>
         Public Sub TestLargeStringConcatenation()
 
             Dim mid = New StringBuilder()
@@ -1502,6 +1526,20 @@ End Module
             Dim compilation = CompilationUtils.CreateCompilation(compilationDef, options:=TestOptions.ReleaseExe)
             compilation.VerifyDiagnostics()
             CompileAndVerify(compilation, expectedOutput:="58430604")
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim initializer = tree.GetRoot().DescendantNodes().OfType(Of VariableDeclaratorSyntax).Single().Initializer.Value
+            Dim literalOperation = model.GetOperation(initializer)
+
+            Dim stringTextBuilder As New StringBuilder()
+            stringTextBuilder.Append("BEGIN ")
+            For i = 0 To 4999
+                stringTextBuilder.Append("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ")
+            Next
+            stringTextBuilder.Append("END")
+
+            Assert.Equal(stringTextBuilder.ToString(), literalOperation.ConstantValue.Value)
         End Sub
 
     End Class

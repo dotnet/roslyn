@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -10,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public sealed class CSharpSyntaxFactsServiceTests
     {
-        private bool IsQueryKeyword(string markup)
+        private static bool IsQueryKeyword(string markup)
         {
             MarkupTestFile.GetPosition(markup, out var code, out int position);
             var tree = SyntaxFactory.ParseSyntaxTree(code);
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return service.IsQueryKeyword(token);
         }
 
-        private string WrapInMethod(string methodBody)
+        private static string WrapInMethod(string methodBody)
         {
             return $@"
 class C

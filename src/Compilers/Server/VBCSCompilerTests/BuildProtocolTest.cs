@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
@@ -36,14 +39,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             Assert.Equal(42, read.ReturnCode);
             Assert.False(read.Utf8Output);
             Assert.Equal("a string", read.Output);
-            Assert.Equal("", read.ErrorOutput);
         }
 
         [Fact]
         public async Task ReadWriteRequest()
         {
             var request = new BuildRequest(
-                BuildProtocolConstants.ProtocolVersion,
                 RequestLanguage.VisualBasicCompile,
                 "HashValue",
                 ImmutableArray.Create(
@@ -54,7 +55,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             Assert.True(memoryStream.Position > 0);
             memoryStream.Position = 0;
             var read = await BuildRequest.ReadAsync(memoryStream, default(CancellationToken));
-            Assert.Equal(BuildProtocolConstants.ProtocolVersion, read.ProtocolVersion);
             Assert.Equal(RequestLanguage.VisualBasicCompile, read.Language);
             Assert.Equal("HashValue", read.CompilerHash);
             Assert.Equal(2, read.Arguments.Count);

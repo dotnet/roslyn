@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -15,33 +16,27 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// <summary>
     /// Context for code fixes provided by a <see cref="CodeFixProvider"/>.
     /// </summary>
-    public struct CodeFixContext : ITypeScriptCodeFixContext
+    public readonly struct CodeFixContext : ITypeScriptCodeFixContext
     {
         private readonly Document _document;
-        private readonly Project _project;
         private readonly TextSpan _span;
         private readonly ImmutableArray<Diagnostic> _diagnostics;
         private readonly CancellationToken _cancellationToken;
         private readonly Action<CodeAction, ImmutableArray<Diagnostic>> _registerCodeFix;
 
         /// <summary>
-        /// Document corresponding to the <see cref="CodeFixContext.Span"/> to fix.
+        /// Document corresponding to the <see cref="Span"/> to fix.
         /// </summary>
         public Document Document => _document;
 
         /// <summary>
-        /// Project corresponding to the diagnostics to fix.
-        /// </summary>
-        internal Project Project => _project;
-
-        /// <summary>
-        /// Text span within the <see cref="CodeFixContext.Document"/> to fix.
+        /// Text span within the <see cref="Document"/> to fix.
         /// </summary>
         public TextSpan Span => _span;
 
         /// <summary>
         /// Diagnostics to fix.
-        /// NOTE: All the diagnostics in this collection have the same <see cref="CodeFixContext.Span"/>.
+        /// NOTE: All the diagnostics in this collection have the same <see cref="Span"/>.
         /// </summary>
         public ImmutableArray<Diagnostic> Diagnostics => _diagnostics;
 
@@ -50,8 +45,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
 
-        private readonly bool _isBlocking;
-        bool ITypeScriptCodeFixContext.IsBlocking => _isBlocking;
+        internal readonly CodeActionOptions Options;
+        bool ITypeScriptCodeFixContext.IsBlocking => Options.IsBlocking;
 
         /// <summary>
         /// Creates a code fix context to be passed into <see cref="CodeFixProvider.RegisterCodeFixesAsync(CodeFixContext)"/> method.
@@ -76,7 +71,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             ImmutableArray<Diagnostic> diagnostics,
             Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
             CancellationToken cancellationToken)
-            : this(document, span, diagnostics, registerCodeFix, verifyArguments: true, cancellationToken: cancellationToken)
+            : this(document ?? throw new ArgumentNullException(nameof(document)),
+                   span,
+                   VerifyDiagnosticsArgument(diagnostics, span),
+                   registerCodeFix ?? throw new ArgumentNullException(nameof(registerCodeFix)),
+                   CodeActionOptions.Default,
+                   cancellationToken)
         {
         }
 
@@ -96,7 +96,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Diagnostic diagnostic,
             Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
             CancellationToken cancellationToken)
-            : this(document, diagnostic.Location.SourceSpan, ImmutableArray.Create(diagnostic), registerCodeFix, verifyArguments: true, cancellationToken: cancellationToken)
+            : this(document ?? throw new ArgumentNullException(nameof(document)),
+                   (diagnostic ?? throw new ArgumentNullException(nameof(diagnostic))).Location.SourceSpan,
+                   ImmutableArray.Create(diagnostic),
+                   registerCodeFix ?? throw new ArgumentNullException(nameof(registerCodeFix)),
+                   CodeActionOptions.Default,
+                   cancellationToken)
         {
         }
 
@@ -105,76 +110,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             TextSpan span,
             ImmutableArray<Diagnostic> diagnostics,
             Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
-            bool verifyArguments,
-            CancellationToken cancellationToken)
-            : this(document, document.Project, span, diagnostics, registerCodeFix, verifyArguments, isBlocking: false, cancellationToken)
-        {
-        }
-
-        internal CodeFixContext(
-            Document document,
-            TextSpan span,
-            ImmutableArray<Diagnostic> diagnostics,
-            Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
-            bool verifyArguments,
-            bool isBlocking,
-            CancellationToken cancellationToken)
-            : this(document, document.Project, span, diagnostics, registerCodeFix, verifyArguments, isBlocking, cancellationToken)
-        {
-        }
-
-        internal CodeFixContext(
-            Project project,
-            ImmutableArray<Diagnostic> diagnostics,
-            Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
-            CancellationToken cancellationToken)
-            : this(document: null, project: project, span: default, diagnostics: diagnostics, registerCodeFix: registerCodeFix, verifyArguments: false, isBlocking: false, cancellationToken: cancellationToken)
-        {
-        }
-
-        private CodeFixContext(
-            Document document,
-            Project project,
-            TextSpan span,
-            ImmutableArray<Diagnostic> diagnostics,
-            Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
-            bool verifyArguments,
-            bool isBlocking,
+            CodeActionOptions options,
             CancellationToken cancellationToken)
         {
-            if (verifyArguments)
-            {
-                if (document == null)
-                {
-                    throw new ArgumentNullException(nameof(document));
-                }
-
-                if (registerCodeFix == null)
-                {
-                    throw new ArgumentNullException(nameof(registerCodeFix));
-                }
-
-                VerifyDiagnosticsArgument(diagnostics, span);
-            }
+            Debug.Assert(diagnostics.Any(d => d.Location.SourceSpan == span));
 
             _document = document;
-            _project = project;
             _span = span;
             _diagnostics = diagnostics;
             _registerCodeFix = registerCodeFix;
+            Options = options;
             _cancellationToken = cancellationToken;
-
-            _isBlocking = isBlocking;
-        }
-
-        internal CodeFixContext(
-            Document document,
-            Diagnostic diagnostic,
-            Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
-            bool verifyArguments,
-            CancellationToken cancellationToken)
-            : this(document, diagnostic.Location.SourceSpan, ImmutableArray.Create(diagnostic), registerCodeFix, verifyArguments, cancellationToken)
-        {
         }
 
         /// <summary>
@@ -234,14 +180,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             _registerCodeFix(action, diagnostics);
         }
 
-        private static void VerifyDiagnosticsArgument(ImmutableArray<Diagnostic> diagnostics, TextSpan span)
+        private static ImmutableArray<Diagnostic> VerifyDiagnosticsArgument(ImmutableArray<Diagnostic> diagnostics, TextSpan span)
         {
-            if (diagnostics.IsDefault)
-            {
-                throw new ArgumentException(nameof(diagnostics));
-            }
-
-            if (diagnostics.Length == 0)
+            if (diagnostics.IsDefaultOrEmpty)
             {
                 throw new ArgumentException(WorkspacesResources.At_least_one_diagnostic_must_be_supplied, nameof(diagnostics));
             }
@@ -251,10 +192,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 throw new ArgumentException(WorkspaceExtensionsResources.Supplied_diagnostic_cannot_be_null, nameof(diagnostics));
             }
 
-            if (diagnostics.Any(d => d.Location.SourceSpan != span))
+            if (diagnostics.Any((d, span) => d.Location.SourceSpan != span, span))
             {
                 throw new ArgumentException(string.Format(WorkspacesResources.Diagnostic_must_have_span_0, span.ToString()), nameof(diagnostics));
             }
+
+            return diagnostics;
         }
     }
 

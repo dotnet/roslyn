@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -13,6 +14,12 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
+    [DataContract]
+    internal readonly record struct AddImportOptions(
+        [property: DataMember(Order = 0)] bool SearchReferenceAssemblies,
+        [property: DataMember(Order = 1)] bool HideAdvancedMembers,
+        [property: DataMember(Order = 2)] AddImportPlacementOptions Placement);
+
     internal interface IAddImportFeatureService : ILanguageService
     {
         /// <summary>
@@ -20,8 +27,8 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// Useful when you do not have an instance of the diagnostic, such as when invoked as a remote service.
         /// </summary>
         Task<ImmutableArray<AddImportFixData>> GetFixesAsync(
-            Document document, TextSpan span, string diagnosticId, int maxResults, bool placeSystemNamespaceFirst,
-            ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
+            Document document, TextSpan span, string diagnosticId, int maxResults,
+            ISymbolSearchService symbolSearchService, AddImportOptions options,
             ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken);
 
         /// <summary>
@@ -30,7 +37,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// </summary>
         Task<ImmutableArray<(Diagnostic Diagnostic, ImmutableArray<AddImportFixData> Fixes)>> GetFixesForDiagnosticsAsync(
             Document document, TextSpan span, ImmutableArray<Diagnostic> diagnostics, int maxResultsPerDiagnostic,
-            ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
+            ISymbolSearchService symbolSearchService, AddImportOptions options,
             ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken);
 
         /// <summary>
@@ -39,6 +46,16 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// </summary>
         ImmutableArray<CodeAction> GetCodeActionsForFixes(
             Document document, ImmutableArray<AddImportFixData> fixes,
-            IPackageInstallerService installerService, int maxResults);
+            IPackageInstallerService? installerService, int maxResults);
+
+        /// <summary>
+        /// Gets data for how to fix a particular <see cref="Diagnostic" /> id within the specified Document.
+        /// Similar to <see cref="GetFixesAsync(Document, TextSpan, string, int, ISymbolSearchService, AddImportOptions, ImmutableArray{PackageSource}, CancellationToken)"/> 
+        /// except it only returns fix data when there is a single using fix for a given span
+        /// </summary>
+        Task<ImmutableArray<AddImportFixData>> GetUniqueFixesAsync(
+            Document document, TextSpan span, ImmutableArray<string> diagnosticIds,
+            ISymbolSearchService symbolSearchService, AddImportOptions options,
+            ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken);
     }
 }

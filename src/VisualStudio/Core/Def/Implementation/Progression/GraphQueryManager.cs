@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,8 +26,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         /// <summary>
         /// This gate locks manipulation of <see cref="_trackedQueries"/>.
         /// </summary>
-        private readonly object _gate = new object();
-        private readonly List<ValueTuple<WeakReference<IGraphContext>, List<IGraphQuery>>> _trackedQueries = new List<ValueTuple<WeakReference<IGraphContext>, List<IGraphQuery>>>();
+        private readonly object _gate = new();
+        private readonly List<ValueTuple<WeakReference<IGraphContext>, List<IGraphQuery>>> _trackedQueries = new();
 
         // We update all of our tracked queries when this delay elapses.
         private ResettableDelay? _delay;
@@ -158,27 +156,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             try
             {
                 var cancellationToken = context.CancelToken;
-                var graphBuilderTasks = graphQueries.Select(q => q.GetGraphAsync(solution, context, cancellationToken)).ToArray();
-                var graphBuilders = await Task.WhenAll(graphBuilderTasks).ConfigureAwait(false);
 
                 // Perform the actual graph transaction 
-                using var transaction = new GraphTransactionScope();
-
-                // Remove any links that may have been added by a previous population. We don't
-                // remove nodes to maintain node identity, matching the behavior of the old
-                // providers.
-                context.Graph.Links.Clear();
-
-                foreach (var graphBuilder in graphBuilders)
+                using (var transaction1 = new GraphTransactionScope())
                 {
-                    graphBuilder.ApplyToGraph(context.Graph);
-
-                    context.OutputNodes.AddAll(graphBuilder.CreatedNodes);
+                    // Remove any links that may have been added by a previous population. We don't
+                    // remove nodes to maintain node identity, matching the behavior of the old
+                    // providers.
+                    context.Graph.Links.Clear();
+                    transaction1.Complete();
                 }
 
-                transaction.Complete();
+                foreach (var query in graphQueries)
+                {
+                    var graphBuilder = await query.GetGraphAsync(solution, context, cancellationToken).ConfigureAwait(false);
+
+                    using var transaction2 = new GraphTransactionScope();
+
+                    graphBuilder.ApplyToGraph(context.Graph, cancellationToken);
+                    context.OutputNodes.AddAll(graphBuilder.GetCreatedNodes(cancellationToken));
+
+                    transaction2.Complete();
+                }
             }
-            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(ex))
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, ErrorSeverity.Diagnostic))
             {
                 throw ExceptionUtilities.Unreachable;
             }

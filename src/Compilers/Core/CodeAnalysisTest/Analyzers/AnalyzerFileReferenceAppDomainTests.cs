@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 #if NET472 // AppDomains
 
 using System;
@@ -14,6 +12,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.Desktop;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -27,7 +26,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public Exception LoadAnalyzer(string analyzerPath)
         {
             Exception analyzerLoadException = null;
-            var analyzerRef = new AnalyzerFileReference(analyzerPath, FromFileLoader.Instance);
+            var analyzerRef = new AnalyzerFileReference(analyzerPath, TestAnalyzerAssemblyLoader.LoadFromFile);
             analyzerRef.AnalyzerLoadFailed += (s, e) => analyzerLoadException = e.Exception;
             var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
             analyzerRef.AddAnalyzers(builder, LanguageNames.CSharp);
@@ -42,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var dir = Temp.CreateDirectory();
             dir.CopyFile(typeof(AppDomainUtils).Assembly.Location);
-            dir.CopyFile(typeof(FromFileLoader).Assembly.Location);
+            dir.CopyFile(typeof(RemoteAnalyzerFileReferenceTest).Assembly.Location);
             var analyzerFile = DesktopTestHelpers.CreateCSharpAnalyzerAssemblyWithTestAnalyzer(dir, "MyAnalyzer");
             var loadDomain = AppDomainUtils.Create("AnalyzerTestDomain", basePath: dir.Path);
             try
@@ -84,19 +83,20 @@ public class TestAnalyzer : DiagnosticAnalyzer
             dir.CopyFile(typeof(System.Runtime.CompilerServices.Unsafe).Assembly.Location);
             var immutable = dir.CopyFile(typeof(ImmutableArray).Assembly.Location);
             var analyzer = dir.CopyFile(typeof(DiagnosticAnalyzer).Assembly.Location);
-            dir.CopyFile(typeof(FromFileLoader).Assembly.Location);
+            dir.CopyFile(typeof(RemoteAnalyzerFileReferenceTest).Assembly.Location);
 
             var analyzerCompilation = CSharp.CSharpCompilation.Create(
                 "MyAnalyzer",
                 new SyntaxTree[] { CSharp.SyntaxFactory.ParseSyntaxTree(analyzerSource) },
                 new MetadataReference[]
                 {
-                    TestReferences.NetStandard20.NetStandard,
-                    TestReferences.NetStandard20.SystemRuntimeRef,
+                    NetStandard20.mscorlib,
+                    NetStandard20.netstandard,
+                    NetStandard20.SystemRuntime,
                     MetadataReference.CreateFromFile(immutable.Path),
                     MetadataReference.CreateFromFile(analyzer.Path)
                 },
-                new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: CodeAnalysis.Diagnostic.MaxWarningLevel));
 
             var analyzerFile = dir.CreateFile("MyAnalyzer.dll").WriteAllBytes(analyzerCompilation.EmitToArray());
 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Roslyn.Utilities;
@@ -12,13 +14,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
     {
         private class SuppressionFixAllProvider : FixAllProvider
         {
-            public static readonly SuppressionFixAllProvider Instance = new SuppressionFixAllProvider();
+            public static readonly SuppressionFixAllProvider Instance = new();
 
             private SuppressionFixAllProvider()
             {
             }
 
-            public async override Task<CodeAction> GetFixAsync(FixAllContext fixAllContext)
+            public override async Task<CodeAction> GetFixAsync(FixAllContext fixAllContext)
             {
                 // currently there's no FixAll support for local suppression, just bail out
                 if (NestedSuppressionCodeAction.IsEquivalenceKeyForLocalSuppression(fixAllContext.CodeActionEquivalenceKey))

@@ -4,8 +4,12 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SQLite.v2;
 using Microsoft.CodeAnalysis.Storage;
 using Xunit;
@@ -19,8 +23,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
     /// </remarks>
     public class SQLiteV2PersistentStorageTests : AbstractPersistentStorageTests
     {
-        internal override AbstractPersistentStorageService GetStorageService(IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector faultInjector)
-            => new SQLitePersistentStorageService(locationService, faultInjector);
+        internal override AbstractPersistentStorageService GetStorageService(IMefHostExportProvider exportProvider, IPersistentStorageConfiguration configuration, IPersistentStorageFaultInjector? faultInjector, string relativePathBase)
+            => new SQLitePersistentStorageService(
+                exportProvider.GetExports<SQLiteConnectionPoolService>().Single().Value,
+                configuration,
+                exportProvider.GetExports<IAsynchronousOperationListenerProvider>().Single().Value.GetListener(FeatureAttribute.PersistentStorage),
+                faultInjector);
 
         [Fact]
         public async Task TestCrashInNewConnection()
@@ -37,8 +45,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
                 onFatalError: e => throw e);
 
             // Because instantiating the connection will fail, we will not get back
-            // a working persistent storage.
-            using (var storage = GetStorage(solution, faultInjector))
+            // a working persistent storage. We are testing a fault recovery code path.
+            await using (var storage = await GetStorageAsync(solution, faultInjector: faultInjector, throwOnFailure: false))
             using (var memStream = new MemoryStream())
             using (var streamWriter = new StreamWriter(memStream))
             {
@@ -66,12 +74,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 
         private class PersistentStorageFaultInjector : IPersistentStorageFaultInjector
         {
-            private readonly Action _onNewConnection;
-            private readonly Action<Exception> _onFatalError;
+            private readonly Action? _onNewConnection;
+            private readonly Action<Exception>? _onFatalError;
 
             public PersistentStorageFaultInjector(
-                Action onNewConnection = null,
-                Action<Exception> onFatalError = null)
+                Action? onNewConnection = null,
+                Action<Exception>? onFatalError = null)
             {
                 _onNewConnection = onNewConnection;
                 _onFatalError = onFatalError;

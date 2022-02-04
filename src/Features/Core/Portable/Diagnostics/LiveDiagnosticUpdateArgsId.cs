@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -13,9 +11,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly string _analyzerPackageName;
 
         public readonly object ProjectOrDocumentId;
-        public readonly int Kind;
+        public readonly AnalysisKind Kind;
 
-        public LiveDiagnosticUpdateArgsId(DiagnosticAnalyzer analyzer, object projectOrDocumentId, int kind, string analyzerPackageName)
+        public LiveDiagnosticUpdateArgsId(DiagnosticAnalyzer analyzer, object projectOrDocumentId, AnalysisKind kind, string analyzerPackageName)
             : base(analyzer)
         {
             Contract.ThrowIfNull(projectOrDocumentId);
@@ -28,9 +26,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override string BuildTool => _analyzerPackageName;
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
-            if (!(obj is LiveDiagnosticUpdateArgsId other))
+            if (obj is not LiveDiagnosticUpdateArgsId other)
             {
                 return false;
             }
@@ -39,6 +37,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public override int GetHashCode()
-            => Hash.Combine(ProjectOrDocumentId, Hash.Combine(Kind, base.GetHashCode()));
+            => Hash.Combine(ProjectOrDocumentId, Hash.Combine((int)Kind, base.GetHashCode()));
     }
 }

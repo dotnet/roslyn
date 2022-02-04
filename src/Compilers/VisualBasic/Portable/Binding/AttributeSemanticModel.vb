@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New AttributeSemanticModel(root, binder, parentSemanticModelOpt:=parentSemanticModel, speculatedPosition:=position)
         End Function
 
-        Friend Overrides Function Bind(binder As Binder, node As SyntaxNode, diagnostics As DiagnosticBag) As BoundNode
+        Friend Overrides Function Bind(binder As Binder, node As SyntaxNode, diagnostics As BindingDiagnosticBag) As BoundNode
             Debug.Assert(binder.IsSemanticModelBinder)
 
             Dim boundNode As BoundNode

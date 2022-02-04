@@ -33,7 +33,9 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Show diagnostics for closed files;
+        <source>Underline reassigned variables;
+Display inline hints;
+Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
 Report invalid regular expressions;
@@ -78,11 +80,21 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
+Colorize regular expressions;
+Highlight related components under cursor;
+Report invalid regular expressions;
+JSON;
+Colorize JSON strings;
+Report invalid JSON strings;
+Detect and offer editor features for JSON strings;
 Use enhanced colors;
-Editor Color Scheme;</source>
-        <target state="needs-review-translation">Mostra diagnostica per file chiusi;
-Colora espressione regolare; 
-Evidenzia componenti correlati sotto il cursore; 
+Editor Color Scheme;
+Inheritance Margin;</source>
+        <target state="needs-review-translation">Sottolinea variabili riassegnate;
+Visualizza suggerimenti inline;
+Mostra diagnostica per file chiusi;
+Colora espressione regolare;
+Evidenzia i componenti correlati sotto il cursore; 
 Segnala espressioni regolari non valide;
 Abilita analisi della soluzione completa;
 Esegui analisi delle funzionalità dell'editor in processo esterno;
@@ -101,31 +113,33 @@ Mostra separatori di riga routine;
 Mostra la struttura per i costrutti a livello di dichiarazione;
 Mostra la struttura per i costrutti a livello di codice;
 Mostra la struttura per i commenti e le aree del preprocessore;
-Comprimi regions durante la compressione delle definizioni;
+Comprimi regioni durante la compressione delle definizioni;
 Dissolvenza;
 Applica dissolvenza a direttive using non usate;
 Applica dissolvenza a codice non eseguibile;
 Guide per strutture a blocchi;
 Mostra le guide per i costrutti a livello di dichiarazione;
 Mostra le guide per i costrutti a livello di codice;
-Guida Editor;
+Guida dell'editor;
 Genera commenti relativi alla documentazione XML per ///;
 Inserisci * all'inizio di nuove righe quando si scrivono commenti /* */;
-Mostra anteprima per verifica ridenominazione,
+Mostra anteprima per verifica ridenominazione;
 Dividi valori letterali stringa dopo INVIO;
 Segnala segnaposto non validi in chiamate string.Format;
 Estrai metodo;
-Non inserire ref o out in struct personalizzato;
+Non inserire out o ref in struct personalizzata;
 Implementa interfaccia o classe astratta;
 Posiziona proprietà, eventi e metodi inseriti;
 con altri membri dello stesso tipo;
-al termine;
+alla fine;
 Durante la generazione della proprietà;
 preferisci proprietà generate;
 preferisci proprietà automatiche;
 regex;
 espressione regolare;
-Usa colori migliorati;</target>
+Usa colori migliorati;
+Combinazione colori editor;
+Margine di ereditarietà;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -276,6 +290,7 @@ Show completion list after a character is deleted;
 Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
+Automatically complete statement on semicolon;
 Snippets behavior;
 Never include snippets;
 Always include snippets;
@@ -286,20 +301,23 @@ Only add new line on enter after end of fully typed word;
 Always add new line on enter;
 Show name suggestions;
 Show items from unimported namespaces (experimental);</source>
-        <target state="needs-review-translation">Modifica impostazioni di completamento elenco;Preseleziona membri usati più di recente elenco di completamento;Elenchi di completamento;
+        <target state="translated">Modifica impostazioni dell'elenco di completamento;Preseleziona membri usati di recente; Elenchi di completamento;
 Mostra elenco di completamento dopo la digitazione di un carattere;
 Mostra elenco di completamento dopo l'eliminazione di un carattere;
+Mostra automaticamente l'elenco di completamento negli elenchi di argomenti (sperimentale);
 Evidenzia le parti corrispondenti di voci dell'elenco di completamento;
 Mostra i filtri per le voci di completamento;
+Completa automaticamente istruzione dopo punto e virgola;
 Comportamento dei frammenti;
 Non includere mai i frammenti;
 Includi sempre i frammenti;
 Includi i frammenti quando si digita ?+TAB dopo un identificatore;
 Comportamento del tasto INVIO;
 Non aggiungere mai una nuova riga dopo INVIO;
-Aggiungi una nuova riga dopo INVIO alla fine della parola digitata;
+Aggiungi una nuova riga dopo INVIO solo alla fine della parola digitata;
 Aggiungi sempre una nuova riga dopo INVIO;
-Mostra suggerimenti per nomi;</target>
+Mostra suggerimenti per nomi;
+Mostra elementi da spazi dei nomi non importati (sperimentale);</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">

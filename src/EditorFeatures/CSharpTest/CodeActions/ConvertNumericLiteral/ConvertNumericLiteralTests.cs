@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ConvertNumericLiteral;
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertNume
             => await TestMissingInRegularAndScriptAsync(CreateTreeText("[||]" + initial));
 
         private async Task TestFixOneAsync(string initial, string expected, Refactoring refactoring)
-            => await TestInRegularAndScriptAsync(CreateTreeText("[||]" + initial), CreateTreeText(expected), index: (int)refactoring);
+            => await TestInRegularAndScript1Async(CreateTreeText("[||]" + initial), CreateTreeText(expected), (int)refactoring);
 
         private static string CreateTreeText(string initial)
             => @"class X { void F() { var x = " + initial + @"; } }";

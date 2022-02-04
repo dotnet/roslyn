@@ -44,9 +44,18 @@ namespace Microsoft.VisualStudio.LanguageServices
             public const int ErrorListSetSeverityNone = 0x0128;
             public const int ErrorListSetSeverityDefault = 0x0129;
 
+            // Analyze and Code Cleanup menu IDs
+            public const int AnalysisScopeDefault = 0x0131;
+            public const int AnalysisScopeCurrentDocument = 0x0132;
+            public const int AnalysisScopeOpenDocuments = 0x0133;
+            public const int AnalysisScopeEntireSolution = 0x0134;
+
             public const int GoToImplementation = 0x0200;
 
             public const int RunCodeAnalysisForProject = 0x0201;
+            public const int RemoveUnusedReferences = 0x0202;
+            public const int GoToValueTrackingWindow = 0x0203;
+            public const int SyncNamespaces = 0x0204;
         }
     }
 }

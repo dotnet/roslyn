@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 .WithModifiers(GenerateModifiers(constructor, destination, options)) _
                 .WithParameterList(ParameterGenerator.GenerateParameterList(constructor.Parameters, options))
 
-            Dim hasNoBody = Not options.GenerateMethodBodies
+            Dim hasNoBody = Not options.Context.GenerateMethodBodies
 
             Dim declaration =
                 If(hasNoBody,
@@ -53,11 +53,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
             Return AddAnnotationsTo(constructor, AddFormatterAndCodeGeneratorAnnotationsTo(
                 ConditionallyAddDocumentationCommentTo(declaration, constructor, options)))
-        End Function
-
-        Private Function GenerateArgumentList(arguments As IList(Of SyntaxNode)) As ArgumentListSyntax
-            Return SyntaxFactory.ArgumentList(
-                arguments:=SyntaxFactory.SeparatedList(arguments.Select(AddressOf ArgumentGenerator.GenerateArgument)))
         End Function
 
         Private Function GenerateStatements(constructor As IMethodSymbol) As SyntaxList(Of StatementSyntax)

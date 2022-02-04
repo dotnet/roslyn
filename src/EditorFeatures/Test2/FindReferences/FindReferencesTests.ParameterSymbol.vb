@@ -2,7 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
@@ -539,7 +539,7 @@ end class
 
         <WorkItem(16757, "https://github.com/dotnet/roslyn/issues/16757")>
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)>
+        <CompilerTrait(CompilerFeature.LocalFunctions)>
         Public Async Function TestParameterInLocalFunction1(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -565,7 +565,7 @@ end class
 
         <WorkItem(16757, "https://github.com/dotnet/roslyn/issues/16757")>
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)>
+        <CompilerTrait(CompilerFeature.LocalFunctions)>
         Public Async Function TestParameterInLocalFunction2(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -590,7 +590,7 @@ end class
 
         <WorkItem(16757, "https://github.com/dotnet/roslyn/issues/16757")>
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)>
+        <CompilerTrait(CompilerFeature.LocalFunctions)>
         Public Async Function TestParameterInLocalFunction3(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -616,7 +616,7 @@ end class
 
         <WorkItem(16757, "https://github.com/dotnet/roslyn/issues/16757")>
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
-        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)>
+        <CompilerTrait(CompilerFeature.LocalFunctions)>
         Public Async Function TestParameterInLocalFunction4(kind As TestKind, host As TestHost) As Task
             Dim input =
 <Workspace>
@@ -633,6 +633,95 @@ end class
                 Local([|$$i|]:1);
             }
         }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestParameter_ValueUsageInfo(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class C
+        {
+            void Goo(int {|Definition:$$i|})
+            {
+                Console.WriteLine({|ValueUsageInfo.Read:[|i|]|});
+                {|ValueUsageInfo.Write:[|i|]|} = 0;
+                {|ValueUsageInfo.ReadWrite:[|i|]|}++;
+                Goo2(in {|ValueUsageInfo.ReadableReference:[|i|]|}, ref {|ValueUsageInfo.ReadableWritableReference:[|i|]|});
+                Goo3(out {|ValueUsageInfo.WritableReference:[|i|]|});
+                Console.WriteLine(nameof({|ValueUsageInfo.Name:[|i|]|}));
+            }
+
+            void Goo2(in int j, ref int k)
+            {
+            }
+
+            void Goo3(out int i)
+            {
+                i = 0;
+            }
+        }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestParameterReferencedInSourceGeneratedDocument(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+        class C
+        {
+            public void Goo(int {|Definition:$$i|})
+            {
+            }
+        }
+        </Document>
+        <DocumentFromSourceGenerator>
+        class D
+        {
+            public void M()
+            {
+                new C().Goo([|i|]: 42);
+            }
+        }
+
+        </DocumentFromSourceGenerator>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestParameterDefinedInSourceGeneratedDocument(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <DocumentFromSourceGenerator>
+        class C
+        {
+            public void Goo(int {|Definition:$$i|})
+            {
+            }
+        }
+        </DocumentFromSourceGenerator>
+        <Document>
+        class D
+        {
+            public void M()
+            {
+                new C().Goo([|i|]: 42);
+            }
+        }
+
         </Document>
     </Project>
 </Workspace>

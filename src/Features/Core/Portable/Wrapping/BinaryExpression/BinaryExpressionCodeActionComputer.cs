@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -83,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
 
             private ImmutableArray<Edit> GetWrapEdits(bool align)
             {
-                var result = ArrayBuilder<Edit>.GetInstance();
+                using var _ = ArrayBuilder<Edit>.GetInstance(out var result);
                 var indentationTrivia = align ? _indentAndAlignTrivia : _smartIndentTrivia;
 
                 for (var i = 1; i < _exprsAndOperators.Length; i += 2)
@@ -114,12 +116,12 @@ namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
                     }
                 }
 
-                return result.ToImmutableAndFree();
+                return result.ToImmutable();
             }
 
             private ImmutableArray<Edit> GetUnwrapEdits()
             {
-                var result = ArrayBuilder<Edit>.GetInstance();
+                using var _ = ArrayBuilder<Edit>.GetInstance(out var result);
 
                 for (var i = 0; i < _exprsAndOperators.Length - 1; i++)
                 {
@@ -128,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
                         NoTrivia, _exprsAndOperators[i + 1]));
                 }
 
-                return result.ToImmutableAndFree();
+                return result.ToImmutable();
             }
         }
     }

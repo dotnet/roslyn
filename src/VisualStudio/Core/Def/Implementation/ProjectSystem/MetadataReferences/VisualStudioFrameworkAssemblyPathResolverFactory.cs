@@ -36,22 +36,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private sealed class Service : ForegroundThreadAffinitizedObject, IFrameworkAssemblyPathResolver
         {
-            private readonly VisualStudioWorkspace _workspace;
+            private readonly VisualStudioWorkspace? _workspace;
             private readonly IServiceProvider _serviceProvider;
 
-            public Service(IThreadingContext threadingContext, VisualStudioWorkspace workspace, IServiceProvider serviceProvider)
+            public Service(IThreadingContext threadingContext, VisualStudioWorkspace? workspace, IServiceProvider serviceProvider)
                 : base(threadingContext, assertIsForeground: false)
             {
                 _workspace = workspace;
                 _serviceProvider = serviceProvider;
             }
 
-            public string ResolveAssemblyPath(
+            public string? ResolveAssemblyPath(
                 ProjectId projectId,
                 string assemblyName,
-                string fullyQualifiedTypeName = null)
+                string? fullyQualifiedTypeName)
             {
-                this.AssertIsForeground();
+                AssertIsForeground();
 
                 var assembly = ResolveAssembly(projectId, assemblyName);
                 if (assembly != null)
@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     // full URI format (i.e. file://c:/...). This will allow us to get the 
                     // actual local in the normal path format.
                     if (Uri.TryCreate(assembly.CodeBase, UriKind.RelativeOrAbsolute, out var uri) &&
-                        this.CanResolveType(assembly, fullyQualifiedTypeName))
+                        CanResolveType(assembly, fullyQualifiedTypeName))
                     {
                         return uri.LocalPath;
                     }
@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return null;
             }
 
-            private bool CanResolveType(Assembly assembly, string fullyQualifiedTypeName)
+            private static bool CanResolveType(Assembly assembly, string? fullyQualifiedTypeName)
             {
                 if (fullyQualifiedTypeName == null)
                 {
@@ -109,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return false;
             }
 
-            private Assembly ResolveAssembly(ProjectId projectId, string assemblyName)
+            private Assembly? ResolveAssembly(ProjectId projectId, string assemblyName)
             {
                 this.AssertIsForeground();
 
@@ -120,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 var hierarchy = _workspace.GetHierarchy(projectId);
                 if (hierarchy == null ||
-                    !hierarchy.TryGetProperty((__VSHPROPID)__VSHPROPID4.VSHPROPID_TargetFrameworkMoniker, out string targetMoniker) ||
+                    !hierarchy.TryGetProperty((__VSHPROPID)__VSHPROPID4.VSHPROPID_TargetFrameworkMoniker, out string? targetMoniker) ||
                     targetMoniker == null)
                 {
                     return null;

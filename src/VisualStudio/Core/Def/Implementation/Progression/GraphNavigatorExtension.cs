@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
@@ -68,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                     {
                         // If we are already on the UI thread, invoke NavigateOnForegroundThread
                         // directly to preserve any existing NewDocumentStateScope.
-                        NavigateOnForegroundThread(sourceLocation, symbolId, project, document);
+                        NavigateOnForegroundThread(sourceLocation, symbolId, project, document, CancellationToken.None);
                     }
                     else
                     {
@@ -80,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                             async () =>
                             {
                                 await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-                                NavigateOnForegroundThread(sourceLocation, symbolId, project, document);
+                                NavigateOnForegroundThread(sourceLocation, symbolId, project, document, CancellationToken.None);
                             },
                             CancellationToken.None,
                             TaskScheduler.Default);
@@ -90,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         }
 
         private void NavigateOnForegroundThread(
-            SourceLocation sourceLocation, SymbolKey? symbolId, Project project, Document document)
+            SourceLocation sourceLocation, SymbolKey? symbolId, Project project, Document document, CancellationToken cancellationToken)
         {
             AssertIsForeground();
 
@@ -98,13 +100,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             if (symbolId != null)
             {
                 var symbolNavigationService = _workspace.Services.GetService<ISymbolNavigationService>();
-                var symbol = symbolId.Value.Resolve(project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None)).Symbol;
+                var symbol = symbolId.Value.Resolve(project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken), cancellationToken: cancellationToken).Symbol;
 
                 // Do not allow third party navigation to types or constructors
                 if (symbol != null &&
-                    !(symbol is ITypeSymbol) &&
+                    symbol is not ITypeSymbol &&
                     !symbol.IsConstructor() &&
-                    symbolNavigationService.TrySymbolNavigationNotify(symbol, project, CancellationToken.None))
+                    symbolNavigationService.TrySymbolNavigationNotifyAsync(symbol, project, cancellationToken).WaitAndGetResult(cancellationToken))
                 {
                     return;
                 }
@@ -120,18 +122,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 {
                     var editorWorkspace = document.Project.Solution.Workspace;
                     var navigationService = editorWorkspace.Services.GetService<IDocumentNavigationService>();
+
+                    // TODO: Get the platform to use and pass us an operation context, or create one ourselves.
                     navigationService.TryNavigateToLineAndOffset(
                         editorWorkspace,
                         document.Id,
                         sourceLocation.StartPosition.Line,
-                        sourceLocation.StartPosition.Character);
+                        sourceLocation.StartPosition.Character,
+                        cancellationToken);
                 }
             }
         }
 
         public int GetRank(GraphObject graphObject)
         {
-
             if (graphObject is GraphNode graphNode)
             {
                 var sourceLocation = graphNode.GetValue<SourceLocation>(CodeNodeProperties.SourceLocation);

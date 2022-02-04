@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable 
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod
 {
@@ -72,7 +71,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         public static T ResolveType<T>(this SemanticModel semanticModel, T symbol) where T : class, ITypeSymbol
         {
             // Can be cleaned up when https://github.com/dotnet/roslyn/issues/38061 is resolved
-            var typeSymbol = (T)symbol.GetSymbolKey().Resolve(semanticModel.Compilation).GetAnySymbol();
+            var typeSymbol = (T?)symbol.GetSymbolKey().Resolve(semanticModel.Compilation).GetAnySymbol();
+            Contract.ThrowIfNull(typeSymbol);
             return (T)typeSymbol.WithNullableAnnotation(symbol.NullableAnnotation);
         }
 

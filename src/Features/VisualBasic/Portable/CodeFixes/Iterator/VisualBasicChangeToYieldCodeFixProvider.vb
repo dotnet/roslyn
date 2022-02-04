@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Iterator
 
         Protected Overrides Function GetCodeFixAsync(root As SyntaxNode, node As SyntaxNode, document As Document, diagnostics As Diagnostic, cancellationToken As CancellationToken) As Task(Of CodeAction)
             If Not node.IsKind(SyntaxKind.ReturnStatement) Then
-                Return Nothing
+                Return SpecializedTasks.Null(Of CodeAction)()
             End If
 
             Dim returnStatement = TryCast(node, ReturnStatementSyntax)
@@ -43,14 +43,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Iterator
 
             root = root.ReplaceNode(returnStatement, yieldStatement)
 
-            Return Task.FromResult(Of CodeAction)(New MyCodeAction(VBFeaturesResources.Replace_Return_with_Yield, document.WithSyntaxRoot(root)))
+            Return Task.FromResult(Of CodeAction)(New MyCodeAction(document.WithSyntaxRoot(root)))
         End Function
 
         Private Class MyCodeAction
             Inherits CodeAction.DocumentChangeAction
 
-            Public Sub New(title As String, newDocument As Document)
-                MyBase.New(title, Function(c) Task.FromResult(newDocument))
+            Public Sub New(newDocument As Document)
+                MyBase.New(VBFeaturesResources.Replace_Return_with_Yield, Function(c) Task.FromResult(newDocument), NameOf(VBFeaturesResources.Replace_Return_with_Yield))
             End Sub
         End Class
     End Class

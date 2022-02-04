@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.ChangeSignature
 {
@@ -32,49 +30,48 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             SelectedIndex = selectedIndex;
         }
 
-        public static ParameterConfiguration Create(IEnumerable<Parameter?> parameters, bool isExtensionMethod, int selectedIndex)
+        public static ParameterConfiguration Create(ImmutableArray<Parameter> parameters, bool isExtensionMethod, int selectedIndex)
         {
             var parametersList = parameters.ToList();
             ExistingParameter? thisParameter = null;
-            var parametersWithoutDefaultValues = ImmutableArray.CreateBuilder<Parameter>();
-            var remainingReorderableParameters = ImmutableArray.CreateBuilder<Parameter>();
+            var parametersWithoutDefaultValues = ArrayBuilder<Parameter>.GetInstance();
+            var remainingReorderableParameters = ArrayBuilder<Parameter>.GetInstance();
             ExistingParameter? paramsParameter = null;
 
             if (parametersList.Count > 0 && isExtensionMethod)
             {
-                thisParameter = parametersList[0] as ExistingParameter;
+                // Extension method `this` parameters cannot be added, so must be pre-existing.
+                thisParameter = (ExistingParameter)parametersList[0];
                 parametersList.RemoveAt(0);
             }
 
-            if (parametersList.Count > 0 && (parametersList[parametersList.Count - 1] as ExistingParameter)?.Symbol.IsParams == true)
+            if ((parametersList.LastOrDefault() as ExistingParameter)?.Symbol.IsParams == true)
             {
-                paramsParameter = parametersList[parametersList.Count - 1] as ExistingParameter;
+                // Params arrays cannot be added, so must be pre-existing.
+                paramsParameter = (ExistingParameter)parametersList[^1];
                 parametersList.RemoveAt(parametersList.Count - 1);
             }
 
             var seenDefaultValues = false;
             foreach (var param in parametersList)
             {
-                if (param != null)
+                if (param.HasDefaultValue)
                 {
-                    if (param.HasExplicitDefaultValue)
-                    {
-                        seenDefaultValues = true;
-                    }
-
-                    (seenDefaultValues ? remainingReorderableParameters : parametersWithoutDefaultValues).Add(param);
+                    seenDefaultValues = true;
                 }
+
+                (seenDefaultValues ? remainingReorderableParameters : parametersWithoutDefaultValues).Add(param);
             }
 
-            return new ParameterConfiguration(thisParameter, parametersWithoutDefaultValues.ToImmutable(), remainingReorderableParameters.ToImmutable(), paramsParameter, selectedIndex);
+            return new ParameterConfiguration(thisParameter, parametersWithoutDefaultValues.ToImmutableAndFree(), remainingReorderableParameters.ToImmutableAndFree(), paramsParameter, selectedIndex);
         }
 
         internal ParameterConfiguration WithoutAddedParameters()
-            => Create(ToListOfParameters().OfType<ExistingParameter>(), ThisParameter != null, selectedIndex: 0);
+            => Create(ToListOfParameters().OfType<ExistingParameter>().ToImmutableArray<Parameter>(), ThisParameter != null, selectedIndex: 0);
 
-        public List<Parameter> ToListOfParameters()
+        public ImmutableArray<Parameter> ToListOfParameters()
         {
-            var list = new List<Parameter>();
+            var list = ArrayBuilder<Parameter>.GetInstance();
 
             if (ThisParameter != null)
             {
@@ -89,7 +86,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 list.Add(ParamsParameter);
             }
 
-            return list;
+            return list.ToImmutableAndFree();
         }
     }
 }

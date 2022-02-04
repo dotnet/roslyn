@@ -11,11 +11,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 {
@@ -24,235 +26,232 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
     {
         protected AbstractClassifierTests() { }
 
-        protected abstract Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string text, TextSpan span, ParseOptions parseOptions, bool outOfProcess);
+        protected abstract Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string text, TextSpan span, ParseOptions? parseOptions, TestHost testHost);
 
         protected abstract string WrapInClass(string className, string code);
         protected abstract string WrapInExpression(string code);
         protected abstract string WrapInMethod(string className, string methodName, string code);
         protected abstract string WrapInNamespace(string code);
 
-        protected async Task DefaultTestAsync(string code, string allCode, FormattedClassification[] expected)
-        {
-            await DefaultTestAsync(code, allCode, outOfProcess: true, expected);
-            await DefaultTestAsync(code, allCode, outOfProcess: false, expected);
-        }
-
-        protected abstract Task DefaultTestAsync(string code, string allCode, bool outOfProcess, FormattedClassification[] expected);
+        protected abstract Task DefaultTestAsync(string code, string allCode, TestHost testHost, FormattedClassification[] expected);
 
         protected async Task TestAsync(
            string code,
            string allCode,
-           ParseOptions parseOptions,
+           TestHost testHost,
+           ParseOptions? parseOptions,
            params FormattedClassification[] expected)
         {
-            await TestAsync(code, allCode, parseOptions, outOfProcess: true, expected);
-            await TestAsync(code, allCode, parseOptions, outOfProcess: false, expected);
-        }
+            TextSpan span;
+            if (code != allCode)
+            {
+                var start = allCode.IndexOf(code, StringComparison.Ordinal);
+                var length = code.Length;
+                span = new TextSpan(start, length);
+            }
+            else
+            {
+                MarkupTestFile.GetSpans(allCode, out var rewrittenCode, out ImmutableArray<TextSpan> spans);
+                Assert.True(spans.Length < 2);
+                if (spans.Length == 1)
+                {
+                    allCode = rewrittenCode;
+                    span = spans.Single();
+                }
+                else
+                {
+                    span = new TextSpan(0, allCode.Length);
+                }
+            }
 
-        protected async Task TestAsync(
-           string code,
-           string allCode,
-           ParseOptions parseOptions,
-           bool outOfProcess,
-           params FormattedClassification[] expected)
-        {
-            var start = allCode.IndexOf(code, StringComparison.Ordinal);
-            var length = code.Length;
-            var span = new TextSpan(start, length);
-            var actual = await GetClassificationSpansAsync(allCode, span, parseOptions, outOfProcess);
+            var actual = await GetClassificationSpansAsync(allCode, span, parseOptions, testHost);
 
-            actual = actual.Sort((t1, t2) => t1.TextSpan.Start - t2.TextSpan.Start);
+            var actualOrdered = actual.OrderBy((t1, t2) => t1.TextSpan.Start - t2.TextSpan.Start);
 
-            var actualFormatted = actual.Select(a => new FormattedClassification(allCode.Substring(a.TextSpan.Start, a.TextSpan.Length), a.ClassificationType));
+            var actualFormatted = actualOrdered.Select(a => new FormattedClassification(allCode.Substring(a.TextSpan.Start, a.TextSpan.Length), a.ClassificationType));
             AssertEx.Equal(expected, actualFormatted);
         }
 
-        protected async Task TestAsync(
-           string code,
-           string allCode,
-           ParseOptions[] parseOptionsSet,
-           params FormattedClassification[] expected)
-        {
-            await TestAsync(code, allCode, parseOptionsSet, outOfProcess: true, expected);
-            await TestAsync(code, allCode, parseOptionsSet, outOfProcess: false, expected);
-        }
-
         private async Task TestAsync(
            string code,
            string allCode,
+           TestHost testHost,
            ParseOptions[] parseOptionsSet,
-           bool outOfProcess,
            params FormattedClassification[] expected)
         {
             foreach (var parseOptions in parseOptionsSet)
             {
-                await TestAsync(code, allCode, parseOptions, outOfProcess, expected);
+                await TestAsync(code, allCode, testHost, parseOptions, expected);
             }
         }
 
         protected async Task TestAsync(
            string code,
+           TestHost testHost,
            ParseOptions[] parseOptionsSet,
            params FormattedClassification[] expected)
         {
-            await TestAsync(code, parseOptionsSet, outOfProcess: true, expected);
-            await TestAsync(code, parseOptionsSet, outOfProcess: false, expected);
-        }
-
-        private async Task TestAsync(
-           string code,
-           ParseOptions[] parseOptionsSet,
-           bool outOfProcess,
-           params FormattedClassification[] expected)
-        {
-            foreach (var parseOptions in parseOptionsSet)
-            {
-                await TestAsync(code, code, parseOptions, outOfProcess, expected);
-            }
+            await TestAsync(code, code, testHost, parseOptionsSet, expected);
         }
 
         protected async Task TestAsync(
             string code,
+            TestHost testHost,
             params FormattedClassification[] expected)
         {
-            await DefaultTestAsync(code, code, expected);
+            await DefaultTestAsync(code, code, testHost, expected);
         }
 
         protected async Task TestAsync(
             string code,
             string allCode,
+            TestHost testHost,
             params FormattedClassification[] expected)
         {
-            await DefaultTestAsync(code, allCode, expected);
+            await DefaultTestAsync(code, allCode, testHost, expected);
         }
 
         protected async Task TestInClassAsync(
             string className,
             string code,
+            TestHost testHost,
             ParseOptions[] parseOptionsSet,
             params FormattedClassification[] expected)
         {
             var allCode = WrapInClass(className, code);
 
-            await TestAsync(code, allCode, parseOptionsSet, expected);
+            await TestAsync(code, allCode, testHost, parseOptionsSet, expected);
         }
 
         protected async Task TestInClassAsync(
             string className,
             string code,
+            TestHost testHost,
             params FormattedClassification[] expected)
         {
             var allCode = WrapInClass(className, code);
 
-            await DefaultTestAsync(code, allCode, expected);
+            await DefaultTestAsync(code, allCode, testHost, expected);
         }
 
         protected Task TestInClassAsync(
             string code,
+            TestHost testHost,
             ParseOptions[] parseOptionsSet,
             params FormattedClassification[] expected)
         {
-            return TestInClassAsync("C", code, parseOptionsSet, expected);
+            return TestInClassAsync("C", code, testHost, parseOptionsSet, expected);
         }
 
         protected Task TestInClassAsync(
             string code,
+            TestHost testHost,
             params FormattedClassification[] expected)
         {
-            return TestInClassAsync("C", code, expected);
+            return TestInClassAsync("C", code, testHost, expected);
         }
 
         protected async Task TestInExpressionAsync(
             string code,
+            TestHost testHost,
             params FormattedClassification[] expected)
         {
             var allCode = WrapInExpression(code);
 
-            await DefaultTestAsync(code, allCode, expected);
+            await DefaultTestAsync(code, allCode, testHost, expected);
         }
 
         protected async Task TestInExpressionAsync(
             string code,
             ParseOptions[] parseOptionsSet,
+            TestHost testHost,
             params FormattedClassification[] expected)
         {
             var allCode = WrapInExpression(code);
 
-            await TestAsync(code, allCode, parseOptionsSet, expected);
+            await TestAsync(code, allCode, testHost, parseOptionsSet, expected);
         }
 
         protected async Task TestInMethodAsync(
             string className,
             string methodName,
             string code,
+            TestHost testHost,
             ParseOptions[] parseOptionsSet,
             params FormattedClassification[] expected)
         {
             var allCode = WrapInMethod(className, methodName, code);
 
-            await TestAsync(code, allCode, parseOptionsSet, expected);
+            await TestAsync(code, allCode, testHost, parseOptionsSet, expected);
         }
 
         protected async Task TestInMethodAsync(
             string className,
             string methodName,
             string code,
+            TestHost testHost,
             params FormattedClassification[] expected)
         {
             var allCode = WrapInMethod(className, methodName, code);
 
-            await DefaultTestAsync(code, allCode, expected);
+            await DefaultTestAsync(code, allCode, testHost, expected);
         }
 
         protected Task TestInMethodAsync(
             string methodName,
             string code,
+            TestHost testHost,
             ParseOptions[] parseOptionsSet,
             params FormattedClassification[] expected)
         {
-            return TestInMethodAsync("C", methodName, code, parseOptionsSet, expected);
+            return TestInMethodAsync("C", methodName, code, testHost, parseOptionsSet, expected);
         }
 
         protected Task TestInMethodAsync(
             string methodName,
             string code,
+            TestHost testHost,
             params FormattedClassification[] expected)
         {
-            return TestInMethodAsync("C", methodName, code, expected);
+            return TestInMethodAsync("C", methodName, code, testHost, expected);
         }
 
         protected Task TestInMethodAsync(
             string code,
+            TestHost testHost,
             ParseOptions[] parseOptionsSet,
             params FormattedClassification[] expected)
         {
-            return TestInMethodAsync("C", "M", code, parseOptionsSet, expected);
+            return TestInMethodAsync("C", "M", code, testHost, parseOptionsSet, expected);
         }
 
         protected Task TestInMethodAsync(
             string code,
+            TestHost testHost,
             params FormattedClassification[] expected)
         {
-            return TestInMethodAsync("C", "M", code, expected);
+            return TestInMethodAsync("C", "M", code, testHost, expected);
         }
 
         protected async Task TestInNamespaceAsync(
             string code,
+            TestHost testHost,
             ParseOptions[] parseOptionsSet,
             params FormattedClassification[] expected)
         {
             var allCode = WrapInNamespace(code);
 
-            await TestAsync(code, allCode, parseOptionsSet, expected);
+            await TestAsync(code, allCode, testHost, parseOptionsSet, expected);
         }
 
         protected async Task TestInNamespaceAsync(
             string code,
+            TestHost testHost,
             params FormattedClassification[] expected)
         {
             var allCode = WrapInNamespace(code);
 
-            await DefaultTestAsync(code, allCode, expected);
+            await DefaultTestAsync(code, allCode, testHost, expected);
         }
 
         [DebuggerStepThrough]
@@ -264,22 +263,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
         protected static async Task<ImmutableArray<ClassifiedSpan>> GetSemanticClassificationsAsync(Document document, TextSpan span)
         {
             var service = document.GetRequiredLanguageService<IClassificationService>();
+            var options = ClassificationOptions.From(document.Project);
 
-            var result = new List<ClassifiedSpan>();
-            await service.AddSemanticClassificationsAsync(document, span, result, CancellationToken.None);
-            return result.ToImmutableArray();
+            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var result);
+            await service.AddSemanticClassificationsAsync(document, span, options, result, CancellationToken.None);
+            return result.ToImmutable();
         }
 
         protected static async Task<ImmutableArray<ClassifiedSpan>> GetSyntacticClassificationsAsync(Document document, TextSpan span)
         {
-            var tree = await document.GetSyntaxTreeAsync();
+            var root = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
+            var service = document.GetRequiredLanguageService<ISyntaxClassificationService>();
 
-            var service = document.GetLanguageService<ISyntaxClassificationService>();
-            var results = ArrayBuilder<ClassifiedSpan>.GetInstance();
-
-            service.AddSyntacticClassifications(tree, span, results, CancellationToken.None);
-
-            return results.ToImmutableAndFree();
+            using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var results);
+            service.AddSyntacticClassifications(root, span, results, CancellationToken.None);
+            return results.ToImmutable();
         }
 
         protected static async Task<ImmutableArray<ClassifiedSpan>> GetAllClassificationsAsync(Document document, TextSpan span)

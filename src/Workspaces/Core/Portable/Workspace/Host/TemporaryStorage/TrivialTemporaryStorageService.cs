@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Threading;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class TrivialTemporaryStorageService : ITemporaryStorageService
     {
-        public static readonly TrivialTemporaryStorageService Instance = new TrivialTemporaryStorageService();
+        public static readonly TrivialTemporaryStorageService Instance = new();
 
         private TrivialTemporaryStorageService()
         {
@@ -67,7 +69,11 @@ namespace Microsoft.CodeAnalysis
             public async Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default)
             {
                 var newStream = new MemoryStream();
+#if NETCOREAPP
+                await stream.CopyToAsync(newStream, cancellationToken).ConfigureAwait(false);
+# else
                 await stream.CopyToAsync(newStream).ConfigureAwait(false);
+#endif
                 _stream = newStream;
             }
         }

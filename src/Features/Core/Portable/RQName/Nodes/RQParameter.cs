@@ -11,7 +11,6 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
         public readonly RQType Type;
         public RQParameter(RQType type)
         {
-            System.Diagnostics.Debug.Assert(type != null);
             Type = type;
         }
 

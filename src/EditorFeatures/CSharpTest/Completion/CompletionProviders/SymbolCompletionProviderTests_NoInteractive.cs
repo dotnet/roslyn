@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +12,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
@@ -20,10 +23,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
 {
     public class SymbolCompletionProviderTests_NoInteractive : AbstractCSharpCompletionProviderTests
     {
-        public SymbolCompletionProviderTests_NoInteractive(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
         internal override Type GetCompletionProviderType()
             => typeof(SymbolCompletionProvider);
 
@@ -31,13 +30,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
             string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
             int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
-            string inlineDescription, List<CompletionFilter> matchingFilters, CompletionItemFlags? flags = null)
+            string displayTextPrefix, string inlineDescription, bool? isComplexTextEdit,
+            List<CompletionFilter> matchingFilters, CompletionItemFlags? flags = null)
         {
             return base.VerifyWorkerAsync(code, position,
                 expectedItemOrNull, expectedDescriptionOrNull,
                 SourceCodeKind.Regular, usePreviousCharAsTrigger, checkForAbsence,
                 glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
-                inlineDescription, matchingFilters, flags);
+                displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -65,13 +65,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InvalidLocation1()
-            => await VerifyItemIsAbsentAsync(@"System.Console.$$", @"Beep");
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        public async Task GlobalStatement1()
+            => await VerifyItemExistsAsync(@"System.Console.$$", @"Beep");
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InvalidLocation2()
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
+        public async Task GlobalStatement2()
         {
-            await VerifyItemIsAbsentAsync(@"using System;
+            await VerifyItemExistsAsync(@"using System;
 Console.$$", @"Beep");
         }
 
@@ -334,7 +336,9 @@ class C
 
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
             var service = CompletionService.GetService(document);
-            var completions = await service.GetCompletionsAsync(document, position);
+            var options = CompletionOptions.Default;
+            var displayOptions = SymbolDescriptionOptions.Default;
+            var completions = await service.GetCompletionsAsync(document, position, options);
 
             var item = completions.Items.First(i => i.DisplayText == "Beep");
             var edit = testDocument.GetTextBuffer().CreateEdit();
@@ -344,7 +348,7 @@ class C
             var currentDocument = workspace.CurrentSolution.GetDocument(testDocument.Id);
 
             Assert.NotEqual(currentDocument, document);
-            var description = service.GetDescriptionAsync(document, item);
+            var description = service.GetDescriptionAsync(document, item, options, displayOptions);
         }
     }
 }

@@ -4,7 +4,7 @@
 
 namespace Roslyn.Utilities
 {
-    interface ICacheEntry<out TKey, out TValue>
+    internal interface ICacheEntry<out TKey, out TValue>
     {
         TKey Key { get; }
         TValue Value { get; }

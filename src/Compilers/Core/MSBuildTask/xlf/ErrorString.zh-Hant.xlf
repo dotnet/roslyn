@@ -99,6 +99,11 @@
         <target state="translated">無法讀取檔案 "{0}": {1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="ImplicitlySkipAnalyzersMessage">
+        <source>Skipping analyzers to speed up the build. You can execute 'Build' or 'Rebuild' command to run analyzers.</source>
+        <target state="translated">略過分析器以加速組建。您可以執行「組建」或「重建」命令來執行分析器。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="SharedCompilationFallback">
         <source>Shared compilation failed; falling back to tool: {0}</source>
         <target state="translated">共用編譯失敗; 將回到工具: {0}</target>

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.  
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -13,7 +15,7 @@ namespace Microsoft.CodeAnalysis.PullMemberUp
         public static bool IsDestinationValid(Solution solution, INamedTypeSymbol destination, CancellationToken cancellationToken)
         {
             // Make sure destination is class or interface since it could be ErrorTypeSymbol
-            if (destination.TypeKind != TypeKind.Interface && destination.TypeKind != TypeKind.Class)
+            if (destination.TypeKind is not TypeKind.Interface and not TypeKind.Class)
             {
                 return false;
             }

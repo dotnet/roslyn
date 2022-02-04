@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
@@ -101,7 +103,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 return ImmutableArray<RegexTrivia>.Empty;
             }
 
-            var result = ArrayBuilder<RegexTrivia>.GetInstance();
+            using var _ = ArrayBuilder<RegexTrivia>.GetInstance(out var result);
 
             while (Position < Text.Length)
             {
@@ -122,7 +124,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 break;
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         public RegexTrivia? ScanComment(RegexOptions options)
@@ -212,7 +214,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             return null;
         }
 
-        private bool IsBlank(VirtualChar ch)
+        private static bool IsBlank(VirtualChar ch)
         {
             // List taken from the native regex parser.
             switch (ch.Value)
@@ -256,9 +258,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         }
 
         private static bool IsEscapeCategoryChar(VirtualChar ch)
-            => ch == '-' ||
-               (ch >= 'a' && ch <= 'z') ||
-               (ch >= 'A' && ch <= 'Z');
+            => ch.Value is '-' or
+               (>= 'a' and <= 'z') or
+               (>= 'A' and <= 'Z');
 
         public RegexToken? TryScanNumber()
         {
@@ -343,11 +345,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
 
             return start == Position
-                ? (RegexToken?)null
+                ? null
                 : CreateToken(RegexKind.OptionsToken, ImmutableArray<RegexTrivia>.Empty, GetSubPatternToCurrentPos(start));
         }
 
-        private bool IsOptionChar(VirtualChar ch)
+        private static bool IsOptionChar(VirtualChar ch)
         {
             switch (ch.Value)
             {
@@ -376,7 +378,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
             // Make sure we're right after the \x or \u.
             Debug.Assert(Text[beforeSlash] == '\\');
-            Debug.Assert(Text[beforeSlash + 1] == 'x' || Text[beforeSlash + 1] == 'u');
+            Debug.Assert(Text[beforeSlash + 1].Value is 'x' or 'u');
 
             for (var i = 0; i < count; i++)
             {
@@ -406,10 +408,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                (ch >= 'A' && ch <= 'F');
 
         private static bool IsDecimalDigit(VirtualChar ch)
-            => ch >= '0' && ch <= '9';
+            => ch.Value is >= '0' and <= '9';
 
         private static bool IsOctalDigit(VirtualChar ch)
-            => ch >= '0' && ch <= '7';
+            => ch.Value is >= '0' and <= '7';
 
         public RegexToken ScanOctalCharacters(RegexOptions options)
         {
@@ -429,7 +431,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 if (Position < Text.Length && IsOctalDigit(this.CurrentChar))
                 {
                     var octalVal = this.CurrentChar.Value - '0';
-                    Debug.Assert(octalVal >= 0 && octalVal <= 7);
+                    Debug.Assert(octalVal is >= 0 and <= 7);
                     currentVal *= 8;
                     currentVal += octalVal;
 

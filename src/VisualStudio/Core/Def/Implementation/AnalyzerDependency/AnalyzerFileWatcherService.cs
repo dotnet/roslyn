@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -23,23 +21,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     [Export(typeof(AnalyzerFileWatcherService))]
     internal sealed class AnalyzerFileWatcherService
     {
-        private static readonly object s_analyzerChangedErrorId = new object();
+        private static readonly object s_analyzerChangedErrorId = new();
 
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly HostDiagnosticUpdateSource _updateSource;
         private readonly IVsFileChangeEx _fileChangeService;
 
-        private readonly Dictionary<string, FileChangeTracker> _fileChangeTrackers = new Dictionary<string, FileChangeTracker>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, FileChangeTracker> _fileChangeTrackers = new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// Holds a list of assembly modified times that we can use to detect a file change prior to the <see cref="FileChangeTracker"/> being in place.
         /// Once it's in place and subscribed, we'll remove the entry because any further changes will be detected that way.
         /// </summary>
-        private readonly Dictionary<string, DateTime> _assemblyUpdatedTimesUtc = new Dictionary<string, DateTime>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, DateTime> _assemblyUpdatedTimesUtc = new(StringComparer.OrdinalIgnoreCase);
 
-        private readonly object _guard = new object();
+        private readonly object _guard = new();
 
-        private readonly DiagnosticDescriptor _analyzerChangedRule = new DiagnosticDescriptor(
+        private readonly DiagnosticDescriptor _analyzerChangedRule = new(
             id: IDEDiagnosticIds.AnalyzerChangedId,
             title: ServicesVSResources.AnalyzerChangedOnDisk,
             messageFormat: ServicesVSResources.The_analyzer_assembly_0_has_changed_Diagnostics_may_be_incorrect_until_Visual_Studio_is_restarted,
@@ -72,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
         }
 
-        private DateTime? GetLastUpdateTimeUtc(string fullPath)
+        private static DateTime? GetLastUpdateTimeUtc(string fullPath)
         {
             try
             {

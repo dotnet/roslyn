@@ -117,8 +117,8 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Add_file_banner" xml:space="preserve">
-    <value>Add file banner</value>
+  <data name="Add_file_header" xml:space="preserve">
+    <value>Add file header</value>
   </data>
   <data name="Fix_Name_Violation_colon_0" xml:space="preserve">
     <value>Fix Name Violation: {0}</value>
@@ -137,5 +137,20 @@
   </data>
   <data name="Remove_redundant_assignment" xml:space="preserve">
     <value>Remove redundant assignment</value>
+  </data>
+  <data name="Update_suppression_format" xml:space="preserve">
+    <value>Update suppression format</value>
+  </data>
+  <data name="Suppress_or_Configure_issues" xml:space="preserve">
+    <value>Suppress or Configure issues</value>
+  </data>
+  <data name="Fix_all_occurrences_in" xml:space="preserve">
+    <value>Fix all occurrences in</value>
+  </data>
+  <data name="Remove_extra_blank_lines" xml:space="preserve">
+    <value>Remove extra blank lines</value>
+  </data>
+  <data name="Add_blank_line_after_block" xml:space="preserve">
+    <value>Add blank line after block</value>
   </data>
 </root>

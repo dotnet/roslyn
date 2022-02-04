@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -8532,7 +8533,7 @@ Public Class TestCase
 End Class
     </file>
 </compilation>
-            Dim comp = CreateEmptyCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
+            Dim comp = CreateEmptyCompilationWithReferences(source, {Net40.mscorlib}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
             comp.AssertTheseEmitDiagnostics(
  <errors>
 BC31091: Import of type 'AsyncVoidMethodBuilder' from assembly or module 'AsyncVoid.dll' failed.
@@ -8568,7 +8569,7 @@ Public Class TestCase
 End Class
     </file>
 </compilation>
-            Dim comp = CreateEmptyCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
+            Dim comp = CreateEmptyCompilationWithReferences(source, {Net40.mscorlib}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
             comp.AssertTheseEmitDiagnostics(
  <errors>
 BC31091: Import of type 'AsyncTaskMethodBuilder' from assembly or module 'AsyncTask.dll' failed.
@@ -8605,7 +8606,7 @@ Public Class TestCase
 End Class
     </file>
 </compilation>
-            Dim comp = CreateEmptyCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
+            Dim comp = CreateEmptyCompilationWithReferences(source, {Net40.mscorlib}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
             comp.AssertTheseEmitDiagnostics(
  <errors>
 BC31091: Import of type 'AsyncTaskMethodBuilder(Of )' from assembly or module 'AsyncTask_T.dll' failed.
@@ -11439,6 +11440,63 @@ After Invoke").VerifyIL("Program.VB$StateMachine_0_Invoke.MoveNext", "
   IL_00cc:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
   IL_00d1:  ret
 }")
+        End Sub
+
+        <Fact>
+        <WorkItem(47191, "https://github.com/dotnet/roslyn/issues/47191")>
+        Public Sub AssignModuleStructureField()
+            Dim source = "
+Imports System
+Imports System.Threading.Tasks
+
+Public Structure S1
+    Public Field As Integer
+End Structure
+
+Module Program
+    Dim s1 As S1
+
+    Async Function M1(t As Task(Of Integer)) As Task
+        s1.Field = Await t
+    End Function
+
+    Sub Main()
+        M1(Task.FromResult(1)).Wait()
+        Console.Write(s1.Field)
+    End Sub
+End Module
+"
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(compilation, expectedOutput:="1")
+        End Sub
+
+        <Fact>
+        <WorkItem(47191, "https://github.com/dotnet/roslyn/issues/47191")>
+        Public Sub AssignInstanceStructureField()
+            Dim source = "
+Imports System
+Imports System.Threading.Tasks
+
+Public Structure S1
+    Public Field As Integer
+End Structure
+
+Class C
+    Dim s1 As S1
+
+    Async Function M1(t As Task(Of Integer)) As Task
+        s1.Field = Await t
+    End Function
+
+    Shared Sub Main()
+        Dim c = New C()
+        c.M1(Task.FromResult(1)).Wait()
+        Console.Write(c.s1.Field)
+    End Sub
+End Class
+"
+            Dim compilation = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+            CompileAndVerify(compilation, expectedOutput:="1")
         End Sub
     End Class
 End Namespace

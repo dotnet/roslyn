@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ja" original="../VBResources.resx">
     <body>
+      <trans-unit id="ERR_AssignmentInitOnly">
+        <source>Init-only property '{0}' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.</source>
+        <target state="translated">初期化専用プロパティ '{0}' は、オブジェクト メンバー初期化子を使用する場合か、インスタンス コンストラクター内の 'Me'、'MyClass'、'MyBase' でのみ割り当てることができます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadAbstractStaticMemberAccess">
+        <source>A shared abstract interface member cannot be accessed.</source>
+        <target state="translated">共有された抽象インターフェイスメンバーにアクセスできません。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">コマンドライン構文エラー: '{0}' は、'{1}' オプションの有効な値ではありません。値は '{2}' の形式にする必要があります。</target>
@@ -22,6 +32,16 @@
         <target state="translated">複数のアナライザー構成ファイルを同じディレクトリに入れることはできません ('{0}')。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OverridingInitOnlyProperty">
+        <source>'{0}' cannot override init-only '{1}'.</source>
+        <target state="translated">'{0}' では、初期化専用 '{1}' をオーバーライドできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PropertyDoesntImplementInitOnly">
+        <source>Init-only '{0}' cannot be implemented.</source>
+        <target state="translated">初期化専用 '{0}' を実装することはできません。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
         <target state="translated">型 '{0}' には基底インターフェイスからのメンバーの再抽象化があるため、この型を埋め込むことはできません。'相互運用型の埋め込み' プロパティを false に設定することをご検討ください。</target>
@@ -37,9 +57,34 @@
         <target state="translated">ターゲット ランタイムは、インターフェイスのメンバーの 'Protected'、'Protected Friend'、'Private Protected' のアクセシビリティをサポートしていません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SharedEventNeedsHandlerInTheSameType">
+        <source>Events of shared WithEvents variables cannot be handled by methods in a different type.</source>
+        <target state="translated">共有された WithEvents 変数のイベントを、別の種類のメソッドで処理することはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnimplementedSharedMember">
+        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</source>
+        <target state="translated">{0} '{1}' には、共有された抽象 '{2}' が含まれているため、インターフェイス '{3}' を実装できません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
+        <source>'UnmanagedCallersOnly' attribute is not supported.</source>
+        <target state="translated">'UnmanagedCallersOnly' 属性はサポートされていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_CallerArgumentExpression">
+        <source>caller argument expression</source>
+        <target state="translated">呼び出し元の引数式</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
         <target state="translated">行連結後のコメント</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_InitOnlySettersUsage">
+        <source>assigning to or passing 'ByRef' properties with init-only setters</source>
+        <target state="translated">初期化専用セッターを使用して、'ByRef' プロパティに割り当てるか、そのプロパティを渡します</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
@@ -127,6 +172,7 @@
                                   both mean SARIF version 2.1.0.
 -reportanalyzer                   Report additional analyzer information, such as
                                   execution time.
+-skipanalyzers[+|-]               Skip execution of diagnostic analyzers.
 
                                   - LANGUAGE -
 -define:&lt;symbol_list&gt;             Declare global conditional compilation
@@ -236,7 +282,7 @@
                                   現在のディレクトリとサブディレクトリ内の
                                   すべてのファイルをインクルードします。
 -reference:&lt;file_list&gt;            指定されたアセンブリから
-                                  メタデータを参照します。 (短い形式: -r)
+                                  メタデータを参照します。(短い形式: -r)
 -analyzer:&lt;file_list&gt;             このアセンブリからアナライザーを実行します
                                   (短い形式: -a)
 -additionalfile:&lt;file list&gt;       コード生成には直接影響しないものの、
@@ -249,7 +295,7 @@
                                   resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
                                   (短い形式: -linkres)
 -nowin32manifest                  出力 PE のマニフェスト セクションに既定の
-                                  マニフェストを埋め込んではいけません。
+                                  マニフェストを埋め込まないでください。
 -resource:&lt;resinfo&gt;               指定されたファイルを
                                   埋め込みアセンブリ リソースとして追加します。
                                   resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
@@ -283,23 +329,24 @@
 -warnaserror[+|-]:&lt;number_list&gt;   警告リストをエラーとして扱います。
 -ruleset:&lt;file&gt;                   特定の診断を無効にするルールセット ファイルを
                                   指定します。
--errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
                                   すべてのコンパイラおよびアナライザーの診断を
                                   SARIF 形式でログに記録するためのファイルを指定します。
                                   sarif_version:{1|2|2.1} 既定値は 1 です。2 と 2.1 は
                                   どちらも SARIF バージョン 2.1.0 を意味します。
 -reportanalyzer                   追加のアナライザー情報を報告します
                                   (実行時間など)。
+-skipanalyzers[+|-]               アナライザーの診断の実行をスキップします。
 
                                   - 言語 -
 -define:&lt;symbol_list&gt;             条件付きコンパイル シンボルをグローバルに宣言
-                                  します。 symbol_list:name=value,...
+                                  します。symbol_list:name=value,...
                                   (短い形式: -d)
 -imports:&lt;import_list&gt;            参照されたメタデータ ファイルの
                                   名前空間に対して Imports をグローバルに宣言します。
                                   import_list:namespace,...
 -langversion:?                    言語バージョンに許容される値を表示します
--langversion:&lt;string&gt;             `default` (最新のメジャー バージョン)や
+-langversion:&lt;string&gt;             `default` (最新のメジャー バージョン) や
                                   `latest` (マイナー バージョンを含む最新バージョン)
                                   または、`14` や `15.3`などの特定バージョン
                                   で言語バージョンを指定します。
@@ -315,7 +362,7 @@
 -optioncompare:text               テキスト スタイルの文字列比較を指定します。
 
                                   - その他 -
--help                             使用法に関するメッセージを表示します。 (短い形式: -?)
+-help                             使用法に関するメッセージを表示します。(短い形式: -?)
 -noconfig                         VBC.RSP ファイルを自動的にはインクルードしません。
 -nologo                           コンパイラの著作権情報を表示しません。
 -quiet                            非表示出力モードです。
@@ -353,13 +400,13 @@
                                   アセンブリ名です。
 -netcf                            .NET Compact Framework をターゲットにします。
 -nostdlib                         標準ライブラリ
-                                  (system.dll と VBC.RSP ファイル)を参照しません。
+                                  (system.dll と VBC.RSP ファイル) を参照しません。
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
                                   コンパイラが出力するソース パス名のマッピングを
                                   指定します。
 -platform:&lt;string&gt;                このコードを実行できるプラットフォームは
                                   x86、x64、Itanium、arm、arm64、
-                                  AnyCPU32BitPreferred、anycpu (既定) でなければなりません。
+                                  AnyCPU32BitPreferred、anycpu (既定) のいずれかでなければなりません。
 -preferreduilang                  出力用の優先する言語名を指定します。
 -nosdkpath                        標準ライブラリ アセンブリの既定の SDK パスの検索を無効にします。
 -sdkpath:&lt;path&gt;                   .NET Framework SDK ディレクトリ (mscorlib.dll)
@@ -368,7 +415,7 @@
                                   version:&lt;number&gt;[.&lt;number&gt;]
 -utf8output[+|-]                  コンパイラ出力を UTF-8 文字エンコード
                                   で作成します。
-@&lt;file&gt;                           コマンドライン設定をテキスト ファイルから挿入します
+@&lt;file&gt;                           コマンド ライン設定をテキスト ファイルから挿入します
 -vbruntime[+|-|*]                 既定の Visual Basic ランタイムを使用して、または使用せずに
                                   コンパイルします。
 -vbruntime:&lt;file&gt;                 &lt;file&gt; の別の Visual Basic ランタイムを使用して
@@ -376,9 +423,14 @@
 </target>
         <note />
       </trans-unit>
+      <trans-unit id="ThereAreNoFunctionPointerTypesInVB">
+        <source>There are no function pointer types in VB.</source>
+        <target state="translated">VB に関数ポインター型はありません。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ThereAreNoNativeIntegerTypesInVB">
         <source>There are no native integer types in VB.</source>
-        <target state="new">There are no native integer types in VB.</target>
+        <target state="translated">VB にネイティブの整数型はありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Trees0">
@@ -398,7 +450,7 @@
       </trans-unit>
       <trans-unit id="SyntaxTreeAlreadyPresent">
         <source>Syntax tree already present</source>
-        <target state="translated">構文ツリーが既に存在しています。</target>
+        <target state="translated">構文ツリーが既に存在しています</target>
         <note />
       </trans-unit>
       <trans-unit id="SubmissionCanHaveAtMostOneSyntaxTree">
@@ -413,7 +465,7 @@
       </trans-unit>
       <trans-unit id="SyntaxTreeNotFoundToRemove">
         <source>SyntaxTree '{0}' not found to remove</source>
-        <target state="translated">削除する構文ツリー '{0}' が見つかりません。</target>
+        <target state="translated">削除する構文ツリー '{0}' が見つかりません</target>
         <note />
       </trans-unit>
       <trans-unit id="TreeMustHaveARootNodeWithCompilationUnit">
@@ -453,17 +505,81 @@
       </trans-unit>
       <trans-unit id="TypeArgumentCannotBeNothing">
         <source>Type argument cannot be Nothing</source>
-        <target state="translated">型引数に Nothing は使用できません。</target>
+        <target state="translated">型引数に Nothing は使用できません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework">
+        <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
+        <target state="translated">型 '{1}' を含むアセンブリ '{0}' が .NET Framework を参照しています。これはサポートされていません。</target>
+        <note>{1} is the type that was loaded, {0} is the containing assembly.</note>
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
+        <source>The loaded assembly references .NET Framework, which is not supported.</source>
+        <target state="translated">読み込まれたアセンブリが .NET Framework を参照しています。これはサポートされていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="translated">パラメーター '{0}' に適用された CallerArgumentExpressionAttribute は、無効なパラメーター名で適用されているため無効となります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="translated">パラメーターに適用された CallerArgumentExpressionAttribute は、無効なパラメーター名で適用されているため無効となります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.</source>
+        <target state="translated">パラメーター '{0}' に適用された CallerArgumentExpressionAttribute は自己参照であるため、無効となります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</source>
+        <target state="translated">パラメーターに適用された CallerArgumentExpressionAttribute は自己参照であるため、無効となります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration">
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
+        <target state="translated">ジェネレーター '{0}' でソースを生成できませんでした。出力には寄与しません。結果として、コンパイル エラーが発生する可能性があります。例外の型: '{1}'。メッセージ: '{2}'</target>
+        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
+        <source>Generator threw the following exception:
+'{0}'.</source>
+        <target state="translated">ジェネレーターで次の例外がスローされました:
+'{0}'。</target>
+        <note>{0} is the string representation of the exception that was thrown.</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
+        <source>Generator failed to generate source.</source>
+        <target state="translated">ジェネレーターはソースを生成できませんでした。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization">
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
+        <target state="translated">ジェネレーター '{0}' を初期化できませんでした。出力には寄与しません。結果として、コンパイル エラーが発生する可能性があります。例外の型: '{1}'。メッセージ: '{2}'</target>
+        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
+        <source>Generator threw the following exception:
+'{0}'.</source>
+        <target state="translated">ジェネレーターで次の例外がスローされました:
+'{0}'。</target>
+        <note>{0} is the string representation of the exception that was thrown.</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
+        <source>Generator failed to initialize.</source>
+        <target state="translated">ジェネレーターを初期化できませんでした。</target>
         <note />
       </trans-unit>
       <trans-unit id="WrongNumberOfTypeArguments">
         <source>Wrong number of type arguments</source>
-        <target state="translated">型引数の数が正しくありません。</target>
+        <target state="translated">型引数の数が正しくありません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FileNotFound">
         <source>file '{0}' could not be found</source>
-        <target state="translated">ファイル '{0}' が見つかりませんでした。</target>
+        <target state="translated">ファイル '{0}' が見つかりませんでした</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoResponseFile">
@@ -478,7 +594,7 @@
       </trans-unit>
       <trans-unit id="ERR_SwitchNeedsBool">
         <source>option '{0}' can be followed only by '+' or '-'</source>
-        <target state="translated">オプション '{0}' の後には '+' または '-' のみを指定できます。</target>
+        <target state="translated">オプション '{0}' の後には '+' または '-' のみを指定できます</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidSwitchValue">
@@ -508,12 +624,12 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidFormatForGuidForOption">
         <source>Command-line syntax error: Invalid Guid format '{0}' for option '{1}'</source>
-        <target state="translated">コマンドラインの構文エラー: オプション '{1}' の GUID 形式 '{0}' が無効です。</target>
+        <target state="translated">コマンドラインの構文エラー: オプション '{1}' の GUID 形式 '{0}' が無効です</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingGuidForOption">
         <source>Command-line syntax error: Missing Guid for option '{1}'</source>
-        <target state="translated">コマンドラインの構文エラー: オプション '{1}' の GUID がありません。</target>
+        <target state="translated">コマンドラインの構文エラー: オプション '{1}' の GUID がありません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadChecksumAlgorithm">
@@ -533,12 +649,12 @@
       </trans-unit>
       <trans-unit id="ERR_NoSources">
         <source>no input sources specified</source>
-        <target state="translated">入力ソースが指定されていません。</target>
+        <target state="translated">入力ソースが指定されていません</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_FileAlreadyIncluded">
         <source>source file '{0}' specified multiple times</source>
-        <target state="translated">ソース ファイル '{0}' が複数回指定されています。</target>
+        <target state="translated">ソース ファイル '{0}' が複数回指定されています</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_FileAlreadyIncluded_Title">
@@ -553,17 +669,17 @@
       </trans-unit>
       <trans-unit id="ERR_BadCodepage">
         <source>code page '{0}' is invalid or not installed</source>
-        <target state="translated">コード ページ '{0}' は無効か、またはインストールされていません。</target>
+        <target state="translated">コード ページ '{0}' は無効か、またはインストールされていません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BinaryFile">
         <source>the file '{0}' is not a text file</source>
-        <target state="translated">ファイル '{0}' はテキスト ファイルではありません。</target>
+        <target state="translated">ファイル '{0}' はテキスト ファイルではありません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LibNotFound">
         <source>could not find library '{0}'</source>
-        <target state="translated">ライブラリ '{0}' が見つかりませんでした。</target>
+        <target state="translated">ライブラリ '{0}' が見つかりませんでした</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MetadataReferencesNotSupported">
@@ -573,12 +689,12 @@
       </trans-unit>
       <trans-unit id="ERR_IconFileAndWin32ResFile">
         <source>cannot specify both /win32icon and /win32resource</source>
-        <target state="translated">/win32icon と /win32resource を両方指定することはできません。</target>
+        <target state="translated">/win32icon と /win32resource を両方指定することはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NoConfigInResponseFile">
         <source>ignoring /noconfig option because it was specified in a response file</source>
-        <target state="translated">/noconfig オプションは、応答ファイルで指定されているため無視されます。</target>
+        <target state="translated">/noconfig オプションは、応答ファイルで指定されているため無視されます</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NoConfigInResponseFile_Title">
@@ -588,7 +704,7 @@
       </trans-unit>
       <trans-unit id="WRN_InvalidWarningId">
         <source>warning number '{0}' for the option '{1}' is either not configurable or not valid</source>
-        <target state="translated">警告番号 '{0}' (オプション '{1}' ) は、構成できないか無効です。</target>
+        <target state="translated">警告番号 '{0}' (オプション '{1}' ) は、構成できないか無効です</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidWarningId_Title">
@@ -598,17 +714,17 @@
       </trans-unit>
       <trans-unit id="ERR_NoSourcesOut">
         <source>cannot infer an output file name from resource only input files; provide the '/out' option</source>
-        <target state="translated">リソースのみの入力ファイルから出力ファイル名を生成することはできません。'/out' オプションを指定してください。</target>
+        <target state="translated">リソースのみの入力ファイルから出力ファイル名を生成することはできません。'/out' オプションを指定してください</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NeedModule">
         <source>the /moduleassemblyname option may only be specified when building a target of type 'module'</source>
-        <target state="translated">/moduleassemblyname オプションは 'module' 型のターゲットをビルドするときのみ指定できます。</target>
+        <target state="translated">/moduleassemblyname オプションは 'module' 型のターゲットをビルドするときのみ指定できます</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidAssemblyName">
         <source>'{0}' is not a valid value for /moduleassemblyname</source>
-        <target state="translated">'{0}' は /moduleassemblyname の有効な値ではありません。</target>
+        <target state="translated">'{0}' は /moduleassemblyname の有効な値ではありません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConflictingManifestSwitches">
@@ -673,7 +789,7 @@
       </trans-unit>
       <trans-unit id="ERR_InheritsFromRestrictedType1">
         <source>Inheriting from '{0}' is not valid.</source>
-        <target state="translated">{0}' からの継承は、有効ではありません。</target>
+        <target state="translated">'{0}' からの継承は、有効ではありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvOutsideProc">
@@ -718,7 +834,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvInsideBlock">
         <source>Statement is not valid inside '{0}' block.</source>
-        <target state="translated">{0}' ブロックの内部では有効でないステートメントです。</target>
+        <target state="translated">'{0}' ブロックの内部では有効でないステートメントです。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedExpressionStatement">
@@ -783,7 +899,7 @@
       </trans-unit>
       <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
         <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
-        <target state="new">stdin argument '-' is specified, but input has not been redirected from the standard input stream.</target>
+        <target state="translated">stdin 引数 '-' が指定されていますが、入力が標準入力ストリームからリダイレクトされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StrictDisallowsObjectOperand1">
@@ -853,7 +969,7 @@
       </trans-unit>
       <trans-unit id="ERR_TooManyArgs1">
         <source>Too many arguments to '{0}'.</source>
-        <target state="translated">{0}' の引数が多すぎます。</target>
+        <target state="translated">'{0}' の引数が多すぎます。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedCase">
@@ -1128,7 +1244,7 @@
       </trans-unit>
       <trans-unit id="ERR_RequiredNewCall2">
         <source>First statement of this 'Sub New' must be a call to 'MyBase.New' or 'MyClass.New' because base class '{0}' of '{1}' does not have an accessible 'Sub New' that can be called with no arguments.</source>
-        <target state="translated">{1}' の基底クラス '{0}' には、引数なしで呼び出される、アクセス可能な 'Sub New' がないため、この 'Sub New' の最初のステートメントは、'MyBase.New' または 'MyClass.New' に対して呼び出さなければなりません。</target>
+        <target state="translated">'{1}' の基底クラス '{0}' には、引数なしで呼び出される、アクセス可能な 'Sub New' がないため、この 'Sub New' の最初のステートメントは、'MyBase.New' または 'MyClass.New' に対して呼び出さなければなりません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedMember3">
@@ -1507,7 +1623,7 @@
       </trans-unit>
       <trans-unit id="ERR_NamedArgUsedTwice2">
         <source>Parameter '{0}' of '{1}' already has a matching argument.</source>
-        <target state="translated">{1}' のパラメーター '{0}' には、一致する引数が既に存在します。</target>
+        <target state="translated">'{1}' のパラメーター '{0}' には、一致する引数が既に存在します。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceCantUseEventSpecifier1">
@@ -1552,7 +1668,7 @@
       </trans-unit>
       <trans-unit id="ERR_EncUpdateFailedMissingAttribute">
         <source>Cannot update '{0}'; attribute '{1}' is missing.</source>
-        <target state="translated">{0}' を更新できません。属性 '{1}' がありません。</target>
+        <target state="translated">'{0}' を更新できません。属性 '{1}' がありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideNotNeeded3">
@@ -1656,7 +1772,7 @@
       </trans-unit>
       <trans-unit id="ERR_FieldOfValueFieldOfMarshalByRef3">
         <source>Cannot refer to '{0}' because it is a member of the value-typed field '{1}' of class '{2}' which has 'System.MarshalByRefObject' as a base class.</source>
-        <target state="translated">{0}' は、'System.MarshalByRefObject' を基本クラスとして持つクラス '{2}' の値付きフィールド '{1}' のメンバーであるため、参照できません。</target>
+        <target state="translated">'{0}' は、'System.MarshalByRefObject' を基本クラスとして持つクラス '{2}' の値付きフィールド '{1}' のメンバーであるため、参照できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeMismatch2">
@@ -1671,12 +1787,12 @@
       </trans-unit>
       <trans-unit id="ERR_ConvertArrayMismatch4">
         <source>Value of type '{0}' cannot be converted to '{1}' because '{2}' is not derived from '{3}'.</source>
-        <target state="translated">{2}' は '{3}' から派生していないため、型 '{0}' の値を '{1}' に変換できません。</target>
+        <target state="translated">'{2}' は '{3}' から派生していないため、型 '{0}' の値を '{1}' に変換できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConvertObjectArrayMismatch3">
         <source>Value of type '{0}' cannot be converted to '{1}' because '{2}' is not a reference type.</source>
-        <target state="translated">{2}' が参照型でないため、'{0}' 型の値を '{1}' に変換できません。</target>
+        <target state="translated">'{2}' が参照型でないため、'{0}' 型の値を '{1}' に変換できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForLoopType1">
@@ -1966,7 +2082,7 @@
       </trans-unit>
       <trans-unit id="ERR_OmittedArgument2">
         <source>Argument not specified for parameter '{0}' of '{1}'.</source>
-        <target state="translated">{1}' のパラメーター '{0}' に対して引数が指定されていません。</target>
+        <target state="translated">'{1}' のパラメーター '{0}' に対して引数が指定されていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NameNotMember2">
@@ -2111,7 +2227,7 @@
       </trans-unit>
       <trans-unit id="ERR_NoViableOverloadCandidates1">
         <source>Overload resolution failed because no '{0}' is accessible.</source>
-        <target state="translated">{0}' にアクセスできないため、オーバーロードの解決に失敗しました。</target>
+        <target state="translated">'{0}' にアクセスできないため、オーバーロードの解決に失敗しました。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoCallableOverloadCandidates2">
@@ -2660,7 +2776,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidMultipleAttributeUsageInNetModule2">
         <source>Attribute '{0}' in '{1}' cannot be applied multiple times.</source>
-        <target state="translated">{1}' 内の属性 '{0}' を複数回適用することはできません。</target>
+        <target state="translated">'{1}' 内の属性 '{0}' を複数回適用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantThrowNonException">
@@ -2925,12 +3041,12 @@
       </trans-unit>
       <trans-unit id="ERR_GenericSubMainsFound1">
         <source>None of the accessible 'Main' methods with the appropriate signatures found in '{0}' can be the startup method since they are all either generic or nested in generic types.</source>
-        <target state="translated">{0}' で見つかった正しいシグネチャを持つ、アクセス可能な 'Main' メソッドは、スタートアップ メソッドにはなりません。それらの 'Main' メソッドはすべてジェネリックまたはジェネリック型の中に入れ子にされているためです。</target>
+        <target state="translated">'{0}' で見つかった正しいシグネチャを持つ、アクセス可能な 'Main' メソッドは、スタートアップ メソッドにはなりません。それらの 'Main' メソッドはすべてジェネリックまたはジェネリック型の中に入れ子にされているためです。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GeneralProjectImportsError3">
         <source>Error in project-level import '{0}' at '{1}' : {2}</source>
-        <target state="translated">{1}' でのプロジェクト レベル インポート '{0}' でエラーが発生しました: {2}</target>
+        <target state="translated">'{1}' でのプロジェクト レベル インポート '{0}' でエラーが発生しました: {2}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidTypeForAliasesImport2">
@@ -3080,12 +3196,12 @@
       </trans-unit>
       <trans-unit id="ERR_RequiredNonObsoleteNewCall3">
         <source>First statement of this 'Sub New' must be an explicit call to 'MyBase.New' or 'MyClass.New' because the '{0}' in the base class '{1}' of '{2}' is marked obsolete.</source>
-        <target state="translated">{2}' の基底クラス '{1}' にある '{0}' には廃止マークが付けられているため、この 'Sub New' の最初のステートメントは、明示的な 'MyBase.New' または 'MyClass.New' への呼び出しでなければなりません。</target>
+        <target state="translated">'{2}' の基底クラス '{1}' にある '{0}' には廃止マークが付けられているため、この 'Sub New' の最初のステートメントは、明示的な 'MyBase.New' または 'MyClass.New' への呼び出しでなければなりません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiredNonObsoleteNewCall4">
         <source>First statement of this 'Sub New' must be an explicit call to 'MyBase.New' or 'MyClass.New' because the '{0}' in the base class '{1}' of '{2}' is marked obsolete: '{3}'.</source>
-        <target state="translated">{2}' の基底クラス '{1}' の '{0}' には廃止マークが付けられているため、この 'Sub New' の最初のステートメントは、明示的な 'MyBase.New' または 'MyClass.New' への呼び出しでなければなりません: '{3}'</target>
+        <target state="translated">'{2}' の基底クラス '{1}' の '{0}' には廃止マークが付けられているため、この 'Sub New' の最初のステートメントは、明示的な 'MyBase.New' または 'MyClass.New' への呼び出しでなければなりません: '{3}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritsTypeArgAccessMismatch7">
@@ -3100,7 +3216,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialTypeAccessMismatch3">
         <source>Specified access '{0}' for '{1}' does not match the access '{2}' specified on one of its other partial types.</source>
-        <target state="translated">{1}' に指定されたアクセス '{0}' は、その他の partial 型の 1 つで指定されたアクセス '{2}' と一致しません。</target>
+        <target state="translated">'{1}' に指定されたアクセス '{0}' は、その他の partial 型の 1 つで指定されたアクセス '{2}' と一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeBadMustInherit1">
@@ -3181,7 +3297,7 @@
       </trans-unit>
       <trans-unit id="ERR_DelegateBindingFailure3">
         <source>No accessible method '{0}' has a signature compatible with delegate '{1}':{2}</source>
-        <target state="translated">デリゲート '{1}':{2} と互換性のあるシグネチャを持つアクセス可能なメソッド '{0}' がありません。</target>
+        <target state="translated">デリゲート '{1}':{2} と互換性のあるシグネチャを持つアクセス可能なメソッド '{0}' がありません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructLayoutAttributeNotAllowed">
@@ -3201,7 +3317,7 @@
       </trans-unit>
       <trans-unit id="ERR_CircularInference1">
         <source>Type of '{0}' cannot be inferred from an expression containing '{0}'.</source>
-        <target state="translated">{0}' の型を '{0}' を含んでいる式から推論することはできません。</target>
+        <target state="translated">'{0}' の型を '{0}' を含んでいる式から推論することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InAccessibleOverridingMethod5">
@@ -3241,7 +3357,7 @@
       </trans-unit>
       <trans-unit id="ERR_DuplicateAggrMemberInit1">
         <source>Multiple initializations of '{0}'.  Fields and properties can be initialized only once in an object initializer expression.</source>
-        <target state="translated">{0}' を複数回初期化しています。フィールドまたはプロパティは、オブジェクト初期化子式で複数回初期化することはできません。</target>
+        <target state="translated">'{0}' を複数回初期化しています。フィールドまたはプロパティは、オブジェクト初期化子式で複数回初期化することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonFieldPropertyAggrMemberInit1">
@@ -4011,7 +4127,7 @@
       </trans-unit>
       <trans-unit id="WRN_UseValueForXmlExpression3">
         <source>Cannot convert '{0}' to '{1}'. You can use the 'Value' property to get the string value of the first element of '{2}'.</source>
-        <target state="translated">{0}' を '{1}' に変換できません。'{2}' の最初の要素の文字列値は、'Value' プロパティを使用して取得できます。</target>
+        <target state="translated">'{0}' を '{1}' に変換できません。'{2}' の最初の要素の文字列値は、'Value' プロパティを使用して取得できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseValueForXmlExpression3_Title">
@@ -4036,12 +4152,12 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidSubsystemVersion">
         <source>The value '{0}' is not a valid subsystem version. The version must be 6.02 or greater for ARM or AppContainerExe, and 4.00 or greater otherwise.</source>
-        <target state="translated">{0}' は有効なサブシステム バージョンの値ではありません。バージョンは、ARM または AppContainerExe では 6.02 以上、その他の場合は 4.00 以上であることが必要です。</target>
+        <target state="translated">'{0}' は有効なサブシステム バージョンの値ではありません。バージョンは、ARM または AppContainerExe では 6.02 以上、その他の場合は 4.00 以上であることが必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidFileAlignment">
         <source>Invalid file section alignment '{0}'</source>
-        <target state="translated">{0}' は無効なファイル セクションの配置です。</target>
+        <target state="translated">'{0}' は無効なファイル セクションの配置です</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidOutputName">
@@ -4136,7 +4252,7 @@
       </trans-unit>
       <trans-unit id="ERR_SynthMemberShadowsMustOverride5">
         <source>'{0}', implicitly declared for {1} '{2}', cannot shadow a 'MustOverride' method in the base {3} '{4}'.</source>
-        <target state="translated">'{1} '{2}' で暗黙のうちに宣言された '{0}' が、基底 {3} '{4}' の 'MustOverride' メソッドをシャドウすることはできません。</target>
+        <target state="translated">{1} '{2}' で暗黙のうちに宣言された '{0}' が、基底 {3} '{4}' の 'MustOverride' メソッドをシャドウすることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotOverrideInAccessibleMember">
@@ -4201,7 +4317,7 @@
       </trans-unit>
       <trans-unit id="ERR_MetadataMembersAmbiguous3">
         <source>'{0}' is ambiguous because multiple kinds of members with this name exist in {1} '{2}'.</source>
-        <target state="translated">'{1} '{2}' に同じ名前のメンバーが多種類存在するため、'{0}' があいまいです。</target>
+        <target state="translated">{1} '{2}' に同じ名前のメンバーが多種類存在するため、'{0}' があいまいです。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeOfExprAlwaysFalse2">
@@ -4226,7 +4342,7 @@
       </trans-unit>
       <trans-unit id="ERR_OnlyOneImplementingMethodAllowed3">
         <source>Method '{0}' cannot implement partial method '{1}' because '{2}' already implements it. Only one method can implement a partial method.</source>
-        <target state="translated">{2}' によって既に実装されているため、メソッド '{0}' は部分メソッド '{1}' を実装できません。部分メソッドを実装できるのは 1 つのメソッドだけです。</target>
+        <target state="translated">'{2}' によって既に実装されているため、メソッド '{0}' は部分メソッド '{1}' を実装できません。部分メソッドを実装できるのは 1 つのメソッドだけです。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodMustBeEmpty">
@@ -4471,7 +4587,7 @@
       </trans-unit>
       <trans-unit id="ERR_NamedArgAlsoOmitted2">
         <source>Parameter '{0}' in '{1}' already has a matching omitted argument.</source>
-        <target state="translated">{1}' のパラメーター '{0}' には、一致する省略された引数が既に存在します。</target>
+        <target state="translated">'{1}' のパラメーター '{0}' には、一致する省略された引数が既に存在します。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotCallEvent1">
@@ -4526,7 +4642,7 @@
       </trans-unit>
       <trans-unit id="ERR_RequiredNewCallTooMany2">
         <source>First statement of this 'Sub New' must be a call to 'MyBase.New' or 'MyClass.New' because base class '{0}' of '{1}' has more than one accessible 'Sub New' that can be called with no arguments.</source>
-        <target state="translated">{1}' の基底クラス '{0}' には、引数なしで呼び出せるアクセス可能な 'Sub New' が 2 つ以上指定されているため、この 'Sub New' の最初のステートメントは、'MyBase.New' または 'MyClass.New' への呼び出しでなければなりません。</target>
+        <target state="translated">'{1}' の基底クラス '{0}' には、引数なしで呼び出せるアクセス可能な 'Sub New' が 2 つ以上指定されているため、この 'Sub New' の最初のステートメントは、'MyBase.New' または 'MyClass.New' への呼び出しでなければなりません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForCtlVarArraySizesSpecified">
@@ -4536,7 +4652,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadFlagsOnNewOverloads">
         <source>The '{0}' keyword is used to overload inherited members; do not use the '{0}' keyword when overloading 'Sub New'.</source>
-        <target state="translated">{0}' キーワードは、継承されたメンバーをオーバーロードするために使用されます。'Sub New' をオーバーロードするときには '{0}' を使用しないでください。</target>
+        <target state="translated">'{0}' キーワードは、継承されたメンバーをオーバーロードするために使用されます。'Sub New' をオーバーロードするときには '{0}' を使用しないでください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeCharOnGenericParam">
@@ -4546,12 +4662,12 @@
       </trans-unit>
       <trans-unit id="ERR_TooFewGenericArguments1">
         <source>Too few type arguments to '{0}'.</source>
-        <target state="translated">{0}' の型引数が少なすぎます。</target>
+        <target state="translated">'{0}' の型引数が少なすぎます。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyGenericArguments1">
         <source>Too many type arguments to '{0}'.</source>
-        <target state="translated">{0}' の型引数が多すぎます。</target>
+        <target state="translated">'{0}' の型引数が多すぎます。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericConstraintNotSatisfied2">
@@ -4586,7 +4702,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnboundTypeParam2">
         <source>Type parameter '{0}' for '{1}' cannot be inferred.</source>
-        <target state="translated">{1}' の型パラメーター '{0}' を推論できません。</target>
+        <target state="translated">'{1}' の型パラメーター '{0}' を推論できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IsOperatorGenericParam1">
@@ -5168,12 +5284,12 @@
       </trans-unit>
       <trans-unit id="ERR_MatchingOperatorExpected2">
         <source>Matching '{0}' operator is required for '{1}'.</source>
-        <target state="translated">{1}' には対応する '{0}' 演算子が必要です。</target>
+        <target state="translated">'{1}' には対応する '{0}' 演算子が必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnacceptableLogicalOperator3">
         <source>Return and parameter types of '{0}' must be '{1}' to be used in a '{2}' expression.</source>
-        <target state="translated">{0}' の戻り値およびパラメーターの型を '{2}' 式で使用するには、'{1}' にしなければなりません。</target>
+        <target state="translated">'{0}' の戻り値およびパラメーターの型を '{2}' 式で使用するには、'{1}' にしなければなりません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConditionOperatorRequired3">
@@ -5193,7 +5309,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnacceptableForLoopOperator2">
         <source>Return and parameter types of '{0}' must be '{1}' to be used in a 'For' statement.</source>
-        <target state="translated">{0}' の戻り値型およびパラメーター型は、'For' ステートメントで使用するためには '{1}' でなければなりません。</target>
+        <target state="translated">'{0}' の戻り値型およびパラメーター型は、'For' ステートメントで使用するためには '{1}' でなければなりません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnacceptableForLoopRelOperator2">
@@ -5443,7 +5559,7 @@
       </trans-unit>
       <trans-unit id="ERR_AnonymousTypePropertyOutOfOrder1">
         <source>Anonymous type member property '{0}' cannot be used to infer the type of another member property because the type of '{0}' is not yet established.</source>
-        <target state="translated">{0}' の型がまだ確立されていないため、匿名型メンバーのプロパティ '{0}' を使用して別のメンバーのプロパティの型を推論することはできません。</target>
+        <target state="translated">'{0}' の型がまだ確立されていないため、匿名型メンバーのプロパティ '{0}' を使用して別のメンバーのプロパティの型を推論することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnonymousTypeDisallowsTypeChar">
@@ -5542,17 +5658,17 @@
       </trans-unit>
       <trans-unit id="ERR_TooManyArgs2">
         <source>Too many arguments to extension method '{0}' defined in '{1}'.</source>
-        <target state="translated">{1}' で定義された拡張メソッド '{0}' の引数が多すぎます。</target>
+        <target state="translated">'{1}' で定義された拡張メソッド '{0}' の引数が多すぎます。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamedArgAlsoOmitted3">
         <source>Parameter '{0}' in extension method '{1}' defined in '{2}' already has a matching omitted argument.</source>
-        <target state="translated">{2}' で定義された拡張メソッド '{1}' のパラメーター '{0}' には、一致する省略された引数が既に存在します。</target>
+        <target state="translated">'{2}' で定義された拡張メソッド '{1}' のパラメーター '{0}' には、一致する省略された引数が既に存在します。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamedArgUsedTwice3">
         <source>Parameter '{0}' of extension method '{1}' defined in '{2}' already has a matching argument.</source>
-        <target state="translated">{2}' で定義された拡張メソッド '{1}' のパラメーター '{0}' には、一致する引数が既に存在します。</target>
+        <target state="translated">'{2}' で定義された拡張メソッド '{1}' のパラメーター '{0}' には、一致する引数が既に存在します。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamedParamNotFound3">
@@ -5562,22 +5678,22 @@
       </trans-unit>
       <trans-unit id="ERR_OmittedArgument3">
         <source>Argument not specified for parameter '{0}' of extension method '{1}' defined in '{2}'.</source>
-        <target state="translated">{2}' で定義された拡張メソッド '{1}' のパラメーター '{0}' に対して引数が指定されていません。</target>
+        <target state="translated">'{2}' で定義された拡張メソッド '{1}' のパラメーター '{0}' に対して引数が指定されていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnboundTypeParam3">
         <source>Type parameter '{0}' for extension method '{1}' defined in '{2}' cannot be inferred.</source>
-        <target state="translated">{2}' で定義された拡張メソッド '{1}' の型パラメーター '{0}' を推論できません。</target>
+        <target state="translated">'{2}' で定義された拡張メソッド '{1}' の型パラメーター '{0}' を推論できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooFewGenericArguments2">
         <source>Too few type arguments to extension method '{0}' defined in '{1}'.</source>
-        <target state="translated">{1}' で定義された拡張メソッド '{0}' の型引数が少なすぎます。</target>
+        <target state="translated">'{1}' で定義された拡張メソッド '{0}' の型引数が少なすぎます。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooManyGenericArguments2">
         <source>Too many type arguments to extension method '{0}' defined in '{1}'.</source>
-        <target state="translated">{1}' で定義されている拡張メソッド '{0}' の型引数が多すぎます。</target>
+        <target state="translated">'{1}' で定義されている拡張メソッド '{0}' の型引数が多すぎます。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedInOrEq">
@@ -5712,12 +5828,12 @@
       </trans-unit>
       <trans-unit id="ERR_LambdaNotDelegate1">
         <source>Lambda expression cannot be converted to '{0}' because '{0}' is not a delegate type.</source>
-        <target state="translated">{0}' は、デリゲート型でないため、ラムダ式を '{0}' に変換できません。</target>
+        <target state="translated">'{0}' は、デリゲート型でないため、ラムダ式を '{0}' に変換できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LambdaNotCreatableDelegate1">
         <source>Lambda expression cannot be converted to '{0}' because type '{0}' is declared 'MustInherit' and cannot be created.</source>
-        <target state="translated">{0}' は 'MustInherit' として宣言されていて作成することができないので、ラムダ式を '{0}' に変換することはできません。</target>
+        <target state="translated">'{0}' は 'MustInherit' として宣言されていて作成することができないので、ラムダ式を '{0}' に変換することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotInferNullableForVariable1">
@@ -5807,7 +5923,7 @@
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailure3">
         <source>Data type(s) of the type parameter(s) in extension method '{0}' defined in '{1}' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.</source>
-        <target state="translated">{1}' で定義されている拡張メソッド '{0}' 内の型パラメーターのデータ型をこれらの引数から推論することはできません。データ型を明示的に指定することによって、このエラーを修正できる可能性があります。</target>
+        <target state="translated">'{1}' で定義されている拡張メソッド '{0}' 内の型パラメーターのデータ型をこれらの引数から推論することはできません。データ型を明示的に指定することによって、このエラーを修正できる可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailureNoExplicit1">
@@ -5822,7 +5938,7 @@
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailureNoExplicit3">
         <source>Data type(s) of the type parameter(s) in extension method '{0}' defined in '{1}' cannot be inferred from these arguments.</source>
-        <target state="translated">{1}' で定義された拡張メソッド '{0}' 内の型パラメーターのデータ型を、これらの引数から推論することはできません。</target>
+        <target state="translated">'{1}' で定義された拡張メソッド '{0}' 内の型パラメーターのデータ型を、これらの引数から推論することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailureAmbiguous1">
@@ -5837,7 +5953,7 @@
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailureAmbiguous3">
         <source>Data type(s) of the type parameter(s) in extension method '{0}' defined in '{1}' cannot be inferred from these arguments because more than one type is possible. Specifying the data type(s) explicitly might correct this error.</source>
-        <target state="translated">{1}' で定義されている拡張メソッド '{0}' 内の型パラメーターのデータ型をこれらの引数から推論しようとしても、複数の型の可能性があるため、できません。データ型を明示的に指定することによって、このエラーを修正できる場合があります。</target>
+        <target state="translated">'{1}' で定義されている拡張メソッド '{0}' 内の型パラメーターのデータ型をこれらの引数から推論しようとしても、複数の型の可能性があるため、できません。データ型を明示的に指定することによって、このエラーを修正できる場合があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailureNoExplicitAmbiguous1">
@@ -5852,7 +5968,7 @@
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailureNoExplicitAmbiguous3">
         <source>Data type(s) of the type parameter(s) in extension method '{0}' defined in '{1}' cannot be inferred from these arguments because more than one type is possible.</source>
-        <target state="translated">{1}' で定義されている拡張メソッド '{0}' 内の型パラメーターのデータ型をこれらの引数から推論しようとしても、複数の型の可能性があるため、できません。</target>
+        <target state="translated">'{1}' で定義されている拡張メソッド '{0}' 内の型パラメーターのデータ型をこれらの引数から推論しようとしても、複数の型の可能性があるため、できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailureNoBest1">
@@ -5867,7 +5983,7 @@
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailureNoBest3">
         <source>Data type(s) of the type parameter(s) in extension method '{0}' defined in '{1}' cannot be inferred from these arguments because they do not convert to the same type. Specifying the data type(s) explicitly might correct this error.</source>
-        <target state="translated">{1}' で定義されている拡張メソッド '{0}' 内の型パラメーターのデータ型をこれらの引数から推論しようとしても、複数の型の可能性があるため、できません。データ型を明示的に指定することによって、このエラーを修正できる場合があります。</target>
+        <target state="translated">'{1}' で定義されている拡張メソッド '{0}' 内の型パラメーターのデータ型をこれらの引数から推論しようとしても、複数の型の可能性があるため、できません。データ型を明示的に指定することによって、このエラーを修正できる場合があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailureNoExplicitNoBest1">
@@ -5882,7 +5998,7 @@
       </trans-unit>
       <trans-unit id="ERR_TypeInferenceFailureNoExplicitNoBest3">
         <source>Data type(s) of the type parameter(s) in extension method '{0}' defined in '{1}' cannot be inferred from these arguments because they do not convert to the same type.</source>
-        <target state="translated">{1}' で定義されている拡張メソッド '{0}' 内の型パラメーターのデータ型をこれらの引数から推論しようとしても、同じ型に変換されないため、できません。</target>
+        <target state="translated">'{1}' で定義されている拡張メソッド '{0}' 内の型パラメーターのデータ型をこれらの引数から推論しようとしても、同じ型に変換されないため、できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DelegateBindingMismatchStrictOff2">
@@ -5912,7 +6028,7 @@
       </trans-unit>
       <trans-unit id="ERR_DelegateBindingIncompatible3">
         <source>Extension Method '{0}' defined in '{2}' does not have a signature compatible with delegate '{1}'.</source>
-        <target state="translated">{2}' で定義された拡張メソッド '{0}' に、デリゲート '{1}' と互換性があるシグネチャがありません。</target>
+        <target state="translated">'{2}' で定義された拡張メソッド '{0}' に、デリゲート '{1}' と互換性があるシグネチャがありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ArgumentNarrowing2">
@@ -5949,7 +6065,7 @@
       </trans-unit>
       <trans-unit id="ERR_TypeOrMemberNotGeneric2">
         <source>Extension method '{0}' defined in '{1}' is not generic (or has no free type parameters) and so cannot have type arguments.</source>
-        <target state="translated">{1}' で定義された拡張メソッド '{0}' はジェネリックではない (または自由型パラメーターがない) ため、型引数を指定できません。</target>
+        <target state="translated">'{1}' で定義された拡張メソッド '{0}' はジェネリックではない (または自由型パラメーターがない) ため、型引数を指定できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionMethodCannotBeLateBound">
@@ -6369,7 +6485,7 @@
       </trans-unit>
       <trans-unit id="WRN_NamespaceCaseMismatch3">
         <source>Casing of namespace name '{0}' does not match casing of namespace name '{1}' in '{2}'.</source>
-        <target state="translated">{2}' で、名前空間の名前 '{0}' の大文字と小文字の指定が、名前空間の名前 '{1}' の大文字と小文字の指定と一致しません。</target>
+        <target state="translated">'{2}' で、名前空間の名前 '{0}' の大文字と小文字の指定が、名前空間の名前 '{1}' の大文字と小文字の指定と一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NamespaceCaseMismatch3_Title">
@@ -6429,7 +6545,7 @@
       </trans-unit>
       <trans-unit id="WRN_RequiredNonObsoleteNewCall3">
         <source>First statement of this 'Sub New' should be an explicit call to 'MyBase.New' or 'MyClass.New' because the '{0}' in the base class '{1}' of '{2}' is marked obsolete.</source>
-        <target state="translated">{2}' の基本クラス '{1}' にある '{0}' が古い形式に設定されているため、この 'Sub New' の最初のステートメントは、明示的な 'MyBase.New' または 'MyClass.New' への呼び出しでなければなりません。</target>
+        <target state="translated">'{2}' の基本クラス '{1}' にある '{0}' が古い形式に設定されているため、この 'Sub New' の最初のステートメントは、明示的な 'MyBase.New' または 'MyClass.New' への呼び出しでなければなりません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RequiredNonObsoleteNewCall3_Title">
@@ -6439,7 +6555,7 @@
       </trans-unit>
       <trans-unit id="WRN_RequiredNonObsoleteNewCall4">
         <source>First statement of this 'Sub New' should be an explicit call to 'MyBase.New' or 'MyClass.New' because the '{0}' in the base class '{1}' of '{2}' is marked obsolete: '{3}'</source>
-        <target state="translated">{2}' の基本クラス '{1}' にある '{0}' が古い形式に設定されているため、この 'Sub New' の最初のステートメントは、明示的な 'MyBase.New' または 'MyClass.New' への呼び出しでなければなりません: '{3}'</target>
+        <target state="translated">'{2}' の基本クラス '{1}' にある '{0}' が古い形式に設定されているため、この 'Sub New' の最初のステートメントは、明示的な 'MyBase.New' または 'MyClass.New' への呼び出しでなければなりません: '{3}'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RequiredNonObsoleteNewCall4_Title">
@@ -6529,7 +6645,7 @@
       </trans-unit>
       <trans-unit id="WRN_ImplicitConversion2">
         <source>Implicit conversion from '{0}' to '{1}'.</source>
-        <target state="translated">{0}' から '{1}' への暗黙的な変換。</target>
+        <target state="translated">'{0}' から '{1}' への暗黙的な変換。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ImplicitConversion2_Title">
@@ -7119,7 +7235,7 @@
       </trans-unit>
       <trans-unit id="WRN_InterfaceConversion2">
         <source>Runtime errors might occur when converting '{0}' to '{1}'.</source>
-        <target state="translated">{0}' から '{1}' への変換時にランタイム エラーが発生する可能性があります。</target>
+        <target state="translated">'{0}' から '{1}' への変換時にランタイム エラーが発生する可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InterfaceConversion2_Title">
@@ -7531,7 +7647,7 @@
       </trans-unit>
       <trans-unit id="ERR_ReservedAssemblyName">
         <source>The assembly name '{0}' is reserved and cannot be used as a reference in an interactive session</source>
-        <target state="translated">アセンブリ名 '{0}' は予約されており、対話形式のセッションで参照として使用することはできません。</target>
+        <target state="translated">アセンブリ名 '{0}' は予約されており、対話形式のセッションで参照として使用することはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReferenceDirectiveOnlyAllowedInScripts">
@@ -7546,7 +7662,7 @@
       </trans-unit>
       <trans-unit id="ERR_KeywordNotAllowedInScript">
         <source>You cannot use '{0}' in top-level script code</source>
-        <target state="translated">トップ レベル スクリプト コードでは '{0}' を使用できません。</target>
+        <target state="translated">トップ レベル スクリプト コードでは '{0}' を使用できません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LambdaNoType">
@@ -7631,7 +7747,7 @@
       </trans-unit>
       <trans-unit id="WRN_TypeInferenceAssumed3">
         <source>Data type of '{0}' in '{1}' could not be inferred. '{2}' assumed.</source>
-        <target state="translated">{1}' 内にある '{0}' のデータ型を推論できませんでした。'{2}' と見なされます。</target>
+        <target state="translated">'{1}' 内にある '{0}' のデータ型を推論できませんでした。'{2}' と見なされます。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TypeInferenceAssumed3_Title">
@@ -7646,7 +7762,7 @@
       </trans-unit>
       <trans-unit id="WRN_AmbiguousCastConversion2">
         <source>Conversion from '{0}' to '{1}' may be ambiguous.</source>
-        <target state="translated">{0}' から '{1}' への変換はあいまいな可能性があります。</target>
+        <target state="translated">'{0}' から '{1}' への変換はあいまいな可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AmbiguousCastConversion2_Title">
@@ -7681,7 +7797,7 @@
       </trans-unit>
       <trans-unit id="WRN_VarianceConversionFailedIn6">
         <source>Implicit conversion from '{4}' to '{5}'; this conversion may fail because '{0}' is not derived from '{1}', as required for the 'In' generic parameter '{2}' in '{3}'.</source>
-        <target state="translated">{4}' から '{5}' への暗黙の型変換です。'{0}' は、'{3}' の 'In' ジェネリック パラメーター '{2}' に求められるように '{1}' から派生していないため、この変換は失敗する可能性があります。</target>
+        <target state="translated">'{4}' から '{5}' への暗黙の型変換です。'{0}' は、'{3}' の 'In' ジェネリック パラメーター '{2}' に求められるように '{1}' から派生していないため、この変換は失敗する可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_VarianceConversionFailedIn6_Title">
@@ -7691,7 +7807,7 @@
       </trans-unit>
       <trans-unit id="WRN_VarianceConversionFailedOut6">
         <source>Implicit conversion from '{4}' to '{5}'; this conversion may fail because '{0}' is not derived from '{1}', as required for the 'Out' generic parameter '{2}' in '{3}'.</source>
-        <target state="translated">{4}' から '{5}' への暗黙の型変換です。'{0}' は、'{3}' の 'Out' ジェネリック パラメーター '{2}' に求められるように '{1}' から派生していないため、この変換は失敗する可能性があります。</target>
+        <target state="translated">'{4}' から '{5}' への暗黙の型変換です。'{0}' は、'{3}' の 'Out' ジェネリック パラメーター '{2}' に求められるように '{1}' から派生していないため、この変換は失敗する可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_VarianceConversionFailedOut6_Title">
@@ -7761,37 +7877,37 @@
       </trans-unit>
       <trans-unit id="ERR_VarianceInParamDisallowed1">
         <source>Type '{0}' cannot be used in this context because '{0}' is an 'In' type parameter.</source>
-        <target state="translated">{0}' は 'In' 型パラメーターであるため、このコンテキストでは型 '{0}' を使用できません。</target>
+        <target state="translated">'{0}' は 'In' 型パラメーターであるため、このコンテキストでは型 '{0}' を使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarianceInParamDisallowedForGeneric3">
         <source>Type '{0}' cannot be used for the '{1}' in '{2}' in this context because '{0}' is an 'In' type parameter.</source>
-        <target state="translated">{0}' は 'In' 型パラメーターであるため、このコンテキストで '{2}' の '{1}' に対して型 '{0}' を使用することはできません。</target>
+        <target state="translated">'{0}' は 'In' 型パラメーターであるため、このコンテキストで '{2}' の '{1}' に対して型 '{0}' を使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarianceInParamDisallowedHere2">
         <source>Type '{0}' cannot be used in '{1}' in this context because '{0}' is an 'In' type parameter.</source>
-        <target state="translated">{0}' は 'In' 型パラメーターであるため、このコンテキストの '{1}' で型 '{0}' を使用することはできません。</target>
+        <target state="translated">'{0}' は 'In' 型パラメーターであるため、このコンテキストの '{1}' で型 '{0}' を使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarianceInParamDisallowedHereForGeneric4">
         <source>Type '{0}' cannot be used for the '{2}' of '{3}' in '{1}' in this context because '{0}' is an 'In' type parameter.</source>
-        <target state="translated">{0}' は 'In' 型パラメーターであるため、このコンテキストで '{1}' 内の '{3}' の '{2}' に対して型 '{0}' を使用することはできません。</target>
+        <target state="translated">'{0}' は 'In' 型パラメーターであるため、このコンテキストで '{1}' 内の '{3}' の '{2}' に対して型 '{0}' を使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarianceInPropertyDisallowed1">
         <source>Type '{0}' cannot be used as a property type in this context because '{0}' is an 'In' type parameter and the property is not marked WriteOnly.</source>
-        <target state="translated">{0}' は 'In' 型パラメーターであり、プロパティは WriteOnly として指定されていないため、このコンテキストでは型 '{0}' をプロパティ型として使用することはできません。</target>
+        <target state="translated">'{0}' は 'In' 型パラメーターであり、プロパティは WriteOnly として指定されていないため、このコンテキストでは型 '{0}' をプロパティ型として使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarianceInReadOnlyPropertyDisallowed1">
         <source>Type '{0}' cannot be used as a ReadOnly property type because '{0}' is an 'In' type parameter.</source>
-        <target state="translated">{0}' は 'In' 型パラメーターであるため、型 '{0}' を ReadOnly プロパティ型として使用することはできません。</target>
+        <target state="translated">'{0}' は 'In' 型パラメーターであるため、型 '{0}' を ReadOnly プロパティ型として使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarianceInReturnDisallowed1">
         <source>Type '{0}' cannot be used as a return type because '{0}' is an 'In' type parameter.</source>
-        <target state="translated">{0}' は 'In' 型パラメーターであるため、型 '{0}' を戻り値の型として使用することはできません。</target>
+        <target state="translated">'{0}' は 'In' 型パラメーターであるため、型 '{0}' を戻り値の型として使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarianceOutByRefDisallowed1">
@@ -7801,12 +7917,12 @@
       </trans-unit>
       <trans-unit id="ERR_VarianceOutByValDisallowed1">
         <source>Type '{0}' cannot be used as a ByVal parameter type because '{0}' is an 'Out' type parameter.</source>
-        <target state="translated">{0}' は 'Out' 型パラメーターであるため、型 '{0}' を ByVal パラメーター型として使用することはできません。</target>
+        <target state="translated">'{0}' は 'Out' 型パラメーターであるため、型 '{0}' を ByVal パラメーター型として使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarianceOutConstraintDisallowed1">
         <source>Type '{0}' cannot be used as a generic type constraint because '{0}' is an 'Out' type parameter.</source>
-        <target state="translated">{0}' は 'Out' 型パラメーターであるため、型 '{0}' をジェネリック型の制約として使用することはできません。</target>
+        <target state="translated">'{0}' は 'Out' 型パラメーターであるため、型 '{0}' をジェネリック型の制約として使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarianceOutNullableDisallowed2">
@@ -7816,32 +7932,32 @@
       </trans-unit>
       <trans-unit id="ERR_VarianceOutParamDisallowed1">
         <source>Type '{0}' cannot be used in this context because '{0}' is an 'Out' type parameter.</source>
-        <target state="translated">{0}' は 'Out' 型パラメーターであるため、このコンテキストでは型 '{0}' を使用できません。</target>
+        <target state="translated">'{0}' は 'Out' 型パラメーターであるため、このコンテキストでは型 '{0}' を使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarianceOutParamDisallowedForGeneric3">
         <source>Type '{0}' cannot be used for the '{1}' in '{2}' in this context because '{0}' is an 'Out' type parameter.</source>
-        <target state="translated">{0}' は 'Out' 型パラメーターであるため、このコンテキストで '{2}' の '{1}' に対して型 '{0}' を使用することはできません。</target>
+        <target state="translated">'{0}' は 'Out' 型パラメーターであるため、このコンテキストで '{2}' の '{1}' に対して型 '{0}' を使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarianceOutParamDisallowedHere2">
         <source>Type '{0}' cannot be used in '{1}' in this context because '{0}' is an 'Out' type parameter.</source>
-        <target state="translated">{0}' は 'Out' 型パラメーターであるため、このコンテキストの '{1}' で型 '{0}' を使用することはできません。</target>
+        <target state="translated">'{0}' は 'Out' 型パラメーターであるため、このコンテキストの '{1}' で型 '{0}' を使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarianceOutParamDisallowedHereForGeneric4">
         <source>Type '{0}' cannot be used for the '{2}' of '{3}' in '{1}' in this context because '{0}' is an 'Out' type parameter.</source>
-        <target state="translated">{0}' は 'Out' 型パラメーターであるため、このコンテキストで '{1}' 内の '{3}' の '{2}' に対して型 '{0}' を使用することはできません。</target>
+        <target state="translated">'{0}' は 'Out' 型パラメーターであるため、このコンテキストで '{1}' 内の '{3}' の '{2}' に対して型 '{0}' を使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarianceOutPropertyDisallowed1">
         <source>Type '{0}' cannot be used as a property type in this context because '{0}' is an 'Out' type parameter and the property is not marked ReadOnly.</source>
-        <target state="translated">{0}' は 'Out' 型パラメーターであり、プロパティは ReadOnly として指定されていないため、このコンテキストでは型 '{0}' をプロパティ型として使用することはできません。</target>
+        <target state="translated">'{0}' は 'Out' 型パラメーターであり、プロパティは ReadOnly として指定されていないため、このコンテキストでは型 '{0}' をプロパティ型として使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarianceOutWriteOnlyPropertyDisallowed1">
         <source>Type '{0}' cannot be used as a WriteOnly property type because '{0}' is an 'Out' type parameter.</source>
-        <target state="translated">{0}' は 'Out' 型パラメーターであるため、型 '{0}' を WriteOnly プロパティ型として使用することはできません。</target>
+        <target state="translated">'{0}' は 'Out' 型パラメーターであるため、型 '{0}' を WriteOnly プロパティ型として使用することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarianceTypeDisallowed2">
@@ -8271,7 +8387,7 @@
       </trans-unit>
       <trans-unit id="ERR_NetModuleNameMismatch">
         <source>Module name '{0}' stored in '{1}' must match its filename.</source>
-        <target state="translated">{1}' に格納されているモジュール名 '{0}' はファイル名と一致する必要があります。</target>
+        <target state="translated">'{1}' に格納されているモジュール名 '{0}' はファイル名と一致する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadModuleName">
@@ -8381,7 +8497,7 @@
       </trans-unit>
       <trans-unit id="ERR_MissingNetModuleReference">
         <source>Reference to '{0}' netmodule missing.</source>
-        <target state="translated">{0}' netmodule への参照がありません。</target>
+        <target state="translated">'{0}' netmodule への参照がありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NetModuleNameMustBeUnique">
@@ -8551,7 +8667,7 @@
       </trans-unit>
       <trans-unit id="ERR_ResourceInModule">
         <source>Cannot link resource files when building a module</source>
-        <target state="translated">モジュールをビルド中にリソース ファイルにリンクできません。</target>
+        <target state="translated">モジュールをビルド中にリソース ファイルにリンクできません</target>
         <note />
       </trans-unit>
       <trans-unit id="NotAVbSymbol">
@@ -8711,7 +8827,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidFormatSpecifier">
         <source>'{0}' is not a valid format specifier</source>
-        <target state="translated">'{0}' は有効な形式指定子ではありません。</target>
+        <target state="translated">'{0}' は有効な形式指定子ではありません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidPreprocessorConstantType">
@@ -8811,7 +8927,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadPdbData">
         <source>Error reading debug information for '{0}'</source>
-        <target state="translated">{0}' のデバッグ情報の読み取りエラー</target>
+        <target state="translated">'{0}' のデバッグ情報の読み取りエラー</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_ArrayLiterals">
@@ -9146,7 +9262,7 @@
       </trans-unit>
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="translated">ファイル名 '{0}' は、空である、無効な文字を含んでいる、絶対パスが指定されていないドライブ指定がある、または長すぎるかのいずれかです。</target>
+        <target state="translated">ファイル名 '{0}' は、空である、無効な文字を含んでいる、絶対パスが指定されていないドライブ指定がある、または長すぎるかのいずれかです</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AttributeNotSupportedInVB">

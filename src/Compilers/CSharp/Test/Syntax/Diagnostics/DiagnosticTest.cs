@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     continue;
                 }
 
-                Assert.False(string.IsNullOrEmpty(ErrorFacts.GetMessage(code, CultureInfo.InvariantCulture)));
+                Assert.False(string.IsNullOrEmpty(ErrorFacts.GetMessage(code, CultureInfo.InvariantCulture)), $"Message for error {code} is null or empty.");
             }
         }
 
@@ -53,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var set = new HashSet<ErrorCode>();
             foreach (ErrorCode value in values)
             {
-                Assert.True(set.Add(value));
+                Assert.True(set.Add(value), $"{value} is duplicated!");
             }
         }
 
@@ -254,16 +256,32 @@ class X
                         case ErrorCode.WRN_GivenExpressionAlwaysMatchesConstant:
                         case ErrorCode.WRN_UnconsumedEnumeratorCancellationAttributeUsage:
                         case ErrorCode.WRN_UndecoratedCancellationTokenParameter:
+                        case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen:
+                        case ErrorCode.WRN_SwitchExpressionNotExhaustiveWithUnnamedEnumValue:
+                        case ErrorCode.WRN_RecordNamedDisallowed:
+                        case ErrorCode.WRN_ParameterNotNullIfNotNull:
+                        case ErrorCode.WRN_ReturnNotNullIfNotNull:
+                        case ErrorCode.WRN_UnreadRecordParameter:
+                        case ErrorCode.WRN_DoNotCompareFunctionPointers:
+                        case ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter:
+                        case ErrorCode.WRN_CallerArgumentExpressionParamForUnconsumedLocation:
+                        case ErrorCode.WRN_CallerLineNumberPreferredOverCallerArgumentExpression:
+                        case ErrorCode.WRN_CallerFilePathPreferredOverCallerArgumentExpression:
+                        case ErrorCode.WRN_CallerMemberNamePreferredOverCallerArgumentExpression:
+                        case ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName:
+                        case ErrorCode.WRN_CallerArgumentExpressionAttributeSelfReferential:
+                        case ErrorCode.WRN_NullCheckedHasDefaultNull:
+                        case ErrorCode.WRN_NullCheckingOnNullableType:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
-                        case ErrorCode.WRN_NubExprIsConstBool2:
                         case ErrorCode.WRN_UnqualifiedNestedTypeInCref:
                         case ErrorCode.WRN_NoRuntimeMetadataVersion:
                             Assert.Equal(2, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_PdbLocalNameTooLong:
                         case ErrorCode.WRN_UnreferencedLocalFunction:
+                        case ErrorCode.WRN_RecordEqualsWithoutGetHashCode:
                             Assert.Equal(3, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_ConvertingNullableToNonNullable:
@@ -274,6 +292,7 @@ class X
                         case ErrorCode.WRN_DisallowNullAttributeForbidsMaybeNullAssignment:
                         case ErrorCode.WRN_NullabilityMismatchInTypeOnOverride:
                         case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride:
+                        case ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial:
                         case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride:
                         case ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial:
                         case ErrorCode.WRN_NullabilityMismatchInConstraintsOnPartialImplementation:
@@ -304,6 +323,7 @@ class X
                         case ErrorCode.WRN_ThrowPossibleNull:
                         case ErrorCode.WRN_UnboxPossibleNull:
                         case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull:
+                        case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNullWithWhen:
                         case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
                         case ErrorCode.WRN_NullabilityMismatchInTypeParameterNotNullConstraint:
                         case ErrorCode.WRN_NullReferenceInitializer:
@@ -316,16 +336,48 @@ class X
                         case ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnExplicitImplementation:
                         case ErrorCode.WRN_TopLevelNullabilityMismatchInReturnTypeOnOverride:
                         case ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride:
+                        case ErrorCode.WRN_ConstOutOfRangeChecked:
                         case ErrorCode.WRN_MemberNotNull:
                         case ErrorCode.WRN_MemberNotNullWhen:
                         case ErrorCode.WRN_MemberNotNullBadMember:
                         case ErrorCode.WRN_GeneratorFailedDuringInitialization:
                         case ErrorCode.WRN_GeneratorFailedDuringGeneration:
                         case ErrorCode.WRN_ParameterDisallowsNull:
+                        case ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern:
+                        case ErrorCode.WRN_IsPatternAlways:
+                        case ErrorCode.WRN_AnalyzerReferencesFramework:
+                        case ErrorCode.WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters:
+                        case ErrorCode.WRN_CompileTimeCheckedOverflow:
+                        case ErrorCode.WRN_MethGrpToNonDel:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
                             Assert.Equal(4, ErrorFacts.GetWarningLevel(errorCode));
+                            break;
+                        case ErrorCode.WRN_NubExprIsConstBool2:
+                        case ErrorCode.WRN_StaticInAsOrIs:
+                        case ErrorCode.WRN_PrecedenceInversion:
+                        case ErrorCode.WRN_UnassignedThisAutoProperty:
+                        case ErrorCode.WRN_UnassignedThis:
+                        case ErrorCode.WRN_ParamUnassigned:
+                        case ErrorCode.WRN_UseDefViolationProperty:
+                        case ErrorCode.WRN_UseDefViolationField:
+                        case ErrorCode.WRN_UseDefViolationThis:
+                        case ErrorCode.WRN_UseDefViolationOut:
+                        case ErrorCode.WRN_UseDefViolation:
+                        case ErrorCode.WRN_SyncAndAsyncEntryPoints:
+                        case ErrorCode.WRN_ParameterIsStaticClass:
+                        case ErrorCode.WRN_ReturnTypeIsStaticClass:
+                            // These are the warnings introduced with the warning "wave" shipped with dotnet 5 and C# 9.
+                            Assert.Equal(5, ErrorFacts.GetWarningLevel(errorCode));
+                            break;
+                        case ErrorCode.WRN_PartialMethodTypeDifference:
+                            // These are the warnings introduced with the warning "wave" shipped with dotnet 6 and C# 10.
+                            Assert.Equal(6, ErrorFacts.GetWarningLevel(errorCode));
+                            break;
+                        case ErrorCode.WRN_LowerCaseTypeName:
+                            // These are the warnings introduced with the warning "wave" shipped with dotnet 7 and C# 11.
+                            Assert.Equal(7, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         default:
                             // If a new warning is added, this test will fail
@@ -342,7 +394,7 @@ class X
         {
             foreach (ErrorCode error in Enum.GetValues(typeof(ErrorCode)))
             {
-                if ((int)error < 8600 || (int)error >= 9000)
+                if ((int)error < 8600 || (int)error >= 8912)
                 {
                     continue;
                 }
@@ -361,11 +413,36 @@ class X
                 // Nullable-unrelated warnings in the C# 8 range should be added to this array.
                 var nullableUnrelatedWarnings = new[]
                 {
+                    ErrorCode.WRN_NullCheckingOnNullableType,
+                    ErrorCode.WRN_NullCheckedHasDefaultNull,
                     ErrorCode.WRN_MissingNonNullTypesContextForAnnotation,
                     ErrorCode.WRN_MissingNonNullTypesContextForAnnotationInGeneratedCode,
                     ErrorCode.WRN_ImplicitCopyInReadOnlyMember,
                     ErrorCode.WRN_GeneratorFailedDuringInitialization,
-                    ErrorCode.WRN_GeneratorFailedDuringGeneration
+                    ErrorCode.WRN_GeneratorFailedDuringGeneration,
+                    ErrorCode.WRN_GivenExpressionAlwaysMatchesPattern,
+                    ErrorCode.WRN_IsPatternAlways,
+                    ErrorCode.WRN_ConstOutOfRangeChecked,
+                    ErrorCode.WRN_SwitchExpressionNotExhaustiveWithWhen,
+                    ErrorCode.WRN_PrecedenceInversion,
+                    ErrorCode.WRN_UnassignedThisAutoProperty,
+                    ErrorCode.WRN_UnassignedThis,
+                    ErrorCode.WRN_ParamUnassigned,
+                    ErrorCode.WRN_UseDefViolationProperty,
+                    ErrorCode.WRN_UseDefViolationField,
+                    ErrorCode.WRN_UseDefViolationThis,
+                    ErrorCode.WRN_UseDefViolationOut,
+                    ErrorCode.WRN_UseDefViolation,
+                    ErrorCode.WRN_SyncAndAsyncEntryPoints,
+                    ErrorCode.WRN_ParameterIsStaticClass,
+                    ErrorCode.WRN_ReturnTypeIsStaticClass,
+                    ErrorCode.WRN_RecordNamedDisallowed,
+                    ErrorCode.WRN_RecordEqualsWithoutGetHashCode,
+                    ErrorCode.WRN_AnalyzerReferencesFramework,
+                    ErrorCode.WRN_UnreadRecordParameter,
+                    ErrorCode.WRN_DoNotCompareFunctionPointers,
+                    ErrorCode.WRN_PartialMethodTypeDifference,
+                    ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter
                 };
 
                 Assert.Contains(error, nullableUnrelatedWarnings);
@@ -2238,6 +2315,7 @@ class Program
         }
 
         [WorkItem(543705, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543705")]
+        [WorkItem(39992, "https://github.com/dotnet/roslyn/issues/39992")]
         [Fact]
         public void GetDiagnosticsCalledTwice()
         {

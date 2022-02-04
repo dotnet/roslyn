@@ -3,10 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
@@ -20,24 +18,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Public Shared ReadOnly Instance As New DefaultOperationProvider()
 
-        Private ReadOnly _options As CachedOptions
+        Private ReadOnly _options As SyntaxFormattingOptions
 
         Private Sub New()
-            MyClass.New(New CachedOptions(Nothing))
+            MyClass.New(VisualBasicSyntaxFormattingOptions.Default)
         End Sub
 
-        Private Sub New(options As CachedOptions)
+        Private Sub New(options As SyntaxFormattingOptions)
             _options = options
         End Sub
 
-        Public Overrides Function WithOptions(options As AnalyzerConfigOptions) As AbstractFormattingRule
-            Dim cachedOptions = New CachedOptions(options)
-
-            If cachedOptions = _options Then
+        Public Overrides Function WithOptions(options As SyntaxFormattingOptions) As AbstractFormattingRule
+            If _options.SeparateImportDirectiveGroups = options.SeparateImportDirectiveGroups Then
                 Return Me
             End If
 
-            Return New DefaultOperationProvider(cachedOptions)
+            Return New DefaultOperationProvider(options)
         End Function
 
         Public Overrides Sub AddSuppressOperationsSlow(operations As List(Of SuppressOperation), node As SyntaxNode, ByRef nextAction As NextSuppressOperationAction)
@@ -54,8 +50,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         <PerformanceSensitive("https://github.com/dotnet/roslyn/issues/30819", AllowCaptures:=False, AllowImplicitBoxing:=False)>
         Public Overrides Function GetAdjustNewLinesOperationSlow(
-                previousToken As SyntaxToken,
-                currentToken As SyntaxToken,
+                ByRef previousToken As SyntaxToken,
+                ByRef currentToken As SyntaxToken,
                 ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
             If previousToken.Parent Is Nothing Then
                 Return Nothing
@@ -177,11 +173,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return Nothing
         End Function
 
-        Private Function ContainEndOfLine(previousToken As SyntaxToken, nextToken As SyntaxToken) As Boolean
+        Private Shared Function ContainEndOfLine(previousToken As SyntaxToken, nextToken As SyntaxToken) As Boolean
             Return previousToken.TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia) OrElse nextToken.LeadingTrivia.Any(SyntaxKind.EndOfLineTrivia)
         End Function
 
-        Private Function IsFirstXmlTag(currentToken As SyntaxToken) As Boolean
+        Private Shared Function IsFirstXmlTag(currentToken As SyntaxToken) As Boolean
             Dim xmlDeclaration = TryCast(currentToken.Parent, XmlDeclarationSyntax)
             If xmlDeclaration IsNot Nothing AndAlso
                xmlDeclaration.LessThanQuestionToken = currentToken AndAlso
@@ -209,7 +205,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Function
 
         ' return 1 space for every token pairs as a default operation
-        Public Overrides Function GetAdjustSpacesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustSpacesOperation) As AdjustSpacesOperation
+        Public Overrides Function GetAdjustSpacesOperationSlow(ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustSpacesOperation) As AdjustSpacesOperation
             If previousToken.Kind = SyntaxKind.ColonToken AndAlso
                TypeOf previousToken.Parent Is LabelStatementSyntax AndAlso
                currentToken.Kind <> SyntaxKind.EndOfFileToken Then
@@ -219,45 +215,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Dim space As Integer = If(currentToken.Kind = SyntaxKind.EndOfFileToken, 0, 1)
             Return FormattingOperations.CreateAdjustSpacesOperation(space, AdjustSpacesOption.DefaultSpacesIfOnSingleLine)
         End Function
-
-        Private Structure CachedOptions
-            Implements IEquatable(Of CachedOptions)
-
-            Public ReadOnly SeparateImportDirectiveGroups As Boolean
-
-            Public Sub New(options As AnalyzerConfigOptions)
-                SeparateImportDirectiveGroups = GetOptionOrDefault(options, GenerationOptions.SeparateImportDirectiveGroups)
-            End Sub
-
-            Public Shared Operator =(left As CachedOptions, right As CachedOptions) As Boolean
-                Return left.Equals(right)
-            End Operator
-
-            Public Shared Operator <>(left As CachedOptions, right As CachedOptions) As Boolean
-                Return Not left = right
-            End Operator
-
-            Private Shared Function GetOptionOrDefault(Of T)(options As AnalyzerConfigOptions, [option] As PerLanguageOption2(Of T)) As T
-                If options Is Nothing Then
-                    Return [option].DefaultValue
-                End If
-
-                Return options.GetOption([option])
-            End Function
-
-            Public Overrides Function Equals(obj As Object) As Boolean
-                Return (TypeOf obj Is CachedOptions) AndAlso Equals(DirectCast(obj, CachedOptions))
-            End Function
-
-            Public Overloads Function Equals(other As CachedOptions) As Boolean Implements IEquatable(Of CachedOptions).Equals
-                Return SeparateImportDirectiveGroups = other.SeparateImportDirectiveGroups
-            End Function
-
-            Public Overrides Function GetHashCode() As Integer
-                Dim hashCode = 0
-                hashCode = (hashCode << 1) + If(SeparateImportDirectiveGroups, 1, 0)
-                Return hashCode
-            End Function
-        End Structure
     End Class
 End Namespace

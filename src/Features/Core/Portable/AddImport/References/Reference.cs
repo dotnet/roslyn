@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -32,7 +35,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             public int CompareTo(Document document, Reference other)
             {
-                int diff = ComparerWithState.CompareTo(this, other, document, s_comparers);
+                var diff = ComparerWithState.CompareTo(this, other, document, s_comparers);
                 if (diff != 0)
                 {
                     return diff;
@@ -54,7 +57,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                         placeSystemNamespaceFirst: true);
             }
 
-            private readonly static ImmutableArray<Func<Reference, Document, IComparable>> s_comparers
+            private static readonly ImmutableArray<Func<Reference, Document, IComparable>> s_comparers
                 = ImmutableArray.Create<Func<Reference, Document, IComparable>>(
                     // If references have different weights, order by the ones with lower weight (i.e.
                     // they are better matches).
@@ -99,10 +102,10 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             public abstract Task<AddImportFixData> TryGetFixDataAsync(
-                Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken);
+                Document document, SyntaxNode node, AddImportPlacementOptions options, CancellationToken cancellationToken);
 
             protected async Task<ImmutableArray<TextChange>> GetTextChangesAsync(
-                Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+                Document document, SyntaxNode node, AddImportPlacementOptions options, CancellationToken cancellationToken)
             {
                 var originalDocument = document;
 
@@ -110,7 +113,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     node, document, cancellationToken).ConfigureAwait(false);
 
                 var newDocument = await provider.AddImportAsync(
-                    node, SearchResult.NameParts, document, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+                    node, SearchResult.NameParts, document, options, cancellationToken).ConfigureAwait(false);
 
                 var cleanedDocument = await CodeAction.CleanupDocumentAsync(
                     newDocument, cancellationToken).ConfigureAwait(false);

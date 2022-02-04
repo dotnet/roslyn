@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -123,11 +123,11 @@
   <data name="You_must_select_at_least_one_member" xml:space="preserve">
     <value>You must select at least one member.</value>
   </data>
-  <data name="Interface_name_conflicts_with_an_existing_type_name" xml:space="preserve">
-    <value>Interface name conflicts with an existing type name.</value>
+  <data name="Name_conflicts_with_an_existing_type_name" xml:space="preserve">
+    <value>Name conflicts with an existing type name.</value>
   </data>
-  <data name="Interface_name_is_not_a_valid_0_identifier" xml:space="preserve">
-    <value>Interface name is not a valid {0} identifier.</value>
+  <data name="Name_is_not_a_valid_0_identifier" xml:space="preserve">
+    <value>Name is not a valid {0} identifier.</value>
   </data>
   <data name="Illegal_characters_in_path" xml:space="preserve">
     <value>Illegal characters in path.</value>
@@ -222,9 +222,6 @@
   <data name="Base_Types" xml:space="preserve">
     <value>Base Types</value>
   </data>
-  <data name="Miscellaneous_Files" xml:space="preserve">
-    <value>Miscellaneous Files</value>
-  </data>
   <data name="Could_not_find_project_0" xml:space="preserve">
     <value>Could not find project '{0}'</value>
   </data>
@@ -290,12 +287,6 @@ Use the dropdown to view and navigate to other items in this file.</value>
     <value>Project: {0}
 
 Use the dropdown to view and switch to other projects this file may belong to.</value>
-  </data>
-  <data name="ErrorReadingRuleset" xml:space="preserve">
-    <value>ErrorReadingRuleset</value>
-  </data>
-  <data name="Error_reading_ruleset_file_0_1" xml:space="preserve">
-    <value>Error reading ruleset file {0} - {1}</value>
   </data>
   <data name="AnalyzerChangedOnDisk" xml:space="preserve">
     <value>AnalyzerChangedOnDisk</value>
@@ -852,12 +843,6 @@ Additional information: {1}</value>
   <data name="type_is_apparent_from_assignment_expression" xml:space="preserve">
     <value>type is apparent from assignment expression</value>
   </data>
-  <data name="Get_help_for_0" xml:space="preserve">
-    <value>Get help for '{0}'</value>
-  </data>
-  <data name="Get_help_for_0_from_Bing" xml:space="preserve">
-    <value>Get help for '{0}' from Bing</value>
-  </data>
   <data name="Move_down" xml:space="preserve">
     <value>Move down</value>
   </data>
@@ -869,9 +854,6 @@ Additional information: {1}</value>
   </data>
   <data name="Pick_members" xml:space="preserve">
     <value>Pick members</value>
-  </data>
-  <data name="Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio" xml:space="preserve">
-    <value>Unfortunately, a process used by Visual Studio has encountered an unrecoverable error.  We recommend saving your work, and then closing and restarting Visual Studio.</value>
   </data>
   <data name="analyzer_Prefer_auto_properties" xml:space="preserve">
     <value>Prefer auto properties</value>
@@ -979,21 +961,7 @@ Additional information: {1}</value>
     <value>Reset Visual Studio default keymapping</value>
   </data>
   <data name="Enable_navigation_to_decompiled_sources" xml:space="preserve">
-    <value>Enable navigation to decompiled sources (experimental)</value>
-  </data>
-  <data name="Decompiler_Legal_Notice_Message" xml:space="preserve">
-    <value>IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
- 
-You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:  
-(i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
-(ii) obtain permission to decompile the binary code from the owner of the software.
- 
-Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
-
-I agree to all of the foregoing:</value>
-  </data>
-  <data name="Decompiler_Legal_Notice_Title" xml:space="preserve">
-    <value>Decompiler Legal Notice</value>
+    <value>Enable navigation to decompiled sources</value>
   </data>
   <data name="Colorize_regular_expressions" xml:space="preserve">
     <value>Colorize regular expressions</value>
@@ -1006,6 +974,18 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Report_invalid_regular_expressions" xml:space="preserve">
     <value>Report invalid regular expressions</value>
+  </data>
+  <data name="Colorize_JSON_strings" xml:space="preserve">
+    <value>Colorize JSON strings</value>
+  </data>
+  <data name="Detect_and_offer_editor_features_for_likely_JSON_strings" xml:space="preserve">
+    <value>Detect and offer editor features for likely JSON strings</value>
+  </data>
+  <data name="JSON_strings" xml:space="preserve">
+    <value>JSON strings</value>
+  </data>
+  <data name="Report_invalid_JSON_strings" xml:space="preserve">
+    <value>Report invalid JSON strings</value>
   </data>
   <data name="Code_style_header_use_editor_config" xml:space="preserve">
     <value>Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. More info</value>
@@ -1302,9 +1282,6 @@ I agree to all of the foregoing:</value>
   <data name="Containing_type" xml:space="preserve">
     <value>Containing Type</value>
   </data>
-  <data name="Use_editorconfig_compatibility_mode" xml:space="preserve">
-    <value>Use .editorconfig compatibility mode (requires restart)</value>
-  </data>
   <data name="Running_low_priority_background_processes" xml:space="preserve">
     <value>Running low priority background processes</value>
   </data>
@@ -1326,9 +1303,6 @@ I agree to all of the foregoing:</value>
   <data name="Requires_System_HashCode_be_present_in_project" xml:space="preserve">
     <value>Requires 'System.HashCode' be present in project</value>
   </data>
-  <data name="A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item" xml:space="preserve">
-    <value>A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</value>
-  </data>
   <data name="Run_Code_Analysis_on_0" xml:space="preserve">
     <value>Run Code Analysis on {0}</value>
   </data>
@@ -1344,6 +1318,12 @@ I agree to all of the foregoing:</value>
   <data name="Code_analysis_completed_for_Solution" xml:space="preserve">
     <value>Code analysis completed for Solution.</value>
   </data>
+  <data name="Code_analysis_terminated_before_completion_for_0" xml:space="preserve">
+    <value>Code analysis terminated before completion for '{0}'.</value>
+  </data>
+  <data name="Code_analysis_terminated_before_completion_for_Solution" xml:space="preserve">
+    <value>Code analysis terminated before completion for Solution.</value>
+  </data>
   <data name="Background_analysis_scope_colon" xml:space="preserve">
     <value>Background analysis scope:</value>
   </data>
@@ -1355,13 +1335,6 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Entire_solution" xml:space="preserve">
     <value>Entire solution</value>
-  </data>
-  <data name="CSharp_Visual_Basic_Language_Server_Client" xml:space="preserve">
-    <value>C#/Visual Basic Language Server Client</value>
-  </data>
-  <data name="Live_Share_CSharp_Visual_Basic_Language_Server_Client" xml:space="preserve">
-    <value>Live Share C#/Visual Basic Language Server Client</value>
-    <comment>'Live Share' is a product name and does not need to be localized.</comment>
   </data>
   <data name="Edit" xml:space="preserve">
     <value>_Edit</value>
@@ -1396,13 +1369,6 @@ I agree to all of the foregoing:</value>
     <value>You must change the signature</value>
     <comment>"signature" here means the definition of a method</comment>
   </data>
-  <data name="ChangeSignature_NewParameterIndicator" xml:space="preserve">
-    <value>&lt;new&gt;</value>
-  </data>
-  <data name="ChangeSignature_NewParameterIntroduceTODOVariable" xml:space="preserve">
-    <value>TODO</value>
-    <comment>"TODO" is an indication that there is work to be done still</comment>
-  </data>
   <data name="Added_Parameter" xml:space="preserve">
     <value>Added parameter.</value>
   </data>
@@ -1412,6 +1378,29 @@ I agree to all of the foregoing:</value>
   <data name="Index" xml:space="preserve">
     <value>Index</value>
     <comment>Index of parameter in original signature</comment>
+  </data>
+  <data name="IntroduceUndefinedTodoVariables" xml:space="preserve">
+    <value>Introduce undefined TODO variables</value>
+    <comment>"TODO" is an indicator that more work should be done at the location where the TODO is inserted</comment>
+  </data>
+  <data name="Omit_only_for_optional_parameters" xml:space="preserve">
+    <value>Omit (only for optional parameters)</value>
+  </data>
+  <data name="Optional_with_default_value_colon" xml:space="preserve">
+    <value>Optional with default value:</value>
+  </data>
+  <data name="Parameter_kind" xml:space="preserve">
+    <value>Parameter kind</value>
+  </data>
+  <data name="Required" xml:space="preserve">
+    <value>Required</value>
+  </data>
+  <data name="Use_named_argument" xml:space="preserve">
+    <value>Use named argument</value>
+    <comment>"argument" is a programming term for a value passed to a function</comment>
+  </data>
+  <data name="Value_to_inject_at_call_sites" xml:space="preserve">
+    <value>Value to inject at call sites</value>
   </data>
   <data name="Value_colon" xml:space="preserve">
     <value>Value:</value>
@@ -1434,7 +1423,496 @@ I agree to all of the foregoing:</value>
   <data name="Prefer_simplified_boolean_expressions" xml:space="preserve">
     <value>Prefer simplified boolean expressions</value>
   </data>
-  <data name="Razor_CSharp_Language_Server_Client" xml:space="preserve">
-    <value>Razor C# Language Server Client</value>
+  <data name="All_sources" xml:space="preserve">
+    <value>All sources</value>
+  </data>
+  <data name="Entire_repository" xml:space="preserve">
+    <value>Entire repository</value>
+  </data>
+  <data name="Indexed_in_organization" xml:space="preserve">
+    <value>Indexed in organization</value>
+  </data>
+  <data name="Indexed_in_repo" xml:space="preserve">
+    <value>Indexed in repo</value>
+  </data>
+  <data name="Item_origin" xml:space="preserve">
+    <value>Item origin</value>
+  </data>
+  <data name="Loaded_items" xml:space="preserve">
+    <value>Loaded items</value>
+  </data>
+  <data name="Loaded_solution" xml:space="preserve">
+    <value>Loaded solution</value>
+  </data>
+  <data name="Local" xml:space="preserve">
+    <value>Local</value>
+  </data>
+  <data name="Local_metadata" xml:space="preserve">
+    <value>Local metadata</value>
+  </data>
+  <data name="Other" xml:space="preserve">
+    <value>Others</value>
+  </data>
+  <data name="Repository" xml:space="preserve">
+    <value>Repository</value>
+  </data>
+  <data name="Type_name_has_a_syntax_error" xml:space="preserve">
+    <value>Type name has a syntax error</value>
+    <comment>"Type" is the programming language concept</comment>
+  </data>
+  <data name="Type_name_is_not_recognized" xml:space="preserve">
+    <value>Type name is not recognized</value>
+    <comment>"Type" is the programming language concept</comment>
+  </data>
+  <data name="Type_name_is_recognized" xml:space="preserve">
+    <value>Type name is recognized</value>
+    <comment>"Type" is the programming language concept</comment>
+  </data>
+  <data name="Please_enter_a_type_name" xml:space="preserve">
+    <value>Please enter a type name</value>
+    <comment>"Type" is the programming language concept</comment>
+  </data>
+  <data name="Enter_a_call_site_value_or_choose_a_different_value_injection_kind" xml:space="preserve">
+    <value>Enter a call site value or choose a different value injection kind</value>
+  </data>
+  <data name="Optional_parameters_must_provide_a_default_value" xml:space="preserve">
+    <value>Optional parameters must provide a default value</value>
+  </data>
+  <data name="Parameter_information" xml:space="preserve">
+    <value>Parameter information</value>
+  </data>
+  <data name="Infer_from_context" xml:space="preserve">
+    <value>Infer from context</value>
+  </data>
+  <data name="None" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="Warning_colon_duplicate_parameter_name" xml:space="preserve">
+    <value>Warning: duplicate parameter name</value>
+  </data>
+  <data name="Warning_colon_type_does_not_bind" xml:space="preserve">
+    <value>Warning: type does not bind</value>
+  </data>
+  <data name="Display_inline_parameter_name_hints" xml:space="preserve">
+    <value>Disp_lay inline parameter name hints</value>
+  </data>
+  <data name="Current_parameter" xml:space="preserve">
+    <value>Current parameter</value>
+  </data>
+  <data name="Bitness32" xml:space="preserve">
+    <value>32-bit</value>
+  </data>
+  <data name="Bitness64" xml:space="preserve">
+    <value>64-bit</value>
+  </data>
+  <data name="Extract_Base_Class" xml:space="preserve">
+    <value>Extract Base Class</value>
+  </data>
+  <data name="This_file_is_autogenerated_by_0_and_cannot_be_edited" xml:space="preserve">
+    <value>This file is auto-generated by the generator '{0}' and cannot be edited.</value>
+  </data>
+  <data name="generated_by_0_suffix" xml:space="preserve">
+    <value>[generated by {0}]</value>
+    <comment>{0} is the name of a generator.</comment>
+  </data>
+  <data name="generated_suffix" xml:space="preserve">
+    <value>[generated]</value>
+  </data>
+  <data name="The_generator_0_that_generated_this_file_has_been_removed_from_the_project" xml:space="preserve">
+    <value>The generator '{0}' that generated this file has been removed from the project; this file is no longer being included in your project.</value>
+  </data>
+  <data name="The_generator_0_that_generated_this_file_has_stopped_generating_this_file" xml:space="preserve">
+    <value>The generator '{0}' that generated this file has stopped generating this file; this file is no longer being included in your project.</value>
+  </data>
+  <data name="Comments" xml:space="preserve">
+    <value>Comments</value>
+  </data>
+  <data name="Inline_Hints" xml:space="preserve">
+    <value>Inline Hints</value>
+  </data>
+  <data name="Show_hints_for_everything_else" xml:space="preserve">
+    <value>Show hints for everything else</value>
+  </data>
+  <data name="Show_hints_for_literals" xml:space="preserve">
+    <value>Show hints for literals</value>
+  </data>
+  <data name="Suppress_hints_when_parameter_name_matches_the_method_s_intent" xml:space="preserve">
+    <value>Suppress hints when parameter name matches the method's intent</value>
+  </data>
+  <data name="Suppress_hints_when_parameter_names_differ_only_by_suffix" xml:space="preserve">
+    <value>Suppress hints when parameter names differ only by suffix</value>
+  </data>
+  <data name="Display_inline_type_hints" xml:space="preserve">
+    <value>Display inline type hints</value>
+  </data>
+  <data name="Show_hints_for_lambda_parameter_types" xml:space="preserve">
+    <value>Show hints for lambda parameter types</value>
+  </data>
+  <data name="Show_hints_for_implicit_object_creation" xml:space="preserve">
+    <value>Show hints for implicit object creation</value>
+  </data>
+  <data name="Show_hints_for_variables_with_inferred_types" xml:space="preserve">
+    <value>Show hints for variables with inferred types</value>
+  </data>
+  <data name="Color_hints" xml:space="preserve">
+    <value>Color hints</value>
+  </data>
+  <data name="Display_all_hints_while_pressing_Alt_F1" xml:space="preserve">
+    <value>Display all hints while pressing Alt+F1</value>
+  </data>
+  <data name="Enable_pull_diagnostics_experimental_requires_restart" xml:space="preserve">
+    <value>Enable 'pull' diagnostics (experimental, requires restart)</value>
+  </data>
+  <data name="Enable_Razor_pull_diagnostics_experimental_requires_restart" xml:space="preserve">
+    <value>Enable Razor 'pull' diagnostics (experimental, requires restart)</value>
+  </data>
+  <data name="CSharp_Visual_Basic_Diagnostics_Language_Client" xml:space="preserve">
+    <value>C#/Visual Basic Diagnostics Language Client</value>
+  </data>
+  <data name="New_Type_Name_colon" xml:space="preserve">
+    <value>New Type Name:</value>
+  </data>
+  <data name="Format_document" xml:space="preserve">
+    <value>Format document</value>
+  </data>
+  <data name="New_line_preferences_experimental_colon" xml:space="preserve">
+    <value>New line preferences (experimental):</value>
+  </data>
+  <data name="Require_colon" xml:space="preserve">
+    <value>Require:</value>
+  </data>
+  <data name="Allow_multiple_blank_lines" xml:space="preserve">
+    <value>Allow multiple blank lines</value>
+  </data>
+  <data name="Allow_statement_immediately_after_block" xml:space="preserve">
+    <value>Allow statement immediately after block</value>
+  </data>
+  <data name="Symbols_without_references" xml:space="preserve">
+    <value>Symbols without references</value>
+  </data>
+  <data name="Tab_twice_to_insert_arguments" xml:space="preserve">
+    <value>Tab twice to insert arguments (experimental)</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="Remove_All" xml:space="preserve">
+    <value>Remove All</value>
+  </data>
+  <data name="Action" xml:space="preserve">
+    <value>Action</value>
+    <comment>Action to perform on an unused reference, such as remove or keep</comment>
+  </data>
+  <data name="Assemblies" xml:space="preserve">
+    <value>Assemblies</value>
+  </data>
+  <data name="Choose_which_action_you_would_like_to_perform_on_the_unused_references" xml:space="preserve">
+    <value>Choose which action you would like to perform on the unused references.</value>
+  </data>
+  <data name="Keep" xml:space="preserve">
+    <value>Keep</value>
+  </data>
+  <data name="Packages" xml:space="preserve">
+    <value>Packages</value>
+  </data>
+  <data name="Projects" xml:space="preserve">
+    <value>Projects</value>
+  </data>
+  <data name="Reference" xml:space="preserve">
+    <value>Reference</value>
+  </data>
+  <data name="Enable_all_features_in_opened_files_from_source_generators_experimental" xml:space="preserve">
+    <value>Enable all features in opened files from source generators (experimental)</value>
+  </data>
+  <data name="Remove_Unused_References" xml:space="preserve">
+    <value>Remove Unused References</value>
+  </data>
+  <data name="Analyzing_project_references" xml:space="preserve">
+    <value>Analyzing project references...</value>
+  </data>
+  <data name="Updating_project_references" xml:space="preserve">
+    <value>Updating project references...</value>
+  </data>
+  <data name="No_unused_references_were_found" xml:space="preserve">
+    <value>No unused references were found.</value>
+  </data>
+  <data name="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental" xml:space="preserve">
+    <value>Show "Remove Unused References" command in Solution Explorer (experimental)</value>
+  </data>
+  <data name="Enable_file_logging_for_diagnostics" xml:space="preserve">
+    <value>Enable file logging for diagnostics (logged in '%Temp%\Roslyn' folder)</value>
+  </data>
+  <data name="Skip_analyzers_for_implicitly_triggered_builds" xml:space="preserve">
+    <value>Skip analyzers for implicitly triggered builds</value>
+  </data>
+  <data name="This_action_cannot_be_undone_Do_you_wish_to_continue" xml:space="preserve">
+    <value>This action cannot be undone. Do you wish to continue?</value>
+  </data>
+  <data name="Show_inheritance_margin" xml:space="preserve">
+    <value>Show inheritance margin</value>
+  </data>
+  <data name="Inheritance_Margin" xml:space="preserve">
+    <value>Inheritance Margin</value>
+  </data>
+  <data name="Analyzers" xml:space="preserve">
+    <value>Analyzers</value>
+  </data>
+  <data name="Carriage_Return_Newline_rn" xml:space="preserve">
+    <value>Carriage Return + Newline (\r\n)</value>
+  </data>
+  <data name="Carriage_Return_r" xml:space="preserve">
+    <value>Carriage Return (\r)</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="Code_Style" xml:space="preserve">
+    <value>Code Style</value>
+  </data>
+  <data name="Disabled" xml:space="preserve">
+    <value>Disabled</value>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>Enabled</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="Whitespace" xml:space="preserve">
+    <value>Whitespace</value>
+  </data>
+  <data name="Id" xml:space="preserve">
+    <value>Id</value>
+  </data>
+  <data name="Newline_n" xml:space="preserve">
+    <value>Newline (\\n)</value>
+  </data>
+  <data name="Refactoring_Only" xml:space="preserve">
+    <value>Refactoring Only</value>
+  </data>
+  <data name="Suggestion" xml:space="preserve">
+    <value>Suggestion</value>
+  </data>
+  <data name="Title" xml:space="preserve">
+    <value>Title</value>
+  </data>
+  <data name="Value" xml:space="preserve">
+    <value>Value</value>
+  </data>
+  <data name="Warning" xml:space="preserve">
+    <value>Warning</value>
+  </data>
+  <data name="Search_Settings" xml:space="preserve">
+    <value>Search Settings</value>
+  </data>
+  <data name="This_rule_is_not_configurable" xml:space="preserve">
+    <value>This rule is not configurable</value>
+  </data>
+  <data name="Inline_Diagnostics_experimental" xml:space="preserve">
+    <value>Inline Diagnostics (experimental)</value>
+  </data>
+  <data name="Display_diagnostics_inline_experimental" xml:space="preserve">
+    <value>Display diagnostics inline (experimental)</value>
+  </data>
+  <data name="at_the_end_of_the_line_of_code" xml:space="preserve">
+    <value>at the end of the line of code</value>
+  </data>
+  <data name="on_the_right_edge_of_the_editor_window" xml:space="preserve">
+    <value>on the right edge of the editor window</value>
+  </data>
+  <data name="Multiple_members_are_inherited" xml:space="preserve">
+    <value>Multiple members are inherited</value>
+  </data>
+  <data name="_0_is_inherited" xml:space="preserve">
+    <value>'{0}' is inherited</value>
+  </data>
+  <data name="Navigate_to_0" xml:space="preserve">
+    <value>Navigate to '{0}'</value>
+  </data>
+  <data name="Multiple_members_are_inherited_on_line_0" xml:space="preserve">
+    <value>Multiple members are inherited on line {0}</value>
+    <comment>Line number info is needed for accessibility purpose.</comment>
+  </data>
+  <data name="Implemented_members" xml:space="preserve">
+    <value>Implemented members</value>
+  </data>
+  <data name="Implementing_members" xml:space="preserve">
+    <value>Implementing members</value>
+  </data>
+  <data name="Overriding_members" xml:space="preserve">
+    <value>Overriding members</value>
+  </data>
+  <data name="Overridden_members" xml:space="preserve">
+    <value>Overridden members</value>
+  </data>
+  <data name="Value_Tracking" xml:space="preserve">
+    <value>Value Tracking</value>
+    <comment>Title of the "Value Tracking" tool window. "Value" is the variable/symbol and "Tracking" is the action the tool is doing to follow where the value can originate from.</comment>
+  </data>
+  <data name="Calculating" xml:space="preserve">
+    <value>Calculating...</value>
+    <comment>Used in UI to represent progress in the context of loading items. </comment>
+  </data>
+  <data name="Derived_types" xml:space="preserve">
+    <value>Derived types</value>
+  </data>
+  <data name="Implemented_interfaces" xml:space="preserve">
+    <value>Implemented interfaces</value>
+  </data>
+  <data name="Implementing_types" xml:space="preserve">
+    <value>Implementing types</value>
+  </data>
+  <data name="Inherited_interfaces" xml:space="preserve">
+    <value>Inherited interfaces</value>
+  </data>
+  <data name="Invalid_type_name" xml:space="preserve">
+    <value>Invalid type name</value>
+  </data>
+  <data name="Move_static_members_to_another_type_colon" xml:space="preserve">
+    <value>Move Static Members to Another Type:</value>
+  </data>
+  <data name="Select_an_appropriate_symbol_to_start_value_tracking" xml:space="preserve">
+    <value>Select an appropriate symbol to start value tracking</value>
+  </data>
+  <data name="Namespace_declarations" xml:space="preserve">
+    <value>Namespace declarations</value>
+  </data>
+  <data name="Error_updating_suppressions_0" xml:space="preserve">
+    <value>Error updating suppressions: {0}</value>
+  </data>
+  <data name="Underline_reassigned_variables" xml:space="preserve">
+    <value>Underline reassigned variables</value>
+  </data>
+  <data name="Analyzer_Defaults" xml:space="preserve">
+    <value>Analyzer Defaults</value>
+  </data>
+  <data name="Location" xml:space="preserve">
+    <value>Location</value>
+  </data>
+  <data name="Visual_Studio_Settings" xml:space="preserve">
+    <value>Visual Studio Settings</value>
+  </data>
+  <data name="Show_hints_for_indexers" xml:space="preserve">
+    <value>Show hints for indexers</value>
+  </data>
+  <data name="Sync_Namespaces" xml:space="preserve">
+    <value>Sync Namespaces</value>
+    <comment>"Namespaces" is the programming language concept</comment>
+  </data>
+  <data name="Updating_namspaces" xml:space="preserve">
+    <value>Updating namespaces...</value>
+    <comment>"namespaces" is the programming language concept</comment>
+  </data>
+  <data name="Namespaces_have_been_updated" xml:space="preserve">
+    <value>Namespaces have been updated.</value>
+    <comment>"Namespaces" is the programming language concept</comment>
+  </data>
+  <data name="No_namespaces_needed_updating" xml:space="preserve">
+    <value>No namespaces needed updating.</value>
+    <comment>"Namespaces" is the programming language concept</comment>
+  </data>
+  <data name="Run_code_analysis_in_separate_process_requires_restart" xml:space="preserve">
+    <value>Run code analysis in separate process (requires restart)</value>
+  </data>
+  <data name="Compute_Quick_Actions_asynchronously_experimental" xml:space="preserve">
+    <value>Compute Quick Actions asynchronously (experimental, requires restart)</value>
+  </data>
+  <data name="Quick_Actions" xml:space="preserve">
+    <value>Quick Actions</value>
+  </data>
+  <data name="Combine_inheritance_margin_with_indicator_margin" xml:space="preserve">
+    <value>Combine inheritance margin with indicator margin</value>
+  </data>
+  <data name="Default_Current_Document" xml:space="preserve">
+    <value>Default (Current Document)</value>
+    <comment>This text is a menu command</comment>
+  </data>
+  <data name="Default_Entire_Solution" xml:space="preserve">
+    <value>Default (Entire Solution)</value>
+    <comment>This text is a menu command</comment>
+  </data>
+  <data name="Default_Open_Documents" xml:space="preserve">
+    <value>Default (Open Documents)</value>
+    <comment>This text is a menu command</comment>
+  </data>
+  <data name="Suppress_hints_when_argument_matches_parameter_name" xml:space="preserve">
+    <value>Suppress hints when argument matches parameter name</value>
+  </data>
+  <data name="Package_install_canceled" xml:space="preserve">
+    <value>Package install canceled</value>
+  </data>
+  <data name="Package_uninstall_canceled" xml:space="preserve">
+    <value>Package uninstall canceled</value>
+  </data>
+  <data name="Prefer_tuple_swap" xml:space="preserve">
+    <value>Prefer tuple swap</value>
+  </data>
+  <data name="Always" xml:space="preserve">
+    <value>Always</value>
+  </data>
+  <data name="For_non_interface_members" xml:space="preserve">
+    <value>For non interface members</value>
+  </data>
+  <data name="Never" xml:space="preserve">
+    <value>Never</value>
+  </data>
+  <data name="Omit_if_default" xml:space="preserve">
+    <value>Omit if default</value>
+  </data>
+  <data name="Operator_placement_when_wrapping" xml:space="preserve">
+    <value>Operator placement when wrapping</value>
+  </data>
+  <data name="Prefer_namespace_and_folder_match_structure" xml:space="preserve">
+    <value>Prefer namespace and folder match structure</value>
+  </data>
+  <data name="Prefer_simplified_interpolation" xml:space="preserve">
+    <value>Prefer simplified interpolation</value>
+  </data>
+  <data name="Require_accessibility_modifiers" xml:space="preserve">
+    <value>Require accessibility modifiers</value>
+  </data>
+  <data name="Beginning_of_line" xml:space="preserve">
+    <value>Beginning of line</value>
+  </data>
+  <data name="End_of_line" xml:space="preserve">
+    <value>End of line</value>
+  </data>
+  <data name="Paste_valid_stack_trace" xml:space="preserve">
+    <value>Paste a valid stack trace to view and navigate it's values</value>
+    <comment>"Stack Trace" is a language term and should be kept the same. </comment>
+  </data>
+  <data name="Stack_Trace_Explorer" xml:space="preserve">
+    <value>Stack Trace Explorer</value>
+    <comment>"Stack Trace" is a language term and should be kept the same. This is for viewing/exploring stack traces</comment>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Clear</value>
+    <comment>Clear content action</comment>
+  </data>
+  <data name="Close_tab" xml:space="preserve">
+    <value>Close Tab</value>
+  </data>
+  <data name="Paste" xml:space="preserve">
+    <value>Paste</value>
+  </data>
+  <data name="Stack_trace_0" xml:space="preserve">
+    <value>Stack Trace {0}</value>
+    <comment>Header for numbered stack trace view tabs</comment>
+  </data>
+  <data name="Remove_unnecessary_usings" xml:space="preserve">
+    <value>Remove unnecessary usings</value>
+  </data>
+  <data name="Sort_usings" xml:space="preserve">
+    <value>Sort usings</value>
+  </data>
+  <data name="Navigate_to_external_sources" xml:space="preserve">
+    <value>Navigate to External Sources</value>
+  </data>
+  <data name="Automatically_open_stack_trace_explorer_on_focus" xml:space="preserve">
+    <value>Automatically open Stack Trace Explorer on focus</value>
+    <comment>"Stack Trace Explorer" is a tool window that is owned by the Roslyn package</comment>
+  </data>
+  <data name="Prefer_method_group_conversion" xml:space="preserve">
+    <value>Prefer method group conversion</value>
   </data>
 </root>

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -40,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             public bool ShouldNotFormatOrCommitOnPaste(Document document)
                 => IsContainedDocument(document);
 
-            private bool IsContainedDocument(Document document)
+            private static bool IsContainedDocument(Document document)
             {
                 var visualStudioWorkspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
                 return visualStudioWorkspace?.TryGetContainedDocument(document.Id) != null;
@@ -48,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             public AbstractFormattingRule CreateRule(Document document, int position)
             {
-                if (!(document.Project.Solution.Workspace is VisualStudioWorkspaceImpl visualStudioWorkspace))
+                if (document.Project.Solution.Workspace is not VisualStudioWorkspaceImpl visualStudioWorkspace)
                 {
                     return NoOpFormattingRule.Instance;
                 }
@@ -60,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
 
                 var textContainer = document.GetTextSynchronously(CancellationToken.None).Container;
-                if (!(textContainer.TryGetTextBuffer() is IProjectionBuffer buffer))
+                if (textContainer.TryGetTextBuffer() is not IProjectionBuffer)
                 {
                     return NoOpFormattingRule.Instance;
                 }
@@ -99,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     }
                 }
 
-                FatalError.ReportWithoutCrash(
+                FatalError.ReportAndCatch(
                     new InvalidOperationException($"Can't find an intersection. Visible spans count: {spans.Count}"));
 
                 return NoOpFormattingRule.Instance;
@@ -107,7 +109,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             public IEnumerable<TextChange> FilterFormattedChanges(Document document, TextSpan span, IList<TextChange> changes)
             {
-                if (!(document.Project.Solution.Workspace is VisualStudioWorkspaceImpl visualStudioWorkspace))
+                if (document.Project.Solution.Workspace is not VisualStudioWorkspaceImpl visualStudioWorkspace)
                 {
                     return changes;
                 }

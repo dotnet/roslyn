@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -79,7 +81,7 @@ class C
                     c2.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember("Main"))
             };
 
-            c2.EmitDifference(baseline, edits, mdStream, ilStream, pdbStream, updatedMethods);
+            c2.EmitDifference(baseline, edits, s => false, mdStream, ilStream, pdbStream);
 
             var actualIL = ImmutableArray.Create(ilStream.ToArray()).GetMethodIL();
             var expectedIL = @"
@@ -150,7 +152,7 @@ class C
                     c2.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember("Main"))
             };
 
-            c2.EmitDifference(baseline, edits, mdStream, ilStream, pdbStream, updatedMethods);
+            c2.EmitDifference(baseline, edits, s => false, mdStream, ilStream, pdbStream);
 
             var actualIL = ImmutableArray.Create(ilStream.ToArray()).GetMethodIL();
 

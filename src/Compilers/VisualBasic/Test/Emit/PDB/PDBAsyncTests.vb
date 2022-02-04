@@ -428,6 +428,7 @@ End Class
                     TestOptions.DebugDll)
 
             ' Goal: We're looking for "$VB$ResumableLocal_$VB$Closure_$0" and "$VB$ResumableLocal_a$1".
+            ' Note: since the method is first, it is recording the imports (rather than using an importsforward)
             compilation.VerifyPdb("C+VB$StateMachine_1_Async_Lambda.MoveNext",
 <symbols>
     <files>
@@ -467,7 +468,9 @@ End Class
                 <entry offset="0x12c" hidden="true" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x139">
-                <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__0"/>
+                <namespace name="System" importlevel="file"/>
+                <namespace name="System.Threading.Tasks" importlevel="file"/>
+                <currentnamespace name=""/>
                 <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0x0" il_end="0x139" attributes="0"/>
                 <local name="$VB$ResumableLocal_a$1" il_index="1" il_start="0x0" il_end="0x139" attributes="0"/>
             </scope>
@@ -509,6 +512,7 @@ End Class
                     TestOptions.ReleaseDll)
 
             ' Goal: We're looking for "$VB$ResumableLocal_$VB$Closure_$0" but not "$VB$ResumableLocal_a$1".
+            ' Note: since the method is first, it is recording the imports (rather than using an importsforward)
             compilation.VerifyPdb("C+VB$StateMachine_1_Async_Lambda.MoveNext",
 <symbols>
     <files>
@@ -538,7 +542,9 @@ End Class
                 <entry offset="0x103" hidden="true" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x10f">
-                <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__0"/>
+                <namespace name="System" importlevel="file"/>
+                <namespace name="System.Threading.Tasks" importlevel="file"/>
+                <currentnamespace name=""/>
                 <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0x0" il_end="0x10f" attributes="0"/>
             </scope>
             <asyncInfo>
@@ -898,7 +904,7 @@ End Module
 ", sequencePoints:="M+VB$StateMachine_0_F.MoveNext")
         End Sub
 
-        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
+        <Fact>
         Public Sub PartialKickoffMethod()
             Dim src = "
 Public Partial Class C
@@ -934,16 +940,18 @@ End Class
             Using provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream)
                 Dim mdReader = provider.GetMetadataReader()
                 Dim writer = New StringWriter()
-                Dim visualizer = New MetadataVisualizer(mdReader, writer)
+                Dim visualizer = New MetadataVisualizer(mdReader, writer, MetadataVisualizerOptions.NoHeapReferences)
                 visualizer.WriteMethodDebugInformation()
 
                 AssertEx.AssertEqualToleratingWhitespaceDifferences("
 MethodDebugInformation (index: 0x31, size: 20): 
-==================================================
-1: nil
-2: nil
-3: nil
-4: #4
+================================================
+   IL   
+================================================
+1: nil  
+2: nil  
+3: nil  
+4:      
 {
   Kickoff Method: 0x06000002 (MethodDef)
   Locals: 0x11000002 (StandAloneSig)
@@ -956,8 +964,7 @@ MethodDebugInformation (index: 0x31, size: 20):
   IL_002D: (7, 5) - (7, 12)
   IL_0037: <hidden>
 }
-5: nil
-", writer.ToString())
+5: nil", writer.ToString())
             End Using
         End Sub
 

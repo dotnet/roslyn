@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
-
-#if !CODE_STYLE
-using static Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.AbstractCodeActionOrUserDiagnosticTest;
-#endif
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 {
@@ -38,45 +36,74 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             yield return CodeStyleOptions2.OtherBinaryParentheses;
         }
 
-        internal IOptionsCollection RequireArithmeticBinaryParenthesesForClarity
+        internal OptionsCollection RequireArithmeticBinaryParenthesesForClarity
             => GetSingleRequireOption(CodeStyleOptions2.ArithmeticBinaryParentheses);
 
-        internal IOptionsCollection RequireRelationalBinaryParenthesesForClarity
+        internal OptionsCollection RequireRelationalBinaryParenthesesForClarity
             => GetSingleRequireOption(CodeStyleOptions2.RelationalBinaryParentheses);
 
-        internal IOptionsCollection RequireOtherBinaryParenthesesForClarity
+        internal OptionsCollection RequireOtherBinaryParenthesesForClarity
             => GetSingleRequireOption(CodeStyleOptions2.OtherBinaryParentheses);
 
-        private IEnumerable<PerLanguageOption2<CodeStyleOption2<ParenthesesPreference>>> GetAllParenthesesOptions()
+        private static IEnumerable<PerLanguageOption2<CodeStyleOption2<ParenthesesPreference>>> GetAllParenthesesOptions()
             => GetAllExceptOtherParenthesesOptions().Concat(CodeStyleOptions2.OtherParentheses);
 
-        internal IOptionsCollection IgnoreAllParentheses
-            => OptionsSet(GetAllParenthesesOptions().Select(
-                o => SingleOption(o, IgnorePreference)).ToArray());
+        internal OptionsCollection IgnoreAllParentheses
+        {
+            get
+            {
+                var optionsCollection = new OptionsCollection(_language);
+                foreach (var option in GetAllParenthesesOptions())
+                {
+                    optionsCollection.Add(option, IgnorePreference);
+                }
 
-        internal IOptionsCollection RemoveAllUnnecessaryParentheses
-            => OptionsSet(GetAllParenthesesOptions().Select(
-                o => SingleOption(o, RemoveIfUnnecessaryPreference)).ToArray());
+                return optionsCollection;
+            }
+        }
 
-        internal IOptionsCollection RequireAllParenthesesForClarity
-            => OptionsSet(GetAllExceptOtherParenthesesOptions()
-                    .Select(o => SingleOption(o, RequireForPrecedenceClarityPreference))
-                    .Concat(SingleOption(CodeStyleOptions2.OtherParentheses, RemoveIfUnnecessaryPreference)).ToArray());
+        internal OptionsCollection RemoveAllUnnecessaryParentheses
+        {
+            get
+            {
+                var optionsCollection = new OptionsCollection(_language);
+                foreach (var option in GetAllParenthesesOptions())
+                {
+                    optionsCollection.Add(option, RemoveIfUnnecessaryPreference);
+                }
 
-        private IOptionsCollection GetSingleRequireOption(PerLanguageOption2<CodeStyleOption2<ParenthesesPreference>> option)
-            => OptionsSet(GetAllParenthesesOptions()
-                    .Where(o => o != option)
-                    .Select(o => SingleOption(o, RemoveIfUnnecessaryPreference))
-                    .Concat(SingleOption(option, RequireForPrecedenceClarityPreference)).ToArray());
+                return optionsCollection;
+            }
+        }
 
-        private (OptionKey2, object) SingleOption<T>(PerLanguageOption2<CodeStyleOption2<T>> option, CodeStyleOption2<T> codeStyle)
-            => (new OptionKey2(option, _language), codeStyle);
+        internal OptionsCollection RequireAllParenthesesForClarity
+        {
+            get
+            {
+                var optionsCollection = new OptionsCollection(_language);
+                foreach (var option in GetAllExceptOtherParenthesesOptions())
+                {
+                    optionsCollection.Add(option, RequireForPrecedenceClarityPreference);
+                }
 
-        internal IOptionsCollection OptionsSet(params (OptionKey2 key, object value)[] options)
-#if CODE_STYLE
-            => new OptionsCollection(_language, options);
-#else
-            => new OptionsDictionary(options);
-#endif
+                optionsCollection.Add(CodeStyleOptions2.OtherParentheses, RemoveIfUnnecessaryPreference);
+                return optionsCollection;
+            }
+        }
+
+        private OptionsCollection GetSingleRequireOption(PerLanguageOption2<CodeStyleOption2<ParenthesesPreference>> option)
+        {
+            var optionsCollection = new OptionsCollection(_language);
+            foreach (var o in GetAllParenthesesOptions())
+            {
+                if (o != option)
+                {
+                    optionsCollection.Add(o, RemoveIfUnnecessaryPreference);
+                }
+            }
+
+            optionsCollection.Add(option, RequireForPrecedenceClarityPreference);
+            return optionsCollection;
+        }
     }
 }

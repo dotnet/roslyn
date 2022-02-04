@@ -2,14 +2,17 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
 Imports System.Runtime.Serialization
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Diagnostics.VisualBasic
 Imports Microsoft.CodeAnalysis.FlowAnalysis
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
@@ -1527,11 +1530,11 @@ Block[B2] - Exit
             verifyFlowGraphs(comp, analyzer.GetControlFlowGraphs(), expectedFlowGraphs)
         End Sub
 
-        Private Shared Sub verifyFlowGraphs(compilation As Compilation, flowGraphs As ImmutableArray(Of ControlFlowGraph), expectedFlowGraphs As String())
+        Private Shared Sub verifyFlowGraphs(compilation As Compilation, flowGraphs As ImmutableArray(Of (Graph As ControlFlowGraph, AssociatedSymbol As ISymbol)), expectedFlowGraphs As String())
             For i As Integer = 0 To expectedFlowGraphs.Length - 1
                 Dim expectedFlowGraph As String = expectedFlowGraphs(i)
-                Dim actualFlowGraph As ControlFlowGraph = flowGraphs(i)
-                ControlFlowGraphVerifier.VerifyGraph(compilation, expectedFlowGraph, actualFlowGraph)
+                Dim actualFlowGraphAndSymbol As (Graph As ControlFlowGraph, AssociatedSymbol As ISymbol) = flowGraphs(i)
+                ControlFlowGraphVerifier.VerifyGraph(compilation, expectedFlowGraph, actualFlowGraphAndSymbol.Graph, actualFlowGraphAndSymbol.AssociatedSymbol)
             Next
         End Sub
 
@@ -1560,5 +1563,74 @@ End Namespace
             compilation.VerifyAnalyzerDiagnostics(analyzers, Nothing, Nothing,
                 Diagnostic("SymbolStartRuleId").WithArguments("MyApplication", "Analyzer1").WithLocation(1, 1))
         End Sub
+
+        <Theory, CombinatorialData>
+        Public Async Function TestAdditionalFileAnalyzer(registerFromInitialize As Boolean) As Task
+            Dim tree = VisualBasicSyntaxTree.ParseText(String.Empty)
+            Dim compilation = CreateCompilationWithMscorlib45({tree})
+            compilation.VerifyDiagnostics()
+
+            Dim additionalFile As AdditionalText = New TestAdditionalText("Additional File Text")
+            Dim options = New AnalyzerOptions(ImmutableArray.Create(additionalFile))
+            Dim diagnosticSpan = New TextSpan(2, 2)
+            Dim analyzer = New AdditionalFileAnalyzer(registerFromInitialize, diagnosticSpan)
+            Dim analyzers As ImmutableArray(Of DiagnosticAnalyzer) = ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer)
+
+            Dim diagnostics = Await compilation.WithAnalyzers(analyzers, options).GetAnalyzerDiagnosticsAsync(CancellationToken.None)
+            TestAdditionalFileAnalyzer_VerifyDiagnostics(diagnostics, diagnosticSpan, analyzer, additionalFile)
+
+            Dim analysisResult = Await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(additionalFile, CancellationToken.None)
+            TestAdditionalFileAnalyzer_VerifyDiagnostics(analysisResult.GetAllDiagnostics(), diagnosticSpan, analyzer, additionalFile)
+            TestAdditionalFileAnalyzer_VerifyDiagnostics(analysisResult.AdditionalFileDiagnostics(additionalFile)(analyzer), diagnosticSpan, analyzer, additionalFile)
+
+            analysisResult = Await compilation.WithAnalyzers(analyzers, options).GetAnalysisResultAsync(CancellationToken.None)
+            TestAdditionalFileAnalyzer_VerifyDiagnostics(analysisResult.GetAllDiagnostics(), diagnosticSpan, analyzer, additionalFile)
+            TestAdditionalFileAnalyzer_VerifyDiagnostics(analysisResult.AdditionalFileDiagnostics(additionalFile)(analyzer), diagnosticSpan, analyzer, additionalFile)
+        End Function
+
+        Private Shared Sub TestAdditionalFileAnalyzer_VerifyDiagnostics(diagnostics As ImmutableArray(Of Diagnostic),
+                                                                        expectedDiagnosticSpan As TextSpan,
+                                                                        Analyzer As AdditionalFileAnalyzer,
+                                                                        additionalFile As AdditionalText)
+            Dim diagnostic = Assert.Single(diagnostics)
+            Assert.Equal(Analyzer.Descriptor.Id, diagnostic.Id)
+            Assert.Equal(LocationKind.ExternalFile, diagnostic.Location.Kind)
+            Dim location = DirectCast(diagnostic.Location, ExternalFileLocation)
+            Assert.Equal(additionalFile.Path, location.FilePath)
+            Assert.Equal(expectedDiagnosticSpan, location.SourceSpan)
+        End Sub
+
+        <Fact>
+        Public Sub TestSemanticModelProvider()
+            Dim tree = VisualBasicSyntaxTree.ParseText("
+Class C
+End Class")
+            Dim compilation As Compilation = CreateCompilation({tree})
+
+            Dim semanticModelProvider = New MySemanticModelProvider()
+            compilation = compilation.WithSemanticModelProvider(semanticModelProvider)
+
+            ' Verify semantic model provider is used by Compilation.GetSemanticModel API
+            Dim model = compilation.GetSemanticModel(tree)
+            semanticModelProvider.VerifyCachedModel(tree, model)
+
+            ' Verify semantic model provider is used by VisualBasicCompilation.GetSemanticModel API
+            model = CType(compilation, VisualBasicCompilation).GetSemanticModel(tree, ignoreAccessibility:=False)
+            semanticModelProvider.VerifyCachedModel(tree, model)
+        End Sub
+
+        Private NotInheritable Class MySemanticModelProvider
+            Inherits SemanticModelProvider
+
+            Private ReadOnly _cache As New ConcurrentDictionary(Of SyntaxTree, SemanticModel)()
+
+            Public Overrides Function GetSemanticModel(tree As SyntaxTree, compilation As Compilation, Optional ignoreAccessibility As Boolean = False) As SemanticModel
+                Return _cache.GetOrAdd(tree, compilation.CreateSemanticModel(tree, ignoreAccessibility))
+            End Function
+
+            Public Sub VerifyCachedModel(tree As SyntaxTree, model As SemanticModel)
+                Assert.Same(model, _cache(tree))
+            End Sub
+        End Class
     End Class
 End Namespace

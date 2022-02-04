@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
     Partial Public Class ChangeSignatureTests
         Inherits AbstractChangeSignatureTests
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
         Public Async Function AddParameterAddsAllImports() As Task
 
             Dim markup = <Text><![CDATA[
@@ -21,7 +21,7 @@ Class C
 End Class
 ]]></Text>.NormalizedValue()
 
-            Dim permutation = {New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Dictionary<ConsoleColor, Task<AsyncOperation>>", "test", "TODO"), "System.Collections.Generic.Dictionary(Of System.ConsoleColor, System.Threading.Tasks.Task(Of System.ComponentModel.AsyncOperation))")}
+            Dim permutation = {New AddedParameterOrExistingIndex(New AddedParameter(Nothing, "Dictionary<ConsoleColor, Task<AsyncOperation>>", "test", CallSiteKind.Todo), "System.Collections.Generic.Dictionary(Of System.ConsoleColor, System.Threading.Tasks.Task(Of System.ComponentModel.AsyncOperation))")}
 
             Dim updatedCode = <Text><![CDATA[
 Imports System

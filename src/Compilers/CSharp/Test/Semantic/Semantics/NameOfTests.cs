@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System.Threading;
@@ -241,33 +241,15 @@ class Test<T>
                 // (12,20): error CS1525: Invalid expression term 'int'
                 //         s = nameof(int);
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(12, 20),
-                // (13,20): error CS1026: ) expected
+                // (13,20): error CS1525: Invalid expression term 'void'
                 //         s = nameof(void);
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "void").WithLocation(13, 20),
-                // (13,20): error CS1002: ; expected
-                //         s = nameof(void);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "void").WithLocation(13, 20),
-                // (13,20): error CS1547: Keyword 'void' cannot be used in this context
-                //         s = nameof(void);
-                Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(13, 20),
-                // (13,24): error CS1001: Identifier expected
-                //         s = nameof(void);
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(13, 24),
-                // (13,24): error CS1002: ; expected
-                //         s = nameof(void);
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(13, 24),
-                // (13,24): error CS1513: } expected
-                //         s = nameof(void);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(13, 24),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "void").WithArguments("void").WithLocation(13, 20),
                 // (17,66): error CS1031: Type expected
                 //         s = nameof(System.Collections.Generic.Dictionary<Program,>.KeyCollection);
                 Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(17, 66),
                 // (11,27): error CS0305: Using the generic type 'Action<T>' requires 1 type arguments
                 //         s = nameof(System.Action<>);
                 Diagnostic(ErrorCode.ERR_BadArity, "Action<>").WithArguments("System.Action<T>", "type", "1").WithLocation(11, 27),
-                // (13,13): error CS0103: The name 'nameof' does not exist in the current context
-                //         s = nameof(void);
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "nameof").WithArguments("nameof").WithLocation(13, 13),
                 // (16,20): error CS0103: The name 'List' does not exist in the current context
                 //         s = nameof(List<int>.Enumerator);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "List<int>").WithArguments("List").WithLocation(16, 20),
@@ -295,7 +277,7 @@ class Test<T>
                 // (28,20): error CS0103: The name 'List2' does not exist in the current context
                 //         s = nameof(List2<>.Add);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "List2<>").WithArguments("List2").WithLocation(28, 20),
-                // (31,20): error CS8149: An alias-qualified name is not an expression.
+                // (31,20): error CS8083: An alias-qualified name is not an expression.
                 //         s = nameof(global::Program); // not an expression
                 Diagnostic(ErrorCode.ERR_AliasQualifiedNameNotAnExpression, "global::Program").WithLocation(31, 20),
                 // (32,20): error CS0305: Using the generic type 'Test<T>' requires 1 type arguments
@@ -307,7 +289,7 @@ class Test<T>
                 // (33,20): error CS0841: Cannot use local variable 'b' before it is declared
                 //         s = nameof(b); // cannot use before declaration
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "b").WithArguments("b").WithLocation(33, 20),
-                // (35,20): error CS8150: Type parameters are not allowed on a method group as an argument to 'nameof'.
+                // (35,20): error CS8084: Type parameters are not allowed on a method group as an argument to 'nameof'.
                 //         s = nameof(System.Linq.Enumerable.Select<int, int>); // type parameters not allowed on method group in nameof
                 Diagnostic(ErrorCode.ERR_NameofMethodGroupWithTypeParameters, "System.Linq.Enumerable.Select<int, int>").WithLocation(35, 20),
                 // (43,13): error CS0103: The name 'nameof' does not exist in the current context
@@ -1209,7 +1191,7 @@ class Other {
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, null, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithAllowUnsafe(true));
+            var compilation = CreateCompilationWithMscorlib45(source, null, TestOptions.UnsafeDebugExe);
             CompileAndVerify(compilation, expectedOutput:
                 "MessageType x MessageType").VerifyDiagnostics();
         }
@@ -1248,7 +1230,7 @@ unsafe struct Struct1
   }
 }";
             var compilation = CreateCompilationWithMscorlib45(source, null,
-                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithAllowUnsafe(true)).VerifyDiagnostics(
+                TestOptions.UnsafeDebugDll).VerifyDiagnostics(
                 // (14,19): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
                 //     return nameof(MessageType);
                 Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "MessageType").WithLocation(14, 19),
@@ -1292,7 +1274,7 @@ class EntryPoint
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, null, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithAllowUnsafe(true));
+            var compilation = CreateCompilationWithMscorlib45(source, null, TestOptions.UnsafeDebugExe);
             CompileAndVerify(compilation, expectedOutput: "normalField fixedField fixedField").VerifyDiagnostics();
         }
 
@@ -1324,7 +1306,7 @@ class EntryPoint
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, null, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithAllowUnsafe(true));
+            var compilation = CreateCompilationWithMscorlib45(source, null, TestOptions.UnsafeDebugExe);
             CompileAndVerify(compilation, expectedOutput: "normalField fixedField").VerifyDiagnostics();
         }
 
@@ -1408,6 +1390,103 @@ public static class Extensions
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: @"passed");
+        }
+
+        [Fact]
+        public void TestDynamicWhenNotDefined()
+        {
+            var source = @"
+class Program
+{
+    static string M() => nameof(dynamic);
+}
+";
+            var option = TestOptions.ReleaseDll;
+            CreateCompilation(source, options: option).VerifyDiagnostics(
+                // (4,33): error CS0103: The name 'dynamic' does not exist in the current context
+                //     static string M() => nameof(dynamic);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "dynamic").WithArguments("dynamic").WithLocation(4, 33)
+            );
+        }
+
+        [Fact]
+        public void TestNintWhenDefined()
+        {
+            var source = @"
+class Program
+{
+    static string M(object nint) => nameof(nint);
+}
+";
+            var option = TestOptions.ReleaseDll;
+            CreateCompilation(source, options: option).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestDynamicWhenDefined()
+        {
+            var source = @"
+class Program
+{
+    static string M(object dynamic) => nameof(dynamic);
+}
+";
+            var option = TestOptions.ReleaseDll;
+            CreateCompilation(source, options: option).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestTypeArguments()
+        {
+            var source = @"
+interface I<T> { }
+class Program
+{
+    static string F1() => nameof(I<int>);
+    static string F2() => nameof(I<nint>);
+    static string F3() => nameof(I<dynamic>);
+}";
+            var option = TestOptions.ReleaseDll;
+            CreateCompilation(source, options: option).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TestNameOfTypeOf()
+        {
+            var source = @"
+class Program
+{
+    static string F1() => nameof(typeof(int));
+    static string F2() => nameof(typeof(nint));
+    static string F3() => nameof(typeof(dynamic));
+}";
+            var option = TestOptions.ReleaseDll;
+            CreateCompilation(source, options: option).VerifyDiagnostics(
+                // (4,34): error CS8081: Expression does not have a name.
+                //     static string F1() => nameof(typeof(int));
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "typeof(int)").WithLocation(4, 34),
+                // (5,34): error CS8081: Expression does not have a name.
+                //     static string F2() => nameof(typeof(nint));
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "typeof(nint)").WithLocation(5, 34),
+                // (6,34): error CS1962: The typeof operator cannot be used on the dynamic type
+                //     static string F3() => nameof(typeof(dynamic));
+                Diagnostic(ErrorCode.ERR_BadDynamicTypeof, "typeof(dynamic)").WithLocation(6, 34));
+        }
+
+        [Fact]
+        public void TestNameOfNintWhenTheyAreIdentifierNames()
+        {
+            var source = @"
+public class C 
+{
+    public string nint;
+    public void nameof(string x)
+    {
+        nameof(nint);
+    }
+}";
+            var option = TestOptions.ReleaseDll;
+            CreateCompilation(source, options: option).VerifyDiagnostics();
         }
     }
 }

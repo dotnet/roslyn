@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
+using Microsoft.CodeAnalysis.Editor.Interactive;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -38,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             public bool CanUndo(Workspace workspace)
             {
                 // only primary workspace supports global undo
-                return workspace is InteractiveWorkspace;
+                return workspace is InteractiveWindowWorkspace;
             }
 
             public IWorkspaceGlobalUndoTransaction OpenGlobalUndoTransaction(Workspace workspace, string description)
@@ -57,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 
             private ITextUndoHistory GetHistory(Workspace workspace)
             {
-                var interactiveWorkspace = (InteractiveWorkspace)workspace;
+                var interactiveWorkspace = (InteractiveWindowWorkspace)workspace;
                 var textBuffer = interactiveWorkspace.Window.TextView.TextBuffer;
 
                 Contract.ThrowIfFalse(_undoHistoryRegistry.TryGetHistory(textBuffer, out var textUndoHistory));

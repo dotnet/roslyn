@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -53,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             var compilation = CSharpCompilation.Create(
                 Path.GetFileName(pszOutputFileName),
                 trees,
-                parsedArguments.ResolveMetadataReferences(metadataResolver).Where(m => !(m is UnresolvedMetadataReference)),
+                parsedArguments.ResolveMetadataReferences(metadataResolver).Where(m => m is not UnresolvedMetadataReference),
                 parsedArguments.CompilationOptions
                     .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                     .WithSourceReferenceResolver(SourceFileResolver.Default)
@@ -65,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             return result.Success ? VSConstants.S_OK : VSConstants.S_FALSE;
         }
 
-        private CSharpCommandLineArguments ParseCommandLineArguments(string baseDirectory, string[] optionNames, object[] optionValues)
+        private static CSharpCommandLineArguments ParseCommandLineArguments(string baseDirectory, string[] optionNames, object[] optionValues)
         {
             Contract.ThrowIfFalse(optionNames.Length == optionValues.Length);
 

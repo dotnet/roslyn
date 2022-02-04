@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -22,19 +25,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
         }
 
-        public Task ReportProgressAsync(int current, int maximum) => Task.CompletedTask;
+#pragma warning disable IDE0060 // Remove unused parameter
+        public static Task ReportProgressAsync(int current, int maximum) => Task.CompletedTask;
+#pragma warning restore IDE0060 // Remove unused parameter
 
-        public Task OnCompletedAsync() => Task.CompletedTask;
-        public Task OnStartedAsync() => Task.CompletedTask;
-        public Task OnDefinitionFoundAsync(SymbolAndProjectId symbol) => Task.CompletedTask;
-        public Task OnReferenceFoundAsync(SymbolAndProjectId symbol, ReferenceLocation location) => Task.CompletedTask;
-        public Task OnFindInDocumentStartedAsync(Document document) => Task.CompletedTask;
-        public Task OnFindInDocumentCompletedAsync(Document document) => Task.CompletedTask;
+        public ValueTask OnCompletedAsync(CancellationToken cancellationToken) => default;
+        public ValueTask OnStartedAsync(CancellationToken cancellationToken) => default;
+        public ValueTask OnDefinitionFoundAsync(SymbolGroup group, CancellationToken cancellationToken) => default;
+        public ValueTask OnReferenceFoundAsync(SymbolGroup group, ISymbol symbol, ReferenceLocation location, CancellationToken cancellationToken) => default;
+        public ValueTask OnFindInDocumentStartedAsync(Document document, CancellationToken cancellationToken) => default;
+        public ValueTask OnFindInDocumentCompletedAsync(Document document, CancellationToken cancellationToken) => default;
 
         private class NoOpProgressTracker : IStreamingProgressTracker
         {
-            public Task AddItemsAsync(int count) => Task.CompletedTask;
-            public Task ItemCompletedAsync() => Task.CompletedTask;
+            public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken) => default;
+            public ValueTask ItemsCompletedAsync(int count, CancellationToken cancellationToken) => default;
         }
     }
 }

@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
-    [ExportOptionProvider, Shared]
+    [ExportSolutionOptionProvider, Shared]
     internal class SolutionCrawlerOnOffOptionsProvider : IOptionProvider
     {
         [ImportingConstructor]
@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            SolutionCrawlerOptions.BackgroundAnalysisScopeOption);
+            SolutionCrawlerOptions.BackgroundAnalysisScopeOption,
+            SolutionCrawlerOptions.SolutionBackgroundAnalysisScopeOption);
     }
 }

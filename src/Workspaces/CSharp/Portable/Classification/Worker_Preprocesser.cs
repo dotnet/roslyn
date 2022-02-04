@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -55,6 +53,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                     break;
                 case SyntaxKind.LineDirectiveTrivia:
                     ClassifyLineDirective((LineDirectiveTriviaSyntax)node);
+                    break;
+                case SyntaxKind.LineSpanDirectiveTrivia:
+                    ClassifyLineSpanDirective((LineSpanDirectiveTriviaSyntax)node);
                     break;
                 case SyntaxKind.PragmaChecksumDirectiveTrivia:
                     ClassifyPragmaChecksumDirective((PragmaChecksumDirectiveTriviaSyntax)node);
@@ -243,12 +244,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                     break;
             }
 
-            if (node.File.Kind() != SyntaxKind.None)
-            {
-                AddClassification(node.File, ClassificationTypeNames.StringLiteral);
-            }
-
+            AddOptionalClassification(node.File, ClassificationTypeNames.StringLiteral);
             ClassifyDirectiveTrivia(node);
+        }
+
+        private void ClassifyLineSpanDirective(LineSpanDirectiveTriviaSyntax node)
+        {
+            AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
+            AddClassification(node.LineKeyword, ClassificationTypeNames.PreprocessorKeyword);
+            ClassifyLineDirectivePosition(node.Start);
+            AddClassification(node.MinusToken, ClassificationTypeNames.Operator);
+            ClassifyLineDirectivePosition(node.End);
+            AddOptionalClassification(node.CharacterOffset, ClassificationTypeNames.NumericLiteral);
+            AddOptionalClassification(node.File, ClassificationTypeNames.StringLiteral);
+            ClassifyDirectiveTrivia(node);
+        }
+
+        private void AddOptionalClassification(SyntaxToken token, string classification)
+        {
+            if (token.Kind() != SyntaxKind.None)
+            {
+                AddClassification(token, classification);
+            }
+        }
+
+        private void ClassifyLineDirectivePosition(LineDirectivePositionSyntax node)
+        {
+            AddClassification(node.OpenParenToken, ClassificationTypeNames.Punctuation);
+            AddClassification(node.Line, ClassificationTypeNames.NumericLiteral);
+            AddClassification(node.CommaToken, ClassificationTypeNames.Punctuation);
+            AddClassification(node.Character, ClassificationTypeNames.NumericLiteral);
+            AddClassification(node.CloseParenToken, ClassificationTypeNames.Punctuation);
         }
 
         private void ClassifyPragmaChecksumDirective(PragmaChecksumDirectiveTriviaSyntax node)

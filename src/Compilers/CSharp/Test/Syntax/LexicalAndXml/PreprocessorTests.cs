@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -2265,7 +2267,7 @@ class A { }
         [Trait("Feature", "Directives")]
         public void TestDefineInIfExclusionAfterFirstToken()
         {
-            // bad defines after first token in exlusion zone should not be errors
+            // bad defines after first token in exclusion zone should not be errors
             var text = @"
 class A { }
 #if false
@@ -2545,7 +2547,7 @@ class A { }
         [Trait("Feature", "Directives")]
         public void TestUndefInIfExclusionAfterFirstToken()
         {
-            // bad defines after first token in exlusion zone should not be errors
+            // bad defines after first token in exclusion zone should not be errors
             var text = @"
 class A { }
 #if false
@@ -3032,11 +3034,17 @@ class A { }
             Assert.Equal(expectedErrorStringFileName, actualErrorStringFileName);
         }
 
-        [Fact]
-        public void TestErrorWithVersion()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp4, "4")]
+        [InlineData(LanguageVersion.CSharp9, "9.0")]
+        [InlineData(LanguageVersion.Latest, "latest (10.0)")]
+        [InlineData(LanguageVersion.LatestMajor, "latestmajor (10.0)")]
+        [InlineData(LanguageVersion.Default, "default (10.0)")]
+        [InlineData(LanguageVersion.Preview, "preview")]
+        public void TestErrorWithVersion(LanguageVersion version, string expectedLanguageVersion)
         {
             var text = "#error version";
-            var node = Parse(text, SourceCodeKind.Regular);
+            var node = Parse(text, new CSharpParseOptions(version));
             TestRoundTripping(node, text, disallowErrors: false);
             VerifyDirectivesSpecial(node, new DirectiveInfo
             {
@@ -3049,9 +3057,9 @@ class A { }
                 // (1,8): error CS1029: #error: 'version'
                 // #error version
                 Diagnostic(ErrorCode.ERR_ErrorDirective, "version").WithArguments("version").WithLocation(1, 8),
-                // (1,8): error CS8304: Compiler version: '42.42.42.42424 (<developer build>)'. Language version: 4.
+                // (1,8): error CS8304: Compiler version: '42.42.42.42424 (<developer build>)'. Language version: <expectedLanguageVersion>.
                 // #error version
-                Diagnostic(ErrorCode.ERR_CompilerAndLanguageVersion, "version").WithArguments(GetExpectedVersion(), "4").WithLocation(1, 8)
+                Diagnostic(ErrorCode.ERR_CompilerAndLanguageVersion, "version").WithArguments(GetExpectedVersion(), expectedLanguageVersion).WithLocation(1, 8)
                 );
         }
 

@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -17,7 +19,9 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         private readonly List<CompletionItem> _items;
 
-        internal IReadOnlyList<CompletionItem> Items => _items;
+        private CompletionItem? _suggestionModeItem;
+        private OptionSet? _lazyOptionSet;
+        private bool _isExclusive;
 
         internal CompletionProvider Provider { get; }
 
@@ -43,8 +47,8 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// The span of the document the completion list corresponds to.  It will be set initially to
         /// the result of <see cref="CompletionService.GetDefaultCompletionListSpan"/>, but it can
-        /// be overwritten during <see cref="CompletionService.GetCompletionsAsync"/>.  The purpose
-        /// of the span is to:
+        /// be overwritten during <see cref="CompletionService.GetCompletionsAsync(Document, int, CompletionOptions, CompletionTrigger, ImmutableHashSet{string}, CancellationToken)"/>.
+        /// The purpose of the span is to:
         ///     1. Signify where the completions should be presented.
         ///     2. Designate any existing text in the document that should be used for filtering.
         ///     3. Specify, by default, what portion of the text should be replaced when a completion 
@@ -60,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// The options that completion was started with.
         /// </summary>
-        public OptionSet Options { get; }
+        internal CompletionOptions CompletionOptions { get; }
 
         /// <summary>
         /// The cancellation token to use for this operation.
@@ -69,16 +73,23 @@ namespace Microsoft.CodeAnalysis.Completion
 
         /// <summary>
         /// Set to true if the items added here should be the only items presented to the user.
+        /// Expand items should never be exclusive.
         /// </summary>
-        public bool IsExclusive { get; set; }
+        public bool IsExclusive
+        {
+            get
+            {
+                return _isExclusive && !Provider.IsExpandItemProvider;
+            }
 
-        /// <summary>
-        /// Set to true if the corresponding provider can provide extended items with current context,
-        /// regardless of whether those items are actually added. i.e. it might be disabled by default,
-        /// but we still want to show the expander so user can explicitly request them to be added to 
-        /// completion list if we are in the appropriate context.
-        /// </summary>
-        internal bool ExpandItemsAvailable { get; set; }
+            set
+            {
+                if (value)
+                    Debug.Assert(!Provider.IsExpandItemProvider);
+
+                _isExclusive = value;
+            }
+        }
 
         /// <summary>
         /// Creates a <see cref="CompletionContext"/> instance.
@@ -91,16 +102,47 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionTrigger trigger,
             OptionSet options,
             CancellationToken cancellationToken)
+            : this(provider ?? throw new ArgumentNullException(nameof(provider)),
+                   document ?? throw new ArgumentNullException(nameof(document)),
+                   position,
+                   defaultSpan,
+                   trigger,
+                   // Publicly available options do not affect this API.
+                   CompletionOptions.Default,
+                   cancellationToken)
         {
-            Provider = provider ?? throw new ArgumentNullException(nameof(provider));
-            Document = document ?? throw new ArgumentNullException(nameof(document));
+            _lazyOptionSet = options ?? throw new ArgumentNullException(nameof(options));
+        }
+
+        /// <summary>
+        /// Creates a <see cref="CompletionContext"/> instance.
+        /// </summary>
+        internal CompletionContext(
+            CompletionProvider provider,
+            Document document,
+            int position,
+            TextSpan defaultSpan,
+            CompletionTrigger trigger,
+            in CompletionOptions options,
+            CancellationToken cancellationToken)
+        {
+            Provider = provider;
+            Document = document;
             Position = position;
             CompletionListSpan = defaultSpan;
             Trigger = trigger;
-            Options = options ?? throw new ArgumentException(nameof(options));
+            CompletionOptions = options;
             CancellationToken = cancellationToken;
             _items = new List<CompletionItem>();
         }
+
+        /// <summary>
+        /// The options that completion was started with.
+        /// </summary>
+        public OptionSet Options
+            => _lazyOptionSet ??= OptionValueSet.Empty;
+
+        internal IReadOnlyList<CompletionItem> Items => _items;
 
         public void AddItem(CompletionItem item)
         {
@@ -126,8 +168,6 @@ namespace Microsoft.CodeAnalysis.Completion
             }
         }
 
-        private CompletionItem _suggestionModeItem;
-
         /// <summary>
         /// An optional <see cref="CompletionItem"/> that appears selected in the list presented to the user during suggestion mode.
         /// 
@@ -138,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// 
         /// No text is ever inserted when this item is completed, leaving the text the user typed instead.
         /// </summary>
-        public CompletionItem SuggestionModeItem
+        public CompletionItem? SuggestionModeItem
         {
             get
             {
@@ -147,12 +187,12 @@ namespace Microsoft.CodeAnalysis.Completion
 
             set
             {
-                _suggestionModeItem = value;
-
-                if (_suggestionModeItem != null)
+                if (value != null)
                 {
-                    _suggestionModeItem = FixItem(_suggestionModeItem);
+                    value = FixItem(value);
                 }
+
+                _suggestionModeItem = value;
             }
         }
 

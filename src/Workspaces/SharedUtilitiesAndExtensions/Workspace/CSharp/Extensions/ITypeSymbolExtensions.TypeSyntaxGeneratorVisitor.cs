@@ -4,12 +4,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -19,8 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             private readonly bool _nameOnly;
 
-            private static readonly TypeSyntaxGeneratorVisitor NameOnlyInstance = new TypeSyntaxGeneratorVisitor(nameOnly: true);
-            private static readonly TypeSyntaxGeneratorVisitor NotNameOnlyInstance = new TypeSyntaxGeneratorVisitor(nameOnly: false);
+            private static readonly TypeSyntaxGeneratorVisitor NameOnlyInstance = new(nameOnly: true);
+            private static readonly TypeSyntaxGeneratorVisitor NotNameOnlyInstance = new(nameOnly: false);
 
             private TypeSyntaxGeneratorVisitor(bool nameOnly)
                 => _nameOnly = nameOnly;
@@ -31,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             public override TypeSyntax DefaultVisit(ISymbol node)
                 => throw new NotImplementedException();
 
-            private TTypeSyntax AddInformationTo<TTypeSyntax>(TTypeSyntax syntax, ISymbol symbol)
+            private static TTypeSyntax AddInformationTo<TTypeSyntax>(TTypeSyntax syntax, ISymbol symbol)
                 where TTypeSyntax : TypeSyntax
             {
                 syntax = syntax.WithPrependedLeadingTrivia(SyntaxFactory.ElasticMarker).WithAppendedTrailingTrivia(SyntaxFactory.ElasticMarker);
@@ -82,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
 
                 var elementTypeSyntax = underlyingType.GenerateTypeSyntax();
-                var ranks = new List<ArrayRankSpecifierSyntax>();
+                using var _ = ArrayBuilder<ArrayRankSpecifierSyntax>.GetInstance(out var ranks);
 
                 var arrayType = symbol;
                 while (arrayType != null && !arrayType.Equals(underlyingType))
@@ -104,9 +108,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             public override TypeSyntax VisitDynamicType(IDynamicTypeSymbol symbol)
+                => AddInformationTo(SyntaxFactory.IdentifierName("dynamic"), symbol);
+
+            public static bool TryCreateNativeIntegerType(INamedTypeSymbol symbol, [NotNullWhen(true)] out TypeSyntax? syntax)
             {
+                if (symbol.IsNativeIntegerType)
+                {
+                    syntax = SyntaxFactory.IdentifierName(symbol.SpecialType == SpecialType.System_IntPtr ? "nint" : "nuint");
+                    return true;
+                }
+
+                syntax = null;
+                return false;
+            }
+
+            public override TypeSyntax VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
+            {
+                FunctionPointerCallingConventionSyntax? callingConventionSyntax = null;
+                // For varargs there is no C# syntax. You get a use-site diagnostic if you attempt to use it, and just
+                // making a default-convention symbol is likely good enough. This is only observable through metadata
+                // that always be uncompilable in C# anyway.
+                if (symbol.Signature.CallingConvention is not System.Reflection.Metadata.SignatureCallingConvention.Default
+                    and not System.Reflection.Metadata.SignatureCallingConvention.VarArgs)
+                {
+                    var conventionsList = symbol.Signature.CallingConvention switch
+                    {
+                        System.Reflection.Metadata.SignatureCallingConvention.CDecl => new[] { GetConventionForString("Cdecl") },
+                        System.Reflection.Metadata.SignatureCallingConvention.StdCall => new[] { GetConventionForString("Stdcall") },
+                        System.Reflection.Metadata.SignatureCallingConvention.ThisCall => new[] { GetConventionForString("Thiscall") },
+                        System.Reflection.Metadata.SignatureCallingConvention.FastCall => new[] { GetConventionForString("Fastcall") },
+                        System.Reflection.Metadata.SignatureCallingConvention.Unmanaged =>
+                            // All types that come from CallingConventionTypes start with "CallConv". We don't want the prefix for the actual
+                            // syntax, so strip it off
+                            symbol.Signature.UnmanagedCallingConventionTypes.IsEmpty
+                                ? null : symbol.Signature.UnmanagedCallingConventionTypes.Select(type => GetConventionForString(type.Name["CallConv".Length..])),
+
+                        _ => throw ExceptionUtilities.UnexpectedValue(symbol.Signature.CallingConvention),
+                    };
+
+                    callingConventionSyntax = SyntaxFactory.FunctionPointerCallingConvention(
+                        SyntaxFactory.Token(SyntaxKind.UnmanagedKeyword),
+                        conventionsList is object
+                            ? SyntaxFactory.FunctionPointerUnmanagedCallingConventionList(SyntaxFactory.SeparatedList(conventionsList))
+                            : null);
+
+                    static FunctionPointerUnmanagedCallingConventionSyntax GetConventionForString(string identifier)
+                        => SyntaxFactory.FunctionPointerUnmanagedCallingConvention(SyntaxFactory.Identifier(identifier));
+                }
+
+                var parameters = symbol.Signature.Parameters.Select(p => (p.Type, RefKindModifiers: CSharpSyntaxGeneratorInternal.GetParameterModifiers(p.RefKind)))
+                    .Concat(SpecializedCollections.SingletonEnumerable((
+                        Type: symbol.Signature.ReturnType,
+                        RefKindModifiers: CSharpSyntaxGeneratorInternal.GetParameterModifiers(symbol.Signature.RefKind, forFunctionPointerReturnParameter: true))))
+                    .SelectAsArray(t => SyntaxFactory.FunctionPointerParameter(t.Type.GenerateTypeSyntax()).WithModifiers(t.RefKindModifiers));
+
                 return AddInformationTo(
-                    SyntaxFactory.IdentifierName("dynamic"), symbol);
+                    SyntaxFactory.FunctionPointerType(callingConventionSyntax, SyntaxFactory.FunctionPointerParameterList(SyntaxFactory.SeparatedList(parameters))), symbol);
             }
 
             public TypeSyntax CreateSimpleTypeSyntax(INamedTypeSymbol symbol)
@@ -115,9 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 {
                     var syntax = TryCreateSpecializedNamedTypeSyntax(symbol);
                     if (syntax != null)
-                    {
                         return syntax;
-                    }
                 }
 
                 if (symbol.IsTupleType && symbol.TupleUnderlyingType != null && !symbol.Equals(symbol.TupleUnderlyingType))
@@ -161,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             private static IdentifierNameSyntax CreateGlobalIdentifier()
                 => SyntaxFactory.IdentifierName(SyntaxFactory.Token(SyntaxKind.GlobalKeyword));
 
-            private TypeSyntax TryCreateSpecializedNamedTypeSyntax(INamedTypeSymbol symbol)
+            private static TypeSyntax? TryCreateSpecializedNamedTypeSyntax(INamedTypeSymbol symbol)
             {
                 if (symbol.SpecialType == SpecialType.System_Void)
                 {
@@ -172,14 +227,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 {
                     return CreateTupleTypeSyntax(symbol);
                 }
-
-#if !CODE_STYLE // TODO: Remove the #if once IsNativeIntegerType is available.
-                // https://github.com/dotnet/roslyn/issues/41462 tracks adding this support
-                if (symbol.IsNativeIntegerType)
-                {
-                    return SyntaxFactory.IdentifierName(symbol.SpecialType == SpecialType.System_IntPtr ? "nint" : "nuint");
-                }
-#endif
 
                 if (symbol.IsNullable())
                 {
@@ -195,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return null;
             }
 
-            private TupleTypeSyntax CreateTupleTypeSyntax(INamedTypeSymbol symbol)
+            private static TupleTypeSyntax CreateTupleTypeSyntax(INamedTypeSymbol symbol)
             {
                 var list = new SeparatedSyntaxList<TupleElementSyntax>();
 
@@ -210,11 +257,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             public override TypeSyntax VisitNamedType(INamedTypeSymbol symbol)
             {
-                var typeSyntax = CreateSimpleTypeSyntax(symbol);
-                if (!(typeSyntax is SimpleNameSyntax))
-                {
+                if (TryCreateNativeIntegerType(symbol, out var typeSyntax))
                     return typeSyntax;
-                }
+
+                typeSyntax = CreateSimpleTypeSyntax(symbol);
+                if (typeSyntax is not SimpleNameSyntax)
+                    return typeSyntax;
 
                 var simpleNameSyntax = (SimpleNameSyntax)typeSyntax;
                 if (symbol.ContainingType != null)
@@ -245,15 +293,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     }
                     else
                     {
-                        var container = symbol.ContainingNamespace.Accept(this);
+                        var container = symbol.ContainingNamespace.Accept(this)!;
                         typeSyntax = AddInformationTo(SyntaxFactory.QualifiedName(
                             (NameSyntax)container,
                             simpleNameSyntax), symbol);
                     }
                 }
 
-                if (symbol.NullableAnnotation == NullableAnnotation.Annotated)
+                if (symbol is { IsValueType: false, NullableAnnotation: NullableAnnotation.Annotated })
                 {
+                    // value type with nullable annotation may be composed from unconstrained nullable generic
+                    // doesn't mean nullable value type in this case
                     typeSyntax = AddInformationTo(SyntaxFactory.NullableType(typeSyntax), symbol);
                 }
 
@@ -274,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
                 else
                 {
-                    var container = symbol.ContainingNamespace.Accept(this);
+                    var container = symbol.ContainingNamespace.Accept(this)!;
                     return AddInformationTo(SyntaxFactory.QualifiedName(
                         (NameSyntax)container,
                         syntax), symbol);
@@ -286,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             /// will then be trimmed off if possible by calls to 
             /// <see cref="Simplifier.ReduceAsync(Document, OptionSet, CancellationToken)"/>
             /// </summary>
-            private TypeSyntax AddGlobalAlias(INamespaceOrTypeSymbol symbol, SimpleNameSyntax syntax)
+            private static TypeSyntax AddGlobalAlias(INamespaceOrTypeSymbol symbol, SimpleNameSyntax syntax)
             {
                 return AddInformationTo(
                     SyntaxFactory.AliasQualifiedName(
@@ -304,7 +354,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             public override TypeSyntax VisitTypeParameter(ITypeParameterSymbol symbol)
-                => AddInformationTo(symbol.Name.ToIdentifierName(), symbol);
+            {
+                TypeSyntax typeSyntax = AddInformationTo(symbol.Name.ToIdentifierName(), symbol);
+                if (symbol is { IsValueType: false, NullableAnnotation: NullableAnnotation.Annotated })
+                {
+                    // value type with nullable annotation may be composed from unconstrained nullable generic
+                    // doesn't mean nullable value type in this case
+                    typeSyntax = AddInformationTo(SyntaxFactory.NullableType(typeSyntax), symbol);
+                }
+
+                return typeSyntax;
+            }
         }
     }
 }

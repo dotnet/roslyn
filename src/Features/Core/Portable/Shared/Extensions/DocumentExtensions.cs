@@ -5,14 +5,17 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Naming;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
@@ -20,15 +23,24 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class DocumentExtensions
     {
-        public static bool ShouldHideAdvancedMembers(this Document document)
+        public static async Task<Document> ReplaceNodeAsync<TNode>(this Document document, TNode oldNode, TNode newNode, CancellationToken cancellationToken)
+            where TNode : SyntaxNode
         {
-            // Since we don't actually have a way to configure this per-document, we can fetch from the core workspace
-            return document.Project.Solution.Workspace.Options.GetOption(CompletionOptions.HideAdvancedMembers, document.Project.Language);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            return document.ReplaceNode(root, oldNode, newNode);
         }
 
-        public static async Task<Document> ReplaceNodeAsync<TNode>(this Document document, TNode oldNode, TNode newNode, CancellationToken cancellationToken) where TNode : SyntaxNode
+        public static Document ReplaceNodeSynchronously<TNode>(this Document document, TNode oldNode, TNode newNode, CancellationToken cancellationToken)
+            where TNode : SyntaxNode
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
+            return document.ReplaceNode(root, oldNode, newNode);
+        }
+
+        public static Document ReplaceNode<TNode>(this Document document, SyntaxNode root, TNode oldNode, TNode newNode)
+            where TNode : SyntaxNode
+        {
+            Debug.Assert(document.GetRequiredSyntaxRootSynchronously(CancellationToken.None) == root);
             var newRoot = root.ReplaceNode(oldNode, newNode);
             return document.WithSyntaxRoot(newRoot);
         }
@@ -38,36 +50,28 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Func<SyntaxNode, SyntaxNode, SyntaxNode> computeReplacementNode,
             CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = root.ReplaceNodes(nodes, computeReplacementNode);
             return document.WithSyntaxRoot(newRoot);
         }
 
-        public static async Task<IEnumerable<T>> GetUnionItemsFromDocumentAndLinkedDocumentsAsync<T>(
+        public static async Task<ImmutableArray<T>> GetUnionItemsFromDocumentAndLinkedDocumentsAsync<T>(
             this Document document,
             IEqualityComparer<T> comparer,
-            Func<Document, CancellationToken, Task<IEnumerable<T>>> getItemsWorker,
-            CancellationToken cancellationToken)
+            Func<Document, Task<ImmutableArray<T>>> getItemsWorker)
         {
-            var linkedDocumentIds = document.GetLinkedDocumentIds();
-            var itemsForCurrentContext = await getItemsWorker(document, cancellationToken).ConfigureAwait(false) ?? SpecializedCollections.EmptyEnumerable<T>();
-            if (!linkedDocumentIds.Any())
+            var totalItems = new HashSet<T>(comparer);
+
+            var values = await getItemsWorker(document).ConfigureAwait(false);
+            totalItems.AddRange(values.NullToEmpty());
+
+            foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
             {
-                return itemsForCurrentContext;
+                values = await getItemsWorker(document.Project.Solution.GetRequiredDocument(linkedDocumentId)).ConfigureAwait(false);
+                totalItems.AddRange(values.NullToEmpty());
             }
 
-            var totalItems = itemsForCurrentContext.ToSet(comparer);
-            foreach (var linkedDocumentId in linkedDocumentIds)
-            {
-                var linkedDocument = document.Project.Solution.GetDocument(linkedDocumentId);
-                var items = await getItemsWorker(linkedDocument, cancellationToken).ConfigureAwait(false);
-                if (items != null)
-                {
-                    totalItems.AddRange(items);
-                }
-            }
-
-            return totalItems;
+            return totalItems.ToImmutableArray();
         }
 
         public static async Task<bool> IsValidContextForDocumentOrLinkedDocumentsAsync(
@@ -83,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var solution = document.Project.Solution;
             foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
             {
-                var linkedDocument = solution.GetDocument(linkedDocumentId);
+                var linkedDocument = solution.GetRequiredDocument(linkedDocumentId);
                 if (await contextChecker(linkedDocument, cancellationToken).ConfigureAwait(false))
                 {
                     return true;
@@ -151,6 +155,22 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             throw ExceptionUtilities.Unreachable;
+        }
+
+        public static ImmutableArray<AbstractFormattingRule> GetFormattingRules(this Document document, TextSpan span, IEnumerable<AbstractFormattingRule>? additionalRules)
+        {
+            var workspace = document.Project.Solution.Workspace;
+            var formattingRuleFactory = workspace.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
+            // Not sure why this is being done... there aren't any docs on CreateRule either.
+            var position = (span.Start + span.End) / 2;
+
+            var rules = ImmutableArray.Create(formattingRuleFactory.CreateRule(document, position));
+            if (additionalRules != null)
+            {
+                rules = rules.AddRange(additionalRules);
+            }
+
+            return rules.AddRange(Formatter.GetDefaultFormattingRules(document));
         }
     }
 }

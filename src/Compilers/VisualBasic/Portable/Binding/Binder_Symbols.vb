@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' type arguments thereof) can be placed here also. </param>
         ''' <returns>The best type that can be found, or and ErrorTypeSymbol if no reasonable type can be found.</returns>
         Public Function BindTypeSyntax(typeSyntax As TypeSyntax,
-                                       diagBag As DiagnosticBag,
+                                       diagBag As BindingDiagnosticBag,
                                        Optional suppressUseSiteError As Boolean = False,
                                        Optional inGetTypeContext As Boolean = False,
                                        Optional resolvingBaseType As Boolean = False) As TypeSymbol
@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function BindTypeOrAliasSyntax(typeSyntax As TypeSyntax,
-                               diagBag As DiagnosticBag,
+                               diagBag As BindingDiagnosticBag,
                                Optional suppressUseSiteError As Boolean = False) As Symbol
 
             Dim sym As Symbol = TypeBinder.BindTypeOrAliasSyntax(typeSyntax, Me, diagBag, suppressUseSiteError,
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return sym
         End Function
 
-        Private Shared Sub ReportUseOfModuleOrVoidType(typeSyntax As TypeSyntax, type As TypeSymbol, diagBag As DiagnosticBag)
+        Private Shared Sub ReportUseOfModuleOrVoidType(typeSyntax As TypeSyntax, type As TypeSymbol, diagBag As BindingDiagnosticBag)
             If type.SpecialType = SpecialType.System_Void Then
                 Dim diagInfo = New BadSymbolDiagnostic(type, ERRID.ERR_BadUseOfVoid)
                 ReportDiagnostic(diagBag, typeSyntax, diagInfo)
@@ -76,13 +76,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="typeSyntax">The syntax to bind.</param>
         ''' <returns>The best type or namespace that can be found, or and ErrorTypeSymbol if no reasonable type can be found.</returns>
         Public Function BindNamespaceOrTypeSyntax(typeSyntax As TypeSyntax,
-                                              diagBag As DiagnosticBag,
+                                              diagBag As BindingDiagnosticBag,
                                               Optional suppressUseSiteError As Boolean = False) As NamespaceOrTypeSymbol
             Return TypeBinder.BindNamespaceOrTypeSyntax(typeSyntax, Me, diagBag, suppressUseSiteError)
         End Function
 
         Public Function BindNamespaceOrTypeOrAliasSyntax(typeSyntax As TypeSyntax,
-                                      diagBag As DiagnosticBag,
+                                      diagBag As BindingDiagnosticBag,
                                       Optional suppressUseSiteError As Boolean = False) As Symbol
             Return TypeBinder.BindNamespaceOrTypeOrAliasSyntax(typeSyntax, Me, diagBag, suppressUseSiteError)
         End Function
@@ -102,7 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                        typeArguments As ImmutableArray(Of TypeSymbol),
                                                        syntaxWhole As VisualBasicSyntaxNode,
                                                        syntaxArguments As SeparatedSyntaxList(Of TypeSyntax),
-                                                       diagnostics As DiagnosticBag) As NamedTypeSymbol
+                                                       diagnostics As BindingDiagnosticBag) As NamedTypeSymbol
 
             Debug.Assert(genericType IsNot Nothing)
             Debug.Assert(Not typeArguments.IsDefault)
@@ -175,7 +175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Interface IA(Of T As C) : End Interface
             ' Interface IB(Of T As C) : Inherits IA(Of T) : End Interface
             If checkConstraints AndAlso ShouldCheckConstraints Then
-                constructedType.CheckConstraintsForNonTuple(syntaxArguments, diagnostics)
+                constructedType.CheckConstraintsForNonTuple(syntaxArguments, diagnostics, template:=GetNewCompoundUseSiteInfo(diagnostics))
             End If
 
             constructedType = DirectCast(TupleTypeSymbol.TransformToTupleIfCompatible(constructedType), NamedTypeSymbol)
@@ -183,18 +183,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return constructedType
         End Function
 
-        Friend Shared Function ReportUseSiteError(diagBag As DiagnosticBag, syntax As SyntaxNodeOrToken, symbol As Symbol) As Boolean
-            Dim useSiteErrorInfo As DiagnosticInfo = symbol.GetUseSiteErrorInfo()
-
-            If useSiteErrorInfo IsNot Nothing Then
-                ReportDiagnostic(diagBag, syntax, useSiteErrorInfo)
-                Return True
-            End If
-
-            Return False
+        Friend Shared Function ReportUseSite(diagBag As BindingDiagnosticBag, syntax As SyntaxNodeOrToken, symbol As Symbol) As Boolean
+            Dim useSiteInfo As UseSiteInfo(Of AssemblySymbol) = symbol.GetUseSiteInfo()
+            Return ReportUseSite(diagBag, syntax, useSiteInfo)
         End Function
 
-        Friend Function GetAccessibleConstructors(type As NamedTypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of MethodSymbol)
+        Friend Function GetAccessibleConstructors(type As NamedTypeSymbol, <[In], Out> ByRef useSiteInfo As CompoundUseSiteInfo(Of AssemblySymbol)) As ImmutableArray(Of MethodSymbol)
             Dim ctors = type.InstanceConstructors
             If ctors.IsEmpty Then
                 Return ctors
@@ -202,7 +196,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim builder = ArrayBuilder(Of MethodSymbol).GetInstance()
             For Each constructor In ctors
-                If IsAccessible(constructor, useSiteDiagnostics) Then
+                If IsAccessible(constructor, useSiteInfo) Then
                     builder.Add(constructor)
                 End If
             Next
@@ -229,7 +223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' <returns>The best type that can be found, or and ErrorTypeSymbol if no reasonable type can be found.</returns>
             Public Shared Function BindTypeSyntax(typeSyntax As TypeSyntax,
                                                   binder As Binder,
-                                                  diagBag As DiagnosticBag,
+                                                  diagBag As BindingDiagnosticBag,
                                                   suppressUseSiteError As Boolean,
                                                   resolvingBaseType As Boolean) As TypeSymbol
                 Dim symbol = BindTypeOrAliasSyntax(typeSyntax, binder, diagBag, suppressUseSiteError, False, resolvingBaseType:=resolvingBaseType)
@@ -244,7 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Friend Shared Function BindTypeOrAliasSyntax(typeSyntax As TypeSyntax,
                                        binder As Binder,
-                                       diagBag As DiagnosticBag,
+                                       diagBag As BindingDiagnosticBag,
                                        suppressUseSiteError As Boolean,
                                        inGetTypeContext As Boolean,
                                        resolvingBaseType As Boolean) As Symbol
@@ -265,7 +259,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' Don't report more errors if one is already reported
                         diagInfo = NotFound(typeSyntax, diagName, binder, If(reportedAnError, Nothing, diagBag))
 
-                        Return binder.GetErrorSymbol(diagName, diagInfo)
+                        Return Binder.GetErrorSymbol(diagName, diagInfo)
                     Else
                         If lookupResult.HasDiagnostic Then
                             Dim diagName = GetBaseNamesForDiagnostic(typeSyntax)
@@ -295,7 +289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Binder.ReportDiagnostic(diagBag, typeSyntax, diagInfo)
                             End If
 
-                            Return binder.GetErrorSymbol(GetBaseNamesForDiagnostic(typeSyntax), diagInfo, ImmutableArray.Create(Of Symbol)(sym), LookupResultKind.NotATypeOrNamespace)
+                            Return Binder.GetErrorSymbol(GetBaseNamesForDiagnostic(typeSyntax), diagInfo, ImmutableArray.Create(Of Symbol)(sym), LookupResultKind.NotATypeOrNamespace)
                         Else
                             ' When we bind generic type reference, we pass through here with symbols for 
                             ' the generic type definition, each type argument and for the final constructed 
@@ -303,14 +297,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' site errors only on a definition.
                             If Not reportedAnError AndAlso Not suppressUseSiteError AndAlso
                                Not typeSymbol.IsArrayType() AndAlso Not typeSymbol.IsTupleType AndAlso typeSymbol.IsDefinition Then
-                                ReportUseSiteError(diagBag, typeSyntax, typeSymbol)
+                                ReportUseSite(diagBag, typeSyntax, typeSymbol)
+                            ElseIf typeSymbol Is sym Then
+                                binder.AddTypesAssemblyAsDependency(TryCast(typeSymbol, NamedTypeSymbol), diagBag)
                             End If
 
-                            If typeSymbol.Kind = SymbolKind.NamedType AndAlso binder.SourceModule.AnyReferencedAssembliesAreLinked Then
-                                Emit.NoPia.EmbeddedTypesManager.IsValidEmbeddableType(DirectCast(typeSymbol, NamedTypeSymbol), typeSyntax, diagBag)
+                            If diagBag.AccumulatesDiagnostics AndAlso typeSymbol.Kind = SymbolKind.NamedType AndAlso binder.SourceModule.AnyReferencedAssembliesAreLinked Then
+                                Emit.NoPia.EmbeddedTypesManager.IsValidEmbeddableType(DirectCast(typeSymbol, NamedTypeSymbol), typeSyntax, diagBag.DiagnosticBag)
                             End If
 
-                            binder.ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagBag, sym, typeSyntax)
+                            binder.ReportDiagnosticsIfObsoleteOrNotSupported(diagBag, sym, typeSyntax)
 
                             Return sym
                         End If
@@ -320,7 +316,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Try
             End Function
 
-            Private Shared Function NotFound(typeSyntax As TypeSyntax, diagName As String, binder As Binder, diagBag As DiagnosticBag) As DiagnosticInfo
+            Private Shared Function NotFound(typeSyntax As TypeSyntax, diagName As String, binder As Binder, diagBag As BindingDiagnosticBag) As DiagnosticInfo
                 Dim diagInfo As DiagnosticInfo
 
                 If diagName = "Any" AndAlso IsParameterTypeOfDeclareMethod(typeSyntax) Then
@@ -364,7 +360,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' <param name="diagName">GetBaseNamesForDiagnostic(typeSyntax) (basically dot-delimited list of names).  Shortened as different prefixes are checked.</param>
             ''' <param name="forwardedToAssembly">Set if some prefix matches a forwarded type.</param>
             ''' <param name="diagBag">Diagnostics bag (Nothing if errors should not be reported).</param>
-            Private Shared Sub CheckForForwardedType(containingAssembly As AssemblySymbol, ByRef typeSyntax As TypeSyntax, ByRef diagName As String, ByRef forwardedToAssembly As AssemblySymbol, diagBag As DiagnosticBag)
+            Private Shared Sub CheckForForwardedType(containingAssembly As AssemblySymbol, ByRef typeSyntax As TypeSyntax, ByRef diagName As String, ByRef forwardedToAssembly As AssemblySymbol, diagBag As BindingDiagnosticBag)
                 Dim currTypeSyntax As TypeSyntax = typeSyntax
                 Dim currDiagName As String = diagName
 
@@ -413,7 +409,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' 
             ''' NOTE: unlike in C#, this method searches for type forwarders case-insensitively.
             ''' </remarks>
-            Private Shared Function GetForwardedToAssembly(containingAssembly As AssemblySymbol, fullName As String, arity As Integer, typeSyntax As TypeSyntax, diagBag As DiagnosticBag) As AssemblySymbol
+            Private Shared Function GetForwardedToAssembly(containingAssembly As AssemblySymbol, fullName As String, arity As Integer, typeSyntax As TypeSyntax, diagBag As BindingDiagnosticBag) As AssemblySymbol
                 Debug.Assert(arity = 0 OrElse fullName.EndsWith("`" & arity, StringComparison.Ordinal))
 
                 ' NOTE: This won't work if the type isn't using CLS-style generic naming (i.e. `arity), but this code is
@@ -472,7 +468,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' <returns>The best type or namespace that can be found, or and ErrorTypeSymbol if no reasonable type can be found.</returns>
             Public Shared Function BindNamespaceOrTypeSyntax(typeSyntax As TypeSyntax,
                                                   binder As Binder,
-                                                  diagBag As DiagnosticBag,
+                                                  diagBag As BindingDiagnosticBag,
                                                   suppressUseSiteError As Boolean) As NamespaceOrTypeSymbol
 
                 Return DirectCast(BindNamespaceOrTypeSyntax(typeSyntax, binder, diagBag, unwrapAliases:=True,
@@ -481,7 +477,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Shared Function BindNamespaceOrTypeOrAliasSyntax(typeSyntax As TypeSyntax,
                                       binder As Binder,
-                                      diagBag As DiagnosticBag,
+                                      diagBag As BindingDiagnosticBag,
                                       suppressUseSiteError As Boolean) As Symbol
 
                 Return BindNamespaceOrTypeSyntax(typeSyntax, binder, diagBag, unwrapAliases:=False, suppressUseSiteError:=suppressUseSiteError)
@@ -489,7 +485,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private Shared Function BindNamespaceOrTypeSyntax(typeSyntax As TypeSyntax,
                                       binder As Binder,
-                                      diagBag As DiagnosticBag,
+                                      diagBag As BindingDiagnosticBag,
                                       unwrapAliases As Boolean,
                                       suppressUseSiteError As Boolean) As Symbol
 
@@ -535,7 +531,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         ' LookupTypeOrNamespaceSyntax can't return more than one symbol.
                         Dim result = lookupResult.SingleSymbol
-                        binder.ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagBag, result, typeSyntax)
+                        binder.ReportDiagnosticsIfObsoleteOrNotSupported(diagBag, result, typeSyntax)
+                        binder.AddTypesAssemblyAsDependency(TryCast(result, NamedTypeSymbol), diagBag)
                         Return result
                     End If
                 Finally
@@ -554,7 +551,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Shared Sub LookupTypeOrNamespaceSyntax(lookupResult As LookupResult,
                                                           typeSyntax As TypeSyntax,
                                                           binder As Binder,
-                                                          diagBag As DiagnosticBag,
+                                                          diagBag As BindingDiagnosticBag,
                                                           ByRef reportedAnError As Boolean,
                                                           unwrapAliases As Boolean,
                                                           suppressUseSiteError As Boolean,
@@ -607,7 +604,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private Shared Function LookupTupleType(syntax As TupleTypeSyntax,
                                                     binder As Binder,
-                                                    diagnostics As DiagnosticBag,
+                                                    diagnostics As BindingDiagnosticBag,
                                                     suppressUseSiteError As Boolean,
                                                     inGetTypeContext As Boolean,
                                                     resolvingBaseType As Boolean) As TypeSymbol
@@ -659,11 +656,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' it is typically there though, if we have ValueTuple at all
                     ' and we need System.String as well
 
-                    ' Report diagnostics if System.String doesn't exist
-                    binder.GetSpecialType(SpecialType.System_String, syntax, diagnostics)
-
-                    If Not binder.Compilation.HasTupleNamesAttributes Then
+                    Dim constructorSymbol = TryCast(binder.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames), MethodSymbol)
+                    If constructorSymbol Is Nothing Then
                         Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_TupleElementNamesAttributeMissing, AttributeDescription.TupleElementNamesAttribute.FullName)
+                    Else
+                        diagnostics.Add(GetUseSiteInfoForWellKnownTypeMember(constructorSymbol, WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames, embedVBRuntimeUsed:=False),
+                                        syntax)
                     End If
                 End If
 
@@ -688,7 +686,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Shared Sub AnalyzeLookupResultForIllegalBaseTypeReferences(lookupResult As LookupResult,
                                                                                typeSyntax As TypeSyntax,
                                                                                binder As Binder,
-                                                                               diagBag As DiagnosticBag,
+                                                                               diagBag As BindingDiagnosticBag,
                                                                                ByRef reportedAnError As Boolean)
 
                 Debug.Assert(lookupResult.IsGood AndAlso lookupResult.HasSingleSymbol)
@@ -755,7 +753,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Shared Function CheckSymbolIsType(sym As NamespaceOrTypeSymbol,
                                                       syntax As VisualBasicSyntaxNode,
                                                       binder As Binder,
-                                                      diagBag As DiagnosticBag) As TypeSymbol
+                                                      diagBag As BindingDiagnosticBag) As TypeSymbol
                 If sym.IsNamespace Then
                     Dim diagInfo = New BadSymbolDiagnostic(sym, ERRID.ERR_UnrecognizedType)
                     Binder.ReportDiagnostic(diagBag, syntax, diagInfo)
@@ -770,7 +768,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' </summary>
             Private Shared Function LookupPredefinedTypeName(predefinedTypeSyntax As PredefinedTypeSyntax,
                                                              binder As Binder,
-                                                             diagBag As DiagnosticBag,
+                                                             diagBag As BindingDiagnosticBag,
                                                              ByRef reportedAnError As Boolean,
                                                              suppressUseSiteError As Boolean) As SingleLookupResult
                 Return LookupPredefinedTypeName(predefinedTypeSyntax, predefinedTypeSyntax.Keyword.Kind, binder, diagBag, reportedAnError, suppressUseSiteError)
@@ -779,7 +777,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Shared Function LookupPredefinedTypeName(node As VisualBasicSyntaxNode,
                                                             predefinedType As SyntaxKind,
                                                             binder As Binder,
-                                                            diagBag As DiagnosticBag,
+                                                            diagBag As BindingDiagnosticBag,
                                                             ByRef reportedAnError As Boolean,
                                                             suppressUseSiteError As Boolean) As SingleLookupResult
                 Dim type As SpecialType
@@ -829,7 +827,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' </summary>
             Private Shared Function LookupArrayType(arrayTypeSyntax As ArrayTypeSyntax,
                                                     binder As Binder,
-                                                    diagBag As DiagnosticBag,
+                                                    diagBag As BindingDiagnosticBag,
                                                     suppressUseSiteError As Boolean,
                                                     inGetTypeContext As Boolean) As SingleLookupResult
                 Dim elementType As TypeSymbol = binder.BindTypeSyntax(arrayTypeSyntax.ElementType,
@@ -844,7 +842,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' </summary>
             Private Shared Function LookupNullableType(nullableTypeSyntax As NullableTypeSyntax,
                                                        binder As Binder,
-                                                       diagBag As DiagnosticBag,
+                                                       diagBag As BindingDiagnosticBag,
                                                        suppressUseSiteError As Boolean) As SingleLookupResult
                 Dim elementType As TypeSymbol = binder.BindTypeSyntax(nullableTypeSyntax.ElementType, diagBag, suppressUseSiteError)
                 Return SingleLookupResult.Good(binder.CreateNullableOf(elementType, nullableTypeSyntax, nullableTypeSyntax.ElementType, diagBag))
@@ -856,7 +854,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Shared Sub LookupBasicName(lookupResult As LookupResult,
                                                basicNameSyntax As IdentifierNameSyntax,
                                                binder As Binder,
-                                               diagBag As DiagnosticBag,
+                                               diagBag As BindingDiagnosticBag,
                                                ByRef reportedAnError As Boolean)
                 ' Get the identifier to look up.
                 Dim idSyntax As SyntaxToken = basicNameSyntax.Identifier
@@ -869,15 +867,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     reportedAnError = True
                     Debug.Assert(lookupResult.IsClear)
                 Else
-                    Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                    Dim useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagBag)
 
                     If SyntaxFacts.IsAttributeName(basicNameSyntax) Then
-                        binder.LookupAttributeType(lookupResult, Nothing, idText, LookupOptions.AttributeTypeOnly, useSiteDiagnostics)
+                        binder.LookupAttributeType(lookupResult, Nothing, idText, LookupOptions.AttributeTypeOnly, useSiteInfo)
                     Else
-                        binder.Lookup(lookupResult, idText, 0, LookupOptions.NamespacesOrTypesOnly, useSiteDiagnostics)
+                        binder.Lookup(lookupResult, idText, 0, LookupOptions.NamespacesOrTypesOnly, useSiteInfo)
                     End If
 
-                    diagBag.Add(basicNameSyntax, useSiteDiagnostics)
+                    diagBag.Add(basicNameSyntax, useSiteInfo)
                 End If
             End Sub
 
@@ -887,7 +885,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Shared Sub LookupGenericName(lookupResult As LookupResult,
                                                  genericNameSyntax As GenericNameSyntax,
                                                  binder As Binder,
-                                                 diagBag As DiagnosticBag,
+                                                 diagBag As BindingDiagnosticBag,
                                                  ByRef reportedAnError As Boolean,
                                                  suppressUseSiteError As Boolean)
                 Debug.Assert(lookupResult.IsClear)
@@ -902,10 +900,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim arity As Integer = typeArgumentsSyntax.Arguments.Count
 
                 ' Bind the generic symbol with the current binder.
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                binder.Lookup(lookupResult, idText, arity, LookupOptions.NamespacesOrTypesOnly, useSiteDiagnostics)
+                Dim useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagBag)
+                binder.Lookup(lookupResult, idText, arity, LookupOptions.NamespacesOrTypesOnly, useSiteInfo)
 
-                diagBag.Add(genericNameSyntax, useSiteDiagnostics)
+                diagBag.Add(genericNameSyntax, useSiteInfo)
 
                 ' Bind the type arguments and report errors in the current context. 
                 Dim typeArguments As ImmutableArray(Of TypeSymbol) = BindTypeArguments(typeArgumentsSyntax, binder, diagBag, suppressUseSiteError)
@@ -928,7 +926,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 Else
                     If Not suppressUseSiteError Then
-                        If ReportUseSiteError(diagBag, genericNameSyntax, genericType) Then
+                        If ReportUseSite(diagBag, genericNameSyntax, genericType) Then
                             reportedAnError = True
                         End If
                     End If
@@ -948,7 +946,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Shared Sub LookupDottedName(lookupResult As LookupResult,
                                                 dottedNameSyntax As QualifiedNameSyntax,
                                                 binder As Binder,
-                                                diagBag As DiagnosticBag,
+                                                diagBag As BindingDiagnosticBag,
                                                 ByRef reportedAnError As Boolean,
                                                 suppressUseSiteError As Boolean,
                                                 resolvingBaseType As Boolean)
@@ -980,17 +978,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim leftSymbol As NamespaceOrTypeSymbol = DirectCast(lookupResult.SingleSymbol, NamespaceOrTypeSymbol)
 
-                binder.ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagBag, leftSymbol, leftNameSyntax)
+                binder.ReportDiagnosticsIfObsoleteOrNotSupported(diagBag, leftSymbol, leftNameSyntax)
+                binder.AddTypesAssemblyAsDependency(leftSymbol, diagBag)
 
                 lookupResult.Clear()
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                Dim useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagBag)
 
                 If SyntaxFacts.IsAttributeName(rightIdentSyntax) Then
                     binder.LookupAttributeType(lookupResult,
                                 leftSymbol,
                                 rightIdentToken.ValueText,
                                 LookupOptions.AttributeTypeOnly,
-                                useSiteDiagnostics)
+                                useSiteInfo)
                 Else
                     Dim isLeftUnboundGenericType As Boolean = leftSymbol.Kind = SymbolKind.NamedType AndAlso DirectCast(leftSymbol, NamedTypeSymbol).IsUnboundGenericType
 
@@ -1006,7 +1005,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         rightIdentToken.ValueText,
                                         0,
                                         LookupOptions.NamespacesOrTypesOnly,
-                                        useSiteDiagnostics)
+                                        useSiteInfo)
 
                     If lookupResult.HasSingleSymbol AndAlso lookupResult.SingleSymbol.Kind = SymbolKind.NamedType Then
                         Dim namedType = DirectCast(lookupResult.SingleSymbol, NamedTypeSymbol)
@@ -1027,7 +1026,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 End If
 
-                diagBag.Add(leftNameSyntax, useSiteDiagnostics)
+                diagBag.Add(leftNameSyntax, useSiteInfo)
             End Sub
 
             ''' <summary>
@@ -1036,7 +1035,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Shared Sub LookupGenericDottedName(lookupResult As LookupResult,
                                                        genDottedNameSyntax As QualifiedNameSyntax,
                                                        binder As Binder,
-                                                       diagBag As DiagnosticBag,
+                                                       diagBag As BindingDiagnosticBag,
                                                        ByRef reportedAnError As Boolean,
                                                        suppressUseSiteError As Boolean,
                                                        resolvingBaseType As Boolean)
@@ -1078,19 +1077,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     leftSymbol = DirectCast(leftSymbol, NamedTypeSymbol).OriginalDefinition
                 End If
 
-                binder.ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagBag, leftSymbol, leftNameSyntax)
+                binder.ReportDiagnosticsIfObsoleteOrNotSupported(diagBag, leftSymbol, leftNameSyntax)
+                binder.AddTypesAssemblyAsDependency(leftSymbol, diagBag)
 
                 ' Lookup the generic type.
                 lookupResult.Clear()
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                Dim useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagBag)
                 binder.LookupMember(lookupResult,
                                     leftSymbol,
                                     rightIdentSyntax.ValueText,
                                     arity,
                                     LookupOptions.NamespacesOrTypesOnly,
-                                    useSiteDiagnostics)
+                                    useSiteInfo)
 
-                diagBag.Add(leftNameSyntax, useSiteDiagnostics)
+                diagBag.Add(leftNameSyntax, useSiteInfo)
 
                 If lookupResult.Kind = LookupResultKind.Empty Then
                     Return
@@ -1133,7 +1133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' </summary>
             Private Shared Function BindTypeArguments(typeArgumentsSyntax As TypeArgumentListSyntax,
                                                       binder As Binder,
-                                                      diagBag As DiagnosticBag,
+                                                      diagBag As BindingDiagnosticBag,
                                                       suppressUseSiteError As Boolean) As ImmutableArray(Of TypeSymbol)
                 Dim arity As Integer = typeArgumentsSyntax.Arguments.Count
                 Dim types As TypeSymbol() = New TypeSymbol(0 To arity - 1) {}

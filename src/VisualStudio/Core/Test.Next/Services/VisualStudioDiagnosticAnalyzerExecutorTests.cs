@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -15,10 +17,10 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Execution;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -26,10 +28,8 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic.UseNullPropagation;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
-using Microsoft.VisualStudio.LanguageServices.Remote;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
-using Roslyn.VisualStudio.Next.UnitTests.Mocks;
 using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Remote
@@ -136,30 +136,7 @@ End Class";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
-        [WorkItem(26178, "https://github.com/dotnet/roslyn/pull/26178")]
-        [Obsolete("Razor only")]
-        public async Task TestCancellationOnSessionWithSolution()
-        {
-            var code = @"class Test { void Method() { } }";
-
-            using (var workspace = CreateWorkspace(LanguageNames.CSharp, code))
-            {
-                var solution = workspace.CurrentSolution;
-                var solutionChecksum = await solution.State.GetChecksumAsync(CancellationToken.None);
-
-                var source = new CancellationTokenSource();
-                using var connection = new InvokeThrowsCancellationConnection(source);
-                var exception = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => SessionWithSolution.CreateAsync(connection, solution, source.Token));
-                Assert.Equal(exception.CancellationToken, source.Token);
-
-                // make sure things that should have been cleaned up are cleaned up
-                var service = (RemotableDataServiceFactory.Service)solution.Workspace.Services.GetService<IRemotableDataService>();
-                Assert.Null(await service.TestOnly_GetRemotableDataAsync(solutionChecksum, CancellationToken.None).ConfigureAwait(false));
-            }
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
-        public async Task TestHostAnalyzers()
+        public async Task TestHostAnalyzers_OutOfProc()
         {
             var code = @"class Test
 {
@@ -184,14 +161,14 @@ End Class";
                 var runner = CreateAnalyzerRunner();
 
                 var compilationWithAnalyzers = (await project.GetCompilationAsync()).WithAnalyzers(
-                        analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
-                        new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution));
+                    analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
+                    new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution));
 
                 // no result for open file only analyzer unless forced
-                var result = await runner.AnalyzeAsync(compilationWithAnalyzers, project, forcedAnalysis: false, cancellationToken: CancellationToken.None);
+                var result = await runner.AnalyzeProjectAsync(project, compilationWithAnalyzers, forceExecuteAllAnalyzers: false, logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
                 Assert.Empty(result.AnalysisResult);
 
-                result = await runner.AnalyzeAsync(compilationWithAnalyzers, project, forcedAnalysis: true, cancellationToken: CancellationToken.None);
+                result = await runner.AnalyzeProjectAsync(project, compilationWithAnalyzers, forceExecuteAllAnalyzers: true, logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
                 var analyzerResult = result.AnalysisResult[compilationWithAnalyzers.Analyzers[0]];
 
                 // check result
@@ -217,7 +194,7 @@ End Class";
                 var analyzerReference = new AnalyzerFileReference(analyzerType.Assembly.Location, new TestAnalyzerAssemblyLoader());
 
                 // add host analyzer as global assets
-                var snapshotService = workspace.Services.GetService<IRemotableDataService>();
+                var remotableDataService = workspace.Services.GetService<ISolutionAssetStorageProvider>();
                 var serializer = workspace.Services.GetRequiredService<ISerializerService>();
 
                 // run analysis
@@ -229,7 +206,8 @@ End Class";
                 var compilationWithAnalyzers = (await project.GetCompilationAsync())
                     .WithAnalyzers(analyzers, new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution));
 
-                var result = await runner.AnalyzeAsync(compilationWithAnalyzers, project, forcedAnalysis: false, cancellationToken: CancellationToken.None);
+                var result = await runner.AnalyzeProjectAsync(project, compilationWithAnalyzers, forceExecuteAllAnalyzers: false,
+                    logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
 
                 var analyzerResult = result.AnalysisResult[compilationWithAnalyzers.Analyzers[0]];
 
@@ -239,12 +217,8 @@ End Class";
             }
         }
 
-        private static DiagnosticIncrementalAnalyzer.InProcOrRemoteHostAnalyzerRunner CreateAnalyzerRunner()
-        {
-            return new DiagnosticIncrementalAnalyzer.InProcOrRemoteHostAnalyzerRunner(
-                AsynchronousOperationListenerProvider.NullListener,
-                new DiagnosticAnalyzerInfoCache());
-        }
+        private static InProcOrRemoteHostAnalyzerRunner CreateAnalyzerRunner()
+            => new(new DiagnosticAnalyzerInfoCache());
 
         private static async Task<DiagnosticAnalysisResult> AnalyzeAsync(TestWorkspace workspace, ProjectId projectId, Type analyzerType, CancellationToken cancellationToken = default)
         {
@@ -257,21 +231,23 @@ End Class";
                     analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
                     new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution));
 
-            var result = await executor.AnalyzeAsync(analyzerDriver, project, forcedAnalysis: true, cancellationToken: cancellationToken);
+            var result = await executor.AnalyzeProjectAsync(project, analyzerDriver, forceExecuteAllAnalyzers: true, logPerformanceInfo: false,
+                getTelemetryInfo: false, cancellationToken);
 
             return result.AnalysisResult[analyzerDriver.Analyzers[0]];
         }
 
-        private TestWorkspace CreateWorkspace(string language, string code, ParseOptions options = null)
+        private static TestWorkspace CreateWorkspace(string language, string code, ParseOptions options = null)
         {
+            var composition = EditorTestCompositions.EditorFeatures.WithTestHostParts(TestHost.OutOfProcess);
+
             var workspace = (language == LanguageNames.CSharp) ?
-                TestWorkspace.CreateCSharp(code, parseOptions: options, exportProvider: TestHostServices.CreateExportProvider()) :
-                TestWorkspace.CreateVisualBasic(code, parseOptions: options, exportProvider: TestHostServices.CreateExportProvider());
+                TestWorkspace.CreateCSharp(code, parseOptions: options, composition: composition) :
+                TestWorkspace.CreateVisualBasic(code, parseOptions: options, composition: composition);
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                                     .WithChangedOption(RemoteHostOptions.RemoteHostTest, true)
-                                     .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution)
-                                     .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, BackgroundAnalysisScope.FullSolution)));
+                .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution)
+                .WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.VisualBasic, BackgroundAnalysisScope.FullSolution)));
 
             return workspace;
         }
@@ -323,33 +299,6 @@ End Class";
             }
 
             public override Workspace Workspace => _workspace;
-        }
-
-        private sealed class InvokeThrowsCancellationConnection : RemoteHostClient.Connection
-        {
-            private readonly CancellationTokenSource _source;
-
-            public InvokeThrowsCancellationConnection(CancellationTokenSource source)
-            {
-                _source = source;
-            }
-
-            public override Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
-            {
-                // cancel and throw cancellation exception
-                _source.Cancel();
-                _source.Token.ThrowIfCancellationRequested();
-
-                throw Utilities.ExceptionUtilities.Unreachable;
-            }
-
-            public override Task<T> InvokeAsync<T>(
-                string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
-                => throw new NotImplementedException();
-
-            public override Task<T> InvokeAsync<T>(
-                string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> dataReader, CancellationToken cancellationToken)
-                => throw new NotImplementedException();
         }
     }
 }

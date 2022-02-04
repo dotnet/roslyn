@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
@@ -35,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly TextSpan? _filterSpanWithinTree; //if filterTree and filterSpanWithinTree is not null, limit analysis to types residing within this span in the filterTree.
         private readonly bool _processIncludes;
         private readonly bool _isForSingleSymbol; //minor differences in behavior between batch case and API case.
-        private readonly DiagnosticBag _diagnostics;
+        private readonly BindingDiagnosticBag _diagnostics;
         private readonly CancellationToken _cancellationToken;
 
         private SyntaxNodeLocationComparer _lazyComparer;
@@ -53,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TextSpan? filterSpanWithinTree,
             bool processIncludes,
             bool isForSingleSymbol,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
             _assemblyName = assemblyName;
@@ -80,8 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="filterTree">Only report diagnostics from this syntax tree, if non-null.</param>
         /// <param name="filterSpanWithinTree">If <paramref name="filterTree"/> and filterSpanWithinTree is non-null, report diagnostics within this span in the <paramref name="filterTree"/>.</param>
 #nullable enable
-        public static void WriteDocumentationCommentXml(CSharpCompilation compilation, string? assemblyName, Stream? xmlDocStream, DiagnosticBag diagnostics, CancellationToken cancellationToken, SyntaxTree? filterTree = null, TextSpan? filterSpanWithinTree = null)
-#nullable restore
+        public static void WriteDocumentationCommentXml(CSharpCompilation compilation, string? assemblyName, Stream? xmlDocStream, BindingDiagnosticBag diagnostics, CancellationToken cancellationToken, SyntaxTree? filterTree = null, TextSpan? filterSpanWithinTree = null)
+#nullable disable
         {
             StreamWriter writer = null;
             if (xmlDocStream != null && xmlDocStream.CanWrite)
@@ -109,17 +112,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_DocFileGen, Location.None, e.Message);
             }
 
-            if (filterTree != null)
+            if (diagnostics.DiagnosticBag is DiagnosticBag diagnosticBag)
             {
-                // Will respect the DocumentationMode.
-                UnprocessedDocumentationCommentFinder.ReportUnprocessed(filterTree, filterSpanWithinTree, diagnostics, cancellationToken);
-            }
-            else
-            {
-                foreach (SyntaxTree tree in compilation.SyntaxTrees)
+                if (filterTree != null)
                 {
                     // Will respect the DocumentationMode.
-                    UnprocessedDocumentationCommentFinder.ReportUnprocessed(tree, null, diagnostics, cancellationToken);
+                    UnprocessedDocumentationCommentFinder.ReportUnprocessed(filterTree, filterSpanWithinTree, diagnosticBag, cancellationToken);
+                }
+                else
+                {
+                    foreach (SyntaxTree tree in compilation.SyntaxTrees)
+                    {
+                        // Will respect the DocumentationMode.
+                        UnprocessedDocumentationCommentFinder.ReportUnprocessed(tree, null, diagnosticBag, cancellationToken);
+                    }
                 }
             }
         }
@@ -144,7 +150,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             PooledStringBuilder pooled = PooledStringBuilder.GetInstance();
             StringWriter writer = new StringWriter(pooled.Builder);
-            DiagnosticBag discardedDiagnostics = DiagnosticBag.GetInstance();
 
             var compiler = new DocumentationCommentCompiler(
                 assemblyName: null,
@@ -154,12 +159,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 filterSpanWithinTree: null,
                 processIncludes: processIncludes,
                 isForSingleSymbol: true,
-                diagnostics: discardedDiagnostics,
+                diagnostics: BindingDiagnosticBag.Discarded,
                 cancellationToken: cancellationToken);
             compiler.Visit(symbol);
             Debug.Assert(compiler._indentDepth == 0);
 
-            discardedDiagnostics.Free();
             writer.Dispose();
             return pooled.ToStringAndFree();
         }
@@ -232,6 +236,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
+
         /// <summary>
         /// Compile documentation comments on the symbol and write them to the stream if one is provided.
         /// </summary>
@@ -239,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
-            if (symbol.IsImplicitlyDeclared || symbol.IsAccessor())
+            if (ShouldSkip(symbol))
             {
                 return;
             }
@@ -249,19 +255,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            bool isPartialMethodDefinitionPart = symbol.IsPartialDefinition(); // CONSIDER: ignore this if isForSingleSymbol?
-            if (isPartialMethodDefinitionPart)
+            bool shouldSkipPartialDefinitionComments = false;
+            if (symbol.IsPartialDefinition())
             {
-                MethodSymbol implementationPart = ((MethodSymbol)symbol).PartialImplementationPart;
-                if ((object)implementationPart != null)
+                if (symbol is MethodSymbol { PartialImplementationPart: MethodSymbol implementationPart })
                 {
                     Visit(implementationPart);
+
+                    foreach (var trivia in implementationPart.GetNonNullSyntaxNode().GetLeadingTrivia())
+                    {
+                        if (trivia.Kind() is SyntaxKind.SingleLineDocumentationCommentTrivia or SyntaxKind.MultiLineDocumentationCommentTrivia)
+                        {
+                            // If the partial method implementation has doc comments,
+                            // we will not emit any doc comments found on the definition,
+                            // regardless of whether the partial implementation doc comments are valid.
+                            shouldSkipPartialDefinitionComments = true;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    // The partial method has no implementation. Since it won't be present in the
+                    // output assembly, it shouldn't be included in the documentation file.
+                    shouldSkipPartialDefinitionComments = !_isForSingleSymbol;
                 }
             }
 
-            DocumentationMode maxDocumentationMode;
-            ImmutableArray<DocumentationCommentTriviaSyntax> docCommentNodes;
-            if (!TryGetDocumentationCommentNodes(symbol, out maxDocumentationMode, out docCommentNodes))
+            // synthesized record property: emit the matching param doc on containing type as the summary doc of the property.
+            var symbolForDocComments = symbol is SynthesizedRecordPropertySymbol ? symbol.ContainingType : symbol;
+            if (!TryGetDocumentationCommentNodes(symbolForDocComments, out var maxDocumentationMode, out var docCommentNodes))
             {
                 // If the XML in any of the doc comments is invalid, skip all further processing (for this symbol) and 
                 // just write a comment saying that info was lost for this symbol.
@@ -273,7 +296,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If there are no doc comments, then no further work is required (other than to report a diagnostic if one is required).
             if (docCommentNodes.IsEmpty)
             {
-                if (maxDocumentationMode >= DocumentationMode.Diagnose && RequiresDocumentationComment(symbol))
+                if (maxDocumentationMode >= DocumentationMode.Diagnose
+                    && RequiresDocumentationComment(symbol)
+                    // We never give a missing doc comment warning on a partial method
+                    // implementation, and we skip the missing doc comment warning on a partial
+                    // definition whose documentation we were not going to output anyway.
+                    && !symbol.IsPartialImplementation()
+                    && !shouldSkipPartialDefinitionComments)
                 {
                     // Report the error at a location in the tree that was parsing doc comments.
                     Location location = GetLocationInTreeReportingDocumentationCommentDiagnostics(symbol);
@@ -296,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<CSharpSyntaxNode> includeElementNodes;
             if (!TryProcessDocumentationCommentTriviaNodes(
                     symbol,
-                    isPartialMethodDefinitionPart,
+                    shouldSkipPartialDefinitionComments,
                     docCommentNodes,
                     reportParameterOrTypeParameterDiagnostics,
                     out withUnprocessedIncludes,
@@ -325,11 +354,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // NOTE: we are expanding include elements AFTER formatting the comment, since the included text is pure
                 // XML, not XML mixed with documentation comment trivia (e.g. ///).  If we expanded them before formatting,
                 // the formatting engine would have trouble determining what prefix to remove from each line.
-                TextWriter expanderWriter = isPartialMethodDefinitionPart ? null : _writer; // Don't actually write partial method definition parts.
+                TextWriter? expanderWriter = shouldSkipPartialDefinitionComments ? null : _writer; // Don't actually write partial method definition parts.
                 IncludeElementExpander.ProcessIncludes(withUnprocessedIncludes, symbol, includeElementNodes,
                     _compilation, ref documentedParameters, ref documentedTypeParameters, ref _includedFileCache, expanderWriter, _diagnostics, _cancellationToken);
             }
-            else if (_writer != null && !isPartialMethodDefinitionPart)
+            else if (_writer != null && !shouldSkipPartialDefinitionComments)
             {
                 // CONSIDER: The output would look a little different if we ran the XDocument through an XmlWriter.  In particular, 
                 // formatting inside tags (e.g. <__tag___attr__=__"value"__>) would be normalized.  Whitespace in elements would
@@ -349,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (!documentedParameters.Contains(parameter))
                         {
                             Location location = parameter.Locations[0];
-                            Debug.Assert(location.SourceTree.ReportDocumentationCommentDiagnostics()); //Should be the same tree as for the symbol.
+                            Debug.Assert(location.SourceTree!.ReportDocumentationCommentDiagnostics()); //Should be the same tree as for the symbol.
 
                             // NOTE: parameter name, since the parameter would be displayed as just its type.
                             _diagnostics.Add(ErrorCode.WRN_MissingParamTag, location, parameter.Name, symbol);
@@ -364,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (!documentedTypeParameters.Contains(typeParameter))
                         {
                             Location location = typeParameter.Locations[0];
-                            Debug.Assert(location.SourceTree.ReportDocumentationCommentDiagnostics()); //Should be the same tree as for the symbol.
+                            Debug.Assert(location.SourceTree!.ReportDocumentationCommentDiagnostics()); //Should be the same tree as for the symbol.
 
                             _diagnostics.Add(ErrorCode.WRN_MissingTypeParamTag, location, typeParameter, symbol);
                         }
@@ -372,6 +401,77 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
         }
+
+        private static bool ShouldSkip(Symbol symbol)
+        {
+            return symbol.IsImplicitlyDeclared ||
+                symbol.IsAccessor() ||
+                symbol is SynthesizedSimpleProgramEntryPointSymbol;
+        }
+
+        private bool TryProcessRecordPropertyDocumentation(
+            SynthesizedRecordPropertySymbol recordPropertySymbol,
+            ImmutableArray<DocumentationCommentTriviaSyntax> docCommentNodes,
+            [NotNullWhen(true)] out string? withUnprocessedIncludes,
+            out ImmutableArray<CSharpSyntaxNode> includeElementNodes)
+        {
+            _cancellationToken.ThrowIfCancellationRequested();
+
+            if (getMatchingParamTags(recordPropertySymbol.Name, docCommentNodes) is not { } paramTags)
+            {
+                withUnprocessedIncludes = null;
+                includeElementNodes = default;
+                return false;
+            }
+
+            Debug.Assert(paramTags.Count > 0);
+
+            BeginTemporaryString();
+            WriteLine("<member name=\"{0}\">", recordPropertySymbol.GetDocumentationCommentId());
+            Indent();
+            var substitutedTextBuilder = PooledStringBuilder.GetInstance();
+            var includeElementNodesBuilder = _processIncludes ? ArrayBuilder<CSharpSyntaxNode>.GetInstance() : null;
+            DocumentationCommentWalker.GetSubstitutedText(_compilation, recordPropertySymbol, paramTags, includeElementNodesBuilder, substitutedTextBuilder.Builder);
+            string substitutedText = substitutedTextBuilder.ToStringAndFree();
+            string formattedXml = FormatComment(substitutedText);
+            Write(formattedXml);
+            Unindent();
+            WriteLine("</member>");
+
+            withUnprocessedIncludes = GetAndEndTemporaryString();
+            includeElementNodes = includeElementNodesBuilder?.ToImmutableAndFree() ?? default;
+
+            paramTags.Free();
+            return true;
+
+            static ArrayBuilder<XmlElementSyntax>? getMatchingParamTags(string propertyName, ImmutableArray<DocumentationCommentTriviaSyntax> docCommentNodes)
+            {
+                ArrayBuilder<XmlElementSyntax>? result = null;
+                foreach (var trivia in docCommentNodes)
+                {
+                    foreach (var contentItem in trivia.Content)
+                    {
+                        if (contentItem is XmlElementSyntax elementSyntax)
+                        {
+                            foreach (var attribute in elementSyntax.StartTag.Attributes)
+                            {
+                                if (attribute is XmlNameAttributeSyntax nameAttribute
+                                    && nameAttribute.GetElementKind() == XmlNameAttributeElementKind.Parameter
+                                    && string.Equals(nameAttribute.Identifier.Identifier.ValueText, propertyName, StringComparison.Ordinal))
+                                {
+                                    result ??= ArrayBuilder<XmlElementSyntax>.GetInstance();
+                                    result.Add(elementSyntax);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                return result;
+            }
+        }
+
+#nullable disable
 
         /// <summary>
         /// Loop over the DocumentationCommentTriviaSyntaxes.  Gather
@@ -385,7 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>This was factored out for clarity, not because it's reusable.</remarks>
         private bool TryProcessDocumentationCommentTriviaNodes(
             Symbol symbol,
-            bool isPartialMethodDefinitionPart,
+            bool shouldSkipPartialDefinitionComments,
             ImmutableArray<DocumentationCommentTriviaSyntax> docCommentNodes,
             bool reportParameterOrTypeParameterDiagnostics,
             out string withUnprocessedIncludes,
@@ -405,6 +505,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Saw an XmlException while parsing one of the DocumentationCommentTriviaSyntax nodes.
             haveParseError = false;
+
+            if (symbol is SynthesizedRecordPropertySymbol recordProperty)
+            {
+                return TryProcessRecordPropertyDocumentation(recordProperty, docCommentNodes, out withUnprocessedIncludes, out includeElementNodes);
+            }
 
             // We're doing substitution and formatting per-trivia, rather than per-symbol,
             // because a single symbol can have both single-line and multi-line style
@@ -427,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // We DO want to write out partial method definition parts if we're processing includes
                     // because we need to have XML to process.
-                    if (!isPartialMethodDefinitionPart || _processIncludes)
+                    if (!shouldSkipPartialDefinitionComments || _processIncludes)
                     {
                         WriteLine("<member name=\"{0}\">", symbol.GetDocumentationCommentId());
                         Indent();
@@ -457,7 +562,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // For partial methods, all parts are validated, but only the implementation part is written to the XML stream.
-                if (!isPartialMethodDefinitionPart || _processIncludes)
+                if (!shouldSkipPartialDefinitionComments || _processIncludes)
                 {
                     // This string already has indentation and line breaks, so don't call WriteLine - just write the text directly.
                     Write(formattedXml);
@@ -472,7 +577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (!isPartialMethodDefinitionPart || _processIncludes)
+            if (!shouldSkipPartialDefinitionComments || _processIncludes)
             {
                 Unindent();
                 WriteLine("</member>");
@@ -548,7 +653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)symbol != null);
 
-            if (symbol.IsImplicitlyDeclared || symbol.IsAccessor())
+            if (ShouldSkip(symbol))
             {
                 return false;
             }
@@ -581,13 +686,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             nodes = default(ImmutableArray<DocumentationCommentTriviaSyntax>);
 
             ArrayBuilder<DocumentationCommentTriviaSyntax> builder = null;
+            var diagnosticBag = _diagnostics.DiagnosticBag ?? DiagnosticBag.GetInstance();
 
             foreach (SyntaxReference reference in symbol.DeclaringSyntaxReferences)
             {
                 DocumentationMode currDocumentationMode = reference.SyntaxTree.Options.DocumentationMode;
                 maxDocumentationMode = currDocumentationMode > maxDocumentationMode ? currDocumentationMode : maxDocumentationMode;
 
-                ImmutableArray<DocumentationCommentTriviaSyntax> triviaList = SourceDocumentationCommentUtils.GetDocumentationCommentTriviaFromSyntaxNode((CSharpSyntaxNode)reference.GetSyntax(), _diagnostics);
+                ImmutableArray<DocumentationCommentTriviaSyntax> triviaList = SourceDocumentationCommentUtils.GetDocumentationCommentTriviaFromSyntaxNode((CSharpSyntaxNode)reference.GetSyntax(), diagnosticBag);
                 foreach (var trivia in triviaList)
                 {
                     if (ContainsXmlParseDiagnostic(trivia))
@@ -605,6 +711,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     builder.Add(trivia);
                 }
+            }
+
+            if (diagnosticBag != _diagnostics.DiagnosticBag)
+            {
+                diagnosticBag.Free();
             }
 
             if (builder == null)
@@ -666,7 +777,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(numLines > 0);
                 }
 
-                Debug.Assert(TrimmedStringStartsWith(lines[0], "/**"));
+                // We may use multi-line formatting in a "fragment" scenario.
+                //     /** <summary>The record</summary>
+                //     <param name="P">The parameter</param>
+                //     */
+                //     record Rec(int P);
+                // When formatting docs for property 'Rec.P' we may have just the line with '<param ...>' as input to this method.
                 WriteFormattedMultiLineComment(lines, numLines);
             }
 
@@ -857,7 +973,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     trimmed = TrimEndOfMultiLineComment(trimmed);
                 }
-                WriteLine(trimmed.Substring(SyntaxFacts.IsWhitespace(trimmed[3]) ? 4 : 3));
+                WriteLine(trimmed.Substring(
+                    trimmed.StartsWith("/** ") ? 4 :
+                    trimmed.StartsWith("/**") ? 3 :
+                    trimmed.StartsWith("* ") ? 2 :
+                    trimmed.StartsWith("*") ? 1 :
+                    0));
             }
 
             for (int i = 1; i < numLines; i++)
@@ -936,7 +1057,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Does not respect DocumentationMode, so use a temporary bag if diagnostics are not desired.
         /// </remarks>
-        private static string GetDocumentationCommentId(CrefSyntax crefSyntax, Binder binder, DiagnosticBag diagnostics)
+        private static string GetDocumentationCommentId(CrefSyntax crefSyntax, Binder binder, BindingDiagnosticBag diagnostics)
         {
             if (crefSyntax.ContainsDiagnostics)
             {
@@ -963,6 +1084,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (symbol.Kind == SymbolKind.Alias)
             {
                 symbol = ((AliasSymbol)symbol).GetAliasTarget(basesBeingResolved: null);
+            }
+
+            if (symbol is NamespaceSymbol ns)
+            {
+                Debug.Assert(!ns.IsGlobalNamespace);
+                diagnostics.AddAssembliesUsedByNamespaceReference(ns);
+            }
+            else
+            {
+                diagnostics.AddDependencies(symbol as TypeSymbol ?? symbol.ContainingType);
             }
 
             return symbol.OriginalDefinition.GetDocumentationCommentId();
@@ -993,7 +1124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol memberSymbol,
             ref HashSet<ParameterSymbol> documentedParameters,
             ref HashSet<TypeParameterSymbol> documentedTypeParameters,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             XmlNameAttributeElementKind elementKind = syntax.GetElementKind();
 
@@ -1022,9 +1153,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            ImmutableArray<Symbol> referencedSymbols = binder.BindXmlNameAttribute(syntax, ref useSiteDiagnostics);
-            diagnostics.Add(syntax, useSiteDiagnostics);
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
+            ImmutableArray<Symbol> referencedSymbols = binder.BindXmlNameAttribute(syntax, ref useSiteInfo);
+            diagnostics.Add(syntax, useSiteInfo);
 
             if (referencedSymbols.IsEmpty)
             {

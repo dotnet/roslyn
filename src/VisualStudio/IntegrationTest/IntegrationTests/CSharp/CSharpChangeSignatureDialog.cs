@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -23,8 +25,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
         private AddParameterDialog_OutOfProc AddParameterDialog => VisualStudio.AddParameterDialog;
 
-        public CSharpChangeSignatureDialog(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(CSharpChangeSignatureDialog))
+        public CSharpChangeSignatureDialog(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(CSharpChangeSignatureDialog))
         {
         }
 
@@ -236,6 +238,7 @@ class C
             AddParameterDialog.VerifyOpen();
             AddParameterDialog.FillTypeField("string");
             AddParameterDialog.FillNameField("c");
+            AddParameterDialog.SetCallSiteTodo();
             AddParameterDialog.ClickOK();
             AddParameterDialog.VerifyClosed();
 

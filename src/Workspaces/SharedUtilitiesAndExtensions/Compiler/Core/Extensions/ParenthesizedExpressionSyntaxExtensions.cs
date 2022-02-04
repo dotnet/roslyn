@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Extensions
@@ -38,6 +36,12 @@ namespace Microsoft.CodeAnalysis.Extensions
                 {
                     return false;
                 }
+            }
+
+            // It's not safe to change associativity for dynamic variables as the actual type isn't known. See https://github.com/dotnet/roslyn/issues/47365
+            if (innerTypeInfo.Type is IDynamicTypeSymbol)
+            {
+                return false;
             }
 
             // Only allow us to change associativity if all the types are the same.
@@ -100,6 +104,6 @@ namespace Microsoft.CodeAnalysis.Extensions
             => IsFloatingPoint(typeInfo.Type) || IsFloatingPoint(typeInfo.ConvertedType);
 
         private static bool IsFloatingPoint([NotNullWhen(returnValue: true)] ITypeSymbol? type)
-            => type?.SpecialType == SpecialType.System_Single || type?.SpecialType == SpecialType.System_Double;
+            => type?.SpecialType is SpecialType.System_Single or SpecialType.System_Double;
     }
 }

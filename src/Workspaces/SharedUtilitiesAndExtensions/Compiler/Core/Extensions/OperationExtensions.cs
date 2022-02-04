@@ -5,9 +5,11 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -53,6 +55,13 @@ namespace Microsoft.CodeAnalysis
             }
             else if (operation is IDeclarationPatternOperation)
             {
+                while (operation.Parent is IBinaryPatternOperation or
+                       INegatedPatternOperation or
+                       IRelationalPatternOperation)
+                {
+                    operation = operation.Parent;
+                }
+
                 switch (operation.Parent)
                 {
                     case IPatternCaseClauseOperation _:
@@ -117,6 +126,12 @@ namespace Microsoft.CodeAnalysis
                     ? ValueUsageInfo.ReadWrite
                     : ValueUsageInfo.Write;
             }
+            else if (operation.Parent is ISimpleAssignmentOperation simpleAssignmentOperation &&
+                simpleAssignmentOperation.Value == operation &&
+                simpleAssignmentOperation.IsRef)
+            {
+                return ValueUsageInfo.ReadableWritableReference;
+            }
             else if (operation.Parent is IIncrementOrDecrementOperation)
             {
                 return ValueUsageInfo.ReadWrite;
@@ -129,15 +144,15 @@ namespace Microsoft.CodeAnalysis
                 return parenthesizedOperation.GetValueUsageInfo(containingSymbol) &
                     ~(ValueUsageInfo.Write | ValueUsageInfo.Reference);
             }
-            else if (operation.Parent is INameOfOperation ||
-                     operation.Parent is ITypeOfOperation ||
-                     operation.Parent is ISizeOfOperation)
+            else if (operation.Parent is INameOfOperation or
+                     ITypeOfOperation or
+                     ISizeOfOperation)
             {
                 return ValueUsageInfo.Name;
             }
             else if (operation.Parent is IArgumentOperation argumentOperation)
             {
-                switch (argumentOperation.Parameter.RefKind)
+                switch (argumentOperation.Parameter?.RefKind)
                 {
                     case RefKind.RefReadOnly:
                         return ValueUsageInfo.ReadableReference;
@@ -206,13 +221,13 @@ namespace Microsoft.CodeAnalysis
             return ValueUsageInfo.Read;
         }
 
-        public static RefKind GetRefKind(this IReturnOperation operation, ISymbol containingSymbol)
+        public static RefKind GetRefKind(this IReturnOperation? operation, ISymbol containingSymbol)
         {
             var containingMethod = TryGetContainingAnonymousFunctionOrLocalFunction(operation) ?? (containingSymbol as IMethodSymbol);
             return containingMethod?.RefKind ?? RefKind.None;
         }
 
-        public static IMethodSymbol TryGetContainingAnonymousFunctionOrLocalFunction(this IOperation operation)
+        public static IMethodSymbol? TryGetContainingAnonymousFunctionOrLocalFunction(this IOperation? operation)
         {
             operation = operation?.Parent;
             while (operation != null)
@@ -232,26 +247,26 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
-        public static bool IsInLeftOfDeconstructionAssignment(this IOperation operation, out IDeconstructionAssignmentOperation deconstructionAssignment)
+        public static bool IsInLeftOfDeconstructionAssignment(this IOperation operation, [NotNullWhen(true)] out IDeconstructionAssignmentOperation? deconstructionAssignment)
         {
             deconstructionAssignment = null;
 
             var previousOperation = operation;
-            operation = operation.Parent;
+            var current = operation.Parent;
 
-            while (operation != null)
+            while (current != null)
             {
-                switch (operation.Kind)
+                switch (current.Kind)
                 {
                     case OperationKind.DeconstructionAssignment:
-                        deconstructionAssignment = (IDeconstructionAssignmentOperation)operation;
+                        deconstructionAssignment = (IDeconstructionAssignmentOperation)current;
                         return deconstructionAssignment.Target == previousOperation;
 
                     case OperationKind.Tuple:
                     case OperationKind.Conversion:
                     case OperationKind.Parenthesized:
-                        previousOperation = operation;
-                        operation = operation.Parent;
+                        previousOperation = current;
+                        current = current.Parent;
                         continue;
 
                     default:
@@ -330,10 +345,10 @@ namespace Microsoft.CodeAnalysis
         public static bool HasAnyOperationDescendant(this IOperation operationBlock, Func<IOperation, bool> predicate)
             => operationBlock.HasAnyOperationDescendant(predicate, out _);
 
-        public static bool HasAnyOperationDescendant(this IOperation operationBlock, Func<IOperation, bool> predicate, out IOperation foundOperation)
+        public static bool HasAnyOperationDescendant(this IOperation operationBlock, Func<IOperation, bool> predicate, [NotNullWhen(true)] out IOperation? foundOperation)
         {
-            Debug.Assert(operationBlock != null);
-            Debug.Assert(predicate != null);
+            RoslynDebug.AssertNotNull(operationBlock);
+            RoslynDebug.AssertNotNull(predicate);
             foreach (var descendant in operationBlock.DescendantsAndSelf())
             {
                 if (predicate(descendant))
@@ -355,5 +370,20 @@ namespace Microsoft.CodeAnalysis
 
         public static bool IsNullLiteral(this IOperation operand)
             => operand is ILiteralOperation { ConstantValue: { HasValue: true, Value: null } };
+
+        /// <summary>
+        /// Walks down consecutive conversion operations until an operand is reached that isn't a conversion operation.
+        /// </summary>
+        /// <param name="operation">The starting operation.</param>
+        /// <returns>The inner non conversion operation or the starting operation if it wasn't a conversion operation.</returns>
+        public static IOperation? WalkDownConversion(this IOperation? operation)
+        {
+            while (operation is IConversionOperation conversionOperation)
+            {
+                operation = conversionOperation.Operand;
+            }
+
+            return operation;
+        }
     }
 }

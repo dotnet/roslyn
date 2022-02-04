@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -27,34 +26,32 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
     {
         public class Test : VisualBasicCodeFixTest<TAnalyzer, TCodeFix, XUnitVerifier>
         {
+            private readonly SharedVerifierState _sharedState;
+
+            static Test()
+            {
+                // If we have outdated defaults from the host unit test application targeting an older .NET Framework, use more
+                // reasonable TLS protocol version for outgoing connections.
+#pragma warning disable CA5364 // Do Not Use Deprecated Security Protocols
+#pragma warning disable CS0618 // Type or member is obsolete
+                if (ServicePointManager.SecurityProtocol == (SecurityProtocolType.Ssl3 | SecurityProtocolType.Tls))
+#pragma warning restore CS0618 // Type or member is obsolete
+#pragma warning restore CA5364 // Do Not Use Deprecated Security Protocols
+                {
+                    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                }
+            }
+
             public Test()
             {
+                _sharedState = new SharedVerifierState(this, DefaultFileExt);
+
                 MarkupOptions = Testing.MarkupOptions.UseFirstDescriptor;
 
                 SolutionTransforms.Add((solution, projectId) =>
                 {
                     var parseOptions = (VisualBasicParseOptions)solution.GetProject(projectId)!.ParseOptions!;
                     solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion));
-
-                    var (analyzerConfigSource, remainingOptions) = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(DefaultFileExt, EditorConfig, Options);
-                    if (analyzerConfigSource is object)
-                    {
-                        foreach (var id in solution.ProjectIds)
-                        {
-                            var documentId = DocumentId.CreateNewId(id, ".editorconfig");
-                            solution = solution.AddAnalyzerConfigDocument(documentId, ".editorconfig", analyzerConfigSource, filePath: "/.editorconfig");
-                        }
-                    }
-
-#if !CODE_STYLE
-                    var options = solution.Options;
-                    foreach (var (key, value) in remainingOptions)
-                    {
-                        options = options.WithChangedOption(key, value);
-                    }
-
-                    solution = solution.WithOptions(options);
-#endif
 
                     return solution;
                 });
@@ -66,24 +63,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             /// </summary>
             public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.VisualBasic16;
 
-            /// <summary>
-            /// Gets a collection of options to apply to <see cref="Solution.Options"/> for testing. Values may be added
-            /// using a collection initializer.
-            /// </summary>
-            internal OptionsCollection Options { get; } = new OptionsCollection(LanguageNames.VisualBasic);
+            /// <inheritdoc cref="SharedVerifierState.Options"/>
+            internal OptionsCollection Options => _sharedState.Options;
 
-            public string? EditorConfig { get; set; }
+            /// <inheritdoc cref="SharedVerifierState.EditorConfig"/>
+            public string? EditorConfig
+            {
+                get => _sharedState.EditorConfig;
+                set => _sharedState.EditorConfig = value;
+            }
 
             public Func<ImmutableArray<Diagnostic>, Diagnostic?>? DiagnosticSelector { get; set; }
 
-            public override async Task RunAsync(CancellationToken cancellationToken = default)
+            protected override async Task RunImplAsync(CancellationToken cancellationToken = default)
             {
                 if (DiagnosticSelector is object)
                 {
                     Assert.True(CodeFixTestBehaviors.HasFlag(Testing.CodeFixTestBehaviors.FixOne), $"'{nameof(DiagnosticSelector)}' can only be used with '{nameof(Testing.CodeFixTestBehaviors)}.{nameof(Testing.CodeFixTestBehaviors.FixOne)}'");
                 }
 
-                await base.RunAsync(cancellationToken);
+                _sharedState.Apply();
+                await base.RunImplAsync(cancellationToken);
             }
 
 #if !CODE_STYLE

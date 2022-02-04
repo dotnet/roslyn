@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="computeValue">Delegate to compute the value associated with a given <see cref="SyntaxTree"/> instance.</param>
         /// <param name="syntaxTreeComparer">Optional equality comparer to determine equivalent <see cref="SyntaxTree"/> instances that have the same value.
         /// If no comparer is provided, then <see cref="SyntaxTreeComparer"/> is used by default.</param>
-        public SyntaxTreeValueProvider(Func<SyntaxTree, TValue> computeValue, IEqualityComparer<SyntaxTree> syntaxTreeComparer = null)
+        public SyntaxTreeValueProvider(Func<SyntaxTree, TValue> computeValue, IEqualityComparer<SyntaxTree>? syntaxTreeComparer = null)
         {
             CoreValueProvider = new AnalysisValueProvider<SyntaxTree, TValue>(computeValue, syntaxTreeComparer ?? SyntaxTreeComparer.Instance);
         }

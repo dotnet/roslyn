@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -26,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DisambiguateSameVariable
 {
     using static SyntaxFactory;
 
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.DisambiguateSameVariable), Shared]
     internal class CSharpDisambiguateSameVariableCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         private const string CS1717 = nameof(CS1717); // Assignment made to same variable; did you mean to assign something else?
@@ -62,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DisambiguateSameVariable
             }
         }
 
-        private bool CanFix(
+        private static bool CanFix(
             SemanticModel semanticModel, Diagnostic diagnostic, CancellationToken cancellationToken,
             [NotNullWhen(true)] out SimpleNameSyntax? leftName,
             [NotNullWhen(true)] out ISymbol? matchingMember,
@@ -84,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DisambiguateSameVariable
             if (left == null || right == null)
                 return false;
 
-            if (!(left is IdentifierNameSyntax) && !(left is MemberAccessExpressionSyntax))
+            if (left is not IdentifierNameSyntax and not MemberAccessExpressionSyntax)
                 return false;
 
             var leftSymbol = semanticModel.GetSymbolInfo(left, cancellationToken).GetAnySymbol();
@@ -96,10 +94,10 @@ namespace Microsoft.CodeAnalysis.CSharp.DisambiguateSameVariable
             // Since this is a self assignment/compare, these symbols should be the same.
             Debug.Assert(leftSymbol.Equals(rightSymbol));
 
-            if (leftSymbol.Kind != SymbolKind.Local &&
-                leftSymbol.Kind != SymbolKind.Parameter &&
-                leftSymbol.Kind != SymbolKind.Field &&
-                leftSymbol.Kind != SymbolKind.Property)
+            if (leftSymbol.Kind is not SymbolKind.Local and
+                not SymbolKind.Parameter and
+                not SymbolKind.Field and
+                not SymbolKind.Property)
             {
                 return false;
             }
@@ -121,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.DisambiguateSameVariable
             var members = from t in enclosingType.GetBaseTypesAndThis()
                           from m in t.GetMembers()
                           where !m.IsStatic
-                          where m is IFieldSymbol || m is IPropertySymbol
+                          where m is IFieldSymbol or IPropertySymbol
                           where !m.Equals(leftSymbol)
                           where m.Name == localOrParamName ||
                                 m.Name == pascalName ||
@@ -155,11 +153,14 @@ namespace Microsoft.CodeAnalysis.CSharp.DisambiguateSameVariable
             {
                 if (!CanFix(semanticModel, diagnostic, cancellationToken,
                         out var nameNode, out var matchingMember, out _))
+                {
                     continue;
+                }
 
                 var newNameNode = matchingMember.Name.ToIdentifierName();
                 var newExpr = (ExpressionSyntax)newNameNode;
-                if (!syntaxFacts.IsNameOfMemberAccessExpression(nameNode))
+                if (!syntaxFacts.IsNameOfSimpleMemberAccessExpression(nameNode) &&
+                    !syntaxFacts.IsNameOfMemberBindingExpression(nameNode))
                 {
                     newExpr = MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression, ThisExpression(), newNameNode).WithAdditionalAnnotations(Simplifier.Annotation);

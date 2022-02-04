@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Reflection.Metadata;
 using System.Security.Cryptography;
 using Microsoft.Cci;
@@ -20,7 +18,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         public abstract override int GetHashCode();
-        public override abstract bool Equals(object? other);
+        public abstract override bool Equals(object? other);
 
         internal abstract StrongNameFileSystem FileSystem { get; }
 

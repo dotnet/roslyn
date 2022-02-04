@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// fail.
         /// </summary>
         public static VirtualChar Create(Rune rune, TextSpan span)
-            => new VirtualChar(rune, surrogateChar: default, span);
+            => new(rune, surrogateChar: default, span);
 
         /// <summary>
         /// Creates a new <see cref="VirtualChar"/> from an unpaired high or low surrogate character.  This will throw
@@ -87,6 +87,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// </summary>
         public int Value => SurrogateChar != 0 ? SurrogateChar : Rune.Value;
 
+        public bool IsDigit
+            => SurrogateChar != 0 ? char.IsDigit(SurrogateChar) : Rune.IsDigit(Rune);
+
+        public bool IsLetterOrDigit
+            => SurrogateChar != 0 ? char.IsLetterOrDigit(SurrogateChar) : Rune.IsLetterOrDigit(Rune);
+
+        public bool IsWhiteSpace
+            => SurrogateChar != 0 ? char.IsWhiteSpace(SurrogateChar) : Rune.IsWhiteSpace(Rune);
+
         #region equality
 
         public static bool operator ==(VirtualChar char1, VirtualChar char2)
@@ -101,7 +110,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         public static bool operator !=(VirtualChar ch1, char ch2)
             => !(ch1 == ch2);
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
             => obj is VirtualChar vc && Equals(vc);
 
         public bool Equals(VirtualChar other)

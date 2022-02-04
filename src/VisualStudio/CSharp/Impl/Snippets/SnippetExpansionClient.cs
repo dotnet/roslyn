@@ -4,24 +4,29 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Snippets;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.TextManager.Interop;
 using MSXML;
 using Roslyn.Utilities;
@@ -31,15 +36,35 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 {
     internal sealed partial class SnippetExpansionClient : AbstractSnippetExpansionClient
     {
-        public SnippetExpansionClient(IThreadingContext threadingContext, Guid languageServiceGuid, ITextView textView, ITextBuffer subjectBuffer, IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
-            : base(threadingContext, languageServiceGuid, textView, subjectBuffer, editorAdaptersFactoryService)
+        public SnippetExpansionClient(
+            IThreadingContext threadingContext,
+            Guid languageServiceGuid,
+            ITextView textView,
+            ITextBuffer subjectBuffer,
+            SignatureHelpControllerProvider signatureHelpControllerProvider,
+            IEditorCommandHandlerServiceFactory editorCommandHandlerServiceFactory,
+            IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
+            ImmutableArray<Lazy<ArgumentProvider, OrderableLanguageMetadata>> argumentProviders,
+            IGlobalOptionService globalOptions)
+            : base(
+                threadingContext,
+                languageServiceGuid,
+                textView,
+                subjectBuffer,
+                signatureHelpControllerProvider,
+                editorCommandHandlerServiceFactory,
+                editorAdaptersFactoryService,
+                argumentProviders,
+                globalOptions)
         {
         }
 
         /// <returns>The tracking span of the inserted "/**/" if there is an $end$ location, null
         /// otherwise.</returns>
-        protected override ITrackingSpan InsertEmptyCommentAndGetEndPositionTrackingSpan()
+        protected override ITrackingSpan? InsertEmptyCommentAndGetEndPositionTrackingSpan()
         {
+            RoslynDebug.AssertNotNull(ExpansionSession);
+
             var endSpanInSurfaceBuffer = new VsTextSpan[1];
             if (ExpansionSession.GetEndSpan(endSpanInSurfaceBuffer) != VSConstants.S_OK)
             {
@@ -60,34 +85,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
             return SubjectBuffer.CurrentSnapshot.CreateTrackingSpan(commentSpan, SpanTrackingMode.EdgeExclusive);
         }
 
-        public override int GetExpansionFunction(IXMLDOMNode xmlFunctionNode, string bstrFieldName, out IVsExpansionFunction pFunc)
-        {
-            if (!TryGetSnippetFunctionInfo(xmlFunctionNode, out var snippetFunctionName, out var param))
-            {
-                pFunc = null;
-                return VSConstants.E_INVALIDARG;
-            }
-
-            switch (snippetFunctionName)
-            {
-                case "SimpleTypeName":
-                    pFunc = new SnippetFunctionSimpleTypeName(this, TextView, SubjectBuffer, bstrFieldName, param);
-                    return VSConstants.S_OK;
-                case "ClassName":
-                    pFunc = new SnippetFunctionClassName(this, TextView, SubjectBuffer, bstrFieldName);
-                    return VSConstants.S_OK;
-                case "GenerateSwitchCases":
-                    pFunc = new SnippetFunctionGenerateSwitchCases(this, TextView, SubjectBuffer, bstrFieldName, param);
-                    return VSConstants.S_OK;
-                default:
-                    pFunc = null;
-                    return VSConstants.E_INVALIDARG;
-            }
-        }
+        protected override string FallbackDefaultLiteral => "default";
 
         internal override Document AddImports(
-            Document document, int position, XElement snippetNode,
-            bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+            Document document, AddImportPlacementOptions options, int position, XElement snippetNode,
+            CancellationToken cancellationToken)
         {
             var importsNode = snippetNode.Element(XName.Get("Imports", snippetNode.Name.NamespaceName));
             if (importsNode == null ||
@@ -96,8 +98,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 return document;
             }
 
-            var root = document.GetSyntaxRootSynchronously(cancellationToken);
-            var contextLocation = root.FindToken(position).Parent;
+            var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
+            var contextLocation = root.FindToken(position).GetRequiredParent();
 
             var newUsingDirectives = GetUsingDirectivesToAdd(contextLocation, snippetNode, importsNode);
             if (!newUsingDirectives.Any())
@@ -112,10 +114,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 return document;
             }
 
-            var addImportService = document.GetLanguageService<IAddImportsService>();
-            var generator = document.GetLanguageService<SyntaxGenerator>();
-            var compilation = document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var newRoot = addImportService.AddImports(compilation, root, contextLocation, newUsingDirectives, generator, placeSystemNamespaceFirst, cancellationToken);
+            var addImportService = document.GetRequiredLanguageService<IAddImportsService>();
+            var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
+            var compilation = document.Project.GetRequiredCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var newRoot = addImportService.AddImports(compilation, root, contextLocation, newUsingDirectives, generator, options, cancellationToken);
 
             var newDocument = document.WithSyntaxRoot(newRoot);
 
@@ -150,6 +152,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
                 if (candidateUsing == null)
                 {
                     continue;
+                }
+                else if (candidateUsing.ContainsDiagnostics && !namespaceToImport.Contains("="))
+                {
+                    // Retry by parsing the namespace as a name and constructing a using directive from it
+                    candidateUsing = SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(namespaceToImport))
+                        .WithUsingKeyword(SyntaxFactory.Token(SyntaxKind.UsingKeyword).WithTrailingTrivia(SyntaxFactory.Space));
                 }
 
                 if (!existingUsings.Any(u => u.IsEquivalentTo(candidateUsing, topLevel: false)))

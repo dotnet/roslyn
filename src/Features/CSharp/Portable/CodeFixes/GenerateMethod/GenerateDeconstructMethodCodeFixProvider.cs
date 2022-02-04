@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
@@ -40,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateDeconstructMethod
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             // Not supported in REPL
-            if (context.Project.IsSubmission)
+            if (context.Document.Project.IsSubmission)
             {
                 return;
             }

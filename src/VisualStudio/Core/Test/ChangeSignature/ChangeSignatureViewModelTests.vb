@@ -69,7 +69,9 @@ class MyClass
             Assert.True(viewModel.TrySubmit)
 
             viewModel.MoveUp()
-            Assert.False(viewModel.TrySubmit)
+            Dim message As String = Nothing
+            Assert.False(viewModel.CanSubmit(message))
+            Assert.Equal(ServicesVSResources.You_must_change_the_signature, message)
 
             VerifyAlteredState(
                 viewModelTestState,
@@ -109,7 +111,6 @@ class MyClass
                 canCommit:=True,
                 canMoveUp:=True,
                 canMoveDown:=False,
-                canEdit:=True,
                 permutation:={1, 0},
                 signatureDisplay:="public void M(string y, int x)")
 
@@ -138,7 +139,6 @@ class MyClass
             monitor.AddExpectation(Function() viewModel.RemoveAutomationText)
             monitor.AddExpectation(Function() viewModel.CanRestore)
             monitor.AddExpectation(Function() viewModel.RestoreAutomationText)
-            monitor.AddExpectation(Function() viewModel.CanEdit)
 
             viewModel.Remove()
 
@@ -148,7 +148,6 @@ class MyClass
                 canCommit:=True,
                 canMoveUp:=False,
                 canMoveDown:=True,
-                canEdit:=False,
                 permutation:={1},
                 signatureDisplay:="public void M(string y)")
 
@@ -178,7 +177,6 @@ class MyClass
             selectionChangedMonitor.AddExpectation(Function() viewModel.RemoveAutomationText)
             selectionChangedMonitor.AddExpectation(Function() viewModel.CanRestore)
             selectionChangedMonitor.AddExpectation(Function() viewModel.RestoreAutomationText)
-            selectionChangedMonitor.AddExpectation(Function() viewModel.CanEdit)
 
             viewModel.SelectedIndex = 1
 
@@ -293,8 +291,7 @@ class MyClass
             VerifyAlteredState(viewModelTestState,
                 canMoveUp:=False,
                 canMoveDown:=False,
-                canRemove:=True,
-                canEdit:=False)
+                canRemove:=True)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
@@ -344,7 +341,7 @@ class Goo
                 defaultValue:="default")
         End Function
 
-        Private Sub VerifyAlteredState(
+        Private Shared Sub VerifyAlteredState(
            viewModelTestState As ChangeSignatureViewModelTestState,
            Optional monitor As PropertyChangedTestMonitor = Nothing,
            Optional canCommit As Boolean? = Nothing,
@@ -352,7 +349,6 @@ class Goo
            Optional canMoveDown As Boolean? = Nothing,
            Optional canRemove As Boolean? = Nothing,
            Optional canRestore As Boolean? = Nothing,
-           Optional canEdit As Boolean? = Nothing,
            Optional permutation As Integer() = Nothing,
            Optional signatureDisplay As String = Nothing)
 
@@ -363,7 +359,12 @@ class Goo
             End If
 
             If canCommit IsNot Nothing Then
-                Assert.Equal(canCommit, viewModel.TrySubmit())
+                Dim message As String = Nothing
+                Assert.Equal(canCommit, viewModel.CanSubmit(message))
+
+                If canCommit.Value Then
+                    Assert.True(viewModel.TrySubmit())
+                End If
             End If
 
             If canMoveUp IsNot Nothing Then
@@ -382,10 +383,6 @@ class Goo
                 Assert.Equal(canRestore, viewModel.CanRestore)
             End If
 
-            If canEdit IsNot Nothing Then
-                Assert.Equal(canEdit, viewModel.CanEdit)
-            End If
-
             If permutation IsNot Nothing Then
                 AssertPermuted(permutation, viewModel.AllParameters, viewModelTestState.OriginalParameterList)
             End If
@@ -396,7 +393,7 @@ class Goo
 
         End Sub
 
-        Private Sub AssertPermuted(permutation As Integer(), actualParameterList As List(Of ChangeSignatureDialogViewModel.ParameterViewModel), originalParameterList As ImmutableArray(Of IParameterSymbol))
+        Private Shared Sub AssertPermuted(permutation As Integer(), actualParameterList As List(Of ChangeSignatureDialogViewModel.ParameterViewModel), originalParameterList As ImmutableArray(Of IParameterSymbol))
             Dim finalParameterList = actualParameterList.Where(Function(p) Not p.IsRemoved)
             For index = 0 To permutation.Length - 1
                 Dim expected = originalParameterList(permutation(index))
@@ -404,13 +401,15 @@ class Goo
             Next
         End Sub
 
-        Private Sub VerifyOpeningState(viewModel As ChangeSignatureDialogViewModel, openingSignatureDisplay As String)
+        Private Shared Sub VerifyOpeningState(viewModel As ChangeSignatureDialogViewModel, openingSignatureDisplay As String)
             Assert.Equal(openingSignatureDisplay, viewModel.TEST_GetSignatureDisplayText())
-            Assert.False(viewModel.TrySubmit)
+            Dim message As String = Nothing
+            Assert.False(viewModel.CanSubmit(message))
+            Assert.Equal(ServicesVSResources.You_must_change_the_signature, message)
             Assert.False(viewModel.CanMoveUp)
         End Sub
 
-        Private Sub VerifyParameterInfo(
+        Private Shared Sub VerifyParameterInfo(
             viewModel As ChangeSignatureDialogViewModel,
                 parameterIndex As Integer,
                 Optional modifier As String = Nothing,
@@ -447,7 +446,7 @@ class Goo
             End If
         End Sub
 
-        Private Async Function GetViewModelTestStateAsync(
+        Private Shared Async Function GetViewModelTestStateAsync(
             markup As XElement,
             languageName As String) As Tasks.Task(Of ChangeSignatureViewModelTestState)
 
@@ -470,10 +469,10 @@ class Goo
                 Dim symbol = (Await workspaceDoc.GetSemanticModelAsync()).GetDeclaredSymbol(token.Parent)
 
                 Dim viewModel = New ChangeSignatureDialogViewModel(
-                    ParameterConfiguration.Create(symbol.GetParameters().Select(Function(p) DirectCast(New ExistingParameter(p), Parameter)), symbol.IsExtensionMethod(), selectedIndex:=0),
+                    ParameterConfiguration.Create(symbol.GetParameters().Select(Function(p) DirectCast(New ExistingParameter(p), Parameter)).ToImmutableArray(), symbol.IsExtensionMethod(), selectedIndex:=0),
                     symbol,
                     workspaceDoc,
-                    insertPosition:=0,
+                    positionForTypeBinding:=0,
                     workspace.ExportProvider.GetExportedValue(Of IClassificationFormatMapService)().GetClassificationFormatMap("text"),
                     workspace.ExportProvider.GetExportedValue(Of ClassificationTypeMap)())
                 Return New ChangeSignatureViewModelTestState(viewModel, symbol.GetParameters())

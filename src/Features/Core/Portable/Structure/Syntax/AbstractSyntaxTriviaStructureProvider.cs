@@ -4,16 +4,17 @@
 
 using System;
 using System.Threading;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.Structure
 {
     internal abstract class AbstractSyntaxTriviaStructureProvider : AbstractSyntaxStructureProvider
     {
         public sealed override void CollectBlockSpans(
-            Document document,
+            SyntaxToken previousToken,
             SyntaxNode node,
-            ArrayBuilder<BlockSpan> spans,
+            ref TemporaryArray<BlockSpan> spans,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
             throw new NotSupportedException();

@@ -16,14 +16,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             private readonly ITextBuffer _subjectBuffer;
             private readonly IDiagnosticService _service;
 
-            public DiagnosticsChangedEventSource(ITextBuffer subjectBuffer, IDiagnosticService service, TaggerDelay delay)
-                : base(delay)
+            public DiagnosticsChangedEventSource(ITextBuffer subjectBuffer, IDiagnosticService service)
             {
                 _subjectBuffer = subjectBuffer;
                 _service = service;
             }
 
-            private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
+            private void OnDiagnosticsUpdated(object? sender, DiagnosticsUpdatedArgs e)
             {
                 var document = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -28,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             CancellationToken cancellationToken)
         {
             var containerToGenerateInto = expression.Ancestors().FirstOrDefault(s =>
-                s is BlockSyntax || s is ArrowExpressionClauseSyntax || s is LambdaExpressionSyntax);
+                s is BlockSyntax or ArrowExpressionClauseSyntax or LambdaExpressionSyntax);
 
             var newLocalNameToken = GenerateUniqueLocalName(
                 document, expression, isConstant, containerToGenerateInto, cancellationToken);
@@ -65,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 case ArrowExpressionClauseSyntax arrowExpression:
                     // this will be null for expression-bodied properties & indexer (not for individual getters & setters, those do have a symbol),
                     // both of which are a shorthand for the getter and always return a value
-                    var method = document.SemanticModel.GetDeclaredSymbol(arrowExpression.Parent) as IMethodSymbol;
+                    var method = document.SemanticModel.GetDeclaredSymbol(arrowExpression.Parent, cancellationToken) as IMethodSymbol;
                     var createReturnStatement = !method?.ReturnsVoid ?? true;
 
                     return RewriteExpressionBodiedMemberAndIntroduceLocalDeclaration(
@@ -91,17 +93,14 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             CancellationToken cancellationToken)
         {
             var oldBody = (ExpressionSyntax)oldLambda.Body;
+            var isEntireLambdaBodySelected = oldBody.Equals(expression.WalkUpParentheses());
 
             var rewrittenBody = Rewrite(
                 document, expression, newLocalName, document, oldBody, allOccurrences, cancellationToken);
 
-
-            var newBody =
-                document.SemanticModel.GetTypeInfo(oldLambda, cancellationToken).ConvertedType is INamedTypeSymbol delegateType
-                && delegateType.DelegateInvokeMethod != null
-                && delegateType.DelegateInvokeMethod.ReturnsVoid
-                    ? SyntaxFactory.Block(declarationStatement)
-                    : SyntaxFactory.Block(declarationStatement, SyntaxFactory.ReturnStatement(rewrittenBody));
+            var shouldIncludeReturnStatement = ShouldIncludeReturnStatement(document, oldLambda, cancellationToken);
+            var newBody = GetNewBlockBodyForLambda(
+                declarationStatement, isEntireLambdaBodySelected, rewrittenBody, shouldIncludeReturnStatement);
 
             // Add an elastic newline so that the formatter will place this new lambda body across multiple lines.
             newBody = newBody.WithOpenBraceToken(newBody.OpenBraceToken.WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed))
@@ -113,7 +112,98 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             return document.Document.WithSyntaxRoot(newRoot);
         }
 
-        private TypeSyntax GetTypeSyntax(SemanticDocument document, ExpressionSyntax expression, CancellationToken cancellationToken)
+        private static bool ShouldIncludeReturnStatement(
+            SemanticDocument document,
+            LambdaExpressionSyntax oldLambda,
+            CancellationToken cancellationToken)
+        {
+            if (document.SemanticModel.GetTypeInfo(oldLambda, cancellationToken).ConvertedType is INamedTypeSymbol delegateType &&
+                delegateType.DelegateInvokeMethod != null)
+            {
+                if (delegateType.DelegateInvokeMethod.ReturnsVoid)
+                {
+                    return false;
+                }
+
+                // Async lambdas with a Task or ValueTask return type don't need a return statement.
+                // e.g.:
+                //     Func<int, Task> f = async x => await M2();
+                //
+                // After refactoring:
+                //     Func<int, Task> f = async x =>
+                //     {
+                //         Task task = M2();
+                //         await task;
+                //     };
+                var compilation = document.SemanticModel.Compilation;
+                var delegateReturnType = delegateType.DelegateInvokeMethod.ReturnType;
+                if (oldLambda.AsyncKeyword != default && delegateReturnType != null)
+                {
+                    if ((compilation.TaskType() != null && delegateReturnType.Equals(compilation.TaskType())) ||
+                        (compilation.ValueTaskType() != null && delegateReturnType.Equals(compilation.ValueTaskType())))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        private static BlockSyntax GetNewBlockBodyForLambda(
+            LocalDeclarationStatementSyntax declarationStatement,
+            bool isEntireLambdaBodySelected,
+            ExpressionSyntax rewrittenBody,
+            bool includeReturnStatement)
+        {
+            if (includeReturnStatement)
+            {
+                // Case 1: The lambda has a non-void return type.
+                // e.g.:
+                //     Func<int, int> f = x => [|x + 1|];
+                //
+                // After refactoring:
+                //     Func<int, int> f = x =>
+                //     {
+                //         var v = x + 1;
+                //         return v;
+                //     };
+                return SyntaxFactory.Block(declarationStatement, SyntaxFactory.ReturnStatement(rewrittenBody));
+            }
+
+            // For lambdas with void return types, we don't need to include the rewritten body if the entire lambda body
+            // was originally selected for refactoring, as the rewritten body should already be encompassed within the
+            // declaration statement.
+            if (isEntireLambdaBodySelected)
+            {
+                // Case 2a: The lambda has a void return type, and the user selects the entire lambda body.
+                // e.g.:
+                //     Action<int> goo = x => [|x.ToString()|];
+                //
+                // After refactoring:
+                //     Action<int> goo = x =>
+                //     {
+                //         string v = x.ToString();
+                //     };
+                return SyntaxFactory.Block(declarationStatement);
+            }
+
+            // Case 2b: The lambda has a void return type, and the user didn't select the entire lambda body.
+            // e.g.:
+            //     Task.Run(() => File.Copy("src", [|Path.Combine("dir", "file")|]));
+            //
+            // After refactoring:
+            //     Task.Run(() =>
+            //     {
+            //         string destFileName = Path.Combine("dir", "file");
+            //         File.Copy("src", destFileName);
+            //     });
+            return SyntaxFactory.Block(
+                declarationStatement,
+                SyntaxFactory.ExpressionStatement(rewrittenBody, SyntaxFactory.Token(SyntaxKind.SemicolonToken)));
+        }
+
+        private static TypeSyntax GetTypeSyntax(SemanticDocument document, ExpressionSyntax expression, CancellationToken cancellationToken)
         {
             var typeSymbol = GetTypeSymbol(document, expression, cancellationToken);
             return typeSymbol.GenerateTypeSyntax();
@@ -260,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             return document.Document.WithSyntaxRoot(newRoot);
         }
 
-        private IEnumerable<StatementSyntax> GetApplicableStatementAncestors(ExpressionSyntax expr)
+        private static IEnumerable<StatementSyntax> GetApplicableStatementAncestors(ExpressionSyntax expr)
         {
             foreach (var statement in expr.GetAncestorsOrThis<StatementSyntax>())
             {
@@ -277,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             }
         }
 
-        private int GetFirstStatementAffectedIndex(SyntaxNode innermostCommonBlock, ISet<ExpressionSyntax> matches, int firstStatementAffectedIndex)
+        private static int GetFirstStatementAffectedIndex(SyntaxNode innermostCommonBlock, ISet<ExpressionSyntax> matches, int firstStatementAffectedIndex)
         {
             // If a local function is involved, we have to make sure the new declaration is placed:
             //     1. Before all calls to local functions that use the variable.
@@ -331,8 +421,10 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             var nextStatementLeading = nextStatement.GetLeadingTrivia();
             var precedingEndOfLine = nextStatementLeading.LastOrDefault(t => t.Kind() == SyntaxKind.EndOfLineTrivia);
             if (precedingEndOfLine == default)
+            {
                 return oldStatements.ReplaceRange(
                     nextStatement, new[] { newStatement, nextStatement });
+            }
 
             var endOfLineIndex = nextStatementLeading.IndexOf(precedingEndOfLine) + 1;
 
@@ -344,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 });
         }
 
-        private static bool IsBlockLike(SyntaxNode node) => node is BlockSyntax || node is SwitchSectionSyntax;
+        private static bool IsBlockLike(SyntaxNode node) => node is BlockSyntax or SwitchSectionSyntax;
 
         private static SyntaxList<StatementSyntax> GetStatements(SyntaxNode blockLike)
             => blockLike switch

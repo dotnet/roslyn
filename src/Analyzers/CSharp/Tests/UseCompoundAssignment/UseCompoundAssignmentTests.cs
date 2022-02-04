@@ -11,18 +11,24 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 {
     public class UseCompoundAssignmentTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public UseCompoundAssignmentTests(ITestOutputHelper logger)
+          : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUseCompoundAssignmentDiagnosticAnalyzer(), new CSharpUseCompoundAssignmentCodeFixProvider());
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestAddExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     void M(int a)
@@ -42,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestSubtractExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     void M(int a)
@@ -62,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestMultiplyExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     void M(int a)
@@ -82,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestDivideExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     void M(int a)
@@ -102,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestModuloExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     void M(int a)
@@ -122,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestBitwiseAndExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     void M(int a)
@@ -142,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestExclusiveOrExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     void M(int a)
@@ -162,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestBitwiseOrExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     void M(int a)
@@ -182,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestLeftShiftExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     void M(int a)
@@ -202,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestRightShiftExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     void M(int a)
@@ -222,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestCoalesceExpressionCSharp8OrGreater()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     void M(int? a)
@@ -236,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
     {
         a ??= 10;
     }
-}", parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+}", new TestParameters(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
@@ -273,7 +279,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestField()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     int a;
@@ -297,7 +303,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestFieldWithThis()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     int a;
@@ -321,7 +327,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestTriviaInsensitive()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     int a;
@@ -345,7 +351,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestStaticFieldThroughType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     static int a;
@@ -369,7 +375,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestStaticFieldThroughNamespaceAndType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"namespace NS
 {
     public class C
@@ -399,7 +405,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestParenthesized()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     int a;
@@ -423,7 +429,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestThroughBase()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     public int a;
@@ -453,7 +459,7 @@ public class D : C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestMultiAccess()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     public int a;
@@ -681,7 +687,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestTrivia()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     void M(int a)
@@ -703,7 +709,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestTrivia2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     void M(int a)
@@ -723,7 +729,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestFixAll()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     void M(int a, int b)
@@ -745,7 +751,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestNestedAssignment()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     void M(int a, int b)
@@ -782,11 +788,49 @@ struct InsertionPoint
 }");
         }
 
+        [WorkItem(49294, "https://github.com/dotnet/roslyn/issues/49294")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestNotOnImplicitObjectInitializer()
+        {
+            await TestMissingAsync(
+@"
+struct InsertionPoint
+{
+    int level;
+    
+    InsertionPoint Up()
+    {
+        return new()
+        {
+            level [||]= level - 1,
+        };
+    }
+}");
+        }
+
+        [WorkItem(49294, "https://github.com/dotnet/roslyn/issues/49294")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestNotOnRecord()
+        {
+            await TestMissingAsync(
+@"
+record InsertionPoint(int level)
+{
+    InsertionPoint Up()
+    {
+        return this with
+        {
+            level [||]= level - 1,
+        };
+    }
+}");
+        }
+
         [WorkItem(38137, "https://github.com/dotnet/roslyn/issues/38137")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
         public async Task TestParenthesizedExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"public class C
 {
     void M(int a)
@@ -801,6 +845,357 @@ struct InsertionPoint
         a += 10;
     }
 }");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIncrement()
+        {
+            await TestInRegularAndScript1Async(
+@"public class C
+{
+    void M(int a)
+    {
+        a [||]= a + 1;
+    }
+}",
+@"public class C
+{
+    void M(int a)
+    {
+        a++;
+    }
+}");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestDecrement()
+        {
+            await TestInRegularAndScript1Async(
+@"public class C
+{
+    void M(int a)
+    {
+        a [||]= a - 1;
+    }
+}",
+@"public class C
+{
+    void M(int a)
+    {
+        a--;
+    }
+}");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestMinusIncrement()
+        {
+            await TestInRegularAndScript1Async(
+@"public class C
+{
+    void M(int a)
+    {
+        a [||]= a + (-1);
+    }
+}",
+@"public class C
+{
+    void M(int a)
+    {
+        a--;
+    }
+}");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIncrementDouble()
+        {
+            await TestInRegularAndScript1Async(
+@"public class C
+{
+    void M(double a)
+    {
+        a [||]= a + 1.0;
+    }
+}",
+@"public class C
+{
+    void M(double a)
+    {
+        a++;
+    }
+}");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIncrementNotOnString()
+        {
+            await TestInRegularAndScript1Async(
+@"public class C
+{
+    void M(string a)
+    {
+        a [||]= a + ""1"";
+    }
+}",
+@"public class C
+{
+    void M(string a)
+    {
+        a += ""1"";
+    }
+}");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIncrementChar()
+        {
+            await TestInRegularAndScript1Async(
+@"public class C
+{
+    void M(char a)
+    {
+        a [||]= a + 1;
+    }
+}",
+@"public class C
+{
+    void M(char a)
+    {
+        a++;
+    }
+}");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIncrementEnum()
+        {
+            await TestInRegularAndScript1Async(
+@"public enum E {}
+public class C
+{
+    void M(E a)
+    {
+        a [||]= a + 1;
+    }
+}",
+@"public enum E {}
+public class C
+{
+    void M(E a)
+    {
+        a++;
+    }
+}");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIncrementDecimal()
+        {
+            await TestInRegularAndScript1Async(
+@"public class C
+{
+    void M(decimal a)
+    {
+        a [||]= a + 1.0m;
+    }
+}",
+@"public class C
+{
+    void M(decimal a)
+    {
+        a++;
+    }
+}");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [InlineData("byte")]
+        [InlineData("short")]
+        [InlineData("long")]
+        [InlineData("float")]
+        [InlineData("decimal")]
+        public async Task TestIncrementLiteralConversion(string typeName)
+        {
+            await TestInRegularAndScript1Async(
+$@"public class C
+{{
+    void M({typeName} a)
+    {{
+        a [||]= a + ({typeName})1;
+    }}
+}}",
+$@"public class C
+{{
+    void M({typeName} a)
+    {{
+        a++;
+    }}
+}}");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [InlineData("byte")]
+        [InlineData("short")]
+        [InlineData("long")]
+        [InlineData("float")]
+        [InlineData("decimal")]
+        public async Task TestIncrementImplicitLiteralConversion(string typeName)
+        {
+            await TestInRegularAndScript1Async(
+$@"public class C
+{{
+    void M({typeName} a)
+    {{
+        a [||]= a + 1;
+    }}
+}}",
+$@"public class C
+{{
+    void M({typeName} a)
+    {{
+        a++;
+    }}
+}}");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/38054")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIncrementLoopVariable()
+        {
+            await TestInRegularAndScript1Async(
+@"public class C
+{
+    void M()
+    {
+        for (int i = 0; i < 10; i [||]= i + 1)
+        {
+        }
+    }
+}",
+@"public class C
+{
+    void M()
+    {
+        for (int i = 0; i < 10; i++)
+        {
+        }
+    }
+}");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestIncrementInExpressionContext()
+        {
+            await TestInRegularAndScript1Async(
+@"public class C
+{
+    void M(int i)
+    {
+        M(i [||]= i + 1);
+    }
+}",
+@"public class C
+{
+    void M(int i)
+    {
+        M(++i);
+    }
+}");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [InlineData("switch($$) { }")]
+        [InlineData("while(($$) > 0) { }")]
+        [InlineData("_ = true ? $$ : 0;")]
+        [InlineData("_ = ($$);")]
+        public async Task TestPrefixIncrement1(string expressionContext)
+        {
+            var before = expressionContext.Replace("$$", "i [||]= i + 1");
+            var after = expressionContext.Replace("$$", "++i");
+            await TestInRegularAndScript1Async(
+@$"public class C
+{{
+    void M(int i)
+    {{
+        {before}
+    }}
+}}",
+@$"public class C
+{{
+    void M(int i)
+    {{
+        {after}
+    }}
+}}");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [InlineData("return $$;")]
+        [InlineData("return true ? $$ : 0;")]
+        [InlineData("return ($$);")]
+        public async Task TestPrefixIncrement2(string expressionContext)
+        {
+            var before = expressionContext.Replace("$$", "i [||]= i + 1");
+            var after = expressionContext.Replace("$$", "++i");
+            await TestInRegularAndScript1Async(
+@$"public class C
+{{
+    int M(int i)
+    {{
+        {before}
+    }}
+}}",
+@$"public class C
+{{
+    int M(int i)
+    {{
+        {after}
+    }}
+}}");
+        }
+
+        [WorkItem(38054, "https://github.com/dotnet/roslyn/issues/53969")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        [InlineData(
+            "/* Before */ i [||]= i + 1; /* After */",
+            "/* Before */ i++; /* After */")]
+        [InlineData(
+            "M( /* Before */ i [||]= i + 1 /* After */ );",
+            "M( /* Before */ ++i /* After */ );")]
+        [InlineData(
+            "M( /* Before */ i [||]= i - 1 /* After */ );",
+            "M( /* Before */ --i /* After */ );")]
+        public async Task TestTriviaPreserved(string before, string after)
+        {
+            await TestInRegularAndScript1Async(
+@$"public class C
+{{
+    int M(int i)
+    {{
+        {before}
+    }}
+}}",
+@$"public class C
+{{
+    int M(int i)
+    {{
+        {after}
+    }}
+}}");
         }
     }
 }

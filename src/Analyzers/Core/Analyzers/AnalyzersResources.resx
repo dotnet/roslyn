@@ -124,7 +124,7 @@
     <value>Remove unused member</value>
   </data>
   <data name="Private_member_0_is_unused" xml:space="preserve">
-    <value>Private member '{0}' is unused.</value>
+    <value>Private member '{0}' is unused</value>
   </data>
   <data name="Remove_unused_private_members" xml:space="preserve">
     <value>Remove unused private members</value>
@@ -133,7 +133,7 @@
     <value>Remove unread private members</value>
   </data>
   <data name="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read" xml:space="preserve">
-    <value>Private member '{0}' can be removed as the value assigned to it is never read.</value>
+    <value>Private member '{0}' can be removed as the value assigned to it is never read</value>
   </data>
   <data name="Private_method_0_can_be_removed_as_it_is_never_invoked" xml:space="preserve">
     <value>Private method '{0}' can be removed as it is never invoked.</value>
@@ -298,13 +298,58 @@
   <data name="Invalid_format_string" xml:space="preserve">
     <value>Invalid format string</value>
   </data>
-  <data name="Convert_to_tuple" xml:space="preserve">
-    <value>Convert to tuple</value>
-  </data>
   <data name="Simplify_conditional_expression" xml:space="preserve">
     <value>Simplify conditional expression</value>
   </data>
   <data name="Conditional_expression_can_be_simplified" xml:space="preserve">
     <value>Conditional expression can be simplified</value>
+  </data>
+  <data name="Invalid_global_SuppressMessageAttribute" xml:space="preserve">
+    <value>Invalid global 'SuppressMessageAttribute'</value>
+  </data>
+  <data name="Invalid_scope_for_SuppressMessageAttribute" xml:space="preserve">
+    <value>Invalid scope for 'SuppressMessageAttribute'</value>
+  </data>
+  <data name="Invalid_or_missing_target_for_SuppressMessageAttribute" xml:space="preserve">
+    <value>Invalid or missing target for 'SuppressMessageAttribute'</value>
+  </data>
+  <data name="Avoid_legacy_format_target_in_SuppressMessageAttribute" xml:space="preserve">
+    <value>Avoid legacy format target in 'SuppressMessageAttribute'</value>
+  </data>
+  <data name="Avoid_legacy_format_target_0_in_SuppressMessageAttribute" xml:space="preserve">
+    <value>Avoid legacy format target '{0}' in 'SuppressMessageAttribute'</value>
+  </data>
+  <data name="Remove_unnecessary_suppression" xml:space="preserve">
+    <value>Remove unnecessary suppression</value>
+  </data>
+  <data name="Remove_redundant_equality" xml:space="preserve">
+    <value>Remove redundant equality</value>
+  </data>
+  <data name="Use_decrement_operator" xml:space="preserve">
+    <value>Use '--' operator</value>
+  </data>
+  <data name="Use_increment_operator" xml:space="preserve">
+    <value>Use '++' operator</value>
+  </data>
+  <data name="Avoid_multiple_blank_lines" xml:space="preserve">
+    <value>Avoid multiple blank lines</value>
+  </data>
+  <data name="Blank_line_required_between_block_and_subsequent_statement" xml:space="preserve">
+    <value>Blank line required between block and subsequent statement</value>
+  </data>
+  <data name="Change_namespace_to_match_folder_structure" xml:space="preserve">
+    <value>Change namespace to match folder structure</value>
+    <comment>{Locked="namespace"} "namespace" is a keyword and should not be localized.</comment>
+  </data>
+  <data name="Namespace_0_does_not_match_folder_structure_expected_1" xml:space="preserve">
+    <value>Namespace "{0}" does not match folder structure, expected "{1}"</value>
+    <comment>{Locked="namespace"} "namespace" is a keyword and should not be localized.</comment>
+  </data>
+  <data name="Namespace_does_not_match_folder_structure" xml:space="preserve">
+    <value>Namespace does not match folder structure</value>
+    <comment>{Locked="namespace"} "namespace" is a keyword and should not be localized.</comment>
+  </data>
+  <data name="Simplify_LINQ_expression" xml:space="preserve">
+    <value>Simplify LINQ expression</value>
   </data>
 </root>

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -23,8 +25,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 {
     internal sealed class ProjectExternalErrorReporter : IVsReportExternalErrors, IVsLanguageServiceBuildErrorReporter2
     {
-        internal static readonly IReadOnlyList<string> CustomTags = ImmutableArray.Create(WellKnownDiagnosticTags.Telemetry);
-        internal static readonly IReadOnlyList<string> CompilerDiagnosticCustomTags = ImmutableArray.Create(WellKnownDiagnosticTags.Compiler, WellKnownDiagnosticTags.Telemetry);
+        internal static readonly ImmutableArray<string> CustomTags = ImmutableArray.Create(WellKnownDiagnosticTags.Telemetry);
+        internal static readonly ImmutableArray<string> CompilerDiagnosticCustomTags = ImmutableArray.Create(WellKnownDiagnosticTags.Compiler, WellKnownDiagnosticTags.Telemetry);
 
         private readonly ProjectId _projectId;
         private readonly string _errorCodePrefix;
@@ -61,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             if (errorId == null)
             {
                 // record NFW to see who violates contract.
-                WatsonReporter.ReportNonFatal(new Exception("errorId is null"));
+                FatalError.ReportAndCatch(new Exception("errorId is null"));
                 return false;
             }
 
@@ -289,7 +291,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 category: WellKnownDiagnosticTags.Build,
                 message: message,
                 title: message,
-                enuMessageForBingSearch: message, // Unfortunately, there is no way to get ENU text for this since this is an external error.
                 severity: severity,
                 defaultSeverity: severity,
                 isEnabledByDefault: true,

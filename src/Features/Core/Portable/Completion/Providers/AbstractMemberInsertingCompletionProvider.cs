@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -17,8 +18,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract partial class AbstractMemberInsertingCompletionProvider : LSPCompletionProvider
     {
-        private readonly SyntaxAnnotation _annotation = new SyntaxAnnotation();
-        private readonly SyntaxAnnotation _otherAnnotation = new SyntaxAnnotation();
+        private readonly SyntaxAnnotation _annotation = new();
+        private readonly SyntaxAnnotation _otherAnnotation = new();
 
         protected abstract SyntaxToken GetToken(CompletionItem completionItem, SyntaxTree tree, CancellationToken cancellationToken);
 
@@ -41,10 +42,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // Attempt to find the inserted node and move the caret appropriately
             if (newRoot != null)
             {
-                var caretTarget = newRoot.GetAnnotatedNodesAndTokens(_annotation).FirstOrNull();
+                var caretTarget = newRoot.GetAnnotatedNodes(_annotation).FirstOrDefault();
                 if (caretTarget != null)
                 {
-                    var targetPosition = GetTargetCaretPosition(caretTarget.Value.AsNode());
+                    var targetPosition = GetTargetCaretPosition(caretTarget);
 
                     // Something weird happened and we failed to get a valid position.
                     // Bail on moving the caret.
@@ -56,9 +57,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             var changes = await newDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
-            var change = Utilities.Collapse(newText, changes.ToImmutableArray());
+            var changesArray = changes.ToImmutableArray();
+            var change = Utilities.Collapse(newText, changesArray);
 
-            return CompletionChange.Create(change, newPosition, includesCommitCharacter: true);
+            return CompletionChange.Create(change, changesArray, newPosition, includesCommitCharacter: true);
         }
 
         private async Task<Document> DetermineNewDocumentAsync(Document document, CompletionItem completionItem, CancellationToken cancellationToken)
@@ -69,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var line = text.Lines[MemberInsertionCompletionItem.GetLine(completionItem)];
 
             // Annotate the line we care about so we can find it after adding usings
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var token = GetToken(completionItem, tree, cancellationToken);
             var annotatedRoot = tree.GetRoot(cancellationToken).ReplaceToken(token, token.WithAdditionalAnnotations(_otherAnnotation));
             document = document.WithSyntaxRoot(annotatedRoot);
@@ -92,24 +94,27 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 .Replace(destinationSpan, insertionText.Trim());
 
             document = document.WithText(finalText);
-            var newRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var newRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var declaration = GetSyntax(newRoot.FindToken(destinationSpan.End));
 
             document = document.WithSyntaxRoot(newRoot.ReplaceNode(declaration, declaration.WithAdditionalAnnotations(_annotation)));
             return await Formatter.FormatAsync(document, _annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<Document> GenerateMemberAndUsingsAsync(
+        private async Task<Document?> GenerateMemberAndUsingsAsync(
             Document document,
             CompletionItem completionItem,
             TextLine line,
             CancellationToken cancellationToken)
         {
-            var codeGenService = document.GetLanguageService<ICodeGenerationService>();
+            var codeGenService = document.GetRequiredLanguageService<ICodeGenerationService>();
 
             // Resolve member and type in our new, forked, solution
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
             var containingType = semanticModel.GetEnclosingSymbol<INamedTypeSymbol>(line.Start, cancellationToken);
+            Contract.ThrowIfNull(containingType);
+
             var symbols = await SymbolCompletionItem.GetSymbolsAsync(completionItem, document, cancellationToken).ConfigureAwait(false);
             var overriddenMember = symbols.FirstOrDefault();
 
@@ -120,23 +125,24 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             // CodeGenerationOptions containing before and after
-            var options = new CodeGenerationOptions(contextLocation: semanticModel.SyntaxTree.GetLocation(TextSpan.FromBounds(line.Start, line.Start)));
+            var context = new CodeGenerationContext(
+                contextLocation: semanticModel.SyntaxTree.GetLocation(TextSpan.FromBounds(line.Start, line.Start)));
 
             var generatedMember = await GenerateMemberAsync(overriddenMember, containingType, document, completionItem, cancellationToken).ConfigureAwait(false);
             generatedMember = _annotation.AddAnnotationToSymbol(generatedMember);
 
-            Document memberContainingDocument = null;
+            Document? memberContainingDocument = null;
             if (generatedMember.Kind == SymbolKind.Method)
             {
-                memberContainingDocument = await codeGenService.AddMethodAsync(document.Project.Solution, containingType, (IMethodSymbol)generatedMember, options, cancellationToken).ConfigureAwait(false);
+                memberContainingDocument = await codeGenService.AddMethodAsync(document.Project.Solution, containingType, (IMethodSymbol)generatedMember, context, cancellationToken).ConfigureAwait(false);
             }
             else if (generatedMember.Kind == SymbolKind.Property)
             {
-                memberContainingDocument = await codeGenService.AddPropertyAsync(document.Project.Solution, containingType, (IPropertySymbol)generatedMember, options, cancellationToken).ConfigureAwait(false);
+                memberContainingDocument = await codeGenService.AddPropertyAsync(document.Project.Solution, containingType, (IPropertySymbol)generatedMember, context, cancellationToken).ConfigureAwait(false);
             }
             else if (generatedMember.Kind == SymbolKind.Event)
             {
-                memberContainingDocument = await codeGenService.AddEventAsync(document.Project.Solution, containingType, (IEventSymbol)generatedMember, options, cancellationToken).ConfigureAwait(false);
+                memberContainingDocument = await codeGenService.AddEventAsync(document.Project.Solution, containingType, (IEventSymbol)generatedMember, context, cancellationToken).ConfigureAwait(false);
             }
 
             return memberContainingDocument;
@@ -145,6 +151,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private TextSpan ComputeDestinationSpan(SyntaxNode insertionRoot)
         {
             var targetToken = insertionRoot.GetAnnotatedTokens(_otherAnnotation).FirstOrNull();
+            Contract.ThrowIfNull(targetToken);
+
             var text = insertionRoot.GetText();
             var line = text.Lines.GetLineFromPosition(targetToken.Value.Span.End);
 
@@ -161,7 +169,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // has collapsed the outline for goo, that means we'll edit the outlined 
             // region and weird stuff will happen. Therefore, we'll start with the first
             // token on the line in order to leave the token and its trivia alone.
-            var firstToken = insertionRoot.FindToken(line.GetFirstNonWhitespacePosition().Value);
+            var position = line.GetFirstNonWhitespacePosition();
+            Contract.ThrowIfNull(position);
+
+            var firstToken = insertionRoot.FindToken(position.Value);
             return TextSpan.FromBounds(firstToken.SpanStart, line.End);
         }
 
@@ -171,8 +182,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             memberContainingDocument = await Simplifier.ReduceAsync(memberContainingDocument, Simplifier.Annotation, optionSet: null, cancellationToken).ConfigureAwait(false);
             memberContainingDocument = await Formatter.FormatAsync(memberContainingDocument, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            var root = await memberContainingDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return root.GetAnnotatedNodesAndTokens(_annotation).Single().AsNode().ToString().Trim();
+            var root = await memberContainingDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            return root.GetAnnotatedNodes(_annotation).Single().ToString().Trim();
         }
 
         private async Task<SyntaxNode> GetTreeWithAddedSyntaxNodeRemovedAsync(
@@ -182,17 +193,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // before removing added member node to preserve those imports in the document.
             document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, optionSet: null, cancellationToken).ConfigureAwait(false);
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var members = root.GetAnnotatedNodesAndTokens(_annotation)
-                              .AsImmutable()
-                              .Select(m => m.AsNode());
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var members = root.GetAnnotatedNodes(_annotation).AsImmutable();
 
             root = root.RemoveNodes(members, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+            Contract.ThrowIfNull(root);
 
             var dismemberedDocument = document.WithSyntaxRoot(root);
 
             dismemberedDocument = await Formatter.FormatAsync(dismemberedDocument, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
-            return await dismemberedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            return await dismemberedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         }
 
         private static readonly ImmutableArray<CharacterSetModificationRule> s_commitRules = ImmutableArray.Create(
@@ -207,10 +217,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 filterCharacterRules: s_filterRules,
                 enterKeyRule: EnterKeyRule.Never);
 
-        internal virtual CompletionItemRules GetRules()
+        protected static CompletionItemRules GetRules()
             => s_defaultRules;
 
-        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-            => MemberInsertionCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
+        internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
+            => MemberInsertionCompletionItem.GetDescriptionAsync(item, document, displayOptions, cancellationToken);
     }
 }

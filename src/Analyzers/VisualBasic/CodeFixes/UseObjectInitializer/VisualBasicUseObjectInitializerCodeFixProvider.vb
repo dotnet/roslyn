@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
             Return newStatement.WithLeadingTrivia(totalTrivia)
         End Function
 
-        Private Function GetNewObjectCreation(
+        Private Shared Function GetNewObjectCreation(
                 objectCreation As ObjectCreationExpressionSyntax,
                 matches As ImmutableArray(Of Match(Of ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, AssignmentStatementSyntax))) As ObjectCreationExpressionSyntax
 
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
                     CreateFieldInitializers(matches)))
         End Function
 
-        Private Function CreateFieldInitializers(
+        Private Shared Function CreateFieldInitializers(
                 matches As ImmutableArray(Of Match(Of ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, AssignmentStatementSyntax))) As SeparatedSyntaxList(Of FieldInitializerSyntax)
             Dim nodesAndTokens = New List(Of SyntaxNodeOrToken)
 

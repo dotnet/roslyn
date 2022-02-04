@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
@@ -35,8 +35,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             _trackingPoints = trackingPoints;
         }
 
-        public abstract bool TryNavigateTo(int index, bool previewTab);
-        public abstract bool TryGetValue(int index, string columnName, out object content);
+        public abstract bool TryNavigateTo(int index, bool previewTab, bool activate, CancellationToken cancellationToken);
+        public abstract bool TryGetValue(int index, string columnName, [NotNullWhen(true)] out object? content);
 
         public int VersionNumber
         {
@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return -1;
             }
 
-            if (!(newerSnapshot is AbstractTableEntriesSnapshot<TItem> ourSnapshot) || ourSnapshot.Count == 0)
+            if (newerSnapshot is not AbstractTableEntriesSnapshot<TItem> ourSnapshot || ourSnapshot.Count == 0)
             {
                 // not ours, we don't know how to track index
                 return -1;
@@ -82,6 +82,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             for (var i = 0; i < ourSnapshot.Count; i++)
             {
                 var newItem = ourSnapshot.GetItem(i);
+
+                // GetItem only returns null for index out of range
+                RoslynDebug.AssertNotNull(newItem);
+
                 if (item.EqualsIgnoringLocation(newItem))
                 {
                     return i;
@@ -101,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public void Dispose()
             => StopTracking();
 
-        internal TItem GetItem(int index)
+        internal TItem? GetItem(int index)
         {
             if (index < 0 || _items.Length <= index)
             {
@@ -148,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return new LinePosition(line.LineNumber, point.Position - line.Start);
         }
 
-        protected static bool TryNavigateTo(Workspace workspace, DocumentId documentId, LinePosition position, bool previewTab)
+        protected static bool TryNavigateTo(Workspace workspace, DocumentId documentId, LinePosition position, bool previewTab, bool activate, CancellationToken cancellationToken)
         {
             var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
             if (navigationService == null)
@@ -156,20 +160,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return false;
             }
 
-            var options = workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, previewTab);
-            if (navigationService.TryNavigateToLineAndOffset(workspace, documentId, position.Line, position.Character, options))
-            {
-                return true;
-            }
-
-            return false;
+            var solution = workspace.CurrentSolution;
+            var options = solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, previewTab)
+                                          .WithChangedOption(NavigationOptions.ActivateTab, activate);
+            return navigationService.TryNavigateToLineAndOffset(workspace, documentId, position.Line, position.Character, options, cancellationToken);
         }
 
-        protected bool TryNavigateToItem(int index, bool previewTab)
+        protected bool TryNavigateToItem(int index, bool previewTab, bool activate, CancellationToken cancellationToken)
         {
             var item = GetItem(index);
-            var documentId = item?.DocumentId;
-            if (documentId == null)
+            if (item is not { DocumentId: { } documentId })
             {
                 return false;
             }
@@ -195,39 +195,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 position = item.GetOriginalPosition();
             }
 
-            return TryNavigateTo(workspace, documentId, position, previewTab);
-        }
-
-        protected static string GetFileName(string original, string mapped)
-            => mapped == null ? original : original == null ? mapped : Combine(original, mapped);
-
-        private static string Combine(string path1, string path2)
-        {
-            if (TryCombine(path1, path2, out var result))
-            {
-                return result;
-            }
-
-            return string.Empty;
-        }
-
-        public static bool TryCombine(string path1, string path2, out string result)
-        {
-            try
-            {
-                // don't throw exception when either path1 or path2 contains illegal path char
-                result = System.IO.Path.Combine(path1, path2);
-                return true;
-            }
-            catch
-            {
-                result = null;
-                return false;
-            }
+            return TryNavigateTo(workspace, documentId, position, previewTab, activate, cancellationToken);
         }
 
         // we don't use these
-        public object Identity(int index)
+#pragma warning disable IDE0060 // Remove unused parameter - Implements interface method for sub-type
+        public object? Identity(int index)
+#pragma warning restore IDE0060 // Remove unused parameter
             => null;
 
         public void StartCaching()

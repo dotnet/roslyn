@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return declarator?.Initializer?.Value
         End Function
 
-        Private Function CheckExpressionSyntactically(expression As ExpressionSyntax) As Boolean
+        Private Shared Function CheckExpressionSyntactically(expression As ExpressionSyntax) As Boolean
             If expression.IsKind(SyntaxKind.SimpleMemberAccessExpression) Then
                 Dim memberAccessExpression = DirectCast(expression, MemberAccessExpressionSyntax)
                 Return memberAccessExpression.Expression.Kind() = SyntaxKind.MeExpression AndAlso
@@ -142,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
                     Dim assignmentStatement = DirectCast(statement, AssignmentStatementSyntax)
                     If assignmentStatement.Right.Kind() = SyntaxKind.IdentifierName Then
                         Dim identifier = DirectCast(assignmentStatement.Right, IdentifierNameSyntax)
-                        Dim symbol = semanticModel.GetSymbolInfo(identifier).Symbol
+                        Dim symbol = semanticModel.GetSymbolInfo(identifier, cancellationToken).Symbol
                         If setMethod.Parameters.Contains(TryCast(symbol, IParameterSymbol)) Then
                             Return If(CheckExpressionSyntactically(assignmentStatement.Left), assignmentStatement.Left, Nothing)
                         End If
@@ -153,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return Nothing
         End Function
 
-        Protected Overrides Function GetNodeToFade(fieldDeclaration As FieldDeclarationSyntax, identifier As ModifiedIdentifierSyntax) As SyntaxNode
+        Protected Overrides Function GetFieldNode(fieldDeclaration As FieldDeclarationSyntax, identifier As ModifiedIdentifierSyntax) As SyntaxNode
             Return Utilities.GetNodeToRemove(identifier)
         End Function
 
@@ -201,7 +201,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             End If
 
             If node.Kind() = SyntaxKind.IdentifierName Then
-                Dim symbolInfo = semanticModel.GetSymbolInfo(node)
+                Dim symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken)
                 If field.Equals(symbolInfo.Symbol) Then
                     If DirectCast(node, ExpressionSyntax).IsWrittenTo(semanticModel, cancellationToken) Then
                         Return True

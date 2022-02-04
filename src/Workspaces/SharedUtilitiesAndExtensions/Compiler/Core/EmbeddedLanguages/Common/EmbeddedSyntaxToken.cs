@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Text;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
@@ -69,5 +72,63 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 
         public TextSpan GetSpan()
             => EmbeddedSyntaxHelpers.GetSpan(this.VirtualChars);
+
+        public TextSpan? GetFullSpan()
+        {
+            if (LeadingTrivia.Length == 0 && VirtualChars.Length == 0 && TrailingTrivia.Length == 0)
+                return null;
+
+            var start =
+                Math.Min(LeadingTrivia.Length == 0 ? int.MaxValue : LeadingTrivia[0].GetSpan().Start,
+                Math.Min(VirtualChars.Length == 0 ? int.MaxValue : VirtualChars[0].Span.Start,
+                         TrailingTrivia.Length == 0 ? int.MaxValue : TrailingTrivia[0].GetSpan().Start));
+
+            var end =
+                Math.Max(LeadingTrivia.Length == 0 ? int.MinValue : LeadingTrivia[^1].GetSpan().End,
+                Math.Max(VirtualChars.Length == 0 ? int.MinValue : VirtualChars[^1].Span.End,
+                         TrailingTrivia.Length == 0 ? int.MinValue : TrailingTrivia[^1].GetSpan().End));
+
+            return TextSpan.FromBounds(start, end);
+        }
+
+        public override string ToString()
+        {
+            using var _ = PooledStringBuilder.GetInstance(out var sb);
+            WriteTo(sb, leading: false, trailing: false);
+            return sb.ToString();
+        }
+
+        public string ToFullString()
+        {
+            using var _ = PooledStringBuilder.GetInstance(out var sb);
+            WriteTo(sb, leading: true, trailing: true);
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// Writes the token to a stringbuilder.
+        /// </summary>
+        /// <param name="leading">If false, leading trivia will not be added</param>
+        /// <param name="trailing">If false, trailing trivia will not be added</param>
+        public void WriteTo(StringBuilder sb, bool leading, bool trailing)
+        {
+            if (leading && !LeadingTrivia.IsDefault)
+            {
+                foreach (var trivia in LeadingTrivia)
+                {
+                    sb.Append(trivia.ToString());
+                }
+            }
+
+            sb.Append(VirtualChars.CreateString());
+
+            if (trailing && !TrailingTrivia.IsDefault)
+            {
+                foreach (var trivia in TrailingTrivia)
+                {
+                    sb.Append(trivia.ToString());
+                }
+            }
+        }
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -21,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInterpolatedVerbatimString
     /// <summary>
     /// Converts a verbatim interpolated string @$"" to an interpolated verbatim string $@""
     /// </summary>
-    [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseInterpolatedVerbatimString), Shared]
     internal partial class CSharpUseInterpolatedVerbatimStringCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
@@ -58,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInterpolatedVerbatimString
             return Task.CompletedTask;
         }
 
-        private void AddEdits(
+        private static void AddEdits(
             SyntaxEditor editor,
             Diagnostic diagnostic,
             CancellationToken cancellationToken)
@@ -78,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInterpolatedVerbatimString
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Use_interpolated_verbatim_string, createChangedDocument)
+                : base(FeaturesResources.Use_interpolated_verbatim_string, createChangedDocument, nameof(FeaturesResources.Use_interpolated_verbatim_string))
             {
             }
         }

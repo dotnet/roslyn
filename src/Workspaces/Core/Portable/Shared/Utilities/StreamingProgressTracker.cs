@@ -11,41 +11,29 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     /// <summary>
     /// Utility class that can be used to track the progress of an operation in a threadsafe manner.
     /// </summary>
-    internal class StreamingProgressTracker : IStreamingProgressTracker
+    internal sealed class StreamingProgressTracker : IStreamingProgressTracker
     {
         private int _completedItems;
         private int _totalItems;
 
-        private readonly Func<int, int, Task> _updateActionOpt;
+        private readonly Func<int, int, CancellationToken, ValueTask>? _updateAction;
 
-        public StreamingProgressTracker()
-            : this(null)
-        {
-        }
+        public StreamingProgressTracker(Func<int, int, CancellationToken, ValueTask>? updateAction = null)
+            => _updateAction = updateAction;
 
-        public StreamingProgressTracker(Func<int, int, Task> updateActionOpt)
-            => _updateActionOpt = updateActionOpt;
-
-        public Task AddItemsAsync(int count)
+        public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken)
         {
             Interlocked.Add(ref _totalItems, count);
-            return UpdateAsync();
+            return UpdateAsync(cancellationToken);
         }
 
-        public Task ItemCompletedAsync()
+        public ValueTask ItemsCompletedAsync(int count, CancellationToken cancellationToken)
         {
-            Interlocked.Increment(ref _completedItems);
-            return UpdateAsync();
+            Interlocked.Add(ref _completedItems, count);
+            return UpdateAsync(cancellationToken);
         }
 
-        private Task UpdateAsync()
-        {
-            if (_updateActionOpt == null)
-            {
-                return Task.CompletedTask;
-            }
-
-            return _updateActionOpt(_completedItems, _totalItems);
-        }
+        private ValueTask UpdateAsync(CancellationToken cancellationToken)
+            => _updateAction?.Invoke(Volatile.Read(ref _completedItems), Volatile.Read(ref _totalItems), cancellationToken) ?? default;
     }
 }

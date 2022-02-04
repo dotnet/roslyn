@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -25,23 +23,24 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
         where TExpressionSyntax : SyntaxNode
         where TConditionalExpressionSyntax : TExpressionSyntax
     {
-        private static readonly ImmutableDictionary<string, string> s_takeCondition
-            = ImmutableDictionary<string, string>.Empty;
-        private static readonly ImmutableDictionary<string, string> s_negateCondition
+        private static readonly ImmutableDictionary<string, string?> s_takeCondition
+            = ImmutableDictionary<string, string?>.Empty;
+        private static readonly ImmutableDictionary<string, string?> s_negateCondition
             = s_takeCondition.Add(Negate, Negate);
-        private static readonly ImmutableDictionary<string, string> s_takeConditionOrWhenFalse
+        private static readonly ImmutableDictionary<string, string?> s_takeConditionOrWhenFalse
             = s_takeCondition.Add(Or, Or).Add(WhenFalse, WhenFalse);
-        private static readonly ImmutableDictionary<string, string> s_negateConditionAndWhenFalse
+        private static readonly ImmutableDictionary<string, string?> s_negateConditionAndWhenFalse
             = s_negateCondition.Add(And, And).Add(WhenFalse, WhenFalse);
-        private static readonly ImmutableDictionary<string, string> s_negateConditionOrWhenTrue
+        private static readonly ImmutableDictionary<string, string?> s_negateConditionOrWhenTrue
             = s_negateCondition.Add(Or, Or).Add(WhenTrue, WhenTrue);
-        private static readonly ImmutableDictionary<string, string> s_takeConditionAndWhenTrue
+        private static readonly ImmutableDictionary<string, string?> s_takeConditionAndWhenTrue
             = s_takeCondition.Add(And, And).Add(WhenTrue, WhenTrue);
-        private static readonly ImmutableDictionary<string, string> s_takeConditionAndWhenFalse
+        private static readonly ImmutableDictionary<string, string?> s_takeConditionAndWhenFalse
             = s_takeCondition.Add(And, And).Add(WhenFalse, WhenFalse);
 
         protected AbstractSimplifyConditionalDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.SimplifyConditionalExpressionDiagnosticId,
+                   EnforceOnBuildValues.SimplifyConditionalExpression,
                    CodeStyleOptions2.PreferSimplifiedBooleanExpressions,
                    new LocalizableResourceString(nameof(AnalyzersResources.Simplify_conditional_expression), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
                    new LocalizableResourceString(nameof(AnalyzersResources.Conditional_expression_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
@@ -142,7 +141,7 @@ namespace Microsoft.CodeAnalysis.SimplifyBooleanExpression
 
             // local functions
 
-            void ReportDiagnostic(ImmutableDictionary<string, string> properties)
+            void ReportDiagnostic(ImmutableDictionary<string, string?> properties)
                 => context.ReportDiagnostic(DiagnosticHelper.Create(
                     Descriptor,
                     conditionalExpression.GetLocation(),

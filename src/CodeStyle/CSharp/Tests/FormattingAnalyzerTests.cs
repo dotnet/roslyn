@@ -2,17 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Testing;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
-    using Verify = CSharpCodeFixVerifier<CSharpFormattingAnalyzer, CSharpFormattingCodeFixProvider, XUnitVerifier>;
+    using Verify = CSharpCodeFixVerifier<CSharpFormattingAnalyzer, CSharpFormattingCodeFixProvider>;
 
     public class FormattingAnalyzerTests
     {
@@ -29,6 +33,25 @@ class MyClass
 ";
 
             await Verify.VerifyAnalyzerAsync(testCode);
+        }
+
+        [Fact]
+        public async Task TestParamNullChecking()
+        {
+            var testCode = @"
+class MyClass
+{
+    void MyMethod(string s!!)
+    {
+    }
+}
+";
+            await new Verify.Test
+            {
+                TestCode = testCode,
+                FixedCode = testCode,
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
         }
 
         [Fact]
@@ -268,16 +291,15 @@ csharp_new_line_before_open_brace = methods
 
             await new CSharpCodeFixTest<CSharpFormattingAnalyzer, CSharpFormattingCodeFixProvider, XUnitVerifier>
             {
-                TestState = { Sources = { (Path.GetFullPath("Test0.cs"), testCode) } },
-                FixedState = { Sources = { (Path.GetFullPath("Test0.cs"), fixedCode) } },
-                SolutionTransforms =
+                TestState =
                 {
-                    (solution, projectId) =>
+                    Sources = { testCode },
+                    AnalyzerConfigFiles =
                     {
-                        var documentId = DocumentId.CreateNewId(projectId, ".editorconfig");
-                        return solution.AddAnalyzerConfigDocument(documentId, ".editorconfig", SourceText.From(editorConfig, Encoding.UTF8), filePath: Path.GetFullPath(".editorconfig"));
+                        ("/.editorconfig", editorConfig),
                     },
                 },
+                FixedState = { Sources = { fixedCode } },
             }.RunAsync();
         }
     }

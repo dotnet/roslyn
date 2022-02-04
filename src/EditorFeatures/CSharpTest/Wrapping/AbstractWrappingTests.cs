@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 {
@@ -17,8 +18,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
         protected sealed override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
             => FlattenActions(actions);
 
-        private protected static Dictionary<OptionKey2, object> GetIndentionColumn(int column)
-            => new Dictionary<OptionKey2, object>
+        private protected OptionsCollection GetIndentionColumn(int column)
+            => new OptionsCollection(GetLanguage())
                {
                    { FormattingOptions2.PreferredWrappingColumn, column }
                };
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping
 
         private protected Task TestAllWrappingCasesAsync(
             string input,
-            IDictionary<OptionKey2, object> options,
+            OptionsCollection options,
             params string[] outputs)
         {
             var parameters = new TestParameters(options: options);

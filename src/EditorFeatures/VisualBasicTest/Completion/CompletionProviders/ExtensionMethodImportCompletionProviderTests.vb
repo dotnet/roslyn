@@ -3,10 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
-Imports Microsoft.VisualStudio.Composition
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
 
@@ -14,25 +12,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
     Public Class ExtensionMethodImportCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
 
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
+        Public Sub New()
+            ShowImportCompletionItemsOptionValue = True
+            ForceExpandedCompletionIndexCreation = True
         End Sub
-
-        Private Property IsExpandedCompletion As Boolean = True
-
-        Private Property ShowImportCompletionItemsOptionValue As Boolean = True
-
-        ' -1 would disable timebox, whereas 0 means always timeout.
-        Private Property TimeoutInMilliseconds As Integer = -1
-
-        Protected Overrides Function WithChangedOptions(options As OptionSet) As OptionSet
-            Return options _
-                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, ShowImportCompletionItemsOptionValue).WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
-        End Function
-
-        Protected Overrides Function GetExportCatalog() As ComposableCatalog
-            Return MyBase.GetExportCatalog().WithPart(GetType(TestExperimentationService))
-        End Function
 
         Friend Overrides Function GetCompletionProviderType() As Type
             Return GetType(ExtensionMethodImportCompletionProvider)
@@ -274,6 +257,59 @@ End Class]]></Text>.Value
 
             Dim markup = GetMarkup(file2, file1, refType)
             Await VerifyItemIsAbsentAsync(markup, "ExtentionMethod", inlineDescription:="NS")
+        End Function
+
+        <InlineData(ReferenceType.Project, "()", "ExtentionMethod2")>
+        <InlineData(ReferenceType.Project, "()()", "ExtentionMethod3")>
+        <InlineData(ReferenceType.Project, "(,)", "ExtentionMethod4")>
+        <InlineData(ReferenceType.Project, "()(,)", "ExtentionMethod5")>
+        <InlineData(ReferenceType.None, "()", "ExtentionMethod2")>
+        <InlineData(ReferenceType.None, "()()", "ExtentionMethod3")>
+        <InlineData(ReferenceType.None, "(,)", "ExtentionMethod4")>
+        <InlineData(ReferenceType.None, "()(,)", "ExtentionMethod5")>
+        <Theory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestExtensionMethodsForArrayType(refType As ReferenceType, rank As String, expectedName As String) As Task
+
+            Dim file1 = <Text><![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+
+Namespace NS
+    Public Module Foo
+        <Extension>
+        Public Function ExtentionMethod1(x As Integer) As Boolean
+            Return True
+        End Function
+        <Extension>
+        Public Function ExtentionMethod2(x As Integer()) As Boolean
+            Return True
+        End Function
+        <Extension>
+        Public Function ExtentionMethod3(x As Integer()()) As Boolean
+            Return True
+        End Function
+        <Extension>
+        Public Function ExtentionMethod4(x As Integer(,)) As Boolean
+            Return True
+        End Function
+        <Extension>
+        Public Function ExtentionMethod5(x As Integer()(,)) As Boolean
+            Return True
+        End Function
+    End Module
+End Namespace]]></Text>.Value
+
+            Dim file2 As String = $"
+Imports System
+
+Public Class Baz
+    Sub M(x As Integer{rank})
+        x.$$
+    End Sub
+End Class"
+
+            Dim markup = GetMarkup(file2, file1, refType)
+            Await VerifyItemExistsAsync(markup, expectedName, glyph:=Glyph.ExtensionMethodPublic, inlineDescription:="NS")
         End Function
     End Class
 End Namespace

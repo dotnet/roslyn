@@ -2,24 +2,46 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
+using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using SQLitePCL;
 
 namespace Microsoft.CodeAnalysis.SQLite.Interop
 {
-    internal sealed class SafeSqliteHandle : SafeSqliteHandle<sqlite3>
+    internal sealed class SafeSqliteHandle : SafeHandle
     {
+        private readonly sqlite3? _wrapper;
+        private readonly SafeHandleLease _lease;
+
         public SafeSqliteHandle(sqlite3? wrapper)
-            : base(wrapper?.ptr ?? IntPtr.Zero, wrapper)
+            : base(invalidHandleValue: IntPtr.Zero, ownsHandle: true)
         {
+            _wrapper = wrapper;
+            if (wrapper is not null)
+            {
+                _lease = wrapper.Lease();
+                SetHandle(wrapper.DangerousGetHandle());
+            }
+            else
+            {
+                _lease = default;
+                SetHandle(IntPtr.Zero);
+            }
         }
+
+        public override bool IsInvalid => handle == IntPtr.Zero;
+
+        public sqlite3 DangerousGetWrapper()
+            => _wrapper!;
 
         protected override bool ReleaseHandle()
         {
-            var result = (Result)raw.sqlite3_close(Wrapper);
-            return result == Result.OK;
+            using var _ = _wrapper;
+
+            _lease.Dispose();
+            SetHandle(IntPtr.Zero);
+            return true;
         }
     }
 }

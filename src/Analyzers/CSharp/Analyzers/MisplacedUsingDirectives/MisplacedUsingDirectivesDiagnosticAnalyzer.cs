@@ -5,7 +5,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -18,20 +18,24 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class MisplacedUsingDirectivesDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        private static readonly LocalizableResourceString s_localizableTitle = new LocalizableResourceString(
+        private static readonly LocalizableResourceString s_localizableTitle = new(
            nameof(CSharpAnalyzersResources.Misplaced_using_directive), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
 
-        private static readonly LocalizableResourceString s_localizableOutsideMessage = new LocalizableResourceString(
+        private static readonly LocalizableResourceString s_localizableOutsideMessage = new(
             nameof(CSharpAnalyzersResources.Using_directives_must_be_placed_outside_of_a_namespace_declaration), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
 
         private static readonly DiagnosticDescriptor s_outsideDiagnosticDescriptor = CreateDescriptorWithId(
-            IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId, s_localizableTitle, s_localizableOutsideMessage);
+            IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId,
+            EnforceOnBuildValues.MoveMisplacedUsingDirectives,
+            s_localizableTitle, s_localizableOutsideMessage);
 
-        private static readonly LocalizableResourceString s_localizableInsideMessage = new LocalizableResourceString(
+        private static readonly LocalizableResourceString s_localizableInsideMessage = new(
             nameof(CSharpAnalyzersResources.Using_directives_must_be_placed_inside_of_a_namespace_declaration), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources));
 
         private static readonly DiagnosticDescriptor s_insideDiagnosticDescriptor = CreateDescriptorWithId(
-            IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId, s_localizableTitle, s_localizableInsideMessage);
+            IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId,
+            EnforceOnBuildValues.MoveMisplacedUsingDirectives,
+            s_localizableTitle, s_localizableInsideMessage);
 
         public MisplacedUsingDirectivesDiagnosticAnalyzer()
            : base(ImmutableDictionary<DiagnosticDescriptor, ILanguageSpecificOption>.Empty
@@ -46,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
 
         protected override void InitializeWorker(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(AnalyzeNamespaceNode, SyntaxKind.NamespaceDeclaration);
+            context.RegisterSyntaxNodeAction(AnalyzeNamespaceNode, SyntaxKind.NamespaceDeclaration, SyntaxKind.FileScopedNamespaceDeclaration);
             context.RegisterSyntaxNodeAction(AnalyzeCompilationUnitNode, SyntaxKind.CompilationUnit);
         }
 
@@ -54,11 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
         {
             var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, context.Node.SyntaxTree, context.CancellationToken);
             if (option.Value != AddImportPlacement.OutsideNamespace)
-            {
                 return;
-            }
 
-            var namespaceDeclaration = (NamespaceDeclarationSyntax)context.Node;
+            var namespaceDeclaration = (BaseNamespaceDeclarationSyntax)context.Node;
             ReportDiagnostics(context, s_outsideDiagnosticDescriptor, namespaceDeclaration.Usings, option);
         }
 
@@ -83,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives
             // Suppress if there are nodes other than usings and namespaces in the 
             // compilation unit (including ExternAlias).
             return compilationUnit.ChildNodes().Any(
-                t => !t.IsKind(SyntaxKind.UsingDirective, SyntaxKind.NamespaceDeclaration));
+                t => !t.IsKind(SyntaxKind.UsingDirective, SyntaxKind.NamespaceDeclaration, SyntaxKind.FileScopedNamespaceDeclaration));
         }
 
         private static void ReportDiagnostics(

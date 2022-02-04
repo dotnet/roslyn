@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -48,17 +46,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
                    node is ExpressionSyntax;
         }
 
-        protected override SyntaxNode GetTargetNode(SyntaxNode node)
+        protected override SyntaxNode? GetTargetNode(SyntaxNode node)
         {
             if (node is InvocationExpressionSyntax invocation)
-            {
                 return invocation.Expression.GetRightmostName();
-            }
 
             if (node is MemberBindingExpressionSyntax memberBindingExpression)
-            {
                 return memberBindingExpression.Name;
-            }
 
             return node;
         }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyTypeNames
             var annotatedexpressionSyntax = expressionSyntax.WithAdditionalAnnotations(
                 Simplifier.Annotation, Formatter.Annotation, DoNotAllowVarAnnotation.Annotation);
 
-            if (annotatedexpressionSyntax.Kind() == SyntaxKind.IsExpression || annotatedexpressionSyntax.Kind() == SyntaxKind.AsExpression)
+            if (annotatedexpressionSyntax.Kind() is SyntaxKind.IsExpression or SyntaxKind.AsExpression)
             {
                 var right = ((BinaryExpressionSyntax)annotatedexpressionSyntax).Right;
                 annotatedexpressionSyntax = annotatedexpressionSyntax.ReplaceNode(right, right.WithAdditionalAnnotations(Simplifier.Annotation));

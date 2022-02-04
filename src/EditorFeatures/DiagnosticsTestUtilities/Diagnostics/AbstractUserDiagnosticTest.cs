@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -21,12 +23,18 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.Diagnostics;
-using System.Reflection;
+using Microsoft.CodeAnalysis.Remote.Testing;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
     public abstract partial class AbstractUserDiagnosticTest : AbstractCodeActionOrUserDiagnosticTest
     {
+        protected AbstractUserDiagnosticTest(ITestOutputHelper logger)
+           : base(logger)
+        {
+        }
+
         internal abstract Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
             TestWorkspace workspace, TestParameters parameters);
 
@@ -76,12 +84,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             return dxs;
         }
 
-        protected void AddAnalyzerToWorkspace(Workspace workspace, DiagnosticAnalyzer analyzer, TestParameters parameters)
+        protected static void AddAnalyzerToWorkspace(Workspace workspace, DiagnosticAnalyzer analyzer, TestParameters parameters)
         {
             AnalyzerReference[] analyzeReferences;
             if (analyzer != null)
             {
-                Contract.ThrowIfTrue(parameters.runProviderOutOfProc, $"Out-of-proc testing is not supported since {analyzer} can't be serialized.");
+                Contract.ThrowIfTrue(parameters.testHost == TestHost.OutOfProcess, $"Out-of-proc testing is not supported since {analyzer} can't be serialized.");
 
                 analyzeReferences = new[] { new AnalyzerImageReference(ImmutableArray.Create(analyzer)) };
             }
@@ -90,36 +98,22 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 // create a serializable analyzer reference:
                 analyzeReferences = new[]
                 {
-                    new AnalyzerFileReference(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp).GetType().Assembly.Location, FromFileLoader.Instance),
-                    new AnalyzerFileReference(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.VisualBasic).GetType().Assembly.Location, FromFileLoader.Instance)
+                    new AnalyzerFileReference(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp).GetType().Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
+                    new AnalyzerFileReference(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.VisualBasic).GetType().Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile)
                 };
             }
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(analyzeReferences));
         }
 
-        private class FromFileLoader : IAnalyzerAssemblyLoader
-        {
-            public static FromFileLoader Instance = new FromFileLoader();
-
-            public void AddDependencyLocation(string fullPath)
-            {
-            }
-
-            public Assembly LoadFromPath(string fullPath)
-            {
-                return Assembly.LoadFrom(fullPath);
-            }
-        }
-
-        protected Document GetDocumentAndSelectSpan(TestWorkspace workspace, out TextSpan span)
+        protected static Document GetDocumentAndSelectSpan(TestWorkspace workspace, out TextSpan span)
         {
             var hostDocument = workspace.Documents.Single(d => d.SelectedSpans.Any());
             span = hostDocument.SelectedSpans.Single();
             return workspace.CurrentSolution.GetDocument(hostDocument.Id);
         }
 
-        protected bool TryGetDocumentAndSelectSpan(TestWorkspace workspace, out Document document, out TextSpan span)
+        protected static bool TryGetDocumentAndSelectSpan(TestWorkspace workspace, out Document document, out TextSpan span)
         {
             var hostDocument = workspace.Documents.FirstOrDefault(d => d.SelectedSpans.Any());
             if (hostDocument == null)
@@ -144,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             return true;
         }
 
-        protected Document GetDocumentAndAnnotatedSpan(TestWorkspace workspace, out string annotation, out TextSpan span)
+        protected static Document GetDocumentAndAnnotatedSpan(TestWorkspace workspace, out string annotation, out TextSpan span)
         {
             var annotatedDocuments = workspace.Documents.Where(d => d.AnnotatedSpans.Any());
             Debug.Assert(!annotatedDocuments.IsEmpty(), "No annotated span found");
@@ -155,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             return workspace.CurrentSolution.GetDocument(hostDocument.Id);
         }
 
-        protected FixAllScope? GetFixAllScope(string annotation)
+        protected static FixAllScope? GetFixAllScope(string annotation)
         {
             if (annotation == null)
             {
@@ -178,6 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             TestDiagnosticAnalyzerDriver testDriver,
             Document document,
             TextSpan span,
+            CodeActionOptions options,
             string annotation,
             int index)
         {
@@ -187,20 +182,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
 
             var scope = GetFixAllScope(annotation);
-            return await GetDiagnosticAndFixesAsync(
-                diagnostics, fixer, testDriver, document, span, scope, index);
-        }
-
-        private async Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToinvoke)> GetDiagnosticAndFixesAsync(
-            IEnumerable<Diagnostic> diagnostics,
-            CodeFixProvider fixer,
-            TestDiagnosticAnalyzerDriver testDriver,
-            Document document,
-            TextSpan span,
-            FixAllScope? scope,
-            int index)
-        {
-            Assert.NotEmpty(diagnostics);
 
             var intersectingDiagnostics = diagnostics.Where(d => d.Location.SourceSpan.IntersectsWith(span))
                                                      .ToImmutableArray();
@@ -210,41 +191,41 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             foreach (var diagnostic in intersectingDiagnostics)
             {
                 var context = new CodeFixContext(
-                    document, diagnostic,
+                    document,
+                    diagnostic.Location.SourceSpan,
+                    ImmutableArray.Create(diagnostic),
                     (a, d) => fixes.Add(new CodeFix(document.Project, a, d)),
+                    options,
                     CancellationToken.None);
 
                 await fixer.RegisterCodeFixesAsync(context);
             }
 
-            var actions = fixes.SelectAsArray(f => f.Action);
+            VerifyCodeActionsRegisteredByProvider(fixer, fixes);
 
-            actions = MassageActions(actions);
+            var actions = MassageActions(fixes.SelectAsArray(f => f.Action));
 
             if (scope == null)
             {
                 // Simple code fix.
                 return (intersectingDiagnostics, actions, actions.Length == 0 ? null : actions[index]);
             }
-            else
-            {
 
-                var equivalenceKey = actions[index].EquivalenceKey;
+            var equivalenceKey = actions[index].EquivalenceKey;
 
-                // Fix all fix.
-                var fixAllProvider = fixer.GetFixAllProvider();
-                Assert.NotNull(fixAllProvider);
+            // Fix all fix.
+            var fixAllProvider = fixer.GetFixAllProvider();
+            Assert.NotNull(fixAllProvider);
 
-                var fixAllState = GetFixAllState(
-                    fixAllProvider, diagnostics, fixer, testDriver, document,
-                    scope.Value, equivalenceKey);
-                var fixAllContext = new FixAllContext(fixAllState, new ProgressTracker(), CancellationToken.None);
-                var fixAllFix = await fixAllProvider.GetFixAsync(fixAllContext);
+            var fixAllState = GetFixAllState(
+                fixAllProvider, diagnostics, fixer, testDriver, document,
+                scope.Value, equivalenceKey);
+            var fixAllContext = new FixAllContext(fixAllState, new ProgressTracker(), CancellationToken.None);
+            var fixAllFix = await fixAllProvider.GetFixAsync(fixAllContext);
 
-                // We have collapsed the fixes down to the single fix-all fix, so we just let our
-                // caller know they should pull that entry out of the result.
-                return (intersectingDiagnostics, ImmutableArray.Create(fixAllFix), fixAllFix);
-            }
+            // We have collapsed the fixes down to the single fix-all fix, so we just let our
+            // caller know they should pull that entry out of the result.
+            return (intersectingDiagnostics, ImmutableArray.Create(fixAllFix), fixAllFix);
         }
 
         private static FixAllState GetFixAllState(
@@ -279,12 +260,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             int count,
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,
-            IOptionsCollection options = null,
+            OptionsCollection options = null,
             object fixProviderData = null)
         {
             return TestActionCountInAllFixesAsync(
                 initialMarkup,
-                new TestParameters(parseOptions, compilationOptions, options, fixProviderData),
+                new TestParameters(parseOptions, compilationOptions, options, CodeActionOptions.Default, fixProviderData),
                 count);
         }
 
@@ -301,7 +282,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         internal async Task TestSpansAsync(
             string initialMarkup,
-            int index = 0,
             string diagnosticId = null,
             TestParameters parameters = default)
         {

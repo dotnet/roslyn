@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -717,7 +719,7 @@ struct S
     }
 }");
             comp.VerifyDiagnostics(
-                // (10,20): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                // (10,20): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
                 //             s._x = _x;
                 Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "_x").WithLocation(10, 20),
                 // (7,17): error CS0188: The 'this' object cannot be used before all of its fields are assigned to
@@ -1456,10 +1458,10 @@ struct S
             // Note that definite assignment is still validated in this
             // compilation
             comp.VerifyDiagnostics(
-                // (12,13): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                // (12,13): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
                 //             _x = 0;
                 Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "_x").WithLocation(12, 13),
-                // (13,20): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                // (13,20): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
                 //             S s2 = this;
                 Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "this").WithLocation(13, 20));
         }
@@ -1486,7 +1488,7 @@ struct S
     }
 }");
             comp.VerifyDiagnostics(
-                // (12,20): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                // (12,20): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
                 //             S s2 = this;
                 Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "this").WithLocation(12, 20),
                 // (14,9): error CS0170: Use of possibly unassigned field '_x'
@@ -1499,7 +1501,7 @@ struct S
         public void LocalIEnumerableFunctionWithOutParameter1()
         {
             var comp = CreateCompilation(@"
-class c
+class @c
 {
     static void Main(string[] args)
     {
@@ -1527,7 +1529,7 @@ class c
         public void LocalIEnumerableFunctionWithOutParameter2()
         {
             var comp = CreateCompilation(@"
-class c
+class @c
 {
     static void Main(string[] args)
     {

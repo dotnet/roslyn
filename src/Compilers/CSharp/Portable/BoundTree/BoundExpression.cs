@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -59,12 +57,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.TupleLiteral:
                 case BoundKind.UnconvertedSwitchExpression:
                 case BoundKind.UnconvertedObjectCreationExpression:
+                case BoundKind.UnconvertedConditionalOperator:
+                case BoundKind.DefaultLiteral:
+                case BoundKind.UnconvertedInterpolatedString:
                     return true;
                 case BoundKind.StackAllocArrayCreation:
                     // A BoundStackAllocArrayCreation is given a null type when it is in a
                     // syntactic context where it could be either a pointer or a span, and
                     // in that case it requires conversion to one or the other.
                     return this.Type is null;
+                case BoundKind.BinaryOperator:
+                    return ((BoundBinaryOperator)this).IsUnconvertedInterpolatedStringAddition;
 #if DEBUG
                 case BoundKind.Local when !WasConverted:
                 case BoundKind.Parameter when !WasConverted:
@@ -117,6 +120,81 @@ namespace Microsoft.CodeAnalysis.CSharp
             get => base.TopLevelNullability;
             set => base.TopLevelNullability = value;
         }
+
+        public CodeAnalysis.ITypeSymbol? GetPublicTypeSymbol()
+            => Type?.GetITypeSymbol(TopLevelNullability.FlowState.ToAnnotation());
+
+        public virtual bool IsEquivalentToThisReference => false;
+    }
+
+    internal partial class BoundValuePlaceholderBase
+    {
+        public abstract override bool IsEquivalentToThisReference { get; }
+    }
+
+    internal partial class BoundValuePlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable;
+    }
+
+    internal partial class BoundInterpolatedStringHandlerPlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference => false;
+    }
+
+    internal partial class BoundDeconstructValuePlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference => false; // Preserving old behavior
+    }
+
+    internal partial class BoundTupleOperandPlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable;
+    }
+
+    internal partial class BoundAwaitableValuePlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference => false; // Preserving old behavior
+    }
+
+    internal partial class BoundDisposableValuePlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference => false;
+    }
+
+    internal partial class BoundObjectOrCollectionValuePlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference => false;
+    }
+
+    internal partial class BoundImplicitIndexerValuePlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable;
+    }
+
+    internal partial class BoundListPatternReceiverPlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference => false;
+    }
+
+    internal partial class BoundListPatternIndexPlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable;
+    }
+
+    internal partial class BoundSlicePatternReceiverPlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference => false;
+    }
+
+    internal partial class BoundSlicePatternRangePlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable;
+    }
+
+    internal partial class BoundThisReference
+    {
+        public sealed override bool IsEquivalentToThisReference => true;
     }
 
     internal partial class BoundPassByCopy
@@ -229,9 +307,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.Indexer; }
         }
 
-        public BoundIndexerAccess Update(bool useSetterForDefaultArgumentGeneration) =>
-            Update(ReceiverOpt, Indexer, Arguments, ArgumentNamesOpt, ArgumentRefKindsOpt, Expanded, ArgsToParamsOpt, BinderOpt, useSetterForDefaultArgumentGeneration, OriginalIndexersOpt, Type);
-
         public override LookupResultKind ResultKind
         {
             get
@@ -275,14 +350,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundBinaryOperator
     {
-        public override ConstantValue? ConstantValue
+        public override ConstantValue? ConstantValue => Data?.ConstantValue;
+
+        public override Symbol? ExpressionSymbol => this.Method;
+
+        internal MethodSymbol? Method => Data?.Method;
+
+        internal TypeSymbol? ConstrainedToType => Data?.ConstrainedToType;
+
+        internal bool IsUnconvertedInterpolatedStringAddition => Data?.IsUnconvertedInterpolatedStringAddition ?? false;
+
+        internal InterpolatedStringHandlerData? InterpolatedStringHandlerData => Data?.InterpolatedStringHandlerData;
+
+        internal ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt => Data?.OriginalUserDefinedOperatorsOpt ?? default(ImmutableArray<MethodSymbol>);
+    }
+
+    internal partial class BoundInterpolatedStringBase
+    {
+        public sealed override ConstantValue? ConstantValue
         {
             get { return this.ConstantValueOpt; }
-        }
-
-        public override Symbol? ExpressionSymbol
-        {
-            get { return this.MethodOpt; }
         }
     }
 
@@ -427,9 +514,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentRefKindsOpt: newRefKinds,
                 expanded: false,
                 argsToParamsOpt: default(ImmutableArray<int>),
+                defaultArguments: default(BitVector),
                 constantValueOpt: ConstantValueOpt,
                 initializerExpressionOpt: newInitializerExpression,
-                binderOpt: BinderOpt,
                 type: changeTypeOpt ?? Type);
         }
     }
@@ -491,6 +578,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // IsTrue dynamic operator is invoked at runtime if the condition is of the type dynamic.
                 // The type of the operator itself is Boolean, so we need to check its kind.
                 return this.Condition.Kind == BoundKind.UnaryOperator && ((BoundUnaryOperator)this.Condition).OperatorKind.IsDynamic();
+            }
+        }
+    }
+
+    internal partial class BoundUnconvertedConditionalOperator
+    {
+        public override ConstantValue? ConstantValue
+        {
+            get
+            {
+                return this.ConstantValueOpt;
             }
         }
     }
@@ -577,11 +675,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public Symbol ValueSymbol { get; }
         public BoundExpression ValueExpression { get; }
-        public DiagnosticBag ValueDiagnostics { get; }
+        public BindingDiagnosticBag ValueDiagnostics { get; }
         public BoundExpression TypeExpression { get; }
-        public DiagnosticBag TypeDiagnostics { get; }
+        public BindingDiagnosticBag TypeDiagnostics { get; }
 
-        public BoundTypeOrValueData(Symbol valueSymbol, BoundExpression valueExpression, DiagnosticBag valueDiagnostics, BoundExpression typeExpression, DiagnosticBag typeDiagnostics)
+        public BoundTypeOrValueData(Symbol valueSymbol, BoundExpression valueExpression, BindingDiagnosticBag valueDiagnostics, BoundExpression typeExpression, BindingDiagnosticBag typeDiagnostics)
         {
             Debug.Assert(valueSymbol != null, "Field 'valueSymbol' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(valueExpression != null, "Field 'valueExpression' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");

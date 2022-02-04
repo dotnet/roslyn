@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
@@ -18,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
     <[UseExportProvider]>
     Public Class BraceHighlightingTests
 
-        Private Function Enumerable(Of t)(ParamArray array() As t) As IEnumerable(Of t)
+        Private Shared Function Enumerable(Of t)(ParamArray array() As t) As IEnumerable(Of t)
             Return array
         End Function
 
@@ -28,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
             Dim producer = New BraceHighlightingViewTaggerProvider(
                 workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                 workspace.GetService(Of IBraceMatchingService),
-                workspace.GetService(Of IForegroundNotificationService),
+                workspace.GetService(Of IGlobalOptionService),
                 AsynchronousOperationListenerProvider.NullProvider)
 
             Dim doc = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault()
@@ -72,7 +73,6 @@ End Module")
                 Assert.True(result.Select(Function(ts) ts.Span.Span).SetEquals(Enumerable(Span.FromBounds(32, 33), Span.FromBounds(45, 46))))
             End Using
         End Function
-
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
         Public Async Function TestNestedTouchingItems() As Tasks.Task

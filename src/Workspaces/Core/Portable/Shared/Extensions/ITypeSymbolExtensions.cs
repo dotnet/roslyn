@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -28,9 +26,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// interfaceMember, or this type doesn't supply a member that successfully implements
         /// interfaceMember).
         /// </summary>
-        public static async Task<ImmutableArray<SymbolAndProjectId>> FindImplementationsForInterfaceMemberAsync(
-            this SymbolAndProjectId<ITypeSymbol> typeSymbolAndProjectId,
-            SymbolAndProjectId interfaceMemberAndProjectId,
+        public static async Task<ImmutableArray<ISymbol>> FindImplementationsForInterfaceMemberAsync(
+            this ITypeSymbol typeSymbol,
+            ISymbol interfaceMember,
             Solution solution,
             CancellationToken cancellationToken)
         {
@@ -43,22 +41,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // If you're looking for the implementations of IGoo<X>.Goo then you want to find both
             // results in C.
 
-            var arrBuilder = ArrayBuilder<SymbolAndProjectId>.GetInstance();
-            var interfaceMember = interfaceMemberAndProjectId.Symbol;
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var builder);
 
             // TODO(cyrusn): Implement this using the actual code for
             // TypeSymbol.FindImplementationForInterfaceMember
-            var typeSymbol = typeSymbolAndProjectId.Symbol;
             if (typeSymbol == null || interfaceMember == null)
-            {
-                return arrBuilder.ToImmutableAndFree();
-            }
+                return ImmutableArray<ISymbol>.Empty;
 
-            if (interfaceMember.Kind != SymbolKind.Event &&
-                interfaceMember.Kind != SymbolKind.Method &&
-                interfaceMember.Kind != SymbolKind.Property)
+            if (interfaceMember.Kind is not SymbolKind.Event and
+                not SymbolKind.Method and
+                not SymbolKind.Property)
             {
-                return arrBuilder.ToImmutableAndFree();
+                return ImmutableArray<ISymbol>.Empty;
             }
 
             // WorkItem(4843)
@@ -82,9 +76,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // that.  in this case, that means only classes C or B.
             var interfaceType = interfaceMember.ContainingType;
             if (!typeSymbol.ImplementsIgnoringConstruction(interfaceType))
-            {
-                return arrBuilder.ToImmutableAndFree();
-            }
+                return ImmutableArray<ISymbol>.Empty;
 
             // We've ascertained that the type T implements some constructed type of the form I<X>.
             // However, we're not precisely sure which constructions of I<X> are being used.  For
@@ -97,28 +89,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var constructedInterfaces = typeSymbol.AllInterfaces.Where(i =>
                 SymbolEquivalenceComparer.Instance.Equals(i.OriginalDefinition, originalInterfaceType));
 
-            // Try to get the compilation for the symbol we're searching for,
-            // which can help identify matches with the call to SymbolFinder.OriginalSymbolsMatch.
-            // OriginalSymbolMatch allows types to be matched across different assemblies
-            // if they are considered to be the same type, which provides a more accurate
-            // implementations list for interfaces.
-            var typeSymbolProject = solution.GetProject(typeSymbolAndProjectId.ProjectId);
-            var interfaceMemberProject = solution.GetProject(interfaceMemberAndProjectId.ProjectId);
-
-            var typeSymbolCompilation = await GetCompilationOrNullAsync(typeSymbolProject, cancellationToken).ConfigureAwait(false);
-            var interfaceMemberCompilation = await GetCompilationOrNullAsync(interfaceMemberProject, cancellationToken).ConfigureAwait(false);
-
             foreach (var constructedInterface in constructedInterfaces)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var constructedInterfaceMember = constructedInterface.GetMembers().FirstOrDefault(typeSymbol =>
-                    SymbolFinder.OriginalSymbolsMatch(
-                        typeSymbol,
-                        interfaceMember,
-                        solution,
-                        typeSymbolCompilation,
-                        interfaceMemberCompilation,
-                        cancellationToken));
+
+                // OriginalSymbolMatch allows types to be matched across different assemblies if they are considered to
+                // be the same type, which provides a more accurate implementations list for interfaces.
+                var constructedInterfaceMember =
+                    await constructedInterface.GetMembers(interfaceMember.Name).FirstOrDefaultAsync(
+                        typeSymbol => SymbolFinder.OriginalSymbolsMatchAsync(solution, typeSymbol, interfaceMember, cancellationToken)).ConfigureAwait(false);
 
                 if (constructedInterfaceMember == null)
                 {
@@ -139,21 +118,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                         if (result != null)
                         {
-                            arrBuilder.Add(typeSymbolAndProjectId.WithSymbol(result));
+                            builder.Add(result);
                             break;
                         }
                     }
                 }
             }
 
-            return arrBuilder.ToImmutableAndFree();
-
-            // local functions
-
-            static Task<Compilation?> GetCompilationOrNullAsync(Project? project, CancellationToken cancellationToken)
-                => project?.GetCompilationAsync(cancellationToken) ?? SpecializedTasks.Null<Compilation>();
+            return builder.ToImmutable();
         }
-
 
         public static ISymbol? FindImplementations(this ITypeSymbol typeSymbol, ISymbol constructedInterfaceMember, Workspace workspace)
             => constructedInterfaceMember switch
@@ -197,7 +170,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 from baseType in typeSymbol.GetBaseTypesAndThis()
                 from member in baseType.GetMembers(constructedInterfaceMember.Name).OfType<TSymbol>()
                 where member.DeclaredAccessibility == Accessibility.Public &&
-                      !member.IsStatic &&
                       SignatureComparer.Instance.HaveSameSignatureAndConstraintsAndReturnTypeAndAccessors(member, constructedInterfaceMember, syntaxFacts.IsCaseSensitive)
                 select member;
 

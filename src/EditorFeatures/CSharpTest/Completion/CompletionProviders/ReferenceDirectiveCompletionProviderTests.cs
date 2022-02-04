@@ -2,15 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem;
+using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -19,12 +25,8 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
 {
     [Trait(Traits.Feature, Traits.Features.Completion)]
-    public class ReferenceDirectiveCompletionProviderTests : AbstractCSharpCompletionProviderTests
+    public class ReferenceDirectiveCompletionProviderTests : AbstractInteractiveCSharpCompletionProviderTests
     {
-        public ReferenceDirectiveCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
         internal override Type GetCompletionProviderType()
             => typeof(ReferenceDirectiveCompletionProvider);
 
@@ -35,13 +37,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
             int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
-            string inlineDescription = null, List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
+            string displayTextPrefix, string inlineDescription = null, bool? isComplexTextEdit = null,
+            List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null)
         {
             return BaseVerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
                 sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence,
                 glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
-                inlineDescription, matchingFilters, flags);
+                displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags);
         }
 
         [Fact]
@@ -66,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         [InlineData(EnterKeyRule.AfterFullyTypedWord)]
         [InlineData(EnterKeyRule.Always)] // note: GAC completion helper uses its own EnterKeyRule
         public async Task SendEnterThroughToEditorTest(EnterKeyRule enterKeyRule)
-            => await VerifySendEnterThroughToEnterAsync("#r \"System$$", "System", enterKeyRule, expected: false, SourceCodeKind.Script);
+            => await VerifySendEnterThroughToEnterAsync("#r \"System$$", "System", enterKeyRule, expected: false);
 
         [ConditionalFact(typeof(WindowsOnly))]
         public async Task GacReference()
@@ -85,7 +88,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
             var systemDir = Path.GetFullPath(Environment.SystemDirectory);
             var windowsDir = Directory.GetParent(systemDir);
-            var windowsDirPath = windowsDir.FullName;
             var windowsRoot = Directory.GetDirectoryRoot(systemDir);
 
             // we need to get the exact casing from the file system:
@@ -94,6 +96,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
             var code = "#r \"" + windowsRoot + "$$";
             await VerifyItemExistsAsync(code, windowsFolderName, expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
+        }
+
+        [Theory]
+        [InlineData("$$", false)]
+        [InlineData("#$$", false)]
+        [InlineData("#r$$", false)]
+        [InlineData("#r\"$$", true)]
+        [InlineData(" # r \"$$", true)]
+        [InlineData(" # r \"$$\"", true)]
+        [InlineData(" # r \"\"$$", true)]
+        [InlineData("$$ # r \"\"", false)]
+        [InlineData(" # $$r \"\"", false)]
+        [InlineData(" # r $$\"\"", false)]
+        public void ShouldTriggerCompletion(string textWithPositionMarker, bool expectedResult)
+        {
+            var position = textWithPositionMarker.IndexOf("$$");
+            var text = textWithPositionMarker.Replace("$$", "");
+
+            using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features);
+            var provider = workspace.ExportProvider.GetExports<CompletionProvider, CompletionProviderMetadata>().Single(p => p.Metadata.Language == LanguageNames.CSharp && p.Metadata.Name == nameof(ReferenceDirectiveCompletionProvider)).Value;
+            var languageServices = workspace.Services.GetLanguageServices(LanguageNames.CSharp);
+            Assert.Equal(expectedResult, provider.ShouldTriggerCompletion(languageServices, SourceText.From(text), position, trigger: default, CompletionOptions.Default));
         }
     }
 }

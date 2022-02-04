@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,8 +29,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         internal override async Task<ImmutableArray<BlockSpan>> GetBlockSpansWorkerAsync(Document document, int position)
         {
             var outliningService = document.GetLanguageService<BlockStructureService>();
-
-            return (await outliningService.GetBlockStructureAsync(document, CancellationToken.None)).Spans;
+            var options = BlockStructureOptions.From(document.Project);
+            return (await outliningService.GetBlockStructureAsync(document, options, CancellationToken.None)).Spans;
         }
 
         [WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]

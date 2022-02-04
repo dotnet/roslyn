@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Public Sub New()
         End Sub
 
-        Protected Sub AddIndentBlockOperation(operations As List(Of IndentBlockOperation), startToken As SyntaxToken, endToken As SyntaxToken, Optional [option] As IndentBlockOption = IndentBlockOption.RelativePosition)
+        Protected Shared Sub AddIndentBlockOperation(operations As List(Of IndentBlockOperation), startToken As SyntaxToken, endToken As SyntaxToken, Optional [option] As IndentBlockOption = IndentBlockOption.RelativePosition)
             If startToken.Kind = SyntaxKind.None OrElse endToken.Kind = SyntaxKind.None Then
                 Return
             End If
@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             operations.Add(FormattingOperations.CreateIndentBlockOperation(startToken, endToken, span, indentationDelta:=1, [option]:=[option]))
         End Sub
 
-        Protected Sub AddIndentBlockOperation(operations As List(Of IndentBlockOperation),
+        Protected Shared Sub AddIndentBlockOperation(operations As List(Of IndentBlockOperation),
                                               baseToken As SyntaxToken,
                                               startToken As SyntaxToken,
                                               endToken As SyntaxToken,
@@ -31,28 +31,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             operations.Add(FormattingOperations.CreateRelativeIndentBlockOperation(baseToken, startToken, endToken, span, indentationDelta:=1, [option]:=[option]))
         End Sub
 
-        Protected Sub SetAlignmentBlockOperation(operations As List(Of IndentBlockOperation), baseToken As SyntaxToken, startToken As SyntaxToken, endToken As SyntaxToken, Optional [option] As IndentBlockOption = IndentBlockOption.RelativePosition)
+        Protected Shared Sub SetAlignmentBlockOperation(operations As List(Of IndentBlockOperation), baseToken As SyntaxToken, startToken As SyntaxToken, endToken As SyntaxToken, Optional [option] As IndentBlockOption = IndentBlockOption.RelativePosition)
             SetAlignmentBlockOperation(operations, baseToken, startToken, endToken, GetAlignmentSpan(startToken, endToken), [option])
         End Sub
 
-        Protected Sub SetAlignmentBlockOperation(operations As List(Of IndentBlockOperation), baseToken As SyntaxToken, startToken As SyntaxToken, endToken As SyntaxToken, span As TextSpan, Optional [option] As IndentBlockOption = IndentBlockOption.RelativePosition)
+        Protected Shared Sub SetAlignmentBlockOperation(operations As List(Of IndentBlockOperation), baseToken As SyntaxToken, startToken As SyntaxToken, endToken As SyntaxToken, span As TextSpan, Optional [option] As IndentBlockOption = IndentBlockOption.RelativePosition)
             operations.Add(FormattingOperations.CreateRelativeIndentBlockOperation(baseToken, startToken, endToken, span, indentationDelta:=0, [option]:=[option]))
         End Sub
 
-        Protected Sub AddAbsolutePositionIndentBlockOperation(operations As List(Of IndentBlockOperation), startToken As SyntaxToken, endToken As SyntaxToken, indentation As Integer, Optional [option] As IndentBlockOption = IndentBlockOption.AbsolutePosition)
+        Protected Shared Sub AddAbsolutePositionIndentBlockOperation(operations As List(Of IndentBlockOperation), startToken As SyntaxToken, endToken As SyntaxToken, indentation As Integer, Optional [option] As IndentBlockOption = IndentBlockOption.AbsolutePosition)
             AddAbsolutePositionIndentBlockOperation(operations, startToken, endToken, indentation, GetIndentBlockSpan(startToken, endToken), [option])
         End Sub
 
-        Protected Sub AddAbsolutePositionIndentBlockOperation(operations As List(Of IndentBlockOperation), startToken As SyntaxToken, endToken As SyntaxToken, indentation As Integer, span As TextSpan, Optional [option] As IndentBlockOption = IndentBlockOption.AbsolutePosition)
+        Protected Shared Sub AddAbsolutePositionIndentBlockOperation(operations As List(Of IndentBlockOperation), startToken As SyntaxToken, endToken As SyntaxToken, indentation As Integer, span As TextSpan, Optional [option] As IndentBlockOption = IndentBlockOption.AbsolutePosition)
             operations.Add(FormattingOperations.CreateIndentBlockOperation(startToken, endToken, span, indentation, [option]))
         End Sub
 
-        Private Function GetAlignmentSpan(startToken As SyntaxToken, endToken As SyntaxToken) As TextSpan
+        Private Shared Function GetAlignmentSpan(startToken As SyntaxToken, endToken As SyntaxToken) As TextSpan
             Dim previousToken = startToken.GetPreviousToken(includeZeroWidth:=True)
             Return TextSpan.FromBounds(previousToken.Span.End, endToken.FullSpan.End)
         End Function
 
-        Private Function GetIndentBlockSpan(startToken As SyntaxToken, endToken As SyntaxToken) As TextSpan
+        Private Shared Function GetIndentBlockSpan(startToken As SyntaxToken, endToken As SyntaxToken) As TextSpan
             ' special case for colon trivia
             Dim spanStart = startToken.GetPreviousToken(includeZeroWidth:=True).Span.End
             Dim nextToken = endToken.GetNextToken(includeZeroWidth:=True)
@@ -68,17 +68,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Return TextSpan.FromBounds(spanStart, nextToken.SpanStart)
         End Function
 
-        Protected Sub AddSuppressWrappingIfOnSingleLineOperation(operations As List(Of SuppressOperation), startToken As SyntaxToken, endToken As SyntaxToken)
+#Disable Warning IDE0060 ' Remove unused parameter
+        Protected Shared Sub AddSuppressWrappingIfOnSingleLineOperation(operations As List(Of SuppressOperation), startToken As SyntaxToken, endToken As SyntaxToken)
             ' VB doesn't need to use this operation
-            throw ExceptionUtilities.Unreachable
+            Throw ExceptionUtilities.Unreachable
         End Sub
 
-        Protected Sub AddSuppressAllOperationIfOnMultipleLine(operations As List(Of SuppressOperation), startToken As SyntaxToken, endToken As SyntaxToken)
+        Protected Shared Sub AddSuppressAllOperationIfOnMultipleLine(operations As List(Of SuppressOperation), startToken As SyntaxToken, endToken As SyntaxToken)
             ' VB doesn't need to use this operation
-            throw ExceptionUtilities.Unreachable
+            Throw ExceptionUtilities.Unreachable
         End Sub
+#Enable Warning IDE0060 ' Remove unused parameter
 
-        Protected Sub AddAnchorIndentationOperation(operations As List(Of AnchorIndentationOperation), startToken As SyntaxToken, endToken As SyntaxToken)
+        Protected Shared Sub AddAnchorIndentationOperation(operations As List(Of AnchorIndentationOperation), startToken As SyntaxToken, endToken As SyntaxToken)
             If startToken.Kind = SyntaxKind.None OrElse endToken.Kind = SyntaxKind.None Then
                 Return
             End If
@@ -86,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             operations.Add(FormattingOperations.CreateAnchorIndentationOperation(startToken, endToken))
         End Sub
 
-        Protected Sub AddAlignIndentationOfTokensToBaseTokenOperation(operations As List(Of AlignTokensOperation), containingNode As SyntaxNode, baseToken As SyntaxToken, tokens As IEnumerable(Of SyntaxToken))
+        Protected Shared Sub AddAlignIndentationOfTokensToBaseTokenOperation(operations As List(Of AlignTokensOperation), containingNode As SyntaxNode, baseToken As SyntaxToken, tokens As IEnumerable(Of SyntaxToken))
             If containingNode Is Nothing OrElse tokens Is Nothing Then
                 Return
             End If
@@ -94,11 +96,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             operations.Add(FormattingOperations.CreateAlignTokensOperation(baseToken, tokens, AlignTokensOption.AlignIndentationOfTokensToBaseToken))
         End Sub
 
-        Protected Function CreateAdjustNewLinesOperation(line As Integer, [option] As AdjustNewLinesOption) As AdjustNewLinesOperation
+        Protected Shared Function CreateAdjustNewLinesOperation(line As Integer, [option] As AdjustNewLinesOption) As AdjustNewLinesOperation
             Return FormattingOperations.CreateAdjustNewLinesOperation(line, [option])
         End Function
 
-        Protected Function CreateAdjustSpacesOperation(space As Integer, [option] As AdjustSpacesOption) As AdjustSpacesOperation
+        Protected Shared Function CreateAdjustSpacesOperation(space As Integer, [option] As AdjustSpacesOption) As AdjustSpacesOperation
             Return FormattingOperations.CreateAdjustSpacesOperation(space, [option])
         End Function
     End Class

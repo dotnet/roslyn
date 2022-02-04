@@ -2,11 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ru" original="../ServicesVSResources.resx">
     <body>
-      <trans-unit id="A_new_editorconfig_file_was_detected_at_the_root_of_your_solution_Would_you_like_to_make_it_a_solution_item">
-        <source>A new .editorconfig file was detected at the root of your solution. Would you like to make it a solution item?</source>
-        <target state="translated">В корневом узле вашего решения обнаружен новый файл EDITORCONFIG. Вы хотите сделать его элементом решения?</target>
-        <note />
-      </trans-unit>
       <trans-unit id="A_new_namespace_will_be_created">
         <source>A new namespace will be created</source>
         <target state="translated">Будет создано пространство имен</target>
@@ -14,17 +9,22 @@
       </trans-unit>
       <trans-unit id="A_type_and_name_must_be_provided">
         <source>A type and name must be provided.</source>
-        <target state="new">A type and name must be provided.</target>
+        <target state="translated">Следует указать тип и имя.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Action">
+        <source>Action</source>
+        <target state="translated">Действие</target>
+        <note>Action to perform on an unused reference, such as remove or keep</note>
       </trans-unit>
       <trans-unit id="Add">
         <source>_Add</source>
-        <target state="new">_Add</target>
+        <target state="translated">Д_обавить</target>
         <note>Adding an element to a list</note>
       </trans-unit>
       <trans-unit id="Add_Parameter">
         <source>Add Parameter</source>
-        <target state="new">Add Parameter</target>
+        <target state="translated">Добавить параметр</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_to_current_file">
@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Added_Parameter">
         <source>Added parameter.</source>
-        <target state="new">Added parameter.</target>
+        <target state="translated">Добавлен параметр.</target>
         <note />
       </trans-unit>
       <trans-unit id="Additional_changes_are_needed_to_complete_the_refactoring_Review_changes_below">
@@ -47,9 +47,29 @@
         <target state="translated">Все методы</target>
         <note />
       </trans-unit>
+      <trans-unit id="All_sources">
+        <source>All sources</source>
+        <target state="translated">Все источники</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Allow_colon">
         <source>Allow:</source>
         <target state="translated">Разрешить:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_multiple_blank_lines">
+        <source>Allow multiple blank lines</source>
+        <target state="translated">Разрешать несколько пустых строк</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Allow_statement_immediately_after_block">
+        <source>Allow statement immediately after block</source>
+        <target state="translated">Разрешать помещать оператор сразу же после блока</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Always">
+        <source>Always</source>
+        <target state="translated">Всегда</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_for_clarity">
@@ -57,10 +77,40 @@
         <target state="translated">Всегда использовать для ясности</target>
         <note />
       </trans-unit>
+      <trans-unit id="Analyzer_Defaults">
+        <source>Analyzer Defaults</source>
+        <target state="translated">Значения по умолчанию для анализатора</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzers">
+        <source>Analyzers</source>
+        <target state="translated">Анализаторы</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzing_project_references">
+        <source>Analyzing project references...</source>
+        <target state="translated">Анализ ссылок проекта…</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply">
+        <source>Apply</source>
+        <target state="translated">Применить</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_0_keymapping_scheme">
         <source>Apply '{0}' keymapping scheme</source>
         <target state="translated">Применить схему назначения клавиш "{0}"</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Assemblies">
+        <source>Assemblies</source>
+        <target state="translated">Сборки</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatically_open_stack_trace_explorer_on_focus">
+        <source>Automatically open Stack Trace Explorer on focus</source>
+        <target state="translated">Автоматически открывать обозреватель трассировки стека при фокусировке</target>
+        <note>"Stack Trace Explorer" is a tool window that is owned by the Roslyn package</note>
       </trans-unit>
       <trans-unit id="Avoid_expression_statements_that_implicitly_ignore_value">
         <source>Avoid expression statements that implicitly ignore value</source>
@@ -87,15 +137,35 @@
         <target state="translated">Область фонового анализа:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Beginning_of_line">
+        <source>Beginning of line</source>
+        <target state="translated">Начало строки</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Bitness32">
+        <source>32-bit</source>
+        <target state="translated">32-разрядный</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Bitness64">
+        <source>64-bit</source>
+        <target state="translated">64-разрядный</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Build_plus_live_analysis_NuGet_package">
         <source>Build + live analysis (NuGet package)</source>
         <target state="translated">Сборка и динамический анализ (пакет NuGet)</target>
         <note />
       </trans-unit>
-      <trans-unit id="CSharp_Visual_Basic_Language_Server_Client">
-        <source>C#/Visual Basic Language Server Client</source>
-        <target state="translated">Клиент языкового сервера C#/Visual Basic</target>
+      <trans-unit id="CSharp_Visual_Basic_Diagnostics_Language_Client">
+        <source>C#/Visual Basic Diagnostics Language Client</source>
+        <target state="translated">Языковой клиент диагностики C#/Visual Basic</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Calculating">
+        <source>Calculating...</source>
+        <target state="translated">Вычисление...</target>
+        <note>Used in UI to represent progress in the context of loading items. </note>
       </trans-unit>
       <trans-unit id="Calculating_dependents">
         <source>Calculating dependents...</source>
@@ -104,23 +174,48 @@
       </trans-unit>
       <trans-unit id="Call_site_value">
         <source>Call site value:</source>
-        <target state="new">Call site value:</target>
+        <target state="translated">Значение места вызова:</target>
         <note />
       </trans-unit>
       <trans-unit id="Callsite">
         <source>Call site</source>
-        <target state="new">Call site</target>
+        <target state="translated">Место вызова</target>
         <note />
       </trans-unit>
-      <trans-unit id="ChangeSignature_NewParameterIndicator">
-        <source>&lt;new&gt;</source>
-        <target state="new">&lt;new&gt;</target>
+      <trans-unit id="Carriage_Return_Newline_rn">
+        <source>Carriage Return + Newline (\r\n)</source>
+        <target state="translated">Возврат каретки + символ новой строки (\r\n)</target>
         <note />
       </trans-unit>
-      <trans-unit id="ChangeSignature_NewParameterIntroduceTODOVariable">
-        <source>TODO</source>
-        <target state="new">TODO</target>
-        <note>"TODO" is an indication that there is work to be done still</note>
+      <trans-unit id="Carriage_Return_r">
+        <source>Carriage Return (\r)</source>
+        <target state="translated">Возврат каретки (\r)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Category">
+        <source>Category</source>
+        <target state="translated">Категория</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Choose_which_action_you_would_like_to_perform_on_the_unused_references">
+        <source>Choose which action you would like to perform on the unused references.</source>
+        <target state="translated">Выберите действие, которое необходимо выполнить для неиспользуемых ссылок.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Clear">
+        <source>Clear</source>
+        <target state="translated">Очистить</target>
+        <note>Clear content action</note>
+      </trans-unit>
+      <trans-unit id="Close_tab">
+        <source>Close Tab</source>
+        <target state="translated">Закрыть вкладку</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_Style">
+        <source>Code Style</source>
+        <target state="translated">Стиль кода</target>
+        <note />
       </trans-unit>
       <trans-unit id="Code_analysis_completed_for_0">
         <source>Code analysis completed for '{0}'.</source>
@@ -132,9 +227,44 @@
         <target state="translated">Анализ кода для решения выполнен.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Code_analysis_terminated_before_completion_for_0">
+        <source>Code analysis terminated before completion for '{0}'.</source>
+        <target state="translated">Анализ кода прерван до завершения "{0}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_analysis_terminated_before_completion_for_Solution">
+        <source>Code analysis terminated before completion for Solution.</source>
+        <target state="translated">Анализ кода прерван до завершения решения.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Color_hints">
+        <source>Color hints</source>
+        <target state="translated">Цветовые подсказки</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Colorize_JSON_strings">
+        <source>Colorize JSON strings</source>
+        <target state="new">Colorize JSON strings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
         <source>Colorize regular expressions</source>
         <target state="translated">Выделить регулярные выражения цветом</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Combine_inheritance_margin_with_indicator_margin">
+        <source>Combine inheritance margin with indicator margin</source>
+        <target state="translated">Объединение поля наследования с полем индикаторов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Comments">
+        <source>Comments</source>
+        <target state="translated">Комментарии</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Compute_Quick_Actions_asynchronously_experimental">
+        <source>Compute Quick Actions asynchronously (experimental, requires restart)</source>
+        <target state="translated">Асинхронное вычисление быстрых действий (экспериментальная функция, требуется перезапуск)</target>
         <note />
       </trans-unit>
       <trans-unit id="Containing_member">
@@ -152,24 +282,79 @@
         <target state="translated">Текущий документ</target>
         <note />
       </trans-unit>
+      <trans-unit id="Current_parameter">
+        <source>Current parameter</source>
+        <target state="translated">Текущий параметр</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Default_Current_Document">
+        <source>Default (Current Document)</source>
+        <target state="translated">По умолчанию (текущий документ)</target>
+        <note>This text is a menu command</note>
+      </trans-unit>
+      <trans-unit id="Default_Entire_Solution">
+        <source>Default (Entire Solution)</source>
+        <target state="translated">По умолчанию (все решение)</target>
+        <note>This text is a menu command</note>
+      </trans-unit>
+      <trans-unit id="Default_Open_Documents">
+        <source>Default (Open Documents)</source>
+        <target state="translated">По умолчанию (открытые документы)</target>
+        <note>This text is a menu command</note>
+      </trans-unit>
+      <trans-unit id="Derived_types">
+        <source>Derived types</source>
+        <target state="translated">Производные типы</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Detect_and_offer_editor_features_for_likely_JSON_strings">
+        <source>Detect and offer editor features for likely JSON strings</source>
+        <target state="new">Detect and offer editor features for likely JSON strings</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Disabled">
+        <source>Disabled</source>
+        <target state="translated">Отключено</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Display_all_hints_while_pressing_Alt_F1">
+        <source>Display all hints while pressing Alt+F1</source>
+        <target state="translated">Отображать все подсказки при нажатии клавиш ALT+F1</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Display_diagnostics_inline_experimental">
+        <source>Display diagnostics inline (experimental)</source>
+        <target state="translated">Отображать встроенную диагностику (экспериментальная функция)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Display_inline_parameter_name_hints">
+        <source>Disp_lay inline parameter name hints</source>
+        <target state="translated">Отображать п_одсказки для имен встроенных параметров</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Display_inline_type_hints">
+        <source>Display inline type hints</source>
+        <target state="translated">Отображать подсказки для встроенных типов</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Edit">
         <source>_Edit</source>
-        <target state="new">_Edit</target>
+        <target state="translated">_Изменить</target>
         <note />
       </trans-unit>
       <trans-unit id="Edit_0">
         <source>Edit {0}</source>
-        <target state="new">Edit {0}</target>
+        <target state="translated">Изменить {0}</target>
         <note>{0} is a parameter description</note>
       </trans-unit>
       <trans-unit id="Editor_Color_Scheme">
         <source>Editor Color Scheme</source>
-        <target state="new">Editor Color Scheme</target>
+        <target state="translated">Цветовая схема редактора</target>
         <note />
       </trans-unit>
       <trans-unit id="Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page">
         <source>Editor color scheme options are only available when using a color theme bundled with Visual Studio. The color theme can be configured from the Environment &gt; General options page.</source>
-        <target state="new">Editor color scheme options are only available when using a color theme bundled with Visual Studio. The color theme can be configured from the Environment &gt; General options page.</target>
+        <target state="translated">Параметры цветовой схемы редактора доступны только при использовании цветовой темы, поставляемой вместе с Visual Studio. Цветовую тему можно настроить на странице "Среда" &gt; "Общие параметры".</target>
         <note />
       </trans-unit>
       <trans-unit id="Element_is_not_valid">
@@ -177,9 +362,59 @@
         <target state="translated">Элемент недопустим.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_Razor_pull_diagnostics_experimental_requires_restart">
+        <source>Enable Razor 'pull' diagnostics (experimental, requires restart)</source>
+        <target state="translated">Включить диагностику "pull" Razor (экспериментальная функция, требуется перезапуск)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enable_all_features_in_opened_files_from_source_generators_experimental">
+        <source>Enable all features in opened files from source generators (experimental)</source>
+        <target state="translated">Включить все функции в открытых файлах из генераторов источника (экспериментальная версия)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enable_file_logging_for_diagnostics">
+        <source>Enable file logging for diagnostics (logged in '%Temp%\Roslyn' folder)</source>
+        <target state="translated">Включить ведение журнала файлов для диагностики (в папке "%Temp%\Roslyn")</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
+        <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
+        <target state="translated">Включить диагностику "pull" (экспериментальная функция, требуется перезапуск)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enabled">
+        <source>Enabled</source>
+        <target state="translated">Включено</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="End_of_line">
+        <source>End of line</source>
+        <target state="translated">Конец строки</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enter_a_call_site_value_or_choose_a_different_value_injection_kind">
+        <source>Enter a call site value or choose a different value injection kind</source>
+        <target state="translated">Введите значение места вызова или выберите другой тип введения значения</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Entire_repository">
+        <source>Entire repository</source>
+        <target state="translated">Весь репозиторий</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Entire_solution">
         <source>Entire solution</source>
         <target state="translated">Все решение</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error">
+        <source>Error</source>
+        <target state="translated">Ошибка</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Error_updating_suppressions_0">
+        <source>Error updating suppressions: {0}</source>
+        <target state="translated">Ошибка при обновлении подавлений: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Evaluating_0_tasks_in_queue">
@@ -187,9 +422,24 @@
         <target state="translated">Оценка (задач в очереди: {0})</target>
         <note />
       </trans-unit>
+      <trans-unit id="Extract_Base_Class">
+        <source>Extract Base Class</source>
+        <target state="translated">Извлечь базовый класс</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Finish">
         <source>Finish</source>
         <target state="translated">Готово</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="For_non_interface_members">
+        <source>For non interface members</source>
+        <target state="translated">Для элементов без интерфейса</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Format_document">
+        <source>Format document</source>
+        <target state="translated">Форматировать документ</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
@@ -202,6 +452,31 @@
         <target state="translated">Выделить связанные компоненты под курсором</target>
         <note />
       </trans-unit>
+      <trans-unit id="Id">
+        <source>Id</source>
+        <target state="translated">ИД</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implemented_interfaces">
+        <source>Implemented interfaces</source>
+        <target state="translated">Реализованные интерфейсы</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implemented_members">
+        <source>Implemented members</source>
+        <target state="translated">Реализованные элементы</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implementing_members">
+        <source>Implementing members</source>
+        <target state="translated">Реализация элементов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implementing_types">
+        <source>Implementing types</source>
+        <target state="translated">Реализующие типы</target>
+        <note />
+      </trans-unit>
       <trans-unit id="In_other_operators">
         <source>In other operators</source>
         <target state="translated">В других операторах</target>
@@ -209,12 +484,47 @@
       </trans-unit>
       <trans-unit id="Index">
         <source>Index</source>
-        <target state="new">Index</target>
+        <target state="translated">Индекс</target>
         <note>Index of parameter in original signature</note>
+      </trans-unit>
+      <trans-unit id="Infer_from_context">
+        <source>Infer from context</source>
+        <target state="translated">Вывести из контекста</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indexed_in_organization">
+        <source>Indexed in organization</source>
+        <target state="translated">Индексированный в организации</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indexed_in_repo">
+        <source>Indexed in repo</source>
+        <target state="translated">Индексированный в репозитории</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inheritance_Margin">
+        <source>Inheritance Margin</source>
+        <target state="translated">Поле наследования</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inherited_interfaces">
+        <source>Inherited interfaces</source>
+        <target state="translated">Унаследованные интерфейсы</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Diagnostics_experimental">
+        <source>Inline Diagnostics (experimental)</source>
+        <target state="translated">Встроенная диагностика (экспериментальная функция)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Hints">
+        <source>Inline Hints</source>
+        <target state="translated">Встроенные подсказки</target>
+        <note />
       </trans-unit>
       <trans-unit id="Inserting_call_site_value_0">
         <source>Inserting call site value '{0}'</source>
-        <target state="new">Inserting call site value '{0}'</target>
+        <target state="translated">Вставка значения "{0}" места вызова</target>
         <note />
       </trans-unit>
       <trans-unit id="Install_Microsoft_recommended_Roslyn_analyzers_which_provide_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues">
@@ -227,6 +537,31 @@
         <target state="translated">Интерфейс не может содержать поле.</target>
         <note />
       </trans-unit>
+      <trans-unit id="IntroduceUndefinedTodoVariables">
+        <source>Introduce undefined TODO variables</source>
+        <target state="translated">Ввести неопределенные переменные TODO</target>
+        <note>"TODO" is an indicator that more work should be done at the location where the TODO is inserted</note>
+      </trans-unit>
+      <trans-unit id="Invalid_type_name">
+        <source>Invalid type name</source>
+        <target state="translated">Недопустимое имя типа</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Item_origin">
+        <source>Item origin</source>
+        <target state="translated">Источник элемента</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_strings">
+        <source>JSON strings</source>
+        <target state="new">JSON strings</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Keep">
+        <source>Keep</source>
+        <target state="translated">Сохранить</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Keep_all_parentheses_in_colon">
         <source>Keep all parentheses in:</source>
         <target state="translated">Сохранять все круглые скобки в:</target>
@@ -237,14 +572,34 @@
         <target state="translated">Вид</target>
         <note />
       </trans-unit>
-      <trans-unit id="Live_Share_CSharp_Visual_Basic_Language_Server_Client">
-        <source>Live Share C#/Visual Basic Language Server Client</source>
-        <target state="translated">Клиент языкового сервера C#/Visual Basic для Live Share</target>
-        <note>'Live Share' is a product name and does not need to be localized.</note>
-      </trans-unit>
       <trans-unit id="Live_analysis_VSIX_extension">
         <source>Live analysis (VSIX extension)</source>
         <target state="translated">Динамический анализ (расширение VSIX)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Loaded_items">
+        <source>Loaded items</source>
+        <target state="translated">Загруженные элементы</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Loaded_solution">
+        <source>Loaded solution</source>
+        <target state="translated">Загруженное решение</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Local">
+        <source>Local</source>
+        <target state="translated">Локальное</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Local_metadata">
+        <source>Local metadata</source>
+        <target state="translated">Локальные метаданные</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Location">
+        <source>Location</source>
+        <target state="translated">Расположение</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_0_abstract">
@@ -267,9 +622,34 @@
         <target state="translated">Предпочтения модификатора:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Move_static_members_to_another_type_colon">
+        <source>Move Static Members to Another Type:</source>
+        <target state="translated">Переместить статические элементы в другой тип:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_to_namespace">
         <source>Move to Namespace</source>
         <target state="translated">Переместить в пространство имен</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Multiple_members_are_inherited">
+        <source>Multiple members are inherited</source>
+        <target state="translated">Несколько элементов наследуются</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Multiple_members_are_inherited_on_line_0">
+        <source>Multiple members are inherited on line {0}</source>
+        <target state="translated">Несколько элементов наследуются в строке {0}</target>
+        <note>Line number info is needed for accessibility purpose.</note>
+      </trans-unit>
+      <trans-unit id="Name_conflicts_with_an_existing_type_name">
+        <source>Name conflicts with an existing type name.</source>
+        <target state="translated">Имя конфликтует с существующим именем типа.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Name_is_not_a_valid_0_identifier">
+        <source>Name is not a valid {0} identifier.</source>
+        <target state="translated">Имя не является допустимым идентификатором {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace">
@@ -281,6 +661,16 @@
         <source>Namespace: '{0}'</source>
         <target state="translated">Пространство имен: "{0}"</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Namespace_declarations">
+        <source>Namespace declarations</source>
+        <target state="translated">Объявления пространства имен</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Namespaces_have_been_updated">
+        <source>Namespaces have been updated.</source>
+        <target state="translated">Пространства имен обновлены.</target>
+        <note>"Namespaces" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="NamingSpecification_CSharp_Class">
         <source>class</source>
@@ -427,9 +817,49 @@
         <target state="translated">Правила именования</target>
         <note />
       </trans-unit>
+      <trans-unit id="Navigate_to_0">
+        <source>Navigate to '{0}'</source>
+        <target state="translated">Перейти к {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Navigate_to_external_sources">
+        <source>Navigate to External Sources</source>
+        <target state="translated">Перейти ко внешним источникам</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never">
+        <source>Never</source>
+        <target state="translated">Никогда </target>
+        <note />
+      </trans-unit>
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
         <target state="translated">Никогда, если не требуется</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_Type_Name_colon">
+        <source>New Type Name:</source>
+        <target state="translated">Новое имя типа:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_line_preferences_experimental_colon">
+        <source>New line preferences (experimental):</source>
+        <target state="translated">Предпочтения для новых строк (экспериментальная функция):</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Newline_n">
+        <source>Newline (\\n)</source>
+        <target state="translated">Новая строка (\\n)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No_namespaces_needed_updating">
+        <source>No namespaces needed updating.</source>
+        <target state="translated">Не требуется обновлять пространства имен.</target>
+        <note>"Namespaces" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="No_unused_references_were_found">
+        <source>No unused references were found.</source>
+        <target state="translated">Неиспользуемые ссылки не найдены.</target>
         <note />
       </trans-unit>
       <trans-unit id="Non_public_methods">
@@ -437,24 +867,94 @@
         <target state="translated">Методы, не являющиеся открытыми</target>
         <note />
       </trans-unit>
+      <trans-unit id="None">
+        <source>None</source>
+        <target state="translated">NONE</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Omit_if_default">
+        <source>Omit if default</source>
+        <target state="translated">Пропустить, если по умолчанию</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Omit_only_for_optional_parameters">
+        <source>Omit (only for optional parameters)</source>
+        <target state="translated">Опустить (только для необязательных параметров)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Open_documents">
         <source>Open documents</source>
         <target state="translated">Открыть документы</target>
         <note />
       </trans-unit>
+      <trans-unit id="Operator_placement_when_wrapping">
+        <source>Operator placement when wrapping</source>
+        <target state="translated">Размещение оператора при переносе</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Optional_parameters_must_provide_a_default_value">
+        <source>Optional parameters must provide a default value</source>
+        <target state="translated">Для необязательных параметров необходимо указать значение по умолчанию.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Optional_with_default_value_colon">
+        <source>Optional with default value:</source>
+        <target state="translated">Необязательный параметр со значением по умолчанию:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Other">
+        <source>Others</source>
+        <target state="translated">Другие</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Overridden_members">
+        <source>Overridden members</source>
+        <target state="translated">Переопределенные элементы</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Overriding_members">
+        <source>Overriding members</source>
+        <target state="translated">Идет переопределение элементов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Package_install_canceled">
+        <source>Package install canceled</source>
+        <target state="translated">Установка пакета отменена</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Package_uninstall_canceled">
+        <source>Package uninstall canceled</source>
+        <target state="translated">Удаление пакета отменено</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Packages">
+        <source>Packages</source>
+        <target state="translated">Пакеты</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Parameter_Details">
         <source>Parameter Details</source>
-        <target state="new">Parameter Details</target>
+        <target state="translated">Дополнительные сведения о параметрах</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_Name">
         <source>Parameter name:</source>
-        <target state="new">Parameter name:</target>
+        <target state="translated">Имя параметра:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_information">
+        <source>Parameter information</source>
+        <target state="translated">Сведения о параметре</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parameter_kind">
+        <source>Parameter kind</source>
+        <target state="translated">Тип параметра</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_name_contains_invalid_characters">
         <source>Parameter name contains invalid character(s).</source>
-        <target state="new">Parameter name contains invalid character(s).</target>
+        <target state="translated">Имя параметра содержит недопустимые знаки.</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameter_preferences_colon">
@@ -464,7 +964,7 @@
       </trans-unit>
       <trans-unit id="Parameter_type_contains_invalid_characters">
         <source>Parameter type contains invalid character(s).</source>
-        <target state="new">Parameter type contains invalid character(s).</target>
+        <target state="translated">Тип параметра содержит недопустимые знаки.</target>
         <note />
       </trans-unit>
       <trans-unit id="Parentheses_preferences_colon">
@@ -472,10 +972,25 @@
         <target state="translated">Параметры круглых скобок:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Paste">
+        <source>Paste</source>
+        <target state="translated">Вставить</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Paste_valid_stack_trace">
+        <source>Paste a valid stack trace to view and navigate it's values</source>
+        <target state="translated">Вставьте допустимую трассировку стека для просмотра ее значений и перехода к ним</target>
+        <note>"Stack Trace" is a language term and should be kept the same. </note>
+      </trans-unit>
       <trans-unit id="Paused_0_tasks_in_queue">
         <source>Paused ({0} tasks in queue)</source>
         <target state="translated">Приостановлено (задач в очереди: {0})</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Please_enter_a_type_name">
+        <source>Please enter a type name</source>
+        <target state="translated">Введите имя типа</target>
+        <note>"Type" is the programming language concept</note>
       </trans-unit>
       <trans-unit id="Prefer_System_HashCode_in_GetHashCode">
         <source>Prefer 'System.HashCode' in 'GetHashCode'</source>
@@ -490,6 +1005,16 @@
       <trans-unit id="Prefer_index_operator">
         <source>Prefer index operator</source>
         <target state="translated">Предпочитать оператор index</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_method_group_conversion">
+        <source>Prefer method group conversion</source>
+        <target state="new">Prefer method group conversion</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_namespace_and_folder_match_structure">
+        <source>Prefer namespace and folder match structure</source>
+        <target state="translated">Предпочитать пространство имен и структуру совпадений папок</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_range_operator">
@@ -509,7 +1034,12 @@
       </trans-unit>
       <trans-unit id="Prefer_simplified_boolean_expressions">
         <source>Prefer simplified boolean expressions</source>
-        <target state="new">Prefer simplified boolean expressions</target>
+        <target state="translated">Предпочитать упрощенные логические выражения</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_simplified_interpolation">
+        <source>Prefer simplified interpolation</source>
+        <target state="translated">Предпочитать упрощенную интерполяцию</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
@@ -517,14 +1047,34 @@
         <target state="translated">Предпочитать статические локальные функции</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_tuple_swap">
+        <source>Prefer tuple swap</source>
+        <target state="translated">Предпочитать переключение кортежей</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Projects">
+        <source>Projects</source>
+        <target state="translated">Проекты</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Pull_Members_Up">
         <source>Pull Members Up</source>
         <target state="translated">Повышение элементов</target>
         <note />
       </trans-unit>
-      <trans-unit id="Razor_CSharp_Language_Server_Client">
-        <source>Razor C# Language Server Client</source>
-        <target state="new">Razor C# Language Server Client</target>
+      <trans-unit id="Quick_Actions">
+        <source>Quick Actions</source>
+        <target state="translated">Быстрые действия</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Refactoring_Only">
+        <source>Refactoring Only</source>
+        <target state="translated">Только рефакторинг</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reference">
+        <source>Reference</source>
+        <target state="translated">Ссылка</target>
         <note />
       </trans-unit>
       <trans-unit id="Regular_Expressions">
@@ -532,14 +1082,54 @@
         <target state="translated">Регулярные выражения</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_All">
+        <source>Remove All</source>
+        <target state="translated">Удалить все</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_Unused_References">
+        <source>Remove Unused References</source>
+        <target state="translated">Удалить неиспользуемые ссылки</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_usings">
+        <source>Remove unnecessary usings</source>
+        <target state="translated">Удалить ненужные директивы using</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename {0} to {1}</source>
         <target state="translated">Переименовать {0} в {1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Report_invalid_JSON_strings">
+        <source>Report invalid JSON strings</source>
+        <target state="new">Report invalid JSON strings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Report_invalid_regular_expressions">
         <source>Report invalid regular expressions</source>
         <target state="translated">Сообщать о недопустимых регулярных выражениях</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Repository">
+        <source>Repository</source>
+        <target state="translated">Репозиторий</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Require_accessibility_modifiers">
+        <source>Require accessibility modifiers</source>
+        <target state="translated">Требуются модификаторы специальных возможностей</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Require_colon">
+        <source>Require:</source>
+        <target state="translated">Обязательно:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Required">
+        <source>Required</source>
+        <target state="translated">Обязательный параметр</target>
         <note />
       </trans-unit>
       <trans-unit id="Requires_System_HashCode_be_present_in_project">
@@ -559,7 +1149,12 @@
       </trans-unit>
       <trans-unit id="Run_Code_Analysis_on_0">
         <source>Run Code Analysis on {0}</source>
-        <target state="translated">Запустить анализ кода для {0}</target>
+        <target state="translated">Запустить Code Analysis для {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">
+        <source>Run code analysis in separate process (requires restart)</source>
+        <target state="translated">Запуск анализа кода в отдельном процессе (требуется перезапуск)</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">
@@ -580,6 +1175,16 @@
       <trans-unit id="Save_dot_editorconfig_file">
         <source>Save .editorconfig file</source>
         <target state="translated">Сохранить файл EDITORCONFIG</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Search_Settings">
+        <source>Search Settings</source>
+        <target state="translated">Параметры поиска</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Select_an_appropriate_symbol_to_start_value_tracking">
+        <source>Select an appropriate symbol to start value tracking</source>
+        <target state="translated">Выберите соответствующий символ, чтобы начать отслеживание значений</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_destination">
@@ -617,14 +1222,109 @@
         <target state="translated">Выбрать элементы:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental">
+        <source>Show "Remove Unused References" command in Solution Explorer (experimental)</source>
+        <target state="translated">Показать команду "Удалить неиспользуемые ссылки" в Обозревателе решений (экспериментальная версия)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_completion_list">
         <source>Show completion list</source>
         <target state="translated">Показать список завершения</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_hints_for_everything_else">
+        <source>Show hints for everything else</source>
+        <target state="translated">Отображать подсказки для всех остальных элементов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_implicit_object_creation">
+        <source>Show hints for implicit object creation</source>
+        <target state="translated">Показать указания для неявного создания объекта</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_indexers">
+        <source>Show hints for indexers</source>
+        <target state="translated">Отображать подсказки для индексаторов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_lambda_parameter_types">
+        <source>Show hints for lambda parameter types</source>
+        <target state="translated">Отображать подсказки для типов лямбда-параметров</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_literals">
+        <source>Show hints for literals</source>
+        <target state="translated">Отображать подсказки для литералов</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_variables_with_inferred_types">
+        <source>Show hints for variables with inferred types</source>
+        <target state="translated">Отображать подсказки для переменных с выводимыми типами</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_inheritance_margin">
+        <source>Show inheritance margin</source>
+        <target state="translated">Показать границу наследования</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Skip_analyzers_for_implicitly_triggered_builds">
+        <source>Skip analyzers for implicitly triggered builds</source>
+        <target state="translated">Пропускать анализаторы для неявно запускаемых сборок</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Some_color_scheme_colors_are_being_overridden_by_changes_made_in_the_Environment_Fonts_and_Colors_options_page_Choose_Use_Defaults_in_the_Fonts_and_Colors_page_to_revert_all_customizations">
         <source>Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</source>
-        <target state="new">Some color scheme colors are being overridden by changes made in the Environment &gt; Fonts and Colors options page. Choose `Use Defaults` in the Fonts and Colors page to revert all customizations.</target>
+        <target state="translated">Некоторые цвета цветовой схемы переопределяются изменениями, сделанными на странице "Среда" &gt; "Шрифты и цвета". Выберите "Использовать значения по умолчанию" на странице "Шрифты и цвета", чтобы отменить все настройки.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sort_usings">
+        <source>Sort usings</source>
+        <target state="translated">Сортировать директивы using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Stack_Trace_Explorer">
+        <source>Stack Trace Explorer</source>
+        <target state="translated">Обозреватель трассировки стека</target>
+        <note>"Stack Trace" is a language term and should be kept the same. This is for viewing/exploring stack traces</note>
+      </trans-unit>
+      <trans-unit id="Stack_trace_0">
+        <source>Stack Trace {0}</source>
+        <target state="translated">Трассировка стека {0}</target>
+        <note>Header for numbered stack trace view tabs</note>
+      </trans-unit>
+      <trans-unit id="Suggestion">
+        <source>Suggestion</source>
+        <target state="translated">Рекомендация</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_hints_when_argument_matches_parameter_name">
+        <source>Suppress hints when argument matches parameter name</source>
+        <target state="translated">Скрывать подсказки, когда аргумент соответствует имени параметра</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_hints_when_parameter_name_matches_the_method_s_intent">
+        <source>Suppress hints when parameter name matches the method's intent</source>
+        <target state="translated">Скрывать подсказки, если имя параметра соответствует намерению метода.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_hints_when_parameter_names_differ_only_by_suffix">
+        <source>Suppress hints when parameter names differ only by suffix</source>
+        <target state="translated">Скрывать подсказки, если имена параметров различаются только суффиксом.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbols_without_references">
+        <source>Symbols without references</source>
+        <target state="translated">Символы без ссылок</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sync_Namespaces">
+        <source>Sync Namespaces</source>
+        <target state="translated">Синхронизация пространства имен</target>
+        <note>"Namespaces" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Tab_twice_to_insert_arguments">
+        <source>Tab twice to insert arguments (experimental)</source>
+        <target state="translated">Дважды нажмите клавишу TAB, чтобы вставить аргументы (экспериментальная функция)</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_Namespace_colon">
@@ -632,14 +1332,64 @@
         <target state="translated">Целевое пространство имен:</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_generator_0_that_generated_this_file_has_been_removed_from_the_project">
+        <source>The generator '{0}' that generated this file has been removed from the project; this file is no longer being included in your project.</source>
+        <target state="translated">Генератор "{0}", создавший этот файл, был удален из проекта; этот файл больше не включен в проект.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_generator_0_that_generated_this_file_has_stopped_generating_this_file">
+        <source>The generator '{0}' that generated this file has stopped generating this file; this file is no longer being included in your project.</source>
+        <target state="translated">Генератор "{0}", создавший этот файл, остановил создание этого файла; этот файл больше не включен в проект.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_action_cannot_be_undone_Do_you_wish_to_continue">
+        <source>This action cannot be undone. Do you wish to continue?</source>
+        <target state="translated">Это действие не может быть отменено. Вы хотите продолжить?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_file_is_autogenerated_by_0_and_cannot_be_edited">
+        <source>This file is auto-generated by the generator '{0}' and cannot be edited.</source>
+        <target state="translated">Этот файл создан автоматически генератором "{0}" и не может быть изменен.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="This_is_an_invalid_namespace">
         <source>This is an invalid namespace</source>
         <target state="translated">Это недопустимое пространство имен.</target>
         <note />
       </trans-unit>
+      <trans-unit id="This_rule_is_not_configurable">
+        <source>This rule is not configurable</source>
+        <target state="translated">Это правило не является настраиваемым</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Title">
+        <source>Title</source>
+        <target state="translated">Название</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Type_Name">
         <source>Type name:</source>
-        <target state="new">Type name:</target>
+        <target state="translated">Имя типа:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_name_has_a_syntax_error">
+        <source>Type name has a syntax error</source>
+        <target state="translated">Имя типа содержит синтаксическую ошибку.</target>
+        <note>"Type" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Type_name_is_not_recognized">
+        <source>Type name is not recognized</source>
+        <target state="translated">Не удалось распознать имя типа.</target>
+        <note>"Type" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Type_name_is_recognized">
+        <source>Type name is recognized</source>
+        <target state="translated">Имя типа распознано.</target>
+        <note>"Type" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Underline_reassigned_variables">
+        <source>Underline reassigned variables</source>
+        <target state="translated">Подчеркивать переназначенные переменные</target>
         <note />
       </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
@@ -652,14 +1402,19 @@
         <target state="translated">Неиспользуемое значение явным образом задано пустой переменной.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_namspaces">
+        <source>Updating namespaces...</source>
+        <target state="translated">Выполняется обновление пространства имен...</target>
+        <note>"namespaces" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Updating_project_references">
+        <source>Updating project references...</source>
+        <target state="translated">Обновление ссылок проекта…</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Updating_severity">
         <source>Updating severity</source>
         <target state="translated">Обновление уровня серьезности</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Use_editorconfig_compatibility_mode">
-        <source>Use .editorconfig compatibility mode (requires restart)</source>
-        <target state="translated">Использовать режим совместимости с .editorconfig (требуется перезапуск)</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
@@ -672,6 +1427,21 @@
         <target state="translated">Использовать тело выражения для локальных функций</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_named_argument">
+        <source>Use named argument</source>
+        <target state="translated">Использовать именованный аргумент</target>
+        <note>"argument" is a programming term for a value passed to a function</note>
+      </trans-unit>
+      <trans-unit id="Value">
+        <source>Value</source>
+        <target state="translated">Значение</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_Tracking">
+        <source>Value Tracking</source>
+        <target state="translated">Отслеживание значений</target>
+        <note>Title of the "Value Tracking" tool window. "Value" is the variable/symbol and "Tracking" is the action the tool is doing to follow where the value can originate from.</note>
+      </trans-unit>
       <trans-unit id="Value_assigned_here_is_never_used">
         <source>Value assigned here is never used</source>
         <target state="translated">Заданное здесь значение не используется.</target>
@@ -679,7 +1449,7 @@
       </trans-unit>
       <trans-unit id="Value_colon">
         <source>Value:</source>
-        <target state="new">Value:</target>
+        <target state="translated">Значение:</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_returned_by_invocation_is_implicitly_ignored">
@@ -687,14 +1457,39 @@
         <target state="translated">Значение, возвращаемое вызовом, неявным образом игнорируется.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Value_to_inject_at_call_sites">
+        <source>Value to inject at call sites</source>
+        <target state="translated">Значение, которое необходимо вставить во все точки вызова</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Visual_Studio_2017">
         <source>Visual Studio 2017</source>
-        <target state="new">Visual Studio 2017</target>
+        <target state="translated">Visual Studio 2017</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Studio_2019">
         <source>Visual Studio 2019</source>
-        <target state="new">Visual Studio 2019</target>
+        <target state="translated">Visual Studio 2019</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Visual_Studio_Settings">
+        <source>Visual Studio Settings</source>
+        <target state="translated">Параметры Visual Studio</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning">
+        <source>Warning</source>
+        <target state="translated">Предупреждение</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_duplicate_parameter_name">
+        <source>Warning: duplicate parameter name</source>
+        <target state="translated">Предупреждение: повторяющееся имя параметра.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_type_does_not_bind">
+        <source>Warning: type does not bind</source>
+        <target state="translated">Предупреждение: привязка типа невозможна.</target>
         <note />
       </trans-unit>
       <trans-unit id="We_notice_you_suspended_0_Reset_keymappings_to_continue_to_navigate_and_refactor">
@@ -707,24 +1502,19 @@
         <target state="translated">Эта рабочая область не поддерживает обновление параметров компиляции Visual Basic.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Whitespace">
+        <source>Whitespace</source>
+        <target state="translated">Пустое пространство</target>
+        <note />
+      </trans-unit>
       <trans-unit id="You_must_change_the_signature">
         <source>You must change the signature</source>
-        <target state="new">You must change the signature</target>
+        <target state="translated">Необходимо изменить подпись</target>
         <note>"signature" here means the definition of a method</note>
       </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">
         <source>You must select at least one member.</source>
         <target state="translated">Необходимо выбрать по крайней мере один элемент.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interface_name_conflicts_with_an_existing_type_name">
-        <source>Interface name conflicts with an existing type name.</source>
-        <target state="translated">Название интерфейса конфликтует с существующим названием типа.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interface_name_is_not_a_valid_0_identifier">
-        <source>Interface name is not a valid {0} identifier.</source>
-        <target state="translated">Название интерфейса не является допустимым идентификатором {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_characters_in_path">
@@ -832,6 +1622,11 @@
         <target state="translated">Недопустимое значение</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_is_inherited">
+        <source>'{0}' is inherited</source>
+        <target state="translated">"{0}" наследуется</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_will_be_changed_to_abstract">
         <source>'{0}' will be changed to abstract.</source>
         <target state="translated">Элемент "{0}" будет изменен на абстрактный.</target>
@@ -845,6 +1640,21 @@
       <trans-unit id="_0_will_be_changed_to_public">
         <source>'{0}' will be changed to public.</source>
         <target state="translated">Элемент "{0}" будет изменен на открытый.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="at_the_end_of_the_line_of_code">
+        <source>at the end of the line of code</source>
+        <target state="translated">в конце строки кода</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="generated_by_0_suffix">
+        <source>[generated by {0}]</source>
+        <target state="translated">[создан генератором {0}]</target>
+        <note>{0} is the name of a generator.</note>
+      </trans-unit>
+      <trans-unit id="generated_suffix">
+        <source>[generated]</source>
+        <target state="translated">[создан генератором]</target>
         <note />
       </trans-unit>
       <trans-unit id="given_workspace_doesn_t_support_undo">
@@ -895,11 +1705,6 @@
       <trans-unit id="Base_Types">
         <source>Base Types</source>
         <target state="translated">Базовые типы</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Miscellaneous_Files">
-        <source>Miscellaneous Files</source>
-        <target state="translated">Прочие файлы</target>
         <note />
       </trans-unit>
       <trans-unit id="Could_not_find_project_0">
@@ -1012,16 +1817,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">Проект: {0}
 
 Используйте раскрывающийся список для просмотра других проектов, к которым может относиться этот файл, и перехода к ним.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ErrorReadingRuleset">
-        <source>ErrorReadingRuleset</source>
-        <target state="translated">ErrorReadingRuleset</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_reading_ruleset_file_0_1">
-        <source>Error reading ruleset file {0} - {1}</source>
-        <target state="translated">Ошибка при чтении файла с набором правил {0} — {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerChangedOnDisk">
@@ -1873,6 +2668,11 @@ Additional information: {1}</source>
         <target state="translated">При вставке свойств, методов и событий помещать их:</target>
         <note />
       </trans-unit>
+      <trans-unit id="on_the_right_edge_of_the_editor_window">
+        <source>on the right edge of the editor window</source>
+        <target state="translated">на правом краю окна редактора</target>
+        <note />
+      </trans-unit>
       <trans-unit id="with_other_members_of_the_same_kind">
         <source>with other members of the same kind</source>
         <target state="translated">вместе с другими элементами того же типа</target>
@@ -1913,16 +2713,6 @@ Additional information: {1}</source>
         <target state="translated">тип предполагается из выражения назначения</target>
         <note />
       </trans-unit>
-      <trans-unit id="Get_help_for_0">
-        <source>Get help for '{0}'</source>
-        <target state="translated">Получить справку для "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Get_help_for_0_from_Bing">
-        <source>Get help for '{0}' from Bing</source>
-        <target state="translated">Получить справку для "{0}" из системы Bing</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Move_down">
         <source>Move down</source>
         <target state="translated">Переместить вниз</target>
@@ -1941,11 +2731,6 @@ Additional information: {1}</source>
       <trans-unit id="Pick_members">
         <source>Pick members</source>
         <target state="translated">Выбрать члены</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio">
-        <source>Unfortunately, a process used by Visual Studio has encountered an unrecoverable error.  We recommend saving your work, and then closing and restarting Visual Studio.</source>
-        <target state="translated">В процессе, используемом Visual Studio, произошла неустранимая ошибка. Рекомендуется сохранить изменения, а затем закрыть и снова запустить Visual Studio.</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_a_symbol_specification">
@@ -2084,34 +2869,8 @@ Additional information: {1}</source>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
-        <source>Enable navigation to decompiled sources (experimental)</source>
-        <target state="translated">Включить переход к декомпилированным источникам (экспериментальная функция)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Decompiler_Legal_Notice_Message">
-        <source>IMPORTANT: Visual Studio includes decompiling functionality (“Decompiler”) that enables reproducing source code from binary code. By accessing and using the Decompiler, you agree to the Visual Studio license terms and the terms for the Decompiler below. If you do not agree with these combined terms, do not access or use the Decompiler.
- 
-You acknowledge that binary code and source code might be protected by copyright and trademark laws.  Before using the Decompiler on any binary code, you need to first:  
-(i) confirm that the license terms governing your use of the binary code do not contain a provision which prohibits you from decompiling the software; or
-(ii) obtain permission to decompile the binary code from the owner of the software.
- 
-Your use of the Decompiler is optional.  Microsoft is not responsible and disclaims all liability for your use of the Decompiler that violates any laws or any software license terms which prohibit decompiling of the software.
-
-I agree to all of the foregoing:</source>
-        <target state="translated">ВАЖНО! Visual Studio включает в себя функцию декомпиляции ("декомпилятор"), позволяющую воспроизводить исходный код из двоичного. Открывая и используя декомпилятор, вы принимаете условия лицензионного соглашения Visual Studio, а также приведенные ниже условия для декомпилятора. Если вы не согласны с какими-либо из этих условий, не открывайте и не используйте декомпилятор.
- 
-Вы подтверждаете, что двоичный и исходный код может быть защищен законами об авторских правах и торговых марках. Прежде чем применять декомпилятор на любом двоичном коде, вам следует: 
-(i) убедиться, что условия лицензии, регулирующие использование вами этого двоичного кода, не содержат положение, запрещающее декомпиляцию данного программного обеспечения; или
-(ii) получить разрешение на декомпиляцию этого двоичного кода у владельца соответствующего программного обеспечения.
- 
-Вы используете этот декомпилятор по собственной инициативе. Корпорация Майкрософт не несет ответственности за такое использование вами компилятора, которое нарушает любые законы или условия лицензионного соглашения на использование программного обеспечения, запрещающие декомпиляцию этого программного обеспечения.
-
-Я принимаю все указанные выше условия и положения:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Decompiler_Legal_Notice_Title">
-        <source>Decompiler Legal Notice</source>
-        <target state="translated">Юридическая информация для декомпилятора</target>
+        <source>Enable navigation to decompiled sources</source>
+        <target state="translated">Включить переход к декомпилированным источникам</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">

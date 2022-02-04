@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 Dim displayString = part.ToString()
                 Select Case part.Kind
                     Case SymbolDisplayPartKind.ClassName
-                        If Not displayString.StartsWith(StringConstants.DisplayClassPrefix, StringComparison.Ordinal) Then
+                        If Not displayString.StartsWith(GeneratedNameConstants.DisplayClassPrefix, StringComparison.Ordinal) Then
                             builder.Append(displayString)
                         Else
                             ' Drop any remaining display class name parts and the subsequent dot...
@@ -47,13 +47,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                             i -= 1
                         End If
                     Case SymbolDisplayPartKind.MethodName
-                        If displayString.StartsWith(StringConstants.LambdaMethodNamePrefix, StringComparison.Ordinal) Then
+                        If displayString.StartsWith(GeneratedNameConstants.LambdaMethodNamePrefix, StringComparison.Ordinal) Then
                             builder.Append(s_closureDisplayName)
                             builder.Append("."c)
                             ' NOTE: The old implementation only appended the first ordinal number.  Since this is not useful
                             ' in uniquely identifying the lambda, we'll append the entire ordinal suffix (which may contain
                             ' multiple numbers, as well as '-' or '_').
-                            builder.AppendFormat(s_lambdaDisplayName, displayString.Substring(StringConstants.LambdaMethodNamePrefix.Length))
+                            builder.AppendFormat(s_lambdaDisplayName, displayString.Substring(GeneratedNameConstants.LambdaMethodNamePrefix.Length))
                         Else
                             builder.Append(displayString)
                         End If

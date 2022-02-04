@@ -26,6 +26,13 @@ Options:
   /lib:&lt;path list&gt;               List of directories where to look for libraries specified by #r directive. 
                                  (alternative forms: /libPath /libPaths)
   /u:&lt;namespace&gt;                 Define global namespace using (alternative forms: /using, /usings, /import, /imports)
+  /langversion:?                 Display the allowed values for language version and exit
+  /langversion:&lt;string&gt;          Specify language version such as
+                                 `latest` (latest version, including minor versions),
+                                 `default` (same as `latest`),
+                                 `latestmajor` (latest version, excluding minor versions),
+                                 `preview` (latest version, including features in unsupported preview),
+                                 or specific versions like `6` or `7.1`
   @&lt;file&gt;                        Read response file for more options
   --                             Indicates that the remaining arguments should not be treated as options.
 </source>
@@ -42,6 +49,13 @@ Seçenekler:
   /lib:&lt;yol listesi&gt;               #r yönergesiyle belirtilen kitaplıklar için bakılacak dizinler listesi. 
                                  (alternatif biçimler: /libPath /libPaths)
   /u:&lt;ad alanı&gt;                 Genel ad alanı kullanımını tanımla (alternatif biçimler: /using, /usings, /import, /imports)
+  /langversion:?                 Dil sürümü için izin verilen değerleri görüntüle ve çıkış yap
+  /langversion:&lt;dize&gt;          Dil sürümü belirt, örneğin
+                                 `latest` (ikincil sürümler dahil en son sürüm),
+                                 `default` (`latest` ile aynı),
+                                 `latestmajor` (ikincil sürümler hariç en son sürüm),
+                                 `preview` (desteklenmeyen önizlemedeki özellikler dahil en son sürüm),
+                                 veya `6` ya da `7.1` gibi belirli sürümler
   @&lt;dosya&gt;                        Daha fazla seçenek için yanıt dosyasını okuyun
   --                             Kalan bağımsız değişkenlerin seçenek olarak değerlendirilmemesi gerektiğini belirtir.
 </target>

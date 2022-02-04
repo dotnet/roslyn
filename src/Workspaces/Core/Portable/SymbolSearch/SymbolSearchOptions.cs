@@ -2,26 +2,36 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System;
+using System.Collections.Immutable;
+using System.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
 {
-    internal static class SymbolSearchOptions
+    [ExportSolutionOptionProvider, Shared]
+    internal sealed class SymbolSearchOptions : IOptionProvider
     {
-        private const string LocalRegistryPath = @"Roslyn\Features\SymbolSearch\";
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public SymbolSearchOptions()
+        {
+        }
 
-        public static readonly Option2<bool> Enabled = new Option2<bool>(
-            nameof(SymbolSearchOptions), nameof(Enabled), defaultValue: true,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(Enabled)));
+        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
+            SuggestForTypesInReferenceAssemblies,
+            SuggestForTypesInNuGetPackages);
+
+        private const string FeatureName = "SymbolSearchOptions";
 
         public static PerLanguageOption2<bool> SuggestForTypesInReferenceAssemblies =
-            new PerLanguageOption2<bool>(nameof(SymbolSearchOptions), nameof(SuggestForTypesInReferenceAssemblies), defaultValue: true,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInReferenceAssemblies"));
+            new(FeatureName, "SuggestForTypesInReferenceAssemblies", defaultValue: true,
+                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInReferenceAssemblies"));
 
         public static PerLanguageOption2<bool> SuggestForTypesInNuGetPackages =
-            new PerLanguageOption2<bool>(nameof(SymbolSearchOptions), nameof(SuggestForTypesInNuGetPackages), defaultValue: true,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages"));
+            new(FeatureName, "SuggestForTypesInNuGetPackages", defaultValue: true,
+                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages"));
     }
 }

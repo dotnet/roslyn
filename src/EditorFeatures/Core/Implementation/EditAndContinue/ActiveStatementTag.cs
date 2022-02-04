@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
     {
         internal const string TagId = "RoslynActiveStatementTag";
 
-        public static readonly ActiveStatementTag Instance = new ActiveStatementTag();
+        public static readonly ActiveStatementTag Instance = new();
 
         private ActiveStatementTag()
             : base(TagId)

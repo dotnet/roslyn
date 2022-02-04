@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ru" original="../WorkspacesResources.resx">
     <body>
+      <trans-unit id="A_project_may_not_reference_itself">
+        <source>A project may not reference itself.</source>
+        <target state="translated">Проект не может ссылаться на себя.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Adding_analyzer_config_documents_is_not_supported">
         <source>Adding analyzer config documents is not supported.</source>
         <target state="translated">Добавление документов конфигурации анализатора не поддерживается.</target>
@@ -17,6 +22,11 @@
         <target state="translated">Файлы C#</target>
         <note />
       </trans-unit>
+      <trans-unit id="Cannot_apply_action_that_is_not_in_0">
+        <source>Cannot apply action that is not in '{0}'</source>
+        <target state="translated">Не удается применить действие, не указанное в "{0}".</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_analyzer_config_documents_is_not_supported">
         <source>Changing analyzer config documents is not supported.</source>
         <target state="translated">Изменение документов конфигурации анализатора не поддерживается.</target>
@@ -26,6 +36,11 @@
         <source>Changing document '{0}' is not supported.</source>
         <target state="translated">Изменение документа "{0}" не поддерживается.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="CodeAction_{0}_did_not_produce_a_changed_solution">
+        <source>CodeAction '{0}' did not produce a changed solution</source>
+        <target state="translated">Действие кода "{0}" не сформировало измененное решение.</target>
+        <note>"CodeAction" is a specific type, and {0} represents the title shown by the action.</note>
       </trans-unit>
       <trans-unit id="Core_EditorConfig_Options">
         <source>Core EditorConfig Options</source>
@@ -64,7 +79,7 @@
       </trans-unit>
       <trans-unit id="Only_submission_project_can_reference_submission_projects">
         <source>Only submission project can reference submission projects.</source>
-        <target state="new">Only submission project can reference submission projects.</target>
+        <target state="translated">Только проект отправки может ссылаться на другие проекты отправки.</target>
         <note />
       </trans-unit>
       <trans-unit id="Options_did_not_come_from_specified_Solution">
@@ -72,9 +87,14 @@
         <target state="translated">Параметры получены не из указанного решения.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Predefined_conversion_from_0_to_1">
+        <source>Predefined conversion from {0} to {1}.</source>
+        <target state="translated">Предварительно определенное преобразование из {0} в {1}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Project_does_not_contain_specified_reference">
         <source>Project does not contain specified reference</source>
-        <target state="new">Project does not contain specified reference</target>
+        <target state="translated">Проект не содержит указанную ссылку.</target>
         <note />
       </trans-unit>
       <trans-unit id="Refactoring_Only">
@@ -92,9 +112,14 @@
         <target state="translated">Удаление документов конфигурации анализатора не поддерживается.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Rename_0_to_1">
+        <source>Rename '{0}' to '{1}'</source>
+        <target state="translated">Переименовать "{0}" в "{1}"</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Solution_does_not_contain_specified_reference">
         <source>Solution does not contain specified reference</source>
-        <target state="new">Solution does not contain specified reference</target>
+        <target state="translated">Решение не содержит указанную ссылку.</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_0_is_not_from_source">
@@ -172,19 +197,34 @@
         <target state="translated">Добавление проектов не поддерживается.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbols_project_could_not_be_found_in_the_provided_solution">
+        <source>Symbol's project could not be found in the provided solution</source>
+        <target state="translated">Не удалось найти проект символа в указанном решении.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Sync_namespace_to_folder_structure">
+        <source>Sync namespace to folder structure</source>
+        <target state="translated">Синхронизировать пространство имен со структурой папок</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_contents_of_a_SourceGeneratedDocument_may_not_be_changed">
+        <source>The contents of a SourceGeneratedDocument may not be changed.</source>
+        <target state="translated">Содержимое SourceGeneratedDocument не может быть изменено.</target>
+        <note>{locked:SourceGeneratedDocument}</note>
+      </trans-unit>
       <trans-unit id="The_project_already_contains_the_specified_reference">
         <source>The project already contains the specified reference.</source>
-        <target state="new">The project already contains the specified reference.</target>
+        <target state="translated">Проект уже содержит указанную ссылку.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_solution_already_contains_the_specified_reference">
         <source>The solution already contains the specified reference.</source>
-        <target state="new">The solution already contains the specified reference.</target>
+        <target state="translated">Решение уже содержит указанную ссылку.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown">
         <source>Unknown</source>
-        <target state="new">Unknown</target>
+        <target state="translated">Unbekannt</target>
         <note />
       </trans-unit>
       <trans-unit id="Visual_Basic_files">
@@ -209,27 +249,27 @@
       </trans-unit>
       <trans-unit id="_0_is_in_a_different_project">
         <source>{0} is in a different project.</source>
-        <target state="new">{0} is in a different project.</target>
+        <target state="translated">{0} находится в другом проекте.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_part_of_the_workspace">
         <source>'{0}' is not part of the workspace.</source>
-        <target state="translated">'"{0}" не является частью рабочей области.</target>
+        <target state="translated">"{0}" не является частью рабочей области.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_already_part_of_the_workspace">
         <source>'{0}' is already part of the workspace.</source>
-        <target state="translated">'"{0}" уже является частью рабочей области.</target>
+        <target state="translated">"{0}" уже является частью рабочей области.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_not_referenced">
         <source>'{0}' is not referenced.</source>
-        <target state="translated">'"{0}" не объявлен.</target>
+        <target state="translated">"{0}" не объявлен.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_is_already_referenced">
         <source>'{0}' is already referenced.</source>
-        <target state="translated">'"{0}" уже объявлен.</target>
+        <target state="translated">"{0}" уже объявлен.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_project_reference_from_0_to_1_will_cause_a_circular_reference">
@@ -282,11 +322,6 @@
         <target state="translated">Проект уже ссылается на целевой проект.</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_project_already_transitively_references_the_target_project">
-        <source>The project already transitively references the target project.</source>
-        <target state="translated">Проект уже транзитивно ссылается на целевой проект.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="The_solution_already_contains_the_specified_document">
         <source>The solution already contains the specified document.</source>
         <target state="translated">Указанный документ уже находится в решении.</target>
@@ -299,7 +334,7 @@
       </trans-unit>
       <trans-unit id="_0_is_not_open">
         <source>'{0}' is not open.</source>
-        <target state="translated">'"{0}" не открыт.</target>
+        <target state="translated">"{0}" не открыт.</target>
         <note />
       </trans-unit>
       <trans-unit id="A_language_name_cannot_be_specified_for_this_option">
@@ -644,7 +679,7 @@
       </trans-unit>
       <trans-unit id="_0_returned_an_uninitialized_ImmutableArray">
         <source>'{0}' returned an uninitialized ImmutableArray</source>
-        <target state="translated">'"{0}" возвратил неинициализированный ImmutableArray</target>
+        <target state="translated">"{0}" возвратил неинициализированный ImmutableArray</target>
         <note />
       </trans-unit>
       <trans-unit id="Failure">

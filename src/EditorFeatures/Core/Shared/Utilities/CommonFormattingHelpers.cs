@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 {
@@ -28,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
                 return TextSpan.FromBounds(currentLine.Start, endPosition);
             }
 
-            var lastNonNoisyCharPosition = previousLine.GetLastNonWhitespacePosition().Value;
+            var lastNonNoisyCharPosition = previousLine.GetLastNonWhitespacePosition().GetValueOrDefault();
             return TextSpan.FromBounds(lastNonNoisyCharPosition, endPosition);
         }
 

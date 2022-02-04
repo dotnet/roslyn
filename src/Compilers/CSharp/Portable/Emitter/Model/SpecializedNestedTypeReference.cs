@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using System.Diagnostics;
@@ -25,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             Debug.Assert(UnderlyingNamedType.OriginalDefinition.IsDefinition);
             var result = ((PEModuleBuilder)context.Module).Translate(this.UnderlyingNamedType.OriginalDefinition,
-                                          (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics, needDeclaration: true).AsNestedTypeReference;
+                                          (CSharpSyntaxNode)context.SyntaxNode, context.Diagnostics, needDeclaration: true).AsNestedTypeReference;
 
             Debug.Assert(result != null);
             return result;
@@ -38,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(EmitContext context)
         {
-            return ((PEModuleBuilder)context.Module).Translate(UnderlyingNamedType.ContainingType, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics);
+            return ((PEModuleBuilder)context.Module).Translate(UnderlyingNamedType.ContainingType, (CSharpSyntaxNode)context.SyntaxNode, context.Diagnostics);
         }
 
         public override Cci.IGenericTypeInstanceReference AsGenericTypeInstanceReference

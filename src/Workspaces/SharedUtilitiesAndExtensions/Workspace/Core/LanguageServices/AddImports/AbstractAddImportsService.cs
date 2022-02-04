@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,7 +10,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.AddImports
+namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract class AbstractAddImportsService<TCompilationUnitSyntax, TNamespaceDeclarationSyntax, TUsingOrAliasSyntax, TExternSyntax>
         : IAddImportsService
@@ -30,6 +28,10 @@ namespace Microsoft.CodeAnalysis.AddImports
         protected abstract SyntaxList<TUsingOrAliasSyntax> GetUsingsAndAliases(SyntaxNode node);
         protected abstract SyntaxList<TExternSyntax> GetExterns(SyntaxNode node);
         protected abstract bool IsStaticUsing(TUsingOrAliasSyntax usingOrAlias);
+
+#if !CODE_STYLE
+        public abstract bool PlaceImportsInsideNamespaces(Options.OptionSet optionSet);
+#endif
 
         private bool IsSimpleUsing(TUsingOrAliasSyntax usingOrAlias) => !IsAlias(usingOrAlias) && !IsStaticUsing(usingOrAlias);
         private bool IsAlias(TUsingOrAliasSyntax usingOrAlias) => GetAlias(usingOrAlias) != null;
@@ -88,15 +90,16 @@ namespace Microsoft.CodeAnalysis.AddImports
 
         protected abstract bool IsEquivalentImport(SyntaxNode a, SyntaxNode b);
 
-        public SyntaxNode GetImportContainer(SyntaxNode root, SyntaxNode? contextLocation, SyntaxNode import)
+        public SyntaxNode GetImportContainer(SyntaxNode root, SyntaxNode? contextLocation, SyntaxNode import, AddImportPlacementOptions options)
         {
             contextLocation ??= root;
-            GetContainers(root, contextLocation,
+            GetContainers(root, contextLocation, options,
                 out var externContainer, out var usingContainer, out var staticUsingContainer, out var aliasContainer);
 
             switch (import)
             {
-                case TExternSyntax e: return externContainer;
+                case TExternSyntax _:
+                    return externContainer;
                 case TUsingOrAliasSyntax u:
                     if (IsAlias(u))
                     {
@@ -120,7 +123,7 @@ namespace Microsoft.CodeAnalysis.AddImports
             SyntaxNode? contextLocation,
             IEnumerable<SyntaxNode> newImports,
             SyntaxGenerator generator,
-            bool placeSystemNamespaceFirst,
+            AddImportPlacementOptions options,
             CancellationToken cancellationToken)
         {
             contextLocation ??= root;
@@ -134,33 +137,40 @@ namespace Microsoft.CodeAnalysis.AddImports
             var staticUsingDirectives = filteredImports.OfType<TUsingOrAliasSyntax>().Where(IsStaticUsing).ToArray();
             var aliasDirectives = filteredImports.OfType<TUsingOrAliasSyntax>().Where(IsAlias).ToArray();
 
-            GetContainers(root, contextLocation,
+            GetContainers(root, contextLocation, options,
                 out var externContainer, out var usingContainer, out var aliasContainer, out var staticUsingContainer);
 
             var newRoot = Rewrite(
-                externAliases, usingDirectives, staticUsingDirectives,
-                aliasDirectives, externContainer, usingContainer,
-                staticUsingContainer, aliasContainer,
-                placeSystemNamespaceFirst, root, cancellationToken);
+                externAliases, usingDirectives, staticUsingDirectives, aliasDirectives,
+                externContainer, usingContainer, staticUsingContainer, aliasContainer,
+                options, root, cancellationToken);
 
             return newRoot;
         }
 
         protected abstract SyntaxNode Rewrite(
-            TExternSyntax[] externAliases, TUsingOrAliasSyntax[] usingDirectives, TUsingOrAliasSyntax[] staticUsingDirectives,
-            TUsingOrAliasSyntax[] aliasDirectives, SyntaxNode externContainer, SyntaxNode usingContainer,
-            SyntaxNode staticUsingContainer, SyntaxNode aliasContainer, bool placeSystemNamespaceFirst, SyntaxNode root,
-            CancellationToken cancellationToken);
+            TExternSyntax[] externAliases, TUsingOrAliasSyntax[] usingDirectives, TUsingOrAliasSyntax[] staticUsingDirectives, TUsingOrAliasSyntax[] aliasDirectives,
+            SyntaxNode externContainer, SyntaxNode usingContainer, SyntaxNode staticUsingContainer, SyntaxNode aliasContainer,
+            AddImportPlacementOptions options, SyntaxNode root, CancellationToken cancellationToken);
 
-        private void GetContainers(SyntaxNode root, SyntaxNode contextLocation, out SyntaxNode externContainer, out SyntaxNode usingContainer, out SyntaxNode staticUsingContainer, out SyntaxNode aliasContainer)
+        private void GetContainers(SyntaxNode root, SyntaxNode contextLocation, AddImportPlacementOptions options, out SyntaxNode externContainer, out SyntaxNode usingContainer, out SyntaxNode staticUsingContainer, out SyntaxNode aliasContainer)
         {
             var applicableContainer = GetFirstApplicableContainer(contextLocation);
             var contextSpine = applicableContainer.GetAncestorsOrThis<SyntaxNode>().ToImmutableArray();
 
             // The node we'll add to if we can't find a specific namespace with imports of 
             // the type we're trying to add.  This will be the closest namespace with any
-            // imports in it, or the root if there are no such namespaces.
-            var fallbackNode = contextSpine.FirstOrDefault(HasAnyImports) ?? root;
+            // imports in it
+            var fallbackNode = contextSpine.FirstOrDefault(HasAnyImports);
+
+            // If there aren't any existing imports then make sure we honour the inside namespace preference
+            // for using directings if it's set
+            if (fallbackNode is null && options.PlaceImportsInsideNamespaces)
+                fallbackNode = contextSpine.OfType<TNamespaceDeclarationSyntax>().FirstOrDefault();
+
+            // If all else fails use the root
+            if (fallbackNode is null)
+                fallbackNode = root;
 
             // The specific container to add each type of import to.  We look for a container
             // that already has an import of the same type as the node we want to add to.
@@ -176,7 +186,7 @@ namespace Microsoft.CodeAnalysis.AddImports
         {
             var usingDirective = contextNode.GetAncestor<TUsingOrAliasSyntax>();
 
-            SyntaxNode? node = usingDirective != null ? usingDirective.Parent! : contextNode;
+            var node = usingDirective != null ? usingDirective.Parent! : contextNode;
             return node.GetAncestor<TNamespaceDeclarationSyntax>() ??
                    (SyntaxNode?)node.GetAncestorOrThis<TCompilationUnitSyntax>();
         }

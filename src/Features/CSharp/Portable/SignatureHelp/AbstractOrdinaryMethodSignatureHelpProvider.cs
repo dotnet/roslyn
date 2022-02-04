@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -19,8 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             Document document,
             IMethodSymbol method,
             int position,
-            SemanticModel semanticModel,
-            CancellationToken cancellationToken)
+            SemanticModel semanticModel)
         {
             return ConvertMethodGroupMethod(document, method, position, semanticModel, descriptionParts: null);
         }
@@ -30,20 +28,20 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             IMethodSymbol method,
             int position,
             SemanticModel semanticModel,
-            IList<SymbolDisplayPart> descriptionParts)
+            IList<SymbolDisplayPart>? descriptionParts)
         {
-            var anonymousTypeDisplayService = document.GetLanguageService<IAnonymousTypeDisplayService>();
-            var documentationCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
+            var structuralTypeDisplayService = document.GetRequiredLanguageService<IStructuralTypeDisplayService>();
+            var documentationCommentFormattingService = document.GetRequiredLanguageService<IDocumentationCommentFormattingService>();
 
             return CreateItemImpl(
                 method, semanticModel, position,
-                anonymousTypeDisplayService,
+                structuralTypeDisplayService,
                 method.IsParams(),
                 c => method.OriginalDefinition.GetDocumentationParts(semanticModel, position, documentationCommentFormattingService, c),
                 GetMethodGroupPreambleParts(method, semanticModel, position),
                 GetSeparatorParts(),
                 GetMethodGroupPostambleParts(),
-                method.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService, CancellationToken.None)).ToList(),
+                method.Parameters.Select(p => Convert(p, semanticModel, position, documentationCommentFormattingService)).ToList(),
                 descriptionParts: descriptionParts);
         }
 

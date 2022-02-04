@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Roslyn.Utilities;
@@ -41,7 +40,7 @@ namespace Microsoft.CodeAnalysis
             get { return this.Info.AdditionalLocations; }
         }
 
-        internal override IReadOnlyList<string> CustomTags
+        internal override ImmutableArray<string> CustomTags
         {
             get
             {
@@ -141,11 +140,6 @@ namespace Microsoft.CodeAnalysis
         public override int GetHashCode()
         {
             return Hash.Combine(this.Location.GetHashCode(), this.Info.GetHashCode());
-        }
-
-        public override bool Equals(object? obj)
-        {
-            return Equals(obj as Diagnostic);
         }
 
         public override bool Equals(Diagnostic? obj)

@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundLocal
+    Partial Friend Class BoundLocal
 
         Public Sub New(syntax As SyntaxNode, localSymbol As LocalSymbol, type As TypeSymbol, hasErrors As Boolean)
             Me.New(syntax, localSymbol, Not localSymbol.IsReadOnly, type:=type, hasErrors:=hasErrors)

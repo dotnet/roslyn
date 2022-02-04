@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         public abstract SyntaxToken FindStartingToken(SyntaxTree tree, int position, CancellationToken cancellationToken);
-        public abstract ImmutableArray<ISymbol> FilterOverrides(ImmutableArray<ISymbol> members, ITypeSymbol returnType);
+        public abstract ImmutableArray<ISymbol> FilterOverrides(ImmutableArray<ISymbol> members, ITypeSymbol? returnType);
         public abstract bool TryDetermineModifiers(SyntaxToken startToken, SourceText text, int startLine, out Accessibility seenAccessibility, out DeclarationModifiers modifiers);
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
@@ -29,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var state = await ItemGetter.CreateAsync(this, context.Document, context.Position, context.CancellationToken).ConfigureAwait(false);
             var items = await state.GetItemsAsync().ConfigureAwait(false);
 
-            if (items?.Any() == true)
+            if (!items.IsDefaultOrEmpty)
             {
                 context.IsExclusive = true;
                 context.AddItems(items);
@@ -66,13 +67,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             SyntaxToken startToken,
             SemanticModel semanticModel,
             CancellationToken cancellationToken,
-            out ITypeSymbol returnType,
+            out ITypeSymbol? returnType,
             out SyntaxToken nextToken);
 
-        protected bool IsOnStartLine(int position, SourceText text, int startLine)
+        protected static bool IsOnStartLine(int position, SourceText text, int startLine)
             => text.Lines.IndexOf(position) == startLine;
 
-        protected ITypeSymbol GetReturnType(ISymbol symbol)
+        protected static ITypeSymbol GetReturnType(ISymbol symbol)
             => symbol.Kind switch
             {
                 SymbolKind.Event => ((IEventSymbol)symbol).Type,

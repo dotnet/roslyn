@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
@@ -46,6 +47,13 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"using Goo = $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInGlobalUsingAlias()
+        {
+            await VerifyAbsenceAsync(
+@"global using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -187,6 +195,34 @@ $$");
             await VerifyAbsenceAsync(
 @"enum E {
     [$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(51756, "https://github.com/dotnet/roslyn/issues/51756")]
+        public async Task TestInRecordPositionalParameter1()
+        {
+            await VerifyKeywordAsync("public record R([$$] string M);");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(51756, "https://github.com/dotnet/roslyn/issues/51756")]
+        public async Task TestInRecordPositionalParameter2()
+        {
+            await VerifyKeywordAsync("public record R([$$ SomeAttribute] string M);");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(51756, "https://github.com/dotnet/roslyn/issues/51756")]
+        public async Task TestInRecordPositionalParameter3()
+        {
+            await VerifyKeywordAsync("public record R([$$ string M);");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(51756, "https://github.com/dotnet/roslyn/issues/51756")]
+        public async Task TestInRecordPositionalParameter4()
+        {
+            await VerifyKeywordAsync("public record R([$$");
         }
     }
 }

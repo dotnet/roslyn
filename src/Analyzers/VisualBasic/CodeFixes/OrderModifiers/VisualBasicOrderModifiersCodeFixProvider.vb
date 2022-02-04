@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
 Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
-    <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.OrderModifiers), [Shared]>
     Friend Class VisualBasicOrderModifiersCodeFixProvider
         Inherits AbstractOrderModifiersCodeFixProvider
 

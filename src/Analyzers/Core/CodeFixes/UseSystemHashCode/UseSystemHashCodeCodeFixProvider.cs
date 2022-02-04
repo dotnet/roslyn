@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -20,7 +18,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseSystemHashCode
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.UseSystemHashCode), Shared]
     internal class UseSystemHashCodeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
@@ -58,7 +56,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 return;
             }
 
-            var semanticModel = await document.RequireSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             if (!Analyzer.TryGetAnalyzer(semanticModel.Compilation, out var analyzer))
             {
                 Debug.Fail("Could not get analyzer");
@@ -74,7 +72,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
                 var method = semanticModel.GetDeclaredSymbol(methodDecl, cancellationToken);
                 var methodBlock = declarationService.GetDeclarations(method)[0].GetSyntax(cancellationToken);
 
-                var (accessesBase, members) = analyzer.GetHashedMembers(method, operation);
+                var (accessesBase, members, _) = analyzer.GetHashedMembers(method, operation);
                 if (accessesBase || !members.IsDefaultOrEmpty)
                 {
                     // Produce the new statements for the GetHashCode method and replace the
@@ -82,9 +80,9 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode
 
                     // Only if there was a base.GetHashCode() do we pass in the ContainingType
                     // so that we generate the same.
-                    var containingType = accessesBase ? method.ContainingType : null;
+                    var containingType = accessesBase ? method!.ContainingType : null;
                     var components = generator.GetGetHashCodeComponents(
-                        semanticModel.Compilation, containingType, members, justMemberReference: true);
+                        generatorInternal, semanticModel.Compilation, containingType, members, justMemberReference: true);
 
                     var updatedDecl = generator.WithStatements(
                         methodBlock,

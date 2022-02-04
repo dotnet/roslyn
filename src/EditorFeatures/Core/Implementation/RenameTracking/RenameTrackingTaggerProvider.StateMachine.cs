@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -16,6 +18,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -31,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
         /// Keeps track of the rename tracking state for a given text buffer by tracking its
         /// changes over time.
         /// </summary>
-        private class StateMachine : ForegroundThreadAffinitizedObject
+        private sealed class StateMachine : ForegroundThreadAffinitizedObject
         {
             private readonly IInlineRenameService _inlineRenameService;
             private readonly IAsynchronousOperationListener _asyncListener;
@@ -45,6 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
             private int _refCount;
 
+            public readonly IGlobalOptionService GlobalOptions;
             public TrackingSession TrackingSession { get; private set; }
             public ITextBuffer Buffer => _buffer;
 
@@ -55,8 +59,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 IThreadingContext threadingContext,
                 ITextBuffer buffer,
                 IInlineRenameService inlineRenameService,
-                IAsynchronousOperationListener asyncListener,
-                IDiagnosticAnalyzerService diagnosticAnalyzerService)
+                IDiagnosticAnalyzerService diagnosticAnalyzerService,
+                IGlobalOptionService globalOptions,
+                IAsynchronousOperationListener asyncListener)
                 : base(threadingContext)
             {
                 _buffer = buffer;
@@ -64,13 +69,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 _inlineRenameService = inlineRenameService;
                 _asyncListener = asyncListener;
                 _diagnosticAnalyzerService = diagnosticAnalyzerService;
+                GlobalOptions = globalOptions;
             }
 
             private void Buffer_Changed(object sender, TextContentChangedEventArgs e)
             {
                 AssertIsForeground();
 
-                if (!_buffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.RenameTracking))
+                if (!GlobalOptions.GetOption(InternalFeatureOnOffOptions.RenameTracking))
                 {
                     // When disabled, ignore all text buffer changes and do not trigger retagging
                     return;
@@ -187,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 this.TrackingSession = new TrackingSession(this, new SnapshotSpan(eventArgs.Before, originalSpan), _asyncListener);
             }
 
-            private bool IsTrackableCharacter(ISyntaxFactsService syntaxFactsService, char c)
+            private static bool IsTrackableCharacter(ISyntaxFactsService syntaxFactsService, char c)
             {
                 // Allow identifier part characters at the beginning of strings (even if they are
                 // not identifier start characters). If an intermediate name is not valid, the smart
@@ -280,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     trackingSession.CanInvokeRename(syntaxFactsService, languageHeuristicsService, isSmartTagCheck, waitForResult, cancellationToken);
             }
 
-            internal CodeAction TryGetCodeAction(
+            internal (CodeAction action, TextSpan renameSpan) TryGetCodeAction(
                 Document document, SourceText text, TextSpan userSpan,
                 IEnumerable<IRefactorNotifyService> refactorNotifyServices,
                 ITextUndoHistoryRegistry undoHistoryRegistry,
@@ -308,14 +314,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                                 trackingSession.OriginalName,
                                 snapshotSpan.GetText());
 
-                            return new RenameTrackingCodeAction(
-                                document, title, refactorNotifyServices, undoHistoryRegistry);
+                            return (new RenameTrackingCodeAction(document, title, refactorNotifyServices, undoHistoryRegistry, GlobalOptions),
+                                    snapshotSpan.Span.ToTextSpan());
                         }
                     }
 
-                    return null;
+                    return default;
                 }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }

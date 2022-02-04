@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Friend Overrides Function TryGetTypeHandle(def As Cci.ITypeDefinition, <Out> ByRef handle As TypeDefinitionHandle) As Boolean
-            Dim other = TryCast(_mapToMetadata.MapDefinition(def), PENamedTypeSymbol)
+            Dim other = TryCast(_mapToMetadata.MapDefinition(def)?.GetInternalSymbol(), PENamedTypeSymbol)
             If other IsNot Nothing Then
                 handle = other.Handle
                 Return True
@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Friend Overrides Function TryGetEventHandle(def As Cci.IEventDefinition, <Out> ByRef handle As EventDefinitionHandle) As Boolean
-            Dim other = TryCast(_mapToMetadata.MapDefinition(def), PEEventSymbol)
+            Dim other = TryCast(_mapToMetadata.MapDefinition(def)?.GetInternalSymbol(), PEEventSymbol)
             If other IsNot Nothing Then
                 handle = other.Handle
                 Return True
@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Friend Overrides Function TryGetFieldHandle(def As Cci.IFieldDefinition, <Out> ByRef handle As FieldDefinitionHandle) As Boolean
-            Dim other = TryCast(_mapToMetadata.MapDefinition(def), PEFieldSymbol)
+            Dim other = TryCast(_mapToMetadata.MapDefinition(def)?.GetInternalSymbol(), PEFieldSymbol)
             If other IsNot Nothing Then
                 handle = other.Handle
                 Return True
@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Friend Overrides Function TryGetMethodHandle(def As Cci.IMethodDefinition, <Out> ByRef handle As MethodDefinitionHandle) As Boolean
-            Dim other = TryCast(_mapToMetadata.MapDefinition(def), PEMethodSymbol)
+            Dim other = TryCast(_mapToMetadata.MapDefinition(def)?.GetInternalSymbol(), PEMethodSymbol)
             If other IsNot Nothing Then
                 handle = other.Handle
                 Return True
@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Friend Overrides Function TryGetPropertyHandle(def As Cci.IPropertyDefinition, <Out> ByRef handle As PropertyDefinitionHandle) As Boolean
-            Dim other = TryCast(_mapToMetadata.MapDefinition(def), PEPropertySymbol)
+            Dim other = TryCast(_mapToMetadata.MapDefinition(def)?.GetInternalSymbol(), PEPropertySymbol)
             If other IsNot Nothing Then
                 handle = other.Handle
                 Return True
@@ -144,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Debug.Assert(TypeOf stateMachineType.ContainingAssembly Is PEAssemblySymbol)
 
             Dim hoistedLocals = New Dictionary(Of EncHoistedLocalInfo, Integer)()
-            Dim awaiters = New Dictionary(Of Cci.ITypeReference, Integer)
+            Dim awaiters = New Dictionary(Of Cci.ITypeReference, Integer)(DirectCast(Cci.SymbolEquivalentEqualityComparer.Instance, IEqualityComparer(Of Cci.IReference)))
             Dim maxAwaiterSlotIndex = -1
 
             For Each member In DirectCast(stateMachineType, TypeSymbol).GetMembers()
@@ -152,14 +152,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Dim name = member.Name
                     Dim slotIndex As Integer
 
-                    Select Case GeneratedNames.GetKind(name)
+                    Select Case GeneratedNameParser.GetKind(name)
                         Case GeneratedNameKind.StateMachineAwaiterField
 
-                            If GeneratedNames.TryParseSlotIndex(StringConstants.StateMachineAwaiterFieldPrefix, name, slotIndex) Then
-                                Dim field = DirectCast(member, IFieldSymbol)
+                            If GeneratedNameParser.TryParseSlotIndex(GeneratedNameConstants.StateMachineAwaiterFieldPrefix, name, slotIndex) Then
+                                Dim field = DirectCast(member, FieldSymbol)
 
                                 ' Correct metadata won't contain duplicates, but malformed might, ignore the duplicate:
-                                awaiters(DirectCast(field.Type, Cci.ITypeReference)) = slotIndex
+                                awaiters(DirectCast(field.Type.GetCciAdapter(), Cci.ITypeReference)) = slotIndex
 
                                 If slotIndex > maxAwaiterSlotIndex Then
                                     maxAwaiterSlotIndex = slotIndex
@@ -170,15 +170,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                              GeneratedNameKind.StateMachineHoistedUserVariableField
 
                             Dim _name As String = Nothing
-                            If GeneratedNames.TryParseSlotIndex(StringConstants.HoistedSynthesizedLocalPrefix, name, slotIndex) OrElse
-                               GeneratedNames.TryParseStateMachineHoistedUserVariableName(name, _name, slotIndex) Then
-                                Dim field = DirectCast(member, IFieldSymbol)
+                            If GeneratedNameParser.TryParseSlotIndex(GeneratedNameConstants.HoistedSynthesizedLocalPrefix, name, slotIndex) OrElse
+                               GeneratedNameParser.TryParseStateMachineHoistedUserVariableName(name, _name, slotIndex) Then
+                                Dim field = DirectCast(member, FieldSymbol)
                                 If slotIndex >= localSlotDebugInfo.Length Then
                                     ' Invalid metadata
                                     Continue For
                                 End If
 
-                                Dim key = New EncHoistedLocalInfo(localSlotDebugInfo(slotIndex), DirectCast(field.Type, Cci.ITypeReference))
+                                Dim key = New EncHoistedLocalInfo(localSlotDebugInfo(slotIndex), DirectCast(field.Type.GetCciAdapter(), Cci.ITypeReference))
 
                                 ' Correct metadata won't contain duplicates, but malformed might, ignore the duplicate:
                                 hoistedLocals(key) = slotIndex
@@ -230,7 +230,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                         ' We do Not emit custom modifiers on locals so ignore the
                         ' previous version of the local if it had custom modifiers.
                         If metadata.CustomModifiers.IsDefaultOrEmpty Then
-                            Dim local = New EncLocalInfo(slot, DirectCast(metadata.Type, Cci.ITypeReference), metadata.Constraints, metadata.SignatureOpt)
+                            Dim local = New EncLocalInfo(slot, DirectCast(metadata.Type.GetCciAdapter(), Cci.ITypeReference), metadata.Constraints, metadata.SignatureOpt)
                             map.Add(local, slotIndex)
                         End If
                     End If

@@ -7,19 +7,17 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 {
@@ -30,18 +28,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
     internal partial class DiagnosticsSquiggleTaggerProvider : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
     {
         private static readonly IEnumerable<Option2<bool>> s_tagSourceOptions =
-            ImmutableArray.Create(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles, ServiceComponentOnOffOptions.DiagnosticProvider);
+            ImmutableArray.Create(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles);
 
         protected override IEnumerable<Option2<bool>> Options => s_tagSourceOptions;
 
         [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DiagnosticsSquiggleTaggerProvider(
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
-            IForegroundNotificationService notificationService,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, diagnosticService, notificationService, listenerProvider)
+            : base(threadingContext, diagnosticService, globalOptions, listenerProvider)
         {
         }
 
@@ -54,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 !string.IsNullOrWhiteSpace(diagnostic.Message);
         }
 
-        protected override IErrorTag CreateTag(DiagnosticData diagnostic)
+        protected override IErrorTag? CreateTag(Workspace workspace, DiagnosticData diagnostic)
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(diagnostic.Message));
             var errorType = GetErrorTypeFromDiagnostic(diagnostic);
@@ -67,10 +65,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 return null;
             }
 
-            return new ErrorTag(errorType, diagnostic.Message);
+            return new ErrorTag(errorType, CreateToolTipContent(workspace, diagnostic));
         }
 
-        private string GetErrorTypeFromDiagnostic(DiagnosticData diagnostic)
+        private static string? GetErrorTypeFromDiagnostic(DiagnosticData diagnostic)
         {
             if (diagnostic.IsSuppressed)
             {
@@ -82,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                    GetErrorTypeFromDiagnosticSeverity(diagnostic);
         }
 
-        private string GetErrorTypeFromDiagnosticTags(DiagnosticData diagnostic)
+        private static string? GetErrorTypeFromDiagnosticTags(DiagnosticData diagnostic)
         {
             if (diagnostic.Severity == DiagnosticSeverity.Error &&
                 diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.EditAndContinue))
@@ -93,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             return null;
         }
 
-        private static string GetErrorTypeFromDiagnosticSeverity(DiagnosticData diagnostic)
+        private static string? GetErrorTypeFromDiagnosticSeverity(DiagnosticData diagnostic)
         {
             switch (diagnostic.Severity)
             {

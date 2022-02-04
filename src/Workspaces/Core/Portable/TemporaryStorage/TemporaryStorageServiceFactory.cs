@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.IO;
@@ -36,9 +35,9 @@ namespace Microsoft.CodeAnalysis.Host
 
             // MemoryMapped files which are used by the TemporaryStorageService are present in .NET Framework (including Mono)
             // and .NET Core Windows. For non-Windows .NET Core scenarios, we can return the TrivialTemporaryStorageService
-            // until https://github.com/dotnet/roslyn/issues/42178 is fixed.
+            // until https://github.com/dotnet/runtime/issues/30878 is fixed.
             return PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono
-                ? (ITemporaryStorageService)new TemporaryStorageService(textFactory)
+                ? new TemporaryStorageService(textFactory)
                 : TrivialTemporaryStorageService.Instance;
         }
 
@@ -79,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Host
             /// available in source control history. The use of exclusive locks was not causing any measurable
             /// performance overhead even on 28-thread machines at the time this was written.</para>
             /// </remarks>
-            private readonly object _gate = new object();
+            private readonly object _gate = new();
 
             /// <summary>
             /// The most recent memory mapped file for creating multiple storage units. It will be used via bump-pointer
@@ -119,8 +118,8 @@ namespace Microsoft.CodeAnalysis.Host
             public ITemporaryTextStorage CreateTemporaryTextStorage(CancellationToken cancellationToken)
                 => new TemporaryTextStorage(this);
 
-            public ITemporaryTextStorage AttachTemporaryTextStorage(string storageName, long offset, long size, Encoding? encoding, CancellationToken cancellationToken)
-                => new TemporaryTextStorage(this, storageName, offset, size, encoding);
+            public ITemporaryTextStorage AttachTemporaryTextStorage(string storageName, long offset, long size, SourceHashAlgorithm checksumAlgorithm, Encoding? encoding, CancellationToken cancellationToken)
+                => new TemporaryTextStorage(this, storageName, offset, size, checksumAlgorithm, encoding);
 
             public ITemporaryStreamStorage CreateTemporaryStreamStorage(CancellationToken cancellationToken)
                 => new TemporaryStreamStorage(this);
@@ -178,18 +177,21 @@ namespace Microsoft.CodeAnalysis.Host
             public static string CreateUniqueName(long size)
                 => "Roslyn Temp Storage " + size.ToString() + " " + Guid.NewGuid().ToString("N");
 
-            private sealed class TemporaryTextStorage : ITemporaryTextStorage, ITemporaryStorageWithName
+            private sealed class TemporaryTextStorage : ITemporaryTextStorage, ITemporaryTextStorageWithName
             {
                 private readonly TemporaryStorageService _service;
+                private SourceHashAlgorithm _checksumAlgorithm;
                 private Encoding? _encoding;
+                private ImmutableArray<byte> _checksum;
                 private MemoryMappedInfo? _memoryMappedInfo;
 
                 public TemporaryTextStorage(TemporaryStorageService service)
                     => _service = service;
 
-                public TemporaryTextStorage(TemporaryStorageService service, string storageName, long offset, long size, Encoding? encoding)
+                public TemporaryTextStorage(TemporaryStorageService service, string storageName, long offset, long size, SourceHashAlgorithm checksumAlgorithm, Encoding? encoding)
                 {
                     _service = service;
+                    _checksumAlgorithm = checksumAlgorithm;
                     _encoding = encoding;
                     _memoryMappedInfo = new MemoryMappedInfo(storageName, offset, size);
                 }
@@ -199,6 +201,18 @@ namespace Microsoft.CodeAnalysis.Host
                 public string? Name => _memoryMappedInfo?.Name;
                 public long Offset => _memoryMappedInfo!.Offset;
                 public long Size => _memoryMappedInfo!.Size;
+                public SourceHashAlgorithm ChecksumAlgorithm => _checksumAlgorithm;
+                public Encoding? Encoding => _encoding;
+
+                public ImmutableArray<byte> GetChecksum()
+                {
+                    if (_checksum.IsDefault)
+                    {
+                        ImmutableInterlocked.InterlockedInitialize(ref _checksum, ReadText(CancellationToken.None).GetChecksum());
+                    }
+
+                    return _checksum;
+                }
 
                 public void Dispose()
                 {
@@ -252,6 +266,7 @@ namespace Microsoft.CodeAnalysis.Host
 
                     using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_WriteText, cancellationToken))
                     {
+                        _checksumAlgorithm = text.ChecksumAlgorithm;
                         _encoding = text.Encoding;
 
                         // the method we use to get text out of SourceText uses Unicode (2bytes per char). 
@@ -272,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Host
                     return Task.Factory.StartNew(() => WriteText(text, cancellationToken), cancellationToken, TaskCreationOptions.None, TaskScheduler.Default);
                 }
 
-                private unsafe TextReader CreateTextReaderFromTemporaryStorage(ISupportDirectMemoryAccess accessor, int streamLength)
+                private static unsafe TextReader CreateTextReaderFromTemporaryStorage(ISupportDirectMemoryAccess accessor, int streamLength)
                 {
                     var src = (char*)accessor.GetPointer();
 

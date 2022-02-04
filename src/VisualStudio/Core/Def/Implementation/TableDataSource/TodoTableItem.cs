@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
 using Roslyn.Utilities;
@@ -19,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private TodoTableItem(
             Workspace workspace,
             TodoCommentData data,
-            string projectName,
+            string? projectName,
             Guid projectGuid,
             string[] projectNames,
             Guid[] projectGuids)
@@ -44,14 +43,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             => Data.DocumentId.ProjectId;
 
         public override LinePosition GetOriginalPosition()
-            => new LinePosition(Data.OriginalLine, Data.OriginalColumn);
+            => new(Data.OriginalLine, Data.OriginalColumn);
 
-        public override string GetOriginalFilePath()
+        public override string? GetOriginalFilePath()
             => Data.OriginalFilePath;
 
         public override bool EqualsIgnoringLocation(TableItem other)
         {
-            if (!(other is TodoTableItem otherTodoItem))
+            if (other is not TodoTableItem otherTodoItem)
             {
                 return false;
             }
@@ -68,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         /// </summary>
         internal sealed class GroupingComparer : IEqualityComparer<TodoCommentData>, IEqualityComparer<TodoTableItem>
         {
-            public static readonly GroupingComparer Instance = new GroupingComparer();
+            public static readonly GroupingComparer Instance = new();
 
             public bool Equals(TodoCommentData left, TodoCommentData right)
             {

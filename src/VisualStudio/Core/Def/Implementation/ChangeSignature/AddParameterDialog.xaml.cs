@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
+using System;
 using System.Windows;
 using Microsoft.VisualStudio.PlatformUI;
-using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 {
@@ -16,25 +14,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
     internal partial class AddParameterDialog : DialogWindow
     {
         private readonly AddParameterDialogViewModel _viewModel;
-        private readonly Document _document;
 
         public string OK { get { return ServicesVSResources.OK; } }
         public string Cancel { get { return ServicesVSResources.Cancel; } }
-
+        public string ParameterInformation { get { return ServicesVSResources.Parameter_information; } }
         public string TypeNameLabel { get { return ServicesVSResources.Type_Name; } }
-
         public string ParameterNameLabel { get { return ServicesVSResources.Parameter_Name; } }
-
         public string CallSiteValueLabel { get { return ServicesVSResources.Call_site_value; } }
-
         public string AddParameterDialogTitle { get { return ServicesVSResources.Add_Parameter; } }
+        public string ParameterKind { get { return ServicesVSResources.Parameter_kind; } }
+        public string Required { get { return ServicesVSResources.Required; } }
+        public string OptionalWithDefaultValue { get { return ServicesVSResources.Optional_with_default_value_colon; } }
+        public string ValueToInjectAtCallsites { get { return ServicesVSResources.Value_to_inject_at_call_sites; } }
+        public string Value { get { return ServicesVSResources.Value_colon; } }
+        public string UseNamedArgument { get { return ServicesVSResources.Use_named_argument; } }
+        public string IntroduceUndefinedTodoVariables { get { return ServicesVSResources.IntroduceUndefinedTodoVariables; } }
+        public string OmitOnlyForOptionalParameters { get { return ServicesVSResources.Omit_only_for_optional_parameters; } }
+        public string InferFromContext { get { return ServicesVSResources.Infer_from_context; } }
 
         public AddParameterDialog(AddParameterDialogViewModel viewModel)
         {
-            // The current implementation supports Add only.
-            // The dialog should be initialized the other way if called for Edit.
             _viewModel = viewModel;
-            _document = viewModel.Document;
             this.Loaded += AddParameterDialog_Loaded;
             DataContext = _viewModel;
 
@@ -47,13 +47,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             TypeContentControl.Focus();
         }
 
+        protected override void OnClosed(EventArgs e)
+        {
+            base.OnClosed(e);
+
+            // Workaround WPF bug: https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1101094
+            DataContext = null;
+        }
+
         private void OK_Click(object sender, RoutedEventArgs e)
         {
-            _viewModel.ParameterName = NameContentControl.Text;
-            _viewModel.CallSiteValue = CallSiteValueTextBox.Text;
-            _viewModel.UpdateTypeSymbol(TypeContentControl.Text);
-
-            if (_viewModel.TrySubmit(_document))
+            if (_viewModel.TrySubmit())
             {
                 DialogResult = true;
             }
@@ -65,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         }
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {

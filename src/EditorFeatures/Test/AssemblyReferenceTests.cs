@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -20,6 +22,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             var editorsFeatureAssembly = typeof(Microsoft.CodeAnalysis.Editor.Shared.Extensions.GlyphExtensions).Assembly;
             var dependencies = editorsFeatureAssembly.GetReferencedAssemblies();
             Assert.Empty(dependencies.Where(a => a.FullName.Contains("Microsoft.VisualStudio.ImageCatalog")));
+        }
+
+        [Fact]
+        public void TestNoReferenceToImagingInterop()
+        {
+            var editorsFeatureAssembly = typeof(Microsoft.CodeAnalysis.Editor.Shared.Extensions.GlyphExtensions).Assembly;
+            var dependencies = editorsFeatureAssembly.GetReferencedAssemblies();
+            Assert.Empty(dependencies.Where(a => a.FullName.Contains("Microsoft.VisualStudio.Imaging.Interop")));
         }
     }
 }

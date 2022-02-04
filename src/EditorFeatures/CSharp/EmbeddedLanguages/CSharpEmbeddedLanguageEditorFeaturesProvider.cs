@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.EmbeddedLanguages
         {
         }
 
-        internal override string EscapeText(string text, SyntaxToken token)
+        public override string EscapeText(string text, SyntaxToken token)
             => EmbeddedLanguageUtilities.EscapeText(text, token);
     }
 }

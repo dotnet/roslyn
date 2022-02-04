@@ -4,37 +4,43 @@
     <body>
       <trans-unit id="Code_block_preferences">
         <source>Code-block preferences</source>
-        <target state="new">Code-block preferences</target>
+        <target state="translated">코드 블록 기본 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="Expected_string_or_char_literal">
         <source>Expected string or char literal</source>
-        <target state="new">Expected string or char literal</target>
+        <target state="translated">문자열 또는 문자 리터럴이 필요합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_bodied_members">
         <source>Expression-bodied members</source>
-        <target state="new">Expression-bodied members</target>
+        <target state="translated">식 본문 멤버</target>
         <note />
       </trans-unit>
       <trans-unit id="Null_checking_preferences">
         <source>Null-checking preferences</source>
-        <target state="new">Null-checking preferences</target>
+        <target state="translated">Null 검사 기본 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="Pattern_matching_preferences">
         <source>Pattern matching preferences</source>
-        <target state="new">Pattern matching preferences</target>
+        <target state="translated">패턴 일치 기본 설정</target>
         <note />
+      </trans-unit>
+      <trans-unit id="_0_1_is_not_supported_in_this_version">
+        <source>'{0}.{1}' is not supported in this version</source>
+        <target state="translated">이 버전에서는 '{0}.{1}'이(가) 지원되지 않습니다.</target>
+        <note>{0}: A type name
+{1}: A member name</note>
       </trans-unit>
       <trans-unit id="using_directive_preferences">
         <source>'using' directive preferences</source>
-        <target state="new">'using' directive preferences</target>
+        <target state="translated">'using' 지시문 기본 설정</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="var_preferences">
         <source>var preferences</source>
-        <target state="new">var preferences</target>
+        <target state="translated">var 기본 설정</target>
         <note />
       </trans-unit>
     </body>

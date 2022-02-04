@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.DocumentationComments;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource
@@ -28,6 +31,9 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public IMethodSymbol ConstructedFrom => _symbol.ConstructedFrom;
 
             public bool IsReadOnly => _symbol.IsReadOnly;
+            public bool IsInitOnly => _symbol.IsInitOnly;
+
+            public System.Reflection.MethodImplAttributes MethodImplementationFlags => _symbol.MethodImplementationFlags;
 
             public ImmutableArray<IMethodSymbol> ExplicitInterfaceImplementations
             {
@@ -64,6 +70,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public IMethodSymbol PartialDefinitionPart => _symbol.PartialDefinitionPart;
 
             public IMethodSymbol PartialImplementationPart => _symbol.PartialImplementationPart;
+
+            public bool IsPartialDefinition => _symbol.IsPartialDefinition;
 
             public ITypeSymbol ReceiverType => _symbol.ReceiverType;
 
@@ -107,7 +115,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public IMethodSymbol Construct(params ITypeSymbol[] typeArguments)
                 => _symbol.Construct(typeArguments);
 
-            public IMethodSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation> typeArgumentNullableAnnotations)
+            public IMethodSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<NullableAnnotation> typeArgumentNullableAnnotations)
                 => _symbol.Construct(typeArguments, typeArgumentNullableAnnotations);
 
             public DllImportData GetDllImportData()
@@ -124,6 +132,10 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public bool IsCheckedBuiltin => _symbol.IsCheckedBuiltin;
 
             public bool IsConditional => _symbol.IsConditional;
+
+            public SignatureCallingConvention CallingConvention => _symbol.CallingConvention;
+
+            public ImmutableArray<INamedTypeSymbol> UnmanagedCallingConventionTypes => _symbol.UnmanagedCallingConventionTypes;
         }
     }
 }

@@ -8,7 +8,7 @@ $ErrorActionPreference="Stop"
 
 $VSSetupDir = Join-Path $ArtifactsDir "VSSetup\$configuration"
 $PackagesDir = Join-Path $ArtifactsDir "packages\$configuration"
-$PublishDataUrl = "https://raw.githubusercontent.com/dotnet/roslyn/master/eng/config/PublishData.json"
+$PublishDataUrl = "https://raw.githubusercontent.com/dotnet/roslyn/main/eng/config/PublishData.json"
 
 $binaryLog = if (Test-Path variable:binaryLog) { $binaryLog } else { $false }
 $nodeReuse = if (Test-Path variable:nodeReuse) { $nodeReuse } else { $false }
@@ -25,7 +25,7 @@ function GetProjectOutputBinary([string]$fileName, [string]$projectName = "", [s
 
 function GetPublishData() {
   if (Test-Path variable:global:_PublishData) {
-  return $global:_PublishData
+    return $global:_PublishData
   }
 
   Write-Host "Downloading $PublishDataUrl"
@@ -38,9 +38,23 @@ function GetBranchPublishData([string]$branchName) {
   $data = GetPublishData
 
   if (Get-Member -InputObject $data.branches -Name $branchName) {
-  return $data.branches.$branchName
+    return $data.branches.$branchName
   } else {
-  return $null
+    return $null
+  }
+}
+
+function GetFeedPublishData() {
+  $data = GetPublishData
+  return $data.feeds
+}
+
+function GetPackagesPublishData([string]$packageFeeds) {
+  $data = GetPublishData
+  if (Get-Member -InputObject $data.packages -Name $packageFeeds) {
+    return $data.packages.$packageFeeds
+  } else {
+    return $null
   }
 }
 
@@ -48,9 +62,9 @@ function GetReleasePublishData([string]$releaseName) {
   $data = GetPublishData
 
   if (Get-Member -InputObject $data.releases -Name $releaseName) {
-  return $data.releases.$releaseName
+    return $data.releases.$releaseName
   } else {
-  return $null
+    return $null
   }
 }
 
@@ -173,6 +187,33 @@ function Ensure-DotnetSdk() {
   throw "Could not find dotnet executable in $dotnetInstallDir"
 }
 
+# Walks up the source tree, starting at the given file's directory, and returns a FileInfo object for the first .csproj file it finds, if any.
+function Get-ProjectFile([object]$fileInfo) {
+  Push-Location
+
+  Set-Location $fileInfo.Directory
+  try {
+    while ($true) {
+      # search up from the current file for a folder containing a project file
+      $files = Get-ChildItem *.csproj,*.vbproj
+      if ($files) {
+        return $files[0]
+      }
+      else {
+        $location = Get-Location
+        Set-Location ..
+        if ((Get-Location).Path -eq $location.Path) {
+          # our location didn't change. We must be at the drive root, so give up
+          return $null
+        }
+      }
+    }
+  }
+  finally {
+    Pop-Location
+  }
+}
+
 function Get-VersionCore([string]$name, [string]$versionFile) {
   $name = $name.Replace(".", "")
   $name = $name.Replace("-", "")
@@ -220,7 +261,7 @@ function Get-PackageDir([string]$name, [string]$version = "") {
   return $p
 }
 
-function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]$logFileName = "", [switch]$parallel = $true, [switch]$summary = $true, [switch]$warnAsError = $true, [string]$configuration = $script:configuration) {
+function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]$logFileName = "", [switch]$parallel = $true, [switch]$summary = $true, [switch]$warnAsError = $true, [string]$configuration = $script:configuration, [switch]$runAnalyzers = $false) {
   # Because we override the C#/VB toolset to build against our LKG package, it is important
   # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
   # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
@@ -241,8 +282,8 @@ function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]
     $args += " /m"
   }
 
-  if ($skipAnalyzers) {
-    $args += " /p:UseRoslynAnalyzers=false"
+  if ($runAnalyzers) {
+    $args += " /p:RunAnalyzersDuringBuild=true"
   }
 
   if ($binaryLog) {
@@ -290,12 +331,27 @@ function Make-BootstrapBuild([switch]$force32 = $false) {
   $projectPath = "src\NuGet\$packageName\$packageName.Package.csproj"
   $force32Flag = if ($force32) { " /p:BOOTSTRAP32=true" } else { "" }
 
-  Run-MSBuild $projectPath "/restore /t:Pack /p:RoslynEnforceCodeStyle=false /p:UseRoslynAnalyzers=false /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=`"$dir`" /p:EnableNgenOptimization=false /p:PublishWindowsPdb=false $force32Flag" -logFileName "Bootstrap" -configuration $bootstrapConfiguration
+  Run-MSBuild $projectPath "/restore /t:Pack /p:RoslynEnforceCodeStyle=false /p:RunAnalyzersDuringBuild=false /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=`"$dir`" /p:EnableNgenOptimization=false /p:PublishWindowsPdb=false $force32Flag" -logFileName "Bootstrap" -configuration $bootstrapConfiguration -runAnalyzers
   $packageFile = Get-ChildItem -Path $dir -Filter "$packageName.*.nupkg"
-  Unzip "$dir\$packageFile" $dir
+  Unzip (Join-Path $dir $packageFile.Name) $dir
 
   Write-Host "Cleaning Bootstrap compiler artifacts"
   Run-MSBuild $projectPath "/t:Clean" -logFileName "BootstrapClean"
 
   return $dir
+}
+
+function Subst-TempDir() {
+  if ($ci) {
+    Exec-Command "subst" "T: $TempDir"
+
+    $env:TEMP='T:\'
+    $env:TMP='T:\'
+  }
+}
+
+function Unsubst-TempDir() {
+  if ($ci) {
+    Exec-Command "subst" "T: /d"
+  }
 }

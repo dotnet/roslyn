@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -33,8 +35,8 @@ namespace Microsoft.CodeAnalysis.Differencing
             _comparer = comparer;
 
             var labelCount = comparer.LabelCount;
-            CategorizeNodesByLabels(comparer, root1, labelCount, out var nodes1, out var count1);
-            CategorizeNodesByLabels(comparer, root2, labelCount, out var nodes2, out var count2);
+            CategorizeNodesByLabels(comparer, root1, labelCount, out var nodes1, out _);
+            CategorizeNodesByLabels(comparer, root2, labelCount, out var nodes2, out _);
 
             _oneToTwo = new Dictionary<TNode, TNode>();
             _twoToOne = new Dictionary<TNode, TNode>();
@@ -170,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             // So in the case of totally matching sequences, we process them in O(n) - 
             // both node1 and firstNonMatch2 will be advanced simultaneously.
 
-            Debug.Assert(maxAcceptableDistance >= ExactMatchDistance && maxAcceptableDistance <= MaxDistance);
+            Debug.Assert(maxAcceptableDistance is >= ExactMatchDistance and <= MaxDistance);
             var count1 = s1.Count;
             var count2 = s2.Count;
             var firstNonMatch2 = 0;
@@ -208,17 +210,30 @@ namespace Microsoft.CodeAnalysis.Differencing
                         // consider avoiding matching them to all other nodes of the same label.
                         // Rather we should only match them with their siblings that share the same parent.
 
-                        var ancestor1 = _comparer.GetAncestor(node1, tiedToAncestor);
-                        var ancestor2 = _comparer.GetAncestor(node2, tiedToAncestor);
+                        // Check if nodes that are configured to be tied to their ancestor have the respective ancestor matching.
+                        // In cases when we compare substrees rooted below both of these ancestors we assume the ancestors are
+                        // matching since the roots of the subtrees must match and therefore their ancestors must match as well.
+                        // If one node's ancestor is present in the subtree and the other isn't then we are not in the scenario
+                        // of comparing subtrees with matching roots and thus we consider the nodes not matching.
 
-                        // Since CategorizeNodesByLabels added nodes to the s1/s2 lists in depth-first prefix order,
-                        // we can also accept equality in the following condition. That's because we find the partner 
-                        // of the parent node before we get to finding it for the child node of the same kind.
-                        Debug.Assert(_comparer.GetLabel(ancestor1) <= _comparer.GetLabel(node1));
-
-                        if (!Contains(ancestor1, ancestor2))
+                        var hasAncestor1 = _comparer.TryGetAncestor(node1, tiedToAncestor, out var ancestor1);
+                        var hasAncestor2 = _comparer.TryGetAncestor(node2, tiedToAncestor, out var ancestor2);
+                        if (hasAncestor1 != hasAncestor2)
                         {
                             continue;
+                        }
+
+                        if (hasAncestor1)
+                        {
+                            // Since CategorizeNodesByLabels added nodes to the s1/s2 lists in depth-first prefix order,
+                            // we can also accept equality in the following condition. That's because we find the partner 
+                            // of the parent node before we get to finding it for the child node of the same kind.
+                            Debug.Assert(_comparer.GetLabel(ancestor1) <= _comparer.GetLabel(node1));
+
+                            if (!Contains(ancestor1, ancestor2))
+                            {
+                                continue;
+                            }
                         }
                     }
 
@@ -352,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// to <see cref="NewRoot"/> subtree.
         /// </summary>
         public EditScript<TNode> GetTreeEdits()
-            => new EditScript<TNode>(this);
+            => new(this);
 
         /// <summary>
         /// Returns an edit script (a sequence of edits) that transform a sequence of nodes <paramref name="oldNodes"/>

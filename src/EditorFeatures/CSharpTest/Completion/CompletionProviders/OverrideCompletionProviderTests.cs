@@ -4,6 +4,7 @@
 
 using System;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -13,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -23,16 +25,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class OverrideCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public OverrideCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
-        {
-        }
-
         internal override Type GetCompletionProviderType()
             => typeof(OverrideCompletionProvider);
 
-        protected override OptionSet WithChangedOptions(OptionSet options)
+        protected override OptionSet WithChangedNonCompletionOptions(OptionSet options)
         {
-            return options
+            return base.WithChangedNonCompletionOptions(options)
                 .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement)
                 .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
         }
@@ -2363,10 +2361,13 @@ End Class
 </Workspace>", LanguageNames.CSharp, csharpFile, LanguageNames.VisualBasic, vbFile);
 
             using var testWorkspace = TestWorkspace.Create(xmlString, exportProvider: ExportProvider);
-            var position = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").CursorPosition.Value;
+            var testDocument = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument");
+
+            Contract.ThrowIfNull(testDocument.CursorPosition);
+            var position = testDocument.CursorPosition.Value;
             var solution = testWorkspace.CurrentSolution;
             var documentId = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").Id;
-            var document = solution.GetDocument(documentId);
+            var document = solution.GetRequiredDocument(documentId);
             var triggerInfo = CompletionTrigger.Invoke;
 
             var service = GetCompletionService(document.Project);
@@ -2617,10 +2618,13 @@ int bar;
 </Workspace>", LanguageNames.CSharp, file1, file2);
 
             using var testWorkspace = TestWorkspace.Create(xmlString, exportProvider: ExportProvider);
-            var position = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument2").CursorPosition.Value;
+            var testDocument = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument2");
+
+            Contract.ThrowIfNull(testDocument.CursorPosition);
+            var position = testDocument.CursorPosition.Value;
             var solution = testWorkspace.CurrentSolution;
             var documentId = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument2").Id;
-            var document = solution.GetDocument(documentId);
+            var document = solution.GetRequiredDocument(documentId);
             var triggerInfo = CompletionTrigger.Invoke;
 
             var service = GetCompletionService(document.Project);
@@ -2670,10 +2674,13 @@ int bar;
 </Workspace>", LanguageNames.CSharp, file2, file1);
 
             using var testWorkspace = TestWorkspace.Create(xmlString, exportProvider: ExportProvider);
-            var cursorPosition = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").CursorPosition.Value;
+            var testDocument = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument");
+
+            Contract.ThrowIfNull(testDocument.CursorPosition);
+            var cursorPosition = testDocument.CursorPosition.Value;
             var solution = testWorkspace.CurrentSolution;
             var documentId = testWorkspace.Documents.Single(d => d.Name == "CSharpDocument").Id;
-            var document = solution.GetDocument(documentId);
+            var document = solution.GetRequiredDocument(documentId);
             var triggerInfo = CompletionTrigger.Invoke;
 
             var service = GetCompletionService(document.Project);
@@ -2770,12 +2777,13 @@ namespace ConsoleApplication46
         override $$
     }
 }";
-            using var workspace = TestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }, ExportProvider);
+            using var workspace = TestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }, exportProvider: ExportProvider);
             var provider = new OverrideCompletionProvider();
             var testDocument = workspace.Documents.Single();
-            var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
+            var document = workspace.CurrentSolution.GetRequiredDocument(testDocument.Id);
 
             var service = GetCompletionService(document.Project);
+            Contract.ThrowIfNull(testDocument.CursorPosition);
             var completionList = await GetCompletionListAsync(service, document, testDocument.CursorPosition.Value, CompletionTrigger.Invoke);
 
             var oldTree = await document.GetSyntaxTreeAsync();
@@ -2902,16 +2910,18 @@ namespace ClassLibrary7
 
             // CompilationExtensions is in the Microsoft.CodeAnalysis.Test.Utilities namespace 
             // which has a "Traits" type that conflicts with the one in Roslyn.Test.Utilities
-            var reference = MetadataReference.CreateFromImage(Test.Utilities.CompilationExtensions.EmitToArray(compilation));
+            var reference = MetadataReference.CreateFromImage(compilation.EmitToArray());
             var p1 = workspace.CurrentSolution.Projects.First(p => p.Name == "P1");
             var updatedP1 = p1.AddMetadataReference(reference);
             workspace.ChangeSolution(updatedP1.Solution);
 
             var provider = new OverrideCompletionProvider();
             var testDocument = workspace.Documents.First(d => d.Name == "CurrentDocument.cs");
-            var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
+            var document = workspace.CurrentSolution.GetRequiredDocument(testDocument.Id);
 
             var service = GetCompletionService(document.Project);
+
+            Contract.ThrowIfNull(testDocument.CursorPosition);
             var completionList = await GetCompletionListAsync(service, document, testDocument.CursorPosition.Value, CompletionTrigger.Invoke);
 
             Assert.True(completionList.Items.Any(c => c.DisplayText == "Bar()"));
@@ -2950,10 +2960,10 @@ public class SomeClass : Base
 }
 ";
 
-            var origComp = await workspace.CurrentSolution.Projects.Single().GetCompilationAsync();
+            var origComp = await workspace.CurrentSolution.Projects.Single().GetRequiredCompilationAsync(CancellationToken.None);
             var options = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest);
             var libComp = origComp.RemoveAllSyntaxTrees().AddSyntaxTrees(CSharpSyntaxTree.ParseText(before, options: options));
-            var libRef = MetadataReference.CreateFromImage(Test.Utilities.CompilationExtensions.EmitToArray(libComp));
+            var libRef = MetadataReference.CreateFromImage(libComp.EmitToArray());
 
             var project = workspace.CurrentSolution.Projects.Single();
             var updatedProject = project.AddMetadataReference(libRef);
@@ -2961,13 +2971,15 @@ public class SomeClass : Base
 
             var provider = new OverrideCompletionProvider();
             var testDocument = workspace.Documents.First(d => d.Name == "CurrentDocument.cs");
-            var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
+            var document = workspace.CurrentSolution.GetRequiredDocument(testDocument.Id);
 
             var service = GetCompletionService(document.Project);
+
+            Contract.ThrowIfNull(testDocument.CursorPosition);
             var completionList = await GetCompletionListAsync(service, document, testDocument.CursorPosition.Value, CompletionTrigger.Invoke);
             var completionItem = completionList.Items.Where(c => c.DisplayText == "M(in int x)").Single();
 
-            var commit = await service.GetChangeAsync(document, completionItem, completionList.Span, commitKey: null, CancellationToken.None);
+            var commit = await service.GetChangeAsync(document, completionItem, commitKey: null, CancellationToken.None);
 
             var text = await document.GetTextAsync();
             var newText = text.WithChanges(commit.TextChange);
@@ -2989,7 +3001,7 @@ namespace NS1
 {
     using NS2;
 
-    public class Foo
+    public class Goo
     {
         public virtual bool Bar(Baz baz) => true;
     }
@@ -3004,7 +3016,7 @@ namespace NS3
 {
     using NS1;
 
-    class D : Foo
+    class D : Goo
     {
         override $$
     }
@@ -3015,7 +3027,7 @@ namespace NS1
 {
     using NS2;
 
-    public class Foo
+    public class Goo
     {
         public virtual bool Bar(Baz baz) => true;
     }
@@ -3031,7 +3043,7 @@ namespace NS3
     using NS1;
     using NS2;
 
-    class D : Foo
+    class D : Goo
     {
         public override bool Bar(Baz baz)
         {
@@ -3041,6 +3053,103 @@ namespace NS3
 }";
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Bar(NS2.Baz baz)", expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47941, "https://github.com/dotnet/roslyn/issues/47941")]
+        public async Task OverrideInRecordWithoutExplicitOverriddenMember()
+        {
+            await VerifyItemExistsAsync(@"record Program
+{
+    override $$
+}", "ToString()");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47941, "https://github.com/dotnet/roslyn/issues/47941")]
+        public async Task OverrideInRecordWithExplicitOverriddenMember()
+        {
+            await VerifyItemIsAbsentAsync(@"record Program
+{
+    public override string ToString() => "";
+
+    override $$
+}", "ToString()");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(47973, "https://github.com/dotnet/roslyn/issues/47973")]
+        public async Task NoCloneInOverriddenRecord()
+        {
+            // Currently WellKnownMemberNames.CloneMethodName is not public, so we can't reference it directly.  We
+            // could hardcode in the value "<Clone>$", however if the compiler ever changed the name and we somehow
+            // started showing it in completion, this test would continue to pass.  So this allows us to at least go
+            // back and explicitly validate this scenario even in that event.
+            var cloneMemberName = (string)typeof(WellKnownMemberNames).GetField("CloneMethodName", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null);
+            Assert.Equal("<Clone>$", cloneMemberName);
+
+            await VerifyItemIsAbsentAsync(@"
+record Base();
+
+record Program : Base
+{
+    override $$
+}", cloneMemberName);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(48640, "https://github.com/dotnet/roslyn/issues/48640")]
+        public async Task ObjectEqualsInClass()
+        {
+            await VerifyItemExistsAsync(@"
+class Program 
+{
+    override $$
+}", "Equals(object obj)");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(48640, "https://github.com/dotnet/roslyn/issues/48640")]
+        public async Task NoObjectEqualsInOverriddenRecord1()
+        {
+            await VerifyItemIsAbsentAsync(@"
+record Program 
+{
+    override $$
+}", "Equals(object obj)");
+
+            await VerifyItemExistsAsync(@"
+record Program 
+{
+    override $$
+}", "ToString()");
+
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(48640, "https://github.com/dotnet/roslyn/issues/48640")]
+        public async Task NoObjectEqualsInOverriddenRecord()
+        {
+            await VerifyItemIsAbsentAsync(@"
+record Base();
+
+record Program : Base
+{
+    override $$
+}", "Equals(object obj)");
+
+            await VerifyItemExistsAsync(@"
+record Base();
+
+record Program : Base
+{
+    override $$
+}", "ToString()");
+        }
+
+        private Task VerifyItemExistsAsync(string markup, string expectedItem)
+        {
+            return VerifyItemExistsAsync(markup, expectedItem, isComplexTextEdit: true);
         }
     }
 }

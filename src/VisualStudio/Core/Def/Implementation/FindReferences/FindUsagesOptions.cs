@@ -11,8 +11,18 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
-    internal static class FindUsagesOptions
+    [ExportGlobalOptionProvider, Shared]
+    internal sealed class FindUsagesOptions : IOptionProvider
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public FindUsagesOptions()
+        {
+        }
+
+        ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
+            DefinitionGroupingPriority);
+
         private const string LocalRegistryPath = @"Roslyn\Internal\FindUsages\";
 
         /// <summary>
@@ -21,22 +31,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         /// and we want to restore the value back to its original state when the user does the
         /// next FindReferences call.
         /// </summary>
-        public static readonly Option<int> DefinitionGroupingPriority = new Option<int>(
+        public static readonly Option2<int> DefinitionGroupingPriority = new(
             nameof(FindUsagesOptions), nameof(DefinitionGroupingPriority), defaultValue: -1,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(DefinitionGroupingPriority)));
+            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(DefinitionGroupingPriority)));
     }
-
-    [ExportOptionProvider, Shared]
-    internal class FindUsagesOptionsProvider : IOptionProvider
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FindUsagesOptionsProvider()
-        {
-        }
-
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            FindUsagesOptions.DefinitionGroupingPriority);
-    }
-
 }

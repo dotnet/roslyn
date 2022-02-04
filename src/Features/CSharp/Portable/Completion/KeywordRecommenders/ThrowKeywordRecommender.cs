@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
@@ -35,8 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
             //  expr ? throw : ...
             //  expr ? ... : throw
-            if (context.TargetToken.Kind() == SyntaxKind.QuestionToken ||
-                context.TargetToken.Kind() == SyntaxKind.ColonToken)
+            if (context.TargetToken.Kind() is SyntaxKind.QuestionToken or
+                SyntaxKind.ColonToken)
             {
                 return context.TargetToken.Parent.Kind() == SyntaxKind.ConditionalExpression;
             }

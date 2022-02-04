@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -151,7 +153,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                 async tasks =>
                 {
                     await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _stopCancellationToken);
-                    _stopCancellationToken.ThrowIfCancellationRequested();
 
                     if (tasks.All(t => t.Status == TaskStatus.RanToCompletion))
                     {
@@ -182,10 +183,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
                 _initialUnfilteredModel = result;
             }
 
-            if (updateController)
-            {
-                _controller.OnModelUpdated(result);
-            }
+            _controller.OnModelUpdated(result, updateController);
         }
     }
 }

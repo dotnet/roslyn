@@ -12,9 +12,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
     Public Class ScriptTests
         Inherits TestBase
 
+        ''' <summary>
+        ''' Need to create a <see cref="PortableExecutableReference"/> without a file path here. Scripting
+        ''' will attempt to validate file paths and one does not exist for this reference as it's an in
+        ''' memory item.
+        ''' </summary>
+        Private Shared ReadOnly s_msvbReference As PortableExecutableReference = AssemblyMetadata.CreateFromImage(TestMetadata.ResourcesNet451.MicrosoftVisualBasic).GetReference()
+
         ' It shouldn't be necessary to include VB runtime assembly
         ' explicitly in VisualBasicScript.Create.
-        Private Shared ReadOnly s_defaultOptions As ScriptOptions = ScriptOptions.Default.AddReferences(MsvbRef)
+        Private Shared ReadOnly s_defaultOptions As ScriptOptions = ScriptOptions.Default.AddReferences(s_msvbReference)
 
         <Fact>
         Public Sub TestCreateScript()

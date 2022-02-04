@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -75,6 +77,11 @@ namespace Microsoft.CodeAnalysis
             return _factory.MakePointerTypeSymbol(this.moduleSymbol, type, customModifiers);
         }
 
+        protected TypeSymbol MakeFunctionPointerTypeSymbol(Cci.CallingConvention callingConvention, ImmutableArray<ParamInfo<TypeSymbol>> retAndParamInfos)
+        {
+            return _factory.MakeFunctionPointerTypeSymbol(callingConvention, retAndParamInfos);
+        }
+
         protected TypeSymbol GetSpecialType(SpecialType specialType)
         {
             return _factory.GetSpecialType(this.moduleSymbol, specialType);
@@ -88,21 +95,6 @@ namespace Microsoft.CodeAnalysis
         protected TypeSymbol GetEnumUnderlyingType(TypeSymbol type)
         {
             return _factory.GetEnumUnderlyingType(this.moduleSymbol, type);
-        }
-
-        protected bool IsAcceptedVolatileModifierType(TypeSymbol type)
-        {
-            return _factory.IsAcceptedVolatileModifierType(this.moduleSymbol, type);
-        }
-
-        protected bool IsAcceptedInAttributeModifierType(TypeSymbol type)
-        {
-            return _factory.IsAcceptedInAttributeModifierType(type);
-        }
-
-        protected bool IsAcceptedUnmanagedTypeModifierType(TypeSymbol type)
-        {
-            return _factory.IsAcceptedUnmanagedTypeModifierType(type);
         }
 
         protected Microsoft.Cci.PrimitiveTypeCode GetPrimitiveTypeCode(TypeSymbol type)

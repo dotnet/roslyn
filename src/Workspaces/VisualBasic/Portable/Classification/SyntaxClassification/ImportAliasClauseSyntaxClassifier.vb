@@ -15,11 +15,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
 
         Public Overrides ReadOnly Property SyntaxNodeTypes As ImmutableArray(Of Type) = ImmutableArray.Create(GetType(ImportAliasClauseSyntax))
 
-        Public Overrides Sub AddClassifications(workspace As Workspace, syntax As SyntaxNode, semanticModel As SemanticModel, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
+        Public Overrides Sub AddClassifications(syntax As SyntaxNode, semanticModel As SemanticModel, options As ClassificationOptions, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
             ClassifyImportAliasClauseSyntax(DirectCast(syntax, ImportAliasClauseSyntax), semanticModel, result, cancellationToken)
         End Sub
 
-        Private Sub ClassifyImportAliasClauseSyntax(
+        Private Shared Sub ClassifyImportAliasClauseSyntax(
                 node As ImportAliasClauseSyntax,
                 semanticModel As SemanticModel,
                 result As ArrayBuilder(Of ClassifiedSpan),

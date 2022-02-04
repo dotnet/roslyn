@@ -3,9 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Internal.Log
 {
@@ -14,32 +17,36 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     /// </summary>
     internal sealed class KeyValueLogMessage : LogMessage
     {
-        private static readonly ObjectPool<KeyValueLogMessage> s_pool = new ObjectPool<KeyValueLogMessage>(() => new KeyValueLogMessage(), 20);
+        private static readonly ObjectPool<KeyValueLogMessage> s_pool = new(() => new KeyValueLogMessage(), 20);
 
-        public static readonly KeyValueLogMessage NoProperty = new KeyValueLogMessage();
+        public static readonly KeyValueLogMessage NoProperty = new();
 
-        public static KeyValueLogMessage Create(Action<Dictionary<string, object>> propertySetter)
+        /// <summary>
+        /// Creates a <see cref="KeyValueLogMessage"/> with default <see cref="LogLevel.Information"/>, since
+        /// KV Log Messages are by default more informational and should be logged as such. 
+        /// </summary>
+        public static KeyValueLogMessage Create(Action<Dictionary<string, object?>> propertySetter, LogLevel logLevel = LogLevel.Information)
         {
             var logMessage = s_pool.Allocate();
-            logMessage.Construct(LogType.Trace, propertySetter);
+            logMessage.Initialize(LogType.Trace, propertySetter, logLevel);
 
             return logMessage;
         }
 
-        public static KeyValueLogMessage Create(LogType kind)
-            => Create(kind, propertySetter: null);
+        public static KeyValueLogMessage Create(LogType kind, LogLevel logLevel = LogLevel.Information)
+            => Create(kind, propertySetter: null, logLevel);
 
-        public static KeyValueLogMessage Create(LogType kind, Action<Dictionary<string, object>> propertySetter)
+        public static KeyValueLogMessage Create(LogType kind, Action<Dictionary<string, object?>>? propertySetter, LogLevel logLevel = LogLevel.Information)
         {
             var logMessage = s_pool.Allocate();
-            logMessage.Construct(kind, propertySetter);
+            logMessage.Initialize(kind, propertySetter, logLevel);
 
             return logMessage;
         }
 
         private LogType _kind;
-        private Dictionary<string, object> _map;
-        private Action<Dictionary<string, object>> _propertySetter;
+        private Dictionary<string, object?>? _lazyMap;
+        private Action<Dictionary<string, object?>>? _propertySetter;
 
         private KeyValueLogMessage()
         {
@@ -47,10 +54,11 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             _kind = LogType.Trace;
         }
 
-        private void Construct(LogType kind, Action<Dictionary<string, object>> propertySetter)
+        private void Initialize(LogType kind, Action<Dictionary<string, object?>>? propertySetter, LogLevel logLevel)
         {
             _kind = kind;
             _propertySetter = propertySetter;
+            LogLevel = logLevel;
         }
 
         public LogType Kind => _kind;
@@ -60,23 +68,73 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             get
             {
                 EnsureMap();
-                return _map.Count > 0;
+                return _lazyMap.Count > 0;
             }
         }
 
-        public IEnumerable<KeyValuePair<string, object>> Properties
+        public IEnumerable<KeyValuePair<string, object?>> Properties
         {
             get
             {
                 EnsureMap();
-                return _map;
+                return _lazyMap;
             }
         }
 
         protected override string CreateMessage()
         {
             EnsureMap();
-            return string.Join("|", _map.Select(kv => string.Format("{0}={1}", kv.Key, kv.Value)));
+
+            const char PairSeparator = '|';
+            const char KeyValueSeparator = '=';
+            const char ItemSeparator = ',';
+
+            using var _ = PooledStringBuilder.GetInstance(out var builder);
+
+            foreach (var entry in _lazyMap)
+            {
+                if (builder.Length > 0)
+                {
+                    builder.Append(PairSeparator);
+                }
+
+                Append(builder, entry.Key);
+                builder.Append(KeyValueSeparator);
+
+                if (entry.Value is IEnumerable<object> items)
+                {
+                    var first = true;
+                    foreach (var item in items)
+                    {
+                        if (first)
+                        {
+                            first = false;
+                        }
+                        else
+                        {
+                            builder.Append(ItemSeparator);
+                        }
+
+                        Append(builder, item);
+                    }
+                }
+                else
+                {
+                    Append(builder, entry.Value);
+                }
+            }
+
+            static void Append(StringBuilder builder, object? value)
+            {
+                if (value != null)
+                {
+                    var str = value.ToString();
+                    Debug.Assert(str != null && !str.Contains(PairSeparator) && !str.Contains(KeyValueSeparator) && !str.Contains(ItemSeparator));
+                    builder.Append(str);
+                }
+            }
+
+            return builder.ToString();
         }
 
         protected override void FreeCore()
@@ -86,30 +144,25 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 return;
             }
 
-            if (_map != null)
+            if (_lazyMap != null)
             {
-                SharedPools.Default<Dictionary<string, object>>().ClearAndFree(_map);
-                _map = null;
+                SharedPools.Default<Dictionary<string, object?>>().ClearAndFree(_lazyMap);
+                _lazyMap = null;
             }
 
-            if (_propertySetter != null)
-            {
-                _propertySetter = null;
-            }
+            _propertySetter = null;
 
             // always pool it back
             s_pool.Free(this);
         }
 
+        [MemberNotNull(nameof(_lazyMap))]
         private void EnsureMap()
         {
             // always create _map
-            if (_map == null)
-            {
-                _map = SharedPools.Default<Dictionary<string, object>>().AllocateAndClear();
-            }
+            _lazyMap ??= SharedPools.Default<Dictionary<string, object?>>().AllocateAndClear();
 
-            _propertySetter?.Invoke(_map);
+            _propertySetter?.Invoke(_lazyMap);
         }
     }
 

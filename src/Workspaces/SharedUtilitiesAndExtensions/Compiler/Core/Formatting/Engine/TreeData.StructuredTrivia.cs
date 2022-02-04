@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -29,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 var text = GetText();
 
                 _initialColumn = initialColumn;
-                _treeData = (text == null) ? (TreeData)new Node(root) : new NodeAndText(root, text);
+                _treeData = (text == null) ? new Node(root) : new NodeAndText(root, text);
             }
 
             public override string GetTextBetween(SyntaxToken token1, SyntaxToken token2)

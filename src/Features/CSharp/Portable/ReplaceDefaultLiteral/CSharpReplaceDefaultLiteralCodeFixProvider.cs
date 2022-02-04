@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -97,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDefaultLiteral
                 {
                     return GenerateMemberAccess(nameof(CancellationToken.None));
                 }
-                else if (type.SpecialType == SpecialType.System_IntPtr || type.SpecialType == SpecialType.System_UIntPtr)
+                else if (type.SpecialType is SpecialType.System_IntPtr or SpecialType.System_UIntPtr)
                 {
                     return GenerateMemberAccess(nameof(IntPtr.Zero));
                 }

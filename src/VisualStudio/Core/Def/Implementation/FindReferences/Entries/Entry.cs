@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Wpf;
@@ -21,13 +24,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             protected Entry(RoslynDefinitionBucket definitionBucket)
                 => DefinitionBucket = definitionBucket;
 
-            public bool TryGetValue(string keyName, out object content)
+            public bool TryGetValue(string keyName, out object? content)
             {
                 content = GetValue(keyName);
                 return content != null;
             }
 
-            private object GetValue(string keyName)
+            private object? GetValue(string keyName)
             {
                 switch (keyName)
                 {
@@ -35,15 +38,15 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         return DefinitionBucket;
 
                     case StandardTableKeyNames2.DefinitionIcon:
-                        return DefinitionBucket.DefinitionItem.Tags.GetFirstGlyph().GetImageMoniker();
+                        return DefinitionBucket?.DefinitionItem.Tags.GetFirstGlyph().GetImageMoniker();
                 }
 
                 return GetValueWorker(keyName);
             }
 
-            protected abstract object GetValueWorker(string keyName);
+            protected abstract object? GetValueWorker(string keyName);
 
-            public virtual bool TryCreateColumnContent(string columnName, out FrameworkElement content)
+            public virtual bool TryCreateColumnContent(string columnName, [NotNullWhen(true)] out FrameworkElement? content)
             {
                 content = null;
                 return false;

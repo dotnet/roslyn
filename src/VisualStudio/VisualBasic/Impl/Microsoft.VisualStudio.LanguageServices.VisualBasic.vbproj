@@ -5,12 +5,19 @@
     <OutputType>Library</OutputType>
     <TargetFramework>net472</TargetFramework>
     <UseWpf>true</UseWpf>
+    <RootNamespace></RootNamespace>
+    <ApplyNgenOptimization>full</ApplyNgenOptimization>
+
+    <!-- VSIX -->
     <CreateVsixContainer>false</CreateVsixContainer>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <DeployExtension>false</DeployExtension>
-    <RootNamespace></RootNamespace>
-    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
   </PropertyGroup>
+  <ItemGroup Label="PkgDef">
+    <PkgDefInstalledProduct Include="{574fc912-f74f-4b4e-92c3-f695c208a2bb}" Name="Microsoft Visual Basic" DisplayName="#113" ProductDetails="#114" />
+    <PkgDefPackageRegistration Include="{574fc912-f74f-4b4e-92c3-f695c208a2bb}" Name="VisualBasicPackage" Class="Microsoft.VisualStudio.LanguageServices.VisualBasic.VisualBasicPackage" AllowsBackgroundLoad="true" />
+    <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
+  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
@@ -35,6 +42,8 @@
   </ItemGroup>
   <ItemGroup>
     <Import Include="Roslyn.Utilities" />
+    <Import Include="System.Threading.Tasks"/>
+    <Import Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="BasicVSResources.resx" GenerateSource="true" Namespace="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
@@ -43,6 +52,5 @@
       <ManifestResourceName>VSPackage</ManifestResourceName>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <Content Include="VisualBasicPackageRegistration.pkgdef" />
   </ItemGroup>
 </Project>

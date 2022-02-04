@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
     [ExportLanguageService(typeof(IIndentationService), LanguageNames.CSharp), Shared]
     internal sealed partial class CSharpIndentationService : AbstractIndentationService<CompilationUnitSyntax>
     {
-        public static readonly CSharpIndentationService Instance = new CSharpIndentationService();
+        public static readonly CSharpIndentationService Instance = new();
 
         private static readonly AbstractFormattingRule s_instance = new FormattingRule();
 
@@ -39,20 +39,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             IEnumerable<AbstractFormattingRule> formattingRules,
             CompilationUnitSyntax root,
             TextLine line,
-            IOptionService optionService,
-            OptionSet optionSet,
+            IndentationOptions options,
             out SyntaxToken token)
         {
             Contract.ThrowIfNull(formattingRules);
             Contract.ThrowIfNull(root);
 
             token = default;
-            if (!optionSet.GetOption(FormattingOptions.AutoFormattingOnReturn, LanguageNames.CSharp))
+            if (!options.AutoFormattingOptions.FormatOnReturn)
             {
                 return false;
             }
 
-            if (optionSet.GetOption(FormattingOptions.SmartIndent, LanguageNames.CSharp) != FormattingOptions.IndentStyle.Smart)
+            if (options.AutoFormattingOptions.IndentStyle != FormattingOptions.IndentStyle.Smart)
             {
                 return false;
             }
@@ -84,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 return false;
             }
 
-            var lineOperation = FormattingOperations.GetAdjustNewLinesOperation(formattingRules, previousToken, token, optionSet.AsAnalyzerConfigOptions(optionService, LanguageNames.CSharp));
+            var lineOperation = FormattingOperations.GetAdjustNewLinesOperation(formattingRules, previousToken, token, options.FormattingOptions);
             if (lineOperation == null || lineOperation.Option == AdjustNewLinesOption.ForceLinesIfOnSingleLine)
             {
                 // no indentation operation, nothing to do for smart token formatter
@@ -126,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 }
 
                 if (node is BaseArgumentListSyntax argument &&
-                    argument.Parent.Kind() != SyntaxKind.ThisConstructorInitializer &&
+                    !argument.Parent.IsKind(SyntaxKind.ThisConstructorInitializer) &&
                     !IsBracketedArgumentListMissingBrackets(argument as BracketedArgumentListSyntax))
                 {
                     AddIndentBlockOperations(list, argument);
@@ -163,12 +162,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 }
             }
 
-            private bool IsBracketedArgumentListMissingBrackets(BracketedArgumentListSyntax node)
+            private static bool IsBracketedArgumentListMissingBrackets(BracketedArgumentListSyntax? node)
                 => node != null && node.OpenBracketToken.IsMissing && node.CloseBracketToken.IsMissing;
 
-            private void ReplaceCaseIndentationRules(List<IndentBlockOperation> list, SyntaxNode node)
+            private static void ReplaceCaseIndentationRules(List<IndentBlockOperation> list, SyntaxNode node)
             {
-                if (!(node is SwitchSectionSyntax section) || section.Statements.Count == 0)
+                if (node is not SwitchSectionSyntax section || section.Statements.Count == 0)
                 {
                     return;
                 }
@@ -189,8 +188,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
 
             private static void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node)
             {
+                RoslynDebug.AssertNotNull(node.Parent);
+
                 // only add indent block operation if the base token is the first token on line
-                var text = node.SyntaxTree.GetText();
                 var baseToken = node.Parent.GetFirstToken(includeZeroWidth: true);
 
                 list.Add(FormattingOperations.CreateRelativeIndentBlockOperation(

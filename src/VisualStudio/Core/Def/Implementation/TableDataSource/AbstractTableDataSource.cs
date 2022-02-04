@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -17,14 +18,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     /// <summary>
     /// Base implementation of ITableDataSource
     /// </summary>
-    internal abstract class AbstractTableDataSource<TItem> : ITableDataSource
+    internal abstract class AbstractTableDataSource<TItem, TData> : ITableDataSource
         where TItem : TableItem
+        where TData : notnull
     {
         private readonly object _gate;
 
         // This map holds aggregation key to factory
         // Any data that shares same aggregation key will de-duplicated to same factory
-        private readonly Dictionary<object, TableEntriesFactory<TItem>> _map;
+        private readonly Dictionary<object, TableEntriesFactory<TItem, TData>> _map;
 
         // This map holds each data source key to its aggregation key
         private readonly Dictionary<object, object> _aggregateKeyMap;
@@ -35,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public AbstractTableDataSource(Workspace workspace)
         {
             _gate = new object();
-            _map = new Dictionary<object, TableEntriesFactory<TItem>>();
+            _map = new Dictionary<object, TableEntriesFactory<TItem, TData>>();
             _aggregateKeyMap = new Dictionary<object, object>();
 
             _subscriptions = ImmutableArray<SubscriptionWithoutLock>.Empty;
@@ -55,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public void RefreshAllFactories()
         {
             ImmutableArray<SubscriptionWithoutLock> snapshot;
-            List<TableEntriesFactory<TItem>> factories;
+            List<TableEntriesFactory<TItem, TData>> factories;
             lock (_gate)
             {
                 snapshot = _subscriptions;
@@ -74,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        public void Refresh(TableEntriesFactory<TItem> factory)
+        public void Refresh(TableEntriesFactory<TItem, TData> factory)
         {
             var snapshot = _subscriptions;
 
@@ -106,21 +108,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        public ImmutableArray<TItem> AggregateItems<TData>(IEnumerable<IGrouping<TData, TItem>> groupedItems)
+        public ImmutableArray<TItem> AggregateItems<TKey>(IEnumerable<IGrouping<TKey, TItem>> groupedItems)
         {
             using var _0 = ArrayBuilder<TItem>.GetInstance(out var aggregateItems);
             using var _1 = ArrayBuilder<string>.GetInstance(out var projectNames);
             using var _2 = ArrayBuilder<Guid>.GetInstance(out var projectGuids);
 
-            string[] stringArrayCache = null;
-            Guid[] guidArrayCache = null;
+            string[]? stringArrayCache = null;
+            Guid[]? guidArrayCache = null;
 
-            static T[] GetOrCreateArray<T>(ref T[] cache, ArrayBuilder<T> value)
+            static T[] GetOrCreateArray<T>([NotNull] ref T[]? cache, ArrayBuilder<T> value)
                 => (cache != null && Enumerable.SequenceEqual(cache, value)) ? cache : (cache = value.ToArray());
 
             foreach (var (_, items) in groupedItems)
             {
-                TItem firstItem = null;
+                TItem? firstItem = null;
                 var hasSingle = true;
 
                 foreach (var item in items)
@@ -144,6 +146,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         projectGuids.Add(item.ProjectGuid);
                     }
                 }
+
+                // firstItem could only be null if a group was empty, which is not allowed
+                RoslynDebug.AssertNotNull(firstItem);
 
                 if (hasSingle)
                 {
@@ -175,7 +180,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         /// Data contains multiple items belong to one logical chunk. and the Id represents this particular 
         /// chunk of the data
         /// </summary>
-        public abstract object GetItemKey(object data);
+        public abstract object GetItemKey(TData data);
 
         /// <summary>
         /// Create TableEntriesSource for the given data.
@@ -188,18 +193,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         /// for example, for linked files, data that belong to same physical file will be gathered and items that belong to
         /// those data will be de-duplicated.
         /// </summary>
-        protected abstract object GetOrUpdateAggregationKey(object data);
+        protected abstract object GetOrUpdateAggregationKey(TData data);
 
-        protected void OnDataAddedOrChanged(object data)
+        protected void OnDataAddedOrChanged(TData data)
         {
             // reuse factory. it is okay to re-use factory since we make sure we remove the factory before
             // adding it back
-            var newFactory = false;
             ImmutableArray<SubscriptionWithoutLock> snapshot;
             lock (_gate)
             {
                 snapshot = _subscriptions;
-                GetOrCreateFactory_NoLock(data, out var factory, out newFactory);
+                GetOrCreateFactory_NoLock(data, out var factory, out var newFactory);
 
                 factory.OnDataAddedOrChanged(data);
 
@@ -207,7 +211,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        protected void OnDataRemoved(object data)
+        protected void OnDataRemoved(TData data)
         {
             lock (_gate)
             {
@@ -215,14 +219,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        protected void RemoveStaledData(object data)
+        protected void RemoveStaledData(TData data)
         {
             OnDataRemoved_NoLock(data);
 
             RemoveAggregateKey_NoLock(data);
         }
 
-        private void OnDataRemoved_NoLock(object data)
+        private void OnDataRemoved_NoLock(TData data)
         {
             ImmutableArray<SubscriptionWithoutLock> snapshot;
             var key = TryGetAggregateKey(data);
@@ -254,7 +258,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             NotifySubscriptionOnDataRemoved_NoLock(snapshot, factory);
         }
 
-        private static void NotifySubscriptionOnDataAddedOrChanged_NoLock(ImmutableArray<SubscriptionWithoutLock> snapshot, TableEntriesFactory<TItem> factory, bool newFactory)
+        private static void NotifySubscriptionOnDataAddedOrChanged_NoLock(ImmutableArray<SubscriptionWithoutLock> snapshot, TableEntriesFactory<TItem, TData> factory, bool newFactory)
         {
             for (var i = 0; i < snapshot.Length; i++)
             {
@@ -262,7 +266,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        private static void NotifySubscriptionOnDataRemoved_NoLock(ImmutableArray<SubscriptionWithoutLock> snapshot, TableEntriesFactory<TItem> factory)
+        private static void NotifySubscriptionOnDataRemoved_NoLock(ImmutableArray<SubscriptionWithoutLock> snapshot, TableEntriesFactory<TItem, TData> factory)
         {
             for (var i = 0; i < snapshot.Length; i++)
             {
@@ -270,7 +274,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        private void GetOrCreateFactory_NoLock(object data, out TableEntriesFactory<TItem> factory, out bool newFactory)
+        private void GetOrCreateFactory_NoLock(TData data, out TableEntriesFactory<TItem, TData> factory, out bool newFactory)
         {
             newFactory = false;
 
@@ -281,7 +285,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             var source = CreateTableEntriesSource(data);
-            factory = new TableEntriesFactory<TItem>(this, source);
+            factory = new TableEntriesFactory<TItem, TData>(this, source);
 
             _map.Add(key, factory);
             newFactory = true;
@@ -302,10 +306,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        protected void AddAggregateKey(object data, object aggregateKey)
+        protected void AddAggregateKey(TData data, object aggregateKey)
             => _aggregateKeyMap.Add(GetItemKey(data), aggregateKey);
 
-        protected object TryGetAggregateKey(object data)
+        protected object? TryGetAggregateKey(TData data)
         {
             var key = GetItemKey(data);
             if (_aggregateKeyMap.TryGetValue(key, out var aggregateKey))
@@ -316,7 +320,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return null;
         }
 
-        private void RemoveAggregateKey_NoLock(object data)
+        private void RemoveAggregateKey_NoLock(TData data)
             => _aggregateKeyMap.Remove(GetItemKey(data));
 
         IDisposable ITableDataSource.Subscribe(ITableDataSink sink)
@@ -334,10 +338,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         protected class SubscriptionWithoutLock : IDisposable
         {
-            private readonly AbstractTableDataSource<TItem> _source;
+            private readonly AbstractTableDataSource<TItem, TData> _source;
             private readonly ITableDataSink _sink;
 
-            public SubscriptionWithoutLock(AbstractTableDataSource<TItem> source, ITableDataSink sink)
+            public SubscriptionWithoutLock(AbstractTableDataSource<TItem, TData> source, ITableDataSink sink)
             {
                 _source = source;
                 _sink = sink;

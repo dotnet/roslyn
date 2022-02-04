@@ -7,6 +7,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.Editor
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
 Imports Microsoft.CodeAnalysis.Formatting
@@ -33,13 +34,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
         Private ReadOnly _commitBufferManagerFactory As CommitBufferManagerFactory
 
-        Friend Sub New(provider As HostLanguageServices, editorOptionsFactoryService As IEditorOptionsFactoryService, refactorNotifyServices As IEnumerable(Of IRefactorNotifyService), commitBufferManagerFactory As CommitBufferManagerFactory)
+        Friend Sub New(provider As HostLanguageServices, editorOptionsFactoryService As IEditorOptionsFactoryService, refactorNotifyServices As IEnumerable(Of IRefactorNotifyService), commitBufferManagerFactory As CommitBufferManagerFactory, threadingContext As IThreadingContext)
             MyBase.New(
                 provider,
                 editorOptionsFactoryService,
                 refactorNotifyServices,
                 LineAdjustmentFormattingRule.Instance,
-                EndRegionFormattingRule.Instance)
+                EndRegionFormattingRule.Instance,
+                threadingContext)
 
             Me._commitBufferManagerFactory = commitBufferManagerFactory
         End Sub
@@ -133,7 +135,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Case SyntaxKind.SubStatement,
                      SyntaxKind.FunctionStatement
                     Return node.FirstAncestorOrSelf(Of MethodBlockSyntax)() Is Nothing
-
 
                 Case Else
                     Return False
@@ -841,7 +842,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                       name)
         End Function
 
-        Private Function GetNormalizedName(node As SyntaxNode) As String
+        Private Shared Function GetNormalizedName(node As SyntaxNode) As String
             Dim nameBuilder = New StringBuilder()
 
             Dim token = node.GetFirstToken(includeSkipped:=True)
@@ -1154,7 +1155,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return False
         End Function
 
-        Private Overloads Function GetParameterNodes(methodStatement As MethodBaseSyntax) As IEnumerable(Of ParameterSyntax)
+        Private Overloads Shared Function GetParameterNodes(methodStatement As MethodBaseSyntax) As IEnumerable(Of ParameterSyntax)
             Return If(methodStatement.ParameterList IsNot Nothing,
                       methodStatement.ParameterList.Parameters,
                       SpecializedCollections.EmptyEnumerable(Of ParameterSyntax))
@@ -1263,9 +1264,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return False
         End Function
 
-        Private Function DeleteMember(document As Document, node As SyntaxNode) As Document
-            Dim text = document.GetTextAsync(CancellationToken.None) _
-                               .WaitAndGetResult_CodeModel(CancellationToken.None)
+        Private Shared Function DeleteMember(document As Document, node As SyntaxNode) As Document
+            Dim text = document.GetTextSynchronously(CancellationToken.None)
 
             Dim deletionEnd = node.FullSpan.End
             Dim deletionStart = node.SpanStart
@@ -1320,7 +1320,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return Delete(document, declarator)
             Else
                 Dim newDeclarator = declarator.RemoveNode(node, SyntaxRemoveOptions.KeepEndOfLine).WithAdditionalAnnotations(Formatter.Annotation)
-                Return document.ReplaceNodeAsync(declarator, newDeclarator, CancellationToken.None).WaitAndGetResult_CodeModel(CancellationToken.None)
+                Return document.ReplaceNodeSynchronously(declarator, newDeclarator, CancellationToken.None)
             End If
         End Function
 
@@ -1333,11 +1333,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return Delete(document, declaration)
             Else
                 Dim newDeclaration = declaration.RemoveNode(node, SyntaxRemoveOptions.KeepEndOfLine).WithAdditionalAnnotations(Formatter.Annotation)
-                Return document.ReplaceNodeAsync(declaration, newDeclaration, CancellationToken.None).WaitAndGetResult_CodeModel(CancellationToken.None)
+                Return document.ReplaceNodeSynchronously(declaration, newDeclaration, CancellationToken.None)
             End If
         End Function
 
-        Private Overloads Function Delete(document As Document, node As AttributeSyntax) As Document
+        Private Overloads Shared Function Delete(document As Document, node As AttributeSyntax) As Document
             Dim attributeList = node.FirstAncestorOrSelf(Of AttributeListSyntax)()
 
             ' If we don't have anything left, then just delete the whole attribute list.
@@ -1346,8 +1346,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Dim spanStart = attributeList.SpanStart
                 Dim spanEnd = attributeList.FullSpan.End
 
-                Dim text = document.GetTextAsync(CancellationToken.None) _
-                                   .WaitAndGetResult_CodeModel(CancellationToken.None)
+                Dim text = document.GetTextSynchronously(CancellationToken.None)
 
                 text = text.Replace(TextSpan.FromBounds(spanStart, spanEnd), String.Empty)
 
@@ -1355,25 +1354,22 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Else
                 Dim newAttributeList = attributeList.RemoveNode(node, SyntaxRemoveOptions.KeepEndOfLine)
 
-                Return document.ReplaceNodeAsync(attributeList, newAttributeList, CancellationToken.None) _
-                               .WaitAndGetResult_CodeModel(CancellationToken.None)
+                Return document.ReplaceNodeSynchronously(attributeList, newAttributeList, CancellationToken.None)
             End If
         End Function
 
-        Private Overloads Function Delete(document As Document, node As ArgumentSyntax) As Document
+        Private Overloads Shared Function Delete(document As Document, node As ArgumentSyntax) As Document
             Dim argumentList = node.FirstAncestorOrSelf(Of ArgumentListSyntax)()
             Dim newArgumentList = argumentList.RemoveNode(node, SyntaxRemoveOptions.KeepEndOfLine).WithAdditionalAnnotations(Formatter.Annotation)
 
-            Return document.ReplaceNodeAsync(argumentList, newArgumentList, CancellationToken.None) _
-                           .WaitAndGetResult_CodeModel(CancellationToken.None)
+            Return document.ReplaceNodeSynchronously(argumentList, newArgumentList, CancellationToken.None)
         End Function
 
-        Private Overloads Function Delete(document As Document, node As ParameterSyntax) As Document
+        Private Overloads Shared Function Delete(document As Document, node As ParameterSyntax) As Document
             Dim parameterList = node.FirstAncestorOrSelf(Of ParameterListSyntax)()
             Dim newParameterList = parameterList.RemoveNode(node, SyntaxRemoveOptions.KeepEndOfLine).WithAdditionalAnnotations(Formatter.Annotation)
 
-            Return document.ReplaceNodeAsync(parameterList, newParameterList, CancellationToken.None) _
-                           .WaitAndGetResult_CodeModel(CancellationToken.None)
+            Return document.ReplaceNodeSynchronously(parameterList, newParameterList, CancellationToken.None)
         End Function
 
         Public Overrides Function IsValidExternalSymbol(symbol As ISymbol) As Boolean
@@ -1460,7 +1456,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
             Dim flags = member.GetModifierFlags()
 
-            Dim access As EnvDTE.vsCMAccess = 0
+            Dim access As EnvDTE.vsCMAccess
 
             If (flags And ModifierFlags.Public) <> 0 Then
                 access = EnvDTE.vsCMAccess.vsCMAccessPublic
@@ -1562,7 +1558,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return member.UpdateModifiers(flags)
         End Function
 
-        Private Overloads Function GetDefaultAccessibility(node As SyntaxNode) As EnvDTE.vsCMAccess
+        Private Overloads Shared Function GetDefaultAccessibility(node As SyntaxNode) As EnvDTE.vsCMAccess
             If node.HasAncestor(Of StructureBlockSyntax)() Then
                 Return EnvDTE.vsCMAccess.vsCMAccessPublic
             End If
@@ -1859,7 +1855,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Dim argument = DirectCast(attributeArgumentNode, ArgumentSyntax)
             Dim attribute = DirectCast(argument.Ancestors.FirstOrDefault(Function(n) n.Kind = SyntaxKind.Attribute), AttributeSyntax)
 
-
             attributeNode = attribute
             index = attribute.ArgumentList.Arguments.IndexOf(DirectCast(attributeArgumentNode, ArgumentSyntax))
         End Sub
@@ -2027,7 +2022,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 newModifierList.Add(SyntaxFactory.Token(SyntaxKind.OptionalKeyword))
             End If
 
-
             If (kind And EnvDTE80.vsCMParameterKind.vsCMParameterKindIn) <> 0 AndAlso parameter.Modifiers.Any(SyntaxKind.ByValKeyword) Then
                 ' Ensure that we keep ByVal if it was already present.
                 newModifierList.Add(SyntaxFactory.Token(SyntaxKind.ByValKeyword))
@@ -2042,7 +2036,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return parameter.WithModifiers(SyntaxFactory.TokenList(newModifierList))
         End Function
 
-        Private Function IsValidParameterKind(kind As EnvDTE80.vsCMParameterKind) As Boolean
+        Private Shared Function IsValidParameterKind(kind As EnvDTE80.vsCMParameterKind) As Boolean
             Select Case kind
                 Case EnvDTE80.vsCMParameterKind.vsCMParameterKindNone,
                      EnvDTE80.vsCMParameterKind.vsCMParameterKindIn,
@@ -2142,8 +2136,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Debug.Assert(TypeOf typeNode Is ClassBlockSyntax OrElse
                          TypeOf typeNode Is ModuleBlockSyntax)
 
-            Dim result As EnvDTE80.vsCMClassKind = 0
-
             Dim typeBlock = DirectCast(typeNode, TypeBlockSyntax)
             If TypeOf typeBlock Is ModuleBlockSyntax Then
                 Return EnvDTE80.vsCMClassKind.vsCMClassKindModule
@@ -2162,7 +2154,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return EnvDTE80.vsCMClassKind.vsCMClassKindMainClass
         End Function
 
-        Private Function IsValidClassKind(kind As EnvDTE80.vsCMClassKind) As Boolean
+        Private Shared Function IsValidClassKind(kind As EnvDTE80.vsCMClassKind) As Boolean
             Return kind = EnvDTE80.vsCMClassKind.vsCMClassKindMainClass OrElse
                    kind = EnvDTE80.vsCMClassKind.vsCMClassKindPartialClass
         End Function
@@ -2318,7 +2310,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return EnvDTE80.vsCMConstKind.vsCMConstKindNone
         End Function
 
-        Private Function IsValidConstKind(kind As EnvDTE80.vsCMConstKind) As Boolean
+        Private Shared Function IsValidConstKind(kind As EnvDTE80.vsCMConstKind) As Boolean
             Return kind = EnvDTE80.vsCMConstKind.vsCMConstKindConst OrElse
                    kind = EnvDTE80.vsCMConstKind.vsCMConstKindReadOnly OrElse
                    kind = EnvDTE80.vsCMConstKind.vsCMConstKindNone
@@ -2377,7 +2369,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return EnvDTE80.vsCMDataTypeKind.vsCMDataTypeKindMain
         End Function
 
-        Private Function IsValidDataTypeKind(kind As EnvDTE80.vsCMDataTypeKind, allowModule As Boolean) As Boolean
+        Private Shared Function IsValidDataTypeKind(kind As EnvDTE80.vsCMDataTypeKind, allowModule As Boolean) As Boolean
             Return kind = EnvDTE80.vsCMClassKind.vsCMClassKindMainClass OrElse
                    kind = EnvDTE80.vsCMClassKind.vsCMClassKindPartialClass OrElse
                    (allowModule AndAlso kind = EnvDTE80.vsCMDataTypeKind.vsCMDataTypeKindModule)
@@ -2593,7 +2585,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return result
         End Function
 
-        Private Function IsValidInheritanceKind(kind As EnvDTE80.vsCMInheritanceKind) As Boolean
+        Private Shared Function IsValidInheritanceKind(kind As EnvDTE80.vsCMInheritanceKind) As Boolean
             Return kind = EnvDTE80.vsCMInheritanceKind.vsCMInheritanceKindAbstract OrElse
                    kind = EnvDTE80.vsCMInheritanceKind.vsCMInheritanceKindNone OrElse
                    kind = EnvDTE80.vsCMInheritanceKind.vsCMInheritanceKindSealed OrElse
@@ -2696,7 +2688,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Throw New InvalidOperationException
         End Function
 
-        Private Function IsValidOverrideKind(kind As EnvDTE80.vsCMOverrideKind) As Boolean
+        Private Shared Function IsValidOverrideKind(kind As EnvDTE80.vsCMOverrideKind) As Boolean
             Return kind = EnvDTE80.vsCMOverrideKind.vsCMOverrideKindSealed OrElse
                    kind = EnvDTE80.vsCMOverrideKind.vsCMOverrideKindNew OrElse
                    kind = EnvDTE80.vsCMOverrideKind.vsCMOverrideKindOverride OrElse
@@ -2969,7 +2961,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Throw Exceptions.ThrowEUnexpected()
         End Function
 
-        Private Function SetDelegateType(delegateStatement As DelegateStatementSyntax, typeSymbol As ITypeSymbol) As DelegateStatementSyntax
+        Private Shared Function SetDelegateType(delegateStatement As DelegateStatementSyntax, typeSymbol As ITypeSymbol) As DelegateStatementSyntax
             ' Remove the leading and trailing trivia and save it for reattachment later.
             Dim leadingTrivia = delegateStatement.GetLeadingTrivia()
             Dim trailingTrivia = delegateStatement.GetTrailingTrivia()
@@ -3019,7 +3011,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 .WithTrailingTrivia(trailingTrivia)
         End Function
 
-        Private Function SetEventType(eventStatement As EventStatementSyntax, typeSymbol As ITypeSymbol) As EventStatementSyntax
+        Private Shared Function SetEventType(eventStatement As EventStatementSyntax, typeSymbol As ITypeSymbol) As EventStatementSyntax
             If typeSymbol Is Nothing Then
                 Throw Exceptions.ThrowEInvalidArg()
             End If
@@ -3052,7 +3044,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 .WithTrailingTrivia(trailingTrivia)
         End Function
 
-        Private Function SetEventType(eventBlock As EventBlockSyntax, typeSymbol As ITypeSymbol) As EventBlockSyntax
+        Private Shared Function SetEventType(eventBlock As EventBlockSyntax, typeSymbol As ITypeSymbol) As EventBlockSyntax
             If typeSymbol Is Nothing Then
                 Throw Exceptions.ThrowEInvalidArg()
             End If
@@ -3133,7 +3125,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return eventBlock
         End Function
 
-        Private Function SetMethodType(declareStatement As DeclareStatementSyntax, typeSymbol As ITypeSymbol) As DeclareStatementSyntax
+        Private Shared Function SetMethodType(declareStatement As DeclareStatementSyntax, typeSymbol As ITypeSymbol) As DeclareStatementSyntax
             ' Remove the leading and trailing trivia and save it for reattachment later.
             Dim leadingTrivia = declareStatement.GetLeadingTrivia()
             Dim trailingTrivia = declareStatement.GetTrailingTrivia()
@@ -3189,7 +3181,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return declareStatement.WithLeadingTrivia(leadingTrivia).WithTrailingTrivia(trailingTrivia)
         End Function
 
-        Private Function SetMethodType(methodStatement As MethodStatementSyntax, typeSymbol As ITypeSymbol) As MethodStatementSyntax
+        Private Shared Function SetMethodType(methodStatement As MethodStatementSyntax, typeSymbol As ITypeSymbol) As MethodStatementSyntax
             ' Remove the leading and trailing trivia and save it for reattachment later.
             Dim leadingTrivia = methodStatement.GetLeadingTrivia()
             Dim trailingTrivia = methodStatement.GetTrailingTrivia()
@@ -3243,7 +3235,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 .WithTrailingTrivia(trailingTrivia)
         End Function
 
-        Private Function SetMethodType(methodBlock As MethodBlockSyntax, typeSymbol As ITypeSymbol) As MethodBlockSyntax
+        Private Shared Function SetMethodType(methodBlock As MethodBlockSyntax, typeSymbol As ITypeSymbol) As MethodBlockSyntax
             ' Remove the leading and trailing trivia and save it for reattachment later.
             Dim leadingTrivia = methodBlock.GetLeadingTrivia()
             Dim trailingTrivia = methodBlock.GetTrailingTrivia()
@@ -3272,7 +3264,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 .WithTrailingTrivia(trailingTrivia)
         End Function
 
-        Private Function SetParameterType(parameter As ParameterSyntax, typeSymbol As ITypeSymbol) As ParameterSyntax
+        Private Shared Function SetParameterType(parameter As ParameterSyntax, typeSymbol As ITypeSymbol) As ParameterSyntax
             If typeSymbol Is Nothing Then
                 Return parameter
             End If
@@ -3301,7 +3293,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 .WithTrailingTrivia(trailingTrivia)
         End Function
 
-        Private Function SetPropertyType(propertyStatement As PropertyStatementSyntax, typeSymbol As ITypeSymbol) As PropertyStatementSyntax
+        Private Shared Function SetPropertyType(propertyStatement As PropertyStatementSyntax, typeSymbol As ITypeSymbol) As PropertyStatementSyntax
             If typeSymbol Is Nothing Then
                 Throw Exceptions.ThrowEInvalidArg()
             End If
@@ -3330,7 +3322,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 .WithTrailingTrivia(trailingTrivia)
         End Function
 
-        Private Function SetPropertyType(propertyBlock As PropertyBlockSyntax, typeSymbol As ITypeSymbol) As PropertyBlockSyntax
+        Private Shared Function SetPropertyType(propertyBlock As PropertyBlockSyntax, typeSymbol As ITypeSymbol) As PropertyBlockSyntax
             If typeSymbol Is Nothing Then
                 Throw Exceptions.ThrowEInvalidArg()
             End If
@@ -3384,7 +3376,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 .WithTrailingTrivia(trailingTrivia)
         End Function
 
-        Private Function SetVariableType(variableDeclarator As VariableDeclaratorSyntax, typeSymbol As ITypeSymbol) As VariableDeclaratorSyntax
+        Private Shared Function SetVariableType(variableDeclarator As VariableDeclaratorSyntax, typeSymbol As ITypeSymbol) As VariableDeclaratorSyntax
             If typeSymbol Is Nothing Then
                 Throw Exceptions.ThrowEInvalidArg()
             End If
@@ -3770,46 +3762,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Throw Exceptions.ThrowEFail()
         End Function
 
-        Private Shared Function GetMember(container As SyntaxNode, index As Integer) As StatementSyntax
-            If TypeOf container Is CompilationUnitSyntax Then
-                Return DirectCast(container, CompilationUnitSyntax).Members(index)
-            ElseIf TypeOf container Is NamespaceBlockSyntax Then
-                Return DirectCast(container, NamespaceBlockSyntax).Members(index)
-            ElseIf TypeOf container Is ClassBlockSyntax Then
-                Return DirectCast(container, ClassBlockSyntax).Members(index)
-            ElseIf TypeOf container Is InterfaceBlockSyntax Then
-                Return DirectCast(container, InterfaceBlockSyntax).Members(index)
-            ElseIf TypeOf container Is StructureBlockSyntax Then
-                Return DirectCast(container, StructureBlockSyntax).Members(index)
-            ElseIf TypeOf container Is ModuleBlockSyntax Then
-                Return DirectCast(container, ModuleBlockSyntax).Members(index)
-            ElseIf TypeOf container Is EnumBlockSyntax Then
-                Return DirectCast(container, EnumBlockSyntax).Members(index)
-            End If
-
-            Throw Exceptions.ThrowEFail()
-        End Function
-
-        Private Shared Function GetAttribute(container As SyntaxNode, index As Integer) As AttributeListSyntax
-            If TypeOf container Is CompilationUnitSyntax Then
-                Dim compilationUnit = DirectCast(container, CompilationUnitSyntax).Attributes(index).AttributeLists(0)
-            ElseIf TypeOf container Is TypeBlockSyntax Then
-                Return DirectCast(container, TypeBlockSyntax).BlockStatement.AttributeLists(index)
-            ElseIf TypeOf container Is EnumMemberDeclarationSyntax Then
-                Return DirectCast(container, EnumMemberDeclarationSyntax).AttributeLists(index)
-            ElseIf TypeOf container Is MethodBlockBaseSyntax Then
-                Return DirectCast(container, MethodBlockBaseSyntax).BlockStatement.AttributeLists(index)
-            ElseIf TypeOf container Is PropertyBlockSyntax Then
-                Return DirectCast(container, PropertyBlockSyntax).PropertyStatement.AttributeLists(index)
-            ElseIf TypeOf container Is FieldDeclarationSyntax Then
-                Return DirectCast(container, FieldDeclarationSyntax).AttributeLists(index)
-            ElseIf TypeOf container Is ParameterSyntax Then
-                Return DirectCast(container, ParameterSyntax).AttributeLists(index)
-            End If
-
-            Throw Exceptions.ThrowEFail()
-        End Function
-
         Protected Overrides Function InsertAttributeArgumentIntoContainer(index As Integer, attributeArgument As SyntaxNode, container As SyntaxNode) As SyntaxNode
             If TypeOf container Is AttributeSyntax Then
                 Dim attribute = DirectCast(container, AttributeSyntax)
@@ -3832,7 +3784,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Throw Exceptions.ThrowEFail()
         End Function
 
-        Private Function InsertAttributeListInto(attributes As SyntaxList(Of AttributesStatementSyntax), index As Integer, attribute As AttributesStatementSyntax) As SyntaxList(Of AttributesStatementSyntax)
+        Private Shared Function InsertAttributeListInto(attributes As SyntaxList(Of AttributesStatementSyntax), index As Integer, attribute As AttributesStatementSyntax) As SyntaxList(Of AttributesStatementSyntax)
             ' we need to explicitly add end of line trivia here since both of them (with or without) are valid but parsed differently
             If index = 0 Then
                 Return attributes.Insert(index, attribute)
@@ -3972,7 +3924,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return compilationUnit.WithImports(importsList)
         End Function
 
-        Private Function InsertParameterIntoParameterList(index As Integer, parameter As ParameterSyntax, list As ParameterListSyntax) As ParameterListSyntax
+        Private Shared Function InsertParameterIntoParameterList(index As Integer, parameter As ParameterSyntax, list As ParameterListSyntax) As ParameterListSyntax
             If list Is Nothing Then
                 Return SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(parameter)) _
                     .WithAdditionalAnnotations(Formatter.Annotation)
@@ -4115,8 +4067,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 textToInsert = ", " & newEventName
             End If
 
-            Dim text = document.GetTextAsync(cancellationToken) _
-                               .WaitAndGetResult_CodeModel(cancellationToken)
+            Dim text = document.GetTextSynchronously(cancellationToken)
 
             text = text.Replace(position, 0, textToInsert)
 
@@ -4160,8 +4111,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Throw Exceptions.ThrowEUnexpected()
             End If
 
-            Dim text = document.GetTextAsync(cancellationToken) _
-                               .WaitAndGetResult_CodeModel(cancellationToken)
+            Dim text = document.GetTextSynchronously(cancellationToken)
 
             If methodStatement.HandlesClause.Events.Count = 1 Then
                 ' Easy case, delete the whole clause
@@ -4330,16 +4280,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             End If
 
             Dim inheritsStatements = typeBlock.Inherits
-            Dim foundType = False
 
             For Each inheritsStatement In inheritsStatements
                 For Each inheritsType In inheritsStatement.Types
                     Dim typeInfo = semanticModel.GetTypeInfo(inheritsType, CancellationToken.None)
                     If typeInfo.Type IsNot Nothing AndAlso
                        typeInfo.Type.Equals(typeSymbol) Then
-
-                        foundType = True
-
                         If inheritsStatement.Types.Count = 1 Then
                             inheritsStatements = inheritsStatements.Remove(inheritsStatement)
                         Else
@@ -4406,16 +4352,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             End If
 
             Dim implementsStatements = typeBlock.Implements
-            Dim foundType = False
 
             For Each implementsStatement In implementsStatements
                 For Each inheritsType In implementsStatement.Types
                     Dim typeInfo = semanticModel.GetTypeInfo(inheritsType, CancellationToken.None)
                     If typeInfo.Type IsNot Nothing AndAlso
                        typeInfo.Type.Equals(typeSymbol) Then
-
-                        foundType = True
-
                         If implementsStatement.Types.Count = 1 Then
                             implementsStatements = implementsStatements.Remove(implementsStatement)
                         Else

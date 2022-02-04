@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -17,7 +15,7 @@ using Microsoft.CodeAnalysis.UseNamedArguments;
 namespace Microsoft.CodeAnalysis.CSharp.UseNamedArguments
 {
     [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpUseNamedArgumentsCodeRefactoringProvider)), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.UseNamedArguments), Shared]
     internal class CSharpUseNamedArgumentsCodeRefactoringProvider : AbstractUseNamedArgumentsCodeRefactoringProvider
     {
         private abstract class BaseAnalyzer<TSyntax, TSyntaxList> : Analyzer<TSyntax, TSyntax, TSyntaxList>
@@ -33,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseNamedArguments
                 => !parameters.Last().IsParams || parameters.Length >= argumentCount;
 
             protected override bool SupportsNonTrailingNamedArguments(ParseOptions options)
-                => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7_2;
+                => options.LanguageVersion() >= LanguageVersion.CSharp7_2;
 
             protected override bool IsImplicitIndexOrRangeIndexer(ImmutableArray<IParameterSymbol> parameters, TSyntax argument, SemanticModel semanticModel)
             {

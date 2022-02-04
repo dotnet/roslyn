@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend NotInheritable Partial Class BoundWithStatement
+    Partial Friend NotInheritable Class BoundWithStatement
         Inherits BoundStatement
 
         ''' <summary> Returns the placeholder used in this With statement to 

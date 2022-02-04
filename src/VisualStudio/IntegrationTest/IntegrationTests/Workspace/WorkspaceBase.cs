@@ -16,8 +16,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
 {
     public abstract class WorkspaceBase : AbstractEditorTest
     {
-        public WorkspaceBase(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper, string projectTemplate)
-            : base(instanceFactory, testOutputHelper, nameof(WorkspaceBase), projectTemplate)
+        protected WorkspaceBase(VisualStudioInstanceFactory instanceFactory, string projectTemplate)
+            : base(instanceFactory, nameof(WorkspaceBase), projectTemplate)
         {
             DefaultProjectTemplate = projectTemplate;
         }
@@ -92,7 +92,6 @@ End Class");
     End Sub
 End Module");
             VisualStudio.Editor.PlaceCaret("(x)", charsOffset: -1);
-            VisualStudio.Workspace.SetQuickInfo(true);
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.Workspace.SetOptionInfer(project.Name, true);
             VisualStudio.Editor.InvokeQuickInfo();

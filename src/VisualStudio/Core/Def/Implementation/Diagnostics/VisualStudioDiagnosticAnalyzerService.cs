@@ -2,29 +2,28 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Design;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.VisualStudio.LanguageServices.Setup;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
-using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 {
@@ -70,24 +69,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             var menuCommandService = (IMenuCommandService)_serviceProvider.GetService(typeof(IMenuCommandService));
             if (menuCommandService != null)
             {
-                AddCommand(menuCommandService, RunCodeAnalysisForSelectedProjectCommandId, VSConstants.VSStd2K, OnRunCodeAnalysisForSelectedProject, OnRunCodeAnalysisForSelectedProjectStatus);
-                AddCommand(menuCommandService, ID.RoslynCommands.RunCodeAnalysisForProject, Guids.RoslynGroupId, OnRunCodeAnalysisForSelectedProject, OnRunCodeAnalysisForSelectedProjectStatus);
-            }
-
-            return;
-
-            // Local functions
-            static OleMenuCommand AddCommand(
-                IMenuCommandService menuCommandService,
-                int commandId,
-                Guid commandGroup,
-                EventHandler invokeHandler,
-                EventHandler beforeQueryStatus)
-            {
-                var commandIdWithGroupId = new CommandID(commandGroup, commandId);
-                var command = new OleMenuCommand(invokeHandler, delegate { }, beforeQueryStatus, commandIdWithGroupId);
-                menuCommandService.AddCommand(command);
-                return command;
+                VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, RunCodeAnalysisForSelectedProjectCommandId, VSConstants.VSStd2K, OnRunCodeAnalysisForSelectedProject, OnRunCodeAnalysisForSelectedProjectStatus);
+                VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, ID.RoslynCommands.RunCodeAnalysisForProject, Guids.RoslynGroupId, OnRunCodeAnalysisForSelectedProject, OnRunCodeAnalysisForSelectedProjectStatus);
+                VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, ID.RoslynCommands.AnalysisScopeDefault, Guids.RoslynGroupId, OnSetAnalysisScopeDefault, OnSetAnalysisScopeDefaultStatus);
+                VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, ID.RoslynCommands.AnalysisScopeCurrentDocument, Guids.RoslynGroupId, OnSetAnalysisScopeCurrentDocument, OnSetAnalysisScopeCurrentDocumentStatus);
+                VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, ID.RoslynCommands.AnalysisScopeOpenDocuments, Guids.RoslynGroupId, OnSetAnalysisScopeOpenDocuments, OnSetAnalysisScopeOpenDocumentsStatus);
+                VisualStudioCommandHandlerHelpers.AddCommand(menuCommandService, ID.RoslynCommands.AnalysisScopeEntireSolution, Guids.RoslynGroupId, OnSetAnalysisScopeEntireSolution, OnSetAnalysisScopeEntireSolutionStatus);
             }
         }
 
@@ -104,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
             // Analyzers are only supported for C# and VB currently.
             var projectsWithHierarchy = currentSolution.Projects
-                .Where(p => p.Language == LanguageNames.CSharp || p.Language == LanguageNames.VisualBasic)
+                .Where(p => p.Language is LanguageNames.CSharp or LanguageNames.VisualBasic)
                 .Where(p => _workspace.GetHierarchy(p.Id) == hierarchy);
 
             if (projectsWithHierarchy.Count() <= 1)
@@ -144,11 +131,118 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             }
         }
 
-        private IReadOnlyDictionary<string, IEnumerable<DiagnosticDescriptor>> Transform(
+        private static IReadOnlyDictionary<string, IEnumerable<DiagnosticDescriptor>> Transform(
             ImmutableDictionary<string, ImmutableArray<DiagnosticDescriptor>> map)
         {
             // unfortunately, we had to do this since ruleset editor and us are set to use this signature
             return map.ToDictionary(kv => kv.Key, kv => (IEnumerable<DiagnosticDescriptor>)kv.Value);
+        }
+
+        private void OnSetAnalysisScopeDefaultStatus(object sender, EventArgs e)
+            => OnSetAnalysisScopeStatus((OleMenuCommand)sender, scope: null);
+
+        private void OnSetAnalysisScopeCurrentDocumentStatus(object sender, EventArgs e)
+            => OnSetAnalysisScopeStatus((OleMenuCommand)sender, BackgroundAnalysisScope.ActiveFile);
+
+        private void OnSetAnalysisScopeOpenDocumentsStatus(object sender, EventArgs e)
+            => OnSetAnalysisScopeStatus((OleMenuCommand)sender, BackgroundAnalysisScope.OpenFilesAndProjects);
+
+        private void OnSetAnalysisScopeEntireSolutionStatus(object sender, EventArgs e)
+            => OnSetAnalysisScopeStatus((OleMenuCommand)sender, BackgroundAnalysisScope.FullSolution);
+
+        private void OnSetAnalysisScopeStatus(OleMenuCommand command, BackgroundAnalysisScope? scope)
+        {
+            // The command is enabled as long as we have a service provider
+            if (_serviceProvider is null)
+            {
+                // Not yet initialized
+                command.Enabled = false;
+                return;
+            }
+
+            command.Enabled = true;
+
+            // The command is checked if RoslynPackage is loaded and the analysis scope for this command matches the
+            // value saved for the solution.
+            var roslynPackage = _threadingContext.JoinableTaskFactory.Run(() =>
+            {
+                return RoslynPackage.GetOrLoadAsync(_threadingContext, (IAsyncServiceProvider)_serviceProvider, _threadingContext.DisposalToken).AsTask();
+            });
+
+            if (roslynPackage is not null)
+            {
+                command.Checked = roslynPackage.AnalysisScope == scope;
+            }
+
+            // For the specific case of the default analysis scope command, update the command text to show the
+            // current effective default in the context of the language(s) used in the solution.
+            if (scope is null)
+            {
+                command.Text = GetBackgroundAnalysisScope(_workspace) switch
+                {
+                    BackgroundAnalysisScope.ActiveFile => ServicesVSResources.Default_Current_Document,
+                    BackgroundAnalysisScope.OpenFilesAndProjects => ServicesVSResources.Default_Open_Documents,
+                    BackgroundAnalysisScope.FullSolution => ServicesVSResources.Default_Entire_Solution,
+                    _ => ServicesVSResources.Default_,
+                };
+            }
+
+            return;
+
+            // Local functions
+            static BackgroundAnalysisScope? GetBackgroundAnalysisScope(Workspace workspace)
+            {
+                var csharpAnalysisScope = SolutionCrawlerOptions.GetDefaultBackgroundAnalysisScopeFromOptions(workspace.CurrentSolution.Options, LanguageNames.CSharp);
+                var visualBasicAnalysisScope = SolutionCrawlerOptions.GetDefaultBackgroundAnalysisScopeFromOptions(workspace.CurrentSolution.Options, LanguageNames.VisualBasic);
+
+                var containsCSharpProject = workspace.CurrentSolution.Projects.Any(static project => project.Language == LanguageNames.CSharp);
+                var containsVisualBasicProject = workspace.CurrentSolution.Projects.Any(static project => project.Language == LanguageNames.VisualBasic);
+                if (containsCSharpProject && containsVisualBasicProject)
+                {
+                    if (csharpAnalysisScope == visualBasicAnalysisScope)
+                        return csharpAnalysisScope;
+                    else
+                        return null;
+                }
+                else if (containsVisualBasicProject)
+                {
+                    return visualBasicAnalysisScope;
+                }
+                else
+                {
+                    return csharpAnalysisScope;
+                }
+            }
+        }
+
+        private void OnSetAnalysisScopeDefault(object sender, EventArgs args)
+            => OnSetAnalysisScope(scope: null);
+
+        private void OnSetAnalysisScopeCurrentDocument(object sender, EventArgs args)
+            => OnSetAnalysisScope(BackgroundAnalysisScope.ActiveFile);
+
+        private void OnSetAnalysisScopeOpenDocuments(object sender, EventArgs args)
+            => OnSetAnalysisScope(BackgroundAnalysisScope.OpenFilesAndProjects);
+
+        private void OnSetAnalysisScopeEntireSolution(object sender, EventArgs args)
+            => OnSetAnalysisScope(BackgroundAnalysisScope.FullSolution);
+
+        private void OnSetAnalysisScope(BackgroundAnalysisScope? scope)
+        {
+            if (_serviceProvider is null
+                || !_serviceProvider.TryGetService<SVsShell, IVsShell>(out var shell))
+            {
+                return;
+            }
+
+            var roslynPackage = _threadingContext.JoinableTaskFactory.Run(() =>
+            {
+                return RoslynPackage.GetOrLoadAsync(_threadingContext, (IAsyncServiceProvider)_serviceProvider, _threadingContext.DisposalToken).AsTask();
+            });
+
+            Assumes.Present(roslynPackage);
+
+            roslynPackage.AnalysisScope = scope;
         }
 
         private void OnRunCodeAnalysisForSelectedProjectStatus(object sender, EventArgs e)
@@ -157,7 +251,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
             // We hook up the "Run Code Analysis" menu commands for CPS based managed projects.
             // These commands are already hooked up for csproj based projects in StanCore, but those will eventually go away.
-            var visible = TryGetSelectedProjectHierarchy(out var hierarchy) &&
+            var visible = VisualStudioCommandHandlerHelpers.TryGetSelectedProjectHierarchy(_serviceProvider, out var hierarchy) &&
                 hierarchy.IsCapabilityMatch("CPS") &&
                 hierarchy.IsCapabilityMatch(".NET");
             var enabled = false;
@@ -171,13 +265,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                     command.Text = string.Format(ServicesVSResources.Run_Code_Analysis_on_0, project.Name);
                 }
 
-                enabled = !IsBuildActive();
+                enabled = !VisualStudioCommandHandlerHelpers.IsBuildActive();
             }
 
             if (command.Visible != visible)
             {
                 command.Visible = visible;
             }
+
             if (command.Enabled != enabled)
             {
                 command.Enabled = enabled;
@@ -186,7 +281,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         private void OnRunCodeAnalysisForSelectedProject(object sender, EventArgs args)
         {
-            if (TryGetSelectedProjectHierarchy(out var hierarchy))
+            if (VisualStudioCommandHandlerHelpers.TryGetSelectedProjectHierarchy(_serviceProvider, out var hierarchy))
             {
                 RunAnalyzers(hierarchy);
             }
@@ -195,39 +290,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         public void RunAnalyzers(IVsHierarchy? hierarchy)
         {
             var project = GetProject(hierarchy);
-            Solution solution = _workspace.CurrentSolution;
-            string? projectOrSolutionName = project?.Name ?? PathUtilities.GetFileName(solution.FilePath);
+            var solution = _workspace.CurrentSolution;
+            var projectOrSolutionName = project?.Name ?? PathUtilities.GetFileName(solution.FilePath);
 
             // Add a message to VS status bar that we are running code analysis.
-            var statusMessage = projectOrSolutionName != null
-                ? string.Format(ServicesVSResources.Running_code_analysis_for_0, projectOrSolutionName)
-                : ServicesVSResources.Running_code_analysis_for_Solution;
             var statusBar = _serviceProvider?.GetService(typeof(SVsStatusbar)) as IVsStatusbar;
-            statusBar?.SetText(statusMessage);
+            var totalProjectCount = project != null ? 1 : (uint)solution.ProjectIds.Count;
+            var statusBarUpdater = statusBar != null ?
+                new StatusBarUpdater(statusBar, _threadingContext, projectOrSolutionName, totalProjectCount) :
+                null;
 
             // Force complete analyzer execution in background.
             var asyncToken = _listener.BeginAsyncOperation($"{nameof(VisualStudioDiagnosticAnalyzerService)}_{nameof(RunAnalyzers)}");
             Task.Run(async () =>
             {
-                await _diagnosticService.ForceAnalyzeAsync(solution, project?.Id, CancellationToken.None).ConfigureAwait(false);
+                try
+                {
+                    var onProjectAnalyzed = statusBarUpdater != null ? statusBarUpdater.OnProjectAnalyzed : (Action<Project>)((Project _) => { });
+                    await _diagnosticService.ForceAnalyzeAsync(solution, onProjectAnalyzed, project?.Id, CancellationToken.None).ConfigureAwait(false);
 
-                // If user has disabled live analyzer execution for any project(s), i.e. set RunAnalyzersDuringLiveAnalysis = false,
-                // then ForceAnalyzeAsync will not cause analyzers to execute.
-                // We explicitly fetch diagnostics for such projects and report these as "Host" diagnostics.
-                HandleProjectsWithDisabledAnalysis();
-
-                // Add a message to VS status bar that we completed executing code analysis.
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-                var notificationMesage = projectOrSolutionName != null
-                    ? string.Format(ServicesVSResources.Code_analysis_completed_for_0, projectOrSolutionName)
-                    : ServicesVSResources.Code_analysis_completed_for_Solution;
-                statusBar?.SetText(notificationMesage);
+                    // If user has disabled live analyzer execution for any project(s), i.e. set RunAnalyzersDuringLiveAnalysis = false,
+                    // then ForceAnalyzeAsync will not cause analyzers to execute.
+                    // We explicitly fetch diagnostics for such projects and report these as "Host" diagnostics.
+                    HandleProjectsWithDisabledAnalysis();
+                }
+                finally
+                {
+                    statusBarUpdater?.Dispose();
+                }
             }).CompletesAsyncOperation(asyncToken);
 
             return;
 
             void HandleProjectsWithDisabledAnalysis()
             {
+                RoslynDebug.Assert(solution != null);
+
                 // First clear all special host diagostics for all involved projects.
                 var projects = project != null ? SpecializedCollections.SingletonEnumerable(project) : solution.Projects;
                 foreach (var project in projects)
@@ -277,75 +375,92 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             return null;
         }
 
-        private bool TryGetSelectedProjectHierarchy([NotNullWhen(returnValue: true)] out IVsHierarchy? hierarchy)
+        private sealed class StatusBarUpdater : IDisposable
         {
-            hierarchy = null;
+            private readonly IVsStatusbar _statusBar;
+            private readonly IThreadingContext _threadingContext;
+            private readonly uint _totalProjectCount;
+            private readonly string _statusMessageWhileRunning;
+            private readonly string _statusMesageOnCompleted;
+            private readonly string _statusMesageOnTerminated;
+            private readonly Timer _timer;
 
-            // Get the DTE service and make sure there is an open solution
-            if (!(_serviceProvider?.GetService(typeof(EnvDTE.DTE)) is EnvDTE.DTE dte) ||
-                dte.Solution == null)
+            private int _analyzedProjectCount;
+            private bool _disposed;
+            private uint _statusBarCookie;
+
+            public StatusBarUpdater(IVsStatusbar statusBar, IThreadingContext threadingContext, string? projectOrSolutionName, uint totalProjectCount)
             {
-                return false;
+                Contract.ThrowIfFalse(threadingContext.HasMainThread);
+                _statusBar = statusBar;
+                _threadingContext = threadingContext;
+                _totalProjectCount = totalProjectCount;
+
+                _statusMessageWhileRunning = projectOrSolutionName != null
+                    ? string.Format(ServicesVSResources.Running_code_analysis_for_0, projectOrSolutionName)
+                    : ServicesVSResources.Running_code_analysis_for_Solution;
+                _statusMesageOnCompleted = projectOrSolutionName != null
+                    ? string.Format(ServicesVSResources.Code_analysis_completed_for_0, projectOrSolutionName)
+                    : ServicesVSResources.Code_analysis_completed_for_Solution;
+                _statusMesageOnTerminated = projectOrSolutionName != null
+                    ? string.Format(ServicesVSResources.Code_analysis_terminated_before_completion_for_0, projectOrSolutionName)
+                    : ServicesVSResources.Code_analysis_terminated_before_completion_for_Solution;
+
+                // Set the initial status bar progress and text.
+                _statusBar.Progress(ref _statusBarCookie, fInProgress: 1, _statusMessageWhileRunning, nComplete: 0, nTotal: totalProjectCount);
+                _statusBar.SetText(_statusMessageWhileRunning);
+
+                // Create a timer to periodically update the status message while running analysis.
+                _timer = new Timer(new TimerCallback(UpdateStatusOnTimer), new AutoResetEvent(false),
+                    dueTime: TimeSpan.FromSeconds(5), period: TimeSpan.FromSeconds(5));
             }
 
-            var selectionHierarchy = IntPtr.Zero;
-            var selectionContainer = IntPtr.Zero;
-
-            // Get the current selection in the shell
-            if (_serviceProvider.GetService(typeof(SVsShellMonitorSelection)) is IVsMonitorSelection monitorSelection)
+            internal void OnProjectAnalyzed(Project _)
             {
-                try
-                {
-                    monitorSelection.GetCurrentSelection(out selectionHierarchy, out var itemId, out var multiSelect, out selectionContainer);
-                    if (selectionHierarchy != IntPtr.Zero)
-                    {
-                        hierarchy = Marshal.GetObjectForIUnknown(selectionHierarchy) as IVsHierarchy;
-                        Debug.Assert(hierarchy != null);
-                        return hierarchy != null;
-                    }
-                }
-                catch (Exception)
-                {
-                    // If anything went wrong, just ignore it
-                }
-                finally
-                {
-                    // Make sure we release the COM pointers in any case
-                    if (selectionHierarchy != IntPtr.Zero)
-                    {
-                        Marshal.Release(selectionHierarchy);
-                    }
-
-                    if (selectionContainer != IntPtr.Zero)
-                    {
-                        Marshal.Release(selectionContainer);
-                    }
-                }
+                Interlocked.Increment(ref _analyzedProjectCount);
+                UpdateStatusCore();
             }
 
-            return false;
-        }
+            // Add a message to VS status bar that we are running code analysis.
+            private void UpdateStatusOnTimer(object state)
+                => UpdateStatusCore();
 
-        private bool IsBuildActive()
-        {
-            // Using KnownUIContexts is faster in case when SBM's package was not loaded yet
-            if (KnownUIContexts.SolutionBuildingContext != null)
+            public void Dispose()
             {
-                return KnownUIContexts.SolutionBuildingContext.IsActive;
+                _timer.Dispose();
+                _disposed = true;
+                UpdateStatusCore();
             }
-            else
+
+            private void UpdateStatusCore()
             {
-                // Unlikely case that above service is not available, let's try Solution Build Manager
-                if (_serviceProvider?.GetService(typeof(SVsSolutionBuildManager)) is IVsSolutionBuildManager buildManager)
+                _threadingContext.JoinableTaskFactory.RunAsync(async () =>
                 {
-                    buildManager.QueryBuildManagerBusy(out var buildBusy);
-                    return buildBusy != 0;
-                }
-                else
-                {
-                    Debug.Fail("Unable to determine whether build is active or not");
-                    return true;
-                }
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                    string message;
+                    int fInProgress;
+                    var analyzedProjectCount = (uint)_analyzedProjectCount;
+                    if (analyzedProjectCount == _totalProjectCount)
+                    {
+                        message = _statusMesageOnCompleted;
+                        fInProgress = 0;
+                    }
+                    else if (_disposed)
+                    {
+                        message = _statusMesageOnTerminated;
+                        fInProgress = 0;
+                    }
+                    else
+                    {
+                        message = _statusMessageWhileRunning;
+                        fInProgress = 1;
+                    }
+
+                    // Update the status bar progress and text.
+                    _statusBar.Progress(ref _statusBarCookie, fInProgress, message, analyzedProjectCount, _totalProjectCount);
+                    _statusBar.SetText(message);
+                });
             }
         }
     }

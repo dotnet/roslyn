@@ -5,7 +5,8 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.DateAndTime;
-using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
 {
@@ -21,6 +22,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
             Languages = ImmutableArray.Create<IEmbeddedLanguage>(
                 new DateAndTimeEmbeddedLanguageFeatures(info),
                 new RegexEmbeddedLanguage(this, info),
+                new JsonEmbeddedLanguage(info),
                 new FallbackEmbeddedLanguage(info));
         }
 
@@ -31,6 +33,6 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
         /// </summary>
         /// <param name="token">The original string token that <paramref name="text"/> is being
         /// inserted into.</param>
-        internal abstract string EscapeText(string text, SyntaxToken token);
+        public abstract string EscapeText(string text, SyntaxToken token);
     }
 }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -32,7 +30,6 @@ namespace Microsoft.CodeAnalysis.Host
         /// </exception>
         /// <exception cref="IOException">An IO error occurred while reading from the stream.</exception>
         SourceText CreateText(Stream stream, Encoding? defaultEncoding, CancellationToken cancellationToken = default);
-
 
         /// <summary>
         /// Creates <see cref="SourceText"/> from a reader with given <paramref name="encoding"/>.

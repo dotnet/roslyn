@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -767,12 +769,6 @@ namespace ConsoleApp1
             await VerifySymbolKinds(markup,
                 new SymbolKindOrTypeKind(SymbolKind.Local),
                 new SymbolKindOrTypeKind(MethodKind.LocalFunction));
-        }
-
-        private async Task VerifyNoType(string markup)
-        {
-            var result = await GetResultsAsync(markup);
-            Assert.Null(result.Type);
         }
 
         private async Task VerifyTypeName(string markup, string typeName)

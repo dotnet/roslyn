@@ -5,9 +5,14 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -19,42 +24,49 @@ Imports Roslyn.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
     <[UseExportProvider]>
     Public Class ExternalDiagnosticUpdateSourceTests
+        Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = EditorTestCompositions.EditorFeatures _
+            .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
+            .AddParts(GetType(MockDiagnosticUpdateSourceRegistrationService))
+
         <Fact>
         Public Sub TestExternalDiagnostics_SupportGetDiagnostics()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim waiter = New AsynchronousOperationListener()
                 Dim service = New TestDiagnosticAnalyzerService()
-                Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter)
-
-                Assert.False(source.SupportGetDiagnostics)
+                Using source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter, CancellationToken.None)
+                    Assert.False(source.SupportGetDiagnostics)
+                End Using
             End Using
         End Sub
 
         <Fact>
         Public Async Function TestExternalDiagnostics_RaiseEvents() As Task
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
                 Dim waiter = New AsynchronousOperationListener()
                 Dim service = New TestDiagnosticAnalyzerService()
-                Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter)
+                Using source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter, CancellationToken.None)
 
-                Dim project = workspace.CurrentSolution.Projects.First()
-                Dim diagnostic = GetDiagnosticData(project.Id)
+                    Dim project = workspace.CurrentSolution.Projects.First()
+                    Dim diagnostic = GetDiagnosticData(project.Id)
 
-                Dim expected = 1
-                AddHandler source.DiagnosticsUpdated, Sub(o, a)
-                                                          Assert.Equal(expected, a.Diagnostics.Length)
-                                                          If expected = 1 Then
-                                                              Assert.Equal(a.Diagnostics(0), diagnostic)
-                                                          End If
-                                                      End Sub
+                    Dim expected = 1
+                    AddHandler source.DiagnosticsUpdated, Sub(o, a)
+                                                              Dim diagnostics = a.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode)
+                                                              Assert.Equal(expected, diagnostics.Length)
+                                                              If expected = 1 Then
+                                                                  Assert.Equal(diagnostics(0), diagnostic)
+                                                              End If
+                                                          End Sub
 
-                source.AddNewErrors(project.DocumentIds.First(), diagnostic)
-                source.OnSolutionBuildCompleted()
-                Await waiter.ExpeditedWaitAsync()
+                    source.AddNewErrors(project.DocumentIds.First(), diagnostic)
+                    source.OnSolutionBuildCompleted()
+                    Await waiter.ExpeditedWaitAsync()
 
-                expected = 0
-                source.ClearErrors(project.Id)
-                Await waiter.ExpeditedWaitAsync()
+                    expected = 0
+                    source.ClearErrors(project.Id)
+                    Await waiter.ExpeditedWaitAsync()
+                End Using
             End Using
         End Function
 
@@ -70,13 +82,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
                 Dim service = New TestDiagnosticAnalyzerService()
-                Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter)
+                Using source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter, CancellationToken.None)
 
-                Dim project = workspace.CurrentSolution.Projects.First()
-                source.OnSolutionBuildStarted()
+                    Dim project = workspace.CurrentSolution.Projects.First()
+                    source.OnSolutionBuildStarted()
 
-                Assert.True(source.IsSupportedDiagnosticId(project.Id, "ID1"))
-                Assert.False(source.IsSupportedDiagnosticId(project.Id, "CA1002"))
+                    Assert.True(source.IsSupportedDiagnosticId(project.Id, "ID1"))
+                    Assert.False(source.IsSupportedDiagnosticId(project.Id, "CA1002"))
+                End Using
             End Using
         End Sub
 
@@ -85,39 +98,43 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim waiter = New AsynchronousOperationListener()
                 Dim service = New TestDiagnosticAnalyzerService()
-                Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter)
+                Using source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter, CancellationToken.None)
 
-                Dim project = workspace.CurrentSolution.Projects.First()
-                source.OnSolutionBuildStarted()
+                    Dim project = workspace.CurrentSolution.Projects.First()
+                    source.OnSolutionBuildStarted()
 
-                Parallel.For(0, 100, Sub(i As Integer) source.IsSupportedDiagnosticId(project.Id, "CS1002"))
+                    Parallel.For(0, 100, Sub(i As Integer) source.IsSupportedDiagnosticId(project.Id, "CS1002"))
+                End Using
             End Using
         End Sub
 
         <Fact>
         Public Async Function TestExternalDiagnostics_DuplicatedError() As Task
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
                 Dim waiter = New AsynchronousOperationListener()
 
                 Dim project = workspace.CurrentSolution.Projects.First()
                 Dim diagnostic = GetDiagnosticData(project.Id)
 
                 Dim service = New TestDiagnosticAnalyzerService(ImmutableArray.Create(diagnostic))
-                Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter)
+                Using source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter, CancellationToken.None)
 
-                Dim map = New Dictionary(Of DocumentId, HashSet(Of DiagnosticData))()
-                map.Add(project.DocumentIds.First(), New HashSet(Of DiagnosticData)(
+                    Dim map = New Dictionary(Of DocumentId, HashSet(Of DiagnosticData))()
+                    map.Add(project.DocumentIds.First(), New HashSet(Of DiagnosticData)(
                         SpecializedCollections.SingletonEnumerable(GetDiagnosticData(project.Id))))
 
-                source.AddNewErrors(project.Id, New HashSet(Of DiagnosticData)(SpecializedCollections.SingletonEnumerable(diagnostic)), map)
+                    source.AddNewErrors(project.Id, New HashSet(Of DiagnosticData)(SpecializedCollections.SingletonEnumerable(diagnostic)), map)
 
-                AddHandler source.DiagnosticsUpdated, Sub(o, a)
-                                                          Assert.Equal(1, a.Diagnostics.Length)
-                                                      End Sub
+                    AddHandler source.DiagnosticsUpdated, Sub(o, a)
+                                                              Dim diagnostics = a.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode)
+                                                              Assert.Equal(1, diagnostics.Length)
+                                                          End Sub
 
-                source.OnSolutionBuildCompleted()
+                    source.OnSolutionBuildCompleted()
 
-                Await waiter.ExpeditedWaitAsync()
+                    Await waiter.ExpeditedWaitAsync()
+                End Using
             End Using
         End Function
 
@@ -130,22 +147,23 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim diagnostic = GetDiagnosticData(project.Id)
 
                 Dim service = New TestDiagnosticAnalyzerService()
-                Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter)
-                AddHandler source.BuildProgressChanged, Sub(o, progress)
-                                                            If progress = ExternalErrorDiagnosticUpdateSource.BuildProgress.Done Then
-                                                                Assert.Equal(2, source.GetBuildErrors().Length)
-                                                            End If
-                                                        End Sub
+                Using source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter, CancellationToken.None)
+                    AddHandler source.BuildProgressChanged, Sub(o, progress)
+                                                                If progress = ExternalErrorDiagnosticUpdateSource.BuildProgress.Done Then
+                                                                    Assert.Equal(2, source.GetBuildErrors().Length)
+                                                                End If
+                                                            End Sub
 
-                Dim map = New Dictionary(Of DocumentId, HashSet(Of DiagnosticData))()
-                map.Add(project.DocumentIds.First(), New HashSet(Of DiagnosticData)(
+                    Dim map = New Dictionary(Of DocumentId, HashSet(Of DiagnosticData))()
+                    map.Add(project.DocumentIds.First(), New HashSet(Of DiagnosticData)(
                         SpecializedCollections.SingletonEnumerable(GetDiagnosticData(project.Id))))
 
-                source.AddNewErrors(project.Id, New HashSet(Of DiagnosticData)(SpecializedCollections.SingletonEnumerable(diagnostic)), map)
-                Await waiter.ExpeditedWaitAsync()
+                    source.AddNewErrors(project.Id, New HashSet(Of DiagnosticData)(SpecializedCollections.SingletonEnumerable(diagnostic)), map)
+                    Await waiter.ExpeditedWaitAsync()
 
-                source.OnSolutionBuildCompleted()
-                Await waiter.ExpeditedWaitAsync()
+                    source.OnSolutionBuildCompleted()
+                    Await waiter.ExpeditedWaitAsync()
+                End Using
             End Using
         End Function
 
@@ -177,32 +195,37 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         <Fact>
         Public Async Function TestExternalDiagnostics_AddDuplicatedErrors() As Task
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
                 Dim waiter = New AsynchronousOperationListener()
 
                 Dim project = workspace.CurrentSolution.Projects.First()
                 Dim diagnostic = GetDiagnosticData(project.Id)
 
                 Dim service = New TestDiagnosticAnalyzerService()
-                Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter)
+                Using source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter, CancellationToken.None)
 
-                ' we shouldn't crash here
-                source.AddNewErrors(project.Id, diagnostic)
-                source.AddNewErrors(project.Id, diagnostic)
+                    ' we shouldn't crash here
+                    source.AddNewErrors(project.Id, diagnostic)
+                    source.AddNewErrors(project.Id, diagnostic)
 
-                AddHandler source.DiagnosticsUpdated, Sub(o, a)
-                                                          Assert.Equal(1, a.Diagnostics.Length)
-                                                      End Sub
+                    AddHandler source.DiagnosticsUpdated, Sub(o, a)
+                                                              Dim diagnostics = a.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode)
+                                                              Assert.Equal(1, diagnostics.Length)
+                                                          End Sub
 
-                source.OnSolutionBuildCompleted()
+                    source.OnSolutionBuildCompleted()
 
-                Await waiter.ExpeditedWaitAsync()
+                    Await waiter.ExpeditedWaitAsync()
+                End Using
             End Using
         End Function
 
-        <Fact>
-        Public Async Function TestExternalDiagnostics_CompilationEndAnalyzer() As Task
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
-                Dim analyzer = New CompilationEndAnalyzer()
+        <Theory, CombinatorialData>
+        <WorkItem(47754, "https://github.com/dotnet/roslyn/issues/47754")>
+        Public Async Function TestExternalDiagnostics_CompilationEndAnalyzer(hasCompilationEndTag As Boolean) As Task
+            Using workspace = TestWorkspace.CreateCSharp(String.Empty, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
+                Dim analyzer = New CompilationEndAnalyzer(hasCompilationEndTag)
                 Dim compiler = DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp)
 
                 Dim analyzerReference = New AnalyzerImageReference(New DiagnosticAnalyzer() {compiler, analyzer}.ToImmutableArray())
@@ -212,28 +235,37 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim project = workspace.CurrentSolution.Projects.First()
 
-                Dim service = New Microsoft.CodeAnalysis.Diagnostics.TestDiagnosticAnalyzerService()
+                Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
+                Dim service = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
                 Dim registation = service.CreateIncrementalAnalyzer(workspace)
 
-                Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter)
+                Using source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter, CancellationToken.None)
 
-                Dim diagnostic = GetDiagnosticData(project.Id, isBuildDiagnostic:=True, id:=analyzer.SupportedDiagnostics(0).Id)
-                source.AddNewErrors(project.Id, diagnostic)
+                    Dim diagnostic = GetDiagnosticData(project.Id, isBuildDiagnostic:=True, id:=analyzer.SupportedDiagnostics(0).Id)
+                    source.AddNewErrors(project.Id, diagnostic)
 
-                AddHandler source.DiagnosticsUpdated, Sub(o, a)
-                                                          Assert.Equal(1, a.Diagnostics.Length)
-                                                          Assert.Equal(a.Diagnostics(0).Properties(WellKnownDiagnosticPropertyNames.Origin), WellKnownDiagnosticTags.Build)
-                                                      End Sub
+                    Dim buildDiagnosticCallbackSeen = False
+                    AddHandler source.DiagnosticsUpdated, Sub(o, a)
+                                                              buildDiagnosticCallbackSeen = True
 
-                source.OnSolutionBuildCompleted()
+                                                              Dim diagnostics = a.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode)
+                                                              Assert.Equal(1, diagnostics.Length)
+                                                              Assert.Equal(diagnostics(0).Properties(WellKnownDiagnosticPropertyNames.Origin), WellKnownDiagnosticTags.Build)
+                                                          End Sub
 
-                Await waiter.ExpeditedWaitAsync()
+                    source.OnSolutionBuildCompleted()
+
+                    Await waiter.ExpeditedWaitAsync()
+
+                    Assert.Equal(hasCompilationEndTag, buildDiagnosticCallbackSeen)
+                End Using
             End Using
         End Function
 
         <Fact>
         Public Async Function TestExternalDiagnostics_CompilationAnalyzer() As Task
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = TestWorkspace.CreateCSharp(String.Empty, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
                 Dim analyzer = New CompilationAnalyzer()
                 Dim compiler = DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp)
 
@@ -244,28 +276,32 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim project = workspace.CurrentSolution.Projects.First()
 
-                Dim service = New Microsoft.CodeAnalysis.Diagnostics.TestDiagnosticAnalyzerService()
+                Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
+                Dim service = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
                 Dim registation = service.CreateIncrementalAnalyzer(workspace)
 
-                Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter)
+                Using source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter, CancellationToken.None)
 
-                Dim diagnostic = GetDiagnosticData(project.Id, isBuildDiagnostic:=True, id:=analyzer.SupportedDiagnostics(0).Id)
-                source.AddNewErrors(project.Id, diagnostic)
+                    Dim diagnostic = GetDiagnosticData(project.Id, isBuildDiagnostic:=True, id:=analyzer.SupportedDiagnostics(0).Id)
+                    source.AddNewErrors(project.Id, diagnostic)
 
-                AddHandler source.DiagnosticsUpdated, Sub(o, a)
-                                                          Assert.Equal(1, a.Diagnostics.Length)
-                                                          Assert.Equal(a.Diagnostics(0).Properties(WellKnownDiagnosticPropertyNames.Origin), WellKnownDiagnosticTags.Build)
-                                                      End Sub
+                    AddHandler source.DiagnosticsUpdated, Sub(o, a)
+                                                              Dim diagnostics = a.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode)
 
-                source.OnSolutionBuildCompleted()
+                                                              Assert.Equal(1, diagnostics.Length)
+                                                              Assert.Equal(diagnostics(0).Properties(WellKnownDiagnosticPropertyNames.Origin), WellKnownDiagnosticTags.Build)
+                                                          End Sub
 
-                Await waiter.ExpeditedWaitAsync()
+                    source.OnSolutionBuildCompleted()
+
+                    Await waiter.ExpeditedWaitAsync()
+                End Using
             End Using
         End Function
 
         <Fact>
         Public Async Function TestExternalDiagnostics_CompilationAnalyzerWithFSAOn() As Task
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = TestWorkspace.CreateCSharp(String.Empty, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
                 ' turn on FSA
                 Dim options = workspace.CurrentSolution.Options.WithChangedOption(
                     SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.FullSolution)
@@ -279,25 +315,27 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim waiter = New AsynchronousOperationListener()
                 Dim project = workspace.CurrentSolution.Projects.First()
 
-                Dim service = New Microsoft.CodeAnalysis.Diagnostics.TestDiagnosticAnalyzerService()
+                Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
+                Dim service = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
                 Dim registation = service.CreateIncrementalAnalyzer(workspace)
 
-                Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter)
+                Using source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter, CancellationToken.None)
 
-                Dim diagnostic = GetDiagnosticData(project.Id, isBuildDiagnostic:=True, id:=analyzer.SupportedDiagnostics(0).Id)
-                source.AddNewErrors(project.Id, diagnostic)
+                    Dim diagnostic = GetDiagnosticData(project.Id, isBuildDiagnostic:=True, id:=analyzer.SupportedDiagnostics(0).Id)
+                    source.AddNewErrors(project.Id, diagnostic)
 
-                Dim called = False
-                AddHandler source.DiagnosticsUpdated, Sub(o, a)
-                                                          called = True
-                                                      End Sub
+                    Dim called = False
+                    AddHandler source.DiagnosticsUpdated, Sub(o, a)
+                                                              called = True
+                                                          End Sub
 
-                source.OnSolutionBuildCompleted()
+                    source.OnSolutionBuildCompleted()
 
-                Await waiter.ExpeditedWaitAsync()
+                    Await waiter.ExpeditedWaitAsync()
 
-                ' error is considered live error, so event shouldn't be raised
-                Assert.False(called)
+                    ' error is considered live error, so event shouldn't be raised
+                    Assert.False(called)
+                End Using
             End Using
         End Function
 
@@ -312,30 +350,34 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim projectId2 = workspace.CurrentSolution.ProjectIds(1)
 
                 Dim service = New TestDiagnosticAnalyzerService()
-                Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter)
+                Using source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter, CancellationToken.None)
 
-                source.AddNewErrors(projectId1, GetDiagnosticData(projectId1))
-                Await waiter.ExpeditedWaitAsync()
+                    source.AddNewErrors(projectId1, GetDiagnosticData(projectId1))
+                    Await waiter.ExpeditedWaitAsync()
 
-                AddHandler source.BuildProgressChanged, Sub(o, progress)
-                                                            If progress = ExternalErrorDiagnosticUpdateSource.BuildProgress.Updated Then
-                                                                Assert.Equal(1, source.GetBuildErrors().Length)
-                                                            ElseIf progress = ExternalErrorDiagnosticUpdateSource.BuildProgress.Done Then
-                                                                Assert.Equal(2, source.GetBuildErrors().Length)
-                                                            End If
-                                                        End Sub
+                    Dim numberOfUpdateCalls = 0
+                    AddHandler source.BuildProgressChanged, Sub(o, progress)
+                                                                If progress = ExternalErrorDiagnosticUpdateSource.BuildProgress.Updated Then
+                                                                    numberOfUpdateCalls += 1
+                                                                    Assert.Equal(numberOfUpdateCalls, source.GetBuildErrors().Length)
+                                                                ElseIf progress = ExternalErrorDiagnosticUpdateSource.BuildProgress.Done Then
+                                                                    Assert.Equal(2, source.GetBuildErrors().Length)
+                                                                End If
+                                                            End Sub
 
-                source.AddNewErrors(projectId2, GetDiagnosticData(projectId2))
-                Await waiter.ExpeditedWaitAsync()
+                    source.AddNewErrors(projectId2, GetDiagnosticData(projectId2))
+                    Await waiter.ExpeditedWaitAsync()
 
-                source.OnSolutionBuildCompleted()
-                Await waiter.ExpeditedWaitAsync()
+                    source.OnSolutionBuildCompleted()
+                    Await waiter.ExpeditedWaitAsync()
+                End Using
             End Using
         End Function
 
         <Fact>
         Public Async Function TestCompilerDiagnosticWithoutDocumentId() As Task
-            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+            Using workspace = TestWorkspace.CreateCSharp(String.Empty, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
                 Dim analyzer = New CompilationAnalyzer()
                 Dim compiler = DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp)
 
@@ -347,18 +389,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim project = workspace.CurrentSolution.Projects.First()
 
-
-                Dim diagnosticWaiter = TryCast(listenerProvider.GetListener(FeatureAttribute.DiagnosticService), AsynchronousOperationListener)
-
-                Dim service = New Microsoft.CodeAnalysis.Diagnostics.TestDiagnosticAnalyzerService(listener:=diagnosticWaiter)
+                Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
+                Dim service = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
                 Dim registation = service.CreateIncrementalAnalyzer(workspace)
-                Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter)
+                Using source = New ExternalErrorDiagnosticUpdateSource(workspace, service, waiter, CancellationToken.None)
 
-                Dim diagnostic = New DiagnosticData(
+                    Dim diagnostic = New DiagnosticData(
                     id:="CS1002",
                     category:="Test",
                     message:="Test Message",
-                    enuMessageForBingSearch:="Test Message Format",
                     severity:=DiagnosticSeverity.Error,
                     defaultSeverity:=DiagnosticSeverity.Error,
                     isEnabledByDefault:=True,
@@ -369,28 +408,37 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     location:=New DiagnosticDataLocation(documentId:=Nothing, sourceSpan:=Nothing, "Test.txt", 4, 4),
                     language:=project.Language)
 
-                AddHandler service.DiagnosticsUpdated, Sub(o, args)
-                                                           Assert.Single(args.Diagnostics)
-                                                           Assert.Equal(args.Diagnostics(0).Id, diagnostic.Id)
-                                                       End Sub
+                    AddHandler service.DiagnosticsUpdated, Sub(o, args)
+                                                               Dim diagnostics = args.GetPushDiagnostics(globalOptions, InternalDiagnosticsOptions.NormalDiagnosticMode)
 
-                source.AddNewErrors(project.Id, diagnostic)
-                Await waiter.ExpeditedWaitAsync()
+                                                               Assert.Single(diagnostics)
+                                                               Assert.Equal(diagnostics(0).Id, diagnostic.Id)
+                                                           End Sub
 
-                source.OnSolutionBuildCompleted()
-                Await waiter.ExpeditedWaitAsync()
+                    source.AddNewErrors(project.Id, diagnostic)
+                    Await waiter.ExpeditedWaitAsync()
 
-                Dim diagnosticServiceWaiter = TryCast(listenerProvider.GetListener(FeatureAttribute.DiagnosticService), AsynchronousOperationListener)
-                Await diagnosticServiceWaiter.ExpeditedWaitAsync()
+                    source.OnSolutionBuildCompleted()
+                    Await waiter.ExpeditedWaitAsync()
+
+                    Dim diagnosticServiceWaiter = TryCast(listenerProvider.GetListener(FeatureAttribute.DiagnosticService), AsynchronousOperationListener)
+                    Await diagnosticServiceWaiter.ExpeditedWaitAsync()
+                End Using
             End Using
         End Function
 
         Private Class CompilationEndAnalyzer
             Inherits DiagnosticAnalyzer
 
+            Private ReadOnly _descriptor As DiagnosticDescriptor
+
+            Public Sub New(hasCompilationEndTag As Boolean)
+                Dim additionalCustomTags = If(hasCompilationEndTag, {WellKnownDiagnosticTags.CompilationEnd}, Array.Empty(Of String))
+                _descriptor = DescriptorFactory.CreateSimpleDescriptor("CompilationEndAnalyzer", additionalCustomTags)
+            End Sub
             Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
                 Get
-                    Return ImmutableArray.Create(DescriptorFactory.CreateSimpleDescriptor("CompilationEndAnalyzer"))
+                    Return ImmutableArray.Create(_descriptor)
                 End Get
             End Property
 
@@ -422,13 +470,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Sub
         End Class
 
-        Private Function GetDiagnosticData(projectId As ProjectId, Optional isBuildDiagnostic As Boolean = False, Optional id As String = "id") As DiagnosticData
+        Private Shared Function GetDiagnosticData(projectId As ProjectId, Optional isBuildDiagnostic As Boolean = False, Optional id As String = "id") As DiagnosticData
             Dim properties = If(isBuildDiagnostic, DiagnosticData.PropertiesForBuildDiagnostic, ImmutableDictionary(Of String, String).Empty)
             Return New DiagnosticData(
                 id,
                 category:="Test",
                 message:="Test Message",
-                enuMessageForBingSearch:="Test Message Format",
                 severity:=DiagnosticSeverity.Error,
                 defaultSeverity:=DiagnosticSeverity.Error,
                 isEnabledByDefault:=True,
@@ -465,18 +512,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Public Event DiagnosticsUpdated As EventHandler(Of DiagnosticsUpdatedArgs) Implements IDiagnosticUpdateSource.DiagnosticsUpdated
             Public Event DiagnosticsCleared As EventHandler Implements IDiagnosticUpdateSource.DiagnosticsCleared
 
-            Public Function GetDiagnostics(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticData) Implements IDiagnosticUpdateSource.GetDiagnostics
-                Return If(includeSuppressedDiagnostics, _data, _data.WhereAsArray(Function(d) Not d.IsSuppressed))
+            Public Function GetDiagnosticsAsync(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, cancellationToken As CancellationToken) As ValueTask(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticUpdateSource.GetDiagnosticsAsync
+                Return New ValueTask(Of ImmutableArray(Of DiagnosticData))(If(includeSuppressedDiagnostics, _data, _data.WhereAsArray(Function(d) Not d.IsSuppressed)))
             End Function
 
             Public Sub Reanalyze(workspace As Workspace, Optional projectIds As IEnumerable(Of ProjectId) = Nothing, Optional documentIds As IEnumerable(Of DocumentId) = Nothing, Optional highPriority As Boolean = False) Implements IDiagnosticAnalyzerService.Reanalyze
             End Sub
 
-            Public Function GetDiagnosticsForSpanAsync(document As Document, range As TextSpan, Optional diagnosticId As String = Nothing, Optional includeSuppressedDiagnostics As Boolean = False, Optional addOperationScope As Func(Of String, IDisposable) = Nothing, Optional cancellationToken As CancellationToken = Nothing) As Task(Of IEnumerable(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetDiagnosticsForSpanAsync
-                Return Task.FromResult(SpecializedCollections.EmptyEnumerable(Of DiagnosticData))
+            Public Function GetDiagnosticsForSpanAsync(document As Document, range As TextSpan?, shouldIncludeDiagnostic As Func(Of String, Boolean), Optional includeSuppressedDiagnostics As Boolean = False, Optional priority As CodeActionRequestPriority = CodeActionRequestPriority.None, Optional addOperationScope As Func(Of String, IDisposable) = Nothing, Optional cancellationToken As CancellationToken = Nothing) As Task(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetDiagnosticsForSpanAsync
+                Return SpecializedTasks.EmptyImmutableArray(Of DiagnosticData)
             End Function
 
-            Public Function TryAppendDiagnosticsForSpanAsync(document As Document, range As TextSpan, diagnostics As List(Of DiagnosticData), Optional includeSuppressedDiagnostics As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As Task(Of Boolean) Implements IDiagnosticAnalyzerService.TryAppendDiagnosticsForSpanAsync
+            Public Function TryAppendDiagnosticsForSpanAsync(document As Document, range As TextSpan, diagnostics As ArrayBuilder(Of DiagnosticData), Optional includeSuppressedDiagnostics As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As Task(Of Boolean) Implements IDiagnosticAnalyzerService.TryAppendDiagnosticsForSpanAsync
                 Return Task.FromResult(False)
             End Function
 
@@ -504,11 +551,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Throw New NotImplementedException()
             End Function
 
-            Public Function IsCompilationEndAnalyzer(analyzer As DiagnosticAnalyzer, project As Project, compilation As Compilation) As Boolean Implements IDiagnosticAnalyzerService.IsCompilationEndAnalyzer
-                Throw New NotImplementedException()
-            End Function
-
-            Public Function ForceAnalyzeAsync(solution As Solution, Optional projectId As ProjectId = Nothing, Optional cancellationToken As CancellationToken = Nothing) As Task Implements IDiagnosticAnalyzerService.ForceAnalyzeAsync
+            Public Function ForceAnalyzeAsync(solution As Solution, onProjectAnalyzed As Action(Of Project), Optional projectId As ProjectId = Nothing, Optional cancellationToken As CancellationToken = Nothing) As Task Implements IDiagnosticAnalyzerService.ForceAnalyzeAsync
                 Throw New NotImplementedException()
             End Function
         End Class

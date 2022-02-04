@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                                         destination As CodeGenerationDestination,
                                                         options As CodeGenerationOptions) As DeclarationStatementSyntax
 
-            If options.GenerateMethodBodies AndAlso
+            If options.Context.GenerateMethodBodies AndAlso
                 ([event].AddMethod IsNot Nothing OrElse [event].RemoveMethod IsNot Nothing OrElse [event].RaiseMethod IsNot Nothing) Then
                 Return GenerateCustomEventDeclarationWorker([event], destination, options)
             Else
@@ -127,6 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 result = result.WithEventStatement(
                     result.EventStatement.WithImplementsClause(GenerateImplementsClause(explicitInterface)))
             End If
+
             Return result
         End Function
 

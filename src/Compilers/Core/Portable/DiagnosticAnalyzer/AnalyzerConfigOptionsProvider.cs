@@ -10,6 +10,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     public abstract class AnalyzerConfigOptionsProvider
     {
         /// <summary>
+        /// Gets global options that do not apply to any specific file
+        /// </summary>
+        public abstract AnalyzerConfigOptions GlobalOptions { get; }
+
+        /// <summary>
         /// Get options for a given <paramref name="tree"/>.
         /// </summary>
         public abstract AnalyzerConfigOptions GetOptions(SyntaxTree tree);

@@ -5,36 +5,26 @@
 Imports System.IO
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 Imports Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Experiments
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
-Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Text.Tagging
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     Friend Module RenameTestHelpers
 
-        Friend _exportProviderFactory As IExportProviderFactory = ExportProviderCache.GetOrCreateExportProviderFactory(
-            TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(
-                GetType(MockDocumentNavigationServiceFactory),
-                GetType(TestExperimentationService)))
-
-        Friend ReadOnly Property ExportProviderFactory As IExportProviderFactory
-            Get
-                Return _exportProviderFactory
-            End Get
-        End Property
+        Private ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeaturesWpf.AddParts(
+            GetType(MockDocumentNavigationServiceFactory),
+            GetType(MockPreviewDialogService))
 
         Private Function GetSessionInfo(workspace As TestWorkspace) As (document As Document, textSpan As TextSpan)
             Dim hostdoc = workspace.DocumentWithCursor
@@ -110,28 +100,26 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             VerifyFileName(workspace.CurrentSolution.GetDocument(documentId), newIdentifierName)
         End Sub
 
-        Public Function CreateWorkspaceWithWaiter(element As XElement) As TestWorkspace
-            Dim workspace = TestWorkspace.CreateWorkspace(
-                element,
-                exportProvider:=ExportProviderFactory.CreateExportProvider())
+#Disable Warning IDE0060 ' Remove unused parameter - https://github.com/dotnet/roslyn/issues/45890
+        Public Function CreateWorkspaceWithWaiter(element As XElement, host As RenameTestHost) As TestWorkspace
+#Enable Warning IDE0060 ' Remove unused parameter
+            Dim workspace = TestWorkspace.CreateWorkspace(element, composition:=s_composition)
             workspace.GetOpenDocumentIds().Select(Function(id) workspace.GetTestDocument(id).GetTextView()).ToList()
             Return workspace
         End Function
 
         Public Async Function WaitForRename(workspace As TestWorkspace) As Task
             Dim provider = workspace.ExportProvider.GetExportedValue(Of AsynchronousOperationListenerProvider)
-            Await provider.WaitAllDispatcherOperationAndTasksAsync(FeatureAttribute.EventHookup, FeatureAttribute.Rename, FeatureAttribute.RenameTracking)
+            Await provider.WaitAllDispatcherOperationAndTasksAsync(workspace, FeatureAttribute.EventHookup, FeatureAttribute.Rename, FeatureAttribute.RenameTracking)
         End Function
 
         Public Function CreateRenameTrackingTagger(workspace As TestWorkspace, document As TestHostDocument) As ITagger(Of RenameTrackingTag)
             Dim tracker = New RenameTrackingTaggerProvider(
-                workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
-                workspace.ExportProvider.GetExport(Of ITextUndoHistoryRegistry)().Value,
-                workspace.ExportProvider.GetExport(Of IWaitIndicator)().Value,
-                workspace.ExportProvider.GetExport(Of IInlineRenameService)().Value,
-                workspace.ExportProvider.GetExport(Of IDiagnosticAnalyzerService)().Value,
-                {New MockRefactorNotifyService()},
-                workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider))
+                workspace.GetService(Of IThreadingContext),
+                workspace.GetService(Of IInlineRenameService)(),
+                workspace.GetService(Of IDiagnosticAnalyzerService)(),
+                workspace.GetService(Of IGlobalOptionService)(),
+                workspace.GetService(Of IAsynchronousOperationListenerProvider))
 
             Return tracker.CreateTagger(Of RenameTrackingTag)(document.GetTextBuffer())
         End Function

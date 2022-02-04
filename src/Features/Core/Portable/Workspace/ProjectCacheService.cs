@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,24 +23,33 @@ namespace Microsoft.CodeAnalysis.Host
     {
         internal const int ImplicitCacheSize = 3;
 
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
 
-        private readonly Workspace _workspace;
-        private readonly Dictionary<ProjectId, Cache> _activeCaches = new Dictionary<ProjectId, Cache>();
+        private readonly Workspace? _workspace;
+        private readonly ISyntaxTreeConfigurationService? _configurationService;
+        private readonly Dictionary<ProjectId, Cache> _activeCaches = new();
 
         private readonly SimpleMRUCache? _implicitCache;
         private readonly ImplicitCacheMonitor? _implicitCacheMonitor;
 
-        public ProjectCacheService(Workspace workspace)
-            => _workspace = workspace;
-
-        public ProjectCacheService(Workspace workspace, int implicitCacheTimeout)
+        public ProjectCacheService(Workspace? workspace)
         {
             _workspace = workspace;
+            _configurationService = workspace?.Services.GetService<ISyntaxTreeConfigurationService>();
+        }
 
+        public ProjectCacheService(Workspace? workspace, TimeSpan implicitCacheTimeout)
+            : this(workspace)
+        {
             _implicitCache = new SimpleMRUCache();
             _implicitCacheMonitor = new ImplicitCacheMonitor(this, implicitCacheTimeout);
         }
+
+        /// <summary>
+        /// Recoverable trees only save significant memory for larger trees.
+        /// </summary>
+        public int MinimumLengthForRecoverableTree
+            => (_configurationService?.DisableRecoverableTrees != true) ? 4 * 1024 : int.MaxValue;
 
         public bool IsImplicitCacheEmpty
         {
@@ -89,22 +96,28 @@ namespace Microsoft.CodeAnalysis.Host
         [return: NotNullIfNotNull("instance")]
         public T? CacheObjectIfCachingEnabledForKey<T>(ProjectId key, object owner, T? instance) where T : class
         {
-            lock (_gate)
+            if (IsEnabled)
             {
-                if (_activeCaches.TryGetValue(key, out var cache))
+                lock (_gate)
                 {
-                    cache.CreateStrongReference(owner, instance);
+                    if (_activeCaches.TryGetValue(key, out var cache))
+                    {
+                        cache.CreateStrongReference(owner, instance);
+                    }
+                    else if (_implicitCache != null && !PartOfP2PReferences(key))
+                    {
+                        RoslynDebug.Assert(_implicitCacheMonitor != null);
+                        _implicitCache.Touch(instance);
+                        _implicitCacheMonitor.Touch();
+                    }
                 }
-                else if (_implicitCache != null && !PartOfP2PReferences(key))
-                {
-                    RoslynDebug.Assert(_implicitCacheMonitor != null);
-                    _implicitCache.Touch(instance);
-                    _implicitCacheMonitor.Touch();
-                }
-
-                return instance;
             }
+
+            return instance;
         }
+
+        private bool IsEnabled
+            => _configurationService?.DisableProjectCacheService != true;
 
         private bool PartOfP2PReferences(ProjectId key)
         {
@@ -132,16 +145,19 @@ namespace Microsoft.CodeAnalysis.Host
         [return: NotNullIfNotNull("instance")]
         public T? CacheObjectIfCachingEnabledForKey<T>(ProjectId key, ICachedObjectOwner owner, T? instance) where T : class
         {
-            lock (_gate)
+            if (IsEnabled)
             {
-                if (owner.CachedObject == null && _activeCaches.TryGetValue(key, out var cache))
+                lock (_gate)
                 {
-                    owner.CachedObject = instance;
-                    cache.CreateOwnerEntry(owner);
+                    if (owner.CachedObject == null && _activeCaches.TryGetValue(key, out var cache))
+                    {
+                        owner.CachedObject = instance;
+                        cache.CreateOwnerEntry(owner);
+                    }
                 }
-
-                return instance;
             }
+
+            return instance;
         }
 
         private void DisableCaching(ProjectId key, Cache cache)
@@ -162,8 +178,8 @@ namespace Microsoft.CodeAnalysis.Host
             internal int Count;
             private readonly ProjectCacheService _cacheService;
             private readonly ProjectId _key;
-            private ConditionalWeakTable<object, object?>? _cache = new ConditionalWeakTable<object, object?>();
-            private readonly List<WeakReference<ICachedObjectOwner>> _ownerObjects = new List<WeakReference<ICachedObjectOwner>>();
+            private ConditionalWeakTable<object, object?>? _cache = new();
+            private readonly List<WeakReference<ICachedObjectOwner>> _ownerObjects = new();
 
             public Cache(ProjectCacheService cacheService, ProjectId key)
             {

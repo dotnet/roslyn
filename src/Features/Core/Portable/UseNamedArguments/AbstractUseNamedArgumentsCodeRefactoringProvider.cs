@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -33,8 +31,9 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
             {
                 var (document, textSpan, cancellationToken) = context;
 
-                var potentialArguments = await document.GetRelevantNodesAsync<TBaseArgumentSyntax>(textSpan, cancellationToken).ConfigureAwait(false);
-                var argument = potentialArguments.FirstOrDefault(n => n?.Parent is TArgumentListSyntax) as TSimpleArgumentSyntax;
+                // We allow empty nodes here to find VB implicit arguments.
+                var potentialArguments = await document.GetRelevantNodesAsync<TBaseArgumentSyntax>(textSpan, allowEmptyNodes: true, cancellationToken).ConfigureAwait(false);
+                var argument = potentialArguments.FirstOrDefault(n => n.Parent is TArgumentListSyntax) as TSimpleArgumentSyntax;
                 if (argument == null)
                 {
                     return;
@@ -70,7 +69,7 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
                     return;
                 }
 
-                if (!(argument.Parent is TArgumentListSyntax argumentList))
+                if (argument.Parent is not TArgumentListSyntax argumentList)
                 {
                     return;
                 }
@@ -93,18 +92,23 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
                     return;
                 }
 
+                var potentialArgumentsToName = 0;
                 for (var i = argumentIndex; i < argumentCount; i++)
                 {
-                    if (!(arguments[i] is TSimpleArgumentSyntax))
+                    if (arguments[i] is not TSimpleArgumentSyntax simpleArgumet)
                     {
                         return;
+                    }
+                    else if (IsPositionalArgument(simpleArgumet))
+                    {
+                        potentialArgumentsToName++;
                     }
                 }
 
                 var argumentName = parameters[argumentIndex].Name;
 
                 if (SupportsNonTrailingNamedArguments(root.SyntaxTree.Options) &&
-                    argumentIndex < argumentCount - 1)
+                    potentialArgumentsToName > 1)
                 {
                     context.RegisterRefactoring(
                         new MyCodeAction(
@@ -211,7 +215,7 @@ namespace Microsoft.CodeAnalysis.UseNamedArguments
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+                : base(title, createChangedDocument, title)
             {
             }
         }

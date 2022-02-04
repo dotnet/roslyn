@@ -91,6 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 If TypeOf node Is SingleLineLambdaExpressionSyntax Then Return True
                 node = node.Parent
             End While
+
             Return False
         End Function
 
@@ -134,6 +135,7 @@ recurse:
                                 Return trivia
                             End If
                         Next
+
                         For Each trivia In child.GetLeadingTrivia.Reverse
                             If (trivia.SpanStart < position) AndAlso (position <= child.FullSpan.End) Then
                                 Return trivia
@@ -142,6 +144,7 @@ recurse:
                     End If
                 End If
             Next
+
             Return Nothing
         End Function
 
@@ -325,8 +328,17 @@ recurse:
 
         <Extension()>
         Public Function IsInPreprocessorDirectiveContext(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
+            Dim directive As DirectiveTriviaSyntax = Nothing
+            Return IsInPreprocessorDirectiveContext(syntaxTree, position, cancellationToken, directive)
+        End Function
+
+        Friend Function IsInPreprocessorDirectiveContext(
+                syntaxTree As SyntaxTree,
+                position As Integer,
+                cancellationToken As CancellationToken,
+                ByRef directive As DirectiveTriviaSyntax) As Boolean
             Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives:=True, includeDocumentationComments:=True)
-            Dim directive = token.GetAncestor(Of DirectiveTriviaSyntax)()
+            directive = token.GetAncestor(Of DirectiveTriviaSyntax)()
 
             ' Directives contain the EOL, so if the position is within the full span of the
             ' directive, then it is on that line, the only exception is if the directive is on the
@@ -337,9 +349,8 @@ recurse:
                 Return False
             End If
 
-            Return _
-                      directive.FullSpan.Contains(position) OrElse
-                      directive.FullSpan.End = syntaxTree.GetRoot(cancellationToken).FullSpan.End
+            Return directive.FullSpan.Contains(position) OrElse
+                   directive.FullSpan.End = syntaxTree.GetRoot(cancellationToken).FullSpan.End
         End Function
 
         <Extension()>

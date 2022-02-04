@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Private Structure CodeShapeAnalyzer
 
             Private ReadOnly _context As FormattingContext
-            Private ReadOnly _options As AnalyzerConfigOptions
+            Private ReadOnly _options As SyntaxFormattingOptions
             Private ReadOnly _list As TriviaList
 
             Private _indentation As Integer
@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 End Get
             End Property
 
-            Private Function OnElastic(trivia As SyntaxTrivia) As Boolean
+            Private Shared Function OnElastic(trivia As SyntaxTrivia) As Boolean
                 ' if it contains elastic trivia. always format
                 Return trivia.IsElastic()
             End Function
@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                     Return True
                 End If
 
-                Dim currentSpaces = text.ConvertTabToSpace(_options.GetOption(FormattingOptions2.TabSize), Me._currentColumn, text.Length)
+                Dim currentSpaces = text.ConvertTabToSpace(_options.TabSize, Me._currentColumn, text.Length)
 
                 If currentIndex + 1 < Me._list.Count AndAlso Me._list(currentIndex + 1).RawKind = SyntaxKind.LineContinuationTrivia Then
                     If currentSpaces <> 1 Then
@@ -191,7 +191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return False
             End Function
 
-            Private Function OnColon(trivia As SyntaxTrivia) As Boolean
+            Private Shared Function OnColon(trivia As SyntaxTrivia) As Boolean
                 If trivia.Kind <> SyntaxKind.ColonTrivia Then
                     Return False
                 End If
@@ -218,7 +218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 End If
 
                 If trivia.Kind = SyntaxKind.DocumentationCommentTrivia AndAlso
-                   ShouldFormatDocumentationComment(_indentation, _options.GetOption(FormattingOptions2.TabSize), trivia) Then
+                   ShouldFormatDocumentationComment(_indentation, _options.TabSize, trivia) Then
                     Return True
                 End If
 
@@ -226,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return False
             End Function
 
-            Private Function OnSkippedTokensOrText(trivia As SyntaxTrivia) As Boolean
+            Private Shared Function OnSkippedTokensOrText(trivia As SyntaxTrivia) As Boolean
                 If trivia.Kind <> SyntaxKind.SkippedTokensTrivia Then
                     Return False
                 End If
@@ -252,7 +252,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return False
             End Function
 
-            Private Function OnPreprocessor(trivia As SyntaxTrivia, currentIndex As Integer) As Boolean
+            Private Shared Function OnPreprocessor(trivia As SyntaxTrivia) As Boolean
                 If Not SyntaxFacts.IsPreprocessorDirective(trivia.Kind) Then
                     Return False
                 End If
@@ -273,7 +273,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                        OnComment(trivia, index) OrElse
                        OnSkippedTokensOrText(trivia) OrElse
                        OnRegion(trivia, index) OrElse
-                       OnPreprocessor(trivia, index) Then
+                       OnPreprocessor(trivia) Then
                         Return True
                     End If
                 Next

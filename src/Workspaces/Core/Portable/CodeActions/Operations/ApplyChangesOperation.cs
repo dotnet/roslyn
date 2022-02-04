@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions
 {
@@ -36,12 +36,14 @@ namespace Microsoft.CodeAnalysis.CodeActions
         internal override bool ApplyDuringTests => true;
 
         public override void Apply(Workspace workspace, CancellationToken cancellationToken)
-            => this.TryApply(workspace, new ProgressTracker(), cancellationToken);
+            => workspace.TryApplyChanges(ChangedSolution, new ProgressTracker());
 
-        internal override bool TryApply(
+        internal sealed override Task<bool> TryApplyAsync(
             Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            return workspace.TryApplyChanges(ChangedSolution, progressTracker);
+            return workspace.TryApplyChanges(ChangedSolution, progressTracker)
+                ? SpecializedTasks.True
+                : SpecializedTasks.False;
         }
     }
 }

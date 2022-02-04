@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -17,12 +19,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpGoToImplementation(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-                    : base(instanceFactory, testOutputHelper, nameof(CSharpGoToImplementation))
+        public CSharpGoToImplementation(VisualStudioInstanceFactory instanceFactory)
+                    : base(instanceFactory, nameof(CSharpGoToImplementation))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
         public void SimpleGoToImplementation()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -39,12 +41,12 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
 }");
             VisualStudio.Editor.PlaceCaret("interface IGoo");
-            VisualStudio.Editor.GoToImplementation();
+            VisualStudio.Editor.GoToImplementation("FileImplementation.cs");
             VisualStudio.Editor.Verify.TextContains(@"class Implementation$$", assertCaretPosition: true);
             Assert.False(VisualStudio.Shell.IsActiveTabProvisional());
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
         public void GoToImplementationOpensProvisionalTabIfDocumentNotOpen()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -63,11 +65,10 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
 }");
             VisualStudio.Editor.PlaceCaret("interface IBar");
-            VisualStudio.Editor.GoToImplementation();
+            VisualStudio.Editor.GoToImplementation("FileImplementation.cs");
             VisualStudio.Editor.Verify.TextContains(@"class Implementation$$", assertCaretPosition: true);
             Assert.True(VisualStudio.Shell.IsActiveTabProvisional());
         }
-
 
         // TODO: Enable this once the GoToDefinition tests are merged
         [WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
@@ -87,8 +88,8 @@ class Implementation : IDisposable
     }
 }");
             VisualStudio.Editor.PlaceCaret("IDisposable d", charsOffset: -1);
-            VisualStudio.Editor.GoToDefinition();
-            VisualStudio.Editor.GoToImplementation();
+            VisualStudio.Editor.GoToDefinition("IDisposable [from metadata]");
+            VisualStudio.Editor.GoToImplementation("FileImplementation.cs");
             VisualStudio.Editor.Verify.TextContains(@"class Implementation$$ : IDisposable", assertCaretPosition: true);
         }
     }

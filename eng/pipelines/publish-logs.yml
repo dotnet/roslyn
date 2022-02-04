@@ -1,0 +1,32 @@
+parameters:
+- name: jobName
+  type: string
+  default: ''
+- name: configuration
+  type: string
+  default: 'Debug'
+
+steps:
+  - task: CopyFiles@2
+    displayName: Copy Test Artifacts to Logs
+    inputs:
+      contents: '$(Build.SourcesDirectory)/TestArtifacts/**'
+      targetFolder: '$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}'
+    continueOnError: true
+    condition: not(succeeded())
+
+  - task: CopyFiles@2
+    displayName: Copy Dumps to Logs
+    inputs:
+      contents: '$(Build.SourcesDirectory)/bin/**/*.dmp'
+      targetFolder: '$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}'
+    continueOnError: true
+    condition: not(succeeded())
+
+  - task: PublishPipelineArtifact@1
+    displayName: Publish Logs
+    inputs:
+      targetPath: '$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}'
+      artifactName: '${{ parameters.jobName }} Attempt $(System.JobAttempt) Logs'
+    continueOnError: true
+    condition: not(succeeded())

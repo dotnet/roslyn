@@ -12,9 +12,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public const string Edit_GoToAll = "Edit.GoToAll";
         public const string Edit_GoToDefinition = "Edit.GoToDefinition";
         public const string Edit_GoToImplementation = "Edit.GoToImplementation";
+        public const string Edit_GoToBase = "Edit.GoToBase";
         public const string Edit_ListMembers = "Edit.ListMembers";
         public const string Edit_ParameterInfo = "Edit.ParameterInfo";
-        public const string Edit_QuickInfo = "Edit.QuickInfo";
         public const string Edit_ToggleCompletionMode = "Edit.ToggleCompletionMode";
         public const string Edit_Undo = "Edit.Undo";
         public const string Edit_Redo = "Edit.Redo";
@@ -23,6 +23,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public const string Edit_LineEnd = "Edit.LineEnd";
         public const string Edit_LineStartExtend = "Edit.LineStartExtend";
         public const string Edit_LineEndExtend = "Edit.LineEndExtend";
+        public const string Edit_NextHighlightedReference = "Edit.NextHighlightedReference";
         public const string Edit_SelectAll = "Edit.SelectAll";
         public const string Edit_Copy = "Edit.Copy";
         public const string Edit_Cut = "Edit.Cut";
@@ -35,7 +36,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public const string File_OpenFile = "File.OpenFile";
         public const string File_SaveAll = "File.SaveAll";
 
-        public const string InteractiveConsole_Reset = "InteractiveConsole.Reset";
         public const string InteractiveConsole_ClearScreen = "InteractiveConsole.ClearScreen";
         public const string InteractiveConsole_ExecuteInInteractive = "InteractiveConsole.ExecuteInInteractive";
 

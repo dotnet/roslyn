@@ -5,15 +5,16 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
@@ -25,15 +26,13 @@ using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.ExternalElements;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements;
+using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
-using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
@@ -52,22 +51,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private readonly AbstractFormattingRule _lineAdjustmentFormattingRule;
         private readonly AbstractFormattingRule _endRegionFormattingRule;
+        private readonly IThreadingContext _threadingContext;
 
         protected AbstractCodeModelService(
             HostLanguageServices languageServiceProvider,
             IEditorOptionsFactoryService editorOptionsFactoryService,
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             AbstractFormattingRule lineAdjustmentFormattingRule,
-            AbstractFormattingRule endRegionFormattingRule)
+            AbstractFormattingRule endRegionFormattingRule,
+            IThreadingContext threadingContext)
         {
-            Debug.Assert(languageServiceProvider != null);
-            Debug.Assert(editorOptionsFactoryService != null);
+            RoslynDebug.AssertNotNull(languageServiceProvider);
+            RoslynDebug.AssertNotNull(editorOptionsFactoryService);
 
-            this.SyntaxFactsService = languageServiceProvider.GetService<ISyntaxFactsService>();
+            this.SyntaxFactsService = languageServiceProvider.GetRequiredService<ISyntaxFactsService>();
 
             _editorOptionsFactoryService = editorOptionsFactoryService;
             _lineAdjustmentFormattingRule = lineAdjustmentFormattingRule;
             _endRegionFormattingRule = endRegionFormattingRule;
+            _threadingContext = threadingContext;
             _refactorNotifyServices = refactorNotifyServices;
             _nodeNameGenerator = CreateNodeNameGenerator();
             _nodeLocator = CreateNodeLocator();
@@ -154,7 +156,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             return node;
         }
 
-        public bool TryLookupNode(SyntaxNodeKey nodeKey, SyntaxTree syntaxTree, out SyntaxNode node)
+        public bool TryLookupNode(SyntaxNodeKey nodeKey, SyntaxTree syntaxTree, [NotNullWhen(true)] out SyntaxNode? node)
         {
             var nodeKeyMap = GetNodeKeyMap(syntaxTree);
             return nodeKeyMap.TryGetValue(nodeKey, out node);
@@ -249,15 +251,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public EnvDTE.CodeElement CreateCodeType(CodeModelState state, ProjectId projectId, ITypeSymbol typeSymbol)
         {
-            if (typeSymbol.TypeKind == TypeKind.Pointer ||
-                typeSymbol.TypeKind == TypeKind.TypeParameter ||
-                typeSymbol.TypeKind == TypeKind.Submission)
+            if (typeSymbol.TypeKind is TypeKind.Pointer or
+                TypeKind.TypeParameter or
+                TypeKind.Submission)
             {
                 throw Exceptions.ThrowEFail();
             }
 
-            if (typeSymbol.TypeKind == TypeKind.Error ||
-                typeSymbol.TypeKind == TypeKind.Unknown)
+            if (typeSymbol.TypeKind is TypeKind.Error or
+                TypeKind.Unknown)
             {
                 return ExternalCodeUnknown.Create(state, projectId, typeSymbol);
             }
@@ -270,7 +272,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             if (typeSymbol.TypeKind == TypeKind.Dynamic)
             {
-                var obj = project.GetCompilationAsync().Result.GetSpecialType(SpecialType.System_Object);
+                var obj = project.GetRequiredCompilationAsync(CancellationToken.None).Result.GetSpecialType(SpecialType.System_Object);
                 return (EnvDTE.CodeElement)ExternalCodeClass.Create(state, projectId, obj);
             }
 
@@ -311,7 +313,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public abstract bool IsOptionNode(SyntaxNode node);
         public abstract bool IsImportNode(SyntaxNode node);
 
-        public ISymbol ResolveSymbol(Microsoft.CodeAnalysis.Workspace workspace, ProjectId projectId, SymbolKey symbolId)
+        public ISymbol? ResolveSymbol(Microsoft.CodeAnalysis.Workspace workspace, ProjectId projectId, SymbolKey symbolId)
         {
             var project = workspace.CurrentSolution.GetProject(projectId);
 
@@ -320,7 +322,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 throw Exceptions.ThrowEFail();
             }
 
-            return symbolId.Resolve(project.GetCompilationAsync().Result).Symbol;
+            return symbolId.Resolve(project.GetRequiredCompilationAsync(CancellationToken.None).Result).Symbol;
         }
 
         protected EnvDTE.CodeFunction CreateInternalCodeAccessorFunction(CodeModelState state, FileCodeModel fileCodeModel, SyntaxNode node)
@@ -345,7 +347,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             var parentNode = GetEffectiveParentForAttribute(node);
 
-            AbstractCodeElement parentObject;
+            AbstractCodeElement? parentObject;
 
             if (IsParameterNode(parentNode))
             {
@@ -383,7 +385,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             GetImportParentAndName(node, out var parentNode, out var name);
 
-            AbstractCodeElement parentObj = null;
+            AbstractCodeElement? parentObj = null;
             if (parentNode != null)
             {
                 var parent = fileCodeModel.GetOrCreateCodeElement<EnvDTE.CodeElement>(parentNode);
@@ -414,6 +416,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         protected EnvDTE80.CodeElement2 CreateInternalCodeOptionStatement(CodeModelState state, FileCodeModel fileCodeModel, SyntaxNode node)
         {
+            Contract.ThrowIfNull(node.Parent);
             GetOptionNameAndOrdinal(node.Parent, node, out var name, out var ordinal);
 
             return CodeOptionsStatement.Create(state, fileCodeModel, name, ordinal);
@@ -470,7 +473,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public abstract EnvDTE.CodeElement CreateUnknownCodeElement(CodeModelState state, FileCodeModel fileCodeModel, SyntaxNode node);
         public abstract EnvDTE.CodeElement CreateUnknownRootNamespaceCodeElement(CodeModelState state, FileCodeModel fileCodeModel);
 
-        public abstract string GetUnescapedName(string name);
+        [return: NotNullIfNotNull("name")]
+        public abstract string? GetUnescapedName(string? name);
 
         public abstract string GetName(SyntaxNode node);
         public abstract SyntaxNode GetNodeWithName(SyntaxNode node);
@@ -487,7 +491,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             // Rename symbol.
             var oldSolution = workspace.CurrentSolution;
-            var newSolution = Renamer.RenameSymbolAsync(oldSolution, symbol, newName, oldSolution.Options).WaitAndGetResult_CodeModel(CancellationToken.None);
+
+            // RenameSymbolAsync may be implemented using OOP, which has known cases for requiring the UI thread to do work. Use JTF
+            // to keep the rename action from deadlocking.
+            var newSolution = _threadingContext.JoinableTaskFactory.Run(() => Renamer.RenameSymbolAsync(oldSolution, symbol, newName, oldSolution.Options));
             var changedDocuments = newSolution.GetChangedDocuments(oldSolution);
 
             // Notify third parties of the coming rename operation and let exceptions propagate out
@@ -520,8 +527,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public abstract EnvDTE.vsCMAccess GetAccess(ISymbol symbol);
         public abstract EnvDTE.vsCMAccess GetAccess(SyntaxNode node);
+#nullable disable
         public abstract SyntaxNode GetNodeWithModifiers(SyntaxNode node);
         public abstract SyntaxNode GetNodeWithType(SyntaxNode node);
+#nullable restore
         public abstract SyntaxNode GetNodeWithInitializer(SyntaxNode node);
         public abstract SyntaxNode SetAccess(SyntaxNode node, EnvDTE.vsCMAccess access);
 
@@ -557,7 +566,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         protected bool TryGetElementFromSource(
-            CodeModelState state, Project project, ITypeSymbol typeSymbol, out EnvDTE.CodeElement element)
+            CodeModelState state, Project project, ITypeSymbol typeSymbol, [NotNullWhen(true)] out EnvDTE.CodeElement? element)
         {
             element = null;
 
@@ -570,32 +579,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             //     1. Prefer source files that we don't heuristically flag as generated code.
             //     2. If all of the source files are generated code, pick the first one.
 
-            Compilation compilation = null;
-            Tuple<DocumentId, Location> generatedCode = null;
+            Tuple<DocumentId, Location>? generatedCode = null;
 
-            DocumentId chosenDocumentId = null;
-            Location chosenLocation = null;
+            DocumentId? chosenDocumentId = null;
+            Location? chosenLocation = null;
 
             foreach (var location in typeSymbol.Locations)
             {
                 if (location.IsInSource)
                 {
-                    compilation ??= project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult_CodeModel(CancellationToken.None);
+                    var document = project.GetDocument(location.SourceTree);
+                    if (document is null)
+                        continue;
 
-                    if (compilation.ContainsSyntaxTree(location.SourceTree))
+                    if (!document.IsGeneratedCode(CancellationToken.None))
                     {
-                        var document = project.GetDocument(location.SourceTree);
-
-                        if (!document.IsGeneratedCode(CancellationToken.None))
-                        {
-                            chosenLocation = location;
-                            chosenDocumentId = document.Id;
-                            break;
-                        }
-                        else
-                        {
-                            generatedCode ??= Tuple.Create(document.Id, location);
-                        }
+                        chosenLocation = location;
+                        chosenDocumentId = document.Id;
+                        break;
+                    }
+                    else
+                    {
+                        generatedCode ??= Tuple.Create(document.Id, location);
                     }
                 }
             }
@@ -612,7 +617,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 if (fileCodeModel != null)
                 {
                     var underlyingFileCodeModel = ComAggregate.GetManagedObject<FileCodeModel>(fileCodeModel);
-                    element = underlyingFileCodeModel.CodeElementFromPosition(chosenLocation.SourceSpan.Start, GetElementKind(typeSymbol));
+                    element = underlyingFileCodeModel.CodeElementFromPosition(chosenLocation!.SourceSpan.Start, GetElementKind(typeSymbol));
                     return element != null;
                 }
             }
@@ -624,15 +629,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public abstract bool IsAccessorNode(SyntaxNode node);
         public abstract MethodKind GetAccessorKind(SyntaxNode node);
 
-        public abstract bool TryGetAccessorNode(SyntaxNode parentNode, MethodKind kind, out SyntaxNode accessorNode);
-        public abstract bool TryGetAutoPropertyExpressionBody(SyntaxNode parentNode, out SyntaxNode accessorNode);
-        public abstract bool TryGetParameterNode(SyntaxNode parentNode, string name, out SyntaxNode parameterNode);
-        public abstract bool TryGetImportNode(SyntaxNode parentNode, string dottedName, out SyntaxNode importNode);
-        public abstract bool TryGetOptionNode(SyntaxNode parentNode, string name, int ordinal, out SyntaxNode optionNode);
-        public abstract bool TryGetInheritsNode(SyntaxNode parentNode, string name, int ordinal, out SyntaxNode inheritsNode);
-        public abstract bool TryGetImplementsNode(SyntaxNode parentNode, string name, int ordinal, out SyntaxNode implementsNode);
-        public abstract bool TryGetAttributeNode(SyntaxNode parentNode, string name, int ordinal, out SyntaxNode attributeNode);
-        public abstract bool TryGetAttributeArgumentNode(SyntaxNode attributeNode, int index, out SyntaxNode attributeArgumentNode);
+        public abstract bool TryGetAccessorNode(SyntaxNode parentNode, MethodKind kind, [NotNullWhen(true)] out SyntaxNode? accessorNode);
+        public abstract bool TryGetAutoPropertyExpressionBody(SyntaxNode parentNode, [NotNullWhen(true)] out SyntaxNode? accessorNode);
+        public abstract bool TryGetParameterNode(SyntaxNode parentNode, string name, [NotNullWhen(true)] out SyntaxNode? parameterNode);
+        public abstract bool TryGetImportNode(SyntaxNode parentNode, string dottedName, [NotNullWhen(true)] out SyntaxNode? importNode);
+        public abstract bool TryGetOptionNode(SyntaxNode parentNode, string name, int ordinal, [NotNullWhen(true)] out SyntaxNode? optionNode);
+        public abstract bool TryGetInheritsNode(SyntaxNode parentNode, string name, int ordinal, [NotNullWhen(true)] out SyntaxNode? inheritsNode);
+        public abstract bool TryGetImplementsNode(SyntaxNode parentNode, string name, int ordinal, [NotNullWhen(true)] out SyntaxNode? implementsNode);
+        public abstract bool TryGetAttributeNode(SyntaxNode parentNode, string name, int ordinal, [NotNullWhen(true)] out SyntaxNode? attributeNode);
+        public abstract bool TryGetAttributeArgumentNode(SyntaxNode attributeNode, int index, [NotNullWhen(true)] out SyntaxNode? attributeArgumentNode);
 
         public abstract void GetOptionNameAndOrdinal(SyntaxNode parentNode, SyntaxNode optionNode, out string name, out int ordinal);
         public abstract void GetInheritsNamespaceAndOrdinal(SyntaxNode inheritsNode, SyntaxNode optionNode, out string namespaceName, out int ordinal);
@@ -646,7 +651,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public abstract SyntaxNode SetAttributeValue(SyntaxNode attributeNode, string value);
         public abstract SyntaxNode GetNodeWithAttributes(SyntaxNode node);
         public abstract SyntaxNode GetEffectiveParentForAttribute(SyntaxNode node);
-        public abstract SyntaxNode CreateAttributeNode(string name, string value, string target = null);
+        public abstract SyntaxNode CreateAttributeNode(string name, string value, string? target = null);
 
         public abstract void GetAttributeArgumentParentAndIndex(SyntaxNode attributeArgumentNode, out SyntaxNode attributeNode, out int index);
         public abstract SyntaxNode CreateAttributeArgumentNode(string name, string value);
@@ -655,8 +660,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public abstract string GetImportAlias(SyntaxNode node);
         public abstract string GetImportNamespaceOrType(SyntaxNode node);
-        public abstract void GetImportParentAndName(SyntaxNode importNode, out SyntaxNode namespaceNode, out string name);
-        public abstract SyntaxNode CreateImportNode(string name, string alias = null);
+        public abstract void GetImportParentAndName(SyntaxNode importNode, out SyntaxNode? namespaceNode, out string name);
+        public abstract SyntaxNode CreateImportNode(string name, string? alias = null);
 
         public abstract string GetParameterName(SyntaxNode node);
 
@@ -720,13 +725,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public abstract EnvDTE80.vsCMPropertyKind GetReadWrite(SyntaxNode memberNode);
 
-        public abstract SyntaxNode SetType(SyntaxNode node, ITypeSymbol typeSymbol);
+        public abstract SyntaxNode SetType(SyntaxNode node, ITypeSymbol? typeSymbol);
 
         public abstract Document Delete(Document document, SyntaxNode node);
 
         public abstract string GetMethodXml(SyntaxNode node, SemanticModel semanticModel);
 
-        public abstract string GetInitExpression(SyntaxNode node);
+        public abstract string? GetInitExpression(SyntaxNode node);
         public abstract SyntaxNode AddInitExpression(SyntaxNode node, string value);
 
         public abstract CodeGenerationDestination GetDestination(SyntaxNode containerNode);
@@ -794,22 +799,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         private ITypeSymbol GetSpecialType(EnvDTE.vsCMTypeRef type, Compilation compilation)
             => compilation.GetSpecialType(GetSpecialType(type));
 
-        protected abstract ITypeSymbol GetTypeSymbolFromPartialName(string partialName, SemanticModel semanticModel, int position);
-        public abstract ITypeSymbol GetTypeSymbolFromFullName(string fullName, Compilation compilation);
+        protected abstract ITypeSymbol? GetTypeSymbolFromPartialName(string partialName, SemanticModel semanticModel, int position);
+        public abstract ITypeSymbol? GetTypeSymbolFromFullName(string fullName, Compilation compilation);
 
         public ITypeSymbol GetTypeSymbol(object type, SemanticModel semanticModel, int position)
         {
+            ITypeSymbol? typeSymbol;
             if (type is EnvDTE.CodeTypeRef)
             {
-                return GetTypeSymbolFromPartialName(((EnvDTE.CodeTypeRef)type).AsString, semanticModel, position);
+                typeSymbol = GetTypeSymbolFromPartialName(((EnvDTE.CodeTypeRef)type).AsString, semanticModel, position);
+
+                // This could return null if there was a parse error, but given we produced the name in the first place it should be OK
+                Contract.ThrowIfNull(typeSymbol);
+                return typeSymbol;
             }
             else if (type is EnvDTE.CodeType)
             {
-                return GetTypeSymbolFromFullName(((EnvDTE.CodeType)type).FullName, semanticModel.Compilation);
+                typeSymbol = GetTypeSymbolFromFullName(((EnvDTE.CodeType)type).FullName, semanticModel.Compilation);
+
+                // This could return null if there was a parse error, but given we produced the name in the first place it should be OK
+                Contract.ThrowIfNull(typeSymbol);
+                return typeSymbol;
             }
 
-            ITypeSymbol typeSymbol;
-            if (type is EnvDTE.vsCMTypeRef || type is int)
+            if (type is EnvDTE.vsCMTypeRef or int)
             {
                 typeSymbol = GetSpecialType((EnvDTE.vsCMTypeRef)type, semanticModel.Compilation);
             }
@@ -969,50 +982,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         protected abstract SyntaxNode GetVariableFromFieldNode(SyntaxNode fieldNode);
         protected abstract SyntaxNode GetAttributeFromAttributeDeclarationNode(SyntaxNode attributeDeclarationNode);
 
-        protected void GetNodesAroundInsertionIndex<TSyntaxNode>(
-            TSyntaxNode containerNode,
-            int childIndexToInsertAfter,
-            out TSyntaxNode insertBeforeNode,
-            out TSyntaxNode insertAfterNode)
-            where TSyntaxNode : SyntaxNode
-        {
-            var childNodes = GetLogicalMemberNodes(containerNode).ToArray();
-
-            // Note: childIndexToInsertAfter is 1-based but can be 0, meaning insert before any other members.
-            // If it isn't 0, it means to insert the member node *after* the node at the 1-based index.
-            Debug.Assert(childIndexToInsertAfter >= 0 && childIndexToInsertAfter <= childNodes.Length);
-
-            // Initialize the nodes that we'll insert the new member before and after.
-            insertBeforeNode = null;
-            insertAfterNode = null;
-
-            if (childIndexToInsertAfter == 0)
-            {
-                if (childNodes.Length > 0)
-                {
-                    insertBeforeNode = (TSyntaxNode)childNodes[0];
-                }
-            }
-            else
-            {
-                insertAfterNode = (TSyntaxNode)childNodes[childIndexToInsertAfter - 1];
-                if (childIndexToInsertAfter < childNodes.Length)
-                {
-                    insertBeforeNode = (TSyntaxNode)childNodes[childIndexToInsertAfter];
-                }
-            }
-
-            if (insertBeforeNode != null)
-            {
-                insertBeforeNode = (TSyntaxNode)GetFieldFromVariableNode(insertBeforeNode);
-            }
-
-            if (insertAfterNode != null)
-            {
-                insertAfterNode = (TSyntaxNode)GetFieldFromVariableNode(insertAfterNode);
-            }
-        }
-
         private int GetMemberInsertionIndex(SyntaxNode container, int insertionIndex)
         {
             var childNodes = GetLogicalMemberNodes(container).ToArray();
@@ -1032,16 +1001,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
         }
 
-        private int GetAttributeArgumentInsertionIndex(SyntaxNode container, int insertionIndex)
+        private static int GetAttributeArgumentInsertionIndex(int insertionIndex)
             => insertionIndex;
 
-        private int GetAttributeInsertionIndex(SyntaxNode container, int insertionIndex)
+        private static int GetAttributeInsertionIndex(int insertionIndex)
             => insertionIndex;
 
-        private int GetImportInsertionIndex(SyntaxNode container, int insertionIndex)
+        private static int GetImportInsertionIndex(int insertionIndex)
             => insertionIndex;
 
-        private int GetParameterInsertionIndex(SyntaxNode container, int insertionIndex)
+        private static int GetParameterInsertionIndex(int insertionIndex)
             => insertionIndex;
 
         protected abstract bool IsCodeModelNode(SyntaxNode node);
@@ -1054,10 +1023,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         protected abstract SyntaxNode InsertImportIntoContainer(int index, SyntaxNode import, SyntaxNode container);
         protected abstract SyntaxNode InsertParameterIntoContainer(int index, SyntaxNode parameter, SyntaxNode container);
 
-        private Document FormatAnnotatedNode(Document document, SyntaxAnnotation annotation, IEnumerable<AbstractFormattingRule> additionalRules, CancellationToken cancellationToken)
+        private Document FormatAnnotatedNode(Document document, SyntaxAnnotation annotation, IEnumerable<AbstractFormattingRule>? additionalRules, CancellationToken cancellationToken)
         {
-            var root = document.GetSyntaxRootSynchronously(cancellationToken);
+            var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
             var annotatedNode = root.GetAnnotatedNodesAndTokens(annotation).Single().AsNode();
+            Contract.ThrowIfNull(annotatedNode);
             var formattingSpan = GetSpanToFormat(root, annotatedNode.FullSpan);
 
             var formattingRules = Formatter.GetDefaultFormattingRules(document);
@@ -1066,12 +1036,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 formattingRules = additionalRules.Concat(formattingRules);
             }
 
-            return Formatter.FormatAsync(
-                document,
-                new TextSpan[] { formattingSpan },
-                options: null,
-                rules: formattingRules,
-                cancellationToken: cancellationToken).WaitAndGetResult_CodeModel(cancellationToken);
+            return _threadingContext.JoinableTaskFactory.Run(async () =>
+            {
+                var options = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+
+                return await Formatter.FormatAsync(
+                    document,
+                    new TextSpan[] { formattingSpan },
+                    options,
+                    formattingRules,
+                    cancellationToken).ConfigureAwait(false);
+            });
         }
 
         private SyntaxNode InsertNode(
@@ -1084,7 +1059,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             CancellationToken cancellationToken,
             out Document newDocument)
         {
-            var root = document.GetSyntaxRootSynchronously(cancellationToken);
+            var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
 
             // Annotate the member we're inserting so we can get back to it.
             var annotation = new SyntaxAnnotation();
@@ -1104,7 +1079,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             if (!batchMode)
             {
-                document = Simplifier.ReduceAsync(document, annotation, optionSet: null, cancellationToken: cancellationToken).WaitAndGetResult_CodeModel(cancellationToken);
+                document = _threadingContext.JoinableTaskFactory.Run(() =>
+                    Simplifier.ReduceAsync(
+                        document,
+                        annotation,
+                        optionSet: null,
+                        cancellationToken: cancellationToken)
+                );
             }
 
             document = FormatAnnotatedNode(document, annotation, new[] { _lineAdjustmentFormattingRule, _endRegionFormattingRule }, cancellationToken);
@@ -1114,10 +1095,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             // new node
             return document
-                .GetSyntaxRootSynchronously(cancellationToken)
+                .GetRequiredSyntaxRootSynchronously(cancellationToken)
                 .GetAnnotatedNodesAndTokens(annotation)
                 .Single()
-                .AsNode();
+                .AsNode()!;
         }
 
         /// <summary>
@@ -1138,7 +1119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             // REVIEW: how simplifier ever worked for code model? nobody added simplifier.Annotation before?
             var annotatedNode = newNode.WithAdditionalAnnotations(annotation, Simplifier.Annotation);
 
-            var oldRoot = document.GetSyntaxRootSynchronously(cancellationToken);
+            var oldRoot = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
             var newRoot = oldRoot.ReplaceNode(node, annotatedNode);
 
             document = document.WithSyntaxRoot(newRoot);
@@ -1164,7 +1145,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var finalNode = InsertNode(
                 document,
                 batchMode,
-                GetAttributeInsertionIndex(containerNode, insertionIndex),
+                GetAttributeInsertionIndex(insertionIndex),
                 containerNode,
                 attributeNode,
                 InsertAttributeListIntoContainer,
@@ -1186,7 +1167,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var finalNode = InsertNode(
                 document,
                 batchMode,
-                GetAttributeArgumentInsertionIndex(containerNode, insertionIndex),
+                GetAttributeArgumentInsertionIndex(insertionIndex),
                 containerNode,
                 attributeArgumentNode,
                 InsertAttributeArgumentIntoContainer,
@@ -1208,7 +1189,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var finalNode = InsertNode(
                 document,
                 batchMode,
-                GetImportInsertionIndex(containerNode, insertionIndex),
+                GetImportInsertionIndex(insertionIndex),
                 containerNode,
                 importNode,
                 InsertImportIntoContainer,
@@ -1230,7 +1211,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var finalNode = InsertNode(
                 document,
                 batchMode,
-                GetParameterInsertionIndex(containerNode, insertionIndex),
+                GetParameterInsertionIndex(insertionIndex),
                 containerNode,
                 parameterNode,
                 InsertParameterIntoContainer,

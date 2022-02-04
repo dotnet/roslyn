@@ -2,10 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -17,22 +14,22 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public ImmutableArray<IEventSymbol> ExplicitInterfaceImplementations { get; }
 
-        public IMethodSymbol AddMethod { get; }
-        public IMethodSymbol RemoveMethod { get; }
-        public IMethodSymbol RaiseMethod { get; }
+        public IMethodSymbol? AddMethod { get; }
+        public IMethodSymbol? RemoveMethod { get; }
+        public IMethodSymbol? RaiseMethod { get; }
 
         public CodeGenerationEventSymbol(
-            INamedTypeSymbol containingType,
+            INamedTypeSymbol? containingType,
             ImmutableArray<AttributeData> attributes,
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             ITypeSymbol type,
             ImmutableArray<IEventSymbol> explicitInterfaceImplementations,
             string name,
-            IMethodSymbol addMethod,
-            IMethodSymbol removeMethod,
-            IMethodSymbol raiseMethod)
-            : base(containingType, attributes, declaredAccessibility, modifiers, name)
+            IMethodSymbol? addMethod,
+            IMethodSymbol? removeMethod,
+            IMethodSymbol? raiseMethod)
+            : base(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name)
         {
             this.Type = type;
             this.ExplicitInterfaceImplementations = explicitInterfaceImplementations.NullToEmpty();
@@ -54,8 +51,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override void Accept(SymbolVisitor visitor)
             => visitor.VisitEvent(this);
 
-        [return: MaybeNull]
-        public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
+        public override TResult? Accept<TResult>(SymbolVisitor<TResult> visitor)
+            where TResult : default
             => visitor.VisitEvent(this);
 
         public new IEventSymbol OriginalDefinition => this;
@@ -64,6 +61,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public IEventSymbol? OverriddenEvent => null;
 
-        public ImmutableArray<CustomModifier> TypeCustomModifiers => ImmutableArray.Create<CustomModifier>();
+        public static ImmutableArray<CustomModifier> TypeCustomModifiers => ImmutableArray.Create<CustomModifier>();
     }
 }

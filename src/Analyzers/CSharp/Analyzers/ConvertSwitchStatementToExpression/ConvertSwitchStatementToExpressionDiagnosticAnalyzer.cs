@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -20,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
     {
         public ConvertSwitchStatementToExpressionDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.ConvertSwitchStatementToExpressionDiagnosticId,
+                EnforceOnBuildValues.ConvertSwitchStatementToExpression,
                 CSharpCodeStyleOptions.PreferSwitchExpression,
                 LanguageNames.CSharp,
                 new LocalizableResourceString(nameof(CSharpAnalyzersResources.Convert_switch_statement_to_expression), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
@@ -28,22 +30,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
         }
 
         protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.SwitchStatement);
+            => context.RegisterCompilationStartAction(context =>
+            {
+                if (context.Compilation.LanguageVersion() < LanguageVersion.CSharp8)
+                    return;
+
+                context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.SwitchStatement);
+            });
 
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
             var switchStatement = context.Node;
-            if (switchStatement.ContainsDirectives)
-            {
-                return;
-            }
-
             var syntaxTree = switchStatement.SyntaxTree;
-
-            if (((CSharpParseOptions)syntaxTree.Options).LanguageVersion < LanguageVersion.CSharp8)
-            {
-                return;
-            }
 
             var options = context.Options;
             var cancellationToken = context.CancellationToken;
@@ -79,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
                 location: switchStatement.GetFirstToken().GetLocation(),
                 effectiveSeverity: styleOption.Notification.Severity,
                 additionalLocations: additionalLocations.ToArrayAndFree(),
-                properties: ImmutableDictionary<string, string>.Empty
+                properties: ImmutableDictionary<string, string?>.Empty
                     .Add(Constants.NodeToGenerateKey, ((int)nodeToGenerate).ToString(CultureInfo.InvariantCulture))
                     .Add(Constants.ShouldRemoveNextStatementKey, shouldRemoveNextStatement.ToString(CultureInfo.InvariantCulture))));
         }

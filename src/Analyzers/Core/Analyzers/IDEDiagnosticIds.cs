@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string PreferBuiltInOrFrameworkTypeDiagnosticId = "IDE0049";
 
-        public const string ConvertAnonymousTypeToTupleDiagnosticId = "IDE0050";
+        // public const string ConvertAnonymousTypeToTupleDiagnosticId = "IDE0050";
 
         public const string RemoveUnusedMembersDiagnosticId = "IDE0051";
         public const string RemoveUnreadMembersDiagnosticId = "IDE0052";
@@ -111,9 +111,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string ConvertSwitchStatementToExpressionDiagnosticId = "IDE0066";
 
-        public const string DisposeObjectsBeforeLosingScopeDiagnosticId = "IDE0067";
-        public const string UseRecommendedDisposePatternDiagnosticId = "IDE0068";
-        public const string DisposableFieldsShouldBeDisposedDiagnosticId = "IDE0069";
+        // IDE0067-IDE0069 deprecated in favor of CA2000 and CA2213
+        // public const string DisposeObjectsBeforeLosingScopeDiagnosticId = "IDE0067";
+        // public const string UseRecommendedDisposePatternDiagnosticId = "IDE0068";
+        // public const string DisposableFieldsShouldBeDisposedDiagnosticId = "IDE0069";
 
         public const string UseSystemHashCode = "IDE0070";
 
@@ -130,6 +131,46 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string SimplifyConditionalExpressionDiagnosticId = "IDE0075";
 
+        public const string InvalidSuppressMessageAttributeDiagnosticId = "IDE0076";
+        public const string LegacyFormatSuppressMessageAttributeDiagnosticId = "IDE0077";
+
+        public const string UsePatternCombinatorsDiagnosticId = "IDE0078";
+
+        public const string RemoveUnnecessarySuppressionDiagnosticId = "IDE0079";
+
+        public const string RemoveConfusingSuppressionForIsExpressionDiagnosticId = "IDE0080";
+        public const string RemoveUnnecessaryByValDiagnosticId = "IDE0081";
+
+        public const string ConvertTypeOfToNameOfDiagnosticId = "IDE0082";
+
+        public const string UseNotPatternDiagnosticId = "IDE0083";
+        public const string UseIsNotExpressionDiagnosticId = "IDE0084";
+
+        public const string UseImplicitObjectCreationDiagnosticId = "IDE0090";
+
+        public const string RemoveRedundantEqualityDiagnosticId = "IDE0100";
+
+        public const string RemoveUnnecessaryDiscardDesignationDiagnosticId = "IDE0110";
+
+        public const string SimplifyLinqExpressionDiagnosticId = "IDE0120";
+
+        public const string MatchFolderAndNamespaceDiagnosticId = "IDE0130";
+
+        public const string SimplifyObjectCreationDiagnosticId = "IDE0140";
+
+        public const string UseNullCheckOverTypeCheckDiagnosticId = "IDE0150";
+
+        public const string UseBlockScopedNamespaceDiagnosticId = "IDE0160";
+        public const string UseFileScopedNamespaceDiagnosticId = "IDE0161";
+
+        public const string SimplifyPropertyPatternDiagnosticId = "IDE0170";
+
+        public const string UseTupleSwapDiagnosticId = "IDE0180";
+
+        public const string UseParameterNullCheckingId = "IDE0190";
+
+        public const string RemoveUnnecessaryLambdaExpressionDiagnosticId = "IDE0200";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";
@@ -138,8 +179,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string InvokeDelegateWithConditionalAccessId = "IDE1005";
         public const string NamingRuleId = "IDE1006";
         public const string UnboundIdentifierId = "IDE1007";
-        public const string UnboundConstructorId = "IDE1008";
 
         // Reserved for workspace error ids IDE1100-IDE1200 (see WorkspaceDiagnosticDescriptors)
+
+        // Experimental features
+
+        // 2000 range for experimental formatting enforcement
+        public const string MultipleBlankLinesDiagnosticId = "IDE2000";
+        public const string EmbeddedStatementPlacementDiagnosticId = "IDE2001";
+        public const string ConsecutiveBracePlacementDiagnosticId = "IDE2002";
+        public const string ConsecutiveStatementPlacementDiagnosticId = "IDE2003";
+        public const string ConstructorInitializerPlacementDiagnosticId = "IDE2004";
     }
 }

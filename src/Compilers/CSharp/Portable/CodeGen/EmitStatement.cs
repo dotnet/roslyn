@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -39,6 +41,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.SequencePointWithSpan:
                     this.EmitSequencePointStatement((BoundSequencePointWithSpan)statement);
+                    break;
+
+                case BoundKind.SavePreviousSequencePoint:
+                    this.EmitSavePreviousSequencePoint((BoundSavePreviousSequencePoint)statement);
+                    break;
+
+                case BoundKind.RestorePreviousSequencePoint:
+                    this.EmitRestorePreviousSequencePoint((BoundRestorePreviousSequencePoint)statement);
+                    break;
+
+                case BoundKind.StepThroughSequencePoint:
+                    this.EmitStepThroughSequencePoint((BoundStepThroughSequencePoint)statement);
                     break;
 
                 case BoundKind.ExpressionStatement:
@@ -679,7 +693,10 @@ oneMoreTime:
             _builder.OpenLocalScope(ScopeType.StateMachineVariable);
             foreach (var field in scope.Fields)
             {
-                _builder.DefineUserDefinedStateMachineHoistedLocal(field.SlotIndex);
+                if (field.SlotIndex >= 0)
+                {
+                    _builder.DefineUserDefinedStateMachineHoistedLocal(field.SlotIndex);
+                }
             }
 
             EmitStatement(scope.Statement);
@@ -871,7 +888,7 @@ oneMoreTime:
         ///
         /// gets emitted as something like ===>
         ///
-        /// Try           
+        /// Try
         ///     TryBlock
         /// Filter 
         ///     var tmp = Pop() as {ExceptionType}
@@ -890,6 +907,9 @@ oneMoreTime:
         ///     variable ex can be used here
         ///     Handler
         /// EndCatch
+        /// 
+        /// When evaluating `Condition` requires additional statements be executed first, those
+        /// statements are stored in `catchBlock.ExceptionFilterPrologueOpt` and emitted before the condition.
         /// </remarks>
         private void EmitCatchBlock(BoundCatchBlock catchBlock)
         {
@@ -993,6 +1013,7 @@ oneMoreTime:
                 while (exceptionSource.Kind == BoundKind.Sequence)
                 {
                     var seq = (BoundSequence)exceptionSource;
+                    Debug.Assert(seq.Locals.IsDefaultOrEmpty);
                     EmitSideEffects(seq);
                     exceptionSource = seq.Value;
                 }
@@ -1041,6 +1062,12 @@ oneMoreTime:
             else
             {
                 _builder.EmitOpCode(ILOpCode.Pop);
+            }
+
+            if (catchBlock.ExceptionFilterPrologueOpt != null)
+            {
+                Debug.Assert(_builder.IsStackEmpty);
+                EmitStatements(catchBlock.ExceptionFilterPrologueOpt.Statements);
             }
 
             // Emit the actual filter expression, if we have one, and normalize
@@ -1402,7 +1429,8 @@ oneMoreTime:
             // If named, add it to the local debug scope.
             if (localDef.Name != null &&
                 !(local.SynthesizedKind == SynthesizedLocalKind.UserDefined &&
-                    local.ScopeDesignatorOpt?.Kind() == SyntaxKind.SwitchSection)) // Visibility scope of such locals is represented by BoundScope node.
+                // Visibility scope of such locals is represented by BoundScope node.
+                (local.ScopeDesignatorOpt?.Kind() is SyntaxKind.SwitchSection or SyntaxKind.SwitchExpressionArm)))
             {
                 _builder.AddLocalToScope(localDef);
             }

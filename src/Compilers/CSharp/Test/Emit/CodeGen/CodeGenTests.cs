@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Linq;
@@ -10,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -627,6 +630,14 @@ class C
         [Fact, WorkItem(540019, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540019")]
         public void TestBug6156()
         {
+            // Note: this test originally required a mismatch between the compile-time view of what the
+            // program should do and the runtime view.  The runtime considers `ref` and `out` to be the
+            // same, so it had a different view of what one method was overriding than C# did.  However,
+            // in the context of implementing the covariant return types feature, we added code in the compiler to
+            // cause the compiler to emit methodimpl records whenever there is a mismatch.  As a consequence
+            // of that, we updated this test to now require that the runtime behavior and the compile-time behavior
+            // of this program match, so that at runtime it obeys the behavior specified by the C#
+            // language specification.
             var source = @"
 class Ref1 
 { public virtual void M(ref int x) { x = 1; } }
@@ -644,64 +655,64 @@ class M
     Ref1 r1;
     r1 = new Ref1();
     r1.M(ref x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 1
     r1 = new Out1();
     r1.M(ref x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 1
     r1 = new Ref2();
     r1.M(ref x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 3
     r1 = new Out2();
     r1.M(ref x);
-    System.Console.WriteLine(x);
+    System.Console.WriteLine(x); // 3
     Out1 o1;
     o1 = new Out1();
     o1.M(ref x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 1
     o1 = new Ref2();
     o1.M(ref x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 3
     o1 = new Out2();
     o1.M(ref x);
-    System.Console.WriteLine(x);
+    System.Console.WriteLine(x); // 3
     Ref2 r2;
     r2 = new Ref2();
     r2.M(ref x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 3
     r2 = new Out2();
     r2.M(ref x);
-    System.Console.WriteLine(x);
+    System.Console.WriteLine(x); // 3
     Out2 o2;
     o2 = new Out2();
     o2.M(ref x);
-    System.Console.WriteLine(x);
+    System.Console.WriteLine(x); // 3
     o1 = new Out1();
     o1.M(out x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 2
     o1 = new Ref2();
     o1.M(out x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 2
     o1 = new Out2();
     o1.M(out x);
-    System.Console.WriteLine(x);
+    System.Console.WriteLine(x); // 4
     r2 = new Ref2();
     r2.M(out x);
-    System.Console.Write(x);
+    System.Console.Write(x); // 2
     r2 = new Out2();
     r2.M(out x);
-    System.Console.WriteLine(x);
+    System.Console.WriteLine(x); // 4
     o2 = new Out2();
     o2.M(out x);
-    System.Console.WriteLine(x);
+    System.Console.WriteLine(x); // 4
   }
 }";
             var compilation = CompileAndVerify(source, expectedOutput: @"
-1111
-111
-11
-1
-234
-34
+1133
+133
+33
+3
+224
+24
 4
 ");
         }
@@ -906,15 +917,16 @@ public class H
     }
 }
 ";
-            var compilation = CompileAndVerify(source);
+            CompileAndVerify(
+                source,
+                symbolValidator: validator,
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
-            compilation.VerifyIL("H..cctor",
-@"{
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
-}
-");
+            void validator(ModuleSymbol module)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("H");
+                Assert.Null(type.GetMember(".cctor"));
+            }
         }
 
 
@@ -10676,7 +10688,7 @@ public class MyClass {
         [WorkItem(568494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/568494")]
         [WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")]
         [WorkItem(375, "https://github.com/dotnet/roslyn/issues/375")]
-        [ConditionalFact(typeof(DesktopOnly), Reason = "https://github.com/dotnet/coreclr/issues/22046")]
+        [Fact] // https://github.com/dotnet/coreclr/issues/22046
         public void DecimalLiteral_BreakingChange()
         {
             string source =
@@ -10699,8 +10711,25 @@ class C
         Console.WriteLine(.100000000000000000000000000050000000000000000000001m); // [Dev11 chops at 50 digits and does not round, Roslyn does not round]
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput:
-@"0.0000000000000000000000000031
+            if (ExecutionConditionUtil.IsCoreClr)
+            {
+                var compilation = CompileAndVerify(source, expectedOutput:
+    @"0.0000000000000000000000000031
+0.0000000000000000000000000031
+
+0.0000000000000000000000000001
+0.0000000000000000000000000001
+
+-0.0000000000000000000000000001
+-0.0000000000000000000000000001
+
+0.1000000000000000000000000001
+0.1000000000000000000000000001");
+            }
+            else if (ExecutionConditionUtil.IsDesktop)
+            {
+                var compilation = CompileAndVerify(source, expectedOutput:
+    @"0.0000000000000000000000000031
 0.0000000000000000000000000030
 
 0.0000000000000000000000000001
@@ -10711,6 +10740,7 @@ class C
 
 0.1000000000000000000000000000
 0.1000000000000000000000000000");
+            }
         }
 
         [Fact]
@@ -13234,7 +13264,8 @@ expectedOutput: "-100");
                 emittingPdb: false,
                 emitTestCoverageData: false,
                 hasDeclarationErrors: false,
-                diagnostics: diagnostics,
+                emitMethodBodies: true,
+                diagnostics: new BindingDiagnosticBag(diagnostics),
                 filterOpt: null,
                 entryPointOpt: null,
                 cancellationToken: CancellationToken.None);
@@ -14521,9 +14552,9 @@ class C
                 result.Diagnostics.Verify(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
-                // (14,22): error CS0656: Missing compiler required member 'System.String.op_Equality'
+                // (14,27): error CS0656: Missing compiler required member 'System.String.op_Equality'
                 //         switch (s) { case "A": break; case "B": break; }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"case ""A"":").WithArguments("System.String", "op_Equality").WithLocation(14, 22)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""A""").WithArguments("System.String", "op_Equality").WithLocation(14, 27)
                 );
             }
         }
@@ -14700,7 +14731,7 @@ using System;
             var source = @"
 enum MyEnum { first, second, last }
 struct MyStruct { int intStructMember; }
-public class Test
+public unsafe class Test
 {
     static bool boolMember = false;
     static char charMember = '\0';
@@ -14712,13 +14743,37 @@ public class Test
     static uint uintMember = 0;
     static long longMember = 0L;
     static ulong ulongMember = 0;
-    static decimal decimalMember = default(decimal);
+    static nint nintMember = 0;
+    static nuint nuintMember = 0;
+    static decimal decimalMember = 0m;
     static string strMember = null;
     static object objMember = null;
     static float floatMember = 0.0F;
     static double doubleMember = 0.0D;
     static MyEnum enumMember = MyEnum.first;
-    MyStruct structMember = default(MyStruct);
+
+    static bool boolMember2 = default(bool);
+    static char charMember2 = default(char);
+    static sbyte sbyteMember2 = default(sbyte);
+    static byte byteMember2 = default(byte);
+    static short shortMember2 = default(short);
+    static ushort ushortMember2 = default(ushort);
+    static int intMember2 = default(int);
+    static uint uintMember2 = default(uint);
+    static long longMember2 = default(long);
+    static ulong ulongMember2 = default(ulong);
+    static nint nintMember2 = default(nint);
+    static nuint nuintMember2 = default(nuint);
+    static decimal decimalMember2 = default(decimal);
+    static string strMember2 = default(string);
+    static object objMember2 = default(object);
+    static float floatMember2 = default(float);
+    static double doubleMember2 = default(double);
+    static MyEnum enumMember2 = default(MyEnum);
+    static MyStruct structMember2 = default(MyStruct);
+    static System.IntPtr intPtrMember2 = default(System.IntPtr);
+    static System.UIntPtr uintPtrMember2 = default(System.UIntPtr);
+    static void* voidPtrMember2 = default(void*);
 }
 
 class c1
@@ -14730,15 +14785,18 @@ class c1
 
 ";
 
-            CompileAndVerify(source, expectedOutput: @"").
-                VerifyIL("Test..cctor()",
-@"
-{
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
-}                                                                                           
-"); ;
+            CompileAndVerify(
+                source,
+                expectedOutput: "",
+                symbolValidator: validator,
+                options: TestOptions.UnsafeDebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                parseOptions: TestOptions.Regular9);
+
+            void validator(ModuleSymbol module)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Test");
+                Assert.Null(type.GetMember(".cctor"));
+            }
         }
 
         [WorkItem(876784, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/876784")]
@@ -15056,7 +15114,7 @@ class Program
     }
 }";
 
-            var testReference = AssemblyMetadata.CreateFromImage(TestResources.Repros.BadDefaultParameterValue).GetReference();
+            var testReference = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.Repros.BadDefaultParameterValue).GetReference();
             var compilation = CompileAndVerify(source, references: new[] { testReference });
             compilation.VerifyIL("Program.Main", @"
 {
@@ -17116,6 +17174,49 @@ class Program
 }
 ";
             var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(true), verify: Verification.Skipped, expectedOutput: @"");
+        }
+
+        [Fact]
+        [WorkItem(51228, "https://github.com/dotnet/roslyn/issues/51228")]
+        public void Issue51228()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static Task<object> t;
+
+    static async Task Main(string[] args)
+    {
+        Task<object> task = MethodAsync();
+        GetReference(__makeref(task));
+        object result = await task;
+        System.Console.WriteLine(result);
+        System.Console.WriteLine(task == t);
+    }
+
+    static void GetReference(TypedReference reference)
+    {
+        t = __refvalue(reference, Task<object>);
+        System.Console.WriteLine(__reftype(reference));
+    }
+
+    static async Task<object> MethodAsync()
+    {
+        await Task.FromResult(1);
+        await Task.FromResult(2);
+        return ""Success"";
+    }
+}
+";
+
+            CompileAndVerify(source, expectedOutput: @"
+System.Threading.Tasks.Task`1[System.Object]
+Success
+True
+").VerifyDiagnostics();
         }
     }
 }

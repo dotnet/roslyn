@@ -2,10 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -14,11 +15,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class ExplicitInterfaceTypeCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        public ExplicitInterfaceTypeCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture)
-            : base(workspaceFixture)
-        {
-        }
-
         internal override Type GetCompletionProviderType()
             => typeof(ExplicitInterfaceTypeCompletionProvider);
 
@@ -33,6 +29,32 @@ class C : IList
     int $$
 }
 ";
+            await VerifyAnyItemExistsAsync(markup, hasSuggestionModeItem: true);
+            await VerifyItemExistsAsync(markup, "IEnumerable");
+            await VerifyItemExistsAsync(markup, "ICollection");
+            await VerifyItemExistsAsync(markup, "IList");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("record")]
+        [InlineData("record class")]
+        [InlineData("record struct")]
+        public async Task TestAtStartOfRecord(string record)
+        {
+            var markup = $@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" LanguageVersion=""Preview"">
+        <Document>
+using System.Collections;
+
+{record} C : IList
+{{
+    int $$
+}}
+        </Document>
+    </Project>
+</Workspace>";
+
             await VerifyAnyItemExistsAsync(markup, hasSuggestionModeItem: true);
             await VerifyItemExistsAsync(markup, "IEnumerable");
             await VerifyItemExistsAsync(markup, "ICollection");

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -28,26 +26,40 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
         /// </summary>
         private readonly ImmutableDictionary<TSyntaxKind, TSyntaxKind> _binaryToAssignmentMap;
 
-        /// <summary>
-        /// Maps from an assignment form (like AddAssignmentExpression) to the corresponding
-        /// operator type (like PlusEqualsToken).
-        /// </summary>
-        private readonly ImmutableDictionary<TSyntaxKind, TSyntaxKind> _assignmentToTokenMap;
+        private readonly DiagnosticDescriptor _incrementDescriptor;
+
+        private readonly DiagnosticDescriptor _decrementDescriptor;
 
         protected AbstractUseCompoundAssignmentDiagnosticAnalyzer(
             ISyntaxFacts syntaxFacts,
             ImmutableArray<(TSyntaxKind exprKind, TSyntaxKind assignmentKind, TSyntaxKind tokenKind)> kinds)
             : base(IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId,
+                   EnforceOnBuildValues.UseCompoundAssignment,
                    CodeStyleOptions2.PreferCompoundAssignment,
                    new LocalizableResourceString(
                        nameof(AnalyzersResources.Use_compound_assignment), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
         {
             _syntaxFacts = syntaxFacts;
-            UseCompoundAssignmentUtilities.GenerateMaps(kinds, out _binaryToAssignmentMap, out _assignmentToTokenMap);
+            UseCompoundAssignmentUtilities.GenerateMaps(kinds, out _binaryToAssignmentMap, out _);
+
+            var useIncrementMessage = new LocalizableResourceString(
+                nameof(AnalyzersResources.Use_increment_operator), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
+            _incrementDescriptor = CreateDescriptorWithId(
+                IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId,
+                EnforceOnBuildValues.UseCompoundAssignment,
+                useIncrementMessage, useIncrementMessage);
+
+            var useDecrementMessage = new LocalizableResourceString(
+                nameof(AnalyzersResources.Use_decrement_operator), AnalyzersResources.ResourceManager, typeof(AnalyzersResources));
+            _decrementDescriptor = CreateDescriptorWithId(
+                IDEDiagnosticIds.UseCompoundAssignmentDiagnosticId,
+                EnforceOnBuildValues.UseCompoundAssignment,
+                useDecrementMessage, useDecrementMessage);
         }
 
         protected abstract TSyntaxKind GetAnalysisKind();
         protected abstract bool IsSupported(TSyntaxKind assignmentKind, ParseOptions options);
+        protected abstract int TryGetIncrementOrDecrement(TSyntaxKind opKind, object constantValue);
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
@@ -75,7 +87,7 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
 
             // has to be of the form:  a = b op c
             // op has to be a form we could convert into op=
-            if (!(assignmentRight is TBinaryExpressionSyntax binaryExpression))
+            if (assignmentRight is not TBinaryExpressionSyntax binaryExpression)
             {
                 return;
             }
@@ -102,8 +114,10 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
             }
 
             // Don't offer if this is `x = x + 1` inside an obj initializer like:
-            // `new Point { x = x + 1 }`
-            if (_syntaxFacts.IsObjectInitializerNamedAssignmentIdentifier(assignmentLeft))
+            // `new Point { x = x + 1 }` or
+            // `new () { x = x + 1 }` or
+            // `p with { x = x + 1 }`
+            if (_syntaxFacts.IsMemberInitializerNamedAssignmentIdentifier(assignmentLeft))
             {
                 return;
             }
@@ -122,6 +136,34 @@ namespace Microsoft.CodeAnalysis.UseCompoundAssignment
                     _syntaxFacts, assignmentLeft, semanticModel, cancellationToken))
             {
                 return;
+            }
+
+            var constant = semanticModel.GetConstantValue(binaryRight, cancellationToken).Value;
+            if (constant != null)
+            {
+                var incrementOrDecrement = TryGetIncrementOrDecrement(binaryKind, constant);
+                if (incrementOrDecrement == 1)
+                {
+                    context.ReportDiagnostic(DiagnosticHelper.Create(
+                        _incrementDescriptor,
+                        assignmentToken.GetLocation(),
+                        option.Notification.Severity,
+                        additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
+                        properties: ImmutableDictionary.Create<string, string?>()
+                            .Add(UseCompoundAssignmentUtilities.Increment, UseCompoundAssignmentUtilities.Increment)));
+                    return;
+                }
+                else if (incrementOrDecrement == -1)
+                {
+                    context.ReportDiagnostic(DiagnosticHelper.Create(
+                        _decrementDescriptor,
+                        assignmentToken.GetLocation(),
+                        option.Notification.Severity,
+                        additionalLocations: ImmutableArray.Create(assignment.GetLocation()),
+                        properties: ImmutableDictionary.Create<string, string?>()
+                            .Add(UseCompoundAssignmentUtilities.Decrement, UseCompoundAssignmentUtilities.Decrement)));
+                    return;
+                }
             }
 
             context.ReportDiagnostic(DiagnosticHelper.Create(

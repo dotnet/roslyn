@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
 
 namespace Microsoft.CodeAnalysis
 {
@@ -129,6 +130,6 @@ namespace Microsoft.CodeAnalysis
     internal static class WorkspaceChangeKindExtensions
     {
         public static bool IsValid(this WorkspaceChangeKind kind)
-            => kind >= WorkspaceChangeKind.SolutionChanged && kind <= WorkspaceChangeKind.AnalyzerConfigDocumentChanged;
+            => kind is >= WorkspaceChangeKind.SolutionChanged and <= WorkspaceChangeKind.AnalyzerConfigDocumentChanged;
     }
 }

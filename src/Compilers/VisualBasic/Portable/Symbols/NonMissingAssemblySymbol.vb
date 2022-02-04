@@ -99,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If result IsNot Nothing Then
                 ' We only cache result equivalent to digging through type forwarders, which
-                ' might produce an forwarder specific ErrorTypeSymbol. We don't want to 
+                ' might produce a forwarder specific ErrorTypeSymbol. We don't want to 
                 ' return that error symbol, unless digThroughForwardedTypes Is true.
                 If digThroughForwardedTypes OrElse (Not result.IsErrorType() AndAlso result.ContainingAssembly Is Me) Then
                     Return result

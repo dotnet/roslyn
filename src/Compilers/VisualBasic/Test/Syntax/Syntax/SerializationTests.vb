@@ -218,7 +218,7 @@ End Class
             Assert.Equal(annotation, dannotation) ' but are equivalent
         End Sub
 
-        <ConditionalFact(GetType(x86))>
+        <Fact>
         <WorkItem(530374, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530374")>
         Public Sub RoundtripSerializeDeepExpression()
             Dim text = <Goo><![CDATA[

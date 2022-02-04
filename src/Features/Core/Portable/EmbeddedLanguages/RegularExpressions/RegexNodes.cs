@@ -2,15 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
+using Microsoft.CodeAnalysis.Serialization;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 {
     using RegexNodeOrToken = EmbeddedSyntaxNodeOrToken<RegexKind, RegexNode>;
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
+    using RegexAlternatingSequenceList = EmbeddedSeparatedSyntaxNodeList<RegexKind, RegexNode, RegexSequenceNode>;
 
     internal sealed class RegexCompilationUnit : RegexNode
     {
@@ -599,7 +603,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public RegexAnchorNode(RegexKind kind, RegexToken anchorToken)
             : base(kind)
         {
-            Debug.Assert(anchorToken.Kind == RegexKind.DollarToken || anchorToken.Kind == RegexKind.CaretToken);
+            Debug.Assert(anchorToken.Kind is RegexKind.DollarToken or RegexKind.CaretToken);
             AnchorToken = anchorToken;
         }
 
@@ -623,32 +627,22 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// </summary>
     internal sealed class RegexAlternationNode : RegexExpressionNode
     {
-        public RegexAlternationNode(
-            RegexExpressionNode left, RegexToken barToken, RegexSequenceNode right)
+        public RegexAlternationNode(RegexAlternatingSequenceList sequenceList)
             : base(RegexKind.Alternation)
         {
-            Debug.Assert(left != null);
-            Debug.Assert(barToken.Kind == RegexKind.BarToken);
-            Debug.Assert(right != null);
-            Left = left;
-            BarToken = barToken;
-            Right = right;
+            Debug.Assert(sequenceList.NodesAndTokens.Length > 0);
+            for (var i = 1; i < sequenceList.NodesAndTokens.Length; i += 2)
+                Debug.Assert(sequenceList.NodesAndTokens[i].Kind == RegexKind.BarToken);
+
+            SequenceList = sequenceList;
         }
 
-        public RegexExpressionNode Left { get; }
-        public RegexToken BarToken { get; }
-        public RegexSequenceNode Right { get; }
+        public RegexAlternatingSequenceList SequenceList { get; }
 
-        internal override int ChildCount => 3;
+        internal override int ChildCount => SequenceList.NodesAndTokens.Length;
 
         internal override RegexNodeOrToken ChildAt(int index)
-            => index switch
-            {
-                0 => Left,
-                1 => BarToken,
-                2 => Right,
-                _ => throw new InvalidOperationException(),
-            };
+            => SequenceList.NodesAndTokens[index];
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -993,12 +987,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// <summary>
     /// ```(?&gt;expr)``` node.
     /// </summary>
-    internal sealed class RegexNonBacktrackingGroupingNode : RegexQuestionGroupingNode
+    internal sealed class RegexAtomicGroupingNode : RegexQuestionGroupingNode
     {
-        public RegexNonBacktrackingGroupingNode(
+        public RegexAtomicGroupingNode(
             RegexToken openParenToken, RegexToken questionToken, RegexToken greaterThanToken,
             RegexExpressionNode expression, RegexToken closeParenToken)
-            : base(RegexKind.NonBacktrackingGrouping, openParenToken, questionToken, closeParenToken)
+            : base(RegexKind.AtomicGrouping, openParenToken, questionToken, closeParenToken)
         {
             Debug.Assert(greaterThanToken.Kind == RegexKind.GreaterThanToken);
             Debug.Assert(expression != null);

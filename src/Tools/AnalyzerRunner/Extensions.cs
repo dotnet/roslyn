@@ -1,6 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
+
+#nullable disable
+
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 
 namespace AnalyzerRunner
@@ -26,6 +29,7 @@ namespace AnalyzerRunner
             analyzerTelemetryInfo.SymbolEndActionsCount += addendum.SymbolEndActionsCount;
             analyzerTelemetryInfo.SyntaxNodeActionsCount += addendum.SyntaxNodeActionsCount;
             analyzerTelemetryInfo.SyntaxTreeActionsCount += addendum.SyntaxTreeActionsCount;
+            analyzerTelemetryInfo.AdditionalFileActionsCount += addendum.AdditionalFileActionsCount;
             analyzerTelemetryInfo.SuppressionActionsCount += addendum.SuppressionActionsCount;
         }
     }

@@ -12,6 +12,11 @@
         <target state="translated">변경 내용 적용</target>
         <note />
       </trans-unit>
+      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
+        <source>Cannot navigate to the symbol under the caret.</source>
+        <target state="new">Cannot navigate to the symbol under the caret.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Change_configuration">
         <source>Change configuration</source>
         <target state="translated">구성 변경</target>
@@ -27,6 +32,11 @@
         <target state="translated">지금 구성</target>
         <note />
       </trans-unit>
+      <trans-unit id="Do_not_prefer_this_or_Me">
+        <source>Do not prefer 'this.' or 'Me.'</source>
+        <target state="translated">'this.' 또는 'Me.'를 기본으로 사용하지 마세요.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Do_not_show_this_message_again">
         <source>Do not show this message again</source>
         <target state="translated">이 메시지를 다시 표시하지 않음</target>
@@ -35,6 +45,11 @@
       <trans-unit id="Do_you_still_want_to_proceed_This_may_produce_broken_code">
         <source>Do you still want to proceed? This may produce broken code.</source>
         <target state="translated">계속하시겠습니까? 계속하면 손상된 코드가 생성될 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Execute_Suggested_Action">
+        <source>Execute Suggested Action</source>
+        <target state="translated">제안된 작업 실행</target>
         <note />
       </trans-unit>
       <trans-unit id="Expander_display_text">
@@ -62,9 +77,69 @@
         <target state="translated">추가 정리를 수행 하는 문서</target>
         <note />
       </trans-unit>
+      <trans-unit id="Get_help_for_0">
+        <source>Get help for '{0}'</source>
+        <target state="translated">'{0}'에 대한 도움 받기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Gathering_Suggestions_0">
+        <source>Gathering Suggestions - '{0}'</source>
+        <target state="translated">제안을 수집하는 중 - '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Gathering_Suggestions_Waiting_for_the_solution_to_fully_load">
+        <source>Gathering Suggestions - Waiting for the solution to fully load</source>
+        <target state="translated">제안을 수집하는 중 - 솔루션이 완전히 로드될 때까지 기다리는 중</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Go_To_Base">
         <source>Go To Base</source>
         <target state="translated">기본으로 이동</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_arithmetic_binary_operators">
+        <source>In arithmetic operators</source>
+        <target state="translated">산술 연산자</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_other_binary_operators">
+        <source>In other binary operators</source>
+        <target state="translated">기타 이항 연산자</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_relational_binary_operators">
+        <source>In relational operators</source>
+        <target state="translated">관계 연산자</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indentation_Size">
+        <source>Indentation Size</source>
+        <target state="translated">들여쓰기 크기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Diagnostics_Error">
+        <source>Inline Diagnostics - Error</source>
+        <target state="translated">인라인 진단 - 오류</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Diagnostics_Rude_Edit">
+        <source>Inline Diagnostics - Rude Edit</source>
+        <target state="translated">인라인 진단 - Rude 편집</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Diagnostics_Warning">
+        <source>Inline Diagnostics - Warning</source>
+        <target state="translated">인라인 진단 - 경고</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Hints">
+        <source>Inline Hints</source>
+        <target state="translated">인라인 힌트</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Insert_Final_Newline">
+        <source>Insert Final Newline</source>
+        <target state="translated">최종 줄 바꿈 삽입</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_assembly_name">
@@ -77,14 +152,84 @@
         <target state="translated">어셈블리 이름에 잘못된 문자가 있음</target>
         <note />
       </trans-unit>
+      <trans-unit id="JSON_in_string_literal_Array">
+        <source>JSON in string literal - Array</source>
+        <target state="new">JSON in string literal - Array</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_in_string_literal_Comment">
+        <source>JSON in string literal - Comment</source>
+        <target state="new">JSON in string literal - Comment</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_in_string_literal_Constructor_Name">
+        <source>JSON in string literal - Constructor Name</source>
+        <target state="new">JSON in string literal - Constructor Name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_in_string_literal_Keyword">
+        <source>JSON in string literal - Keyword</source>
+        <target state="new">JSON in string literal - Keyword</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_in_string_literal_Number">
+        <source>JSON in string literal - Number</source>
+        <target state="new">JSON in string literal - Number</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_in_string_literal_Object">
+        <source>JSON in string literal - Object</source>
+        <target state="new">JSON in string literal - Object</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_in_string_literal_Operator">
+        <source>JSON in string literal - Operator</source>
+        <target state="new">JSON in string literal - Operator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_in_string_literal_Property_Name">
+        <source>JSON in string literal - Property Name</source>
+        <target state="new">JSON in string literal - Property Name</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_in_string_literal_Punctuation">
+        <source>JSON in string literal - Punctuation</source>
+        <target state="new">JSON in string literal - Punctuation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_in_string_literal_String">
+        <source>JSON in string literal - String</source>
+        <target state="new">JSON in string literal - String</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_in_string_literal_Text">
+        <source>JSON in string literal - Text</source>
+        <target state="new">JSON in string literal - Text</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Keyword_Control">
         <source>Keyword - Control</source>
         <target state="translated">키워드 - 제어</target>
         <note />
       </trans-unit>
+      <trans-unit id="Language_client_initialization_failed">
+        <source>{0} failed to initialize. Status = {1}. Exception = {2}</source>
+        <target state="translated">{0}을(를) 초기화하지 못했습니다. 상태 = {1}. 예외 = {2}</target>
+        <note>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</note>
+      </trans-unit>
       <trans-unit id="Locating_bases">
         <source>Locating bases...</source>
         <target state="translated">베이스를 찾는 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="New_Line">
+        <source>New Line</source>
+        <target state="translated">줄 바꿈</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="No">
+        <source>No</source>
+        <target state="translated">아니요</target>
         <note />
       </trans-unit>
       <trans-unit id="Operator_Overloaded">
@@ -97,6 +242,16 @@
         <target state="translated">붙여넣기 추적</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
+        <source>Prefer 'is null' for reference equality checks</source>
+        <target state="translated">참조 같음 검사에 대해 'is null' 선호</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_this_or_Me">
+        <source>Prefer 'this.' or 'Me.'</source>
+        <target state="translated">'this.' 또는 'Me.'를 기본으로 사용하세요.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Preprocessor_Text">
         <source>Preprocessor Text</source>
         <target state="translated">전처리기 텍스트</target>
@@ -107,14 +262,29 @@
         <target state="translated">문장 부호</target>
         <note />
       </trans-unit>
-      <trans-unit id="Removal_of_document_not_supported">
-        <source>Removal of document not supported</source>
-        <target state="translated">지원되지 않는 문서 제거</target>
+      <trans-unit id="Qualify_event_access_with_this_or_Me">
+        <source>Qualify event access with 'this' or 'Me'</source>
+        <target state="translated">'this' 또는 'Me'를 사용하여 이벤트 액세스를 한정합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Rename_file">
-        <source>Rename _file</source>
-        <target state="translated">파일 이름 바꾸기(_F)</target>
+      <trans-unit id="Qualify_field_access_with_this_or_Me">
+        <source>Qualify field access with 'this' or 'Me'</source>
+        <target state="translated">'this' 또는 'Me'를 사용하여 필드 액세스를 한정합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_method_access_with_this_or_Me">
+        <source>Qualify method access with 'this' or 'Me'</source>
+        <target state="translated">'this' 또는 'Me'를 사용하여 메서드 액세스를 한정합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Qualify_property_access_with_this_or_Me">
+        <source>Qualify property access with 'this' or 'Me'</source>
+        <target state="translated">'this' 또는 'Me'를 사용하여 속성 액세스를 한정합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reassigned_variable">
+        <source>Reassigned variable</source>
+        <target state="translated">다시 할당된 변수</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
@@ -127,6 +297,16 @@
         <target state="translated">파일 이름 바꾸기(부분 형식에서 허용되지 않음)(_F)</target>
         <note>Disabled text status for file rename</note>
       </trans-unit>
+      <trans-unit id="Rename_symbols_file">
+        <source>Rename symbol's _file</source>
+        <target state="translated">기호의 파일 이름 바꾸기(_F)</target>
+        <note>Indicates that the file a symbol is defined in will also be renamed</note>
+      </trans-unit>
+      <trans-unit id="Split_comment">
+        <source>Split comment</source>
+        <target state="translated">주석 분할</target>
+        <note />
+      </trans-unit>
       <trans-unit id="String_Escape_Character">
         <source>String - Escape Character</source>
         <target state="translated">문자열 - 이스케이프 문자</target>
@@ -135,6 +315,16 @@
       <trans-unit id="Symbol_Static">
         <source>Symbol - Static</source>
         <target state="translated">기호 - 정적</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Tab_Size">
+        <source>Tab Size</source>
+        <target state="translated">탭 크기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_results_may_be_incomplete_due_to_the_solution_still_loading_projects">
+        <source>The results may be incomplete due to the solution still loading projects.</source>
+        <target state="translated">솔루션이 아직 프로젝트를 로드하는 중이므로 결과가 불완전할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_symbol_has_no_base">
@@ -160,6 +350,11 @@
       <trans-unit id="Toggling_line_comment">
         <source>Toggling line comment...</source>
         <target state="translated">줄 주석을 토글하는 중...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_Tabs">
+        <source>Use Tabs</source>
+        <target state="translated">탭 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Members_Constants">
@@ -235,6 +430,16 @@
       <trans-unit id="User_Types_Interfaces">
         <source>User Types - Interfaces</source>
         <target state="translated">사용자 형식 - 인터페이스</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Record_Structs">
+        <source>User Types - Record Structs</source>
+        <target state="translated">사용자 유형 - 레코드 구조체</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="User_Types_Records">
+        <source>User Types - Records</source>
+        <target state="translated">사용자 유형 - 레코드</target>
         <note />
       </trans-unit>
       <trans-unit id="User_Types_Structures">
@@ -382,14 +587,19 @@
         <target state="translated">이름 바꾸기로 {1}개의 파일에서 {0}개의 참조가 업데이트됩니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Yes">
+        <source>Yes</source>
+        <target state="translated">예</target>
+        <note />
+      </trans-unit>
       <trans-unit id="You_cannot_rename_this_element_because_it_is_contained_in_a_read_only_file">
         <source>You cannot rename this element because it is contained in a read-only file.</source>
-        <target state="new">You cannot rename this element because it is contained in a read-only file.</target>
+        <target state="translated">이 요소는 읽기 전용 파일에 포함되어 있으므로 이름을 바꿀 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="You_cannot_rename_this_element_because_it_is_in_a_location_that_cannot_be_navigated_to">
         <source>You cannot rename this element because it is in a location that cannot be navigated to.</source>
-        <target state="new">You cannot rename this element because it is in a location that cannot be navigated to.</target>
+        <target state="translated">이 요소는 탐색할 수 없는 위치에 있으므로 이름을 바꿀 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_bases">
@@ -404,7 +614,7 @@
       </trans-unit>
       <trans-unit id="_0_implemented_members">
         <source>'{0}' implemented members</source>
-        <target state="new">'{0}' implemented members</target>
+        <target state="translated">구현된 멤버 '{0}'개</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_unresolvable_conflict_s">
@@ -424,37 +634,37 @@
       </trans-unit>
       <trans-unit id="Adding_project_0">
         <source>Adding project '{0}'</source>
-        <target state="translated">{0}' 프로젝트 추가 중</target>
+        <target state="translated">'{0}' 프로젝트 추가 중</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_project_0">
         <source>Removing project '{0}'</source>
-        <target state="translated">{0}' 프로젝트를 제거하는 중</target>
+        <target state="translated">'{0}' 프로젝트를 제거하는 중</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_project_references_for_0">
         <source>Changing project references for '{0}'</source>
-        <target state="translated">{0}'에 대한 프로젝트 참조 변경 중</target>
+        <target state="translated">'{0}'에 대한 프로젝트 참조 변경 중</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_reference_0_to_1">
         <source>Adding reference '{0}' to '{1}'</source>
-        <target state="translated">{1}'에 대한 '{0}' 참조 추가 중</target>
+        <target state="translated">'{1}'에 대한 '{0}' 참조 추가 중</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_reference_0_from_1">
         <source>Removing reference '{0}' from '{1}'</source>
-        <target state="translated">{1}'에서 '{0}' 참조를 제거하는 중</target>
+        <target state="translated">'{1}'에서 '{0}' 참조를 제거하는 중</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_analyzer_reference_0_to_1">
         <source>Adding analyzer reference '{0}' to '{1}'</source>
-        <target state="translated">{1}'에 대한 '{0}' 분석기 참조 추가 중</target>
+        <target state="translated">'{1}'에 대한 '{0}' 분석기 참조 추가 중</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_analyzer_reference_0_from_1">
         <source>Removing analyzer reference '{0}' from '{1}'</source>
-        <target state="translated">{1}'에서 '{0}' 분석기 참조를 제거하는 중</target>
+        <target state="translated">'{1}'에서 '{0}' 분석기 참조를 제거하는 중</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_End_Tag_Completion">
@@ -485,11 +695,6 @@
       <trans-unit id="Given_Workspace_doesn_t_support_Undo">
         <source>Given Workspace doesn't support Undo</source>
         <target state="translated">지정한 작업 영역에서 실행을 취소할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Document_must_be_contained_in_the_workspace_that_created_this_service">
-        <source>Document must be contained in the workspace that created this service</source>
-        <target state="translated">문서가 이 서비스를 만든 작업 영역에 포함되어 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Searching">
@@ -644,7 +849,7 @@
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename '{0}' to '{1}'</source>
-        <target state="translated">{1}'(으)로 '{0}' 이름 바꾸기</target>
+        <target state="translated">'{1}'(으)로 '{0}' 이름 바꾸기</target>
         <note />
       </trans-unit>
       <trans-unit id="Preview_Warning">
@@ -654,12 +859,7 @@
       </trans-unit>
       <trans-unit id="external">
         <source>(external)</source>
-        <target state="new">(external)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="from_metadata">
-        <source>from metadata</source>
-        <target state="translated">메타데이터에서</target>
+        <target state="translated">(외부)</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatic_Line_Ender">
@@ -735,11 +935,6 @@
       <trans-unit id="Format_Token">
         <source>Format Token</source>
         <target state="translated">형식 토큰</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Smart_Indenting">
-        <source>Smart Indenting</source>
-        <target state="translated">스마트 들여쓰기</target>
         <note />
       </trans-unit>
       <trans-unit id="Find_References">
@@ -825,11 +1020,6 @@
       <trans-unit id="Formatting_currently_selected_text">
         <source>Formatting currently selected text...</source>
         <target state="translated">현재 선택한 텍스트의 서식을 지정하는 중...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
-        <source>Cannot navigate to the symbol under the caret.</source>
-        <target state="translated">캐럿에서 기호를 탐색할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Go_to_Definition">
@@ -1017,11 +1207,6 @@
         <target state="translated">피킹</target>
         <note />
       </trans-unit>
-      <trans-unit id="symbol_cannot_be_a_namespace">
-        <source>'symbol' cannot be a namespace.</source>
-        <target state="translated">'기호'는 네임스페이스일 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Apply1">
         <source>_Apply</source>
         <target state="translated">적용(_A)</target>
@@ -1116,17 +1301,17 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="Calls_To_0">
         <source>Calls To '{0}'</source>
-        <target state="translated">{0}'에 대한 호출</target>
+        <target state="translated">'{0}'에 대한 호출</target>
         <note />
       </trans-unit>
       <trans-unit id="Calls_To_Base_Member_0">
         <source>Calls To Base Member '{0}'</source>
-        <target state="translated">{0}' 기본 멤버에 대한 호출</target>
+        <target state="translated">'{0}' 기본 멤버에 대한 호출</target>
         <note />
       </trans-unit>
       <trans-unit id="Calls_To_Interface_Implementation_0">
         <source>Calls To Interface Implementation '{0}'</source>
-        <target state="translated">{0}' 인터페이스 구현에 대한 호출</target>
+        <target state="translated">'{0}' 인터페이스 구현에 대한 호출</target>
         <note />
       </trans-unit>
       <trans-unit id="Computing_Call_Hierarchy_Information">
@@ -1136,7 +1321,7 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="Implements_0">
         <source>Implements '{0}'</source>
-        <target state="translated">{0}' 구현</target>
+        <target state="translated">'{0}' 구현</target>
         <note />
       </trans-unit>
       <trans-unit id="Initializers">
@@ -1146,7 +1331,7 @@ Do you want to proceed?</source>
       </trans-unit>
       <trans-unit id="References_To_Field_0">
         <source>References To Field '{0}'</source>
-        <target state="translated">{0}' 필드에 대한 참조</target>
+        <target state="translated">'{0}' 필드에 대한 참조</target>
         <note />
       </trans-unit>
       <trans-unit id="Calls_To_Overrides">
@@ -1209,11 +1394,6 @@ Do you want to proceed?</source>
         <target state="translated">중괄호 완성</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_all_occurrences_in">
-        <source>Fix all occurrences in</source>
-        <target state="translated">다음 위치에서 모든 발생 수정</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Cannot_apply_operation_while_a_rename_session_is_active">
         <source>Cannot apply operation while a rename session is active.</source>
         <target state="translated">이름 바꾸기 세션이 활성인 동안에는 작업을 적용할 수 없습니다.</target>
@@ -1249,11 +1429,6 @@ Do you want to proceed?</source>
         <target state="translated">구현으로 이동</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_symbol_has_no_implementations">
-        <source>The symbol has no implementations.</source>
-        <target state="translated">기호에 구현이 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="New_name_colon_0">
         <source>New name: {0}</source>
         <target state="translated">새 이름: {0}</target>
@@ -1277,16 +1452,6 @@ Do you want to proceed?</source>
       <trans-unit id="Suggestion_ellipses">
         <source>Suggestion ellipses (…)</source>
         <target state="translated">제안 줄임표(…)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_references">
-        <source>'{0}' references</source>
-        <target state="translated">'{0}' 참조</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_implementations">
-        <source>'{0}' implementations</source>
-        <target state="translated">'{0}' 구현</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_declarations">
@@ -1357,6 +1522,51 @@ Do you want to proceed?</source>
       <trans-unit id="Outlining">
         <source>Outlining</source>
         <target state="translated">개요</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Comment">
+        <source>Regex - Comment</source>
+        <target state="translated">Regex - 주석</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Character_Class">
+        <source>Regex - Character Class</source>
+        <target state="translated">Regex - 문자 클래스</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Alternation">
+        <source>Regex - Alternation</source>
+        <target state="translated">Regex - 교체</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Anchor">
+        <source>Regex - Anchor</source>
+        <target state="translated">Regex - 앵커</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Quantifier">
+        <source>Regex - Quantifier</source>
+        <target state="translated">Regex - 수량자</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_SelfEscapedCharacter">
+        <source>Regex - Self Escaped Character</source>
+        <target state="translated">Regex - 자체 이스케이프한 문자</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Grouping">
+        <source>Regex - Grouping</source>
+        <target state="translated">Regex - 그룹화</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_Text">
+        <source>Regex - Text</source>
+        <target state="translated">Regex - 텍스트</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Regex_OtherEscape">
+        <source>Regex - Other Escape</source>
+        <target state="translated">Regex - 기타 이스케이프</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_Tracking_Cancellation">

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -17,6 +19,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -81,8 +84,9 @@ namespace Microsoft.CodeAnalysis
         // algorithm.
         private readonly CryptographicHashProvider _hashesOpt;
 
+#nullable enable
         private delegate bool AttributeValueExtractor<T>(out T value, ref BlobReader sigReader);
-        private static readonly AttributeValueExtractor<string> s_attributeStringValueExtractor = CrackStringInAttributeValue;
+        private static readonly AttributeValueExtractor<string?> s_attributeStringValueExtractor = CrackStringInAttributeValue;
         private static readonly AttributeValueExtractor<StringAndInt> s_attributeStringAndIntValueExtractor = CrackStringAndIntInAttributeValue;
         private static readonly AttributeValueExtractor<bool> s_attributeBooleanValueExtractor = CrackBooleanInAttributeValue;
         private static readonly AttributeValueExtractor<byte> s_attributeByteValueExtractor = CrackByteInAttributeValue;
@@ -93,34 +97,35 @@ namespace Microsoft.CodeAnalysis
         private static readonly AttributeValueExtractor<decimal> s_decimalValueInDecimalConstantAttributeExtractor = CrackDecimalInDecimalConstantAttribute;
         private static readonly AttributeValueExtractor<ImmutableArray<bool>> s_attributeBoolArrayValueExtractor = CrackBoolArrayInAttributeValue;
         private static readonly AttributeValueExtractor<ImmutableArray<byte>> s_attributeByteArrayValueExtractor = CrackByteArrayInAttributeValue;
-        private static readonly AttributeValueExtractor<ImmutableArray<string>> s_attributeStringArrayValueExtractor = CrackStringArrayInAttributeValue;
-        private static readonly AttributeValueExtractor<ObsoleteAttributeData> s_attributeDeprecatedDataExtractor = CrackDeprecatedAttributeData;
+        private static readonly AttributeValueExtractor<ImmutableArray<string?>> s_attributeStringArrayValueExtractor = CrackStringArrayInAttributeValue;
+        private static readonly AttributeValueExtractor<ObsoleteAttributeData?> s_attributeDeprecatedDataExtractor = CrackDeprecatedAttributeData;
         private static readonly AttributeValueExtractor<BoolAndStringArrayData> s_attributeBoolAndStringArrayValueExtractor = CrackBoolAndStringArrayInAttributeValue;
         private static readonly AttributeValueExtractor<BoolAndStringData> s_attributeBoolAndStringValueExtractor = CrackBoolAndStringInAttributeValue;
 
         internal struct BoolAndStringArrayData
         {
-            public BoolAndStringArrayData(bool sense, ImmutableArray<string> strings)
+            public BoolAndStringArrayData(bool sense, ImmutableArray<string?> strings)
             {
                 Sense = sense;
                 Strings = strings;
             }
 
             public readonly bool Sense;
-            public readonly ImmutableArray<string> Strings;
+            public readonly ImmutableArray<string?> Strings;
         }
 
         internal struct BoolAndStringData
         {
-            public BoolAndStringData(bool sense, string @string)
+            public BoolAndStringData(bool sense, string? @string)
             {
                 Sense = sense;
                 String = @string;
             }
 
             public readonly bool Sense;
-            public readonly string String;
+            public readonly string? String;
         }
+#nullable disable
 
         // 'ignoreAssemblyRefs' is used by the EE only, when debugging
         // .NET Native, where the corlib may have assembly references
@@ -157,7 +162,7 @@ namespace Microsoft.CodeAnalysis
                 _peReader = peReader;
             }
 
-            internal unsafe override ImmutableArray<byte> ComputeHash(HashAlgorithm algorithm)
+            internal override unsafe ImmutableArray<byte> ComputeHash(HashAlgorithm algorithm)
             {
                 PEMemoryBlock block = _peReader.GetEntireImage();
                 byte[] hash;
@@ -512,7 +517,7 @@ namespace Microsoft.CodeAnalysis
             string name = MetadataReader.GetString(typeDefinition.Name);
             Debug.Assert(name.Length == 0 || MetadataHelpers.IsValidMetadataIdentifier(name)); // Obfuscated assemblies can have types with empty names.
 
-            // The problem is that the mangled name for an static machine type looks like 
+            // The problem is that the mangled name for a static machine type looks like 
             // "<" + methodName + ">d__" + uniqueId.However, methodName will have dots in 
             // it for explicit interface implementations (e.g. "<I.F>d__0").  Unfortunately, 
             // the native compiler emits such names in a very strange way: everything before 
@@ -1000,6 +1005,11 @@ namespace Microsoft.CodeAnalysis
             return FindTargetAttribute(token, AttributeDescription.CodeAnalysisEmbeddedAttribute).HasValue;
         }
 
+        internal bool HasInterpolatedStringHandlerAttribute(EntityHandle token)
+        {
+            return FindTargetAttribute(token, AttributeDescription.InterpolatedStringHandlerAttribute).HasValue;
+        }
+
         internal bool HasDefaultMemberAttribute(EntityHandle token, out string memberName)
         {
             return HasStringValuedAttribute(token, AttributeDescription.DefaultMemberAttribute, out memberName);
@@ -1134,6 +1144,79 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
+#nullable enable
+        internal UnmanagedCallersOnlyAttributeData? TryGetUnmanagedCallersOnlyAttribute(
+            EntityHandle token,
+            IAttributeNamedArgumentDecoder attributeArgumentDecoder,
+            Func<string, TypedConstant, bool, (bool IsCallConvs, ImmutableHashSet<INamedTypeSymbolInternal>? CallConvs)> unmanagedCallersOnlyDecoder)
+        {
+            // We don't want to load all attributes and their public data just to answer whether a PEMethodSymbol has an UnmanagedCallersOnly
+            // attached. It would create unnecessary memory pressure that isn't going to be needed 99% of the time, so we just crack this 1
+            // attribute.
+            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.UnmanagedCallersOnlyAttribute);
+            if (!info.HasValue || info.SignatureIndex != 0 || !TryGetAttributeReader(info.Handle, out BlobReader sigReader))
+            {
+                return null;
+            }
+
+            var unmanagedConventionTypes = ImmutableHashSet<INamedTypeSymbolInternal>.Empty;
+
+            if (sigReader.RemainingBytes > 0)
+            {
+                try
+                {
+                    var numNamed = sigReader.ReadUInt16();
+                    for (int i = 0; i < numNamed; i++)
+                    {
+                        var ((name, value), isProperty, typeCode, elementTypeCode) = attributeArgumentDecoder.DecodeCustomAttributeNamedArgumentOrThrow(ref sigReader);
+                        if (typeCode != SerializationTypeCode.SZArray || elementTypeCode != SerializationTypeCode.Type)
+                        {
+                            continue;
+                        }
+
+                        var namedArgumentDecoded = unmanagedCallersOnlyDecoder(name, value, !isProperty);
+                        if (namedArgumentDecoded.IsCallConvs)
+                        {
+                            unmanagedConventionTypes = namedArgumentDecoded.CallConvs;
+                            break;
+                        }
+                    }
+                }
+                catch (Exception ex) when (ex is BadImageFormatException or UnsupportedSignatureContent)
+                {
+                }
+            }
+
+            return UnmanagedCallersOnlyAttributeData.Create(unmanagedConventionTypes);
+        }
+
+        internal (ImmutableArray<string?> Names, bool FoundAttribute) GetInterpolatedStringHandlerArgumentAttributeValues(EntityHandle token)
+        {
+            var targetAttribute = FindTargetAttribute(token, AttributeDescription.InterpolatedStringHandlerArgumentAttribute);
+            if (!targetAttribute.HasValue)
+            {
+                return (default, false);
+            }
+
+            Debug.Assert(AttributeDescription.InterpolatedStringHandlerArgumentAttribute.Signatures.Length == 2);
+            Debug.Assert(targetAttribute.SignatureIndex is 0 or 1);
+            if (targetAttribute.SignatureIndex == 0)
+            {
+                if (TryExtractStringValueFromAttribute(targetAttribute.Handle, out string? paramName))
+                {
+                    return (ImmutableArray.Create(paramName), true);
+                }
+            }
+            else if (TryExtractStringArrayValueFromAttribute(targetAttribute.Handle, out var paramNames))
+            {
+                Debug.Assert(!paramNames.IsDefault);
+                return (paramNames.NullToEmpty(), true);
+            }
+
+            return (default, true);
+        }
+#nullable disable
+
         internal bool HasMaybeNullWhenOrNotNullWhenOrDoesNotReturnIfAttribute(EntityHandle token, AttributeDescription description, out bool when)
         {
             Debug.Assert(description.Namespace == "System.Diagnostics.CodeAnalysis");
@@ -1148,6 +1231,27 @@ namespace Microsoft.CodeAnalysis
             }
             when = false;
             return false;
+        }
+
+        internal ImmutableHashSet<string> GetStringValuesOfNotNullIfNotNullAttribute(EntityHandle token)
+        {
+            var attributeInfos = FindTargetAttributes(token, AttributeDescription.NotNullIfNotNullAttribute);
+
+            var result = ImmutableHashSet<string>.Empty;
+            if (attributeInfos is null)
+            {
+                return result;
+            }
+
+            foreach (var attributeInfo in attributeInfos)
+            {
+                if (TryExtractStringValueFromAttribute(attributeInfo.Handle, out string parameterName))
+                {
+                    result = result.Add(parameterName);
+                }
+            }
+
+            return result;
         }
 
         internal CustomAttributeHandle GetAttributeUsageAttributeHandle(EntityHandle token)
@@ -1419,7 +1523,7 @@ namespace Microsoft.CodeAnalysis
             blobReader = default;
             return false;
         }
-#nullable restore
+#nullable disable
 
         private ObsoleteAttributeData TryExtractDeprecatedDataFromAttribute(AttributeInfo attributeInfo)
         {
@@ -1539,7 +1643,8 @@ namespace Microsoft.CodeAnalysis
             return false;
         }
 
-        internal bool TryExtractStringValueFromAttribute(CustomAttributeHandle handle, out string value)
+#nullable enable
+        internal bool TryExtractStringValueFromAttribute(CustomAttributeHandle handle, out string? value)
         {
             return TryExtractValueFromAttribute(handle, out value, s_attributeStringValueExtractor);
         }
@@ -1557,11 +1662,11 @@ namespace Microsoft.CodeAnalysis
 
         private struct StringAndInt
         {
-            public string StringValue;
+            public string? StringValue;
             public int IntValue;
         }
 
-        private bool TryExtractStringAndIntValueFromAttribute(CustomAttributeHandle handle, out string stringValue, out int intValue)
+        private bool TryExtractStringAndIntValueFromAttribute(CustomAttributeHandle handle, out string? stringValue, out int intValue)
         {
             StringAndInt data;
             var result = TryExtractValueFromAttribute(handle, out data, s_attributeStringAndIntValueExtractor);
@@ -1580,12 +1685,12 @@ namespace Microsoft.CodeAnalysis
             return TryExtractValueFromAttribute(handle, out value, s_attributeByteArrayValueExtractor);
         }
 
-        private bool TryExtractStringArrayValueFromAttribute(CustomAttributeHandle handle, out ImmutableArray<string> value)
+        private bool TryExtractStringArrayValueFromAttribute(CustomAttributeHandle handle, out ImmutableArray<string?> value)
         {
             return TryExtractValueFromAttribute(handle, out value, s_attributeStringArrayValueExtractor);
         }
 
-        private bool TryExtractValueFromAttribute<T>(CustomAttributeHandle handle, out T value, AttributeValueExtractor<T> valueExtractor)
+        private bool TryExtractValueFromAttribute<T>(CustomAttributeHandle handle, out T? value, AttributeValueExtractor<T?> valueExtractor)
         {
             Debug.Assert(!handle.IsNil);
 
@@ -1615,6 +1720,7 @@ namespace Microsoft.CodeAnalysis
             value = default(T);
             return false;
         }
+#nullable disable
 
         internal bool HasStringValuedAttribute(EntityHandle token, AttributeDescription description, out string value)
         {
@@ -1724,7 +1830,7 @@ namespace Microsoft.CodeAnalysis
                 var numNamed = sig.ReadUInt16();
                 for (int i = 0; i < numNamed && (diagnosticId is null || urlFormat is null); i++)
                 {
-                    var ((name, value), isProperty, typeCode) = decoder.DecodeCustomAttributeNamedArgumentOrThrow(ref sig);
+                    var ((name, value), isProperty, typeCode, /* elementTypeCode */ _) = decoder.DecodeCustomAttributeNamedArgumentOrThrow(ref sig);
                     if (typeCode == SerializationTypeCode.String && isProperty && value.ValueInternal is string stringValue)
                     {
                         if (diagnosticId is null && name == ObsoleteAttributeData.DiagnosticIdPropertyName)
@@ -1743,9 +1849,8 @@ namespace Microsoft.CodeAnalysis
 
             return (diagnosticId, urlFormat);
         }
-#nullable restore
 
-        private static bool CrackDeprecatedAttributeData(out ObsoleteAttributeData value, ref BlobReader sig)
+        private static bool CrackDeprecatedAttributeData([NotNullWhen(true)] out ObsoleteAttributeData? value, ref BlobReader sig)
         {
             StringAndInt args;
             if (CrackStringAndIntInAttributeValue(out args, ref sig))
@@ -1766,7 +1871,7 @@ namespace Microsoft.CodeAnalysis
                 CrackIntInAttributeValue(out value.IntValue, ref sig);
         }
 
-        internal static bool CrackStringInAttributeValue(out string value, ref BlobReader sig)
+        internal static bool CrackStringInAttributeValue(out string? value, ref BlobReader sig)
         {
             try
             {
@@ -1794,12 +1899,20 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal static bool CrackStringArrayInAttributeValue(out ImmutableArray<string> value, ref BlobReader sig)
+        internal static bool CrackStringArrayInAttributeValue(out ImmutableArray<string?> value, ref BlobReader sig)
         {
             if (sig.RemainingBytes >= 4)
             {
                 uint arrayLen = sig.ReadUInt32();
-                var stringArray = new string[arrayLen];
+
+                if (IsArrayNull(arrayLen))
+                {
+                    value = default;
+                    return false;
+                }
+
+                var stringArray = new string?[arrayLen];
+
                 for (int i = 0; i < arrayLen; i++)
                 {
                     if (!CrackStringInAttributeValue(out stringArray[i], ref sig))
@@ -1813,14 +1926,27 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            value = default(ImmutableArray<string>);
+            value = default;
+            return false;
+        }
+
+        private static bool IsArrayNull(uint length)
+        {
+            // Null arrays are represented in metadata by a length of 0xFFFF_FFFF. See ECMA 335 II.23.3.
+            const uint NullArray = 0xFFFF_FFFF;
+
+            if (length == NullArray)
+            {
+                return true;
+            }
+
             return false;
         }
 
         internal static bool CrackBoolAndStringArrayInAttributeValue(out BoolAndStringArrayData value, ref BlobReader sig)
         {
             if (CrackBooleanInAttributeValue(out bool sense, ref sig) &&
-                CrackStringArrayInAttributeValue(out ImmutableArray<string> strings, ref sig))
+                CrackStringArrayInAttributeValue(out ImmutableArray<string?> strings, ref sig))
             {
                 value = new BoolAndStringArrayData(sense, strings);
                 return true;
@@ -1833,7 +1959,7 @@ namespace Microsoft.CodeAnalysis
         internal static bool CrackBoolAndStringInAttributeValue(out BoolAndStringData value, ref BlobReader sig)
         {
             if (CrackBooleanInAttributeValue(out bool sense, ref sig) &&
-                CrackStringInAttributeValue(out string @string, ref sig))
+                CrackStringInAttributeValue(out string? @string, ref sig))
             {
                 value = new BoolAndStringData(sense, @string);
                 return true;
@@ -1931,6 +2057,13 @@ namespace Microsoft.CodeAnalysis
             if (sig.RemainingBytes >= 4)
             {
                 uint arrayLen = sig.ReadUInt32();
+
+                if (IsArrayNull(arrayLen))
+                {
+                    value = default;
+                    return false;
+                }
+
                 if (sig.RemainingBytes >= arrayLen)
                 {
                     var boolArrayBuilder = ArrayBuilder<bool>.GetInstance((int)arrayLen);
@@ -1953,6 +2086,13 @@ namespace Microsoft.CodeAnalysis
             if (sig.RemainingBytes >= 4)
             {
                 uint arrayLen = sig.ReadUInt32();
+
+                if (IsArrayNull(arrayLen))
+                {
+                    value = default;
+                    return false;
+                }
+
                 if (sig.RemainingBytes >= arrayLen)
                 {
                     var byteArrayBuilder = ArrayBuilder<byte>.GetInstance((int)arrayLen);
@@ -1969,6 +2109,7 @@ namespace Microsoft.CodeAnalysis
             value = default(ImmutableArray<byte>);
             return false;
         }
+#nullable disable
 
         internal struct AttributeInfo
         {
@@ -2015,7 +2156,7 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
-        private AttributeInfo FindTargetAttribute(EntityHandle hasAttribute, AttributeDescription description)
+        internal AttributeInfo FindTargetAttribute(EntityHandle hasAttribute, AttributeDescription description)
         {
             return FindTargetAttribute(MetadataReader, hasAttribute, description);
         }
@@ -3425,7 +3566,7 @@ namespace Microsoft.CodeAnalysis
 
             private StringTableDecoder() : base(System.Text.Encoding.UTF8) { }
 
-            public unsafe override string GetString(byte* bytes, int byteCount)
+            public override unsafe string GetString(byte* bytes, int byteCount)
             {
                 return StringTable.AddSharedUTF8(new ReadOnlySpan<byte>(bytes, byteCount));
             }

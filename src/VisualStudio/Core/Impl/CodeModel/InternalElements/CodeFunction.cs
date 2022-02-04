@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -101,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         {
             get
             {
-                if (!(LookupSymbol() is IMethodSymbol symbol))
+                if (LookupSymbol() is not IMethodSymbol symbol)
                 {
                     throw Exceptions.ThrowEUnexpected();
                 }
@@ -117,8 +119,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
                 var symbol = (IMethodSymbol)LookupSymbol();
 
                 // Only methods and constructors can be overloaded
-                if (symbol.MethodKind != MethodKind.Ordinary &&
-                    symbol.MethodKind != MethodKind.Constructor)
+                if (symbol.MethodKind is not MethodKind.Ordinary and
+                    not MethodKind.Constructor)
                 {
                     return false;
                 }

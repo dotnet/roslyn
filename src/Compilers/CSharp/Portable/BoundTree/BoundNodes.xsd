@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="Tree">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:choice maxOccurs="unbounded">
+          <xs:element maxOccurs="unbounded" name="ValueType">
+            <xs:complexType>
+              <xs:attribute name="Name" type="xs:string" use="required" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element maxOccurs="unbounded" name="AbstractNode">
+            <xs:complexType mixed="true">
+              <xs:sequence minOccurs="0">
+                <xs:element maxOccurs="unbounded" name="Field">
+                  <xs:complexType>
+                    <xs:attribute name="Name" type="xs:string" use="required" />
+                    <xs:attribute name="Type" type="xs:string" use="required" />
+                    <xs:attribute name="Override" type="xs:boolean" use="optional" />
+                    <xs:attribute name="Null" type="xs:string" use="optional" />
+                    <xs:attribute name="SkipInVisitor" type="xs:boolean" use="optional" />
+                    <xs:attribute name="PropertyOverrides" type="xs:boolean" use="optional" />
+                  </xs:complexType>
+                </xs:element>
+              </xs:sequence>
+              <xs:attribute name="Name" type="xs:string" use="required" />
+              <xs:attribute name="Base" type="xs:string" use="required" />
+            </xs:complexType>
+          </xs:element>
+          <xs:element maxOccurs="unbounded" name="Node">
+            <xs:complexType mixed="true">
+              <xs:sequence minOccurs="0">
+                <xs:element maxOccurs="unbounded" name="Field">
+                  <xs:complexType>
+                    <xs:attribute name="Name" type="xs:string" use="required" />
+                    <xs:attribute name="Type" type="xs:string" use="required" />
+                    <xs:attribute name="Override" type="xs:boolean" use="optional" />
+                    <xs:attribute name="Null" type="xs:string" use="optional" />
+                    <xs:attribute name="PropertyOverrides" type="xs:boolean" use="optional" />
+                    <xs:attribute name="SkipInNullabilityRewriter" type="xs:boolean" use="optional" />
+                    <xs:attribute name="SkipInVisitor" type="xs:string" use="optional" />
+                  </xs:complexType>
+                </xs:element>
+              </xs:sequence>
+              <xs:attribute name="Name" type="xs:string" use="required" />
+              <xs:attribute name="Base" type="xs:string" use="required" />
+              <xs:attribute name="SkipInNullabilityRewriter" type="xs:boolean" use="optional" />
+              <xs:attribute name="HasValidate" type="xs:boolean" use="optional" />
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:sequence>
+      <xs:attribute name="Root" type="xs:string" use="required" />
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

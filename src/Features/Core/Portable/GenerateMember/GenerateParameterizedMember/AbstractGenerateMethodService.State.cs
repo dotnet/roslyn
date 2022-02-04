@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -178,7 +180,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
 
                 // If the name bound with errors, then this is a candidate for generate method.
                 var semanticInfo = semanticModel.GetSymbolInfo(SimpleNameOrMemberAccessExpression, cancellationToken);
-                if (semanticInfo.GetAllSymbols().Any(s => s.Kind == SymbolKind.Local || s.Kind == SymbolKind.Parameter) &&
+                if (semanticInfo.GetAllSymbols().Any(s => s.Kind is SymbolKind.Local or SymbolKind.Parameter) &&
                     !service.AreSpecialOptionsActive(semanticModel))
                 {
                     // if the name bound to something in scope then we don't want to generate the
@@ -199,7 +201,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 // to generate a method here.  Determine where the user wants to generate the method
                 // into, and if it's valid then proceed.
                 cancellationToken.ThrowIfCancellationRequested();
-                if (!service.TryDetermineTypeToGenerateIn(
+                if (!TryDetermineTypeToGenerateIn(
                         semanticDocument, ContainingType, SimpleNameOrMemberAccessExpression, cancellationToken,
                         out var typeToGenerateIn, out var isStatic))
                 {

@@ -4,9 +4,6 @@
 
 #if !NETCOREAPP
 using System.Runtime.CompilerServices;
-
-#nullable enable
-
 namespace System
 {
     /// <summary>Represent a type can be used to index a collection either from the start or the end.</summary>

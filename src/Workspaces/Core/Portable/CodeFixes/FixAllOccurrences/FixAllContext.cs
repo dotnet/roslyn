@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     {
         internal FixAllState State { get; }
 
-        internal FixAllProvider FixAllProvider => State.FixAllProvider;
+        internal FixAllProvider? FixAllProvider => State.FixAllProvider;
 
         /// <summary>
         /// Solution to fix all occurrences.
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// Document within which fix all occurrences was triggered.
         /// Can be null if the context was created using <see cref="FixAllContext.FixAllContext(Project, CodeFixProvider, FixAllScope, string, IEnumerable{string}, DiagnosticProvider, CancellationToken)"/>.
         /// </summary>
-        public Document Document => State.Document;
+        public Document? Document => State.Document;
 
         /// <summary>
         /// Underlying <see cref="CodeFixes.CodeFixProvider"/> which triggered this fix all.
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// The <see cref="CodeAction.EquivalenceKey"/> value expected of a <see cref="CodeAction"/> participating in this fix all.
         /// </summary>
-        public string CodeActionEquivalenceKey => State.CodeActionEquivalenceKey;
+        public string? CodeActionEquivalenceKey => State.CodeActionEquivalenceKey;
 
         /// <summary>
         /// CancellationToken for fix all session.
@@ -232,10 +232,22 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return new FixAllContext(State, this.ProgressTracker, cancellationToken);
         }
 
+        internal FixAllContext WithScope(FixAllScope scope)
+            => this.WithState(State.WithScope(scope));
+
+        internal FixAllContext WithProject(Project project)
+            => this.WithState(State.WithProject(project));
+
+        internal FixAllContext WithDocument(Document? document)
+            => this.WithState(State.WithDocument(document));
+
+        private FixAllContext WithState(FixAllState state)
+            => this.State == state ? this : new FixAllContext(state, ProgressTracker, CancellationToken);
+
         internal Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync()
-            => State.DiagnosticProvider.GetDocumentDiagnosticsToFixAsync(this);
+            => DiagnosticProvider.GetDocumentDiagnosticsToFixAsync(this);
 
         internal Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync()
-            => State.DiagnosticProvider.GetProjectDiagnosticsToFixAsync(this);
+            => DiagnosticProvider.GetProjectDiagnosticsToFixAsync(this);
     }
 }

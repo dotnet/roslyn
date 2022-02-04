@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                            container)
 
             Dim result = LookupResult.GetInstance()
-            binder.LookupMember(result, container, name, 0, LookupOptions.AllMethodsOfAnyArity Or LookupOptions.IgnoreExtensionMethods, useSiteDiagnostics:=Nothing)
+            binder.LookupMember(result, container, name, 0, LookupOptions.AllMethodsOfAnyArity Or LookupOptions.IgnoreExtensionMethods, useSiteInfo:=CompoundUseSiteInfo(Of AssemblySymbol).Discarded)
             If result.IsGoodOrAmbiguous Then
                 Dim lookupSymbols As ArrayBuilder(Of Symbol) = result.Symbols
                 If result.Kind = LookupResultKind.Ambiguous AndAlso result.HasDiagnostic AndAlso TypeOf result.Diagnostic Is AmbiguousSymbolDiagnostic Then
