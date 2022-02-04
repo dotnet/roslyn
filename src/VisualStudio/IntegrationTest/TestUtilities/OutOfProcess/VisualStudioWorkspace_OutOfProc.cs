@@ -6,6 +6,7 @@ using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
@@ -59,8 +60,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void SetImportCompletionOption(bool value)
         {
-            SetGlobalOption("CompletionOptions", "ShowItemsFromUnimportedNamespaces", LanguageNames.CSharp, value);
-            SetGlobalOption("CompletionOptions", "ShowItemsFromUnimportedNamespaces", LanguageNames.VisualBasic, value);
+            SetGlobalOption(WellKnownGlobalOption.CompletionOptions_ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, value);
+            SetGlobalOption(WellKnownGlobalOption.CompletionOptions_ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, value);
         }
 
         public void SetEnableDecompilationOption(bool value)
@@ -70,12 +71,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void SetArgumentCompletionSnippetsOption(bool value)
         {
-            SetGlobalOption("CompletionOptions", "EnableArgumentCompletionSnippets", LanguageNames.CSharp, value);
-            SetGlobalOption("CompletionOptions", "EnableArgumentCompletionSnippets", LanguageNames.VisualBasic, value);
+            SetGlobalOption(WellKnownGlobalOption.CompletionViewOptions_EnableArgumentCompletionSnippets, LanguageNames.CSharp, value);
+            SetGlobalOption(WellKnownGlobalOption.CompletionViewOptions_EnableArgumentCompletionSnippets, LanguageNames.VisualBasic, value);
         }
 
         public void SetTriggerCompletionInArgumentLists(bool value)
-            => SetGlobalOption("CompletionOptions", "TriggerInArgumentLists", LanguageNames.CSharp, value);
+            => SetGlobalOption(WellKnownGlobalOption.CompletionOptions_TriggerInArgumentLists, LanguageNames.CSharp, value);
 
         public void SetFullSolutionAnalysis(bool value)
         {
@@ -106,11 +107,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void SetFeatureOption(string feature, string optionName, string language, string? valueString)
             => _inProc.SetFeatureOption(feature, optionName, language, valueString);
 
-        public object? GetGlobalOption(string feature, string optionName, string? language)
-            => _inProc.GetGlobalOption(feature, optionName, language);
+        public object? GetGlobalOption(WellKnownGlobalOption option, string? language)
+            => _inProc.GetGlobalOption(option, language);
 
-        public void SetGlobalOption(string feature, string optionName, string? language, object? value)
-            => _inProc.SetGlobalOption(feature, optionName, language, value);
+        public void SetGlobalOption(WellKnownGlobalOption option, string? language, object? value)
+            => _inProc.SetGlobalOption(option, language, value);
 
         public string? GetWorkingFolder() => _inProc.GetWorkingFolder();
     }
