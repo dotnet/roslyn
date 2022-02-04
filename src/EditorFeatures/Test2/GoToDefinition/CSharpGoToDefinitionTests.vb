@@ -3349,7 +3349,7 @@ public unsafe class C
     </Project>
 </Workspace>
 
-            Test(workspace, expectedResult:=False)
+            Test(workspace)
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
