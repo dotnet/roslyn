@@ -370,7 +370,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Sub
 
-        Private Function CreateItem(documentId As DocumentId) As TodoCommentData
+        Private Shared Function CreateItem(documentId As DocumentId) As TodoCommentData
             Return New TodoCommentData(
                 priority:=0,
                 message:="test",

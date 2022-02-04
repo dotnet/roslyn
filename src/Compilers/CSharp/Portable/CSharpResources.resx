@@ -6169,8 +6169,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DuplicateNullSuppression" xml:space="preserve">
     <value>Duplicate null suppression operator ('!')</value>
   </data>
-  <data name="ERR_IncorrectNullCheckSyntax" xml:space="preserve">
-    <value>Incorrect parameter null checking syntax. Should be '!!'.</value>
+  <data name="ERR_DiscardCannotBeNullChecked" xml:space="preserve">
+    <value>Discard parameter cannot be null-checked.</value>
   </data>
   <data name="ERR_MustNullCheckInImplementation" xml:space="preserve">
     <value>Parameter '{0}' can only have exclamation-point null checking in implementation methods.</value>
@@ -6184,8 +6184,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_NullCheckedHasDefaultNull_Title" xml:space="preserve">
     <value>Parameter is null-checked but is null by default.</value>
   </data>
-  <data name="ERR_NullCheckingOnByRefParameter" xml:space="preserve">
-    <value>By-reference parameter '{0}' cannot be null-checked.</value>
+  <data name="ERR_NullCheckingOnOutParameter" xml:space="preserve">
+    <value>'out' parameter '{0}' cannot be null-checked.</value>
   </data>
   <data name="WRN_NullCheckingOnNullableType" xml:space="preserve">
     <value>Nullable type '{0}' is null-checked and will throw if null.</value>
@@ -6757,9 +6757,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureListPattern" xml:space="preserve">
     <value>list pattern</value>
   </data>
-  <data name="IDS_FeatureLengthPattern" xml:space="preserve">
-    <value>length pattern</value>
-  </data>
   <data name="ERR_UnsupportedTypeForListPattern" xml:space="preserve">
     <value>List patterns may not be used for a value of type '{0}'.</value>
   </data>
@@ -6896,6 +6893,48 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_SimpleProgramIsEmpty" xml:space="preserve">
     <value>At least one top-level statement must be non-empty.</value>
   </data>
+  <data name="ERR_LineDoesNotStartWithSameWhitespace" xml:space="preserve">
+    <value>Line does not start with the same whitespace as the closing line of the raw string literal.</value>
+  </data>
+  <data name="ERR_RawStringNotInDirectives" xml:space="preserve">
+    <value>Raw string literals are not allowed in preprocessor directives.</value>
+  </data>
+  <data name="ERR_RawStringDelimiterOnOwnLine" xml:space="preserve">
+    <value>Raw string literal delimiter must be on its own line.</value>
+  </data>
+  <data name="ERR_TooManyQuotesForRawString" xml:space="preserve">
+    <value>The raw string literal does not start with enough quote characters to allow this many consecutive quote characters as content.</value>
+  </data>
+  <data name="ERR_TooManyOpenBracesForRawString" xml:space="preserve">
+    <value>The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive opening braces as content.</value>
+  </data>
+  <data name="ERR_TooManyCloseBracesForRawString" xml:space="preserve">
+    <value>The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive closing braces as content.</value>
+  </data>
+  <data name="ERR_NotEnoughQuotesForRawString" xml:space="preserve">
+    <value>Not enough quotes for raw string literal.</value>
+  </data>
+  <data name="ERR_NotEnoughCloseBracesForRawString" xml:space="preserve">
+    <value>The interpolation must end with the same number of closing braces as the number of '$' characters that the raw string literal started with.</value>
+  </data>
+  <data name="ERR_IllegalAtSequence" xml:space="preserve">
+    <value>Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.</value>
+  </data>
+  <data name="ERR_StringMustStartWithQuoteCharacter" xml:space="preserve">
+    <value>String must start with quote character: "</value>
+  </data>
+  <data name="ERR_UnterminatedRawString" xml:space="preserve">
+    <value>Unterminated raw string literal.</value>
+  </data>
+  <data name="IDS_FeatureRawStringLiterals" xml:space="preserve">
+    <value>raw string literals</value>
+  </data>
+  <data name="ERR_RawStringInVerbatimInterpolatedStrings" xml:space="preserve">
+    <value>Multi-line raw string literals are only allowed in verbatim interpolated strings.</value>
+  </data>
+  <data name="ERR_RawStringMustContainContent" xml:space="preserve">
+    <value>Multi-line raw string literals must contain at least one line of content.</value>
+  </data>
   <data name="ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString" xml:space="preserve">
     <value>Newlines inside a non-verbatim interpolated string are not supported in C# {0}. Please use language version {1} or greater.</value>
   </data>
@@ -6913,6 +6952,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_RecordStructConstructorCallsDefaultConstructor" xml:space="preserve">
     <value>A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</value>
+  </data>
+  <data name="ERR_StructHasInitializersAndNoDeclaredConstructor" xml:space="preserve">
+    <value>A 'struct' with field initializers must include an explicitly declared constructor.</value>
+  </data>
+  <data name="ERR_EncUpdateFailedDelegateTypeChanged" xml:space="preserve">
+    <value>Cannot update because an inferred delegate type has changed.</value>
   </data>
   <data name="WRN_CompileTimeCheckedOverflow" xml:space="preserve">
     <value>The operation may overflow '{0}' at runtime (use 'unchecked' syntax to override)</value>
@@ -6937,5 +6982,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_LowerCaseTypeName_Title" xml:space="preserve">
     <value>The type name only contains lower-cased ascii characters. Such names may become reserved for the language.</value>
+  </data>
+  <data name="ERR_LineContainsDifferentWhitespace" xml:space="preserve">
+    <value>Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</value>
   </data>
 </root>

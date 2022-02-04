@@ -78,7 +78,7 @@ End Class]]></document>
             End Using
         End Function
 
-        Private Function CreateVisualBasicSnippetExpansionNoteTestState(xElement As XElement, ParamArray snippetShortcuts As String()) As TestState
+        Private Shared Function CreateVisualBasicSnippetExpansionNoteTestState(xElement As XElement, ParamArray snippetShortcuts As String()) As TestState
             Dim state = TestStateFactory.CreateVisualBasicTestState(
                 xElement,
                 New List(Of Type) From {GetType(VisualBasicMockCompletionProvider), GetType(TestVisualBasicSnippetInfoService)})

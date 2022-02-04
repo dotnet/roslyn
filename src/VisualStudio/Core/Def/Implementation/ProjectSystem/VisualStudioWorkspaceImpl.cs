@@ -19,11 +19,13 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Composition;
@@ -33,11 +35,14 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Exten
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.MetadataReferences;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
+using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Projection;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using VSLangProj;
 using VSLangProj140;
@@ -86,6 +91,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly Dictionary<string, List<VisualStudioProject>> _projectSystemNameToProjectsMap = new();
 
+        /// <summary>
+        /// Only safe to use on the UI thread.
+        /// </summary>
         private readonly Dictionary<string, UIContext?> _languageToProjectExistsUIContext = new();
 
         /// <summary>
@@ -197,10 +205,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // Create services that are bound to the UI thread
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
 
+            // Fetch the session synchronously on the UI thread; if this doesn't happen before we try using this on
+            // the background thread then we will experience hangs like we see in this bug:
+            // https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=190808 or
+            // https://devdiv.visualstudio.com/DevDiv/_workitems?id=296981&_a=edit
+            var telemetrySession = TelemetryService.DefaultSession;
+
             var solutionClosingContext = UIContext.FromUIContextGuid(VSConstants.UICONTEXT.SolutionClosing_guid);
             solutionClosingContext.UIContextChanged += (_, e) => _solutionClosing = e.Activated;
 
-            var openFileTracker = await OpenFileTracker.CreateAsync(this, asyncServiceProvider).ConfigureAwait(true);
+            var openFileTracker = await OpenFileTracker.CreateAsync(this, _threadingContext, asyncServiceProvider).ConfigureAwait(true);
             var memoryListener = await VirtualMemoryNotificationListener.CreateAsync(this, _threadingContext, asyncServiceProvider, _globalOptions, _threadingContext.DisposalToken).ConfigureAwait(true);
 
             // Update our fields first, so any asynchronous work that needs to use these is able to see the service.
@@ -215,6 +229,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
 
             openFileTracker.ProcessQueuedWorkOnUIThread();
+
+            // Switch to a background thread to avoid loading option providers on UI thread (telemetry is reading options).
+            await TaskScheduler.Default;
+
+            var telemetryService = (VisualStudioWorkspaceTelemetryService)Services.GetRequiredService<IWorkspaceTelemetryService>();
+            telemetryService.InitializeTelemetrySession(telemetrySession);
+
+            Logger.Log(FunctionId.Run_Environment,
+                KeyValueLogMessage.Create(m => m["Version"] = FileVersionInfo.GetVersionInfo(typeof(VisualStudioWorkspace).Assembly.Location).FileVersion));
         }
 
         public void QueueCheckForFilesBeingOpen(ImmutableArray<string> newFileNames)
@@ -523,7 +546,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return true;
         }
 
-        private string? GetAnalyzerPath(AnalyzerReference analyzerReference)
+        private static string? GetAnalyzerPath(AnalyzerReference analyzerReference)
             => analyzerReference.FullPath;
 
         protected override void ApplyCompilationOptionsChanged(ProjectId projectId, CompilationOptions options)
@@ -605,7 +628,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private string? GetMetadataPath(MetadataReference metadataReference)
+        private static string? GetMetadataPath(MetadataReference metadataReference)
         {
             if (metadataReference is PortableExecutableReference fileMetadata)
             {
@@ -859,7 +882,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private bool IsWebsite(EnvDTE.Project project)
+        private static bool IsWebsite(EnvDTE.Project project)
             => project.Kind == VsWebSite.PrjKind.prjKindVenusProject;
 
         private IEnumerable<string> FilterFolderForProjectType(EnvDTE.Project project, IEnumerable<string> folders)
@@ -1261,7 +1284,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// The <see cref="VisualStudioWorkspace"/> currently supports only a subset of <see cref="DocumentInfo"/> 
         /// changes.
         /// </summary>
-        private void FailIfDocumentInfoChangesNotSupported(CodeAnalysis.Document document, DocumentInfo updatedInfo)
+        private static void FailIfDocumentInfoChangesNotSupported(CodeAnalysis.Document document, DocumentInfo updatedInfo)
         {
             if (document.SourceCodeKind != updatedInfo.SourceCodeKind)
             {
@@ -1542,9 +1565,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// Applies a single operation to the workspace. <paramref name="action"/> should be a call to one of the protected Workspace.On* methods.
         /// </summary>
-        public async ValueTask ApplyChangeToWorkspaceMaybeAsync(bool useAsync, Action<Workspace> action)
+        public async ValueTask ApplyChangeToWorkspaceMaybeAsync(bool useAsync, Action<Workspace> action, CancellationToken cancellationToken = default)
         {
-            using (useAsync ? await _gate.DisposableWaitAsync().ConfigureAwait(false) : _gate.DisposableWait())
+            using (useAsync ? await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false) : _gate.DisposableWait(cancellationToken))
             {
                 action(this);
             }
@@ -1651,12 +1674,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // Try to update the UI context info.  But cancel that work if we're shutting down.
             var listenerProvider = Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
-            var asyncToken = listenerProvider.GetListener().BeginAsyncOperation(nameof(RefreshProjectExistsUIContextForLanguage));
+            var asyncToken = listenerProvider.GetListener().BeginAsyncOperation(nameof(RefreshProjectExistsUIContextForLanguageAsync));
             _threadingContext.RunWithShutdownBlockAsync(async cancellationToken =>
             {
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-                RefreshProjectExistsUIContextForLanguage(languageName);
-                asyncToken.Dispose();
+                try
+                {
+                    await RefreshProjectExistsUIContextForLanguageAsync(languageName, cancellationToken).ConfigureAwait(false);
+                }
+                finally
+                {
+                    asyncToken.Dispose();
+                }
             });
         }
 
@@ -2057,24 +2085,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 (projectId, targetIdentifier));
         }
 
-        internal void RefreshProjectExistsUIContextForLanguage(string language)
+        internal async Task RefreshProjectExistsUIContextForLanguageAsync(string language, CancellationToken cancellationToken)
         {
-            // We must assert the call is on the foreground as setting UIContext.IsActive would otherwise do a COM RPC.
-            _foregroundObject.AssertIsForeground();
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
 
-            using (_gate.DisposableWait())
-            {
-                var uiContext =
-                    _languageToProjectExistsUIContext.GetOrAdd(
-                        language,
-                        l => Services.GetLanguageServices(l).GetService<IProjectExistsUIContextProviderLanguageService>()?.GetUIContext());
+            var uiContext = _languageToProjectExistsUIContext.GetOrAdd(
+                language,
+                language => Services.GetLanguageServices(language).GetService<IProjectExistsUIContextProviderLanguageService>()?.GetUIContext());
 
-                // UIContexts can be "zombied" if UIContexts aren't supported because we're in a command line build or in other scenarios.
-                if (uiContext != null && !uiContext.IsZombie)
-                {
-                    uiContext.IsActive = CurrentSolution.Projects.Any(p => p.Language == language);
-                }
-            }
+            // UIContexts can be "zombied" if UIContexts aren't supported because we're in a command line build or in
+            // other scenarios.
+            if (uiContext == null || uiContext.IsZombie)
+                return;
+
+            // Note: it's safe to read CurrentSolution here outside of any sort of lock.  We do all work here on the UI
+            // thread, so that acts as a natural ordering mechanism here.  If, say, a BG piece of work was mutating this
+            // solution (either adding or removing a project) then that work will also have enqueued the next refresh
+            // operation on the UI thread.  So we'll always eventually reach a fixed point where the task for that
+            // language will check the latest CurrentSolution we have and will set the IsActive bit accordingly.
+            uiContext.IsActive = this.CurrentSolution.Projects.Any(p => p.Language == language);
         }
     }
 }

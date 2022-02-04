@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
-        public static Uri GetUriFromFilePath(string? filePath)
+        public static Uri GetUriFromFilePath(string filePath)
         {
             if (filePath is null)
                 throw new ArgumentNullException(nameof(filePath));
@@ -375,18 +375,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
-        public static LSP.CodeDescription? HelpLinkToCodeDescription(string? helpLink)
-        {
-            if (Uri.TryCreate(helpLink, UriKind.RelativeOrAbsolute, out var uri))
-            {
-                return new LSP.CodeDescription
-                {
-                    Href = uri,
-                };
-            }
-
-            return null;
-        }
+        public static LSP.CodeDescription? HelpLinkToCodeDescription(Uri? uri)
+            => (uri != null) ? new LSP.CodeDescription { Href = uri } : null;
 
         public static LSP.SymbolKind NavigateToKindToSymbolKind(string kind)
         {

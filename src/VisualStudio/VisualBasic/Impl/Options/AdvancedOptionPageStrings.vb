@@ -93,29 +93,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_EnableHighlightReferences As String =
             BasicVSResources.Highlight_references_to_symbol_under_cursor
 
+        Public ReadOnly Property Option_EnableLineCommit As String =
+            BasicVSResources.Pretty_listing_reformatting_of_code
+
         Public ReadOnly Property Option_Quick_Actions As String =
             ServicesVSResources.Quick_Actions
 
         Public ReadOnly Property Option_Compute_Quick_Actions_asynchronously_experimental As String =
             ServicesVSResources.Compute_Quick_Actions_asynchronously_experimental
 
-        Public ReadOnly Property Option_EnableLineCommit As String
-            Get
-                Return BasicVSResources.Pretty_listing_reformatting_of_code
-            End Get
-        End Property
+        Public ReadOnly Property Option_EnableOutlining As String =
+            BasicVSResources.Enter_outlining_mode_when_files_open
 
-        Public ReadOnly Property Option_EnableOutlining As String
-            Get
-                Return BasicVSResources.Enter_outlining_mode_when_files_open
-            End Get
-        End Property
-
-        Public ReadOnly Property Option_ExtractMethod As String
-            Get
-                Return BasicVSResources.Extract_Method
-            End Get
-        End Property
+        Public ReadOnly Property Option_ExtractMethod As String =
+            BasicVSResources.Extract_Method
 
         Public ReadOnly Property Option_Implement_Interface_or_Abstract_Class As String =
             ServicesVSResources.Implement_Interface_or_Abstract_Class
@@ -268,6 +259,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Highlight_related_components_under_cursor As String =
             ServicesVSResources.Highlight_related_components_under_cursor
+
+        Public ReadOnly Property Option_JSON_strings As String =
+            ServicesVSResources.JSON_strings
+
+        Public ReadOnly Property Option_Detect_and_offer_editor_features_for_likely_JSON_strings As String =
+            ServicesVSResources.Detect_and_offer_editor_features_for_likely_JSON_strings
+
+        Public ReadOnly Property Option_Colorize_JSON_strings As String =
+            ServicesVSResources.Colorize_JSON_strings
+
+        Public ReadOnly Property Option_Report_invalid_JSON_strings As String =
+            ServicesVSResources.Report_invalid_JSON_strings
 
         Public ReadOnly Property Option_Show_completion_list As String =
             ServicesVSResources.Show_completion_list

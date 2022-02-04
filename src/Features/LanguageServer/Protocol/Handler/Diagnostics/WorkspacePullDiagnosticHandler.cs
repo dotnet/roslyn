@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     {
         public override string Method => VSInternalMethods.WorkspacePullDiagnosticName;
 
-        public WorkspacePullDiagnosticHandler(IDiagnosticService diagnosticService)
-            : base(diagnosticService)
+        public WorkspacePullDiagnosticHandler(WellKnownLspServerKinds serverKind, IDiagnosticService diagnosticService)
+            : base(serverKind, diagnosticService)
         {
         }
 
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         }
 
         protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
-            RequestContext context, Document document, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
+            RequestContext context, Document document, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
         {
             // For closed files, go to the IDiagnosticService for results.  These won't necessarily be totally up to
             // date.  However, that's fine as these are closed files and won't be in the process of being edited.  So
@@ -132,7 +132,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 // documents from it. If all features are enabled for source generated documents, make sure they are
                 // included as well.
                 var documents = project.Documents;
-                if (WorkspaceConfigurationOptions.ShouldConnectSourceGeneratedFilesToWorkspace(project.Solution.Options))
+                var syntaxTreeConfigurationService = solution.Workspace.Services.GetService<ISyntaxTreeConfigurationService>();
+                if (syntaxTreeConfigurationService?.EnableOpeningSourceGeneratedFilesInWorkspace != false)
                 {
                     documents = documents.Concat(await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false));
                 }

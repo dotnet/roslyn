@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text.Adornments;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     {
         public static Uri GetURI(this TextDocument document)
         {
+            Contract.ThrowIfNull(document.FilePath);
             return document is SourceGeneratedDocument
                 ? ProtocolConversions.GetUriFromPartialFilePath(document.FilePath)
                 : ProtocolConversions.GetUriFromFilePath(document.FilePath);

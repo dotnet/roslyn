@@ -67,6 +67,11 @@
         <target state="translated">Satır içi değişken bildirimi</target>
         <note />
       </trans-unit>
+      <trans-unit id="Lambda_expression_can_be_removed">
+        <source>Lambda expression can be removed</source>
+        <target state="new">Lambda expression can be removed</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Misplaced_using_directive">
         <source>Misplaced using directive</source>
         <target state="translated">Yanlış yerleştirilmiş using yönergesi</target>
@@ -109,7 +114,7 @@
       </trans-unit>
       <trans-unit id="Property_pattern_can_be_simplified">
         <source>Property pattern can be simplified</source>
-        <target state="new">Property pattern can be simplified</target>
+        <target state="translated">Özellik deseni basitleştirilebilir</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_operator_preserves_semantics">
@@ -120,6 +125,11 @@
       <trans-unit id="Remove_suppression_operators">
         <source>Remove suppression operators</source>
         <target state="translated">Gizleme işleçlerini kaldır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_lambda_expression">
+        <source>Remove unnecessary lambda expression</source>
+        <target state="new">Remove unnecessary lambda expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_suppression_operator">
@@ -139,7 +149,7 @@
       </trans-unit>
       <trans-unit id="Simplify_property_pattern">
         <source>Simplify property pattern</source>
-        <target state="new">Simplify property pattern</target>
+        <target state="translated">Özellik desenini basitleştir</target>
         <note />
       </trans-unit>
       <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
@@ -262,6 +272,11 @@
         <target state="translated">'new(...)' kullanın</target>
         <note>{Locked="new(...)"} This is a C# construct and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Use_parameter_null_checking">
+        <source>Use parameter null checking</source>
+        <target state="new">Use parameter null checking</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_pattern_matching">
         <source>Use pattern matching</source>
         <target state="translated">Desen eşleştirme kullan</target>
@@ -289,7 +304,7 @@
       </trans-unit>
       <trans-unit id="Use_tuple_to_swap_values">
         <source>Use tuple to swap values</source>
-        <target state="new">Use tuple to swap values</target>
+        <target state="translated">Değerleri değiştirmek için demeti kullanın</target>
         <note />
       </trans-unit>
       <trans-unit id="Using_directives_must_be_placed_inside_of_a_namespace_declaration">

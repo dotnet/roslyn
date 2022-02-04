@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
+using Microsoft.VisualStudio.LanguageServices.Telemetry;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
@@ -122,8 +123,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void SetEnableOpeningSourceGeneratedFilesInWorkspaceExperiment(bool value)
         {
             SetOption(
-                optionName: WorkspaceConfigurationOptions.EnableOpeningSourceGeneratedFilesInWorkspace.Name,
-                feature: WorkspaceConfigurationOptions.EnableOpeningSourceGeneratedFilesInWorkspace.Feature,
+                optionName: VisualStudioSyntaxTreeConfigurationService.OptionsMetadata.EnableOpeningSourceGeneratedFilesInWorkspace.Name,
+                feature: VisualStudioSyntaxTreeConfigurationService.OptionsMetadata.EnableOpeningSourceGeneratedFilesInWorkspace.Feature,
                 value: value);
         }
 

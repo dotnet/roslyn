@@ -847,7 +847,7 @@ class C
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 
-            var options = new CompilerAnalyzerConfigOptionsProvider(ImmutableDictionary<object, AnalyzerConfigOptions>.Empty, new CompilerAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("a", "abc").Add("b", "def")));
+            var options = new CompilerAnalyzerConfigOptionsProvider(ImmutableDictionary<object, AnalyzerConfigOptions>.Empty, new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("a", "abc").Add("b", "def")));
 
             AnalyzerConfigOptionsProvider? passedIn = null;
             var testGenerator = new CallbackGenerator(
@@ -2190,7 +2190,7 @@ class C { }
 
             var builder = ImmutableDictionary<string, string>.Empty.ToBuilder();
             builder.Add("test", "value1");
-            var optionsProvider = new CompilerAnalyzerConfigOptionsProvider(ImmutableDictionary<object, AnalyzerConfigOptions>.Empty, new CompilerAnalyzerConfigOptions(builder.ToImmutable()));
+            var optionsProvider = new CompilerAnalyzerConfigOptionsProvider(ImmutableDictionary<object, AnalyzerConfigOptions>.Empty, new DictionaryAnalyzerConfigOptions(builder.ToImmutable()));
 
             // run the generator once, and check it was passed the configs
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, optionsProvider: optionsProvider, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
@@ -2227,7 +2227,7 @@ class C { }
             // now update the config
             builder.Clear();
             builder.Add("test", "value2");
-            var newOptionsProvider = optionsProvider.WithGlobalOptions(new CompilerAnalyzerConfigOptions(builder.ToImmutable()));
+            var newOptionsProvider = optionsProvider.WithGlobalOptions(new DictionaryAnalyzerConfigOptions(builder.ToImmutable()));
             driver = driver.WithUpdatedAnalyzerConfigOptions(newOptionsProvider);
 
             // check we ran
@@ -2805,6 +2805,44 @@ class C { }
 
             driver = driver.RunGenerators(compilation);
             Assert.Single(referenceList, modifiedRef.Display);
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        [WorkItem(59190, "https://github.com/dotnet/roslyn/issues/59190")]
+        public void LongBinaryExpression()
+        {
+            var source = @"
+class C {
+public static readonly string F = ""a""
+";
+
+            for (int i = 0; i < 7000; i++)
+            {
+                source += @" + ""a""
+";
+            }
+
+            source += @";
+}
+";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new PipelineCallbackGenerator(ctx =>
+            {
+                ctx.RegisterSourceOutput(ctx.SyntaxProvider.CreateSyntaxProvider((node, ct) => node is ClassDeclarationSyntax c, (context, ct) => context.Node).WithTrackingName("Syntax"), (context, ct) => { });
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, ct) => { });
+                ctx.RegisterSourceOutput(ctx.AnalyzerConfigOptionsProvider, (context, ct) => { });
+                ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (context, ct) => { });
+                ctx.RegisterSourceOutput(ctx.AdditionalTextsProvider, (context, ct) => { });
+                ctx.RegisterImplementationSourceOutput(ctx.MetadataReferencesProvider, (context, ct) => { });
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator.AsSourceGenerator() }, parseOptions: parseOptions, additionalTexts: new[] { new InMemoryAdditionalText("text.txt", "") }, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            driver = driver.RunGenerators(compilation);
+            driver.GetRunResult();
         }
     }
 }

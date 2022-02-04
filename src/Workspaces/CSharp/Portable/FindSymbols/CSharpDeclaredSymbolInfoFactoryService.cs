@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
 
                 if (parameter.Type != null)
                 {
-                    AppendTokens(parameter.Type, builder);
+                    builder.Append(parameter.Type.ConvertToSingleLine().ToString());
                 }
                 else
                 {

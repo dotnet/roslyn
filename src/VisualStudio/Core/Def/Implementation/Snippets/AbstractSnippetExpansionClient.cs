@@ -15,8 +15,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -129,9 +129,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             return _argumentProviders;
         }
 
-        public abstract int GetExpansionFunction(IXMLDOMNode xmlFunctionNode, string bstrFieldName, out IVsExpansionFunction? pFunc);
+        public int GetExpansionFunction(IXMLDOMNode xmlFunctionNode, string bstrFieldName, out IVsExpansionFunction? pFunc)
+        {
+            if (!SnippetFunctionService.TryGetSnippetFunctionInfo(xmlFunctionNode.text, out var snippetFunctionName, out var param))
+            {
+                pFunc = null;
+                return VSConstants.E_INVALIDARG;
+            }
+
+            switch (snippetFunctionName)
+            {
+                case "SimpleTypeName":
+                    pFunc = new SnippetFunctionSimpleTypeName(this, SubjectBuffer, bstrFieldName, param, ThreadingContext);
+                    return VSConstants.S_OK;
+                case "ClassName":
+                    pFunc = new SnippetFunctionClassName(this, SubjectBuffer, bstrFieldName, ThreadingContext);
+                    return VSConstants.S_OK;
+                case "GenerateSwitchCases":
+                    pFunc = new SnippetFunctionGenerateSwitchCases(this, SubjectBuffer, bstrFieldName, param, ThreadingContext);
+                    return VSConstants.S_OK;
+                default:
+                    pFunc = null;
+                    return VSConstants.E_INVALIDARG;
+            }
+        }
         protected abstract ITrackingSpan? InsertEmptyCommentAndGetEndPositionTrackingSpan();
-        internal abstract Document AddImports(Document document, OptionSet options, int position, XElement snippetNode, bool allowInHiddenRegions, CancellationToken cancellationToken);
+        internal abstract Document AddImports(Document document, AddImportPlacementOptions options, int position, XElement snippetNode, CancellationToken cancellationToken);
         protected abstract string FallbackDefaultLiteral { get; }
 
         public int FormatSpan(IVsTextLines pBuffer, VsTextSpan[] tsInSurfaceBuffer)
@@ -880,6 +903,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             }
 
             // Now compute the new arguments for the new call
+            var options = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var semanticModel = document.GetRequiredSemanticModelAsync(cancellationToken).AsTask().WaitAndGetResult(cancellationToken);
             var position = SubjectBuffer.CurrentSnapshot.GetPosition(adjustedTextSpan.iStartLine, adjustedTextSpan.iStartIndex);
 
@@ -889,7 +913,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 
                 foreach (var provider in GetArgumentProviders(document.Project.Solution.Workspace))
                 {
-                    var context = new ArgumentContext(provider, semanticModel, position, parameter, value, cancellationToken);
+                    var context = new ArgumentContext(provider, options, semanticModel, position, parameter, value, cancellationToken);
                     ThreadingContext.JoinableTaskFactory.Run(() => provider.ProvideArgumentAsync(context));
 
                     if (context.DefaultValue is not null)
@@ -1052,14 +1076,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return;
             }
 
-            var documentOptions = documentWithImports.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var allowInHiddenRegions = documentWithImports.CanAddImportsInHiddenRegions();
+            var options = AddImportPlacementOptions.FromDocumentAsync(documentWithImports, cancellationToken).WaitAndGetResult(cancellationToken);
 
-            documentWithImports = AddImports(documentWithImports, documentOptions, position, snippetNode, allowInHiddenRegions, cancellationToken);
+            documentWithImports = AddImports(documentWithImports, options, position, snippetNode, cancellationToken);
             AddReferences(documentWithImports.Project, snippetNode);
         }
 
-        private void AddReferences(Project originalProject, XElement snippetNode)
+        private static void AddReferences(Project originalProject, XElement snippetNode)
         {
             var referencesNode = snippetNode.Element(XName.Get("References", snippetNode.Name.NamespaceName));
             if (referencesNode == null)
@@ -1128,28 +1151,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 }
             }
 
-            return true;
-        }
-
-        protected static bool TryGetSnippetFunctionInfo(
-            IXMLDOMNode xmlFunctionNode,
-            [NotNullWhen(true)] out string? snippetFunctionName,
-            [NotNullWhen(true)] out string? param)
-        {
-            if (xmlFunctionNode.text.IndexOf('(') == -1 ||
-                xmlFunctionNode.text.IndexOf(')') == -1 ||
-                xmlFunctionNode.text.IndexOf(')') < xmlFunctionNode.text.IndexOf('('))
-            {
-                snippetFunctionName = null;
-                param = null;
-                return false;
-            }
-
-            snippetFunctionName = xmlFunctionNode.text.Substring(0, xmlFunctionNode.text.IndexOf('('));
-
-            var paramStart = xmlFunctionNode.text.IndexOf('(') + 1;
-            var paramLength = xmlFunctionNode.text.LastIndexOf(')') - xmlFunctionNode.text.IndexOf('(') - 1;
-            param = xmlFunctionNode.text.Substring(paramStart, paramLength);
             return true;
         }
 

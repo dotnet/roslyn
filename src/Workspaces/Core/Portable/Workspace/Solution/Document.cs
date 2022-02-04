@@ -535,8 +535,7 @@ namespace Microsoft.CodeAnalysis
             else
             {
                 // Really no idea where this is going, so bail
-                // TODO: use AnalyzerConfigOptions.EmptyDictionary, since we don't have a public dictionary
-                return Task.FromResult(ImmutableDictionary.Create<string, string>(AnalyzerConfigOptions.KeyComparer));
+                return Task.FromResult(DictionaryAnalyzerConfigOptions.EmptyDictionary);
             }
         }
     }

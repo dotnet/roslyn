@@ -48,8 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected bool? TargetTypedCompletionFilterFeatureFlag { get; set; }
         protected bool? TypeImportCompletionFeatureFlag { get; set; }
         protected bool? ShowImportCompletionItemsOptionValue { get; set; }
-        protected int? TimeoutInMilliseconds { get; set; }
-        protected bool? IsExpandedCompletion { get; set; }
+        protected bool? ForceExpandedCompletionIndexCreation { get; set; }
         protected bool? HideAdvancedMembers { get; set; }
         protected bool? ShowNameSuggestions { get; set; }
 
@@ -74,11 +73,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             if (ShowImportCompletionItemsOptionValue.HasValue)
                 options = options with { ShowItemsFromUnimportedNamespaces = ShowImportCompletionItemsOptionValue.Value };
 
-            if (TimeoutInMilliseconds.HasValue)
-                options = options with { TimeoutInMillisecondsForExtensionMethodImportCompletion = TimeoutInMilliseconds.Value };
-
-            if (IsExpandedCompletion.HasValue)
-                options = options with { IsExpandedCompletion = IsExpandedCompletion.Value };
+            if (ForceExpandedCompletionIndexCreation.HasValue)
+                options = options with { ForceExpandedCompletionIndexCreation = ForceExpandedCompletionIndexCreation.Value };
 
             if (HideAdvancedMembers.HasValue)
                 options = options with { HideAdvancedMembers = HideAdvancedMembers.Value };
@@ -133,15 +129,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string displayTextPrefix, string inlineDescription, bool? isComplexTextEdit,
             List<CompletionFilter> matchingFilters, CompletionItemFlags? flags);
 
-        internal async Task<CompletionList> GetCompletionListAsync(
+        internal Task<CompletionList> GetCompletionListAsync(
             CompletionService service,
             Document document,
             int position,
             RoslynCompletion.CompletionTrigger triggerInfo,
             CompletionOptions? options = null)
-        {
-            return (await service.GetCompletionsInternalAsync(document, position, options ?? GetCompletionOptions(), triggerInfo, GetRoles(document)).ConfigureAwait(false)).completionList;
-        }
+            => service.GetCompletionsAsync(document, position, options ?? GetCompletionOptions(), triggerInfo, GetRoles(document));
 
         private protected async Task CheckResultsAsync(
             Document document, int position, string expectedItemOrNull,
@@ -165,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var displayOptions = SymbolDescriptionOptions.From(document.Project);
             var completionService = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(completionService, document, position, trigger, options);
-            var items = completionList == null ? ImmutableArray<RoslynCompletion.CompletionItem>.Empty : completionList.Items;
+            var items = completionList.Items;
 
             if (hasSuggestionModeItem != null)
             {
@@ -587,6 +581,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var service = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke);
             var items = completionList.Items;
+            Assert.Contains(items, i => i.DisplayText + i.DisplayTextSuffix == itemToCommit);
             var firstItem = items.First(i => CompareItems(i.DisplayText + i.DisplayTextSuffix, itemToCommit));
 
             var commitChar = commitCharOpt ?? '\t';
@@ -1119,7 +1114,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var completionService = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(completionService, document, position, trigger);
 
-            return completionList == null ? ImmutableArray<RoslynCompletion.CompletionItem>.Empty : completionList.Items;
+            return completionList.Items;
         }
     }
 }

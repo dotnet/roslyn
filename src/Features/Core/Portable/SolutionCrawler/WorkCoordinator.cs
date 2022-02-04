@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -28,6 +27,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             private readonly IAsynchronousOperationListener _listener;
             private readonly IOptionService _optionService;
             private readonly IDocumentTrackingService _documentTrackingService;
+            private readonly ISyntaxTreeConfigurationService? _syntaxTreeConfigurationService;
 
             private readonly CancellationTokenSource _shutdownNotificationSource;
             private readonly CancellationToken _shutdownToken;
@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 _listener = listener;
                 _optionService = _registration.Workspace.Services.GetRequiredService<IOptionService>();
                 _documentTrackingService = _registration.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
+                _syntaxTreeConfigurationService = _registration.Workspace.Services.GetService<ISyntaxTreeConfigurationService>();
 
                 // event and worker queues
                 _shutdownNotificationSource = new CancellationTokenSource();
@@ -430,7 +431,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         // If all features are enabled for source generated documents, the solution crawler needs to
                         // include them in incremental analysis.
-                        if (WorkspaceConfigurationOptions.ShouldConnectSourceGeneratedFilesToWorkspace(newSolution.Options))
+                        if (_syntaxTreeConfigurationService?.EnableOpeningSourceGeneratedFilesInWorkspace != false)
                         {
                             var oldProjectSourceGeneratedDocuments = await oldProject.GetSourceGeneratedDocumentsAsync(_shutdownToken).ConfigureAwait(false);
                             var oldProjectSourceGeneratedDocumentsById = oldProjectSourceGeneratedDocuments.ToDictionary(static document => document.Id);
@@ -516,7 +517,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 // If all features are enabled for source generated documents, the solution crawler needs to
                 // include them in incremental analysis.
-                if (WorkspaceConfigurationOptions.ShouldConnectSourceGeneratedFilesToWorkspace(project.Solution.Options))
+                if (_syntaxTreeConfigurationService?.EnableOpeningSourceGeneratedFilesInWorkspace != false)
                 {
                     foreach (var document in await project.GetSourceGeneratedDocumentsAsync(_shutdownToken).ConfigureAwait(false))
                         await EnqueueDocumentWorkItemAsync(project, document.Id, document, invocationReasons).ConfigureAwait(false);
@@ -813,7 +814,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             {
                                 var project = solution.GetProject(documentId.ProjectId);
                                 if (project != null)
-                                    yield return (project, documentId);
+                                {
+                                    // ReanalyzeScopes are created and held in a queue before they are processed later; it's possible the document
+                                    // that we queued for is no longer present.
+                                    if (project.ContainsDocument(documentId))
+                                        yield return (project, documentId);
+                                }
+
                                 break;
                             }
                     }

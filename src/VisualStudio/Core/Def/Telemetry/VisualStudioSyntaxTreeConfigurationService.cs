@@ -1,0 +1,77 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Collections.Immutable;
+using System.Composition;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Options.Providers;
+
+namespace Microsoft.VisualStudio.LanguageServices.Telemetry
+{
+    [ExportWorkspaceService(typeof(ISyntaxTreeConfigurationService)), Shared]
+    internal sealed class VisualStudioSyntaxTreeConfigurationService : ISyntaxTreeConfigurationService
+    {
+        private readonly IGlobalOptionService _globalOptions;
+
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VisualStudioSyntaxTreeConfigurationService(IGlobalOptionService globalOptions)
+        {
+            _globalOptions = globalOptions;
+        }
+
+        public bool DisableRecoverableTrees
+            => _globalOptions.GetOption(OptionsMetadata.DisableRecoverableTrees);
+
+        public bool DisableProjectCacheService
+            => _globalOptions.GetOption(OptionsMetadata.DisableProjectCacheService);
+
+        public bool EnableOpeningSourceGeneratedFilesInWorkspace
+            => _globalOptions.GetOption(OptionsMetadata.EnableOpeningSourceGeneratedFilesInWorkspace)
+                ?? _globalOptions.GetOption(OptionsMetadata.EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag);
+
+        [ExportSolutionOptionProvider, Shared]
+        internal sealed class OptionsMetadata : IOptionProvider
+        {
+            /// <summary>
+            /// Disables if the workspace creates recoverable trees when from its <see cref="ISyntaxTreeFactoryService"/>s.
+            /// </summary>
+            public static readonly Option2<bool> DisableRecoverableTrees = new(
+                nameof(ISyntaxTreeConfigurationService), nameof(DisableRecoverableTrees), defaultValue: false,
+                new FeatureFlagStorageLocation("Roslyn.DisableRecoverableTrees"));
+
+            public static readonly Option2<bool> DisableProjectCacheService = new(
+                nameof(ISyntaxTreeConfigurationService), nameof(DisableProjectCacheService), defaultValue: false,
+                new FeatureFlagStorageLocation("Roslyn.DisableProjectCacheService"));
+
+            /// <summary>
+            /// This option allows the user to enable this. We are putting this behind a feature flag for now since we could have extensions
+            /// surprised by this and we want some time to work through those issues.
+            /// </summary>
+            internal static readonly Option2<bool?> EnableOpeningSourceGeneratedFilesInWorkspace = new(
+                nameof(ISyntaxTreeConfigurationService), nameof(EnableOpeningSourceGeneratedFilesInWorkspace), defaultValue: null,
+                new RoamingProfileStorageLocation("TextEditor.Roslyn.Specific.EnableOpeningSourceGeneratedFilesInWorkspaceExperiment"));
+
+            internal static readonly Option2<bool> EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag = new(
+                nameof(ISyntaxTreeConfigurationService), nameof(EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag), defaultValue: false,
+                new FeatureFlagStorageLocation("Roslyn.SourceGeneratorsEnableOpeningInWorkspace"));
+
+            ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
+                DisableRecoverableTrees,
+                DisableProjectCacheService,
+                EnableOpeningSourceGeneratedFilesInWorkspace,
+                EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag);
+
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public OptionsMetadata()
+            {
+            }
+        }
+    }
+}

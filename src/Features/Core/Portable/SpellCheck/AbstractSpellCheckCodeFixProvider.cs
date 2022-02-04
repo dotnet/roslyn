@@ -120,13 +120,13 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             {
                 SnippetsBehavior = SnippetsRule.NeverInclude,
                 ShowItemsFromUnimportedNamespaces = false,
-                IsExpandedCompletion = false,
-                TargetTypedCompletionFilter = false
+                TargetTypedCompletionFilter = false,
+                ExpandedCompletionBehavior = ExpandedCompletionMode.NonExpandedItemsOnly
             };
 
-            var (completionList, _) = await service.GetCompletionsInternalAsync(
+            var completionList = await service.GetCompletionsAsync(
                 document, nameToken.SpanStart, options, cancellationToken: cancellationToken).ConfigureAwait(false);
-            if (completionList == null)
+            if (completionList.Items.IsEmpty)
             {
                 return;
             }

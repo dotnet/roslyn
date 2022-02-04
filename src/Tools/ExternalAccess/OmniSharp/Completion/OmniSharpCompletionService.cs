@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Completion
 {
@@ -26,7 +24,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Completion
             return completionService.ShouldTriggerCompletion(document.Project, document.Project.LanguageServices, text, caretPosition, trigger, options.ToCompletionOptions(), roles);
         }
 
-        public static Task<(CompletionList? completionList, bool expandItemsAvailable)> GetCompletionsAsync(
+        public static Task<CompletionList> GetCompletionsAsync(
            this CompletionService completionService,
            Document document,
            int caretPosition,
@@ -34,7 +32,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Completion
            ImmutableHashSet<string>? roles,
            OmniSharpCompletionOptions options,
            CancellationToken cancellationToken)
-           => completionService.GetCompletionsInternalAsync(document, caretPosition, options.ToCompletionOptions(), trigger, roles, cancellationToken);
+        {
+            return completionService.GetCompletionsAsync(document, caretPosition, options.ToCompletionOptions(), trigger, roles, cancellationToken);
+        }
 
         public static string? GetProviderName(this CompletionItem completionItem) => completionItem.ProviderName;
     }

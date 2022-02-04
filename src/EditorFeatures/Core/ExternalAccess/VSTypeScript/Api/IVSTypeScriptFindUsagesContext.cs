@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.FindUsages;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
@@ -28,6 +30,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 
         ValueTask OnDefinitionFoundAsync(VSTypeScriptDefinitionItem definition, CancellationToken cancellationToken);
         ValueTask OnReferenceFoundAsync(VSTypeScriptSourceReferenceItem reference, CancellationToken cancellationToken);
+
+        ValueTask OnCompletedAsync(CancellationToken cancellationToken);
     }
 
     internal interface IVSTypeScriptStreamingProgressTracker
@@ -36,8 +40,29 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         ValueTask ItemCompletedAsync(CancellationToken cancellationToken);
     }
 
-    internal class VSTypeScriptDefinitionItem
+    internal sealed class VSTypeScriptDefinitionItem
     {
+        internal readonly DefinitionItem UnderlyingObject;
+
+        internal VSTypeScriptDefinitionItem(DefinitionItem underlyingObject)
+            => UnderlyingObject = underlyingObject;
+
+        public static VSTypeScriptDefinitionItem Create(
+            ImmutableArray<string> tags,
+            ImmutableArray<TaggedText> displayParts,
+            ImmutableArray<VSTypeScriptDocumentSpan> sourceSpans,
+            ImmutableArray<TaggedText> nameDisplayParts = default,
+            bool displayIfNoReferences = true)
+        {
+            return new(DefinitionItem.Create(
+                tags, displayParts, sourceSpans.SelectAsArray(span => span.ToDocumentSpan()), nameDisplayParts,
+                properties: null, displayableProperties: ImmutableDictionary<string, string>.Empty, displayIfNoReferences: displayIfNoReferences));
+        }
+
+        public static VSTypeScriptDefinitionItem Create(VSTypeScriptDefinitionItemBase item)
+            => new(item);
+
+        [Obsolete]
         public VSTypeScriptDefinitionItem(
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
@@ -47,38 +72,77 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
             ImmutableDictionary<string, string>? displayableProperties = null,
             bool displayIfNoReferences = true)
         {
-            Tags = tags;
-            DisplayParts = displayParts;
-            SourceSpans = sourceSpans;
-            NameDisplayParts = nameDisplayParts;
-            Properties = properties;
-            DisplayableProperties = displayableProperties;
-            DisplayIfNoReferences = displayIfNoReferences;
+            UnderlyingObject = new DefinitionItem.DefaultDefinitionItem(
+                tags, displayParts, nameDisplayParts, originationParts: ImmutableArray<TaggedText>.Empty, sourceSpans, properties, displayableProperties, displayIfNoReferences);
         }
 
-        public ImmutableArray<string> Tags { get; }
-        public ImmutableArray<TaggedText> DisplayParts { get; }
-        public ImmutableArray<DocumentSpan> SourceSpans { get; }
-        public ImmutableArray<TaggedText> NameDisplayParts { get; }
-        public ImmutableDictionary<string, string>? Properties { get; }
-        public ImmutableDictionary<string, string>? DisplayableProperties { get; }
-        public bool DisplayIfNoReferences { get; }
+        public ImmutableArray<string> Tags => UnderlyingObject.Tags;
+        public ImmutableArray<TaggedText> DisplayParts => UnderlyingObject.DisplayParts;
+
+        [Obsolete]
+        public ImmutableArray<DocumentSpan> SourceSpans => UnderlyingObject.SourceSpans;
+
+        public ImmutableArray<VSTypeScriptDocumentSpan> GetSourceSpans()
+            => UnderlyingObject.SourceSpans.SelectAsArray(span => new VSTypeScriptDocumentSpan(span));
+
+        public Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken)
+            => UnderlyingObject.CanNavigateToAsync(workspace, cancellationToken);
+
+        public Task<bool> TryNavigateToAsync(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
+            => UnderlyingObject.TryNavigateToAsync(workspace, showInPreviewTab, activateTab, cancellationToken);
     }
 
-    internal class VSTypeScriptSourceReferenceItem
+    internal sealed class VSTypeScriptSourceReferenceItem
     {
+        internal readonly SourceReferenceItem UnderlyingObject;
+
+        public VSTypeScriptSourceReferenceItem(
+            VSTypeScriptDefinitionItem definition,
+            VSTypeScriptDocumentSpan sourceSpan,
+            VSTypeScriptSymbolUsageInfo symbolUsageInfo)
+        {
+            UnderlyingObject = new SourceReferenceItem(definition.UnderlyingObject, sourceSpan.ToDocumentSpan(), symbolUsageInfo.UnderlyingObject);
+        }
+
+        [Obsolete]
         public VSTypeScriptSourceReferenceItem(
             VSTypeScriptDefinitionItem definition,
             DocumentSpan sourceSpan,
             SymbolUsageInfo symbolUsageInfo)
         {
-            Definition = definition;
-            SourceSpan = sourceSpan;
-            SymbolUsageInfo = symbolUsageInfo;
+            UnderlyingObject = new SourceReferenceItem(definition.UnderlyingObject, sourceSpan, symbolUsageInfo);
         }
 
-        public VSTypeScriptDefinitionItem Definition { get; }
-        public DocumentSpan SourceSpan { get; }
-        public SymbolUsageInfo SymbolUsageInfo { get; }
+        public VSTypeScriptDocumentSpan GetSourceSpan()
+            => new(UnderlyingObject.SourceSpan);
+
+        [Obsolete]
+        public DocumentSpan SourceSpan
+            => UnderlyingObject.SourceSpan;
+    }
+
+    internal readonly struct VSTypeScriptSymbolUsageInfo
+    {
+        internal readonly SymbolUsageInfo UnderlyingObject;
+
+        private VSTypeScriptSymbolUsageInfo(SymbolUsageInfo underlyingObject)
+            => UnderlyingObject = underlyingObject;
+
+        public static VSTypeScriptSymbolUsageInfo Create(VSTypeScriptValueUsageInfo valueUsageInfo)
+            => new(SymbolUsageInfo.Create((ValueUsageInfo)valueUsageInfo));
+    }
+
+    [Flags]
+    internal enum VSTypeScriptValueUsageInfo
+    {
+        None = ValueUsageInfo.None,
+        Read = ValueUsageInfo.Read,
+        Write = ValueUsageInfo.Write,
+        Reference = ValueUsageInfo.Reference,
+        Name = ValueUsageInfo.Name,
+        ReadWrite = ValueUsageInfo.ReadWrite,
+        ReadableReference = ValueUsageInfo.ReadableReference,
+        WritableReference = ValueUsageInfo.WritableReference,
+        ReadableWritableReference = ValueUsageInfo.ReadableWritableReference
     }
 }

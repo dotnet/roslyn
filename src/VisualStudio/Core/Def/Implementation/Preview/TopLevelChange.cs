@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             return solution;
         }
 
-        private Solution ApplyFileChanges(Solution solution, IEnumerable<FileChange> fileChanges, bool applyingChanges)
+        private static Solution ApplyFileChanges(Solution solution, IEnumerable<FileChange> fileChanges, bool applyingChanges)
         {
             foreach (var fileChange in fileChanges)
             {
@@ -179,7 +179,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             }
         }
 
-        private Solution ApplyReferenceChanges(Solution solution, IEnumerable<ReferenceChange> referenceChanges)
+        private static Solution ApplyReferenceChanges(Solution solution, IEnumerable<ReferenceChange> referenceChanges)
         {
             foreach (var referenceChange in referenceChanges)
             {

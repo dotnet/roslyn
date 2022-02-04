@@ -76,6 +76,14 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var client = new ServiceHubRemoteHostClient(services, globalOptions, serviceBrokerClient, hubClient, callbackDispatchers);
 
+                var syntaxTreeConfigurationService = services.GetService<ISyntaxTreeConfigurationService>();
+                if (syntaxTreeConfigurationService != null)
+                {
+                    await client.TryInvokeAsync<IRemoteProcessTelemetryService>(
+                        (service, cancellationToken) => service.SetSyntaxTreeConfigurationOptionsAsync(syntaxTreeConfigurationService.DisableRecoverableTrees, syntaxTreeConfigurationService.DisableProjectCacheService, syntaxTreeConfigurationService.EnableOpeningSourceGeneratedFilesInWorkspace, cancellationToken),
+                        cancellationToken).ConfigureAwait(false);
+                }
+
                 await client.TryInvokeAsync<IRemoteAsynchronousOperationListenerService>(
                     (service, cancellationToken) => service.EnableAsync(AsynchronousOperationListenerProvider.IsEnabled, listenerProvider.DiagnosticTokensEnabled, cancellationToken),
                     cancellationToken).ConfigureAwait(false);

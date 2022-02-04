@@ -2045,6 +2045,41 @@ class C
         }
 
         [Fact]
+        public void InRawStringInterpolation()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        System.Console.Write($""""""({new()}) ({new object()})"""""");
+    }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "(System.Object) (System.Object)");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var @new = nodes.OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+            Assert.Equal("new()", @new.ToString());
+            Assert.Equal("System.Object", model.GetTypeInfo(@new).Type.ToTestDisplayString());
+            Assert.Equal("System.Object", model.GetTypeInfo(@new).ConvertedType.ToTestDisplayString());
+            Assert.Equal("System.Object..ctor()", model.GetSymbolInfo(@new).Symbol?.ToTestDisplayString());
+            Assert.False(model.GetConstantValue(@new).HasValue);
+
+            var newObject = nodes.OfType<ObjectCreationExpressionSyntax>().Single();
+            Assert.Equal("new object()", newObject.ToString());
+            Assert.Equal("System.Object", model.GetTypeInfo(newObject).Type.ToTestDisplayString());
+            Assert.Equal("System.Object", model.GetTypeInfo(newObject).ConvertedType.ToTestDisplayString());
+            Assert.Equal("System.Object..ctor()", model.GetSymbolInfo(newObject).Symbol?.ToTestDisplayString());
+        }
+
+        [Fact]
         public void InUsing01()
         {
             string source = @"

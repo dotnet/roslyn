@@ -398,7 +398,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                     id:="CS1002",
                     category:="Test",
                     message:="Test Message",
-                    enuMessageForBingSearch:="Test Message Format",
                     severity:=DiagnosticSeverity.Error,
                     defaultSeverity:=DiagnosticSeverity.Error,
                     isEnabledByDefault:=True,
@@ -471,13 +470,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Sub
         End Class
 
-        Private Function GetDiagnosticData(projectId As ProjectId, Optional isBuildDiagnostic As Boolean = False, Optional id As String = "id") As DiagnosticData
+        Private Shared Function GetDiagnosticData(projectId As ProjectId, Optional isBuildDiagnostic As Boolean = False, Optional id As String = "id") As DiagnosticData
             Dim properties = If(isBuildDiagnostic, DiagnosticData.PropertiesForBuildDiagnostic, ImmutableDictionary(Of String, String).Empty)
             Return New DiagnosticData(
                 id,
                 category:="Test",
                 message:="Test Message",
-                enuMessageForBingSearch:="Test Message Format",
                 severity:=DiagnosticSeverity.Error,
                 defaultSeverity:=DiagnosticSeverity.Error,
                 isEnabledByDefault:=True,

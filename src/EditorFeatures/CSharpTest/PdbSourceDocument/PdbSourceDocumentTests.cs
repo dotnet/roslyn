@@ -401,7 +401,7 @@ public class C
                 // Now delete the PDB
                 File.Delete(GetPdbPath(path));
 
-                await GenerateFileAndVerifyAsync(project, symbol, source, expectedSpan, expectNullResult: true);
+                await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, source, expectedSpan, expectNullResult: true);
             });
         }
 
@@ -423,7 +423,7 @@ public class C
                 // Now delete the DLL
                 File.Delete(GetDllPath(path));
 
-                await GenerateFileAndVerifyAsync(project, symbol, source, expectedSpan, expectNullResult: true);
+                await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, source, expectedSpan, expectNullResult: true);
             });
         }
 
@@ -444,7 +444,7 @@ public class C
                 // Now delete the source
                 File.Delete(GetSourceFilePath(path));
 
-                await GenerateFileAndVerifyAsync(project, symbol, source, expectedSpan, expectNullResult: true);
+                await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, source, expectedSpan, expectNullResult: true);
             });
         }
 
@@ -463,7 +463,7 @@ public class C
                 var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"), windowsPdb: true);
 
                 //TODO: This should not be a null result: https://github.com/dotnet/roslyn/issues/55834
-                await GenerateFileAndVerifyAsync(project, symbol, source, expectedSpan, expectNullResult: true);
+                await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, source, expectedSpan, expectNullResult: true);
             });
         }
 
@@ -485,7 +485,7 @@ public class C
                 // Now make the PDB a zero byte file
                 File.WriteAllBytes(GetPdbPath(path), new byte[0]);
 
-                await GenerateFileAndVerifyAsync(project, symbol, source, expectedSpan, expectNullResult: true);
+                await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, source, expectedSpan, expectNullResult: true);
             });
         }
 
@@ -509,7 +509,7 @@ public class C
                 var corruptPdb = new byte[] { 66, 83, 74, 66, 68, 87 };
                 File.WriteAllBytes(GetPdbPath(path), corruptPdb);
 
-                await GenerateFileAndVerifyAsync(project, symbol, source, expectedSpan, expectNullResult: true);
+                await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, source, expectedSpan, expectNullResult: true);
             });
         }
 
@@ -545,7 +545,7 @@ public class C
                 File.Delete(pdbFilePath);
                 File.Move(archivePdbFilePath, pdbFilePath);
 
-                await GenerateFileAndVerifyAsync(project, symbol, source1, expectedSpan, expectNullResult: true);
+                await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, source1, expectedSpan, expectNullResult: true);
             });
         }
 
@@ -573,7 +573,7 @@ public class C
 
                 File.WriteAllText(GetSourceFilePath(path), source2, Encoding.UTF8);
 
-                await GenerateFileAndVerifyAsync(project, symbol, metadataSource, expectedSpan, expectNullResult: true);
+                await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, metadataSource, expectedSpan, expectNullResult: true);
             });
         }
 
@@ -609,7 +609,7 @@ public class C
 
                 var (project, symbol) = await CompileAndFindSymbolAsync(path, pdbLocation, Location.Embedded, encodedSourceText, c => c.GetMember("C.E"));
 
-                var (actualText, _) = await GetGeneratedSourceTextAsync(project, symbol, expectNullResult: false);
+                var (actualText, _) = await GetGeneratedSourceTextAsync(project, symbol, Location.Embedded, expectNullResult: false);
 
                 AssertEx.NotNull(actualText);
                 AssertEx.NotNull(actualText.Encoding);
@@ -638,7 +638,7 @@ public class C
 
                 var (project, symbol) = await CompileAndFindSymbolAsync(path, pdbLocation, Location.Embedded, encodedSourceText, c => c.GetMember("C.E"));
 
-                var (actualText, _) = await GetGeneratedSourceTextAsync(project, symbol, expectNullResult: false);
+                var (actualText, _) = await GetGeneratedSourceTextAsync(project, symbol, Location.Embedded, expectNullResult: false);
 
                 AssertEx.NotNull(actualText);
                 AssertEx.NotNull(actualText.Encoding);
@@ -667,7 +667,7 @@ public class C
 
                 var (project, symbol) = await CompileAndFindSymbolAsync(path, pdbLocation, Location.Embedded, encodedSourceText, c => c.GetMember("C.E"), fallbackEncoding: encoding);
 
-                var (actualText, _) = await GetGeneratedSourceTextAsync(project, symbol, expectNullResult: false);
+                var (actualText, _) = await GetGeneratedSourceTextAsync(project, symbol, Location.Embedded, expectNullResult: false);
 
                 AssertEx.NotNull(actualText);
                 AssertEx.NotNull(actualText.Encoding);

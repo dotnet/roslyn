@@ -18,8 +18,6 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 {
     internal static class FaultReporter
     {
-        private static Dictionary<string, string>? s_capturedFileContent;
-
         private static readonly object _guard = new();
         private static ImmutableArray<TelemetrySession> s_telemetrySessions = ImmutableArray<TelemetrySession>.Empty;
         private static ImmutableArray<TraceSource> s_loggers = ImmutableArray<TraceSource>.Empty;
@@ -29,7 +27,6 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         public static void InitializeFatalErrorHandlers()
         {
             FatalError.Handler = static (exception, severity, forceDump) => ReportFault(exception, ConvertSeverity(severity), forceDump);
-            FatalError.HandlerIsNonFatal = true;
             FatalError.CopyHandlerTo(typeof(Compilation).Assembly);
         }
 
@@ -87,7 +84,16 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         {
             try
             {
-                var emptyCallstack = exception.SetCallstackIfEmpty();
+                if (exception is AggregateException aggregateException)
+                {
+                    // We (potentially) have multiple exceptions; let's just report each of them
+                    foreach (var innerException in aggregateException.Flatten().InnerExceptions)
+                        ReportFault(innerException, severity, forceDump);
+
+                    return;
+                }
+
+                exception.SetCallstackIfEmpty();
                 var currentProcess = Process.GetCurrentProcess();
 
                 // write the exception to a log file:
@@ -126,11 +132,6 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                         // See https://aka.ms/roslynnfwdocs for more details
                         return 0;
                     });
-
-                // add extra bucket parameters to bucket better in NFW
-                // we do it here so that it gets bucketted better in both
-                // watson and telemetry. 
-                faultEvent.SetExtraParameters(exception, emptyCallstack);
 
                 foreach (var session in s_telemetrySessions)
                 {
@@ -235,35 +236,5 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
             return paths;
         }
-
-        private static void CaptureFilesInMemory(IEnumerable<string> paths)
-        {
-            s_capturedFileContent = new Dictionary<string, string>();
-
-            foreach (var path in paths)
-            {
-                try
-                {
-                    s_capturedFileContent[path] = File.ReadAllText(path);
-                }
-                catch
-                {
-                    // ignore file that can't be read
-                }
-            }
-        }
-    }
-
-    internal enum WatsonSeverity
-    {
-        /// <summary>
-        /// Indicate that this watson is informative and not urgent
-        /// </summary>
-        Default,
-
-        /// <summary>
-        /// Indicate that this watson is critical and need to be addressed soon
-        /// </summary>
-        Critical,
     }
 }

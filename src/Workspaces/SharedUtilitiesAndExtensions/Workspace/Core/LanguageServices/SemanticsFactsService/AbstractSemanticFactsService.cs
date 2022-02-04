@@ -148,6 +148,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken)
             => SemanticFacts.IsPartial(typeSymbol, cancellationToken);
 
+        public bool IsNullChecked(IParameterSymbol parameterSymbol, CancellationToken cancellationToken)
+            => SemanticFacts.IsNullChecked(parameterSymbol, cancellationToken);
+
         public IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken)
             => SemanticFacts.GetDeclaredSymbols(semanticModel, memberDeclaration, cancellationToken);
 
@@ -159,6 +162,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         public bool IsInsideNameOfExpression(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
             => SemanticFacts.IsInsideNameOfExpression(semanticModel, node, cancellationToken);
+
+        public ImmutableArray<IMethodSymbol> GetLocalFunctionSymbols(Compilation compilation, ISymbol symbol, CancellationToken cancellationToken)
+            => SemanticFacts.GetLocalFunctionSymbols(compilation, symbol, cancellationToken);
+
+        public bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken)
+            => SemanticFacts.IsInExpressionTree(semanticModel, node, expressionTypeOpt, cancellationToken);
+
         #endregion
     }
 }
