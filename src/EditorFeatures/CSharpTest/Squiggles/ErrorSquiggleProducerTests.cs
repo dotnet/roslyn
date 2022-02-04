@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
@@ -15,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles;
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
         public async Task ErrorTagGeneratedForError()
         {
             var spans = await GetTagSpansAsync("class C {");
-            Assert.Equal(1, spans.Length);
+            Assert.Equal(1, spans.Count());
 
             var firstSpan = spans.First();
             Assert.Equal(PredefinedErrorTypeNames.SyntaxError, firstSpan.Tag.ErrorType);
@@ -49,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
         public async Task ErrorTagGeneratedForWarning()
         {
             var spans = await GetTagSpansAsync("class C { long x = 5l; }");
-            Assert.Equal(1, spans.Length);
+            Assert.Equal(1, spans.Count());
             Assert.Equal(PredefinedErrorTypeNames.Warning, spans.First().Tag.ErrorType);
         }
 
@@ -75,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
             using var workspace = TestWorkspace.Create(workspaceXml);
             var spans = (await TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.GetDiagnosticsAndErrorSpans(workspace)).Item2;
 
-            Assert.Equal(1, spans.Length);
+            Assert.Equal(1, spans.Count());
             Assert.Equal(PredefinedErrorTypeNames.SyntaxError, spans.First().Tag.ErrorType);
         }
 
@@ -148,7 +150,7 @@ class Program
             Assert.Equal(PredefinedErrorTypeNames.Suggestion, first.Tag.ErrorType);
             ToolTipAssert.EqualContent(expectedToolTip, first.Tag.ToolTipContent);
             Assert.Equal(40, first.Span.Start);
-            Assert.Equal(27, first.Span.Length);
+            Assert.Equal(25, first.Span.Length);
 
             expectedToolTip = new ContainerElement(
                 ContainerElementStyle.Wrapped,
@@ -161,7 +163,7 @@ class Program
             Assert.Equal(PredefinedErrorTypeNames.Suggestion, second.Tag.ErrorType);
             ToolTipAssert.EqualContent(expectedToolTip, second.Tag.ToolTipContent);
             Assert.Equal(82, second.Span.Start);
-            Assert.Equal(62, second.Span.Length);
+            Assert.Equal(60, second.Span.Length);
 
             expectedToolTip = new ContainerElement(
                 ContainerElementStyle.Wrapped,
@@ -194,7 +196,7 @@ class Program
         public async Task ErrorDoesNotCrashPastEOF()
         {
             var spans = await GetTagSpansAsync("class C { int x =");
-            Assert.Equal(3, spans.Length);
+            Assert.Equal(3, spans.Count());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
@@ -204,7 +206,7 @@ class Program
 
             var spans = await TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.GetDiagnosticsAndErrorSpans(workspace);
 
-            Assert.Equal(1, spans.Item2.Length);
+            Assert.Equal(1, spans.Item2.Count());
 
             var firstDiagnostic = spans.Item1.First();
             var firstSpan = spans.Item2.First();
@@ -292,14 +294,14 @@ class Program
             var document = workspace.Documents.First();
 
             var updateArgs = DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                new object(), workspace, workspace.CurrentSolution, document.Project.Id, document.Id,
-                ImmutableArray.Create(
-                    TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.CreateDiagnosticData(document, new TextSpan(0, 0)),
-                    TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.CreateDiagnosticData(document, new TextSpan(0, 1))));
+                    new object(), workspace, workspace.CurrentSolution, document.Project.Id, document.Id,
+                    ImmutableArray.Create(
+                        TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.CreateDiagnosticData(document, new TextSpan(0, 0)),
+                        TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.CreateDiagnosticData(document, new TextSpan(0, 1))));
 
             var spans = await TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.GetErrorsFromUpdateSource(workspace, updateArgs);
 
-            Assert.Equal(1, spans.Count);
+            Assert.Equal(1, spans.Count());
             var first = spans.First();
 
             Assert.Equal(1, first.Span.Span.Length);
@@ -323,14 +325,14 @@ class Program
             var document = workspace.Documents.First();
 
             var updateArgs = DiagnosticsUpdatedArgs.DiagnosticsCreated(
-                new LiveId(), workspace, workspace.CurrentSolution, document.Project.Id, document.Id,
-                ImmutableArray.Create(
-                    TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.CreateDiagnosticData(document, new TextSpan(0, 0)),
-                    TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.CreateDiagnosticData(document, new TextSpan(0, 1))));
+                    new LiveId(), workspace, workspace.CurrentSolution, document.Project.Id, document.Id,
+                    ImmutableArray.Create(
+                        TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.CreateDiagnosticData(document, new TextSpan(0, 0)),
+                        TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.CreateDiagnosticData(document, new TextSpan(0, 1))));
 
             var spans = await TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.GetErrorsFromUpdateSource(workspace, updateArgs);
 
-            Assert.Equal(2, spans.Count);
+            Assert.Equal(2, spans.Count());
             var first = spans.First();
             var second = spans.Last();
 
@@ -338,116 +340,11 @@ class Program
             Assert.Equal(1, second.Span.Span.Length);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
-        [WorkItem(1322, "https://github.com/dotnet/roslyn/issues/1322")]
-        public async Task FadingSpanNoComment()
-        {
-            var workspaceXml =
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document FilePath = ""Test.cs"" >
-using System.Collections;
-
-class Program
-{
-}
-        </Document>
-    </Project>
-</Workspace>";
-
-            using var workspace = TestWorkspace.Create(workspaceXml, composition: SquiggleUtilities.CompositionWithSolutionCrawler);
-            var options = new Dictionary<OptionKey2, object>();
-            var language = workspace.Projects.Single().Language;
-
-            workspace.ApplyOptions(options);
-
-            var analyzerMap = new Dictionary<string, ImmutableArray<DiagnosticAnalyzer>>
-                {
-                    {
-                        LanguageNames.CSharp,
-                        ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer())
-                    }
-                };
-
-            var diagnosticsAndSpans = await TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.GetDiagnosticsAndErrorSpans(workspace, analyzerMap);
-
-            var spans = diagnosticsAndSpans.Item1
-                .Zip(diagnosticsAndSpans.Item2, (diagnostic, span) => (diagnostic, span))
-                .OrderBy(s => s.span.Span.Span.Start).ToImmutableArray();
-
-            Assert.Equal(1, spans.Length);
-            var first = spans[0].span;
-
-            var expectedToolTip = new ContainerElement(
-                ContainerElementStyle.Wrapped,
-                new ClassifiedTextElement(
-                    new ClassifiedTextRun(ClassificationTypeNames.Text, "IDE0005", QuickInfoHyperLink.TestAccessor.CreateNavigationAction(new Uri("https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005", UriKind.Absolute)), "https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005"),
-                    new ClassifiedTextRun(ClassificationTypeNames.Punctuation, ":"),
-                    new ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                    new ClassifiedTextRun(ClassificationTypeNames.Text, CSharpAnalyzersResources.Using_directive_is_unnecessary)));
-
-            Assert.Equal(PredefinedErrorTypeNames.Suggestion, first.Tag.ErrorType);
-            ToolTipAssert.EqualContent(expectedToolTip, first.Tag.ToolTipContent);
-            Assert.Equal(2, first.Span.Start);
-            Assert.Equal(27, first.Span.Length);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
-        [WorkItem(1322, "https://github.com/dotnet/roslyn/issues/1322")]
-        public async Task FadingSpanWithComment()
-        {
-            var workspaceXml =
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document FilePath = ""Test.cs"" >
-using System.Collections; // Goo
-
-class Program
-{
-}
-        </Document>
-    </Project>
-</Workspace>";
-
-            using var workspace = TestWorkspace.Create(workspaceXml, composition: SquiggleUtilities.CompositionWithSolutionCrawler);
-            var options = new Dictionary<OptionKey2, object>();
-            var language = workspace.Projects.Single().Language;
-
-            workspace.ApplyOptions(options);
-
-            var analyzerMap = new Dictionary<string, ImmutableArray<DiagnosticAnalyzer>>
-                {
-                    {
-                        LanguageNames.CSharp,
-                        ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpRemoveUnnecessaryImportsDiagnosticAnalyzer())
-                    }
-                };
-
-            var diagnosticsAndSpans = await TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.GetDiagnosticsAndErrorSpans(workspace, analyzerMap);
-
-            var spans = diagnosticsAndSpans.Item1
-                .Zip(diagnosticsAndSpans.Item2, (diagnostic, span) => (diagnostic, span))
-                .OrderBy(s => s.span.Span.Span.Start).ToImmutableArray();
-
-            Assert.Equal(1, spans.Length);
-            var first = spans[0].span;
-
-            var expectedToolTip = new ContainerElement(
-                ContainerElementStyle.Wrapped,
-                new ClassifiedTextElement(
-                    new ClassifiedTextRun(ClassificationTypeNames.Text, "IDE0005", QuickInfoHyperLink.TestAccessor.CreateNavigationAction(new Uri("https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005", UriKind.Absolute)), "https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0005"),
-                    new ClassifiedTextRun(ClassificationTypeNames.Punctuation, ":"),
-                    new ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
-                    new ClassifiedTextRun(ClassificationTypeNames.Text, CSharpAnalyzersResources.Using_directive_is_unnecessary)));
-
-            Assert.Equal(PredefinedErrorTypeNames.Suggestion, first.Tag.ErrorType);
-            ToolTipAssert.EqualContent(expectedToolTip, first.Tag.ToolTipContent);
-            Assert.Equal(2, first.Span.Start);
-            Assert.Equal(34, first.Span.Length);
-        }
-
         private class LiveId : ISupportLiveUpdate
         {
+            public LiveId()
+            {
+            }
         }
 
         private static async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansAsync(string content)
@@ -458,7 +355,7 @@ class Program
 
         private sealed class ReportOnClassWithLink : DiagnosticAnalyzer
         {
-            public static readonly DiagnosticDescriptor Rule = new(
+            public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
                 "id",
                 "title",
                 "messageFormat",
