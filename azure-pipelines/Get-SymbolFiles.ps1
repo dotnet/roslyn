@@ -1,10 +1,10 @@
 <#
 .SYNOPSIS
-    Collect the list of PDBs built in this repo, after converting them from portable to Windows PDBs.
+    Collect the list of PDBs built in this repo.
 .PARAMETER Path
-    The root path to recursively search for PDBs.
+    The directory to recursively search for PDBs.
 .PARAMETER Tests
-    A switch indicating to find test-related PDBs instead of product-only PDBs.
+    A switch indicating to find PDBs only for test binaries instead of only for shipping shipping binaries.
 #>
 [CmdletBinding()]
 param (
@@ -53,17 +53,5 @@ $PDBs |% {
     }
 
     Write-Output $BinaryImagePath
-
-    if (-not ($IsMacOS -or $IsLinux)) {
-        # Convert the PDB to legacy Windows PDBs
-        Write-Host "Converting PDB for $_" -ForegroundColor DarkGray
-        $WindowsPdbDir = "$($_.Directory.FullName)\$WindowsPdbSubDirName"
-        if (!(Test-Path $WindowsPdbDir)) { mkdir $WindowsPdbDir | Out-Null }
-        & "$PSScriptRoot\Convert-PDB.ps1" -DllPath $BinaryImagePath -PdbPath $_ -OutputPath "$WindowsPdbDir\$($_.BaseName).pdb"
-        if ($LASTEXITCODE -ne 0) {
-            Write-Warning "PDB conversion of `"$_`" failed."
-        }
-
-        Write-Output "$WindowsPdbDir\$($_.BaseName).pdb"
-    }
+    Write-Output $_.FullName
 }
