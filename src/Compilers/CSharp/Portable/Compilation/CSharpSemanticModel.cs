@@ -5299,12 +5299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var syntaxTree = (CSharpSyntaxTree)Root.SyntaxTree;
 
-            // IsGeneratedCode might be slow, only call it when needed:
-            NullableContextOptions getDefaultState()
-                => syntaxTree.IsGeneratedCode(Compilation.Options.SyntaxTreeOptionsProvider, CancellationToken.None)
-                    ? NullableContextOptions.Disable
-                    : Compilation.Options.NullableContextOptions;
-
+            NullableContextOptions? lazyDefaultState = null;
             NullableContextState contextState = syntaxTree.GetNullableContextState(position);
 
             return contextState.AnnotationsState switch
@@ -5321,6 +5316,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ when getDefaultState().WarningsEnabled() => NullableContext.WarningsContextInherited | NullableContext.WarningsEnabled,
                 _ => NullableContext.WarningsContextInherited,
             };
+
+            // IsGeneratedCode might be slow, only call it when needed:
+            NullableContextOptions getDefaultState()
+                => lazyDefaultState ??= syntaxTree.IsGeneratedCode(Compilation.Options.SyntaxTreeOptionsProvider, CancellationToken.None)
+                    ? NullableContextOptions.Disable
+                    : Compilation.Options.NullableContextOptions;
         }
 
         #endregion
