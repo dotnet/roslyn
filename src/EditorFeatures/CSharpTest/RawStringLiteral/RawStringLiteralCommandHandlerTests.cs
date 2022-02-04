@@ -144,6 +144,15 @@ $${|VirtualSpaces-4:|}
 @"var v = $""""""""$$""""");
         }
 
+        [WpfFact]
+        public void TestReturnEndOfFile()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = """"""$$");
+
+            testState.SendReturn(handled: false);
+        }
+
         #endregion
 
         #region generate initial empty raw string
