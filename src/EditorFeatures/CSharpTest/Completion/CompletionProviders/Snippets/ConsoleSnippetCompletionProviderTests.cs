@@ -69,23 +69,43 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         public async Task InsertConsoleSnippetGlobalTest()
         {
             var markupBeforeCommit =
-@"class Program
+@"
+$$
+class Program
 {
     public async Task MethodAsync()
     {
-        $$
     }
 }";
 
             var expectedCodeAfterCommit =
-@"class Program
+@"
+Console.WriteLine($$);
+class Program
 {
     public async Task MethodAsync()
     {
-        Console.Out.WriteLineAsync($$);
     }
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Write to the Console", expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task InsertConsoleSnippetInNamespaceTest()
+        {
+            var markupBeforeCommit =
+@"
+namespace Namespace
+{
+    $$
+    class Program
+    {
+        public async Task MethodAsync()
+        {
+        }
+    }
+}";
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, "Write to the Console");
         }
     }
 }
