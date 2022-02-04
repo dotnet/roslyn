@@ -1049,4 +1049,44 @@ class C
             Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "Prop1").WithArguments("C.Prop1").WithLocation(6, 25)
         );
     }
+
+    [Fact]
+    public void ObsoleteMember()
+    {
+        var comp = CreateCompilationWithRequiredMembers(@"
+using System;
+#pragma warning disable CS0649 // Unassigned field
+class C
+{
+    [Obsolete]
+    public required int Field;
+    [Obsolete]
+    public required int Prop1 { get; set; }
+}
+");
+
+        // PROTOTYPE(req): Confirm with LDM whether we want a warning here.
+        comp.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void ReadonlyPropertiesAndStructs()
+    {
+        var comp = CreateCompilationWithRequiredMembers(@"
+readonly struct S1
+{
+    public required readonly int Prop1 { get => 1; set {} }
+}
+struct S2
+{
+    public readonly int Prop2 { get => 1; set {} }
+}
+struct S3
+{
+    public int Prop2 { get => 1; readonly set {} }
+}
+");
+
+        comp.VerifyDiagnostics();
+    }
 }
