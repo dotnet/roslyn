@@ -30,6 +30,7 @@ using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
 using AsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
+using VSCompletionContext = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data.CompletionContext;
 using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data.CompletionItem;
 using VSUtilities = Microsoft.VisualStudio.Utilities;
 
@@ -213,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return true;
         }
 
-        public async Task<AsyncCompletionData.CompletionContext> GetCompletionContextAsync(
+        public async Task<VSCompletionContext> GetCompletionContextAsync(
             IAsyncCompletionSession session,
             AsyncCompletionData.CompletionTrigger trigger,
             SnapshotPoint triggerLocation,
@@ -225,9 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var document = triggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
-                return AsyncCompletionData.CompletionContext.Empty;
-
-            var options = CompletionOptions.From(document.Project);
+                return VSCompletionContext.Empty;
 
             // The computation of completion items is divided into two tasks:
             //
@@ -259,13 +258,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // Additionally, expanded items are usually considered complementary. The need for them only rise occasionally (it's rare when users need to add imports,)
             // and when they are needed, our hypothesis is because of their more intrusive nature (adding an import to the document) users would more likely to
             // contemplate such action thus typing slower before commit and/or spending more time examining the list, which give us some opportunities
-            // to still provide those items later before they are truly required.            
+            // to still provide those items later before they are truly required.     
+
+            var options = CompletionOptions.From(document.Project);
 
             if (!options.ShouldShowItemsFromUnimportNamspaces())
             {
                 // No need to trigger expanded providers at all if the feature is disabled, just trigger core providers and return;
                 var (context, list) = await GetCompletionContextWorkerAsync(document, trigger, triggerLocation,
                     options with { ExpandedCompletionBehavior = ExpandedCompletionMode.NonExpandedItemsOnly }, cancellationToken).ConfigureAwait(false);
+
                 AddPropertiesToSession(session, list, triggerLocation);
                 return context;
             }
@@ -275,50 +277,63 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // i.e. "responsive completion" disabled == always wait for all items to be calculated.
                 var (context, list) = await GetCompletionContextWorkerAsync(document, trigger, triggerLocation,
                     options with { ExpandedCompletionBehavior = ExpandedCompletionMode.AllItems }, cancellationToken).ConfigureAwait(false);
+
                 AddPropertiesToSession(session, list, triggerLocation);
                 AsyncCompletionLogger.LogImportCompletionGetContext(isBlocking: true, delayed: false);
-
                 return context;
             }
             else
             {
-                var expandedItemsTask = Task.Run(async () => await GetCompletionContextWorkerAsync(document, trigger, triggerLocation,
-                    options with { ExpandedCompletionBehavior = ExpandedCompletionMode.ExpandedItemsOnly }, cancellationToken).ConfigureAwait(false),
-                    cancellationToken);
-
-                // Record how long it takes for the background task to complete.
-                var stopwatch = Stopwatch.StartNew();
-                expandedItemsTask = expandedItemsTask.ContinueWith(task =>
+                // OK, expand item is enabled but we shouldn't block completion on its results.
+                // Kick off expand item calculation first in background.
+                Stopwatch stopwatch = new();
+                var expandedItemsTask = Task.Run(async () =>
                 {
-                    AsyncCompletionLogger.LogAdditionalTicksToCompleteDelayedImportCompletionDataPoint((int)stopwatch.ElapsedMilliseconds);
-                    return task.Result;
-                }, cancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
+                    var result = await GetCompletionContextWorkerAsync(document, trigger, triggerLocation,
+                      options with { ExpandedCompletionBehavior = ExpandedCompletionMode.ExpandedItemsOnly }, cancellationToken).ConfigureAwait(false);
+
+                    // Record how long it takes for the background task to complete *after* core providers returned.
+                    // If telemetry shows that a short wait is all it takes for ExpandedItemsTask to complete in
+                    // majority of the sessions, then we might consider doing that instead of return immediately.
+                    lock (stopwatch)
+                    {
+                        if (stopwatch.IsRunning)
+                            AsyncCompletionLogger.LogAdditionalTicksToCompleteDelayedImportCompletionDataPoint((int)stopwatch.ElapsedMilliseconds);
+                    }
+
+                    return result;
+                }, cancellationToken);
 
                 // Now trigger and wait for core providers to return;
                 var (nonExpandedContext, nonExpandedCompletionList) = await GetCompletionContextWorkerAsync(document, trigger, triggerLocation,
                         options with { ExpandedCompletionBehavior = ExpandedCompletionMode.NonExpandedItemsOnly }, cancellationToken).ConfigureAwait(false);
                 AddPropertiesToSession(session, nonExpandedCompletionList, triggerLocation);
 
-                if (!expandedItemsTask.IsCompleted)
+                if (expandedItemsTask.IsCompleted)
                 {
-                    // expanded item task still running. Save it to the session and return non-expanded items immediately.
-                    session.Properties[ExpandedItemsTask] = expandedItemsTask;
-                    AsyncCompletionLogger.LogImportCompletionGetContext(isBlocking: false, delayed: true);
-
-                    return nonExpandedContext;
-                }
-                else
-                {
-                    // the task of expanded item is completed, so get the result and combine it with result of non-expanded items.
+                    // the task of expanded item is completed, get the result and combine it with result of non-expanded items.
                     var (expandedContext, expandedCompletionList) = await expandedItemsTask.ConfigureAwait(false);
                     AddPropertiesToSession(session, expandedCompletionList, triggerLocation: null);
                     AsyncCompletionLogger.LogImportCompletionGetContext(isBlocking: false, delayed: false);
 
                     return CombineCompletionContext(nonExpandedContext, expandedContext);
                 }
+                else
+                {
+                    // Expanded item task still running. Save it to the session and return non-expanded items immediately.
+                    // Also start the stopwatch since we'd like to know how long it takes for the expand task to finish
+                    // after core providers completed (instead of how long it takes end-to-end).
+                    lock (stopwatch)
+                        Stopwatch.StartNew();
+
+                    session.Properties[ExpandedItemsTask] = expandedItemsTask;
+                    AsyncCompletionLogger.LogImportCompletionGetContext(isBlocking: false, delayed: true);
+
+                    return nonExpandedContext;
+                }
             }
 
-            static AsyncCompletionData.CompletionContext CombineCompletionContext(AsyncCompletionData.CompletionContext context1, AsyncCompletionData.CompletionContext context2)
+            static VSCompletionContext CombineCompletionContext(VSCompletionContext context1, VSCompletionContext context2)
             {
                 if (context1.Items.IsEmpty && context1.SuggestionItemOptions is null)
                     return context2;
@@ -339,7 +354,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
         }
 
-        public async Task<AsyncCompletionData.CompletionContext> GetExpandedCompletionContextAsync(
+        public async Task<VSCompletionContext> GetExpandedCompletionContextAsync(
             IAsyncCompletionSession session,
             AsyncCompletionData.CompletionExpander expander,
             AsyncCompletionData.CompletionTrigger intialTrigger,
@@ -353,10 +368,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                 // It's possible we didn't provide expanded items at the beginning of completion session because it was slow even if the feature is enabled.
                 // ExpandedItemsTask would be available in this case, so we just need to return its result.
-                // We are doing this in a spinning fashion because the lifetime of expandedItemsTask is associated with the completion session, we don't
-                // want to cancel that task when this "GetExpandedCompletionContextAsync" operation is being canceled, so we will still be able to retrieve
-                // the results later.
-                if (session.Properties.TryGetProperty<Task<(AsyncCompletionData.CompletionContext, CompletionList)>>(ExpandedItemsTask, out var expandedItemsTask))
+                if (session.Properties.TryGetProperty(ExpandedItemsTask, out Task<(VSCompletionContext, CompletionList)> expandedItemsTask))
                 {
                     // Make sure the task is removed when returning expanded items,
                     // so duplicated items won't be added in subsequent list updates.
@@ -384,10 +396,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
             }
 
-            return AsyncCompletionData.CompletionContext.Empty;
+            return VSCompletionContext.Empty;
         }
 
-        private async Task<(AsyncCompletionData.CompletionContext, CompletionList)> GetCompletionContextWorkerAsync(
+        private async Task<(VSCompletionContext, CompletionList)> GetCompletionContextWorkerAsync(
             Document document,
             AsyncCompletionData.CompletionTrigger trigger,
             SnapshotPoint triggerLocation,

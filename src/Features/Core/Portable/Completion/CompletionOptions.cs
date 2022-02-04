@@ -97,6 +97,11 @@ namespace Microsoft.CodeAnalysis.Completion
         public OptionSet ToSet(string language)
             => WithChangedOptions(OptionValueSet.Empty, language);
 
+        /// <summary>
+        /// Whether items from unimported namespaces should be included in the completion list.
+        /// This takes into consideration the experiment we are running in addition to the value
+        /// from user facing options.
+        /// </summary>
         public bool ShouldShowItemsFromUnimportNamspaces()
         {
             // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 

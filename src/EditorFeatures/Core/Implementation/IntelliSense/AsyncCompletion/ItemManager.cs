@@ -74,16 +74,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 var (expandedContext, expandedList) = await task.ConfigureAwait(false);
                 if (expandedContext.Items.Length > 0)
                 {
+                    // Here we rely on the implementation detail of `CompletionItem.CompareTo`, which always put expand items after regular ones.
                     var _ = ArrayBuilder<VSCompletionItem>.GetInstance(expandedContext.Items.Length + data.InitialSortedList.Length, out var itemsBuilder);
                     itemsBuilder.AddRange(data.InitialSortedList);
                     itemsBuilder.AddRange(expandedContext.Items);
-                    var combinedSortedList = itemsBuilder.OrderBy(GetOrAddRoslynCompletionItem).ToImmutableArray();
+                    var combinedList = itemsBuilder.ToImmutable();
 
                     // Add expanded items into a combined list, and save it to be used for future updates during the same session.
-                    session.Properties[CombinedSortedList] = combinedSortedList;
+                    session.Properties[CombinedSortedList] = combinedList;
                     var combinedFilterStates = FilterSet.CombineFilterStates(expandedContext.Filters, data.SelectedFilters);
 
-                    data = new(combinedSortedList, data.Snapshot, data.Trigger, data.InitialTrigger, combinedFilterStates,
+                    data = new(combinedList, data.Snapshot, data.Trigger, data.InitialTrigger, combinedFilterStates,
                         data.IsSoftSelected, data.DisplaySuggestionItem, data.Defaults);
                 }
 
