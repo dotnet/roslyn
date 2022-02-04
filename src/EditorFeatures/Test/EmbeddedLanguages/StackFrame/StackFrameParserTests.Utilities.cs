@@ -147,25 +147,5 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                 }
             }
         }
-
-        private sealed class MockVirtualCharService : AbstractVirtualCharService
-        {
-            public static MockVirtualCharService Instance = new();
-
-            public override bool TryGetEscapeCharacter(VirtualChar ch, out char escapedChar)
-            {
-                throw new NotImplementedException();
-            }
-
-            protected override bool IsStringOrCharLiteralToken(SyntaxToken token)
-            {
-                throw new NotImplementedException();
-            }
-
-            protected override VirtualCharSequence TryConvertToVirtualCharsWorker(SyntaxToken token)
-            {
-                throw new NotImplementedException();
-            }
-        }
     }
 }

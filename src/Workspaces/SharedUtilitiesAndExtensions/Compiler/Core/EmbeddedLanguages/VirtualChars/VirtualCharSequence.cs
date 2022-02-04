@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                 var virtualChar = VirtualChar.CreateNextInString(
                     text,
                     i,
-                    (start, length) => new TextSpan(start, length),
+                    static (start, length) => new TextSpan(start, length),
                     out var consumedCharacters);
 
                 i += consumedCharacters;
