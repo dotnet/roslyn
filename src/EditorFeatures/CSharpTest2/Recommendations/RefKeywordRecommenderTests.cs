@@ -995,9 +995,9 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         [WorkItem(58906, "https://github.com/dotnet/roslyn/issues/58906")]
-        public async Task TestNotInPotentialLambdaParamListParsedAsCastOnSameLine()
+        public async Task TestInPotentialLambdaParamListParsedAsCastOnSameLine()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
 @"class C
 {
     static void Main(string[] args)

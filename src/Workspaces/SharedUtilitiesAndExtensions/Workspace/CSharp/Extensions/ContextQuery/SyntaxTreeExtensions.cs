@@ -1197,13 +1197,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     return true;
                 }
 
-                // TODO(cyrusn): Tie into semantic analysis system to only 
-                // consider this a lambda if this is a location where the
-                // lambda's type would be inferred because of a delegate
-                // or Expression<T> type.
-                if (token.Parent?.Kind() is SyntaxKind.ParenthesizedExpression or SyntaxKind.TupleExpression)
-                    return true;
-
+                // TODO(cyrusn): Tie into semantic analysis system to only consider this a lambda if this is a location
+                // where the lambda's type would be inferred because of a delegate or Expression<T> type.
+                //
                 // ERROR tolerance.  Cast expressions can show up with partially written lambdas like so:
                 //
                 //      var lambda = (x$$)
@@ -1211,11 +1207,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 //
                 // Check if the expression of the cast is on the same line as us or not to see if we want to
                 // consider this a lambda, or just a cast.
-                if (token.Parent is CastExpressionSyntax castExpression)
-                {
-                    var sourceText = syntaxTree.GetText(cancellationToken);
-                    return !sourceText.AreOnSameLine(token, castExpression.Expression.GetFirstToken());
-                }
+
+                if (token.Parent?.Kind() is SyntaxKind.ParenthesizedExpression or SyntaxKind.TupleExpression or SyntaxKind.CastExpression)
+                    return true;
             }
 
             return false;
