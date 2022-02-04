@@ -60,11 +60,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             }
         }
 
-        /// <summary>
-        /// Constructs a <see cref="VirtualCharSequence"/> and calls <see cref="TryParse(VirtualCharSequence)"/>
-        /// </summary>
         public static StackFrameTree? TryParse(string text)
-            => TryParse(VirtualCharSequence.Create(0, text));
+            => TryParse(VirtualCharSequence.SafeCreateFromUnvalidatedString(text));
 
         /// <summary>
         /// Attempts to parse the full tree. Returns null on malformed data

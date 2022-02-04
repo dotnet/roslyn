@@ -159,25 +159,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                     result.Add(VirtualChar.Create(new Rune(tokenText[index]), span));
                     index += result.Last().Span.Length;
                 }
-                else if (Rune.TryCreate(tokenText[index], out var rune))
-                {
-                    // First, see if this was a single char that can become a rune (the common case).
-                    result.Add(VirtualChar.Create(rune, new TextSpan(offset + index, 1)));
-                    index += 1;
-                }
-                else if (index + 1 < tokenText.Length &&
-                         Rune.TryCreate(tokenText[index], tokenText[index + 1], out rune))
-                {
-                    // Otherwise, see if we have a surrogate pair (less common, but possible).
-                    result.Add(VirtualChar.Create(rune, new TextSpan(offset + index, 2)));
-                    index += 2;
-                }
                 else
                 {
-                    // Something that couldn't be encoded as runes.
-                    Debug.Assert(char.IsSurrogate(tokenText[index]));
-                    result.Add(VirtualChar.Create(tokenText[index], new TextSpan(offset + index, 1)));
-                    index += 1;
+                    index += AddNextRuneOrChar(tokenText, result, index, offset);
                 }
             }
 
@@ -200,11 +184,36 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             var textLength = endIndexExclusive - startIndexInclusive;
             if (textLength == result.Count)
             {
-                var sequence = VirtualCharSequence.Create(offset, tokenText);
+                var sequence = VirtualCharSequence.UnsafeCreateFromAlreadyValidatedString(offset, tokenText);
                 return sequence.GetSubSequence(TextSpan.FromBounds(startIndexInclusive, endIndexExclusive));
             }
 
             return VirtualCharSequence.Create(result.ToImmutable());
+        }
+
+        
+        private static int AddNextRuneOrChar(string tokenText, ArrayBuilder<VirtualChar> builder, int index, int offset)
+        {
+            if (Rune.TryCreate(tokenText[index], out var rune))
+            {
+                // First, see if this was a single char that can become a rune (the common case).
+                builder.Add(VirtualChar.Create(rune, new TextSpan(offset + index, 1)));
+                return 1;
+            }
+            else if (index + 1 < tokenText.Length &&
+                     Rune.TryCreate(tokenText[index], tokenText[index + 1], out rune))
+            {
+                // Otherwise, see if we have a surrogate pair (less common, but possible).
+                builder.Add(VirtualChar.Create(rune, new TextSpan(offset + index, 2)));
+                return 2;
+            }
+            else
+            {
+                // Something that couldn't be encoded as runes.
+                Debug.Assert(char.IsSurrogate(tokenText[index]));
+                builder.Add(VirtualChar.Create(tokenText[index], new TextSpan(offset + index, 1)));
+                return 1;
+            }
         }
     }
 }

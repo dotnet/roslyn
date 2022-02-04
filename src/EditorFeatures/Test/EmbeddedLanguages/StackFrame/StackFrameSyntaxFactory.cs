@@ -22,13 +22,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             => new(
                 kind,
                 leadingTrivia.IsDefaultOrEmpty ? ImmutableArray<StackFrameTrivia>.Empty : leadingTrivia,
-                CodeAnalysis.EmbeddedLanguages.VirtualChars.VirtualCharSequence.Create(0, s),
+                CodeAnalysis.EmbeddedLanguages.VirtualChars.VirtualCharSequence.UnsafeCreateFromAlreadyValidatedString(0, s),
                 trailingTrivia.IsDefaultOrEmpty ? ImmutableArray<StackFrameTrivia>.Empty : trailingTrivia,
                 ImmutableArray<EmbeddedDiagnostic>.Empty,
                 value: null!);
 
         public static StackFrameTrivia CreateTrivia(StackFrameKind kind, string text)
-            => new(kind, CodeAnalysis.EmbeddedLanguages.VirtualChars.VirtualCharSequence.Create(0, text), ImmutableArray<EmbeddedDiagnostic>.Empty);
+            => new(kind, CodeAnalysis.EmbeddedLanguages.VirtualChars.VirtualCharSequence.UnsafeCreateFromAlreadyValidatedString(0, text), ImmutableArray<EmbeddedDiagnostic>.Empty);
 
         public static ImmutableArray<StackFrameTrivia> CreateTriviaArray(params string[] strings)
             => strings.Select(s => CreateTrivia(StackFrameKind.SkippedTextTrivia, s)).ToImmutableArray();

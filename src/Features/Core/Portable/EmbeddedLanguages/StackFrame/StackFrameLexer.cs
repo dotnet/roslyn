@@ -23,38 +23,20 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         public readonly VirtualCharSequence Text;
         public int Position { get; private set; }
 
-        private StackFrameLexer(string text)
-            : this(VirtualCharSequence.Create(0, text))
-        {
-        }
-
         private StackFrameLexer(VirtualCharSequence text) : this()
             => Text = text;
 
-        public static StackFrameLexer? TryCreate(string text)
+        public static StackFrameLexer? TryCreate(VirtualCharSequence virtualChars)
         {
-            foreach (var c in text)
+            foreach (var virtualChar in virtualChars)
             {
-                if (c == '\r' || c == '\n')
+                if (virtualChar.Value == '\r' || virtualChar.Value == '\n')
                 {
                     return null;
                 }
             }
 
-            return new(text);
-        }
-
-        public static StackFrameLexer? TryCreate(VirtualCharSequence text)
-        {
-            foreach (var c in text)
-            {
-                if (c.Value == '\r' || c.Value == '\n')
-                {
-                    return null;
-                }
-            }
-
-            return new(text);
+            return new(virtualChars);
         }
 
         public VirtualChar CurrentChar => Position < Text.Length ? Text[Position] : default;

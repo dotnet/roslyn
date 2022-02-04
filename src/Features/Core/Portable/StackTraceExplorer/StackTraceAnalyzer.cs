@@ -9,6 +9,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 
 namespace Microsoft.CodeAnalysis.StackTraceExplorer
 {
@@ -39,10 +40,11 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var trimmedLine = line.Trim();
+                var virtualChars = VirtualCharSequence.SafeCreateFromUnvalidatedString(trimmedLine);
 
                 foreach (var parser in s_parsers)
                 {
-                    if (parser.TryParseLine(trimmedLine, out var parsedFrame))
+                    if (parser.TryParseLine(virtualChars, out var parsedFrame))
                     {
                         yield return parsedFrame;
                         break;

@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 using System.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -65,6 +67,41 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                 throw new ArgumentException(nameof(surrogateChar));
 
             return new VirtualChar(rune: Rune.ReplacementChar, surrogateChar, span);
+        }
+
+        /// <summary>
+        /// Given an input string and an index into that string, finds the next appropriate
+        /// <see cref="VirtualChar"/> that can be made. First attempts to use <see cref="Rune"/> with
+        /// fallback for when <see cref="char.IsSurrogate(char)"/> is encountered. Returns the number of chars
+        /// consumed by the <see cref="VirtualChar"/> that was added
+        /// </summary>
+        /// <param name="text">The whole text where index and offset</param>
+        /// <param name="index">The starting index within the string</param>
+        /// <param name="createSpan">Function to create the span for the VirtualChar, since it may be different than the index. Arguments are (start, length)</param>
+        /// <param name="consumedCharacters">Number of characters consumed. If iterating through the characters in a string, the index should be incremented by this amount.</param>
+        /// <returns></returns>
+        public static VirtualChar CreateNextInString(string text, int index, Func<int, int, TextSpan> createSpan, out int consumedCharacters)
+        {
+            if (Rune.TryCreate(text[index], out var rune))
+            {
+                // First, see if this was a single char that can become a rune (the common case).
+                consumedCharacters = 1;
+                return Create(rune, createSpan(index, 1));
+            }
+            else if (index + 1 < text.Length &&
+                     Rune.TryCreate(text[index], text[index + 1], out rune))
+            {
+                // Otherwise, see if we have a surrogate pair (less common, but possible).
+                consumedCharacters = 2;
+                return Create(rune, createSpan(index, 2));
+            }
+            else
+            {
+                // Something that couldn't be encoded as runes.
+                Debug.Assert(char.IsSurrogate(text[index]));
+                consumedCharacters = 1;
+                return Create(text[index], createSpan(index, 1));
+            }
         }
 
         private VirtualChar(Rune rune, char surrogateChar, TextSpan span)

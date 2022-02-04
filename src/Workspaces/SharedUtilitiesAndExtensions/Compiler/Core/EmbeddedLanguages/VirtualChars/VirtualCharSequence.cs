@@ -32,8 +32,31 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         public static VirtualCharSequence Create(ImmutableArray<VirtualChar> virtualChars)
             => new(new ImmutableArrayChunk(virtualChars));
 
-        public static VirtualCharSequence Create(int firstVirtualCharPosition, string underlyingData)
+        public static VirtualCharSequence UnsafeCreateFromAlreadyValidatedString(int firstVirtualCharPosition, string underlyingData)
             => new(new StringChunk(firstVirtualCharPosition, underlyingData));
+
+        /// <summary>
+        /// Takes in a string value and returns the <see cref="VirtualChar"/>s corresponding to
+        /// each char in the string using <see cref="VirtualChar.CreateNextInString(string, int, Func{int, int, TextSpan}, out int)"/>. Should be used over <see cref="VirtualCharSequence.UnsafeCreateFromAlreadyValidatedString(int, string)"/>
+        /// in cases where the string is arbitrary input (such as clipboard text). 
+        /// </summary>
+        public static VirtualCharSequence SafeCreateFromUnvalidatedString(string text)
+        {
+            using var _ = ArrayBuilder<VirtualChar>.GetInstance(out var builder);
+            for (var i = 0; i < text.Length; /* intentionally empty */)
+            {
+                var virtualChar = VirtualChar.CreateNextInString(
+                    text,
+                    i,
+                    (start, length) => new TextSpan(start, length),
+                    out var consumedCharacters);
+
+                i += consumedCharacters;
+                builder.Add(virtualChar);
+            }
+
+            return Create(builder.ToImmutable());
+        }
 
         /// <summary>
         /// The actual characters that this <see cref="VirtualCharSequence"/> is a portion of.

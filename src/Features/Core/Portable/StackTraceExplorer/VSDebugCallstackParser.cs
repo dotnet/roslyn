@@ -7,12 +7,13 @@ using System.Text;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 
 namespace Microsoft.CodeAnalysis.StackTraceExplorer
 {
     internal sealed class VSDebugCallstackParser : IStackFrameParser
     {
-        public bool TryParseLine(string line, [NotNullWhen(true)] out ParsedFrame? parsedFrame)
+        public bool TryParseLine(VirtualCharSequence virtualChars, [NotNullWhen(true)] out ParsedFrame? parsedFrame)
         {
             // Example line:
             // ConsoleApp4.dll!ConsoleApp4.MyClass.ThrowAtOne() Line 19	C#
@@ -20,15 +21,22 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
             //                     Symbol data we care about
             parsedFrame = null;
 
-            // +1 here because we always want to skip the '!' character
-            var startPoint = line.IndexOf('!') + 1;
+            var startPoint = 0;
+            foreach (var virtualChar in virtualChars)
+            {
+                if (virtualChar.Value == '!')
+                {
+                    startPoint = virtualChar.Span.End;
+                    break;
+                }
+            }
 
-            if (startPoint == 0 || startPoint == line.Length)
+            if (startPoint == 0)
             {
                 return false;
             }
 
-            var textToParse = line[startPoint..];
+            var textToParse = virtualChars.GetSubSequence(TextSpan.FromBounds(startPoint, virtualChars.Last().Span.End));
             var tree = StackFrameParser.TryParse(textToParse);
 
             if (tree is null)

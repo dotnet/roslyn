@@ -422,6 +422,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         [InlineData("M.N(\r\n)")]
         [InlineData("M.N(\r)")]
         [InlineData("M.N(\n)")]
+        [InlineData("🤔")] // Surrogate pair for emoji. See https://github.com/dotnet/roslyn/issues/59258
         public void TestInvalidInputs(string input)
             => Verify(input, expectFailure: true);
 

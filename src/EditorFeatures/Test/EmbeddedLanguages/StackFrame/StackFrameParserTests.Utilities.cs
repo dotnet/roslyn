@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
             // This should be the same as ToFullString, but this tests that enumeration of the 
             // tokens yields the correct order (which we can't guarantee with ToFullString depending
             // on implementation). 
-            var textSeq = VirtualCharSequence.Create(0, originalText);
+            var textSeq = VirtualCharSequence.UnsafeCreateFromAlreadyValidatedString(0, originalText);
             var index = 0;
             List<VirtualChar> enumeratedParsedCharacters = new();
 
@@ -144,6 +145,26 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
                         sb.Append("...");
                     }
                 }
+            }
+        }
+
+        private sealed class MockVirtualCharService : AbstractVirtualCharService
+        {
+            public static MockVirtualCharService Instance = new();
+
+            public override bool TryGetEscapeCharacter(VirtualChar ch, out char escapedChar)
+            {
+                throw new NotImplementedException();
+            }
+
+            protected override bool IsStringOrCharLiteralToken(SyntaxToken token)
+            {
+                throw new NotImplementedException();
+            }
+
+            protected override VirtualCharSequence TryConvertToVirtualCharsWorker(SyntaxToken token)
+            {
+                throw new NotImplementedException();
             }
         }
     }

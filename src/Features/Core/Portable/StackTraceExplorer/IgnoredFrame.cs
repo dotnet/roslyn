@@ -2,20 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+
 namespace Microsoft.CodeAnalysis.StackTraceExplorer
 {
     internal sealed class IgnoredFrame : ParsedFrame
     {
-        private readonly string _originalText;
+        private readonly VirtualCharSequence _sequence;
 
-        public IgnoredFrame(string originalText)
+        public IgnoredFrame(VirtualCharSequence sequence)
         {
-            _originalText = originalText;
+            _sequence = sequence;
         }
 
         public override string ToString()
-        {
-            return _originalText;
-        }
+            => _sequence.CreateString();
     }
 }
