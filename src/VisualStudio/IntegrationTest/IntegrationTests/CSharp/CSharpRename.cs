@@ -38,11 +38,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             await base.InitializeAsync();
 
             // reset relevant global options to default values:
-            VisualStudio.Workspace.SetFeatureOption("InlineRenameDashboardOptions", "RenameInComments", language: null, "False");
-            VisualStudio.Workspace.SetFeatureOption("InlineRenameDashboardOptions", "RenameInStrings", language: null, "False");
-            VisualStudio.Workspace.SetFeatureOption("InlineRenameDashboardOptions", "RenameOverloads", language: null, "False");
-            VisualStudio.Workspace.SetFeatureOption("InlineRenameDashboardOptions", "RenameFile", language: null, "True");
-            VisualStudio.Workspace.SetFeatureOption("InlineRenameDashboardOptions", "PreviewChanges", language: null, "False");
+            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.RenameInComments, language: null, "False");
+            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.RenameInStrings, language: null, "False");
+            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.RenameOverloads, language: null, "False");
+            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.RenameFile, language: null, "True");
+            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.PreviewChanges, language: null, "False");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]

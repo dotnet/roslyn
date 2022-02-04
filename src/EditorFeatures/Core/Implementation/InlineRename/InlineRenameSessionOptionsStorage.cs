@@ -4,11 +4,11 @@
 
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
+namespace Microsoft.CodeAnalysis.InlineRename
 {
     internal static class InlineRenameSessionOptionsStorage
     {
-        private const string FeatureName = "InlineRenameDashboardOptions";
+        private const string FeatureName = "InlineRenameSessionOptions";
 
         public static readonly Option2<bool> RenameOverloads = new(FeatureName, "RenameOverloads", defaultValue: false, storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.RenameOverloads"));
         public static readonly Option2<bool> RenameInStrings = new(FeatureName, "RenameInStrings", defaultValue: false, storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.RenameInStrings"));
