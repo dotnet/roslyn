@@ -335,7 +335,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     factory.LogicalNotExpression(
                         generator.IsPatternExpression(otherNameExpression,
                             generator.ConstantPattern(nullLiteral))));
-
             }
             else
             {
