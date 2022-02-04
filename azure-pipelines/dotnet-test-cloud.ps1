@@ -4,7 +4,7 @@ Param(
     [switch]$PublishResults
 )
 
-$RepoRoot = Resolve-Path (Join-Path $PSScriptRoot '..')
+$RepoRoot = (Resolve-Path "$PSScriptRoot/..").Path
 $ArtifactStagingFolder = & "$PSScriptRoot/Get-ArtifactsStagingDirectory.ps1"
 
 dotnet test $RepoRoot `
