@@ -13,19 +13,12 @@ param (
     [switch]$Tests
 )
 
-$WindowsPdbSubDirName = "symstore"
-
 $ActivityName = "Collecting symbols from $Path"
 Write-Progress -Activity $ActivityName -CurrentOperation "Discovery PDB files"
-$PDBs = Get-ChildItem -rec "$Path/*.pdb" |? { $_.FullName -notmatch "\W$WindowsPdbSubDirName\W" }
+$PDBs = Get-ChildItem -rec "$Path/*.pdb"
 
 # Filter PDBs to product OR test related.
 $testregex = "unittest|tests"
-if ($Tests) {
-    $PDBs = $PDBs |? { $_.FullName -match $testregex }
-} else {
-    $PDBs = $PDBs |? { $_.FullName -notmatch $testregex }
-}
 
 Write-Progress -Activity $ActivityName -CurrentOperation "De-duplicating symbols"
 $PDBsByHash = @{}
@@ -41,6 +34,12 @@ $PDBs |% {
     if (-not $PDBsByHash.ContainsKey($_.Hash)) {
         $PDBsByHash.Add($_.Hash, $_.FullName)
         Write-Output $_
+    }
+} |? {
+    if ($Tests) {
+        $_.FullName -match $testregex
+    } else {
+        $_.FullName -notmatch $testregex
     }
 } |% {
     # Collect the DLLs/EXEs as well.
