@@ -450,7 +450,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim document = Me.Workspace.CurrentSolution.Projects.First().Documents.First()
             Dim service = CompletionService.GetService(document)
             Dim roslynItem = GetSelectedItem()
-            Dim options = CompletionOptions.From(document.Project)
+            Dim options = CompletionOptions.Default
             Dim displayOptions = SymbolDescriptionOptions.From(document.Project)
             Return Await service.GetDescriptionAsync(document, roslynItem, options, displayOptions)
         End Function

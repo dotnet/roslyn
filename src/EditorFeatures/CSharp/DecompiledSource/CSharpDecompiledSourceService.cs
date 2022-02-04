@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource
 
             if (file is null && assemblyLocation is null)
             {
-                throw new NotSupportedException(FeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret);
+                throw new NotSupportedException(EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret);
             }
 
             file ??= new PEFile(assemblyLocation, PEStreamOptions.PrefetchEntireImage);

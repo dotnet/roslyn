@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
         public JsonLanguageDetector(
             EmbeddedLanguageInfo info,
             ISet<INamedTypeSymbol> typesOfInterest)
-            : base(info, s_languageCommentDetector)
+            : base("Json", info, s_languageCommentDetector)
         {
             _typesOfInterest = typesOfInterest;
         }
@@ -67,10 +67,17 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
             return new JsonLanguageDetector(info, types);
         }
 
+        /// <summary>
+        /// [StringSyntax(Json)] means we're targetting .net, which means we're strict by default if we don't see any
+        /// options.
+        /// </summary>
+        protected override JsonOptions GetStringSyntaxDefaultOptions()
+            => JsonOptions.Strict;
+
         protected override JsonTree? TryParse(VirtualCharSequence chars, JsonOptions options)
             => JsonParser.TryParse(chars, options);
 
-        protected override bool IsEmbeddedLanguageString(
+        protected override bool IsArgumentToWellKnownAPI(
             SyntaxToken token,
             SyntaxNode argumentNode,
             SemanticModel semanticModel,
@@ -94,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
                         IsArgumentToSuitableParameter(semanticModel, argumentNode, cancellationToken))
                     {
                         options = symbol.ContainingType.Name == nameof(JsonDocument) ? JsonOptions.Strict : default;
-                        options |= GetOptionsFromSiblingArgument(argumentNode, semanticModel, cancellationToken);
+                        options |= GetOptionsFromSiblingArgument(argumentNode, semanticModel, cancellationToken) ?? default;
                         return true;
                     }
                 }
@@ -114,6 +121,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
             if (exprType.Name != nameof(JsonDocumentOptions))
                 return false;
 
+            // once we see a JsonDocumentOptions, we know this is the .net parser and we should be strict.
+            options = JsonOptions.Strict;
             var syntaxFacts = Info.SyntaxFacts;
             expr = syntaxFacts.WalkDownParentheses(expr);
             if (syntaxFacts.IsObjectCreationExpression(expr) ||

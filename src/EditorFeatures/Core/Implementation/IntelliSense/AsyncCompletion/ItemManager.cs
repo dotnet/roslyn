@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // so duplicated items won't be added in subsequent list updates.
                 session.Properties.RemoveProperty(CompletionSource.ExpandedItemsTask);
 
-                var (expandedContext, expandedList) = await task.ConfigureAwait(false);
+                var (expandedContext, _) = await task.ConfigureAwait(false);
                 if (expandedContext.Items.Length > 0)
                 {
                     // Here we rely on the implementation detail of `CompletionItem.CompareTo`, which always put expand items after regular ones.

@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     Func<string, IDisposable?> addOperationScope =
                         description => operationContext?.AddScope(allowCancellation: true, string.Format(EditorFeaturesResources.Gathering_Suggestions_0, description));
 
-                    var options = CodeActionOptionsFactory.GetCodeActionOptions(document.Project, isBlocking: true);
+                    var options = GlobalOptions.GetCodeActionOptions(document.Project.Language, isBlocking: true);
 
                     // We convert the code fixes and refactorings to UnifiedSuggestedActionSets instead of
                     // SuggestedActionSets so that we can share logic between local Roslyn and LSP.
@@ -614,7 +614,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 if (document == null)
                     return null;
 
-                var options = CodeActionOptionsFactory.GetCodeActionOptions(document.Project, isBlocking: false);
+                var options = GlobalOptions.GetCodeActionOptions(document.Project.Language, isBlocking: false);
 
                 using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 var linkedToken = linkedTokenSource.Token;
