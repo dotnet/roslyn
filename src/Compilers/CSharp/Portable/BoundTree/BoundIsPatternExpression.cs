@@ -2,27 +2,24 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class BoundSwitchStatement : IBoundSwitchStatement
+    internal partial class BoundIsPatternExpression
     {
-        BoundNode IBoundSwitchStatement.Value => this.Expression;
-        ImmutableArray<BoundStatementList> IBoundSwitchStatement.Cases => StaticCast<BoundStatementList>.From(this.SwitchSections);
-
         public BoundDecisionDag GetDecisionDagForLowering(CSharpCompilation compilation)
         {
             BoundDecisionDag decisionDag = this.ReachabilityDecisionDag;
             if (decisionDag.ContainsAnySynthesizedNodes())
             {
-                decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchStatement(
+                decisionDag = DecisionDagBuilder.CreateDecisionDagForIsPattern(
                     compilation,
                     this.Syntax,
                     this.Expression,
-                    this.SwitchSections,
-                    this.DefaultLabel?.Label ?? this.BreakLabel,
+                    this.Pattern,
+                    this.WhenTrueLabel,
+                    this.WhenFalseLabel,
                     BindingDiagnosticBag.Discarded,
                     forLowering: true);
                 Debug.Assert(!decisionDag.ContainsAnySynthesizedNodes());

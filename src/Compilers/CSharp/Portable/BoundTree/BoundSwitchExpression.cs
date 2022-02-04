@@ -2,27 +2,28 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class BoundSwitchStatement : IBoundSwitchStatement
+    internal partial class BoundSwitchExpression
     {
-        BoundNode IBoundSwitchStatement.Value => this.Expression;
-        ImmutableArray<BoundStatementList> IBoundSwitchStatement.Cases => StaticCast<BoundStatementList>.From(this.SwitchSections);
-
-        public BoundDecisionDag GetDecisionDagForLowering(CSharpCompilation compilation)
+        public BoundDecisionDag GetDecisionDagForLowering(CSharpCompilation compilation, out LabelSymbol? defaultLabel)
         {
+            defaultLabel = this.DefaultLabel;
+
             BoundDecisionDag decisionDag = this.ReachabilityDecisionDag;
             if (decisionDag.ContainsAnySynthesizedNodes())
             {
-                decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchStatement(
+                decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchExpression(
                     compilation,
                     this.Syntax,
                     this.Expression,
-                    this.SwitchSections,
-                    this.DefaultLabel?.Label ?? this.BreakLabel,
+                    this.SwitchArms,
+                    // there's no default label if the original switch is exhaustive.
+                    // we generate a new label here because the new dag might not be.
+                    defaultLabel ??= new GeneratedLabelSymbol("default"),
                     BindingDiagnosticBag.Discarded,
                     forLowering: true);
                 Debug.Assert(!decisionDag.ContainsAnySynthesizedNodes());
