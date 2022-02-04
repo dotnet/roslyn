@@ -218,7 +218,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename
                 return null;
             }
 
-            private IEnumerable<IOleUndoUnit> GetUndoUnits(IOleUndoManager undoManager)
+            private static IEnumerable<IOleUndoUnit> GetUndoUnits(IOleUndoManager undoManager)
             {
                 IEnumOleUndoUnits undoUnitEnumerator;
                 try

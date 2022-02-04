@@ -209,27 +209,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var position = type.Locations.First(loc => loc.SourceTree == targetSyntaxTree).SourceSpan.Start;
             var destinationType = syntaxFacts.GetContainingTypeDeclaration(targetSyntaxTree.GetRoot(cancellationToken), position);
-            var options = targetDocument.GetOptionsAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
-            var insertionPoint = codeModel.GetEndPoint(destinationType, options, EnvDTE.vsCMPart.vsCMPartBody);
+            var documentOptions = targetDocument.GetOptionsAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+            var insertionPoint = codeModel.GetEndPoint(destinationType, documentOptions, EnvDTE.vsCMPart.vsCMPartBody);
 
             if (insertionPoint == null)
             {
                 throw new InvalidOperationException(ServicesVSResources.Can_t_find_where_to_insert_member);
             }
 
-            var newType = codeGenerationService.AddMethod(destinationType, newMethod, new CodeGenerationOptions(autoInsertionLocation: false), cancellationToken);
+            var options = codeGenerationService.GetOptions(
+                targetSyntaxTree.Options,
+                documentOptions,
+                new CodeGenerationContext(autoInsertionLocation: false));
+
+            var newType = codeGenerationService.AddMethod(destinationType, newMethod, options, cancellationToken);
             var newRoot = targetSyntaxTree.GetRoot(cancellationToken).ReplaceNode(destinationType, newType);
 
             newRoot = Simplifier.ReduceAsync(
                 targetDocument.WithSyntaxRoot(newRoot), Simplifier.Annotation, null, cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetSyntaxRootSynchronously(cancellationToken);
 
             var formattingRules = additionalFormattingRule.Concat(Formatter.GetDefaultFormattingRules(targetDocument));
+            var formattingOptions = SyntaxFormattingOptions.FromDocumentAsync(targetDocument, cancellationToken).WaitAndGetResult_Venus(cancellationToken);
 
             newRoot = Formatter.Format(
                 newRoot,
                 Formatter.Annotation,
-                targetDocument.Project.Solution.Workspace,
-                targetDocument.GetOptionsAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken),
+                targetDocument.Project.Solution.Workspace.Services,
+                formattingOptions,
                 formattingRules,
                 cancellationToken);
 

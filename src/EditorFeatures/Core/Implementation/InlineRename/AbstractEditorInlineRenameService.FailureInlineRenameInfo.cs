@@ -15,7 +15,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal abstract partial class AbstractEditorInlineRenameService
     {
-        private class FailureInlineRenameInfo : IInlineRenameInfo
+        internal static readonly IInlineRenameInfo DefaultFailureInfo = new FailureInlineRenameInfo(EditorFeaturesResources.You_cannot_rename_this_element);
+
+        private sealed class FailureInlineRenameInfo : IInlineRenameInfo
         {
             public FailureInlineRenameInfo(string localizedErrorMessage)
                 => this.LocalizedErrorMessage = localizedErrorMessage;

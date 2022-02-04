@@ -41,18 +41,13 @@
                     </StackPanel>
                     <CheckBox x:Name="Enable_navigation_to_decompiled_sources"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_navigation_to_decompiled_sources}" />
-                    
+
                     <CheckBox x:Name="Enable_pull_diagnostics_experimental_requires_restart"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_pull_diagnostics_experimental_requires_restart}" 
                               Checked="Enable_pull_diagnostics_experimental_requires_restart_CheckedChanged"
                               Unchecked="Enable_pull_diagnostics_experimental_requires_restart_CheckedChanged"
                               Indeterminate="Enable_pull_diagnostics_experimental_requires_restart_CheckedChanged"
                               IsThreeState="True"/>
-
-                    <CheckBox x:Name="Enable_Razor_pull_diagnostics_experimental_requires_restart"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_Razor_pull_diagnostics_experimental_requires_restart}" 
-                              Checked="Enable_Razor_pull_diagnostics_experimental_requires_restart_Checked"
-                              Unchecked="Enable_Razor_pull_diagnostics_experimental_requires_restart_Unchecked"/>
 
                     <CheckBox x:Name="Run_code_analysis_in_separate_process"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_run_code_analysis_in_separate_process}" />
@@ -176,10 +171,24 @@
                             Content="{x:Static local:AdvancedOptionPageStrings.Option_Colorize_regular_expressions}" />
                     <CheckBox x:Name="Report_invalid_regular_expressions"
                             Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_regular_expressions}" />
-                    <CheckBox x:Name="Highlight_related_components_under_cursor"
+                    <CheckBox x:Name="Highlight_related_regular_expression_components_under_cursor"
                             Content="{x:Static local:AdvancedOptionPageStrings.Option_Highlight_related_components_under_cursor}" />
                     <CheckBox x:Name="Show_completion_list"
                             Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_completion_list}" />
+                </StackPanel>
+            </GroupBox>
+
+            <GroupBox x:Uid="JsonGroupBox"
+                    Header="{x:Static local:AdvancedOptionPageStrings.Option_JSON_strings}">
+                <StackPanel>
+                    <CheckBox x:Name="Detect_and_offer_editor_features_for_likely_JSON_strings"
+                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Detect_and_offer_editor_features_for_likely_JSON_strings}" />
+                    <CheckBox x:Name="Colorize_JSON_strings"
+                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Colorize_JSON_strings}" />
+                    <CheckBox x:Name="Report_invalid_JSON_strings"
+                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_JSON_strings}" />
+                    <CheckBox x:Name="Highlight_related_JSON_components_under_cursor"
+                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Highlight_related_components_under_cursor}" />
                 </StackPanel>
             </GroupBox>
 

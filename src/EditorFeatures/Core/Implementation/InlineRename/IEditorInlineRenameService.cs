@@ -249,6 +249,8 @@ namespace Microsoft.CodeAnalysis.Editor
         InlineRenameFileRenameInfo GetFileRenameInfo();
     }
 
+#nullable enable
+
     /// <summary>
     /// Language service that allows a language to participate in the editor's inline rename feature.
     /// </summary>

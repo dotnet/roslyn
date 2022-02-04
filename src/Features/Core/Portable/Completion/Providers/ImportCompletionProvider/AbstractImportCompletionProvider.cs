@@ -6,7 +6,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -21,10 +22,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractImportCompletionProvider : LSPCompletionProvider, INotifyCommittingItemCompletionProvider
     {
-        protected abstract Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken);
         protected abstract ImmutableArray<string> GetImportedNamespaces(SyntaxNode location, SemanticModel semanticModel, CancellationToken cancellationToken);
         protected abstract bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext);
-        protected abstract Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, bool isExpandedCompletion, CancellationToken cancellationToken);
+        protected abstract Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, CancellationToken cancellationToken);
         protected abstract bool IsFinalSemicolonOfUsingOrExtern(SyntaxNode directive, SyntaxToken token);
         protected abstract Task<bool> ShouldProvideParenthesisCompletionAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken);
         protected abstract void LogCommit();
@@ -39,44 +39,42 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
+            // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 
+            var importCompletionOptionValue = completionContext.CompletionOptions.ShowItemsFromUnimportedNamespaces;
+            if (importCompletionOptionValue == false ||
+                (importCompletionOptionValue == null && !completionContext.CompletionOptions.TypeImportCompletion))
+            {
+                return;
+            }
+
             var cancellationToken = completionContext.CancellationToken;
             var document = completionContext.Document;
 
-            // We need to check for context before option values, so we can tell completion service that we are in a context to provide expanded items
-            // even though import completion might be disabled. This would show the expander in completion list which user can then use to explicitly ask for unimported items.
             var syntaxContext = await CreateContextAsync(document, completionContext.Position, cancellationToken).ConfigureAwait(false);
             if (!ShouldProvideCompletion(completionContext, syntaxContext))
             {
                 return;
             }
 
-            completionContext.ExpandItemsAvailable = true;
-
-            // We will trigger import completion regardless of the option/experiment if extended items is being requested explicitly (via expander in completion list)
-            var isExpandedCompletion = completionContext.CompletionOptions.IsExpandedCompletion;
-            if (!isExpandedCompletion)
-            {
-                var importCompletionOptionValue = completionContext.CompletionOptions.ShowItemsFromUnimportedNamespaces;
-
-                // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 
-                if (importCompletionOptionValue == false ||
-                    (importCompletionOptionValue == null && !completionContext.CompletionOptions.TypeImportCompletion))
-                {
-                    return;
-                }
-            }
-
             // Find all namespaces in scope at current cursor location, 
             // which will be used to filter so the provider only returns out-of-scope types.
             var namespacesInScope = GetNamespacesInScope(document, syntaxContext, cancellationToken);
-            await AddCompletionItemsAsync(completionContext, syntaxContext, namespacesInScope, isExpandedCompletion, cancellationToken).ConfigureAwait(false);
+            await AddCompletionItemsAsync(completionContext, syntaxContext, namespacesInScope, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
+        {
+            // Need regular semantic model because we will use it to get imported namespace symbols. Otherwise we will try to 
+            // reach outside of the span and ended up with "node not within syntax tree" error from the speculative model.
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            return document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
         }
 
         private HashSet<string> GetNamespacesInScope(Document document, SyntaxContext syntaxContext, CancellationToken cancellationToken)
         {
             var semanticModel = syntaxContext.SemanticModel;
 
-            // The location is the containing node of the LeftToken, or the compilation unit itsef if LeftToken
+            // The location is the containing node of the LeftToken, or the compilation unit itself if LeftToken
             // indicates the beginning of the document (i.e. no parent).
             var location = syntaxContext.LeftToken.Parent ?? syntaxContext.SyntaxTree.GetRoot(cancellationToken);
             var importedNamespaces = GetImportedNamespaces(location, semanticModel, cancellationToken);
@@ -127,12 +125,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // Add required using/imports directive.
             var addImportService = document.GetRequiredLanguageService<IAddImportsService>();
             var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
-            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var allowInHiddenRegions = document.CanAddImportsInHiddenRegions();
+            var importsPlacement = await AddImportPlacementOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
             var importNode = CreateImport(document, containingNamespace);
 
             var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var rootWithImport = addImportService.AddImport(compilation, root, addImportContextNode!, importNode, generator, optionSet, allowInHiddenRegions, cancellationToken);
+            var rootWithImport = addImportService.AddImport(compilation, root, addImportContextNode!, importNode, generator, importsPlacement, cancellationToken);
             var documentWithImport = document.WithSyntaxRoot(rootWithImport);
             // This only formats the annotated import we just added, not the entire document.
             var formattedDocumentWithImport = await Formatter.FormatAsync(documentWithImport, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);

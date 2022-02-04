@@ -17,7 +17,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.InlineHints
         public static async Task<ImmutableArray<OmniSharpInlineHint>> GetInlineHintsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var service = document.GetRequiredLanguageService<IInlineHintsService>();
-            var hints = await service.GetInlineHintsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var options = InlineHintsOptions.From(document.Project);
+
+            var hints = await service.GetInlineHintsAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
             return hints.SelectAsArray(static h => new OmniSharpInlineHint(
                 h.Span,
                 h.DisplayParts,

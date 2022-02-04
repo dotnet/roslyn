@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -125,7 +126,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                 var contextAfterStart = GetBraceCompletionContext();
                 if (contextAfterStart != null)
                 {
-                    var changesAfterStart = _service.GetTextChangesAfterCompletionAsync(contextAfterStart.Value, cancellationToken).WaitAndGetResult(cancellationToken);
+                    var options = IndentationOptions.FromDocumentAsync(contextAfterStart.Value.Document, cancellationToken).WaitAndGetResult(cancellationToken);
+                    var changesAfterStart = _service.GetTextChangesAfterCompletionAsync(contextAfterStart.Value, options, cancellationToken).WaitAndGetResult(cancellationToken);
                     if (changesAfterStart != null)
                     {
                         ApplyBraceCompletionResult(changesAfterStart.Value);
@@ -283,8 +285,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                             return;
                         }
 
-                        var documentOptions = context.Value.Document.GetOptionsAsync().WaitAndGetResult(CancellationToken.None);
-                        var changesAfterReturn = _service.GetTextChangeAfterReturnAsync(context.Value, documentOptions, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                        var options = IndentationOptions.FromDocumentAsync(context.Value.Document, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                        var changesAfterReturn = _service.GetTextChangeAfterReturnAsync(context.Value, options, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
                         if (changesAfterReturn != null)
                         {
                             using var caretPreservingTransaction = new CaretPreservingEditTransaction(EditorFeaturesResources.Brace_Completion, _undoHistory, _editorOperations);

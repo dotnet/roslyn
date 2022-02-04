@@ -67,6 +67,11 @@
         <target state="translated">Declaración de variables alineada</target>
         <note />
       </trans-unit>
+      <trans-unit id="Lambda_expression_can_be_removed">
+        <source>Lambda expression can be removed</source>
+        <target state="new">Lambda expression can be removed</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Misplaced_using_directive">
         <source>Misplaced using directive</source>
         <target state="translated">Directiva using mal colocada</target>
@@ -120,6 +125,11 @@
       <trans-unit id="Remove_suppression_operators">
         <source>Remove suppression operators</source>
         <target state="translated">Quitar operadores de supresión</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_lambda_expression">
+        <source>Remove unnecessary lambda expression</source>
+        <target state="new">Remove unnecessary lambda expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unnecessary_suppression_operator">
@@ -261,6 +271,11 @@
         <source>Use 'new(...)'</source>
         <target state="translated">Usar "new(...)"</target>
         <note>{Locked="new(...)"} This is a C# construct and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Use_parameter_null_checking">
+        <source>Use parameter null checking</source>
+        <target state="new">Use parameter null checking</target>
+        <note />
       </trans-unit>
       <trans-unit id="Use_pattern_matching">
         <source>Use pattern matching</source>

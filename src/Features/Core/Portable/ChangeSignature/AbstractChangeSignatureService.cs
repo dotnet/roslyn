@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
@@ -398,12 +399,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 });
 
                 var annotatedNodes = newRoot.GetAnnotatedNodes<SyntaxNode>(syntaxAnnotation: changeSignatureFormattingAnnotation);
+                var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(doc, cancellationToken).ConfigureAwait(false);
 
                 var formattedRoot = Formatter.Format(
                     newRoot,
                     changeSignatureFormattingAnnotation,
-                    doc.Project.Solution.Workspace,
-                    options: await doc.GetOptionsAsync(cancellationToken).ConfigureAwait(false),
+                    doc.Project.Solution.Workspace.Services,
+                    options: formattingOptions,
                     rules: GetFormattingRules(doc),
                     cancellationToken: CancellationToken.None);
 
@@ -414,7 +416,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             foreach (var docId in nodesToUpdate.Keys)
             {
                 var updatedDoc = currentSolution.GetRequiredDocument(docId).WithSyntaxRoot(updatedRoots[docId]);
-                var docWithImports = await ImportAdder.AddImportsFromSymbolAnnotationAsync(updatedDoc, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var addImportOptions = await AddImportPlacementOptions.FromDocumentAsync(updatedDoc, cancellationToken).ConfigureAwait(false);
+                var docWithImports = await ImportAdder.AddImportsFromSymbolAnnotationAsync(updatedDoc, addImportOptions, cancellationToken).ConfigureAwait(false);
                 var reducedDoc = await Simplifier.ReduceAsync(docWithImports, Simplifier.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
                 var formattedDoc = await Formatter.FormatAsync(reducedDoc, SyntaxAnnotation.ElasticAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 

@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 if (_document != null)
                 {
                     _completionService = _document.GetLanguageService<CompletionService>();
-                    _completionRules = _completionService?.GetRules(CompletionOptions.From(_document.Project)) ?? CompletionRules.Default;
+                    _completionRules = _completionService?.GetRules(globalOptions.GetCompletionOptions(_document.Project.Language)) ?? CompletionRules.Default;
 
                     // Let us make the completion Helper used for non-Roslyn items case-sensitive.
                     // We can change this if get requests from partner teams.
@@ -407,7 +407,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             private ImmutableArray<CompletionItemWithHighlight> GetHighlightedList(IReadOnlyList<MatchResult<VSCompletionItem>> items, CancellationToken cancellationToken)
             {
-                return items.SelectAsArray(matchResult =>
+                using var _ = ArrayBuilder<CompletionItemWithHighlight>.GetInstance(items.Count, out var builder);
+                builder.AddRange(items.Select(matchResult =>
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     var highlightedSpans = _highlightMatchingPortions
@@ -415,7 +416,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         : ImmutableArray<Span>.Empty;
 
                     return new CompletionItemWithHighlight(matchResult.EditorCompletionItem, highlightedSpans);
-                });
+                }));
+
+                return builder.ToImmutable();
 
                 static ImmutableArray<Span> GetHighlightedSpans(
                     MatchResult<VSCompletionItem> matchResult,

@@ -151,8 +151,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             var isFinalized = document.Project.TryGetCompilation(out var compilation) && compilation == semanticModel.Compilation;
             document = frozenDocument;
 
+            var options = ClassificationOptions.From(document.Project);
+
             var classifiedSpans = await GetClassifiedSpansForDocumentAsync(
-                document, textSpan, includeSyntacticClassifications, cancellationToken).ConfigureAwait(false);
+                document, textSpan, options, includeSyntacticClassifications, cancellationToken).ConfigureAwait(false);
 
             // Multi-line tokens are not supported by VS (tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1265495).
             // Roslyn's classifier however can return multi-line classified spans, so we must break these up into single-line spans.
@@ -166,6 +168,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         private static async Task<ClassifiedSpan[]> GetClassifiedSpansForDocumentAsync(
             Document document,
             TextSpan textSpan,
+            ClassificationOptions options,
             bool includeSyntacticClassifications,
             CancellationToken cancellationToken)
         {
@@ -187,7 +190,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 // `fillInClassifiedSpanGaps` includes whitespace in the results, which we don't care about in LSP.
                 // Therefore, we set both optional parameters to false.
                 var spans = await ClassifierHelper.GetClassifiedSpansAsync(
-                    document, textSpan, cancellationToken, removeAdditiveSpans: false, fillInClassifiedSpanGaps: false).ConfigureAwait(false);
+                    document, textSpan, options, cancellationToken, removeAdditiveSpans: false, fillInClassifiedSpanGaps: false).ConfigureAwait(false);
 
                 // The spans returned to us may include some empty spans, which we don't care about.
                 var nonEmptySpans = spans.Where(s => !s.TextSpan.IsEmpty);
@@ -195,7 +198,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             }
             else
             {
-                var options = ClassificationOptions.From(document.Project);
                 await classificationService.AddSemanticClassificationsAsync(
                     document, textSpan, options, classifiedSpans, cancellationToken).ConfigureAwait(false);
             }

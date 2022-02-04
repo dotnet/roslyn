@@ -441,12 +441,12 @@ namespace System.Runtime.CompilerServices
             Assert.Equal(CandidateReason.None, info.CandidateReason);
         }
 
-        protected static void VerifyDecisionDagDump<T>(Compilation comp, string expectedDecisionDag)
+        protected static void VerifyDecisionDagDump<T>(Compilation comp, string expectedDecisionDag, int index = 0)
             where T : CSharpSyntaxNode
         {
 #if DEBUG
             var tree = comp.SyntaxTrees.First();
-            var node = tree.GetRoot().DescendantNodes().OfType<T>().First();
+            var node = tree.GetRoot().DescendantNodes().OfType<T>().ElementAt(index);
             var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
             var binder = model.GetEnclosingBinder(node.SpanStart);
             var decisionDag = node switch

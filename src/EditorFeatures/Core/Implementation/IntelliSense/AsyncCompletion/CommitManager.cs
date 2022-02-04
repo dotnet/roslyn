@@ -9,10 +9,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         private readonly RecentItemsManager _recentItemsManager;
         private readonly ITextView _textView;
+        private readonly IGlobalOptionService _globalOptions;
 
         public IEnumerable<char> PotentialCommitCharacters
         {
@@ -52,8 +53,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
         }
 
-        internal CommitManager(ITextView textView, RecentItemsManager recentItemsManager, IThreadingContext threadingContext) : base(threadingContext)
+        internal CommitManager(ITextView textView, RecentItemsManager recentItemsManager, IGlobalOptionService globalOptions, IThreadingContext threadingContext)
+            : base(threadingContext)
         {
+            _globalOptions = globalOptions;
             _recentItemsManager = recentItemsManager;
             _textView = textView;
         }
@@ -115,11 +118,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.CancelCommit);
             }
 
-            var options = CompletionOptions.From(document.Project);
+            var options = _globalOptions.GetCompletionOptions(document.Project.Language);
             var serviceRules = completionService.GetRules(options);
 
             // We can be called before for ShouldCommitCompletion. However, that call does not provide rules applied for the completion item.
-            // Now we check for the commit charcter in the context of Rules that could change the list of commit characters.
+            // Now we check for the commit character in the context of Rules that could change the list of commit characters.
 
             if (!Helpers.IsStandardCommitCharacter(typeChar) && !IsCommitCharacter(serviceRules, roslynItem, typeChar))
             {
@@ -198,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             CompletionChange change;
 
-            // We met an issue when external code threw an OperationCanceledException and the cancellationToken is not cancelled.
+            // We met an issue when external code threw an OperationCanceledException and the cancellationToken is not canceled.
             // Catching this scenario for further investigations.
             // See https://github.com/dotnet/roslyn/issues/38455.
             try
@@ -241,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                 if (change.NewPosition.HasValue)
                 {
-                    // Roslyn knows how to positionate the caret in the snapshot we just created.
+                    // Roslyn knows how to position the caret in the snapshot we just created.
                     // If there were more edits made by extensions, TryMoveCaretToAndEnsureVisible maps the snapshot point to the most recent one.
                     view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(updatedCurrentSnapshot, change.NewPosition.Value));
                 }
@@ -271,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 if (roslynItem.Rules.FormatOnCommit)
                 {
                     // The edit updates the snapshot however other extensions may make changes there.
-                    // Therefore, it is required to use subjectBuffer.CurrentSnapshot for further calculations rather than the updated current snapsot defined above.
+                    // Therefore, it is required to use subjectBuffer.CurrentSnapshot for further calculations rather than the updated current snapshot defined above.
                     var currentDocument = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                     var formattingService = currentDocument?.GetRequiredLanguageService<IFormattingInteractionService>();
 
@@ -312,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         internal static bool IsCommitCharacter(CompletionRules completionRules, CompletionItem item, char ch)
         {
-            // First see if the item has any specifc commit rules it wants followed.
+            // First see if the item has any specific commit rules it wants followed.
             foreach (var rule in item.Rules.CommitCharacterRules)
             {
                 switch (rule.Kind)

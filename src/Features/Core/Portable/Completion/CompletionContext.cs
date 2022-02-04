@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Completion
         private readonly List<CompletionItem> _items;
 
         private CompletionItem? _suggestionModeItem;
-        private OptionSet? _lazyOptionSet;
+        private bool _isExclusive;
 
         internal CompletionProvider Provider { get; }
 
@@ -45,15 +47,15 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// The span of the document the completion list corresponds to.  It will be set initially to
         /// the result of <see cref="CompletionService.GetDefaultCompletionListSpan"/>, but it can
-        /// be overwritten during <see cref="CompletionService.GetCompletionsAsync"/>.  The purpose
-        /// of the span is to:
+        /// be overwritten during <see cref="CompletionService.GetCompletionsAsync(Document, int, CompletionTrigger, ImmutableHashSet{string}, OptionSet, CancellationToken)"/>.
+        /// The purpose of the span is to:
         ///     1. Signify where the completions should be presented.
         ///     2. Designate any existing text in the document that should be used for filtering.
         ///     3. Specify, by default, what portion of the text should be replaced when a completion 
         ///        item is committed.
         /// </summary>
         public TextSpan CompletionListSpan { get; set; }
-#pragma warning restore RS0030 // Do not used banned APIs
+#pragma warning restore
 
         /// <summary>
         /// The triggering action that caused completion to be started.
@@ -72,16 +74,28 @@ namespace Microsoft.CodeAnalysis.Completion
 
         /// <summary>
         /// Set to true if the items added here should be the only items presented to the user.
+        /// Expand items should never be exclusive.
         /// </summary>
-        public bool IsExclusive { get; set; }
+        public bool IsExclusive
+        {
+            get
+            {
+                return _isExclusive && !Provider.IsExpandItemProvider;
+            }
+
+            set
+            {
+                if (value)
+                    Debug.Assert(!Provider.IsExpandItemProvider);
+
+                _isExclusive = value;
+            }
+        }
 
         /// <summary>
-        /// Set to true if the corresponding provider can provide extended items with current context,
-        /// regardless of whether those items are actually added. i.e. it might be disabled by default,
-        /// but we still want to show the expander so user can explicitly request them to be added to 
-        /// completion list if we are in the appropriate context.
+        /// The options that completion was started with.
         /// </summary>
-        internal bool ExpandItemsAvailable { get; set; }
+        public OptionSet Options { get; }
 
         /// <summary>
         /// Creates a <see cref="CompletionContext"/> instance.
@@ -92,17 +106,20 @@ namespace Microsoft.CodeAnalysis.Completion
             int position,
             TextSpan defaultSpan,
             CompletionTrigger trigger,
-            OptionSet options,
+            OptionSet? options,
             CancellationToken cancellationToken)
             : this(provider ?? throw new ArgumentNullException(nameof(provider)),
                    document ?? throw new ArgumentNullException(nameof(document)),
                    position,
                    defaultSpan,
                    trigger,
-                   CompletionOptions.From(options ?? throw new ArgumentNullException(nameof(options)), document.Project.Language),
+                   // Publicly available options do not affect this API.
+                   CompletionOptions.Default,
                    cancellationToken)
         {
-            _lazyOptionSet = options;
+#pragma warning disable RS0030 // Do not used banned APIs
+            Options = options ?? OptionValueSet.Empty;
+#pragma warning restore
         }
 
         /// <summary>
@@ -125,13 +142,11 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionOptions = options;
             CancellationToken = cancellationToken;
             _items = new List<CompletionItem>();
-        }
 
-        /// <summary>
-        /// The options that completion was started with.
-        /// </summary>
-        public OptionSet Options
-            => _lazyOptionSet ??= CompletionOptions.ToSet(Document.Project.Language);
+#pragma warning disable RS0030 // Do not used banned APIs
+            Options = OptionValueSet.Empty;
+#pragma warning restore
+        }
 
         internal IReadOnlyList<CompletionItem> Items => _items;
 

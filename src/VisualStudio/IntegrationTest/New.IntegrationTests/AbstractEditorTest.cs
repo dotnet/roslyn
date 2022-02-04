@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.InProcess;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
@@ -52,7 +51,6 @@ namespace Roslyn.VisualStudio.IntegrationTests
                     not WellKnownProjectTemplates.CSharpNetCoreClassLibrary and
                     not WellKnownProjectTemplates.VisualBasicNetCoreClassLibrary)
                 {
-                    await TestServices.Editor.SetUseSuggestionModeAsync(false, HangMitigatingCancellationToken);
                     await ClearEditorAsync(HangMitigatingCancellationToken);
                 }
             }
