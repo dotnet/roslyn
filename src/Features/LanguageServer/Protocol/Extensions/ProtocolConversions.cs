@@ -674,7 +674,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                     .WithChangedOption(Formatting.FormattingOptions.TabSize, options.TabSize)
                     .WithChangedOption(Formatting.FormattingOptions.IndentationSize, options.TabSize);
             }
-            
+
             return documentOptions;
         }
 
