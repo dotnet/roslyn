@@ -1184,13 +1184,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         }
 
         public static bool IsPossibleLambdaParameterModifierContext(
-            this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition)
+            this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
         {
             var token = tokenOnLeftOfPosition;
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            if (token.IsKind(SyntaxKind.OpenParenToken) ||
-                token.IsKind(SyntaxKind.CommaToken))
+            if (token.Kind() is SyntaxKind.OpenParenToken or SyntaxKind.CommaToken)
             {
                 if (token.Parent.IsKind(SyntaxKind.ParameterList) &&
                     token.Parent.IsParentKind(SyntaxKind.ParenthesizedLambdaExpression))
@@ -1202,10 +1201,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 // consider this a lambda if this is a location where the
                 // lambda's type would be inferred because of a delegate
                 // or Expression<T> type.
-                if (token.Parent.IsKind(SyntaxKind.ParenthesizedExpression) ||
-                    token.Parent.IsKind(SyntaxKind.TupleExpression))
-                {
+                if (token.Parent?.Kind() is SyntaxKind.ParenthesizedExpression or SyntaxKind.TupleExpression)
                     return true;
+
+                // ERROR tolerance.  Cast expressions can show up with partially written lambdas like so:
+                //
+                //      var lambda = (x$$)
+                //      NextStatement();
+                //
+                // Check if the expression of the cast is on the same line as us or not to see if we want to
+                // consider this a lambda, or just a cast.
+                if (token.Parent is CastExpressionSyntax castExpression)
+                {
+                    var sourceText = syntaxTree.GetText(cancellationToken);
+                    return !sourceText.AreOnSameLine(token, castExpression.Expression.GetFirstToken());
                 }
             }
 
@@ -1218,14 +1227,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var token = tokenOnLeftOfPosition;
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            if (token.IsKind(SyntaxKind.OpenParenToken) ||
-                token.IsKind(SyntaxKind.CommaToken))
+            if (token.Kind() is SyntaxKind.OpenParenToken or SyntaxKind.CommaToken &&
+                token.Parent.IsKind(SyntaxKind.ParameterList) &&
+                token.Parent.IsParentKind(SyntaxKind.AnonymousMethodExpression))
             {
-                if (token.Parent.IsKind(SyntaxKind.ParameterList) &&
-                    token.Parent.IsParentKind(SyntaxKind.AnonymousMethodExpression))
-                {
-                    return true;
-                }
+                return true;
             }
 
             return false;
@@ -1237,16 +1243,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var token = tokenOnLeftOfPosition;
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            if (token.IsKind(SyntaxKind.RefKeyword) ||
-                token.IsKind(SyntaxKind.InKeyword) ||
-                token.IsKind(SyntaxKind.OutKeyword))
+            if (token.Kind() is SyntaxKind.RefKeyword or SyntaxKind.InKeyword or SyntaxKind.OutKeyword)
             {
                 position = token.SpanStart;
                 tokenOnLeftOfPosition = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             }
 
             if (IsAnonymousMethodParameterModifierContext(syntaxTree, position, tokenOnLeftOfPosition) ||
-                IsPossibleLambdaParameterModifierContext(syntaxTree, position, tokenOnLeftOfPosition))
+                IsPossibleLambdaParameterModifierContext(syntaxTree, position, tokenOnLeftOfPosition, cancellationToken))
             {
                 return true;
             }

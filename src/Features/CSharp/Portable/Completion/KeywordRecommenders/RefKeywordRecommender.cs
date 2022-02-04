@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 IsRefParameterModifierContext(position, context) ||
                 syntaxTree.IsAnonymousMethodParameterModifierContext(position, context.LeftToken) ||
                 IsValidContextForType(context, cancellationToken) ||
-                syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken) ||
+                syntaxTree.IsPossibleLambdaParameterModifierContext(position, context.LeftToken, cancellationToken) ||
                 context.TargetToken.IsConstructorOrMethodParameterArgumentContext() ||
                 context.TargetToken.IsXmlCrefParameterModifierContext() ||
                 IsValidNewByRefContext(syntaxTree, position, context, cancellationToken);
