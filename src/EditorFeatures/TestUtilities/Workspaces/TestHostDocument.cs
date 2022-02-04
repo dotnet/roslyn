@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -270,7 +271,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                                 var generatorAssemblyName = SourceGeneratedDocumentIdentity.GetGeneratorAssemblyName(generator);
                                 var generatorTypeName = SourceGeneratedDocumentIdentity.GetGeneratorTypeName(generator);
                                 var filePath = testDocument.FilePath ?? throw new InvalidOperationException();
-                                workspace.OnSourceGeneratedDocumentOpened(new SourceGeneratedDocumentIdentity(linkedId, hintName, generatorAssemblyName, generatorTypeName, filePath), _textBuffer.AsTextContainer());
+
+                                var threadingContext = workspace.GetService<IThreadingContext>();
+                                var document = threadingContext.JoinableTaskFactory.Run(() => workspace.CurrentSolution.GetSourceGeneratedDocumentAsync(testDocument.Id, CancellationToken.None).AsTask());
+                                Contract.ThrowIfNull(document);
+
+                                workspace.OnSourceGeneratedDocumentOpened(new SourceGeneratedDocumentIdentity(linkedId, hintName, generatorAssemblyName, generatorTypeName, filePath), _textBuffer.AsTextContainer(), document);
                             }
                             else
                             {

@@ -696,13 +696,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             testDocument.GetOpenTextContainer();
         }
 
-        public void CloseSourceGeneratedDocument(DocumentId documentId)
+        public async Task CloseSourceGeneratedDocumentAsync(DocumentId documentId)
         {
             var testDocument = this.GetTestDocument(documentId);
             Contract.ThrowIfFalse(testDocument.IsSourceGenerated);
             Contract.ThrowIfFalse(IsDocumentOpen(documentId));
 
-            this.OnSourceGeneratedDocumentClosed(documentId);
+            var document = await CurrentSolution.GetSourceGeneratedDocumentAsync(documentId, CancellationToken.None);
+            Contract.ThrowIfNull(document);
+            OnSourceGeneratedDocumentClosed(document);
         }
 
         public void ChangeDocument(DocumentId documentId, SourceText text)

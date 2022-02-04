@@ -820,7 +820,7 @@ class D { }
             var sourceGeneratedDocumentId = workspace.GetDocumentIdInCurrentContext(document.GetOpenTextContainer());
             Assert.Equal(document.Id, sourceGeneratedDocumentId);
 
-            workspace.CloseSourceGeneratedDocument(document.Id);
+            await workspace.CloseSourceGeneratedDocumentAsync(sourceGeneratedDocumentId);
 
             // Wait for all workspace tasks to finish.  After this is finished executing, all handlers should have been notified.
             await WaitForWorkspaceOperationsToComplete(workspace);
@@ -838,7 +838,7 @@ class D { }
             workspace.DocumentClosed -= documentClosedEventHandler;
 
             workspace.OpenSourceGeneratedDocument(document.Id);
-            workspace.CloseSourceGeneratedDocument(document.Id);
+            await workspace.CloseSourceGeneratedDocumentAsync(document.Id);
 
             // Wait for all workspace tasks to finish.  After this is finished executing, all handlers should have been notified.
             await WaitForWorkspaceOperationsToComplete(workspace);

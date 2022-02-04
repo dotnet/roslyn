@@ -417,7 +417,8 @@ namespace Microsoft.CodeAnalysis
         // TODO: switch this protected once we have confidence in API shape
         internal void OnSourceGeneratedDocumentOpened(
             SourceGeneratedDocumentIdentity documentIdentity,
-            SourceTextContainer textContainer)
+            SourceTextContainer textContainer,
+            SourceGeneratedDocument document)
         {
             using (_serializationLock.DisposableWait())
             {
@@ -431,39 +432,25 @@ namespace Microsoft.CodeAnalysis
                 UpdateCurrentContextMapping_NoLock(textContainer, documentId, isCurrentContext: true);
 
                 // Fire and forget that the workspace is changing.
-                var token = _taskQueue.Listener.BeginAsyncOperation(nameof(RaiseSourceGeneratedDocumentOpenedAsync));
-                _ = RaiseSourceGeneratedDocumentOpenedAsync(this, CurrentSolution, documentId).CompletesAsyncOperation(token);
-
-                static async Task RaiseSourceGeneratedDocumentOpenedAsync(Workspace workspace, Solution currentSolution, DocumentId documentId)
-                {
-                    await Task.Yield().ConfigureAwait(false);
-                    var document = await currentSolution.GetSourceGeneratedDocumentAsync(documentId, CancellationToken.None).ConfigureAwait(false);
-                    await workspace.RaiseDocumentOpenedEventAsync(document).ConfigureAwait(false);
-                }
+                var token = _taskQueue.Listener.BeginAsyncOperation(nameof(OnSourceGeneratedDocumentOpened));
+                _ = RaiseDocumentOpenedEventAsync(document).CompletesAsyncOperation(token);
             }
 
             this.RegisterText(textContainer);
         }
 
-        internal void OnSourceGeneratedDocumentClosed(DocumentId documentId)
+        internal void OnSourceGeneratedDocumentClosed(SourceGeneratedDocument document)
         {
             using (_serializationLock.DisposableWait())
             {
-                CheckDocumentIsOpen(documentId);
+                CheckDocumentIsOpen(document.Id);
 
-                Contract.ThrowIfFalse(_openSourceGeneratedDocumentIdentities.Remove(documentId));
-                ClearOpenDocument(documentId);
+                Contract.ThrowIfFalse(_openSourceGeneratedDocumentIdentities.Remove(document.Id));
+                ClearOpenDocument(document.Id);
 
                 // Fire and forget that the workspace is changing.
-                var token = _taskQueue.Listener.BeginAsyncOperation(nameof(RaiseSourceGeneratedDocumentClosedAsync));
-                _ = RaiseSourceGeneratedDocumentClosedAsync(this, CurrentSolution, documentId).CompletesAsyncOperation(token);
-
-                static async Task RaiseSourceGeneratedDocumentClosedAsync(Workspace workspace, Solution currentSolution, DocumentId documentId)
-                {
-                    await Task.Yield().ConfigureAwait(false);
-                    var document = await currentSolution.GetSourceGeneratedDocumentAsync(documentId, CancellationToken.None).ConfigureAwait(false);
-                    await workspace.RaiseDocumentClosedEventAsync(document).ConfigureAwait(false);
-                }
+                var token = _taskQueue.Listener.BeginAsyncOperation(nameof(OnSourceGeneratedDocumentClosed));
+                _ = RaiseDocumentClosedEventAsync(document).CompletesAsyncOperation(token);
             }
         }
 
