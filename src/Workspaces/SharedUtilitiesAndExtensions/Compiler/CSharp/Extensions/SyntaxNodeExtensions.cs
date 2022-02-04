@@ -1175,10 +1175,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             => node
             .WithTrailingTrivia(node.GetTrailingTrivia().FilterComments(addElasticMarker: true))
             .WithLeadingTrivia(node.GetLeadingTrivia().FilterComments(addElasticMarker: true));
-
-        public static bool IsSpecialUnmanagedCallingConvention(this FunctionPointerUnmanagedCallingConventionSyntax syntax)
-            => syntax.Parent is FunctionPointerUnmanagedCallingConventionListSyntax list &&
-                list.CallingConventions.Count == 1 &&
-                syntax.Name.ValueText is "Cdecl" or "Stdcall" or "Thiscall" or "Fastcall";
     }
 }

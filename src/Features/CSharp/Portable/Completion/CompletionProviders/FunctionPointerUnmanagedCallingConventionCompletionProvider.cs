@@ -74,7 +74,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var semanticModel = await document.ReuseExistingSpeculativeModelAsync(callingConventionList, cancellationToken).ConfigureAwait(false);
 
                 var completionItems = new HashSet<CompletionItem>(CompletionItemComparer.Instance);
-                AddTypes(completionItems, contextPosition, semanticModel, callingConventionList.CallingConventions.Count, cancellationToken);
+                AddTypes(completionItems, contextPosition, semanticModel, cancellationToken);
+
+                // Even if we didn't have types, there are four magic calling conventions recognized regardless.
+                // We add these after doing the type lookup so if we had types we can show that instead
+                foreach (var callingConvention in s_predefinedCallingConventions)
+                {
+                    completionItems.Add(CompletionItem.Create(callingConvention, tags: GlyphTags.GetTags(Glyph.Keyword)));
+                }
 
                 context.AddItems(completionItems);
             }
@@ -84,17 +91,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private static void AddTypes(HashSet<CompletionItem> completionItems, int contextPosition, SemanticModel semanticModel, int callingConventionsCount, CancellationToken cancellationToken)
+        private static void AddTypes(HashSet<CompletionItem> completionItems, int contextPosition, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            if (callingConventionsCount == 1)
-            {
-                // There are four magic calling conventions recognized without type lookup.
-                foreach (var callingConvention in s_predefinedCallingConventions)
-                {
-                    completionItems.Add(CompletionItem.Create(callingConvention, tags: GlyphTags.GetTags(Glyph.Keyword)));
-                }
-            }
-
             // We have to find the set of types that meet the criteria listed in
             // https://github.com/dotnet/csharplang/blob/main/proposals/csharp-9.0/function-pointers.md#mapping-the-calling_convention_specifier-to-a-callkind
             // We skip the check of an type being in the core assembly since that's not really necessary for our work.
@@ -109,18 +107,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 cancellationToken.ThrowIfCancellationRequested();
 
                 const string CallConvPrefix = "CallConv";
+
                 if (type.DeclaredAccessibility == Accessibility.Public && type.Name.StartsWith(CallConvPrefix))
                 {
                     var displayName = type.Name[CallConvPrefix.Length..];
-                    if (callingConventionsCount > 1 || !s_predefinedCallingConventions.Contains(displayName))
-                    {
-                        completionItems.Add(
-                            SymbolCompletionItem.CreateWithSymbolId(
+                    completionItems.Add(
+                        SymbolCompletionItem.CreateWithSymbolId(
                             displayName,
                             ImmutableArray.Create(type),
                             rules: CompletionItemRules.Default,
                             contextPosition));
-                    }
                 }
             }
         }

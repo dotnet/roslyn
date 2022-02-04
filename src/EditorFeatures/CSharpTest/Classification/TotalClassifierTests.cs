@@ -2193,7 +2193,7 @@ class C { }",
         [Theory]
         [CombinatorialData]
         [WorkItem(59052, "https://github.com/dotnet/roslyn/issues/59052")]
-        public async Task FunctionPointerCallingConventions_Keyword(TestHost testHost)
+        public async Task FunctionPointerCallingConventions_ClassNotUsedByCompiler(TestHost testHost)
         {
             await TestAsync(@"
 public unsafe class C
@@ -2211,7 +2211,7 @@ public unsafe class C
                 Operators.Asterisk,
                 Keyword("unmanaged"),
                 Punctuation.OpenBracket,
-                Keyword("Stdcall"),
+                Class("Stdcall"),
                 Punctuation.CloseBracket,
                 Punctuation.OpenAngle,
                 Keyword("void"),
@@ -2224,7 +2224,7 @@ public unsafe class C
         [Theory]
         [CombinatorialData]
         [WorkItem(59052, "https://github.com/dotnet/roslyn/issues/59052")]
-        public async Task FunctionPointerCallingConventions_Class(TestHost testHost)
+        public async Task FunctionPointerCallingConventions_ClassIsUsedByCompiler(TestHost testHost)
         {
             await TestAsync(@"
 public unsafe class C

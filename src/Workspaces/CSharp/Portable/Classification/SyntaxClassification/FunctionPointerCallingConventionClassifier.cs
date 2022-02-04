@@ -27,18 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
-            var callingConventionSyntax = (FunctionPointerUnmanagedCallingConventionSyntax)syntax;
-            if (callingConventionSyntax.IsSpecialUnmanagedCallingConvention())
-            {
-                result.Add(new ClassifiedSpan(callingConventionSyntax.Span, ClassificationTypeNames.Keyword));
-                return;
-            }
-
-            var type = semanticModel.Compilation.UnmanagedCallingConventionType(callingConventionSyntax.Name.ValueText);
-            if (type is not null)
-            {
-                result.Add(new ClassifiedSpan(callingConventionSyntax.Name.Span, ClassificationTypeNames.ClassName));
-            }
+            result.Add(new ClassifiedSpan(callingConventionSyntax.Name.Span, ClassificationTypeNames.ClassName));
         }
     }
 }
