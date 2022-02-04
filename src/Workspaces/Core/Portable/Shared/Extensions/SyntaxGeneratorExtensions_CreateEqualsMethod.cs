@@ -175,8 +175,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 statements.Add(localDeclaration);
 
-                // Ensure that the parameter we got was not null (which also ensures the 'as' test
-                // succeeded):
+                // Ensure that the parameter we got was not null (which also ensures the 'as' test succeeded):
                 AddReferenceNotNullCheck(factory, compilation, parseOptions, localNameExpression, expressions);
             }
 
