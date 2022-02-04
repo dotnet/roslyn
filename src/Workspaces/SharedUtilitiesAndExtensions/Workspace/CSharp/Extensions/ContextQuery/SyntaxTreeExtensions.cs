@@ -2754,9 +2754,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // Not if the position is a numeric literal
             if (token.IsKind(SyntaxKind.NumericLiteralToken))
-            {
                 return false;
-            }
 
             if (token.GetAncestor<BlockSyntax>() == null &&
                 token.GetAncestor<ArrowExpressionClauseSyntax>() == null)
@@ -2781,16 +2779,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
                 var type = token.GetAncestors<TypeSyntax>().LastOrDefault();
                 if (type == null)
-                {
                     return true;
-                }
 
-                if (type.IsKind(SyntaxKind.GenericName) ||
-                    type.IsKind(SyntaxKind.AliasQualifiedName) ||
-                    type.IsKind(SyntaxKind.PredefinedType))
-                {
+                if (type.Kind() is SyntaxKind.GenericName or SyntaxKind.AliasQualifiedName or SyntaxKind.PredefinedType)
                     return false;
-                }
 
                 ExpressionSyntax nameExpr = type;
                 if (IsRightSideName(nameExpr))
@@ -2801,27 +2793,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 // If this name is the start of a local variable declaration context, we
                 // shouldn't show is or as. For example: for(var |
                 if (syntaxTree.IsLocalVariableDeclarationContext(token.SpanStart, syntaxTree.FindTokenOnLeftOfPosition(token.SpanStart, cancellationToken), cancellationToken))
-                {
                     return false;
-                }
 
                 // Not on the left hand side of an object initializer
-                if (CodeAnalysis.CSharpExtensions.IsKind(token, SyntaxKind.IdentifierToken) &&
+                if (token.IsKind(SyntaxKind.IdentifierToken) &&
                     token.Parent.IsKind(SyntaxKind.IdentifierName) &&
-                    (token.Parent.IsParentKind(SyntaxKind.ObjectInitializerExpression) || token.Parent.IsParentKind(SyntaxKind.CollectionInitializerExpression)))
+                    token.Parent.Parent?.Kind() is SyntaxKind.ObjectInitializerExpression or SyntaxKind.CollectionInitializerExpression)
                 {
                     return false;
                 }
 
                 // Not after an 'out' declaration expression. For example: M(out var |
-                if (CodeAnalysis.CSharpExtensions.IsKind(token, SyntaxKind.IdentifierToken) &&
+                if (token.Kind() is SyntaxKind.IdentifierToken &&
                     token.Parent.IsKind(SyntaxKind.IdentifierName))
                 {
-                    if (token.Parent.IsParentKind(SyntaxKind.Argument, out ArgumentSyntax? argument) &&
-                        argument.RefOrOutKeyword.IsKind(SyntaxKind.OutKeyword))
-                    {
+                    if (token.Parent.Parent is ArgumentSyntax { RefOrOutKeyword.RawKind: (int)SyntaxKind.OutKeyword })
                         return false;
-                    }
                 }
 
                 if (token.Text == SyntaxFacts.GetText(SyntaxKind.AsyncKeyword))
@@ -2838,14 +2825,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     }
                 }
 
+                // case X $$
+                //
+                // while `X` is in an expr context, it's a limited one that doesn't support the full breadth of operators like these.
+                var tokenBeforeName = syntaxTree.FindTokenOnLeftOfPosition(nameExpr.SpanStart, cancellationToken);
+                if (tokenBeforeName.Kind() == SyntaxKind.CaseKeyword)
+                    return false;
+
                 // Now, make sure the name was actually in a location valid for
                 // an expression.  If so, then we know we can follow it.
-                if (syntaxTree.IsExpressionContext(nameExpr.SpanStart, syntaxTree.FindTokenOnLeftOfPosition(nameExpr.SpanStart, cancellationToken), attributes: false, cancellationToken: cancellationToken))
-                {
+                if (syntaxTree.IsExpressionContext(nameExpr.SpanStart, tokenBeforeName, attributes: false, cancellationToken))
                     return true;
-                }
-
-                return false;
             }
 
             return false;
