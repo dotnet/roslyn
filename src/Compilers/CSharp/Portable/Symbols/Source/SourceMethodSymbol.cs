@@ -15,6 +15,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract class SourceMethodSymbol : MethodSymbol
     {
+        readonly CSharpCompilation _compilation;
+
+        public SourceMethodSymbol(CSharpCompilation compilation) : base()
+        {
+            _compilation = compilation;
+        }
+
         /// <summary>
         /// If there are no constraints, returns an empty immutable array. Otherwise, returns an immutable
         /// array of types, indexed by the constrained type parameter in <see cref="MethodSymbol.TypeParameters"/>.
@@ -26,6 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// array of kinds, indexed by the constrained type parameter in <see cref="MethodSymbol.TypeParameters"/>.
         /// </summary>
         public abstract ImmutableArray<TypeParameterConstraintKind> GetTypeParameterConstraintKinds();
+
+        internal sealed override CSharpCompilation DeclaringCompilation
+            => _compilation;
 
         protected static void ReportBadRefToken(TypeSyntax returnTypeSyntax, BindingDiagnosticBag diagnostics)
         {

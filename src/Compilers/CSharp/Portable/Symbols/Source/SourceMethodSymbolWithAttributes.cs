@@ -27,7 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         // some symbols may not have a syntax (e.g. lambdas, synthesized event accessors)
         protected readonly SyntaxReference syntaxReferenceOpt;
-        protected SourceMethodSymbolWithAttributes(SyntaxReference syntaxReferenceOpt)
+
+        protected SourceMethodSymbolWithAttributes(SyntaxReference syntaxReferenceOpt, CSharpCompilation compilation)
+            : base(compilation)
         {
             this.syntaxReferenceOpt = syntaxReferenceOpt;
         }
@@ -765,7 +767,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Default value of charset is inherited from the module (only if specified).
             // This might be different from ContainingType.DefaultMarshallingCharSet. If the charset is not specified on module
-            // ContainingType.DefaultMarshallingCharSet would be Ansi (the class is emitted with "Ansi" charset metadata flag) 
+            // ContainingType.DefaultMarshallingCharSet would be Ansi (the class is emitted with "Ansi" charset metadata flag)
             // while the charset in P/Invoke metadata should be "None".
             CharSet charSet = this.GetEffectiveDefaultMarshallingCharSet() ?? Cci.Constants.CharSet_None;
 

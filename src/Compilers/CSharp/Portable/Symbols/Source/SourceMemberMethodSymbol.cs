@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxReference syntaxReferenceOpt,
             ImmutableArray<Location> locations,
             bool isIterator)
-            : base(syntaxReferenceOpt)
+            : base(syntaxReferenceOpt, containingType.DeclaringCompilation)
         {
             Debug.Assert((object)containingType != null);
             Debug.Assert(!locations.IsEmpty);
