@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
                 document,
                 editor,
                 forEach.Type,
-                forEach.Identifier.Parent!,
+                forEach.Identifier.GetRequiredParent(),
                 cancellationToken);
 
         private static Task HandleVariableDeclarationAsync(Document document, SyntaxEditor editor, VariableDeclarationSyntax varDecl, CancellationToken cancellationToken)
