@@ -2847,8 +2847,10 @@ class Program : {|CS0535:System.IEquatable<Program>|}
     DiagnosticResult.CompilerError("CS0518").WithSpan(7, 9, 7, 15).WithArguments("System.Object"),
     // /0/Test0.cs(7,32): error CS0518: Predefined type 'System.Object' is not defined or imported
     DiagnosticResult.CompilerError("CS0518").WithSpan(7, 32, 7, 38).WithArguments("System.Object"),
-    // /0/Test0.cs(8,16): error CS0518: Predefined type 'System.Object' is not defined or imported
-    DiagnosticResult.CompilerError("CS0518").WithSpan(8, 16, 8, 30).WithArguments("System.Object"),
+    // /0/Test0.cs(8,17): error CS0103: The name 'ReferenceEquals' does not exist in the current context
+    DiagnosticResult.CompilerError("CS0103").WithSpan(8, 17, 8, 32).WithArguments("ReferenceEquals"),
+    // /0/Test0.cs(8,17): error CS0518: Predefined type 'System.Object' is not defined or imported
+    DiagnosticResult.CompilerError("CS0518").WithSpan(8, 17, 8, 32).WithArguments("System.Object"),
     // /0/Test0.cs(9,16): error CS0518: Predefined type 'System.Boolean' is not defined or imported
     DiagnosticResult.CompilerError("CS0518").WithSpan(9, 16, 9, 29).WithArguments("System.Boolean"),
     // /0/Test0.cs(12,12): error CS0518: Predefined type 'System.Void' is not defined or imported

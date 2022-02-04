@@ -313,9 +313,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             SyntaxGenerator factory, Compilation compilation, ParseOptions parseOptions, SyntaxNode otherNameExpression, ArrayBuilder<SyntaxNode> expressions)
         {
             var nullLiteral = factory.NullLiteralExpression();
-            if (factory.SyntaxGeneratorInternal.SupportsPatterns(parseOptions))
+            if (factory.SyntaxGeneratorInternal.SyntaxFacts.SupportsNotPattern(parseOptions))
             {
-                // If we support patterns then we can do "return obj is MyType myType && ..."
+                // If we support patterns then we can do "obj is not null && ..."
                 expressions.Add(
                     factory.SyntaxGeneratorInternal.IsPatternExpression(otherNameExpression,
                         factory.SyntaxGeneratorInternal.NotPattern(
