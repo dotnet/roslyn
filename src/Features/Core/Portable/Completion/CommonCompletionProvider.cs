@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return ShouldTriggerCompletionImpl(text, caretPosition, trigger, CompletionOptions.Default);
         }
 
-        internal override bool ShouldTriggerCompletion(HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options)
+        internal override bool ShouldTriggerCompletion(HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options, OptionSet passThroughOptions)
             => ShouldTriggerCompletionImpl(text, caretPosition, trigger, options);
 
         private bool ShouldTriggerCompletionImpl(SourceText text, int caretPosition, CompletionTrigger trigger, in CompletionOptions options)

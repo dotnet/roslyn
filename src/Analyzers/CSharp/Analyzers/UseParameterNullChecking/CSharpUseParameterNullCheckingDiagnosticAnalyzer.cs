@@ -242,7 +242,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseParameterNullChecking
                             return null;
                         }
 
-                        return (parameterInBinary, ifStatement.GetLocation());
+                        // The if statement could be associated with an arbitrarily complex else clause. We only want to highlight the "if" part which is removed by the fix.
+                        var location = Location.Create(ifStatement.SyntaxTree, Text.TextSpan.FromBounds(ifStatement.SpanStart, ifStatement.Statement.Span.End));
+                        return (parameterInBinary, location);
 
                     // this.field = param ?? throw new ArgumentNullException(nameof(param));
                     case ExpressionStatementSyntax

@@ -47,10 +47,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         /// <summary>
         /// An optional suffix to be shown in a presentation layer appended to <see cref="Name"/>.
-        /// Can be null.
         /// </summary>
         [DataMember(Order = 1)]
-        public readonly string NameSuffix;
+        public readonly string? NameSuffix;
 
         /// <summary>
         /// Container of the symbol that can be shown in a final presentation layer. 
@@ -60,7 +59,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// to indicate where the symbol is located.
         /// </summary>
         [DataMember(Order = 2)]
-        public readonly string ContainerDisplayName;
+        public readonly string? ContainerDisplayName;
 
         /// <summary>
         /// Dotted container name of the symbol, used for pattern matching.  For example
@@ -99,8 +98,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         [Obsolete("Do not call directly.  Only around for serialization.  Use Create instead")]
         public DeclaredSymbolInfo(
             string name,
-            string nameSuffix,
-            string containerDisplayName,
+            string? nameSuffix,
+            string? containerDisplayName,
             string fullyQualifiedContainerName,
             TextSpan span,
             ImmutableArray<string> inheritanceNames,
@@ -118,8 +117,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static DeclaredSymbolInfo Create(
             StringTable stringTable,
             string name,
-            string nameSuffix,
-            string containerDisplayName,
+            string? nameSuffix,
+            string? containerDisplayName,
             string fullyQualifiedContainerName,
             bool isPartial,
             DeclaredSymbolInfoKind kind,
