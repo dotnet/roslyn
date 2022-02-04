@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
                 var placement = await AddImportPlacementOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
 
                 var options = new AddMissingImportsOptions(
-                    HideAdvancedMembers: document.Project.Solution.Options.GetOption(CompletionOptions.Metadata.HideAdvancedMembers, document.Project.Language),
+                    HideAdvancedMembers: _globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, document.Project.Language),
                     placement);
 
                 return await addMissingImportsService.AddMissingImportsAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
