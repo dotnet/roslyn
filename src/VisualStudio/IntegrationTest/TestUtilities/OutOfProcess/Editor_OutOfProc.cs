@@ -376,7 +376,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void GoToDefinition(string expectedWindowName)
         {
             _editorInProc.GoToDefinition();
-            _editorInProc.WaitForActiveWindow(expectedWindowName);
+            // The find references window caption can change depending on selected filter, so use inexact match
+            _editorInProc.WaitForActiveWindow(expectedWindowName, exact: false);
         }
 
         public void GoToImplementation(string expectedWindowName)
@@ -384,7 +385,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
             _editorInProc.GoToImplementation();
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.GoToImplementation);
-            _editorInProc.WaitForActiveWindow(expectedWindowName);
+            // The find references window caption can change depending on selected filter, so use inexact match
+            _editorInProc.WaitForActiveWindow(expectedWindowName, exact: false);
         }
 
         public void GoToBase(string expectedWindowName)
@@ -392,7 +394,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
             _editorInProc.GoToBase();
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.GoToBase);
-            _editorInProc.WaitForActiveWindow(expectedWindowName);
+            // The find references window caption can change depending on selected filter, so use inexact match
+            _editorInProc.WaitForActiveWindow(expectedWindowName, exact: false);
         }
 
         public void SendExplicitFocus()

@@ -55,7 +55,6 @@ class SomeOtherClass
             var results = VisualStudio.FindReferencesWindow.GetContents(programReferencesCaption);
 
             var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
-            Assert.Equal(expected: programReferencesCaption, actual: activeWindowCaption);
 
             Assert.Collection(
                 results,
@@ -101,9 +100,6 @@ class Program
             const string localReferencesCaption = "'local' references";
             var results = VisualStudio.FindReferencesWindow.GetContents(localReferencesCaption);
 
-            var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
-            Assert.Equal(expected: localReferencesCaption, actual: activeWindowCaption);
-
             Assert.Collection(
                 results,
                 new Action<Reference>[]
@@ -142,9 +138,6 @@ class Program
 
             const string findReferencesCaption = "'\"1\"' references";
             var results = VisualStudio.FindReferencesWindow.GetContents(findReferencesCaption);
-
-            var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
-            Assert.Equal(expected: findReferencesCaption, actual: activeWindowCaption);
 
             Assert.Collection(
                 results,

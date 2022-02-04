@@ -132,10 +132,11 @@ class C
 
             VisualStudio.Editor.PlaceCaret("Dispose", charsOffset: -1);
 
-            // It should not navigate to the implementation so we stay on the same file
-            VisualStudio.Editor.GoToImplementation("FileUsage.cs");
+            var windowName = "'Dispose' implementations";
 
-            var results = VisualStudio.FindReferencesWindow.GetContents("'Dispose' implementations");
+            VisualStudio.Editor.GoToImplementation(windowName);
+
+            var results = VisualStudio.FindReferencesWindow.GetContents(windowName);
 
             // There are a lot of results, no point transcribing them all into a test
             Assert.Contains(results, r => r.Code == "public void Dispose()" && Path.GetFileName(r.FilePath) == "FileImplementation.cs");

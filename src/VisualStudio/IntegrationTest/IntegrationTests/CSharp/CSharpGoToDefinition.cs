@@ -88,9 +88,6 @@ partial class PartialClass { int i = 0; }");
 
             var results = VisualStudio.FindReferencesWindow.GetContents(declarationWindowName);
 
-            var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
-            Assert.Equal(expected: declarationWindowName, actual: activeWindowCaption);
-
             Assert.Collection(
                 results,
                 new Action<Reference>[]

@@ -188,10 +188,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             Retry(_ => GetActiveBufferName(), (actual, _) => actual == expectedView, TimeSpan.FromMilliseconds(100), cts.Token);
         }
 
-        public void WaitForActiveWindow(string expectedWindow)
+        public void WaitForActiveWindow(string expectedWindow, bool exact = true)
         {
             using var cts = new CancellationTokenSource(Helper.HangMitigatingTimeout);
-            Retry(_ => GetActiveWindowName(), (actual, _) => actual == expectedWindow, TimeSpan.FromMilliseconds(100), cts.Token);
+            Retry(_ => GetActiveWindowName(), (actual, _) =>
+            {
+                if (exact)
+                    return actual == expectedWindow;
+                else
+                    return actual.StartsWith(expectedWindow);
+            }, TimeSpan.FromMilliseconds(100), cts.Token);
         }
 
         public void Activate()

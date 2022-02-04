@@ -42,9 +42,6 @@ End Class
             const string localReferencesCaption = "'local' references";
             var results = VisualStudio.FindReferencesWindow.GetContents(localReferencesCaption);
 
-            var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
-            Assert.Equal(expected: localReferencesCaption, actual: activeWindowCaption);
-
             Assert.Collection(
                 results,
                 new Action<Reference>[]
@@ -90,7 +87,6 @@ End Class
             var results = VisualStudio.FindReferencesWindow.GetContents(alphaReferencesCaption);
 
             var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
-            Assert.Equal(expected: alphaReferencesCaption, actual: activeWindowCaption);
 
             Assert.Collection(
                 results,
