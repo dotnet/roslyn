@@ -93,7 +93,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                a == program.a;
     }
 }";
@@ -128,7 +128,7 @@ class Program
     public override bool Equals(object obj)
     {
         Program program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                a == program.a;
     }
 }";
@@ -170,7 +170,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                EqualityComparer<S>.Default.Equals(a, program.a);
     }
 }";
@@ -260,7 +260,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                a.Equals(program.a);
     }
 }";
@@ -294,7 +294,7 @@ class ReallyLongName
     public override bool Equals(object obj)
     {
         var name = obj as ReallyLongName;
-        return name != null &&
+        return !ReferenceEquals(name, null) &&
                a == name.a;
     }
 }";
@@ -328,7 +328,7 @@ class ReallyLongLong
     public override bool Equals(object obj)
     {
         var @long = obj as ReallyLongLong;
-        return @long != null &&
+        return !ReferenceEquals(@long, null) &&
                a == @long.a;
     }
 }";
@@ -366,7 +366,7 @@ class ReallyLongName
     public override bool Equals(object obj)
     {
         var name = obj as ReallyLongName;
-        return name != null &&
+        return !ReferenceEquals(name, null) &&
                a == name.a &&
                B == name.B;
     }
@@ -405,7 +405,7 @@ class Program : Base
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                i == program.i;
     }
 }";
@@ -459,7 +459,7 @@ class Program : Base
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                base.Equals(obj) &&
                i == program.i &&
                S == program.S;
@@ -524,7 +524,7 @@ class Program : Middle
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                base.Equals(obj) &&
                i == program.i &&
                S == program.S;
@@ -767,7 +767,7 @@ class Program<T>
     public override bool Equals(object obj)
     {
         var program = obj as Program<T>;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                i == program.i;
     }
 }
@@ -826,7 +826,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                i == program.i;
     }
 
@@ -866,7 +866,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                j == program.j;
     }
 
@@ -914,7 +914,7 @@ class Program : Base
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                j == program.j;
     }
 
@@ -966,7 +966,7 @@ class Program : Base
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null;
+        return !ReferenceEquals(program, null);
     }
 
     public override int GetHashCode()
@@ -1006,7 +1006,7 @@ class Program
     public override bool Equals(object obj)
     {
         Program program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                i == program.i;
     }
 
@@ -1046,7 +1046,7 @@ class Program<T>
     public override bool Equals(object obj)
     {
         var program = obj as Program<T>;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                EqualityComparer<T>.Default.Equals(i, program.i);
     }
 
@@ -1086,7 +1086,7 @@ class Program<T>
     public override bool Equals(object obj)
     {
         var program = obj as Program<T>;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                EqualityComparer<Program<T>>.Default.Equals(i, program.i);
     }
 
@@ -1130,7 +1130,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                i == program.i &&
                S == program.S;
     }
@@ -1331,7 +1331,7 @@ class C
     public override bool Equals(object obj)
     {
         var c = obj as C;
-        return c != null &&
+        return !ReferenceEquals(c, null) &&
                a.Equals(c.a);
     }
 }";
@@ -1366,7 +1366,7 @@ class C
     public override bool Equals(object obj)
     {
         var c = obj as C;
-        return c != null &&
+        return !ReferenceEquals(c, null) &&
                a.Equals(c.a);
     }
 }";
@@ -1400,7 +1400,7 @@ class C
     public override bool Equals(object obj)
     {
         var c = obj as C;
-        return c != null &&
+        return !ReferenceEquals(c, null) &&
                a.Equals(c.a);
     }
 }";
@@ -1434,7 +1434,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                i.Equals(program.i);
     }
 
@@ -1474,7 +1474,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                i.Equals(program.i);
     }
 
@@ -1518,7 +1518,7 @@ class Foo
     public override bool Equals(object obj)
     {
         var foo = obj as Foo;
-        return foo != null &&
+        return !ReferenceEquals(foo, null) &&
                EqualityComparer<Bar>.Default.Equals(bar, foo.bar);
     }
 
@@ -1567,7 +1567,7 @@ class Foo
     public override bool Equals(object obj)
     {
         var foo = obj as Foo;
-        return foo != null &&
+        return !ReferenceEquals(foo, null) &&
                EqualityComparer<Bar>.Default.Equals(bar, foo.bar);
     }
 
@@ -1616,7 +1616,7 @@ class Foo
     public override bool Equals(object obj)
     {
         var foo = obj as Foo;
-        return foo != null &&
+        return !ReferenceEquals(foo, null) &&
                EqualityComparer<Bar?>.Default.Equals(bar, foo.bar);
     }
 
@@ -1660,7 +1660,7 @@ class Foo<TBar> where TBar : struct
     public override bool Equals(object obj)
     {
         var foo = obj as Foo<TBar>;
-        return foo != null &&
+        return !ReferenceEquals(foo, null) &&
                EqualityComparer<TBar>.Default.Equals(bar, foo.bar);
     }
 
@@ -1700,7 +1700,7 @@ class Foo<TBar> where TBar : struct
     public override bool Equals(object obj)
     {
         var foo = obj as Foo<TBar>;
-        return foo != null &&
+        return !ReferenceEquals(foo, null) &&
                EqualityComparer<TBar?>.Default.Equals(bar, foo.bar);
     }
 
@@ -1744,7 +1744,7 @@ class Foo
     public override bool Equals(object obj)
     {
         var foo = obj as Foo;
-        return foo != null &&
+        return !ReferenceEquals(foo, null) &&
                bar == foo.bar;
     }
 
@@ -1788,7 +1788,7 @@ class Foo
     public override bool Equals(object obj)
     {
         var foo = obj as Foo;
-        return foo != null &&
+        return !ReferenceEquals(foo, null) &&
                bar == foo.bar;
     }
 
@@ -1831,7 +1831,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                a == program.a &&
                b == program.b;
     }
@@ -1872,7 +1872,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                c == program.c &&
                b == program.b;
     }
@@ -1913,7 +1913,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null;
+        return !ReferenceEquals(program, null);
     }
 }";
 
@@ -1947,7 +1947,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                F == program.F;
     }
 }";
@@ -2103,7 +2103,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                s == program.s;
     }
 
@@ -2152,7 +2152,7 @@ class Program
     public override bool Equals(object obj)
     {
         Program program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                s == program.s;
     }
 
@@ -2199,7 +2199,7 @@ class Program
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                s == program.s;
     }
 
@@ -2304,7 +2304,7 @@ class Foo
     public override bool Equals(object obj)
     {
         var foo = obj as Foo;
-        return foo != null &&
+        return !ReferenceEquals(foo, null) &&
                BooleanValue == foo.BooleanValue &&
                DecimalValue == foo.DecimalValue &&
                EnumValue == foo.EnumValue &&
@@ -2367,7 +2367,7 @@ class Foo
     public override bool Equals(object obj)
     {
         var foo = obj as Foo;
-        return foo != null &&
+        return !ReferenceEquals(foo, null) &&
                Value.Equals(foo.Value) &&
                EqualityComparer<Bar?>.Default.Equals(NullableValue, foo.NullableValue);
     }
@@ -2624,7 +2624,7 @@ class Program : IEquatable<Program>
 
     public bool Equals(Program other)
     {
-        return other != null &&
+        return !ReferenceEquals(other, null) &&
                s == other.s;
     }
 }";
@@ -2667,7 +2667,7 @@ class Foo : IEquatable<Foo?>
 
     public bool Equals(Foo? other)
     {
-        return other != null &&
+        return !ReferenceEquals(other, null) &&
                Bar == other.Bar;
     }
 }";
@@ -2716,7 +2716,7 @@ class Foo : IEquatable<Foo?>
 
     public bool Equals(Foo? other)
     {
-        return other != null &&
+        return !ReferenceEquals(other, null) &&
                Bar == other.Bar;
     }
 }
@@ -2755,7 +2755,7 @@ class Program : {|CS0535:System.IEquatable<Program>|}
     public override bool Equals(object obj)
     {
         var program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                s == program.s;
     }
 }";
@@ -2813,7 +2813,7 @@ class Program : {|CS0535:System.IEquatable<Program>|}
     public override System.Boolean Equals(System.Object obj)
     {
         Class1 @class = obj as Class1;
-        return @class != null &&
+        return !ReferenceEquals(@class, null) &&
                i == @class.i;
     }
 
@@ -2899,7 +2899,7 @@ class Program
     public override bool Equals(object obj)
     {
         Program program = obj as Program;
-        return program != null &&
+        return !ReferenceEquals(program, null) &&
                i == program.i &&
                S == program.S;
     }
