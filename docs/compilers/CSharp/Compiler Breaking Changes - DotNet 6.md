@@ -116,8 +116,8 @@ These are _function_type_conversions_.
     ```csharp
     record struct R(int X, int Y)
     {
-        // error CS8982: constructor declared in a 'record struct' with parameter list must have a 'this'
-        // initializer that calls the primary constructor or an explicitly declared constructor
+        // error CS8982: A constructor declared in a 'record struct' with parameter list must have a 'this'
+        // initializer that calls the primary constructor or an explicitly declared constructor.
         public R(int x) : this() { X = x; Y = 0; }
     }
     ```
@@ -134,7 +134,7 @@ These are _function_type_conversions_.
 
     For instance, the following results in an error:
     ```csharp
-    struct S // error CS0171: field 'S1.Y' must be fully assigned
+    struct S // error CS0171: Field 'S.Y' must be fully assigned before control is returned to the caller
     {
         int X = 1;
         int Y;
@@ -157,7 +157,7 @@ These are _function_type_conversions_.
     ```csharp
     struct S
     {
-        int X = 1; // error CS8983: struct with field initializers must include an explicitly declared constructor
+        int X = 1; // error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
         int Y;
     }
     ```
