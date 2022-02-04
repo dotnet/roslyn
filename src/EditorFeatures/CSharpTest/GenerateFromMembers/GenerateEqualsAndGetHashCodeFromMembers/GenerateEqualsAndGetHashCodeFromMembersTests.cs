@@ -107,6 +107,39 @@ class Program
             }.RunAsync();
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestEqualsSingleField_CSharp7()
+        {
+            var code =
+@"using System.Collections.Generic;
+
+class Program
+{
+    [|int a;|]
+}";
+            var fixedCode =
+@"using System.Collections.Generic;
+
+class Program
+{
+    int a;
+
+    public override bool Equals(object obj)
+    {
+        return obj is Program program &&
+               a == program.a;
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                LanguageVersion = LanguageVersion.CSharp7,
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
+        }
+
         [WorkItem(39916, "https://github.com/dotnet/roslyn/issues/39916")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestEqualsSingleField_PreferExplicitType()
@@ -2597,7 +2630,7 @@ struct Foo : IEquatable<Foo>
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
-        public async Task TestImplementIEquatableOnClass()
+        public async Task TestImplementIEquatableOnClass_CSharp6()
         {
             var code =
 @"
@@ -2641,6 +2674,138 @@ class Program : IEquatable<Program>
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestImplementIEquatableOnClass_CSharp7()
+        {
+            var code =
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    public string s;
+    [||]
+}";
+            var fixedCode =
+@"
+using System;
+using System.Collections.Generic;
+
+class Program : IEquatable<Program>
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        return Equals(obj as Program);
+    }
+
+    public bool Equals(Program other)
+    {
+        return !(other is null) &&
+               s == other.s;
+    }
+}";
+
+            await new TestWithDialog
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                MemberNames = default,
+                OptionsCallback = options => EnableOption(options, GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.ImplementIEquatableId),
+                LanguageVersion = LanguageVersion.CSharp7,
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestImplementIEquatableOnClass_CSharp8()
+        {
+            var code =
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    public string s;
+    [||]
+}";
+            var fixedCode =
+@"
+using System;
+using System.Collections.Generic;
+
+class Program : IEquatable<Program>
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        return Equals(obj as Program);
+    }
+
+    public bool Equals(Program other)
+    {
+        return !(other is null) &&
+               s == other.s;
+    }
+}";
+
+            await new TestWithDialog
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                MemberNames = default,
+                OptionsCallback = options => EnableOption(options, GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.ImplementIEquatableId),
+                LanguageVersion = LanguageVersion.CSharp8,
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestImplementIEquatableOnClass_CSharp9()
+        {
+            var code =
+@"
+using System.Collections.Generic;
+
+class Program
+{
+    public string s;
+    [||]
+}";
+            var fixedCode =
+@"
+using System;
+using System.Collections.Generic;
+
+class Program : IEquatable<Program>
+{
+    public string s;
+
+    public override bool Equals(object obj)
+    {
+        return Equals(obj as Program);
+    }
+
+    public bool Equals(Program other)
+    {
+        return other is not null &&
+               s == other.s;
+    }
+}";
+
+            await new TestWithDialog
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                MemberNames = default,
+                OptionsCallback = options => EnableOption(options, GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.ImplementIEquatableId),
+                LanguageVersion = LanguageVersion.CSharp9,
+                Options = { PreferImplicitTypeWithInfo() },
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
         public async Task TestImplementIEquatableOnClassInNullableContextWithUnannotatedMetadata()
         {
             var code =
@@ -2667,7 +2832,7 @@ class Foo : IEquatable<Foo?>
 
     public bool Equals(Foo? other)
     {
-        return !ReferenceEquals(other, null) &&
+        return !(other is null) &&
                Bar == other.Bar;
     }
 }";
@@ -2716,7 +2881,7 @@ class Foo : IEquatable<Foo?>
 
     public bool Equals(Foo? other)
     {
-        return !ReferenceEquals(other, null) &&
+        return !(other is null) &&
                Bar == other.Bar;
     }
 }

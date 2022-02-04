@@ -313,18 +313,30 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             SyntaxGenerator factory, Compilation compilation, ParseOptions parseOptions, SyntaxNode otherNameExpression, ArrayBuilder<SyntaxNode> expressions)
         {
             var nullLiteral = factory.NullLiteralExpression();
-            if (factory.SyntaxGeneratorInternal.SyntaxFacts.SupportsNotPattern(parseOptions))
-            {
-                // If we support patterns then we can do "obj is not null && ..."
-                expressions.Add(
-                    factory.SyntaxGeneratorInternal.IsPatternExpression(otherNameExpression,
-                        factory.SyntaxGeneratorInternal.NotPattern(
-                            factory.SyntaxGeneratorInternal.ConstantPattern(nullLiteral))));
-            }
-            else if (compilation.Language == LanguageNames.VisualBasic)
+            if (compilation.Language == LanguageNames.VisualBasic)
             {
                 // VB supports `x is not nothing` as an idiomatic null check.
                 expressions.Add(factory.ReferenceNotEqualsExpression(otherNameExpression, nullLiteral));
+                return;
+            }
+
+            var generator = factory.SyntaxGeneratorInternal;
+            if (generator.SyntaxFacts.SupportsNotPattern(parseOptions))
+            {
+                // If we support not patterns then we can do "obj is not null && ..."
+                expressions.Add(
+                    generator.IsPatternExpression(otherNameExpression,
+                        generator.NotPattern(
+                            generator.ConstantPattern(nullLiteral))));
+            }
+            else if (generator.SupportsPatterns(parseOptions))
+            {
+                // if we support patterns then we can do `!(obj is null)`
+                expressions.Add(
+                    factory.LogicalNotExpression(
+                        generator.IsPatternExpression(otherNameExpression,
+                            generator.ConstantPattern(nullLiteral))));
+
             }
             else
             {
