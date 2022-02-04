@@ -76,8 +76,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
             }
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var generator = SyntaxGenerator.GetGenerator(document);
-            var syntaxKinds = document.GetRequiredLanguageService<ISyntaxKindsService>();
             var completionItem = GetCompletionItem(syntaxContext.LeftToken, text, position);
             context.AddItem(completionItem);
         }
@@ -123,8 +121,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var closestNode = root.FindNode(completionItem.Span);
             var snippetExpressionNode = closestNode.GetAncestorOrThis<ExpressionStatementSyntax>();
-            var reformatSnippetNode = snippetExpressionNode!.WithAdditionalAnnotations(reformatSnippetAnnotation);
-            return root.ReplaceNode(snippetExpressionNode!, reformatSnippetNode);
+            if (snippetExpressionNode is null)
+            {
+                return root;
+            }
+
+            var reformatSnippetNode = snippetExpressionNode.WithAdditionalAnnotations(reformatSnippetAnnotation);
+            return root.ReplaceNode(snippetExpressionNode, reformatSnippetNode);
         }
 
         protected override async Task<SyntaxNode> GetAnnotationForCursorAsync(Document document, CompletionItem completionItem,
@@ -133,9 +136,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var closestNode = root.FindNode(completionItem.Span);
             var snippetExpressionNode = closestNode.GetAncestorOrThis<ExpressionStatementSyntax>();
-            var argumentListNode = snippetExpressionNode!.DescendantNodes().OfType<ArgumentListSyntax>().First();
-            var annotedSnippet = argumentListNode!.WithAdditionalAnnotations(cursorAnnotation);
-            return root.ReplaceNode(argumentListNode!, annotedSnippet);
+            if (snippetExpressionNode is null)
+            {
+                return root;
+            }
+
+            var argumentListNode = snippetExpressionNode.DescendantNodes().OfType<ArgumentListSyntax>().First();
+            var annotedSnippet = argumentListNode.WithAdditionalAnnotations(cursorAnnotation);
+            return root.ReplaceNode(argumentListNode, annotedSnippet);
         }
     }
 }
