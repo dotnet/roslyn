@@ -10,6 +10,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
