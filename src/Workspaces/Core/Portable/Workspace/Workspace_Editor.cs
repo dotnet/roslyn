@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -430,10 +431,12 @@ namespace Microsoft.CodeAnalysis
                 UpdateCurrentContextMapping_NoLock(textContainer, documentId, isCurrentContext: true);
 
                 // Fire and forget that the workspace is changing.
-                _ = RaiseSourceGeneratedDocumentOpenedAsync(this, CurrentSolution, documentId);
+                var token = _taskQueue.Listener.BeginAsyncOperation(nameof(RaiseSourceGeneratedDocumentOpenedAsync));
+                _ = RaiseSourceGeneratedDocumentOpenedAsync(this, CurrentSolution, documentId).CompletesAsyncOperation(token);
 
                 static async Task RaiseSourceGeneratedDocumentOpenedAsync(Workspace workspace, Solution currentSolution, DocumentId documentId)
                 {
+                    await Task.Yield().ConfigureAwait(false);
                     var document = await currentSolution.GetSourceGeneratedDocumentAsync(documentId, CancellationToken.None).ConfigureAwait(false);
                     await workspace.RaiseDocumentOpenedEventAsync(document).ConfigureAwait(false);
                 }
@@ -452,10 +455,12 @@ namespace Microsoft.CodeAnalysis
                 ClearOpenDocument(documentId);
 
                 // Fire and forget that the workspace is changing.
-                _ = RaiseSourceGeneratedDocumentClosedAsync(this, CurrentSolution, documentId);
+                var token = _taskQueue.Listener.BeginAsyncOperation(nameof(RaiseSourceGeneratedDocumentClosedAsync));
+                _ = RaiseSourceGeneratedDocumentClosedAsync(this, CurrentSolution, documentId).CompletesAsyncOperation(token);
 
                 static async Task RaiseSourceGeneratedDocumentClosedAsync(Workspace workspace, Solution currentSolution, DocumentId documentId)
                 {
+                    await Task.Yield().ConfigureAwait(false);
                     var document = await currentSolution.GetSourceGeneratedDocumentAsync(documentId, CancellationToken.None).ConfigureAwait(false);
                     await workspace.RaiseDocumentClosedEventAsync(document).ConfigureAwait(false);
                 }

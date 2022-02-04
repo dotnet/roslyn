@@ -101,7 +101,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Workspace)>
-        Public Sub TestSourceGeneratedDocumentOperation()
+        Public Async Function TestSourceGeneratedDocumentOperation() As Task
             Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -111,14 +111,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
                 Dim subjectDocument = workspace.Documents.Single()
                 Dim openDocument = subjectDocument.GetOpenTextContainer()
-                Dim document = Assert.IsType(Of SourceGeneratedDocument)(openDocument.GetOpenDocumentInCurrentContext())
+                Dim sourceGeneratedDocumentId = workspace.GetDocumentIdInCurrentContext(openDocument)
+                Dim document = Assert.IsType(Of SourceGeneratedDocument)(Await workspace.CurrentSolution.GetDocumentAsync(sourceGeneratedDocumentId, includeSourceGenerated:=True))
                 Dim documentServices = document.State.Services
                 Dim documentOperations = documentServices.GetService(Of IDocumentOperationService)()
 
                 Assert.False(documentOperations.CanApplyChange)
                 Assert.True(documentOperations.SupportDiagnostics)
             End Using
-        End Sub
+        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestExcerptService_SingleLine() As Task

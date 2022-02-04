@@ -90,6 +90,11 @@ namespace Microsoft.CodeAnalysis
                 this.solutionServices);
         }
 
+        /// <summary>
+        /// This is modeled after <see cref="DefaultTextDocumentServiceProvider"/>, but sets
+        /// <see cref="IDocumentOperationService.CanApplyChange"/> to <see langword="false"/> for source generated
+        /// documents.
+        /// </summary>
         internal sealed class SourceGeneratedTextDocumentServiceProvider : IDocumentServiceProvider
         {
             public static readonly SourceGeneratedTextDocumentServiceProvider Instance = new();
@@ -101,9 +106,6 @@ namespace Microsoft.CodeAnalysis
             public TService? GetService<TService>()
                 where TService : class, IDocumentService
             {
-                // right now, it doesn't implement much services but we expect it to implements all 
-                // document services in future so that we can remove all if branches in feature code
-                // but just delegate work to default document services.
                 if (SourceGeneratedDocumentOperationService.Instance is TService documentOperationService)
                 {
                     return documentOperationService;
