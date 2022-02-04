@@ -6,7 +6,6 @@
 
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -45,6 +44,8 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 var fieldStateMap = new ConcurrentDictionary<IFieldSymbol, (bool isCandidate, bool written)>();
 
                 var threadStaticAttribute = compilationStartContext.Compilation.ThreadStaticAttributeType();
+                var dataContractAttribute = compilationStartContext.Compilation.DataContractAttribute();
+                var dataMemberAttribute = compilationStartContext.Compilation.DataMemberAttribute();
 
                 // We register following actions in the compilation:
                 // 1. A symbol action for field symbols to ensure the field state is initialized for every field in
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                     }
                 }
 
-                static bool IsCandidateField(IFieldSymbol symbol, INamedTypeSymbol threadStaticAttribute, Compilation compilation) =>
+                static bool IsCandidateField(IFieldSymbol symbol, INamedTypeSymbol threadStaticAttribute, INamedTypeSymbol dataContractAttribute, INamedTypeSymbol dataMemberAttribute) =>
                         symbol.DeclaredAccessibility == Accessibility.Private &&
                         !symbol.IsReadOnly &&
                         !symbol.IsConst &&
@@ -123,21 +124,21 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                         !symbol.GetAttributes().Any(
                            static (a, threadStaticAttribute) => SymbolEqualityComparer.Default.Equals(a.AttributeClass, threadStaticAttribute),
                            threadStaticAttribute) &&
-                        !IsDataContractSerializable(symbol, compilation);
+                        !IsDataContractSerializable(symbol, dataContractAttribute, dataMemberAttribute);
 
-                static bool IsDataContractSerializable(IFieldSymbol symbol, Compilation compilation)
+                static bool IsDataContractSerializable(IFieldSymbol symbol, INamedTypeSymbol dataContractAttribute, INamedTypeSymbol dataMemberAttribute)
                 {
-                    var dataMemberAttribute = compilation.DataMemberAttribute();
-                    var dataContractAttribute = compilation.DataContractAttribute();
+                    if (dataContractAttribute is null || dataMemberAttribute is null)
+                        return false;
 
-                    return symbol.GetAttributes().Any(x => x.AttributeClass == dataMemberAttribute)
-                        && symbol.ContainingType.GetAttributes().Any(x => x.AttributeClass == dataContractAttribute);
+                    return symbol.GetAttributes().Any(static (x, dataMemberAttribute) => SymbolEqualityComparer.Default.Equals(x.AttributeClass, dataMemberAttribute), dataMemberAttribute)
+                        && symbol.ContainingType.GetAttributes().Any(static (x, dataContractAttribute) => SymbolEqualityComparer.Default.Equals(x.AttributeClass, dataContractAttribute), dataContractAttribute);
                 }
 
                 // Method to update the field state for a candidate field written outside constructor and field initializer.
                 void UpdateFieldStateOnWrite(IFieldSymbol field)
                 {
-                    Debug.Assert(IsCandidateField(field, threadStaticAttribute, compilationStartContext.Compilation));
+                    Debug.Assert(IsCandidateField(field, threadStaticAttribute, dataContractAttribute, dataMemberAttribute));
                     Debug.Assert(fieldStateMap.ContainsKey(field));
 
                     fieldStateMap[field] = (isCandidate: true, written: true);
@@ -146,7 +147,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                 // Method to get or initialize the field state.
                 (bool isCandidate, bool written) TryGetOrInitializeFieldState(IFieldSymbol fieldSymbol, AnalyzerOptions options, CancellationToken cancellationToken)
                 {
-                    if (!IsCandidateField(fieldSymbol, threadStaticAttribute, compilationStartContext.Compilation))
+                    if (!IsCandidateField(fieldSymbol, threadStaticAttribute, dataContractAttribute, dataMemberAttribute))
                     {
                         return default;
                     }
@@ -156,14 +157,14 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                         return result;
                     }
 
-                    result = ComputeInitialFieldState(fieldSymbol, options, threadStaticAttribute, compilationStartContext.Compilation, cancellationToken);
+                    result = ComputeInitialFieldState(fieldSymbol, options, threadStaticAttribute, dataContractAttribute, dataMemberAttribute, cancellationToken);
                     return fieldStateMap.GetOrAdd(fieldSymbol, result);
                 }
 
                 // Method to compute the initial field state.
-                static (bool isCandidate, bool written) ComputeInitialFieldState(IFieldSymbol field, AnalyzerOptions options, INamedTypeSymbol threadStaticAttribute, Compilation compilation, CancellationToken cancellationToken)
+                static (bool isCandidate, bool written) ComputeInitialFieldState(IFieldSymbol field, AnalyzerOptions options, INamedTypeSymbol threadStaticAttribute, INamedTypeSymbol dataContractAttribute, INamedTypeSymbol dataMemberAttribute, CancellationToken cancellationToken)
                 {
-                    Debug.Assert(IsCandidateField(field, threadStaticAttribute, compilation));
+                    Debug.Assert(IsCandidateField(field, threadStaticAttribute, dataContractAttribute, dataMemberAttribute));
 
                     var option = GetCodeStyleOption(field, options, cancellationToken);
                     if (option == null || !option.Value)
