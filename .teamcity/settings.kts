@@ -102,7 +102,7 @@ object PublicBuild : BuildType({
 
     name = "Build [Public]"
 
-    artifactRules = "+:artifacts/publish/public/**/*=>artifacts/publish/public\n+:artifacts/packages/Public/Shipping/**/*=>artifacts/packages/Public/Shipping"
+    artifactRules = "+:artifacts/publish/public/**/*=>artifacts/publish/public\n+:artifacts/packages/Release/Shipping/**/*=>artifacts/packages/Release/Shipping"
 
     vcs {
         root(DslContext.settingsRoot)
@@ -162,7 +162,7 @@ object Deploy : BuildType({
 
             artifacts {
                 cleanDestination = true
-                artifactRules = "+:artifacts/publish/public/**/*=>artifacts/publish/public\n+:artifacts/packages/Public/Shipping/**/*=>artifacts/packages/Public/Shipping"
+                artifactRules = "+:artifacts/publish/public/**/*=>artifacts/publish/public\n+:artifacts/packages/Release/Shipping/**/*=>artifacts/packages/Release/Shipping"
             }
         }
     }

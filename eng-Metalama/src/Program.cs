@@ -10,7 +10,7 @@ using System.IO;
 
 var product = new Product
 {
-    PrivateArtifactsDirectory = "artifacts\\packages\\$(Configuration)\\Shipping",
+    PrivateArtifactsDirectory = "artifacts\\packages\\$(MSSBuildConfiguration)\\Shipping",
     ProductName = "Metalama.Compiler",
     EngineeringDirectory = "eng-Metalama",
     VersionsFile = "eng\\Versions.props",

@@ -13,6 +13,6 @@
   "msbuild-sdks": {
     "Microsoft.DotNet.Arcade.Sdk": "7.0.0-beta.21569.2",
     "Microsoft.DotNet.Helix.Sdk": "7.0.0-beta.21569.2",
-    "PostSharp.Engineering.Sdk":"1.0.36-preview"
+    "PostSharp.Engineering.Sdk":"1.0.38-preview"
   }
 }
