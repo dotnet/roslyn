@@ -8121,4 +8121,36 @@ switch (a)
             Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[1,2,3]").WithLocation(15, 10)
             );
     }
+
+    [Fact, WorkItem(58738, "https://github.com/dotnet/roslyn/issues/58738")]
+    public void ListPattern_DefiniteAssignmentOnErrorCode()
+    {
+        var source = @"
+var a = new[] { 1 };
+
+if (a is [var x] and x is [1])
+{
+}
+
+var b = new[] { true };
+if ((b is [var y] and y) is [true])
+{
+}
+";
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(new[] { source, TestSources.GetSubArray });
+        comp.VerifyEmitDiagnostics(
+            // (4,22): error CS0029: Cannot implicitly convert type 'int' to 'int[]'
+            // if (a is [var x] and x is [1])
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("int", "int[]").WithLocation(4, 22),
+            // (4,27): error CS0021: Cannot apply indexing with [] to an expression of type 'bool'
+            // if (a is [var x] and x is [1])
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[1]").WithArguments("bool").WithLocation(4, 27),
+            // (9,23): error CS0029: Cannot implicitly convert type 'bool' to 'bool[]'
+            // if ((b is [var y] and y) is [true])
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "y").WithArguments("bool", "bool[]").WithLocation(9, 23),
+            // (9,29): error CS0021: Cannot apply indexing with [] to an expression of type 'bool'
+            // if ((b is [var y] and y) is [true])
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[true]").WithArguments("bool").WithLocation(9, 29)
+            );
+    }
 }

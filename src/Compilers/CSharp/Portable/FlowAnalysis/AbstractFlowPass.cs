@@ -1035,6 +1035,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundITuplePattern:
                     case BoundRelationalPattern:
                     case BoundDeclarationPattern:
+                    case BoundListPattern:
                         return null;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
