@@ -26,11 +26,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences.
 
         public IErrorListFilterHandler CreateFilter(IWpfTableControl tableControl)
         {
-            return new EntireSolutionAndExternalFilterHandler();
+            return EntireSolutionAndExternalFilterHandler.Instance;
         }
 
         private class EntireSolutionAndExternalFilterHandler : ExternalSourcesFilterHandlerBase
         {
+            public static EntireSolutionAndExternalFilterHandler Instance = new();
+
             public override int FilterId => 40;
             public override string FilterDisplayName => ServicesVSResources.Entire_solution_and_external_sources;
 

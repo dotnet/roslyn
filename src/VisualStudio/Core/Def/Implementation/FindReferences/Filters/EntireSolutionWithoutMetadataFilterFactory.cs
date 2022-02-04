@@ -33,11 +33,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences.
 
         public IErrorListFilterHandler ReplaceFilter(IWpfTableControl tableControl, string filterIdentifier)
         {
-            return new EntireSolutionWithoutMetadataFilterHandler();
+            return EntireSolutionWithoutMetadataFilterHandler.Instance;
         }
 
         private class EntireSolutionWithoutMetadataFilterHandler : ExternalSourcesFilterHandlerBase
         {
+            public static EntireSolutionWithoutMetadataFilterHandler Instance = new();
+
             public override int FilterId => PredefinedScopeFilterIds.EntireSolutionScopeFilter;
             public override string FilterDisplayName => ServicesVSResources.Entire_solution;
 
