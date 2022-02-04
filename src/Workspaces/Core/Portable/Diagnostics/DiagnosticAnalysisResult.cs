@@ -320,6 +320,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
         {
             foreach (var documentId in map.Keys)
             {
+                // TryGetSourceGeneratedDocumentForAlreadyGeneratedId is being used here for a debug-only assertion.
                 var textDocument = project.GetTextDocument(documentId) ?? project.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId);
                 Debug.Assert(textDocument?.SupportsDiagnostics() == true);
             }

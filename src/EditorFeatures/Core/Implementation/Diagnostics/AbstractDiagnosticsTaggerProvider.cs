@@ -75,6 +75,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 return;
             }
 
+            // TryGetSourceGeneratedDocumentForAlreadyGeneratedId is safe to use here because the only way to report
+            // a diagnostic in a source generated document is for the source generated document to exist.
             var document = e.Solution.GetDocument(e.DocumentId)
                 ?? e.Solution.GetProject(e.DocumentId.ProjectId)?.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(e.DocumentId);
 

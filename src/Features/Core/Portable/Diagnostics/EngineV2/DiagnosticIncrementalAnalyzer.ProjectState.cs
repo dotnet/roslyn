@@ -199,6 +199,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var serializerVersion = result.Version;
                 foreach (var documentId in result.DocumentIds)
                 {
+                    // TryGetSourceGeneratedDocumentForAlreadyGeneratedId is safe to use here because the only way to
+                    // report a diagnostic in a source generated document is for the source generated document to exist.
                     var document = project.GetTextDocument(documentId)
                         ?? project.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId);
                     if (document == null)

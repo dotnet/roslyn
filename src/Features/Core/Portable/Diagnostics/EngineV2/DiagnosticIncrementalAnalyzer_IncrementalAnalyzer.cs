@@ -535,6 +535,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             foreach (var documentId in newAnalysisResult.DocumentIds)
             {
+                // TryGetSourceGeneratedDocumentForAlreadyGeneratedId is safe to use here because the only way to report
+                // a diagnostic in a source generated document is for the source generated document to exist.
                 var document = project.GetTextDocument(documentId)
                     ?? project.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId);
                 if (document == null)
