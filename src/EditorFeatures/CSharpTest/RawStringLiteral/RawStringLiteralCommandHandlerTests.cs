@@ -153,6 +153,15 @@ $${|VirtualSpaces-4:|}
             testState.SendReturn(handled: false);
         }
 
+        [WpfFact]
+        public void TestReturnInEmptyFile()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"$$");
+
+            testState.SendReturn(handled: false);
+        }
+
         #endregion
 
         #region generate initial empty raw string
@@ -354,5 +363,16 @@ $${|VirtualSpaces-4:|}
         }
 
         #endregion
+
+        [WpfFact]
+        public void TestTypeQuoteEmptyFile()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"$$");
+
+            testState.SendTypeChar('"');
+            testState.AssertCodeIs(
+@"""$$");
+        }
     }
 }
