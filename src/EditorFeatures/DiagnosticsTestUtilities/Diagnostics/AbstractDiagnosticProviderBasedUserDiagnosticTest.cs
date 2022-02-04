@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26717")]
+        [Fact]
         public void TestSupportedDiagnosticsMessageHelpLinkUri()
         {
             using (var workspace = new AdhocWorkspace())
@@ -124,6 +124,27 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 foreach (var descriptor in diagnosticAnalyzer.SupportedDiagnostics)
                 {
+                    // These don't come up in UI.
+                    if (descriptor.DefaultSeverity == DiagnosticSeverity.Hidden && descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable))
+                    {
+                        continue;
+                    }
+
+                    if (descriptor.Id is "RE0001") // Currently not documented. https://github.com/dotnet/roslyn/issues/48530
+                    {
+                        continue;
+                    }
+
+                    if (descriptor.Id == "IDE0043") // Intentionally undocumented. It will be removed in favor of CA2241
+                    {
+                        continue;
+                    }
+
+                    if (descriptor.Id == "IDE1007")
+                    {
+                        continue;
+                    }
+
                     Assert.NotEqual("", descriptor.HelpLinkUri ?? "");
                 }
             }
