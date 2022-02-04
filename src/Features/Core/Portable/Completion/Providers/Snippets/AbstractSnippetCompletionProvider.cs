@@ -2,29 +2,26 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
 {
     internal abstract class AbstractSnippetCompletionProvider : CommonCompletionProvider
     {
-        private readonly SyntaxAnnotation _annotation = new();
+        private readonly SyntaxAnnotation _cursorAnnotation = new();
+        private readonly SyntaxAnnotation _reformatSnippetAnnotation = new();
 
         protected abstract int GetTargetCaretPosition(SyntaxNode caretTarget);
         protected abstract Task<Document> GenerateDocumentWithSnippetAsync(Document document, CompletionItem completionItem, CancellationToken cancellationToken);
-        protected abstract Task<SyntaxNode> GetAnnotatedSnippetRootAsync(Document document, CompletionItem completionItem, SyntaxAnnotation annotation, CancellationToken cancellationToken);
+        protected abstract Task<SyntaxNode> GetAnnotatedSnippetRootAsync(Document document, CompletionItem completionItem,
+            SyntaxAnnotation reformatAnnotation, CancellationToken cancellationToken);
+        protected abstract Task<SyntaxNode> GetAnnotationForCursorAsync(Document document, CompletionItem completionItem,
+            SyntaxAnnotation cursorAnnotation, CancellationToken cancellationToken);
 
         public AbstractSnippetCompletionProvider()
         {
@@ -42,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             // Attempt to find the inserted node and move the caret appropriately
             if (newRoot != null)
             {
-                var caretTarget = newRoot.GetAnnotatedNodes(_annotation).FirstOrDefault();
+                var caretTarget = newRoot.GetAnnotatedNodes(_cursorAnnotation).FirstOrDefault();
                 if (caretTarget != null)
                 {
                     var targetPosition = GetTargetCaretPosition(caretTarget);
@@ -65,16 +62,36 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
 
         private async Task<Document> DetermineNewDocumentAsync(Document document, CompletionItem completionItem, CancellationToken cancellationToken)
         {
-            var snippetContainingDocument = await GenerateDocumentWithSnippetAsync(document, completionItem, cancellationToken).ConfigureAwait(false);
+            var originalText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+            Document? snippetContainingDocument;
+
+            // Need to special case if the span is empty because otherwise it takes out preceding
+            // characters when we just want to remove any characters to invoke the completion.
+            if (completionItem.Span.IsEmpty)
+            {
+                snippetContainingDocument = await GenerateDocumentWithSnippetAsync(document, completionItem, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                var textChange = new TextChange(TextSpan.FromBounds(SnippetCompletionItem.GetTokenSpanStart(completionItem), SnippetCompletionItem.GetTokenSpanEnd(completionItem)),
+                    string.Empty);
+                originalText = originalText.WithChanges(textChange);
+                var documentWithoutInvocationText = document.WithText(originalText);
+                snippetContainingDocument = await GenerateDocumentWithSnippetAsync(documentWithoutInvocationText, completionItem, cancellationToken).ConfigureAwait(false);
+            }
 
             if (snippetContainingDocument is null)
             {
                 return document;
             }
 
-            var annotatedSnippetRoot = await GetAnnotatedSnippetRootAsync(snippetContainingDocument, completionItem, _annotation, cancellationToken).ConfigureAwait(false);
+            var annotatedSnippetRoot = await GetAnnotatedSnippetRootAsync(snippetContainingDocument, completionItem, _reformatSnippetAnnotation, cancellationToken).ConfigureAwait(false);
             snippetContainingDocument = snippetContainingDocument.WithSyntaxRoot(annotatedSnippetRoot);
-            return await Formatter.FormatAsync(snippetContainingDocument, _annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var reformattedDocument = await Formatter.FormatAsync(snippetContainingDocument, _reformatSnippetAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var cursorAnnotatedRoot = await GetAnnotationForCursorAsync(reformattedDocument, completionItem, _cursorAnnotation, cancellationToken).ConfigureAwait(false);
+            reformattedDocument = reformattedDocument.WithSyntaxRoot(cursorAnnotatedRoot);
+            return await Formatter.FormatAsync(reformattedDocument, _cursorAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
     }
 }

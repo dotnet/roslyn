@@ -106,24 +106,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
             var isAsync = generator.GetModifiers(declaration).IsAsync;
             SyntaxNode? invocation;
             invocation = isAsync
-                ? generator.AwaitExpression(generator.InvocationExpression(
+                ? generator.ExpressionStatement(generator.AwaitExpression(generator.InvocationExpression(
                     generator.MemberAccessExpression(generator.MemberAccessExpression(generator.IdentifierName("Console"),
-                    generator.IdentifierName("Out")), generator.IdentifierName("WriteLineAsync"))))
-                : generator.InvocationExpression(generator.MemberAccessExpression(generator.IdentifierName("Console"), generator.IdentifierName("WriteLine")));
-            var textChange = new TextChange(TextSpan.FromBounds(SnippetCompletionItem.GetTokenSpanStart(completionItem), SnippetCompletionItem.GetTokenSpanEnd(completionItem)),
-                invocation.NormalizeWhitespace().ToFullString());
+                    generator.IdentifierName("Out")), generator.IdentifierName("WriteLineAsync")))))
+                : generator.ExpressionStatement(generator.InvocationExpression(generator.MemberAccessExpression(
+                    generator.IdentifierName("Console"), generator.IdentifierName("WriteLine"))));
+            var textChange = new TextChange(completionItem.Span, invocation.NormalizeWhitespace().ToFullString());
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             text = text.WithChanges(textChange);
             return document.WithText(text);
         }
 
-        protected override async Task<SyntaxNode> GetAnnotatedSnippetRootAsync(Document document, CompletionItem completionItem, SyntaxAnnotation annotation, CancellationToken cancellationToken)
+        protected override async Task<SyntaxNode> GetAnnotatedSnippetRootAsync(Document document, CompletionItem completionItem,
+            SyntaxAnnotation reformatSnippetAnnotation, CancellationToken cancellationToken)
+        {
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var closestNode = root.FindNode(completionItem.Span);
+            var snippetExpressionNode = closestNode.GetAncestorOrThis<ExpressionStatementSyntax>();
+            var reformatSnippetNode = snippetExpressionNode!.WithAdditionalAnnotations(reformatSnippetAnnotation);
+            return root.ReplaceNode(snippetExpressionNode!, reformatSnippetNode);
+        }
+
+        protected override async Task<SyntaxNode> GetAnnotationForCursorAsync(Document document, CompletionItem completionItem,
+            SyntaxAnnotation cursorAnnotation, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var closestNode = root.FindNode(completionItem.Span);
             var snippetExpressionNode = closestNode.GetAncestorOrThis<ExpressionStatementSyntax>();
             var argumentListNode = snippetExpressionNode!.DescendantNodes().OfType<ArgumentListSyntax>().First();
-            var annotedSnippet = argumentListNode!.WithAdditionalAnnotations(annotation);
+            var annotedSnippet = argumentListNode!.WithAdditionalAnnotations(cursorAnnotation);
             return root.ReplaceNode(argumentListNode!, annotedSnippet);
         }
     }
