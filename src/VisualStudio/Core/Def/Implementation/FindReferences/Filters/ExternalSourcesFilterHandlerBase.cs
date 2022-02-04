@@ -10,13 +10,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences.
 {
     internal abstract class ExternalSourcesFilterHandlerBase : FilterHandlerBase
     {
-        /// <summary>Whether to include items that have an ItemOrigin ("Source") column value of Exact ("Local")</summary>
+        /// <summary>
+        /// Whether to include items that have an ItemOrigin ("Source") column value of Exact ("Local")
+        /// </summary>
         public abstract bool IncludeExact { get; }
 
-        /// <summary>Whether to include items that have an ItemOrigin ("Source") column value of ExactMetadata ("Local (from metadata)")</summary>
+        /// <summary>
+        /// Whether to include items that have an ItemOrigin ("Source") column value of ExactMetadata ("Local (from metadata)")
+        /// </summary>
         public abstract bool IncludeExactMetadata { get; }
 
-        /// <summary>Whether to include items that have an ItemOrigin ("Source") column value of Other</summary>
+        /// <summary>
+        /// Whether to include items that have an ItemOrigin ("Source") column value of Other
+        /// </summary>
         public abstract bool IncludeOther { get; }
 
         public override IEntryFilter GetFilter(out string displayText)

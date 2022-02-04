@@ -32,7 +32,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences.
         {
             public static ExternalSourcesFilterHandler Instance = new();
 
-            public override int FilterId => 42;
+            /// <summary>
+            /// FilterId is persisted to user settings to remember the selection. Starting in the 40s means
+            /// its unqiue compared to the rest of <see cref="PredefinedScopeFilterIds"/>
+            /// </summary>
+            public override int FilterId => 41;
             public override string FilterDisplayName => ServicesVSResources.External_sources;
 
             public override bool IncludeExact => false;
