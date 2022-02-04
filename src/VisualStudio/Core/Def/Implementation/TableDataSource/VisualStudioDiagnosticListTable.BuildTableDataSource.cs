@@ -223,13 +223,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         if (documentId is null)
                             return false;
 
-                        var solution = item.Workspace.CurrentSolution;
-                        if (!solution.ContainsDocument(documentId)
-                            && solution.GetProject(documentId.ProjectId)?.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId) is null)
-                        {
-                            return false;
-                        }
-
                         return TryNavigateTo(item.Workspace, documentId, item.GetOriginalPosition(), previewTab, activate, cancellationToken);
                     }
 
@@ -245,21 +238,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             return documentId;
                         }
 
-                        if (documentId is not null
-                            && solution.GetProject(projectId)?.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId) is not null)
+                        if (solution.GetProject(projectId) is { } project)
                         {
-                            return documentId;
-                        }
-
-                        if (documentId is null && solution.GetProject(projectId) is { } project)
-                        {
-                            // We couldn't find a document ID when the item was created, so it may be a source generator
-                            // output.
+                            // We couldn't find a document matching a known ID when the item was created, so it may be a
+                            // source generator output.
                             var documents = threadingContext.JoinableTaskFactory.Run(() => project.GetSourceGeneratedDocumentsAsync(cancellationToken).AsTask());
-                            var projectDirectory = Path.GetDirectoryName(project.FilePath);
-                            documentId = documents.FirstOrDefault(document => Path.Combine(projectDirectory, document.FilePath) == item.GetOriginalFilePath())?.Id;
                             if (documentId is not null)
-                                return documentId;
+                            {
+                                if (documents.Any(document => document.Id == documentId))
+                                    return documentId;
+                            }
+                            else
+                            {
+                                var projectDirectory = Path.GetDirectoryName(project.FilePath);
+                                documentId = documents.FirstOrDefault(document => Path.Combine(projectDirectory, document.FilePath) == item.GetOriginalFilePath())?.Id;
+                                if (documentId is not null)
+                                    return documentId;
+                            }
                         }
 
                         // okay, documentId no longer exist in current solution, find it by file path.

@@ -200,23 +200,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
             }
 
-            var document = solution.GetDocument(documentId)
-                ?? solution.GetProject(documentId.ProjectId)?.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId);
-            if (document == null)
-            {
-                return false;
-            }
-
             LinePosition position;
-            LinePosition trackingLinePosition;
-
-            if (workspace.IsDocumentOpen(documentId) &&
-                (trackingLinePosition = GetTrackingLineColumn(document, index)) != LinePosition.Zero)
+            var document = solution.GetDocument(documentId);
+            if (document is not null
+                && workspace.IsDocumentOpen(documentId)
+                && GetTrackingLineColumn(document, index) is { } trackingLinePosition
+                && trackingLinePosition != LinePosition.Zero)
             {
+                // For normal documents already open, try to map the diagnostic location to its current position in a
+                // potentially-edited document.
                 position = trackingLinePosition;
             }
             else
             {
+                // Otherwise navigate to the original reported location.
                 position = item.GetOriginalPosition();
             }
 
