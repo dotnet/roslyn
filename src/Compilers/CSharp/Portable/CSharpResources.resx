@@ -6941,4 +6941,25 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_LowerCaseTypeName_Title" xml:space="preserve">
     <value>The type name only contains lower-cased ascii characters. Such names may become reserved for the language.</value>
   </data>
+  <data name="ERR_RequiredNameDisallowed" xml:space="preserve">
+    <value>Types and aliases cannot be named 'required'.</value>
+  </data>
+  <data name="IDS_FeatureRequiredMembers" xml:space="preserve">
+    <value>required members</value>
+  </data>
+  <data name="ERR_OverrideMustHaveRequired" xml:space="preserve">
+    <value>'{0}': cannot remove 'required' from '{1}' when overriding</value>
+  </data>
+  <data name="ERR_RequiredMemberCannotBeHidden" xml:space="preserve">
+    <value>Required member '{0}' cannot be hidden by '{1}'.</value>
+  </data>
+  <data name="ERR_RequiredMemberCannotBeLessVisibleThanContainingType" xml:space="preserve">
+    <value>Required member '{0}' cannot be less visible or have a setter less visible than the containing type '{1}'.</value>
+  </data>
+  <data name="ERR_ExplicitRequiredMember" xml:space="preserve">
+    <value>Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.</value>
+  </data>
+  <data name="ERR_RequiredMemberMustBeSettable" xml:space="preserve">
+    <value>Required member '{0}' must be settable.</value>
+  </data>
 </root>

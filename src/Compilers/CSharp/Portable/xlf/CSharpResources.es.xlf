@@ -432,6 +432,11 @@
         <target state="translated">Los descriptores de acceso "{0}" y "{1}" deben ser los dos solo de inicialización o ninguno de ellos</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitRequiredMember">
+        <source>Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.</source>
+        <target state="new">Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExprCannotBeFixed">
         <source>The given expression cannot be used in a fixed statement</source>
         <target state="translated">La expresión proporcionada no se puede utilizar en una instrucción "fixed"</target>
@@ -977,6 +982,11 @@
         <target state="translated">El método "{0}" especifica una restricción "default" para el parámetro de tipo "{1}", pero el parámetro de tipo "{2}" correspondiente del método "{3}" invalidado o implementado explícitamente se restringe a un tipo de referencia o a un tipo de valor.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OverrideMustHaveRequired">
+        <source>'{0}': cannot remove 'required' from '{1}' when overriding</source>
+        <target state="new">'{0}': cannot remove 'required' from '{1}' when overriding</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OverrideRefConstraintNotSatisfied">
         <source>Method '{0}' specifies a 'class' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a reference type.</source>
         <target state="translated">El método "{0}" especifica una restricción "class" para el parámetro de tipo "{1}", pero el parámetro de tipo correspondiente "{2}" de los métodos invalidados o implementados explícitamente "{3}" no es un tipo de referencia.</target>
@@ -1085,6 +1095,26 @@
       <trans-unit id="ERR_RelationalPatternWithNaN">
         <source>Relational patterns may not be used for a floating-point NaN.</source>
         <target state="translated">No se pueden usar patrones relacionales para un valor NaN de punto flotante.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMemberCannotBeHidden">
+        <source>Required member '{0}' cannot be hidden by '{1}'.</source>
+        <target state="new">Required member '{0}' cannot be hidden by '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMemberCannotBeLessVisibleThanContainingType">
+        <source>Required member '{0}' cannot be less visible or have a setter less visible than the containing type '{1}'.</source>
+        <target state="new">Required member '{0}' cannot be less visible or have a setter less visible than the containing type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMemberMustBeSettable">
+        <source>Required member '{0}' must be settable.</source>
+        <target state="new">Required member '{0}' must be settable.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredNameDisallowed">
+        <source>Types and aliases cannot be named 'required'.</source>
+        <target state="new">Types and aliases cannot be named 'required'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
@@ -1381,6 +1411,11 @@
         <source>record structs</source>
         <target state="translated">registros</target>
         <note>'record structs' is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRequiredMembers">
+        <source>required members</source>
+        <target state="new">required members</target>
+        <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>

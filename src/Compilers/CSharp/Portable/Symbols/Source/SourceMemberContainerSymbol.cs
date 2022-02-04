@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // We current pack everything into one 32-bit int; layout is given below.
             //
-            // |               |vvv|zzzz|f|d|yy|wwwwww|
+            // |             |ss|vvv|zzzz|f|d|yy|wwwwww|
             //
             // w = special type.  6 bits.
             // y = IsManagedType.  2 bits.
@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // f = FlattenedMembersIsSorted.  1 bit.
             // z = TypeKind. 4 bits.
             // v = NullableContext. 3 bits.
+            // s = DeclaredRequiredMembers. 2 bits
             private int _flags;
 
             private const int SpecialTypeOffset = 0;
@@ -57,6 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int NullableContextOffset = TypeKindOffset + TypeKindSize;
             private const int NullableContextSize = 3;
 
+            private const int HasDeclaredRequiredMembersOffset = NullableContextOffset + NullableContextSize;
+            private const int HasDeclaredRequiredMembersSize = 2;
+
             private const int SpecialTypeMask = (1 << SpecialTypeSize) - 1;
             private const int ManagedKindMask = (1 << ManagedKindSize) - 1;
             private const int TypeKindMask = (1 << TypeKindSize) - 1;
@@ -65,6 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int FieldDefinitionsNotedBit = 1 << FieldDefinitionsNotedOffset;
             private const int FlattenedMembersIsSortedBit = 1 << FlattenedMembersIsSortedOffset;
 
+            private const int HasDeclaredMembersBit = (1 << HasDeclaredRequiredMembersOffset);
+            private const int HasDeclaredMembersBitSet = (1 << (HasDeclaredRequiredMembersOffset + 1));
 
             public SpecialType SpecialType
             {
@@ -139,6 +145,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public bool SetNullableContext(byte? value)
             {
                 return ThreadSafeFlagOperations.Set(ref _flags, (((int)value.ToNullableContextFlags() & NullableContextMask) << NullableContextOffset));
+            }
+
+            public bool TryGetHasDeclaredRequiredMembers(out bool value)
+            {
+                if ((_flags & (HasDeclaredMembersBitSet)) != 0)
+                {
+                    value = (_flags & HasDeclaredMembersBit) != 0;
+                    return true;
+                }
+                else
+                {
+                    value = false;
+                    return false;
+                }
+            }
+
+            public bool SetHasDeclaredRequiredMembers(bool value)
+            {
+                return ThreadSafeFlagOperations.Set(ref _flags, HasDeclaredMembersBitSet | (value ? HasDeclaredMembersBit : 0));
             }
         }
 
@@ -449,13 +474,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            if (name == SyntaxFacts.GetText(SyntaxKind.RecordKeyword) && compilation.LanguageVersion >= MessageID.IDS_FeatureRecords.RequiredVersion())
+            if (reportIfContextual(SyntaxKind.RecordKeyword, MessageID.IDS_FeatureRecords, ErrorCode.WRN_RecordNamedDisallowed)
+                || reportIfContextual(SyntaxKind.RequiredKeyword, MessageID.IDS_FeatureRequiredMembers, ErrorCode.ERR_RequiredNameDisallowed))
             {
-                diagnostics.Add(ErrorCode.WRN_RecordNamedDisallowed, location);
+                return;
             }
             else if (IsReservedTypeName(name))
             {
                 diagnostics.Add(ErrorCode.WRN_LowerCaseTypeName, location, name);
+            }
+
+            bool reportIfContextual(SyntaxKind contextualKind, MessageID featureId, ErrorCode error)
+            {
+                if (name == SyntaxFacts.GetText(contextualKind) && compilation.LanguageVersion >= featureId.RequiredVersion())
+                {
+                    diagnostics.Add(error, location);
+                    return true;
+                }
+
+                return false;
             }
         }
         #endregion
@@ -1289,6 +1326,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool HasDeclaredRequiredMembers
+        {
+            get
+            {
+                if (_flags.TryGetHasDeclaredRequiredMembers(out bool hasDeclaredMembers))
+                {
+                    return hasDeclaredMembers;
+                }
+
+                hasDeclaredMembers = declaration.Declarations.Any(static decl => decl.HasRequiredMembers);
+                _flags.SetHasDeclaredRequiredMembers(hasDeclaredMembers);
+                return hasDeclaredMembers;
+            }
+        }
+
         internal override ImmutableArray<Symbol> GetMembersUnordered()
         {
             var result = _lazyMembersFlattened;
@@ -1607,6 +1659,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckSequentialOnPartialType(diagnostics);
             CheckForProtectedInStaticClass(diagnostics);
             CheckForUnmatchedOperators(diagnostics);
+            CheckForRequiredMemberAttribute(diagnostics);
 
             var location = Locations[0];
             var compilation = DeclaringCompilation;
@@ -2337,6 +2390,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // CS0661: 'C' defines operator == or operator != but does not override Object.GetHashCode()
                     diagnostics.Add(ErrorCode.WRN_EqualityOpWithoutGetHashCode, this.Locations[0], this);
                 }
+            }
+        }
+
+        private void CheckForRequiredMemberAttribute(BindingDiagnosticBag diagnostics)
+        {
+            if (HasDeclaredRequiredMembers)
+            {
+                // Ensure that an error is reported if the required constructor isn't present.
+                _ = Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor, diagnostics, Locations[0]);
             }
         }
 

@@ -1110,7 +1110,16 @@ next:;
                 diagnostics.Add(ErrorCode.ERR_CantUseRequiredAttribute, arguments.AttributeSyntaxOpt.Name.Location);
             }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
-                ReservedAttributes.DynamicAttribute | ReservedAttributes.IsReadOnlyAttribute | ReservedAttributes.IsUnmanagedAttribute | ReservedAttributes.IsByRefLikeAttribute | ReservedAttributes.TupleElementNamesAttribute | ReservedAttributes.NullableAttribute | ReservedAttributes.NullableContextAttribute | ReservedAttributes.NativeIntegerAttribute | ReservedAttributes.CaseSensitiveExtensionAttribute))
+                ReservedAttributes.DynamicAttribute
+                | ReservedAttributes.IsReadOnlyAttribute
+                | ReservedAttributes.IsUnmanagedAttribute
+                | ReservedAttributes.IsByRefLikeAttribute
+                | ReservedAttributes.TupleElementNamesAttribute
+                | ReservedAttributes.NullableAttribute
+                | ReservedAttributes.NullableContextAttribute
+                | ReservedAttributes.NativeIntegerAttribute
+                | ReservedAttributes.CaseSensitiveExtensionAttribute
+                | ReservedAttributes.RequiredMemberAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SecurityCriticalAttribute)
@@ -1582,6 +1591,13 @@ next:;
             {
                 AddSynthesizedAttribute(ref attributes,
                     this.DeclaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
+            }
+
+            if (HasDeclaredRequiredMembers)
+            {
+                AddSynthesizedAttribute(
+                    ref attributes,
+                    compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor));
             }
         }
 

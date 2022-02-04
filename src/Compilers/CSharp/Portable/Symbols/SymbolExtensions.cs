@@ -839,5 +839,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             builderArgument = null;
             return false;
         }
+
+        internal static bool IsRequired(this Symbol symbol) => symbol is FieldSymbol { IsRequired: true } or PropertySymbol { IsRequired: true };
     }
 }

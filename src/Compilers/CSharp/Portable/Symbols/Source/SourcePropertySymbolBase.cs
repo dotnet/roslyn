@@ -89,6 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(!isExpressionBodied || !isAutoProperty);
             Debug.Assert(!isExpressionBodied || !hasInitializer);
+            Debug.Assert((modifiers & DeclarationModifiers.Required) == 0 || this is SourcePropertySymbol);
 
             _syntaxRef = syntax.GetReference();
             Location = location;
@@ -517,6 +518,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return (_modifiers & DeclarationModifiers.Virtual) != 0; }
         }
+
+        internal sealed override bool IsRequired => (_modifiers & DeclarationModifiers.Required) != 0;
 
         internal bool IsNew
         {
@@ -1154,6 +1157,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
+
+            if (IsRequired)
+            {
+                AddSynthesizedAttribute(
+                    ref attributes,
+                    compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor));
+            }
         }
 
         internal sealed override bool IsDirectlyExcludedFromCodeCoverage =>
@@ -1267,7 +1277,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
             }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
-                ReservedAttributes.DynamicAttribute | ReservedAttributes.IsReadOnlyAttribute | ReservedAttributes.IsUnmanagedAttribute | ReservedAttributes.IsByRefLikeAttribute | ReservedAttributes.TupleElementNamesAttribute | ReservedAttributes.NullableAttribute | ReservedAttributes.NativeIntegerAttribute))
+                ReservedAttributes.DynamicAttribute
+                | ReservedAttributes.IsReadOnlyAttribute
+                | ReservedAttributes.IsUnmanagedAttribute
+                | ReservedAttributes.IsByRefLikeAttribute
+                | ReservedAttributes.TupleElementNamesAttribute
+                | ReservedAttributes.NullableAttribute
+                | ReservedAttributes.NativeIntegerAttribute
+                | ReservedAttributes.RequiredMemberAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DisallowNullAttribute))

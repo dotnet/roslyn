@@ -46,6 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override IEnumerable<string> MemberNames => GetMembers().Select(m => m.Name);
 
+        internal override bool HasDeclaredRequiredMembers => false;
+
         /// <summary>
         /// Certain members from the underlying types are not exposed from the native integer types:
         ///   constructors other than the default parameterless constructor are not supported;

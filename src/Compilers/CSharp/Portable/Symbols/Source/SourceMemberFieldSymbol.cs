@@ -114,6 +114,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDecimalConstantAttribute(value.DecimalValue));
                 }
             }
+
+            // Synthesize RequiredMemberAttribute if this field is required
+            if (IsRequired)
+            {
+                AddSynthesizedAttribute(
+                    ref attributes,
+                    this.DeclaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor));
+            }
         }
 
         public override Symbol AssociatedSymbol
@@ -148,7 +156,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers.Volatile |
                 DeclarationModifiers.Fixed |
                 DeclarationModifiers.Unsafe |
-                DeclarationModifiers.Abstract; // filtered out later
+                DeclarationModifiers.Abstract |
+                DeclarationModifiers.Required; // Some of these are filtered out later, when illegal, for better error messages.
 
             var errorLocation = new SourceLocation(firstIdentifier);
             DeclarationModifiers result = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
@@ -186,7 +195,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, SyntaxFacts.GetText(SyntaxKind.VolatileKeyword));
                 }
 
-                result &= ~(DeclarationModifiers.Static | DeclarationModifiers.ReadOnly | DeclarationModifiers.Const | DeclarationModifiers.Volatile);
+                if ((result & DeclarationModifiers.Required) != 0)
+                {
+                    // PROTOTYPE(req): capture the allowed modifier combinations in the specification
+                    // The modifier 'required' is not valid for this item
+                    diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, SyntaxFacts.GetText(SyntaxKind.RequiredKeyword));
+                }
+
+                result &= ~(DeclarationModifiers.Static | DeclarationModifiers.ReadOnly | DeclarationModifiers.Const | DeclarationModifiers.Volatile | DeclarationModifiers.Required);
                 Debug.Assert((result & ~(DeclarationModifiers.AccessibilityMask | DeclarationModifiers.Fixed | DeclarationModifiers.Unsafe | DeclarationModifiers.New)) == 0);
             }
 
@@ -216,10 +232,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, SyntaxFacts.GetText(SyntaxKind.UnsafeKeyword));
                 }
 
+                if ((result & DeclarationModifiers.Required) != 0)
+                {
+                    // The modifier 'required' is not valid for this item
+                    diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, SyntaxFacts.GetText(SyntaxKind.RequiredKeyword));
+                    result &= ~DeclarationModifiers.Required;
+                }
+
                 result |= DeclarationModifiers.Static; // "constants are considered static members"
             }
             else
             {
+                if ((result & DeclarationModifiers.Static) != 0 && (result & DeclarationModifiers.Required) != 0)
+                {
+                    // The modifier 'required' is not valid for this item
+                    diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, SyntaxFacts.GetText(SyntaxKind.RequiredKeyword));
+                    result &= ~DeclarationModifiers.Required;
+                }
+
                 // NOTE: always cascading on a const, so suppress.
                 // NOTE: we're being a bit sneaky here - we're using the containingType rather than this symbol
                 // to determine whether or not unsafe is allowed.  Since this symbol and the containing type are

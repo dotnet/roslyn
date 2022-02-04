@@ -432,6 +432,11 @@
         <target state="translated">'{0}' 및 '{1}' 접근자는 둘 다 초기값 전용이거나 둘 다 초기값 전용이 아니어야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitRequiredMember">
+        <source>Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.</source>
+        <target state="new">Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExprCannotBeFixed">
         <source>The given expression cannot be used in a fixed statement</source>
         <target state="translated">fixed 문에서는 지정된 식을 사용할 수 없습니다.</target>
@@ -977,6 +982,11 @@
         <target state="translated">메서드 '{0}'이(가) 형식 매개 변수 '{1}'의 'default' 제약 조건을 지정하지만 재정의되었거나 명시적으로 구현된 메서드 '{3}'의 해당 형식 매개 변수 '{2}'이(가) 참조 형식 또는 값 형식으로 제한됩니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OverrideMustHaveRequired">
+        <source>'{0}': cannot remove 'required' from '{1}' when overriding</source>
+        <target state="new">'{0}': cannot remove 'required' from '{1}' when overriding</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OverrideRefConstraintNotSatisfied">
         <source>Method '{0}' specifies a 'class' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a reference type.</source>
         <target state="translated">'{0}' 메서드는 형식 매개 변수 '{1}'의 'class' 제약 조건을 지정하지만 재정의되었거나 명시적으로 구현된 '{3}' 메서드의 해당 형식 매개 변수 '{2}'이(가) 참조 형식이 아닙니다.</target>
@@ -1085,6 +1095,26 @@
       <trans-unit id="ERR_RelationalPatternWithNaN">
         <source>Relational patterns may not be used for a floating-point NaN.</source>
         <target state="translated">부동 소수점 NaN에는 관계형 패턴을 사용할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMemberCannotBeHidden">
+        <source>Required member '{0}' cannot be hidden by '{1}'.</source>
+        <target state="new">Required member '{0}' cannot be hidden by '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMemberCannotBeLessVisibleThanContainingType">
+        <source>Required member '{0}' cannot be less visible or have a setter less visible than the containing type '{1}'.</source>
+        <target state="new">Required member '{0}' cannot be less visible or have a setter less visible than the containing type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMemberMustBeSettable">
+        <source>Required member '{0}' must be settable.</source>
+        <target state="new">Required member '{0}' must be settable.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredNameDisallowed">
+        <source>Types and aliases cannot be named 'required'.</source>
+        <target state="new">Types and aliases cannot be named 'required'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
@@ -1381,6 +1411,11 @@
         <source>record structs</source>
         <target state="translated">레코드 구조체</target>
         <note>'record structs' is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRequiredMembers">
+        <source>required members</source>
+        <target state="new">required members</target>
+        <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>

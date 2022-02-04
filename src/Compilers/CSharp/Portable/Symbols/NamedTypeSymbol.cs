@@ -495,6 +495,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract IEnumerable<string> MemberNames { get; }
 
         /// <summary>
+        /// True if this type declares any required members. It does not recursively check up the tree for _all_ required members.
+        /// </summary>
+        internal abstract bool HasDeclaredRequiredMembers { get; }
+
+        /// <summary>
         /// Get all the members of this symbol.
         /// </summary>
         /// <returns>An ImmutableArray containing all the members of this symbol. If this symbol has no members,

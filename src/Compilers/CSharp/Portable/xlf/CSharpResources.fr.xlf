@@ -432,6 +432,11 @@
         <target state="translated">Les accesseurs '{0}' et '{1}' doivent tous deux être initialiseurs uniquement ou ne pas l'être</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitRequiredMember">
+        <source>Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.</source>
+        <target state="new">Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExprCannotBeFixed">
         <source>The given expression cannot be used in a fixed statement</source>
         <target state="translated">Impossible d'utiliser l'expression donnée dans une instruction fixed</target>
@@ -977,6 +982,11 @@
         <target state="translated">La méthode '{0}' spécifie une contrainte 'default' pour le paramètre de type '{1}', mais le paramètre de type '{2}' correspondant de la méthode substituée ou explicitement implémentée '{3}' est limité à un type référence ou à un type valeur.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OverrideMustHaveRequired">
+        <source>'{0}': cannot remove 'required' from '{1}' when overriding</source>
+        <target state="new">'{0}': cannot remove 'required' from '{1}' when overriding</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OverrideRefConstraintNotSatisfied">
         <source>Method '{0}' specifies a 'class' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a reference type.</source>
         <target state="translated">La méthode '{0}' spécifie une contrainte 'class' pour le paramètre de type '{1}', mais le paramètre de type '{2}' correspondant de la méthode substituée ou explicitement implémentée '{3}' n'est pas un type référence.</target>
@@ -1085,6 +1095,26 @@
       <trans-unit id="ERR_RelationalPatternWithNaN">
         <source>Relational patterns may not be used for a floating-point NaN.</source>
         <target state="translated">Les modèles relationnels ne peuvent pas être utilisés pour une valeur NaN à virgule flottante.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMemberCannotBeHidden">
+        <source>Required member '{0}' cannot be hidden by '{1}'.</source>
+        <target state="new">Required member '{0}' cannot be hidden by '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMemberCannotBeLessVisibleThanContainingType">
+        <source>Required member '{0}' cannot be less visible or have a setter less visible than the containing type '{1}'.</source>
+        <target state="new">Required member '{0}' cannot be less visible or have a setter less visible than the containing type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMemberMustBeSettable">
+        <source>Required member '{0}' must be settable.</source>
+        <target state="new">Required member '{0}' must be settable.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredNameDisallowed">
+        <source>Types and aliases cannot be named 'required'.</source>
+        <target state="new">Types and aliases cannot be named 'required'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
@@ -1381,6 +1411,11 @@
         <source>record structs</source>
         <target state="translated">structs d’enregistrement</target>
         <note>'record structs' is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRequiredMembers">
+        <source>required members</source>
+        <target state="new">required members</target>
+        <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>

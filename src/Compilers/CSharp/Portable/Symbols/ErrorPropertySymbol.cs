@@ -77,6 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsExtern { get { return false; } }
 
+        internal override bool IsRequired => false;
+
         internal sealed override ObsoleteAttributeData ObsoleteAttributeData { get { return null; } }
 
         public override ImmutableArray<ParameterSymbol> Parameters { get { return ImmutableArray<ParameterSymbol>.Empty; } }

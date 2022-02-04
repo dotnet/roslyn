@@ -1377,6 +1377,9 @@ hasRelatedInterfaces:
         private static bool HasPublicParameterlessConstructor(NamedTypeSymbol type, bool synthesizedIfMissing)
         {
             Debug.Assert(type.TypeKind is TypeKind.Class or TypeKind.Struct);
+
+            // PROTOTYPE(req): Adjust for required members
+
             foreach (var constructor in type.InstanceConstructors)
             {
                 if (constructor.ParameterCount == 0)

@@ -10,6 +10,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
+    // PROTOTYPE(req): Add obsolete marker to constructors if required members and Obsolete hasn't already been emitted
+    // PROTOTYPE(req): Add poison type marker to constructors if required members and Obsolete hasn't already been emitted,
+    //                 pending framework design review
     internal sealed class SourceConstructorSymbol : SourceConstructorSymbolBase
     {
         private readonly bool _isExpressionBodied;

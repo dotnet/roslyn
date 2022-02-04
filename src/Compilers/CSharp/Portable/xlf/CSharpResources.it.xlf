@@ -432,6 +432,11 @@
         <target state="translated">Il tipo di sola inizializzazione può essere specificato per entrambe le funzioni di accesso '{0}' e '{1}' o per nessuna di esse</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitRequiredMember">
+        <source>Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.</source>
+        <target state="new">Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExprCannotBeFixed">
         <source>The given expression cannot be used in a fixed statement</source>
         <target state="translated">Non è possibile usare l'espressione specificata in un'istruzione fixed</target>
@@ -977,6 +982,11 @@
         <target state="translated">Il metodo '{0}' specifica un vincolo 'default' per il parametro di tipo '{1}', ma il parametro di tipo corrispondente '{2}' del metodo '{3}' sottoposto a override o implementato in modo esplicito è vincolato a un tipo riferimento a un tipo valore.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OverrideMustHaveRequired">
+        <source>'{0}': cannot remove 'required' from '{1}' when overriding</source>
+        <target state="new">'{0}': cannot remove 'required' from '{1}' when overriding</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OverrideRefConstraintNotSatisfied">
         <source>Method '{0}' specifies a 'class' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a reference type.</source>
         <target state="translated">Il metodo '{0}' specifica un vincolo 'class' per il parametro di tipo '{1}', ma il parametro di tipo corrispondente '{2}' del metodo '{3}' sottoposto a override o implementato in modo esplicito non è un tipo riferimento.</target>
@@ -1085,6 +1095,26 @@
       <trans-unit id="ERR_RelationalPatternWithNaN">
         <source>Relational patterns may not be used for a floating-point NaN.</source>
         <target state="translated">Non è possibile usare i criteri relazionali per un valore NaN a virgola mobile.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMemberCannotBeHidden">
+        <source>Required member '{0}' cannot be hidden by '{1}'.</source>
+        <target state="new">Required member '{0}' cannot be hidden by '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMemberCannotBeLessVisibleThanContainingType">
+        <source>Required member '{0}' cannot be less visible or have a setter less visible than the containing type '{1}'.</source>
+        <target state="new">Required member '{0}' cannot be less visible or have a setter less visible than the containing type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMemberMustBeSettable">
+        <source>Required member '{0}' must be settable.</source>
+        <target state="new">Required member '{0}' must be settable.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredNameDisallowed">
+        <source>Types and aliases cannot be named 'required'.</source>
+        <target state="new">Types and aliases cannot be named 'required'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
@@ -1381,6 +1411,11 @@
         <source>record structs</source>
         <target state="translated">struct di record</target>
         <note>'record structs' is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRequiredMembers">
+        <source>required members</source>
+        <target state="new">required members</target>
+        <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>

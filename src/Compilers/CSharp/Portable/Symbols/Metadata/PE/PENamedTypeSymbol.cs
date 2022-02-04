@@ -824,6 +824,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        // PROTOTYPE(req): Implement
+        internal override bool HasDeclaredRequiredMembers => false;
+
         public override ImmutableArray<Symbol> GetMembers()
         {
             EnsureAllMembersAreLoaded();

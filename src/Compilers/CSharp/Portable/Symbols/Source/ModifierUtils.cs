@@ -81,12 +81,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 modifierErrors = true;
             }
 
-            if ((result & DeclarationModifiers.PrivateProtected) != 0)
-            {
-                modifierErrors |= !Binder.CheckFeatureAvailability(errorLocation.SourceTree, MessageID.IDS_FeaturePrivateProtected, diagnostics, errorLocation);
-            }
+            modifierErrors |= checkFeature(DeclarationModifiers.PrivateProtected, MessageID.IDS_FeaturePrivateProtected)
+                              | checkFeature(DeclarationModifiers.Required, MessageID.IDS_FeatureRequiredMembers);
 
             return result;
+
+            bool checkFeature(DeclarationModifiers modifier, MessageID featureID)
+                => ((result & modifier) != 0) && !Binder.CheckFeatureAvailability(errorLocation.SourceTree, featureID, diagnostics, errorLocation);
         }
 
         private static void ReportPartialError(Location errorLocation, BindingDiagnosticBag diagnostics, SyntaxTokenList? modifierTokens)
@@ -281,6 +282,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return SyntaxFacts.GetText(SyntaxKind.AsyncKeyword);
                 case DeclarationModifiers.Ref:
                     return SyntaxFacts.GetText(SyntaxKind.RefKeyword);
+                case DeclarationModifiers.Required:
+                    return SyntaxFacts.GetText(SyntaxKind.RequiredKeyword);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(modifier);
             }
@@ -328,6 +331,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return DeclarationModifiers.Volatile;
                 case SyntaxKind.RefKeyword:
                     return DeclarationModifiers.Ref;
+                case SyntaxKind.RequiredKeyword:
+                    return DeclarationModifiers.Required;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }
@@ -414,6 +419,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             return new CSDiagnosticInfo(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember);
                         }
                         break;
+                }
+            }
+
+            if ((modifiers & DeclarationModifiers.Required) != 0)
+            {
+                switch (symbol)
+                {
+                    case FieldSymbol or PropertySymbol when symbol.DeclaredAccessibility < symbol.ContainingType.DeclaredAccessibility:
+                    case PropertySymbol { SetMethod.DeclaredAccessibility: var accessibility } when accessibility < symbol.ContainingType.DeclaredAccessibility:
+                        // Required member '{0}' cannot be less visible or have a setter less visible than the containing type '{1}'.
+                        return new CSDiagnosticInfo(ErrorCode.ERR_RequiredMemberCannotBeLessVisibleThanContainingType, symbol, symbol.ContainingType);
+                    case PropertySymbol { SetMethod: null }:
+                    case FieldSymbol when (modifiers & DeclarationModifiers.ReadOnly) != 0:
+                        // Required member '{0}' must be settable.
+                        return new CSDiagnosticInfo(ErrorCode.ERR_RequiredMemberMustBeSettable, symbol);
                 }
             }
 

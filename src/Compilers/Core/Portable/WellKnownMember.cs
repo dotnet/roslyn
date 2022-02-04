@@ -517,6 +517,8 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear,
 
+        System_Runtime_CompilerServices_RequiredMemberAttribute__ctor,
+
         Count
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here

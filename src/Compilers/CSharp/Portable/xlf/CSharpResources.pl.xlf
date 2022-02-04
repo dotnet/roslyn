@@ -432,6 +432,11 @@
         <target state="translated">Tylko do inicjowania powinny być obie metody dostępu „{0}” i „{1}” albo żadna z nich</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExplicitRequiredMember">
+        <source>Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.</source>
+        <target state="new">Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExprCannotBeFixed">
         <source>The given expression cannot be used in a fixed statement</source>
         <target state="translated">Podanego wyrażenia nie można użyć w instrukcji fixed</target>
@@ -977,6 +982,11 @@
         <target state="translated">Metoda „{0}” określa ograniczenie „default” dla parametru typu „{1}”, lecz odpowiadający parametr typu „{2}” przesłoniętej lub jawnie zaimplementowanej metody „{3}” jest ograniczony do typu odwołania lub typu wartości.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OverrideMustHaveRequired">
+        <source>'{0}': cannot remove 'required' from '{1}' when overriding</source>
+        <target state="new">'{0}': cannot remove 'required' from '{1}' when overriding</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_OverrideRefConstraintNotSatisfied">
         <source>Method '{0}' specifies a 'class' constraint for type parameter '{1}', but corresponding type parameter '{2}' of overridden or explicitly implemented method '{3}' is not a reference type.</source>
         <target state="translated">Metoda „{0}” określa ograniczenie „class” dla parametru typu „{1}”, lecz odpowiadający parametr typu „{2}” przesłoniętej lub jawnie zaimplementowanej metody „{3}” nie jest typem referencyjnym.</target>
@@ -1085,6 +1095,26 @@
       <trans-unit id="ERR_RelationalPatternWithNaN">
         <source>Relational patterns may not be used for a floating-point NaN.</source>
         <target state="translated">Wzorców relacyjnych nie można używać na potrzeby zmiennoprzecinkowej wartości NaN.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMemberCannotBeHidden">
+        <source>Required member '{0}' cannot be hidden by '{1}'.</source>
+        <target state="new">Required member '{0}' cannot be hidden by '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMemberCannotBeLessVisibleThanContainingType">
+        <source>Required member '{0}' cannot be less visible or have a setter less visible than the containing type '{1}'.</source>
+        <target state="new">Required member '{0}' cannot be less visible or have a setter less visible than the containing type '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMemberMustBeSettable">
+        <source>Required member '{0}' must be settable.</source>
+        <target state="new">Required member '{0}' must be settable.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredNameDisallowed">
+        <source>Types and aliases cannot be named 'required'.</source>
+        <target state="new">Types and aliases cannot be named 'required'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
@@ -1381,6 +1411,11 @@
         <source>record structs</source>
         <target state="translated">struktury rekordów</target>
         <note>'record structs' is not localizable.</note>
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRequiredMembers">
+        <source>required members</source>
+        <target state="new">required members</target>
+        <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>

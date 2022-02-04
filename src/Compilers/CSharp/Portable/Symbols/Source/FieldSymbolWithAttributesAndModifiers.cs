@@ -204,7 +204,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 MarshalAsAttributeDecoder<FieldWellKnownAttributeData, AttributeSyntax, CSharpAttributeData, AttributeLocation>.Decode(ref arguments, AttributeTargets.Field, MessageProvider.Instance);
             }
             else if (ReportExplicitUseOfReservedAttributes(in arguments,
-                ReservedAttributes.DynamicAttribute | ReservedAttributes.IsReadOnlyAttribute | ReservedAttributes.IsUnmanagedAttribute | ReservedAttributes.IsByRefLikeAttribute | ReservedAttributes.TupleElementNamesAttribute | ReservedAttributes.NullableAttribute | ReservedAttributes.NativeIntegerAttribute))
+                ReservedAttributes.DynamicAttribute
+                | ReservedAttributes.IsReadOnlyAttribute
+                | ReservedAttributes.IsUnmanagedAttribute
+                | ReservedAttributes.IsByRefLikeAttribute
+                | ReservedAttributes.TupleElementNamesAttribute
+                | ReservedAttributes.NullableAttribute
+                | ReservedAttributes.NativeIntegerAttribute
+                | ReservedAttributes.RequiredMemberAttribute))
             {
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DateTimeConstantAttribute))

@@ -1367,6 +1367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NullablePublicOnlyAttribute = 1 << 8,
             NativeIntegerAttribute = 1 << 9,
             CaseSensitiveExtensionAttribute = 1 << 10,
+            RequiredMemberAttribute = 1 << 11,
         }
 
         internal bool ReportExplicitUseOfReservedAttributes(in DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, ReservedAttributes reserved)
@@ -1420,6 +1421,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // ExtensionAttribute should not be set explicitly.
                 diagnostics.Add(ErrorCode.ERR_ExplicitExtension, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if ((reserved & ReservedAttributes.RequiredMemberAttribute) != 0 &&
+                attribute.IsTargetAttribute(this, AttributeDescription.RequiredMemberAttribute))
+            {
+                // Do not use 'System.Runtime.CompilerServices.RequiredMemberAttribute'. Use the 'required' keyword on required fields and properties instead.
+                diagnostics.Add(ErrorCode.ERR_ExplicitRequiredMember, arguments.AttributeSyntaxOpt.Location);
             }
             else
             {
