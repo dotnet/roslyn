@@ -23,10 +23,13 @@ namespace Build
             return ExecuteScript(context, settings, "-build");
         }
 
-        private static bool ExecuteScript(BuildContext context, BaseBuildSettings options, string args)
+        private  bool ExecuteScript(BuildContext context, BaseBuildSettings settings, string args)
         {
+            var configuration = context.Product.Configurations[settings.BuildConfiguration];
+
             var argsBuilder = new StringBuilder();
-            argsBuilder.Append( CultureInfo.InvariantCulture, $"-c {options.BuildConfiguration}");
+            
+            argsBuilder.Append( CultureInfo.InvariantCulture, $"-c {configuration.MSBuildName}");
             argsBuilder.Append(' ');
             argsBuilder.Append(args);
 
