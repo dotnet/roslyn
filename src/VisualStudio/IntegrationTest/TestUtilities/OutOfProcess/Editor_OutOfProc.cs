@@ -373,29 +373,32 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             }).ToArray();
         }
 
-        public void GoToDefinition(string expectedWindowName)
+        public void GoToDefinition(string? expectedNavigateWindowName)
         {
             _editorInProc.GoToDefinition();
-            // The find references window caption can change depending on selected filter, so use inexact match
-            _editorInProc.WaitForActiveWindow(expectedWindowName, exact: false);
+            if (expectedNavigateWindowName is not null)
+            {
+                _editorInProc.WaitForActiveWindow(expectedNavigateWindowName);
+            }
         }
 
-        public void GoToImplementation(string expectedWindowName)
+        public void GoToImplementation(string? expectedNavigateWindowName)
         {
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
             _editorInProc.GoToImplementation();
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.GoToImplementation);
-            // The find references window caption can change depending on selected filter, so use inexact match
-            _editorInProc.WaitForActiveWindow(expectedWindowName, exact: false);
+            if (expectedNavigateWindowName is not null)
+            {
+                _editorInProc.WaitForActiveWindow(expectedNavigateWindowName);
+            }
         }
 
-        public void GoToBase(string expectedWindowName)
+        public void GoToBase(string expectedNavigateWindowName)
         {
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
             _editorInProc.GoToBase();
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.GoToBase);
-            // The find references window caption can change depending on selected filter, so use inexact match
-            _editorInProc.WaitForActiveWindow(expectedWindowName, exact: false);
+            _editorInProc.WaitForActiveWindow(expectedNavigateWindowName);
         }
 
         public void SendExplicitFocus()

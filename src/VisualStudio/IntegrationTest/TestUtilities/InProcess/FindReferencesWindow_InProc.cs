@@ -15,14 +15,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
     internal class FindReferencesWindow_InProc : InProcComponent
     {
+        // Guid of the FindRefs window.  Defined here:
+        // https://devdiv.visualstudio.com/DevDiv/_git/VS?path=/src/env/ErrorList/Pkg/Guids.cs&version=GBmain&line=24
+        private const string FindReferencesWindowGuid = "{a80febb4-e7e0-4147-b476-21aaf2453969}";
+
         public static FindReferencesWindow_InProc Create() => new FindReferencesWindow_InProc();
 
-        public Reference[] GetContents(string windowCaption)
+        public Reference[] GetContents()
         {
             return InvokeOnUIThread<Reference[]>(cancellationToken =>
             {
                 // Find the tool window
-                var tableControl = GetFindReferencesWindow(windowCaption);
+                var tableControl = GetFindReferencesWindow();
 
                 // Remove all grouping
                 var columnStates = tableControl.ColumnStates;
@@ -54,11 +58,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
         }
 
-        public void NavigateTo(string windowCaption, Reference reference, bool isPreview, bool shouldActivate)
+        public void NavigateTo(Reference reference, bool isPreview, bool shouldActivate)
         {
             InvokeOnUIThread(cancellationToken =>
             {
-                var findReferencesWindow = GetFindReferencesWindow(windowCaption);
+                var findReferencesWindow = GetFindReferencesWindow();
 
                 foreach (var item in findReferencesWindow.Entries)
                 {
@@ -70,9 +74,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
         }
 
-        private static IWpfTableControl2 GetFindReferencesWindow(string windowCaption)
+        private static IWpfTableControl2 GetFindReferencesWindow()
         {
-            var toolWindow = FindToolWindow(windowCaption);
+            var toolWindow = ((DTE2)GetDTE()).ToolWindows.GetToolWindow(FindReferencesWindowGuid);
 
             // Dig through to get the Find References control.
             var toolWindowType = toolWindow.GetType();
@@ -84,28 +88,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var tableControlField = tableControlAndCommandTargetType.GetField("TableControl");
             var tableControl = (IWpfTableControl2)tableControlField.GetValue(toolWindowControl);
             return tableControl;
-        }
-
-        private static object FindToolWindow(string windowCaption)
-        {
-            // The DTE2.ToolWindows.GetToolWindow() method does an exact match on window caption,
-            // but the find references window caption can change depending on selected filter, so
-            // we need to enumerate manually.
-
-            // There is no way to get a list of all tool windows directly from DTE, but we can
-            // get the list by getting a well known tool window, and enumerating its parent collection
-            // See example: https://docs.microsoft.com/en-us/dotnet/api/envdte80.toolwindows?view=visualstudiosdk-2022
-            var outputWindow = ((DTE2)GetDTE()).ToolWindows.OutputWindow;
-            var allToolWindows = outputWindow.Parent.Collection;
-            foreach (Window2 window in allToolWindows)
-            {
-                if (window.Caption.StartsWith(windowCaption))
-                {
-                    return window.Object;
-                }
-            }
-
-            throw new ArgumentException($"Could not find tool window with caption starting with '{windowCaption}'", nameof(windowCaption));
         }
 
         private static Reference CreateReference(ITableEntryHandle tableEntryHandle)
