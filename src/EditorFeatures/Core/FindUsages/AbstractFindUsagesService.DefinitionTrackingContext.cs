@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
-namespace Microsoft.CodeAnalysis.FindUsages
+namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
     internal abstract partial class AbstractFindUsagesService
     {
