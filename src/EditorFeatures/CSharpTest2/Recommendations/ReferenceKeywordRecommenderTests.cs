@@ -133,34 +133,5 @@ global using System;");
 @"global using System;
 #$$");
         }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(58906, "https://github.com/dotnet/roslyn/issues/58906")]
-        public async Task TestInPotentialLambdaParamListParsedAsCastOnDifferentLines()
-        {
-            await VerifyKeywordAsync(
-@"class C
-{
-    static void Main(string[] args)
-    {
-        var f = ($$)
-        Main(null);
-    }
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        [WorkItem(58906, "https://github.com/dotnet/roslyn/issues/58906")]
-        public async Task TestNotInPotentialLambdaParamListParsedAsCastOnSameLine()
-        {
-            await VerifyAbsenceAsync(
-@"class C
-{
-    static void Main(string[] args)
-    {
-        var f = ($$)Main(null);
-    }
-}");
-        }
     }
 }
