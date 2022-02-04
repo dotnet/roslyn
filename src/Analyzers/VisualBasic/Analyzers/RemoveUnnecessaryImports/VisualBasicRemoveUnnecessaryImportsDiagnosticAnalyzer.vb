@@ -6,9 +6,11 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
@@ -19,15 +21,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
         Private Shared ReadOnly s_TitleAndMessageFormat As LocalizableString =
             New LocalizableResourceString(NameOf(VisualBasicAnalyzersResources.Imports_statement_is_unnecessary), VisualBasicAnalyzersResources.ResourceManager, GetType(VisualBasicAnalyzersResources))
 
+        Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
+
         Protected Overrides Function GetTitleAndMessageFormatForClassificationIdDescriptor() As LocalizableString
             Return s_TitleAndMessageFormat
         End Function
 
-        Protected Overrides ReadOnly Property UnnecessaryImportsProvider As IUnnecessaryImportsProvider
-            Get
-                Return VisualBasicUnnecessaryImportsProvider.Instance
-            End Get
-        End Property
+        Protected Overrides ReadOnly Property UnnecessaryImportsProvider As IUnnecessaryImportsProvider = VisualBasicUnnecessaryImportsProvider.Instance
 
         Protected Overrides Function IsRegularCommentOrDocComment(trivia As SyntaxTrivia) As Boolean
             Return trivia.IsRegularOrDocComment()

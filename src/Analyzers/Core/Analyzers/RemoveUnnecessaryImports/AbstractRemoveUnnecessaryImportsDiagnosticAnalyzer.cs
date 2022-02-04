@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.LanguageServices;
 
 #if CODE_STYLE
 using OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions;
@@ -93,6 +94,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 #pragma warning restore RS0030 // Do not used banned APIs
         }
 
+        protected abstract ISyntaxFacts SyntaxFacts { get; }
         protected abstract LocalizableString GetTitleAndMessageFormatForClassificationIdDescriptor();
         protected abstract ImmutableArray<SyntaxNode> MergeImports(ImmutableArray<SyntaxNode> unnecessaryImports);
         protected abstract bool IsRegularCommentOrDocComment(SyntaxTrivia trivia);
@@ -175,15 +177,17 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 
         private IEnumerable<TextSpan> GetContiguousSpans(ImmutableArray<SyntaxNode> nodes)
         {
+            var syntaxFacts = this.SyntaxFacts;
             (SyntaxNode node, TextSpan textSpan)? previous = null;
 
             // Sort the nodes in source location order.
             foreach (var node in nodes.OrderBy(n => n.SpanStart))
             {
                 TextSpan textSpan;
+                var nodeEnd = GetEnd(node);
                 if (previous == null)
                 {
-                    textSpan = TextSpan.FromBounds(node.Span.Start, node.FullSpan.End);
+                    textSpan = TextSpan.FromBounds(node.Span.Start, nodeEnd);
                 }
                 else
                 {
@@ -191,13 +195,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                     if (lastToken.GetNextToken(includeDirectives: true) == node.GetFirstToken())
                     {
                         // Expand the span
-                        textSpan = TextSpan.FromBounds(previous.Value.textSpan.Start, node.FullSpan.End);
+                        textSpan = TextSpan.FromBounds(previous.Value.textSpan.Start, nodeEnd);
                     }
                     else
                     {
                         // Return the last span, and start a new one
                         yield return previous.Value.textSpan;
-                        textSpan = TextSpan.FromBounds(node.Span.Start, node.FullSpan.End);
+                        textSpan = TextSpan.FromBounds(node.Span.Start, nodeEnd);
                     }
                 }
 
@@ -206,6 +210,20 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 
             if (previous.HasValue)
                 yield return previous.Value.textSpan;
+
+            yield break;
+
+            int GetEnd(SyntaxNode node)
+            {
+                var end = node.Span.End;
+                foreach (var trivia in node.GetTrailingTrivia())
+                {
+                    if (syntaxFacts.IsRegularComment(trivia))
+                        end = trivia.Span.End;
+                }
+
+                return end;
+            }
         }
 
         // Create one diagnostic for each unnecessary span that will be classified as Unnecessary
