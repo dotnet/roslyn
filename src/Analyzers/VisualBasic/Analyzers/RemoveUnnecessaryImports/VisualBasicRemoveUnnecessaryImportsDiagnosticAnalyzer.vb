@@ -60,13 +60,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
             Return SpecializedCollections.SingletonEnumerable(tree.GetCompilationUnitRoot().Imports.GetContainedSpan())
         End Function
 
-        Protected Overrides Function GetLastTokenDelegateForContiguousSpans() As Func(Of SyntaxNode, SyntaxToken)
-            Return Function(n)
-                       Dim lastToken = n.GetLastToken()
-                       Return If(lastToken.GetNextToken().Kind = SyntaxKind.CommaToken,
-                              lastToken.GetNextToken(),
-                              lastToken)
-                   End Function
+        Protected Overrides Function TryGetLastToken(node As SyntaxNode) As SyntaxToken?
+            Dim lastToken = node.GetLastToken()
+            Dim nextToken = lastToken.GetNextToken()
+            Return If(nextToken.Kind = SyntaxKind.CommaToken, nextToken, lastToken)
         End Function
     End Class
 End Namespace

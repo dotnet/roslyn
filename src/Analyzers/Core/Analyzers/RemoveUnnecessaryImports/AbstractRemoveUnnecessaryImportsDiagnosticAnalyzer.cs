@@ -98,6 +98,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
         protected abstract bool IsRegularCommentOrDocComment(SyntaxTrivia trivia);
         protected abstract IUnnecessaryImportsProvider UnnecessaryImportsProvider { get; }
 
+        protected abstract SyntaxToken? TryGetLastToken(SyntaxNode node);
+
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
@@ -150,8 +152,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                     descriptor = fadeOut ? _unnecessaryClassificationIdDescriptor : _classificationIdDescriptor;
                 }
 
-                var getLastTokenFunc = GetLastTokenDelegateForContiguousSpans();
-                var contiguousSpans = unnecessaryImports.GetContiguousSpans(getLastTokenFunc);
+                var contiguousSpans = GetContiguousSpans(unnecessaryImports);
                 var diagnostics =
                     CreateClassificationDiagnostics(contiguousSpans, tree, descriptor, cancellationToken).Concat(
                     CreateFixableDiagnostics(unnecessaryImports, tree, cancellationToken));
@@ -172,8 +173,40 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
             }
         }
 
-        protected virtual Func<SyntaxNode, SyntaxToken>? GetLastTokenDelegateForContiguousSpans()
-            => null;
+        private IEnumerable<TextSpan> GetContiguousSpans(ImmutableArray<SyntaxNode> nodes)
+        {
+            (SyntaxNode node, TextSpan textSpan)? previous = null;
+
+            // Sort the nodes in source location order.
+            foreach (var node in nodes.OrderBy(n => n.SpanStart))
+            {
+                TextSpan textSpan;
+                if (previous == null)
+                {
+                    textSpan = TextSpan.FromBounds(node.Span.Start, node.FullSpan.End);
+                }
+                else
+                {
+                    var lastToken = TryGetLastToken(previous.Value.node) ?? previous.Value.node.GetLastToken();
+                    if (lastToken.GetNextToken(includeDirectives: true) == node.GetFirstToken())
+                    {
+                        // Expand the span
+                        textSpan = TextSpan.FromBounds(previous.Value.textSpan.Start, node.FullSpan.End);
+                    }
+                    else
+                    {
+                        // Return the last span, and start a new one
+                        yield return previous.Value.textSpan;
+                        textSpan = TextSpan.FromBounds(node.Span.Start, node.FullSpan.End);
+                    }
+                }
+
+                previous = (node, textSpan);
+            }
+
+            if (previous.HasValue)
+                yield return previous.Value.textSpan;
+        }
 
         // Create one diagnostic for each unnecessary span that will be classified as Unnecessary
         private static IEnumerable<Diagnostic> CreateClassificationDiagnostics(

@@ -39,6 +39,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
         protected override bool IsRegularCommentOrDocComment(SyntaxTrivia trivia)
             => trivia.IsRegularComment() || trivia.IsDocComment();
 
+        protected override SyntaxToken? TryGetLastToken(SyntaxNode node)
+            // No special behavior needed for C#
+            => null;
+
         protected override IEnumerable<TextSpan> GetFixableDiagnosticSpans(
             IEnumerable<SyntaxNode> nodes, SyntaxTree tree, CancellationToken cancellationToken)
         {
