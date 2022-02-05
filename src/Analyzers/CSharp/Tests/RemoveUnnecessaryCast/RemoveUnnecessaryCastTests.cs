@@ -12667,6 +12667,34 @@ class C
         }
 
         [WorkItem(58804, "https://github.com/dotnet/roslyn/issues/58804")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task ConvertingMethodGroupToObject_CastIsNecessary2()
+        {
+            var code = @"
+using System;
+
+class C
+{
+    static T M<T>(object o)
+    {
+        return (T)(object)o.ToString;
+    }
+
+    static T M2<T>(object o) where T : Delegate
+    {
+        return (T)(object)o.ToString;
+    }
+}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        [WorkItem(58804, "https://github.com/dotnet/roslyn/issues/58804")]
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         [InlineData("Delegate")]
         [InlineData("MulticastDelegate")]
@@ -12694,6 +12722,42 @@ class C
         return o.ToString;
     }}
 }}
+";
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = fixedCode,
+                LanguageVersion = LanguageVersion.CSharp10,
+                NumberOfIncrementalIterations = 2,
+                NumberOfFixAllIterations = 2,
+            }.RunAsync();
+        }
+
+        [WorkItem(58804, "https://github.com/dotnet/roslyn/issues/58804")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task ConvertingMethodGroupToObject_CastIsUnnecessary2()
+        {
+            var code = @"
+using System;
+
+class C
+{
+    static Delegate M(object o)
+    {
+        return (Delegate)[|(object)|]o.ToString;
+    }
+}
+";
+            var fixedCode = @"
+using System;
+
+class C
+{
+    static Delegate M(object o)
+    {
+        return o.ToString;
+    }
+}
 ";
             await new VerifyCS.Test
             {
