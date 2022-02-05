@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         {
             foreach (var virtualChar in virtualChars)
             {
-                if (virtualChar.Value == '\r' || virtualChar.Value == '\n')
+                if (virtualChar.Value is '\r' or '\n')
                 {
                     return null;
                 }

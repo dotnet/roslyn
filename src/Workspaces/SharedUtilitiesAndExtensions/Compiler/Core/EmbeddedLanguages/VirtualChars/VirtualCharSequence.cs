@@ -42,7 +42,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
         /// <summary>
         /// Takes in a string value and returns the <see cref="VirtualChar"/>s corresponding to
-        /// each char in the string using <see cref="VirtualChar.CreateNextInString(string, int, Func{int, int, TextSpan}, out int)"/>. Should be used over <see cref="VirtualCharSequence.UnsafeCreateFromAlreadyValidatedString(int, string)"/>
+        /// each char in the string using <see cref="VirtualChar.CreateNextInString(string, int, Func{int, int, TextSpan}, out int)"/>.
+        /// Should be used over <see cref="VirtualCharSequence.UnsafeCreateFromAlreadyValidatedString(int, string)"/>
         /// in cases where the string is arbitrary input (such as clipboard text). 
         /// </summary>
         public static VirtualCharSequence SafeCreateFromUnvalidatedString(string text)
