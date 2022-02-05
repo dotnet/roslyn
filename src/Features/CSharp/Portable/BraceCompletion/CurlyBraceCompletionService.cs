@@ -472,16 +472,12 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 var needsNewLine = NeedsNewLine(currentToken, _options);
-                if (needsNewLine == true)
+                return needsNewLine switch
                 {
-                    return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
-                }
-                else if (needsNewLine == false)
-                {
-                    return null;
-                }
-
-                return base.GetAdjustNewLinesOperation(in previousToken, in currentToken, in nextOperation);
+                    true => CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines),
+                    false => null,
+                    _ => base.GetAdjustNewLinesOperation(in previousToken, in currentToken, in nextOperation),
+                };
             }
 
             public override void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode node, in NextAlignTokensOperationAction nextOperation)
