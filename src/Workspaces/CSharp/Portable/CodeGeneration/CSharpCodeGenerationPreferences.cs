@@ -55,6 +55,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public AddImportPlacement PreferredUsingDirectivePlacement
             => Options.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement).Value;
 
+        public bool PreferTrailingComma
+            => Options.GetOption(CSharpCodeStyleOptions.PreferTrailingComma).Value;
+
         public override bool PlaceImportsInsideNamespaces
             => PreferredUsingDirectivePlacement == AddImportPlacement.InsideNamespace;
 
