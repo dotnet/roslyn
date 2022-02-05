@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -43,15 +44,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
         private readonly IThreadingContext _threadingContext;
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly IVsHierarchyItemManager _vsHierarchyItemManager;
+        private readonly IGlobalOptionService _globalOptions;
 
         protected AbstractCodeCleanUpFixer(
             IThreadingContext threadingContext,
             VisualStudioWorkspaceImpl workspace,
-            IVsHierarchyItemManager vsHierarchyItemManager)
+            IVsHierarchyItemManager vsHierarchyItemManager,
+            IGlobalOptionService globalOptions)
         {
             _threadingContext = threadingContext;
             _workspace = workspace;
             _vsHierarchyItemManager = vsHierarchyItemManager;
+            _globalOptions = globalOptions;
         }
 
         public Task<bool> FixAsync(ICodeCleanUpScope scope, ICodeCleanUpExecutionContext context)
@@ -129,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                     }
 
                     var document = solution.GetRequiredDocument(documentId);
-                    var options = CodeActionOptionsFactory.GetCodeActionOptions(document.Project, isBlocking: false);
+                    var options = _globalOptions.GetCodeActionOptions(document.Project.Language, isBlocking: false);
                     return await FixDocumentAsync(document, options, context).ConfigureAwait(true);
                 }
             }
@@ -198,7 +202,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                 var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 Contract.ThrowIfNull(document);
 
-                var options = CodeActionOptionsFactory.GetCodeActionOptions(document.Project, isBlocking: false);
+                var options = _globalOptions.GetCodeActionOptions(document.Project.Language, isBlocking: false);
                 var newDoc = await FixDocumentAsync(document, context.EnabledFixIds, progressTracker, options, cancellationToken).ConfigureAwait(true);
                 return newDoc.Project.Solution;
             }
@@ -238,7 +242,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
             }
         }
 
-        private static async Task<Solution> FixSolutionAsync(
+        private async Task<Solution> FixSolutionAsync(
             Solution solution,
             FixIdContainer enabledFixIds,
             ProgressTracker progressTracker,
@@ -268,7 +272,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
             return solution;
         }
 
-        private static async Task<Project> FixProjectAsync(
+        private async Task<Project> FixProjectAsync(
             Project project,
             FixIdContainer enabledFixIds,
             ProgressTracker progressTracker,
@@ -285,7 +289,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                 progressTracker.AddItems(project.DocumentIds.Count);
             }
 
-            var options = CodeActionOptionsFactory.GetCodeActionOptions(project, isBlocking: false);
+            var options = _globalOptions.GetCodeActionOptions(project.Language, isBlocking: false);
 
             foreach (var documentId in project.DocumentIds)
             {

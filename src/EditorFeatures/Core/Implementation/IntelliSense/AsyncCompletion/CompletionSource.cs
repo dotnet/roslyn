@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
             }
 
-            var options = CompletionOptions.From(document.Project);
+            var options = _globalOptions.GetCompletionOptions(document.Project.Language);
 
             // The Editor supports the option per textView.
             // There could be mixed desired behavior per textView and even per same completion session.
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var roslynTrigger = Helpers.GetRoslynTrigger(trigger, triggerLocation);
 
             // The completion service decides that user may want a completion.
-            if (completionService.ShouldTriggerCompletion(document.Project, document.Project.LanguageServices, sourceText, triggerLocation.Position, roslynTrigger, options))
+            if (completionService.ShouldTriggerCompletion(document.Project, document.Project.LanguageServices, sourceText, triggerLocation.Position, roslynTrigger, options, document.Project.Solution.Options))
             {
                 return true;
             }
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return AsyncCompletionData.CompletionContext.Empty;
             }
 
-            var options = CompletionOptions.From(document.Project);
+            var options = _globalOptions.GetCompletionOptions(document.Project.Language);
             return await GetCompletionContextWorkerAsync(document, session, trigger, triggerLocation, options, cancellationToken).ConfigureAwait(false);
         }
 
@@ -257,11 +257,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 var document = initialTriggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document != null)
                 {
-                    var options = CompletionOptions.From(document.Project);
-
                     // User selected expander explicitly, which means we need to collect and return
                     // items from unimported namespace (and only those items) regardless of whether it's enabled.
-                    options = options with
+                    var options = _globalOptions.GetCompletionOptions(document.Project.Language) with
                     {
                         ShowItemsFromUnimportedNamespaces = true,
                         ExpandedCompletionBehavior = ExpandedCompletionMode.ExpandedItemsOnly
@@ -297,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 : Helpers.GetRoslynTrigger(trigger, triggerLocation);
 
             var completionList = await completionService.GetCompletionsAsync(
-                document, triggerLocation, options, roslynTrigger, _roles, cancellationToken).ConfigureAwait(false);
+                document, triggerLocation, options, document.Project.Solution.Options, roslynTrigger, _roles, cancellationToken).ConfigureAwait(false);
 
             var filterSet = new FilterSet();
             var itemsBuilder = new ArrayBuilder<VSCompletionItem>(completionList.Items.Length);
@@ -382,7 +380,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (service == null)
                 return null;
 
-            var options = CompletionOptions.From(document.Project);
+            var options = _globalOptions.GetCompletionOptions(document.Project.Language);
             var displayOptions = SymbolDescriptionOptions.From(document.Project);
             var description = await service.GetDescriptionAsync(document, roslynItem, options, displayOptions, cancellationToken).ConfigureAwait(false);
             if (description == null)

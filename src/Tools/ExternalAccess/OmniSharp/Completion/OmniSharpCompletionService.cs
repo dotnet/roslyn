@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Completion
             CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return completionService.ShouldTriggerCompletion(document.Project, document.Project.LanguageServices, text, caretPosition, trigger, options.ToCompletionOptions(), roles);
+            return completionService.ShouldTriggerCompletion(document.Project, document.Project.LanguageServices, text, caretPosition, trigger, options.ToCompletionOptions(), document.Project.Solution.Options, roles);
         }
 
         public static Task<CompletionList> GetCompletionsAsync(
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Completion
            OmniSharpCompletionOptions options,
            CancellationToken cancellationToken)
         {
-            return completionService.GetCompletionsAsync(document, caretPosition, options.ToCompletionOptions(), trigger, roles, cancellationToken);
+            return completionService.GetCompletionsAsync(document, caretPosition, options.ToCompletionOptions(), document.Project.Solution.Options, trigger, roles, cancellationToken);
         }
 
         public static string? GetProviderName(this CompletionItem completionItem) => completionItem.ProviderName;

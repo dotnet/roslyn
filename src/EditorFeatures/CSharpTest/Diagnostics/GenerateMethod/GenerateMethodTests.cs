@@ -9130,5 +9130,81 @@ public partial class ClassWithGeneratedPartial
 }
                         ");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestInSwitchExpression1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class Class
+{
+    string Method(int i)
+    {
+        return i switch
+        {
+            0 => [|Goo|](),
+        };
+    }
+}",
+@"
+using System;
+
+class Class
+{
+    string Method(int i)
+    {
+        return i switch
+        {
+            0 => Goo(),
+        };
+    }
+
+    private string Goo()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestInSwitchExpression2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class Class
+{
+    void Method(int i)
+    {
+        var v = i switch
+        {
+            0 => """",
+            1 => [|Goo|](),
+        };
+    }
+}",
+@"
+using System;
+
+class Class
+{
+    void Method(int i)
+    {
+        var v = i switch
+        {
+            0 => """",
+            1 => Goo(),
+        };
+    }
+
+    private string Goo()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
     }
 }
