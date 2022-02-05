@@ -32,6 +32,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         public static VirtualCharSequence Create(ImmutableArray<VirtualChar> virtualChars)
             => new(new ImmutableArrayChunk(virtualChars));
 
+        /// <summary>
+        /// Creates a <see cref="VirtualCharSequence"/> made of <see cref="StringChunk"/>. No validation for restrictions
+        /// are done for <see cref="StringChunk"/>. Use <see cref="SafeCreateFromUnvalidatedString(string)"/> if the string
+        /// has not been validated for surrogate pairs.
+        /// </summary>
         public static VirtualCharSequence UnsafeCreateFromAlreadyValidatedString(int firstVirtualCharPosition, string underlyingData)
             => new(new StringChunk(firstVirtualCharPosition, underlyingData));
 
@@ -45,11 +50,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             using var _ = ArrayBuilder<VirtualChar>.GetInstance(out var builder);
             for (var i = 0; i < text.Length; /* intentionally empty */)
             {
-                var virtualChar = VirtualChar.CreateNextInString(
+                var (virtualChar, consumedCharacters) = VirtualChar.CreateNextInString(
                     text,
                     i,
-                    static (start, length) => new TextSpan(start, length),
-                    out var consumedCharacters);
+                    offset: 0);
 
                 i += consumedCharacters;
                 builder.Add(virtualChar);

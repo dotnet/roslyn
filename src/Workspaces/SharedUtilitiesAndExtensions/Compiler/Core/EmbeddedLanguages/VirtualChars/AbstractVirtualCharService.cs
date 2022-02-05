@@ -161,11 +161,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                 }
                 else
                 {
-                    var virtualChar = VirtualChar.CreateNextInString(
+                    var (virtualChar, consumedCharacters) = VirtualChar.CreateNextInString(
                         tokenText,
                         index,
-                        (start, length) => new TextSpan(offset + index, length),
-                        out var consumedCharacters);
+                        offset);
 
                     result.Add(virtualChar);
                     index += consumedCharacters;

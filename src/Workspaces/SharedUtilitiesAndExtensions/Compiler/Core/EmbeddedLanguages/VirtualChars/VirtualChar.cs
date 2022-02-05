@@ -77,30 +77,26 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// </summary>
         /// <param name="text">The whole text where index and offset</param>
         /// <param name="index">The starting index within the string</param>
-        /// <param name="createSpan">Function to create the span for the VirtualChar, since it may be different than the index. Arguments are (start, length)</param>
-        /// <param name="consumedCharacters">Number of characters consumed. If iterating through the characters in a string, the index should be incremented by this amount.</param>
+        /// <param name="offset">The offset to add to the index when creating the <see cref="TextSpan"/></param>
         /// <returns></returns>
-        public static VirtualChar CreateNextInString(string text, int index, Func<int, int, TextSpan> createSpan, out int consumedCharacters)
+        public static (VirtualChar virtualChar, int consumedCharacters) CreateNextInString(string text, int index, int offset)
         {
             if (Rune.TryCreate(text[index], out var rune))
             {
                 // First, see if this was a single char that can become a rune (the common case).
-                consumedCharacters = 1;
-                return Create(rune, createSpan(index, 1));
+                return (Create(rune, new TextSpan(index + offset, 1)), 1);
             }
             else if (index + 1 < text.Length &&
                      Rune.TryCreate(text[index], text[index + 1], out rune))
             {
                 // Otherwise, see if we have a surrogate pair (less common, but possible).
-                consumedCharacters = 2;
-                return Create(rune, createSpan(index, 2));
+                return (Create(rune, new TextSpan(index + offset, 2)), 2);
             }
             else
             {
                 // Something that couldn't be encoded as runes.
                 Debug.Assert(char.IsSurrogate(text[index]));
-                consumedCharacters = 1;
-                return Create(text[index], createSpan(index, 1));
+                return (Create(text[index], new TextSpan(index + index, 1)), 1);
             }
         }
 
