@@ -451,9 +451,9 @@ namespace System.Runtime.CompilerServices
             var binder = model.GetEnclosingBinder(node.SpanStart);
             var decisionDag = node switch
             {
-                SwitchStatementSyntax n => ((BoundSwitchStatement)binder.BindStatement(n, BindingDiagnosticBag.Discarded)).DecisionDag,
-                SwitchExpressionSyntax n => ((BoundSwitchExpression)binder.BindExpression(n, BindingDiagnosticBag.Discarded)).DecisionDag,
-                IsPatternExpressionSyntax n => ((BoundIsPatternExpression)binder.BindExpression(n, BindingDiagnosticBag.Discarded)).DecisionDag,
+                SwitchStatementSyntax n => ((BoundSwitchStatement)binder.BindStatement(n, BindingDiagnosticBag.Discarded)).ReachabilityDecisionDag,
+                SwitchExpressionSyntax n => ((BoundSwitchExpression)binder.BindExpression(n, BindingDiagnosticBag.Discarded)).ReachabilityDecisionDag,
+                IsPatternExpressionSyntax n => ((BoundIsPatternExpression)binder.BindExpression(n, BindingDiagnosticBag.Discarded)).ReachabilityDecisionDag,
                 var v => throw ExceptionUtilities.UnexpectedValue(v)
             };
 
