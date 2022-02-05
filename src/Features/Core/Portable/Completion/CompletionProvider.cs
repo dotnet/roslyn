@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -45,9 +44,9 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="caretPosition">The position of the caret after the triggering action.</param>
         /// <param name="trigger">The triggering action.</param>
         /// <param name="options">The set of options in effect.</param>
-        internal virtual bool ShouldTriggerCompletion(HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options)
-#pragma warning disable RS0030 // Do not use banned APIs
-            => ShouldTriggerCompletion(text, caretPosition, trigger, options.ToSet(languageServices.Language));
+        internal virtual bool ShouldTriggerCompletion(HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options, OptionSet passThroughOptions)
+#pragma warning disable RS0030, CS0618 // Do not used banned/obsolete APIs
+            => ShouldTriggerCompletion(text, caretPosition, trigger, passThroughOptions);
 #pragma warning restore
 
         /// <summary>
@@ -56,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// an augmenting provider instead.
         /// </summary>
         internal virtual async Task<bool> IsSyntacticTriggerCharacterAsync(Document document, int caretPosition, CompletionTrigger trigger, CompletionOptions options, CancellationToken cancellationToken)
-            => ShouldTriggerCompletion(document.Project.LanguageServices, await document.GetTextAsync(cancellationToken).ConfigureAwait(false), caretPosition, trigger, options);
+            => ShouldTriggerCompletion(document.Project.LanguageServices, await document.GetTextAsync(cancellationToken).ConfigureAwait(false), caretPosition, trigger, options, document.Project.Solution.Options);
 
         /// <summary>
         /// Gets the description of the specified item.

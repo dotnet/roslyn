@@ -506,7 +506,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 }
             }
 
-            var waitingService = GetComponentModel().DefaultExportProvider.GetExportedValue<TestingOnly_WaitingService>();
+            var waitingService = new TestWaitingService(GetComponentModel().DefaultExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>());
             waitingService.WaitForAsyncOperations(FeatureAttribute.Workspace, waitForWorkspaceFirst: true);
         }
 
@@ -746,7 +746,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             buildOutputWindowPane.Clear();
         }
 
-        private EnvDTE.OutputWindowPane GetBuildOutputWindowPane()
+        private static EnvDTE.OutputWindowPane GetBuildOutputWindowPane()
         {
             var dte = (DTE2)GetDTE();
             var outputWindow = dte.ToolWindows.OutputWindow;

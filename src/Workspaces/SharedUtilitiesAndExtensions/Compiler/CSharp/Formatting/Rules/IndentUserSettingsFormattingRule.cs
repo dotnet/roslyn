@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
 
@@ -12,28 +13,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
     internal sealed class IndentUserSettingsFormattingRule : BaseFormattingRule
     {
-        private readonly CachedOptions _options;
+        private readonly CSharpSyntaxFormattingOptions _options;
 
         public IndentUserSettingsFormattingRule()
-            : this(new CachedOptions(null))
+            : this(CSharpSyntaxFormattingOptions.Default)
         {
         }
 
-        private IndentUserSettingsFormattingRule(CachedOptions options)
+        private IndentUserSettingsFormattingRule(CSharpSyntaxFormattingOptions options)
         {
             _options = options;
         }
 
-        public override AbstractFormattingRule WithOptions(AnalyzerConfigOptions options)
+        public override AbstractFormattingRule WithOptions(SyntaxFormattingOptions options)
         {
-            var cachedOptions = new CachedOptions(options);
+            var newOptions = options as CSharpSyntaxFormattingOptions ?? CSharpSyntaxFormattingOptions.Default;
 
-            if (cachedOptions == _options)
+            if (_options.Indentation.HasFlag(IndentationPlacement.Braces) == newOptions.Indentation.HasFlag(IndentationPlacement.Braces))
             {
                 return this;
             }
 
-            return new IndentUserSettingsFormattingRule(cachedOptions);
+            return new IndentUserSettingsFormattingRule(newOptions);
         }
 
         public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, in NextIndentBlockOperationAction nextOperation)
@@ -48,29 +49,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
-            if (_options.IndentBraces)
+            if (_options.Indentation.HasFlag(IndentationPlacement.Braces))
             {
-                AddIndentBlockOperation(list, bracePair.Item1, bracePair.Item1, bracePair.Item1.Span);
-                AddIndentBlockOperation(list, bracePair.Item2, bracePair.Item2, bracePair.Item2.Span);
-            }
-        }
-
-        private readonly record struct CachedOptions(
-            bool IndentBraces
-            )
-        {
-            public CachedOptions(AnalyzerConfigOptions? options) : this(
-                IndentBraces: GetOptionOrDefault(options, CSharpFormattingOptions2.IndentBraces)
-                )
-            {
-            }
-
-            private static T GetOptionOrDefault<T>(AnalyzerConfigOptions? options, Option2<T> option)
-            {
-                if (options is null)
-                    return option.DefaultValue;
-
-                return options.GetOption(option);
+                AddIndentBlockOperation(list, bracePair.openBrace, bracePair.openBrace, bracePair.openBrace.Span);
+                AddIndentBlockOperation(list, bracePair.closeBrace, bracePair.closeBrace, bracePair.closeBrace.Span);
             }
         }
     }

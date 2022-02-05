@@ -9,11 +9,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -42,15 +44,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
         private readonly IThreadingContext _threadingContext;
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly IVsHierarchyItemManager _vsHierarchyItemManager;
+        private readonly IGlobalOptionService _globalOptions;
 
         protected AbstractCodeCleanUpFixer(
             IThreadingContext threadingContext,
             VisualStudioWorkspaceImpl workspace,
-            IVsHierarchyItemManager vsHierarchyItemManager)
+            IVsHierarchyItemManager vsHierarchyItemManager,
+            IGlobalOptionService globalOptions)
         {
             _threadingContext = threadingContext;
             _workspace = workspace;
             _vsHierarchyItemManager = vsHierarchyItemManager;
+            _globalOptions = globalOptions;
         }
 
         public Task<bool> FixAsync(ICodeCleanUpScope scope, ICodeCleanUpExecutionContext context)
@@ -127,7 +132,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                         return false;
                     }
 
-                    return await FixDocumentAsync(solution.GetRequiredDocument(documentId), context).ConfigureAwait(true);
+                    var document = solution.GetRequiredDocument(documentId);
+                    var options = _globalOptions.GetCodeActionOptions(document.Project.Language, isBlocking: false);
+                    return await FixDocumentAsync(document, options, context).ConfigureAwait(true);
                 }
             }
 
@@ -157,14 +164,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
             }
         }
 
-        private Task<bool> FixDocumentAsync(Document document, ICodeCleanUpExecutionContext context)
+        private Task<bool> FixDocumentAsync(Document document, CodeActionOptions options, ICodeCleanUpExecutionContext context)
         {
             return FixAsync(document.Project.Solution.Workspace, ApplyFixAsync, context);
 
             // Local function
             async Task<Solution> ApplyFixAsync(ProgressTracker progressTracker, CancellationToken cancellationToken)
             {
-                var newDocument = await FixDocumentAsync(document, context.EnabledFixIds, progressTracker, cancellationToken).ConfigureAwait(true);
+                var newDocument = await FixDocumentAsync(document, context.EnabledFixIds, progressTracker, options, cancellationToken).ConfigureAwait(true);
                 return newDocument.Project.Solution;
             }
         }
@@ -194,7 +201,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
             {
                 var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 Contract.ThrowIfNull(document);
-                var newDoc = await FixDocumentAsync(document, context.EnabledFixIds, progressTracker, cancellationToken).ConfigureAwait(true);
+
+                var options = _globalOptions.GetCodeActionOptions(document.Project.Language, isBlocking: false);
+                var newDoc = await FixDocumentAsync(document, context.EnabledFixIds, progressTracker, options, cancellationToken).ConfigureAwait(true);
                 return newDoc.Project.Solution;
             }
         }
@@ -280,6 +289,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                 progressTracker.AddItems(project.DocumentIds.Count);
             }
 
+            var options = _globalOptions.GetCodeActionOptions(project.Language, isBlocking: false);
+
             foreach (var documentId in project.DocumentIds)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -291,7 +302,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                 // to the current document.
                 var documentProgressTracker = new ProgressTracker();
 
-                var fixedDocument = await FixDocumentAsync(document, enabledFixIds, documentProgressTracker, cancellationToken).ConfigureAwait(false);
+                var fixedDocument = await FixDocumentAsync(document, enabledFixIds, documentProgressTracker, options, cancellationToken).ConfigureAwait(false);
                 project = fixedDocument.Project;
                 progressTracker.ItemCompleted();
             }
@@ -302,10 +313,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
         private static bool CanCleanupProject(Project project)
             => project.LanguageServices.GetService<ICodeCleanupService>() != null;
 
-        private async Task<Document> FixDocumentAsync(
+        private static async Task<Document> FixDocumentAsync(
             Document document,
             FixIdContainer enabledFixIds,
             ProgressTracker progressTracker,
+            CodeActionOptions options,
             CancellationToken cancellationToken)
         {
             if (document.IsGeneratedCode(cancellationToken))
@@ -340,7 +352,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
                 new OrganizeUsingsSet(isRemoveUnusedUsingsEnabled, isSortUsingsEnabled));
 
             return await codeCleanupService.CleanupAsync(
-                document, enabledDiagnostics, progressTracker, cancellationToken).ConfigureAwait(false);
+                document, enabledDiagnostics, progressTracker, options, cancellationToken).ConfigureAwait(false);
         }
     }
 }

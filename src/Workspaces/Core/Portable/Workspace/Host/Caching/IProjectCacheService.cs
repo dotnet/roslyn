@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.Host
     {
         /// <summary>
         /// The length of the source file above which a recoverable tree is created.
-        /// Overridable for testing purposes.
         /// </summary>
         int MinimumLengthForRecoverableTree { get; }
 

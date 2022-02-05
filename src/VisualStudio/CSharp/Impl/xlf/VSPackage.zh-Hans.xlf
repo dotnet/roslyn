@@ -80,10 +80,16 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
+Colorize regular expressions;
+Highlight related components under cursor;
+Report invalid regular expressions;
+JSON;
+Colorize JSON strings;
+Report invalid JSON strings;
+Detect and offer editor features for JSON strings;
 Use enhanced colors;
 Editor Color Scheme;
-Inheritance Margin;
-Stack Trace Explorer;</source>
+Inheritance Margin;</source>
         <target state="needs-review-translation">为重新分配变量添加下划线;
 显示内联提示;
 显示对已关闭文件的诊断;

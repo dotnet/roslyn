@@ -9,7 +9,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -22,8 +21,7 @@ namespace Microsoft.CodeAnalysis.Indentation
         {
             private readonly AbstractIndentationService<TSyntaxRoot> _service;
 
-            public readonly OptionSet OptionSet;
-            public readonly IOptionService OptionService;
+            public readonly IndentationOptions Options;
             public readonly TextLine LineToBeIndented;
             public readonly CancellationToken CancellationToken;
 
@@ -42,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Indentation
                 AbstractIndentationService<TSyntaxRoot> service,
                 SyntacticDocument document,
                 IEnumerable<AbstractFormattingRule> rules,
-                OptionSet optionSet,
+                IndentationOptions options,
                 TextLine lineToBeIndented,
                 CancellationToken cancellationToken)
             {
@@ -50,18 +48,17 @@ namespace Microsoft.CodeAnalysis.Indentation
 
                 _service = service;
                 _syntaxFacts = document.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-                OptionSet = optionSet;
-                OptionService = document.Document.Project.Solution.Workspace.Services.GetRequiredService<IOptionService>();
+                Options = options;
                 Root = (TSyntaxRoot)document.Root;
                 LineToBeIndented = lineToBeIndented;
-                _tabSize = this.OptionSet.GetOption(FormattingOptions.TabSize, Root.Language);
+                _tabSize = options.FormattingOptions.TabSize;
                 CancellationToken = cancellationToken;
 
                 Rules = rules;
                 Finder = new BottomUpBaseIndentationFinder(
-                    new ChainedFormattingRules(this.Rules, OptionSet.AsAnalyzerConfigOptions(OptionService, Root.Language)),
+                    new ChainedFormattingRules(this.Rules, options.FormattingOptions),
                     _tabSize,
-                    this.OptionSet.GetOption(FormattingOptions.IndentationSize, Root.Language),
+                    options.FormattingOptions.IndentationSize,
                     tokenStream: null,
                     document.Document.GetRequiredLanguageService<IHeaderFactsService>());
             }

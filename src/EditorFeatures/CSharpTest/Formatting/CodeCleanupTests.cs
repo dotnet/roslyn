@@ -7,7 +7,8 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -561,6 +562,8 @@ namespace A
         {
             using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
 
+            var options = CodeActionOptions.Default;
+
             var solution = workspace.CurrentSolution
                 .WithOptions(workspace.Options
                     .WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp, systemUsingsFirst)
@@ -586,7 +589,7 @@ namespace A
             var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
 
             var newDoc = await codeCleanupService.CleanupAsync(
-                document, enabledDiagnostics, new ProgressTracker(), CancellationToken.None);
+                document, enabledDiagnostics, new ProgressTracker(), options, CancellationToken.None);
 
             var actual = await newDoc.GetTextAsync();
 

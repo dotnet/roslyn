@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -81,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 
             var rules = formattingRuleProvider.CreateRule(document, position).Concat(Formatter.GetDefaultFormattingRules(document));
 
-            var options = await document.GetOptionsAsync();
+            var options = await IndentationOptions.FromDocumentAsync(document, CancellationToken.None);
             var formatter = new CSharpSmartTokenFormatter(options, rules, root);
             var changes = await formatter.FormatTokenAsync(workspace.Services, token, CancellationToken.None);
 
