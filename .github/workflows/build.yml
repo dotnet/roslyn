@@ -34,14 +34,20 @@ jobs:
       run: |
         ./init.ps1 -UpgradePrerequisites
         dotnet --info
+
+        # Print mono version if it is present.
+        if (Get-Command mono -ErrorAction SilentlyContinue) {
+          mono --version
+        }
       shell: pwsh
     - name: Set pipeline variables based on source
       run: azure-pipelines/variables/_pipelines.ps1
       shell: pwsh
     - name: build
-      run: dotnet build -t:build,pack --no-restore -c ${{ env.BUILDCONFIGURATION }} /v:m /bl:"bin/build_logs/build.binlog"
+      run: dotnet build -t:build,pack --no-restore -c ${{ env.BUILDCONFIGURATION }} /v:m /bl:"${{ runner.temp }}/_artifacts/build_logs/build.binlog"
     - name: test
-      run: dotnet test --no-build -c ${{ env.BUILDCONFIGURATION }} /bl:"bin/build_logs/test.binlog" --filter "TestCategory!=FailsInCloudTest" -v n /p:CollectCoverage=true --logger trx --blame-hang-timeout 30s --blame-crash
+      run: azure-pipelines/dotnet-test-cloud.ps1 -Configuration ${{ env.BUILDCONFIGURATION }} -Agent ${{ runner.os }}
+      shell: pwsh
     - name: Update pipeline variables based on build outputs
       run: azure-pipelines/variables/_pipelines.ps1
       shell: pwsh
@@ -54,46 +60,53 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: projectAssetsJson-${{ runner.os }}
-        path: obj/_artifacts/projectAssetsJson
+        path: ${{ runner.temp }}/_artifacts/projectAssetsJson
       continue-on-error: true
     - name: Upload variables
       uses: actions/upload-artifact@v1
       with:
         name: variables-${{ runner.os }}
-        path: obj/_artifacts/variables
+        path: ${{ runner.temp }}/_artifacts/Variables
       continue-on-error: true
     - name: Upload build_logs
       if: always()
       uses: actions/upload-artifact@v1
       with:
         name: build_logs-${{ runner.os }}
-        path: obj/_artifacts/build_logs
+        path: ${{ runner.temp }}/_artifacts/build_logs
+      continue-on-error: true
+    - name: Upload test_logs
+      if: always()
+      uses: actions/upload-artifact@v1
+      with:
+        name: test_logs-${{ runner.os }}
+        path: ${{ runner.temp }}/_artifacts/test_logs
       continue-on-error: true
     - name: Upload testResults
       if: always()
       uses: actions/upload-artifact@v1
       with:
         name: testResults-${{ runner.os }}
-        path: obj/_artifacts/testResults
+        path: ${{ runner.temp }}/_artifacts/testResults
       continue-on-error: true
     - name: Upload coverageResults
       if: always()
       uses: actions/upload-artifact@v1
       with:
         name: coverageResults-${{ runner.os }}
-        path: obj/_artifacts/coverageResults
+        path: ${{ runner.temp }}/_artifacts/coverageResults
       continue-on-error: true
     - name: Upload symbols
       uses: actions/upload-artifact@v1
       with:
         name: symbols-${{ runner.os }}
-        path: obj/_artifacts/symbols
+        path: ${{ runner.temp }}/_artifacts/symbols
       continue-on-error: true
     - name: Upload deployables
       uses: actions/upload-artifact@v1
       with:
         name: deployables-${{ runner.os }}
-        path: obj/_artifacts/deployables
+        path: ${{ runner.temp }}/_artifacts/deployables
       if: always()
     - name: Publish code coverage results to codecov.io
       run: bash <(curl -s https://codecov.io/bash)
