@@ -35,11 +35,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 WellKnownGlobalOption.CompletionOptions_ShowItemsFromUnimportedNamespaces => CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
                 WellKnownGlobalOption.CompletionOptions_TriggerInArgumentLists => CompletionOptionsStorage.TriggerInArgumentLists,
                 WellKnownGlobalOption.CompletionViewOptions_EnableArgumentCompletionSnippets => CompletionViewOptions.EnableArgumentCompletionSnippets,
-                InlineRenameSessionOptions_RenameInComments => InlineRenameSessionOptionsStorage.RenameInComments,
-                InlineRenameSessionOptions_RenameInStrings => InlineRenameSessionOptionsStorage.RenameInStrings,
-                InlineRenameSessionOptions_RenameOverloads => InlineRenameSessionOptionsStorage.RenameOverloads,
-                InlineRenameSessionOptions_RenameFile => InlineRenameSessionOptionsStorage.RenameFile,
-                InlineRenameSessionOptions_PreviewChanges => InlineRenameSessionOptionsStorage.PreviewChanges,
+                WellKnownGlobalOption.InlineRenameSessionOptions_RenameInComments => InlineRenameSessionOptionsStorage.RenameInComments,
+                WellKnownGlobalOption.InlineRenameSessionOptions_RenameInStrings => InlineRenameSessionOptionsStorage.RenameInStrings,
+                WellKnownGlobalOption.InlineRenameSessionOptions_RenameOverloads => InlineRenameSessionOptionsStorage.RenameOverloads,
+                WellKnownGlobalOption.InlineRenameSessionOptions_RenameFile => InlineRenameSessionOptionsStorage.RenameFile,
+                WellKnownGlobalOption.InlineRenameSessionOptions_PreviewChanges => InlineRenameSessionOptionsStorage.PreviewChanges,
                 _ => throw ExceptionUtilities.Unreachable
             };
 
