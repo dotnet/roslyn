@@ -113,16 +113,19 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             // -    It's very unlikely the user would ever misspell a snippet, then use spell-checking to fix it, 
             //      then try to invoke the snippet.
             // -    We believe spell-check should only compare what you have typed to what symbol would be offered here.
-            var options = CompletionOptions.From(document.Project.Solution.Options, document.Project.Language) with
+            var options = CompletionOptions.Default with
             {
+                HideAdvancedMembers = context.Options.HideAdvancedMembers,
                 SnippetsBehavior = SnippetsRule.NeverInclude,
                 ShowItemsFromUnimportedNamespaces = false,
                 TargetTypedCompletionFilter = false,
                 ExpandedCompletionBehavior = ExpandedCompletionMode.NonExpandedItemsOnly
             };
 
+            var passThroughOptions = document.Project.Solution.Options;
+
             var completionList = await service.GetCompletionsAsync(
-                document, nameToken.SpanStart, options, cancellationToken: cancellationToken).ConfigureAwait(false);
+                document, nameToken.SpanStart, options, passThroughOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (completionList.Items.IsEmpty)
             {
                 return;

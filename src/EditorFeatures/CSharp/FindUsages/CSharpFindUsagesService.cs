@@ -4,7 +4,7 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.FindUsages

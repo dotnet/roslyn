@@ -1869,6 +1869,22 @@ class Program
 }");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WorkItem(1323, "https://github.com/dotnet/roslyn/issues/1323")]
+        public async Task TestUsingsInPPRegionWithoutOtherMembers()
+        {
+            await VerifyCS.VerifyCodeFixAsync(
+@"
+#if true
+[|{|IDE0005:using System;|}|]
+#endif
+",
+@"
+#if true
+#endif
+");
+        }
+
         [Theory]
         [InlineData(0)]
         [InlineData(1)]
