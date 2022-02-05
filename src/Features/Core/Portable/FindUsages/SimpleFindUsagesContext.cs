@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.Editor.FindUsages
+namespace Microsoft.CodeAnalysis.FindUsages
 {
     /// <summary>
     /// Simple implementation of a <see cref="FindUsagesContext"/> that just aggregates the results

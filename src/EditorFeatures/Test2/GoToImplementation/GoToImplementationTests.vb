@@ -3,7 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Remote.Testing
-Imports Microsoft.CodeAnalysis.Editor.FindUsages
+Imports Microsoft.CodeAnalysis.FindUsages
 Imports System.Threading
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToImplementation

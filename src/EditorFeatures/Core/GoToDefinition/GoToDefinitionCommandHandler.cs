@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                     return true;
                 }
 
-                errorMessage = EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret;
+                errorMessage = FeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret;
             }
 
             if (errorMessage != null)
