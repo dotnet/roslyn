@@ -797,7 +797,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 // PROTOTYPE(semi-auto-props): Fix implementation for semi auto properties.
-                return (_setMethod is null && _getMethod?.BodyShouldBeSynthesized == true) ||
+                return _getMethod?.BodyShouldBeSynthesized == true ||
                     _setMethod?.BodyShouldBeSynthesized == true;
             }
         }
@@ -807,7 +807,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 // PROTOTYPE(semi-auto-props): Fix implementation for semi auto properties.
-                return (_setMethod is null && _getMethod?.BodyShouldBeSynthesized == true) ||
+                return _getMethod?.BodyShouldBeSynthesized == true ||
                     _setMethod?.BodyShouldBeSynthesized == true;
             }
         }
