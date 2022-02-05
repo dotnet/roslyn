@@ -70,8 +70,8 @@ stages:
         targetType: filePath
         filePath: $(Pipeline.Workspace)/Variables-Windows/_pipelines.ps1
     - download: current
-      artifact: symbols-Windows
-      displayName: Download symbols-Windows artifact
+      artifact: symbols-legacy
+      displayName: Download symbols-legacy artifact
     - task: MicroBuildArchiveSymbols@1
       displayName: Archive symbols to Symweb
       inputs:
@@ -79,6 +79,6 @@ stages:
         SymbolsSymwebProject: VS
         SymbolsUncPath: \\cpvsbuild\drops\$(TeamName)\$(Build.DefinitionName)\$(Build.SourceBranchName)\$(Build.BuildId)\Symbols.Archival
         SymbolsEmailContacts: vsidemicrobuild
-        SymbolsAgentPath: $(Pipeline.Workspace)/symbols-Windows
+        SymbolsAgentPath: $(Pipeline.Workspace)/symbols-legacy
     - task: MicroBuildCleanup@1
       displayName: Send Telemetry
