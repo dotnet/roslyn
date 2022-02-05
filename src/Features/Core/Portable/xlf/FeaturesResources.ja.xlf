@@ -2540,6 +2540,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">選択範囲に、宣言のないローカル関数呼び出しが含まれています。</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_symbol_has_no_base">
+        <source>The symbol has no base.</source>
+        <target state="new">The symbol has no base.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="The_symbol_has_no_implementations">
         <source>The symbol has no implementations.</source>
         <target state="new">The symbol has no implementations.</target>
@@ -2858,6 +2863,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="You_can_use_the_navigation_bar_to_switch_contexts">
         <source>You can use the navigation bar to switch contexts.</source>
         <target state="translated">ナビゲーション バーを使用してコンテキストを切り替えることができます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_bases">
+        <source>'{0}' bases</source>
+        <target state="new">'{0}' bases</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">

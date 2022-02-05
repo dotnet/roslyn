@@ -4,7 +4,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.FindUsages
-Imports Microsoft.CodeAnalysis.Editor.GoToBase
+Imports Microsoft.CodeAnalysis.GoToBase
 Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToBase

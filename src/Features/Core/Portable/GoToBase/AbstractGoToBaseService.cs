@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 
-namespace Microsoft.CodeAnalysis.Editor.GoToBase
+namespace Microsoft.CodeAnalysis.GoToBase
 {
     internal abstract partial class AbstractGoToBaseService : IGoToBaseService
     {
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
             var bases = await FindBaseHelpers.FindBasesAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
 
             await context.SetSearchTitleAsync(
-                string.Format(EditorFeaturesResources._0_bases,
+                string.Format(FeaturesResources._0_bases,
                 FindUsagesHelpers.GetDisplayName(symbol)),
                 cancellationToken).ConfigureAwait(false);
 
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
 
             if (!found)
             {
-                await context.ReportMessageAsync(EditorFeaturesResources.The_symbol_has_no_base, cancellationToken).ConfigureAwait(false);
+                await context.ReportMessageAsync(FeaturesResources.The_symbol_has_no_base, cancellationToken).ConfigureAwait(false);
             }
         }
     }
