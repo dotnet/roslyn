@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
@@ -13,11 +14,11 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
     {
         public sealed override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
         {
-            var triggerOnTypingLetters = options.GetOption(CompletionOptions.Metadata.TriggerOnTypingLetters, InternalLanguageNames.TypeScript);
-            return ShouldTriggerCompletionImpl(text, caretPosition, trigger, triggerOnTypingLetters);
+            Debug.Fail("For backwards API compat only, should not be called");
+            return ShouldTriggerCompletionImpl(text, caretPosition, trigger, CompletionOptions.Default.TriggerOnTypingLetters);
         }
 
-        internal sealed override bool ShouldTriggerCompletion(HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options)
+        internal sealed override bool ShouldTriggerCompletion(HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options, OptionSet passThroughOptions)
             => ShouldTriggerCompletionImpl(text, caretPosition, trigger, options.TriggerOnTypingLetters);
 
         protected abstract bool ShouldTriggerCompletionImpl(SourceText text, int caretPosition, CompletionTrigger trigger, bool triggerOnTypingLetters);

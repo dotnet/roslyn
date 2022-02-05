@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 
-namespace Microsoft.CodeAnalysis.StackTraceExplorer
+namespace Microsoft.CodeAnalysis.Editor.StackTraceExplorer
 {
     internal class StackFrameMethodSymbolResolver : AbstractStackTraceSymbolResolver
     {

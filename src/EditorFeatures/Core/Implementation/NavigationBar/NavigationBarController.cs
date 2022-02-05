@@ -78,14 +78,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             _asyncListener = asyncListener;
 
             _computeModelQueue = new AsyncBatchingWorkQueue<bool, NavigationBarModel?>(
-                DelayTimeSpan.Short,
+                TimeSpan.FromMilliseconds(TaggerConstants.ShortDelay),
                 ComputeModelAndSelectItemAsync,
                 EqualityComparer<bool>.Default,
                 asyncListener,
                 _cancellationTokenSource.Token);
 
             _selectItemQueue = new AsyncBatchingWorkQueue(
-                DelayTimeSpan.NearImmediate,
+                TimeSpan.FromMilliseconds(TaggerConstants.NearImmediateDelay),
                 SelectItemAsync,
                 asyncListener,
                 _cancellationTokenSource.Token);
