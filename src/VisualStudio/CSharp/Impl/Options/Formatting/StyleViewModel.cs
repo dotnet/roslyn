@@ -1120,7 +1120,7 @@ class Customer
 }}
 ";
 
-        private static readonly string s_preferTrailingCommas = $@"
+        private static readonly string s_preferTrailingComma = $@"
 //[
     // {ServicesVSResources.Prefer_colon}
     enum E
@@ -2158,7 +2158,7 @@ class C2
 
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferTupleSwap, ServicesVSResources.Prefer_tuple_swap, s_preferTupleSwap, s_preferTupleSwap, this, optionStore, expressionPreferencesGroupTitle));
 
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferTrailingCommas, ServicesVSResources.Prefer_trailing_commas, s_preferTrailingCommas, s_preferTrailingCommas, this, optionStore, expressionPreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferTrailingComma, ServicesVSResources.Prefer_trailing_comma, s_preferTrailingComma, s_preferTrailingComma, this, optionStore, expressionPreferencesGroupTitle));
 
             AddExpressionBodyOptions(optionStore, expressionPreferencesGroupTitle);
             AddUnusedValueOptions(optionStore, expressionPreferencesGroupTitle);

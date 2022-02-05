@@ -1032,9 +1032,9 @@
         <target state="translated">Preferuj statyczne funkcje lokalne</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_trailing_commas">
-        <source>Prefer trailing commas</source>
-        <target state="new">Prefer trailing commas</target>
+      <trans-unit id="Prefer_trailing_comma">
+        <source>Prefer trailing comma</source>
+        <target state="new">Prefer trailing comma</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_tuple_swap">

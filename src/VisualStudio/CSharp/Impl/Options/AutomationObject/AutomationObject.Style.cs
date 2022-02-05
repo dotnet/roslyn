@@ -423,10 +423,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetXmlOption(CSharpCodeStyleOptions.NamespaceDeclarations, value); }
         }
 
-        public string Style_PreferTrailingCommas
+        public string Style_PreferTrailingComma
         {
-            get { return GetXmlOption(CSharpCodeStyleOptions.PreferTrailingCommas); }
-            set { SetXmlOption(CSharpCodeStyleOptions.PreferTrailingCommas, value); }
+            get { return GetXmlOption(CSharpCodeStyleOptions.PreferTrailingComma); }
+            set { SetXmlOption(CSharpCodeStyleOptions.PreferTrailingComma, value); }
         }
     }
 }

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             members.Add(member);
 
-            if (options.Preferences.Options.GetOption(CSharpCodeStyleOptions.PreferTrailingCommas).Value)
+            if (options.Preferences.Options.GetOption(CSharpCodeStyleOptions.PreferTrailingComma).Value)
             {
                 members.Add(SyntaxFactory.Token(SyntaxKind.CommaToken));
             }

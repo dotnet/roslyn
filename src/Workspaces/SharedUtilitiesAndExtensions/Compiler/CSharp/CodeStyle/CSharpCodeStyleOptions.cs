@@ -345,11 +345,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             "csharp_style_prefer_method_group_conversion",
             "TextEditor.CSharp.Specific.PreferMethodGroupConversion");
 
-        public static readonly Option2<CodeStyleOption2<bool>> PreferTrailingCommas = CreateOption(
-            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferTrailingCommas),
-            defaultValue: s_trueWithSuggestionEnforcement,
-            "csharp_style_prefer_trailing_commas",
-            $"TextEditor.CSharp.Specific.{nameof(PreferTrailingCommas)}");
+        public static readonly Option2<CodeStyleOption2<bool>> PreferTrailingComma = CreateOption(
+            CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferTrailingComma),
+            defaultValue: s_trueWithSilentEnforcement,
+            "csharp_style_prefer_trailing_comma",
+            $"TextEditor.CSharp.Specific.{nameof(PreferTrailingComma)}");
 
 #if false
 

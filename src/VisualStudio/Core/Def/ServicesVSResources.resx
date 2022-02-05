@@ -1903,7 +1903,7 @@ Additional information: {1}</value>
   <data name="Prefer_method_group_conversion" xml:space="preserve">
     <value>Prefer method group conversion</value>
   </data>
-  <data name="Prefer_trailing_commas" xml:space="preserve">
-    <value>Prefer trailing commas</value>
+  <data name="Prefer_trailing_comma" xml:space="preserve">
+    <value>Prefer trailing comma</value>
   </data>
 </root>
