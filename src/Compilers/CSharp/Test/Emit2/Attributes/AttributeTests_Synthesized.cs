@@ -670,7 +670,7 @@ record R
                 Assert.Equal(15, record.GetMembers().Length); // If a new record member is added, extend the test with its behavior regarding CompilerGeneratedAttribute.
 
                 var equalityContractGetter = record.GetMember("get_EqualityContract");
-                Assert.Empty(equalityContractGetter.GetAttributes());
+                validateCompilerGeneratedAttribute(equalityContractGetter);
 
                 var toString = record.GetMember(WellKnownMemberNames.ObjectToString);
                 validateCompilerGeneratedAttribute(toString);
@@ -703,7 +703,7 @@ record R
                 Assert.Empty(ctor[1].GetAttributes()); // shouldn't have attribute.
 
                 var equalityContract = record.GetMember("EqualityContract");
-                validateCompilerGeneratedAttribute(equalityContract);
+                Assert.Empty(equalityContract.GetAttributes());
 
                 var myProperty = record.GetMember("MyProperty");
                 Assert.Empty(myProperty.GetAttributes());
@@ -806,7 +806,7 @@ namespace System.Runtime.CompilerServices
                 validateCompilerGeneratedAttribute(p1_backingField);
 
                 var equalityContractGetter = record.GetMember("get_EqualityContract");
-                Assert.Empty(equalityContractGetter.GetAttributes());
+                validateCompilerGeneratedAttribute(equalityContractGetter);
 
                 var get_P1 = record.GetMember("get_P1");
                 validateCompilerGeneratedAttribute(get_P1);
@@ -848,7 +848,7 @@ namespace System.Runtime.CompilerServices
                 validateCompilerGeneratedAttribute(deconstruct);
 
                 var equalityContract = record.GetMember("EqualityContract");
-                validateCompilerGeneratedAttribute(equalityContract);
+                Assert.Empty(equalityContract.GetAttributes());
 
                 var p1 = record.GetMember("P1");
                 Assert.Empty(p1.GetAttributes());
