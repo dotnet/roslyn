@@ -1,12 +1,7 @@
-if ($env:BUILD_ARTIFACTSTAGINGDIRECTORY) {
-    $artifactsRoot = $env:BUILD_ARTIFACTSTAGINGDIRECTORY
-} else {
-    $RepoRoot = [System.IO.Path]::GetFullPath("$PSScriptRoot\..\..")
-    $artifactsRoot = "$RepoRoot\bin"
-}
+$ArtifactStagingFolder = & "$PSScriptRoot/../Get-ArtifactsStagingDirectory.ps1"
 
-if (!(Test-Path $artifactsRoot/build_logs)) { return }
+if (!(Test-Path $ArtifactStagingFolder/build_logs)) { return }
 
 @{
-    "$artifactsRoot/build_logs" = (Get-ChildItem -Recurse "$artifactsRoot/build_logs")
+    "$ArtifactStagingFolder/build_logs" = (Get-ChildItem -Recurse "$ArtifactStagingFolder/build_logs")
 }
