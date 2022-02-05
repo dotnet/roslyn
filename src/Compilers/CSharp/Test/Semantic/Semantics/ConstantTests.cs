@@ -3542,6 +3542,33 @@ $""{F1} the {S2}"" --> Testing the Level 5 Number 3";
         }
 
         [Fact]
+        public void ConstantRawInterpolatedStringsSimple()
+        {
+            string source = @"
+class C
+{
+    void M()
+    {
+        const string S1 = $""""""Testing"""""";
+        const string S2 = $""""""{""Level 5""} {""Number 3""}"""""";
+        const string S3 = $""""""{$""{""Spinning Top""}""}"""""";
+        const string F1 = $""""""{S1}"""""";
+        const string F2 = $""""""{F1} the {S2}"""""";
+    }
+}";
+            var actual = ParseAndGetConstantFoldingSteps(source);
+
+            var expected =
+@"$""""""Testing"""""" --> Testing
+$""""""{""Level 5""} {""Number 3""}"""""" --> Level 5 Number 3
+$""""""{$""{""Spinning Top""}""}"""""" --> Spinning Top
+$""{""Spinning Top""}"" --> Spinning Top
+$""""""{S1}"""""" --> Testing
+$""""""{F1} the {S2}"""""" --> Testing the Level 5 Number 3";
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
         public void ConstantInterpolatedStringsContinued()
         {
             string source = @"
@@ -3573,6 +3600,47 @@ class C
                     break;
                 case $""Radio Noise"":
                     goto case $""Level 5"";
+            }
+        }
+        S1 = S0;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ConstantRawInterpolatedStringsContinued()
+        {
+            string source = @"
+public class A : System.Attribute  
+{  
+    private string name;
+    
+    public A(string name)  
+    {  
+        this.name = name;
+    }
+}  
+
+[A($""ITEM"")]
+class C
+{
+    const string S0 = $""""""Faaaaaaaaaaaaaaaaaaaaaaaaall"""""";
+
+    class Namae
+    {
+        public string X { get; }
+    }
+
+    void M(string S1 = $""""""Testing"""""", Namae n = null)
+    {
+        if (n is Namae { X : $""""""ConstantInterpolatedString""""""}){
+            switch(S1){
+                case $""""""Level 5"""""":
+                    break;
+                case $""""""Radio Noise"""""":
+                    goto case $""""""Level 5"""""";
             }
         }
         S1 = S0;
@@ -3619,6 +3687,42 @@ class C
         }
 
         [Fact]
+        public void ConstantRawInterpolatedStringsError()
+        {
+            string source = @"
+class C
+{
+    void M(string ParamDefault = """"""Academy City"""""")
+    {
+        const string S1 = $""""""Testing"""""";
+        const string S2 = $""""""{""Level 5""} {3}"""""";
+        const string S3 = $""""""{$""{""Spinning Top"", 10}""}"""""";
+        const string S4 = $""""""{ParamDefault}"""""";
+        const int I1 = 0;
+        const string F1 = $""""""{I1}"""""";
+        const string F2 = $""""""{I1} the {S1}"""""";
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                    // (7,27): error CS0133: The expression being assigned to 'S2' must be constant
+                    //         const string S2 = $"""{"Level 5"} {3}""";
+                    Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""""""{""Level 5""} {3}""""""").WithArguments("S2").WithLocation(7, 27),
+                    // (8,27): error CS0133: The expression being assigned to 'S3' must be constant
+                    //         const string S3 = $"""{$"{"Spinning Top", 10}"}""";
+                    Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""""""{$""{""Spinning Top"", 10}""}""""""").WithArguments("S3").WithLocation(8, 27),
+                    // (9,27): error CS0133: The expression being assigned to 'S4' must be constant
+                    //         const string S4 = $"""{ParamDefault}""";
+                    Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""""""{ParamDefault}""""""").WithArguments("S4").WithLocation(9, 27),
+                    // (11,27): error CS0133: The expression being assigned to 'F1' must be constant
+                    //         const string F1 = $"""{I1}""";
+                    Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""""""{I1}""""""").WithArguments("F1").WithLocation(11, 27),
+                    // (12,27): error CS0133: The expression being assigned to 'F2' must be constant
+                    //         const string F2 = $"""{I1} the {S1}""";
+                    Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""""""{I1} the {S1}""""""").WithArguments("F2").WithLocation(12, 27));
+        }
+
+        [Fact]
         public void ConstantInterpolatedStringsHybrid()
         {
             string source = @"
@@ -3639,6 +3743,30 @@ $""Number "" --> Number
 $""{""Level 5""} "" + S1 --> Level 5 Number 3
 $""{""Level 5""} "" --> Level 5 
 $""{S1}"" --> Number 3";
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void ConstantRawInterpolatedStringsHybrid()
+        {
+            string source = @"
+class C
+{
+    void M()
+    {
+        const string S1 = $""""""Number """""" + ""3"";
+        const string S2 = $""""""{""Level 5""} """""" + S1;
+        const string F1 = $""""""{S1}"""""";
+    }
+}";
+            var actual = ParseAndGetConstantFoldingSteps(source);
+
+            var expected =
+@"$""""""Number """""" + ""3"" --> Number 3
+$""""""Number """""" --> Number 
+$""""""{""Level 5""} """""" + S1 --> Level 5 Number 3
+$""""""{""Level 5""} """""" --> Level 5 
+$""""""{S1}"""""" --> Number 3";
             Assert.Equal(expected, actual);
         }
 
@@ -3668,6 +3796,34 @@ class C
                 // (10,27): error CS0133: The expression being assigned to 'F1' must be constant
                 //         const string F1 = $"{S1}";
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""{S1}""").WithArguments("F1").WithLocation(10, 27));
+        }
+
+        [Fact]
+        public void ConstantRawInterpolatedStringsHybridError()
+        {
+            string source = @"
+class C
+{
+    void M()
+    {
+        
+        string NC1 = """"""Teleporter"""""";
+        const string S1 = ""The"" + $""""""Number {3}"""""" + ""Level 5"";
+        const string S2 = $""""""Level 4 """""" + NC1;
+        const string F1 = $""""""{S1}"""""";
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                    // (8,27): error CS0133: The expression being assigned to 'S1' must be constant
+                    //         const string S1 = "The" + $"""Number {3}""" + "Level 5";
+                    Diagnostic(ErrorCode.ERR_NotConstantExpression, @"""The"" + $""""""Number {3}"""""" + ""Level 5""").WithArguments("S1").WithLocation(8, 27),
+                    // (9,27): error CS0133: The expression being assigned to 'S2' must be constant
+                    //         const string S2 = $"""Level 4 """ + NC1;
+                    Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""""""Level 4 """""" + NC1").WithArguments("S2").WithLocation(9, 27),
+                    // (10,27): error CS0133: The expression being assigned to 'F1' must be constant
+                    //         const string F1 = $"""{S1}""";
+                    Diagnostic(ErrorCode.ERR_NotConstantExpression, @"$""""""{S1}""""""").WithArguments("F1").WithLocation(10, 27));
         }
 
         [Fact]
@@ -3804,6 +3960,27 @@ public class C
 {
     Assert.Equal(string.Empty, module.GlobalNamespace.GetTypeMember("C").GetField("s").ConstantValue);
 });
+        }
+
+        [Fact]
+        public void EmptyConstRawInterpolatedString()
+        {
+            CompileAndVerify(@"
+public class C
+{
+    public const string s = $""""""
+
+"""""";
+
+    static void Main()
+    {
+        System.Console.WriteLine(s);
+    }
+}
+", parseOptions: TestOptions.RegularPreview, expectedOutput: "", symbolValidator: module =>
+            {
+                Assert.Equal(string.Empty, module.GlobalNamespace.GetTypeMember("C").GetField("s").ConstantValue);
+            });
         }
     }
 

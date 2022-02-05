@@ -24,5 +24,11 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             var projectReferences = await TestServices.SolutionExplorer.GetProjectReferencesAsync(projectName, cancellationToken);
             Assert.Contains(referencedProjectName, projectReferences);
         }
+
+        public async Task FileContentsAsync(string projectName, string fileName, string expectedContents, CancellationToken cancellationToken)
+        {
+            var actualContents = await TestServices.SolutionExplorer.GetFileContentsAsync(projectName, fileName, cancellationToken);
+            Assert.Equal(expectedContents, actualContents);
+        }
     }
 }

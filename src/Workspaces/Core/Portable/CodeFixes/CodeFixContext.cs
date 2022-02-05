@@ -45,8 +45,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         public CancellationToken CancellationToken => _cancellationToken;
 
-        private readonly bool _isBlocking;
-        bool ITypeScriptCodeFixContext.IsBlocking => _isBlocking;
+        internal readonly CodeActionOptions Options;
+        bool ITypeScriptCodeFixContext.IsBlocking => Options.IsBlocking;
 
         /// <summary>
         /// Creates a code fix context to be passed into <see cref="CodeFixProvider.RegisterCodeFixesAsync(CodeFixContext)"/> method.
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                    span,
                    VerifyDiagnosticsArgument(diagnostics, span),
                    registerCodeFix ?? throw new ArgumentNullException(nameof(registerCodeFix)),
-                   isBlocking: false,
+                   CodeActionOptions.Default,
                    cancellationToken)
         {
         }
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                    (diagnostic ?? throw new ArgumentNullException(nameof(diagnostic))).Location.SourceSpan,
                    ImmutableArray.Create(diagnostic),
                    registerCodeFix ?? throw new ArgumentNullException(nameof(registerCodeFix)),
-                   isBlocking: false,
+                   CodeActionOptions.Default,
                    cancellationToken)
         {
         }
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             TextSpan span,
             ImmutableArray<Diagnostic> diagnostics,
             Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
-            bool isBlocking,
+            CodeActionOptions options,
             CancellationToken cancellationToken)
         {
             Debug.Assert(diagnostics.Any(d => d.Location.SourceSpan == span));
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             _span = span;
             _diagnostics = diagnostics;
             _registerCodeFix = registerCodeFix;
-            _isBlocking = isBlocking;
+            Options = options;
             _cancellationToken = cancellationToken;
         }
 

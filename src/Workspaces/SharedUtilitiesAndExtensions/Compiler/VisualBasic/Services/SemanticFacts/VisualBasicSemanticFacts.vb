@@ -215,6 +215,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function)
         End Function
 
+        Public Function IsNullChecked(parameter As IParameterSymbol, cancellationToken As CancellationToken) As Boolean Implements ISemanticFacts.IsNullChecked
+            ' VB does not have null checked parameters
+            Return False
+        End Function
+
         Public Function GetDeclaredSymbols(semanticModel As SemanticModel, memberDeclaration As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of ISymbol) Implements ISemanticFacts.GetDeclaredSymbols
             If TypeOf memberDeclaration Is FieldDeclarationSyntax Then
                 Return DirectCast(memberDeclaration, FieldDeclarationSyntax).Declarators.

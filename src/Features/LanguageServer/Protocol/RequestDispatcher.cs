@@ -24,12 +24,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     {
         private readonly ImmutableDictionary<string, Lazy<IRequestHandler>> _requestHandlers;
 
-        public RequestDispatcher(ImmutableArray<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders, ImmutableArray<string> languageNames)
+        public RequestDispatcher(
+            ImmutableArray<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders,
+            ImmutableArray<string> languageNames,
+            WellKnownLspServerKinds serverKind)
         {
-            _requestHandlers = CreateMethodToHandlerMap(requestHandlerProviders.Where(rh => languageNames.All(languageName => rh.Metadata.LanguageNames.Contains(languageName))));
+            _requestHandlers = CreateMethodToHandlerMap(requestHandlerProviders.Where(rh => languageNames.All(languageName => rh.Metadata.LanguageNames.Contains(languageName))), serverKind);
         }
 
-        private static ImmutableDictionary<string, Lazy<IRequestHandler>> CreateMethodToHandlerMap(IEnumerable<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders)
+        private static ImmutableDictionary<string, Lazy<IRequestHandler>> CreateMethodToHandlerMap(
+            IEnumerable<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders,
+            WellKnownLspServerKinds serverKind)
         {
             var requestHandlerDictionary = ImmutableDictionary.CreateBuilder<string, Lazy<IRequestHandler>>(StringComparer.OrdinalIgnoreCase);
 
@@ -41,7 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 // This ensures 2 things:
                 // 1.  That the handler provider is not instantiated (and therefore its dependencies are not) until a handler it provides is needed.
                 // 2.  That the handler provider's CreateRequestHandlers is only called once and always returns the same handler instances.
-                var lazyProviders = new Lazy<ImmutableDictionary<string, IRequestHandler>>(() => handlerProvider.Value.CreateRequestHandlers().ToImmutableDictionary(p => p.Method, p => p, StringComparer.OrdinalIgnoreCase));
+                var lazyProviders = new Lazy<ImmutableDictionary<string, IRequestHandler>>(() => handlerProvider.Value.CreateRequestHandlers(serverKind).ToImmutableDictionary(p => p.Method, p => p, StringComparer.OrdinalIgnoreCase));
 
                 foreach (var method in methods)
                 {

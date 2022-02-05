@@ -69,8 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                 cancellationToken.ThrowIfCancellationRequested();
 #if CODE_STYLE
                 var provider = GetSyntaxFormattingService();
-                var optionSet = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(oldRoot.SyntaxTree);
-                var options = SyntaxFormattingOptions.Create(optionSet);
+                var options = provider.GetFormattingOptions(document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(oldRoot.SyntaxTree));
 #else
                 var provider = document.Project.Solution.Workspace.Services;
                 var options = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);

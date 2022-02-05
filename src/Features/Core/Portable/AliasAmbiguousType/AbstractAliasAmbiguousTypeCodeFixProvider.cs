@@ -7,7 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeGeneration;
@@ -46,9 +46,8 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
                 var syntaxGenerator = document.GetRequiredLanguageService<SyntaxGenerator>();
                 var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
                 var compilation = semanticModel.Compilation;
-                var preferences = await CodeGenerationPreferences.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+                var options = await AddImportPlacementOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
 
-                var allowInHiddenRegions = document.CanAddImportsInHiddenRegions();
                 var codeActionsBuilder = ImmutableArray.CreateBuilder<CodeAction>(symbolInfo.CandidateSymbols.Length);
                 foreach (var symbol in symbolInfo.CandidateSymbols.Cast<ITypeSymbol>())
                 {
@@ -57,7 +56,7 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
                     codeActionsBuilder.Add(new MyCodeAction(codeActionPreviewText, c =>
                         {
                             var aliasDirective = syntaxGenerator.AliasImportDeclaration(typeName, symbol);
-                            var newRoot = addImportService.AddImport(compilation, root, diagnosticNode, aliasDirective, syntaxGenerator, preferences, allowInHiddenRegions, cancellationToken);
+                            var newRoot = addImportService.AddImport(compilation, root, diagnosticNode, aliasDirective, syntaxGenerator, options, cancellationToken);
                             return Task.FromResult(document.WithSyntaxRoot(newRoot));
                         }));
                 }

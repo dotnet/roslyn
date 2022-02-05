@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
             MyBase.New(VisualBasicEmbeddedLanguagesProvider.Info)
         End Sub
 
-        Friend Overrides Function EscapeText(text As String, token As SyntaxToken) As String
+        Public Overrides Function EscapeText(text As String, token As SyntaxToken) As String
             Return EmbeddedLanguageUtilities.EscapeText(text)
         End Function
     End Class

@@ -36,8 +36,8 @@ class Program
 }
 ";
             // VerifyItemExistsAsync also tests with the item typed.
-            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
-            await VerifyItemExistsAsync(markup, "P2", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: "");
+            await VerifyItemExistsAsync(markup, "P2", displayTextSuffix: "");
         }
 
         [Fact]
@@ -57,8 +57,8 @@ public class Program
     public void Deconstruct(out int x, out int y) => throw null;
 }
 ";
-            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
-            await VerifyItemExistsAsync(markup, "P2", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: "");
+            await VerifyItemExistsAsync(markup, "P2", displayTextSuffix: "");
         }
 
         [Fact]
@@ -78,8 +78,8 @@ public class Program
     public void Deconstruct(out int x, out int y) => throw null;
 }
 ";
-            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
-            await VerifyItemExistsAsync(markup, "P2", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: "");
+            await VerifyItemExistsAsync(markup, "P2", displayTextSuffix: "");
         }
 
         [Fact]
@@ -98,8 +98,8 @@ class Program
     }
 }
 ";
-            await VerifyItemExistsAsync(markup, "@new", displayTextSuffix: ":");
-            await VerifyItemExistsAsync(markup, "@struct", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "@new", displayTextSuffix: "");
+            await VerifyItemExistsAsync(markup, "@struct", displayTextSuffix: "");
         }
 
         [Fact]
@@ -138,8 +138,8 @@ class Derived
     public int P2 { get; set; }
 }
 ";
-            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
-            await VerifyItemExistsAsync(markup, "P2", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: "");
+            await VerifyItemExistsAsync(markup, "P2", displayTextSuffix: "");
         }
 
         [Fact]
@@ -160,8 +160,8 @@ class Other
     public int F2;
 }
 ";
-            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
-            await VerifyItemExistsAsync(markup, "F2", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: "");
+            await VerifyItemExistsAsync(markup, "F2", displayTextSuffix: "");
         }
 
         [Fact]
@@ -203,7 +203,7 @@ class Derived : Program
     private int P2 { get; set; }
 }
 ";
-            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: "");
         }
 
         [Fact]
@@ -223,8 +223,8 @@ class Program
 }
 ";
             // VerifyItemExistsAsync also tests with the item typed.
-            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
-            await VerifyItemExistsAsync(markup, "P2", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: "");
+            await VerifyItemExistsAsync(markup, "P2", displayTextSuffix: "");
         }
 
         [Fact]
@@ -247,8 +247,8 @@ class Program
 }
 ";
             // VerifyItemExistsAsync also tests with the item typed.
-            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
-            await VerifyItemExistsAsync(markup, "P2", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: "");
+            await VerifyItemExistsAsync(markup, "P2", displayTextSuffix: "");
         }
 
         [Fact]
@@ -271,8 +271,8 @@ class Program
 }
 ";
             // VerifyItemExistsAsync also tests with the item typed.
-            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
-            await VerifyItemExistsAsync(markup, "P2", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: "");
+            await VerifyItemExistsAsync(markup, "P2", displayTextSuffix: "");
         }
 
         [Fact]
@@ -291,8 +291,8 @@ class Program
     }
 }
 ";
-            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
-            await VerifyItemExistsAsync(markup, "P2", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: "");
+            await VerifyItemExistsAsync(markup, "P2", displayTextSuffix: "");
         }
 
         [Fact]
@@ -318,8 +318,8 @@ class Program
 ";
             await VerifyItemIsAbsentAsync(markup, "P1");
             await VerifyItemIsAbsentAsync(markup, "P2");
-            await VerifyItemExistsAsync(markup, "P3", displayTextSuffix: ":");
-            await VerifyItemExistsAsync(markup, "P4", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "P3", displayTextSuffix: "");
+            await VerifyItemExistsAsync(markup, "P4", displayTextSuffix: "");
         }
 
         [Fact]
@@ -345,8 +345,8 @@ class Program
 ";
             await VerifyItemIsAbsentAsync(markup, "P1");
             await VerifyItemIsAbsentAsync(markup, "F2");
-            await VerifyItemExistsAsync(markup, "P3", displayTextSuffix: ":");
-            await VerifyItemExistsAsync(markup, "P4", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "P3", displayTextSuffix: "");
+            await VerifyItemExistsAsync(markup, "P4", displayTextSuffix: "");
         }
 
         [Fact]
@@ -372,8 +372,8 @@ class Program
 ";
             await VerifyItemIsAbsentAsync(markup, "P1");
             await VerifyItemIsAbsentAsync(markup, "P2");
-            await VerifyItemExistsAsync(markup, "F3", displayTextSuffix: ":");
-            await VerifyItemExistsAsync(markup, "F4", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "F3", displayTextSuffix: "");
+            await VerifyItemExistsAsync(markup, "F4", displayTextSuffix: "");
         }
 
         [Fact]
@@ -455,7 +455,7 @@ class Program
 }
 ";
             // VerifyItemExistsAsync also tests with the item typed.
-            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: "");
             await VerifyItemIsAbsentAsync(markup, "P2");
         }
 
@@ -542,7 +542,7 @@ public class Program
     public void Deconstruct(out Program x, out Program y) => throw null;
 }
 ";
-            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: "");
         }
 
         [Fact]
@@ -562,7 +562,7 @@ public class Program
     public void Deconstruct(out Program x, out Program y) => throw null;
 }
 ";
-            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: "");
         }
 
         [Fact]
@@ -604,7 +604,7 @@ public class Program
     public void Deconstruct(out Program x, out Program y) => throw null;
 }
 ";
-            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: "");
         }
 
         [Fact]
@@ -624,7 +624,7 @@ public class Program
     public void Deconstruct(out Program x, out Program y) => throw null;
 }
 ";
-            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: "");
         }
 
         [Fact]
@@ -665,8 +665,8 @@ class Program
 }
 ";
             // Ignore browsability limiting attributes if the symbol is declared in source.
-            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: ":");
-            await VerifyItemExistsAsync(markup, "P2", displayTextSuffix: ":");
+            await VerifyItemExistsAsync(markup, "P1", displayTextSuffix: "");
+            await VerifyItemExistsAsync(markup, "P2", displayTextSuffix: "");
         }
 
         [Fact]

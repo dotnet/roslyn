@@ -237,7 +237,7 @@ csharp_style_expression_bodied_properties = true:warning
                 applyFix: true,
                 fixAllScope: FixAllScope.Project);
 
-            Assert.Equal(expectedText, VisualStudio.Editor.GetText());
+            AssertEx.EqualOrDiff(expectedText, VisualStudio.Editor.GetText());
 
             /*
              * The second portion of this test modifier the existing .editorconfig file to configure the analyzer to the
@@ -296,7 +296,7 @@ class C
     }
 }";
 
-            Assert.Equal(expectedText, VisualStudio.Editor.GetText());
+            AssertEx.EqualOrDiff(expectedText, VisualStudio.Editor.GetText());
         }
 
         [CriticalWpfTheory]
@@ -347,17 +347,16 @@ class D
             // Verify that applying a Fix All operation does not change generated files.
             // This is a regression test for correctness with respect to the design.
             SetUpEditor(markup);
-            VisualStudio.WaitForApplicationIdle(CancellationToken.None);
             VisualStudio.Editor.InvokeCodeActionList();
             VisualStudio.Editor.Verify.CodeAction(
                 "Remove Unnecessary Usings",
                 applyFix: true,
                 fixAllScope: scope);
 
-            Assert.Equal(expectedText, VisualStudio.Editor.GetText());
+            AssertEx.EqualOrDiff(expectedText, VisualStudio.Editor.GetText());
 
             VisualStudio.SolutionExplorer.OpenFile(new ProjectUtils.Project(ProjectName), "D.cs");
-            Assert.Equal(generatedSource, VisualStudio.Editor.GetText());
+            AssertEx.EqualOrDiff(generatedSource, VisualStudio.Editor.GetText());
 
             // Verify that a Fix All in Document in the generated file still does nothing.
             // ⚠ This is a statement of the current behavior, and not a claim regarding correctness of the design.
@@ -370,7 +369,7 @@ class D
                 applyFix: true,
                 fixAllScope: FixAllScope.Document);
 
-            Assert.Equal(generatedSource, VisualStudio.Editor.GetText());
+            AssertEx.EqualOrDiff(generatedSource, VisualStudio.Editor.GetText());
 
             // Verify that the code action can still be applied manually from within the generated file.
             // This is a regression test for correctness with respect to the design.
@@ -381,7 +380,7 @@ class D
                 applyFix: true,
                 fixAllScope: null);
 
-            Assert.Equal(expectedGeneratedSource, VisualStudio.Editor.GetText());
+            AssertEx.EqualOrDiff(expectedGeneratedSource, VisualStudio.Editor.GetText());
         }
 
         [CriticalWpfTheory]
@@ -426,17 +425,16 @@ class D
             // change.
             MarkupTestFile.GetPosition(markup, out var expectedText, out int _);
             SetUpEditor(markup);
-            VisualStudio.WaitForApplicationIdle(CancellationToken.None);
             VisualStudio.Editor.InvokeCodeActionList();
             VisualStudio.Editor.Verify.CodeAction(
                 "Remove Unnecessary Usings",
                 applyFix: true,
                 fixAllScope: scope);
 
-            Assert.Equal(expectedText, VisualStudio.Editor.GetText());
+            AssertEx.EqualOrDiff(expectedText, VisualStudio.Editor.GetText());
 
             VisualStudio.SolutionExplorer.OpenFile(new ProjectUtils.Project(ProjectName), "D.cs");
-            Assert.Equal(expectedSecondFile, VisualStudio.Editor.GetText());
+            AssertEx.EqualOrDiff(expectedSecondFile, VisualStudio.Editor.GetText());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
@@ -470,6 +468,12 @@ public class Program
 public class P2 { }");
 
             VisualStudio.Editor.SendKeys(VirtualKey.Backspace, VirtualKey.Backspace, "Stream");
+            VisualStudio.Workspace.WaitForAllAsyncOperations(
+                Helper.HangMitigatingTimeout,
+                FeatureAttribute.Workspace,
+                FeatureAttribute.EventHookup,
+                FeatureAttribute.Rename,
+                FeatureAttribute.RenameTracking);
 
             VisualStudio.Editor.InvokeCodeActionList();
             var expectedItems = new[]
@@ -518,6 +522,12 @@ namespace NS
 }");
             VisualStudio.Editor.SendKeys(VirtualKey.Backspace, VirtualKey.Backspace,
                 "Foober");
+            VisualStudio.Workspace.WaitForAllAsyncOperations(
+                Helper.HangMitigatingTimeout,
+                FeatureAttribute.Workspace,
+                FeatureAttribute.EventHookup,
+                FeatureAttribute.Rename,
+                FeatureAttribute.RenameTracking);
 
             VisualStudio.Editor.InvokeCodeActionList();
             var expectedItems = new[]
@@ -716,6 +726,13 @@ class C
 }";
             SetUpEditor(markup);
 
+            VisualStudio.Workspace.WaitForAllAsyncOperations(
+                Helper.HangMitigatingTimeout,
+                FeatureAttribute.Workspace,
+                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.DiagnosticService,
+                FeatureAttribute.ErrorSquiggles);
+
             // Verify CS0168 warning in original code.
             VerifyDiagnosticInErrorList("Warning", VisualStudio);
 
@@ -736,6 +753,13 @@ class C
                         "Error",
             };
             VisualStudio.Editor.Verify.CodeActions(expectedItems, applyFix: "Error", ensureExpectedItemsAreOrdered: true);
+
+            VisualStudio.Workspace.WaitForAllAsyncOperations(
+                Helper.HangMitigatingTimeout,
+                FeatureAttribute.Workspace,
+                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.DiagnosticService,
+                FeatureAttribute.ErrorSquiggles);
 
             // Verify CS0168 is now reported as an error.
             VerifyDiagnosticInErrorList("Error", VisualStudio);
