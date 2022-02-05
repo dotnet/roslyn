@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -88,6 +89,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var optionKey = new OptionKey(option);
             SetOption(optionKey, result);
         }
+
+        public object? GetGlobalOption(WellKnownGlobalOption option, string? language)
+        {
+            object? result = null;
+            InvokeOnUIThread(_ => result = _globalOptions.GetOption(option.GetKey(language)));
+            return result;
+        }
+
+        public void SetGlobalOption(WellKnownGlobalOption option, string? language, object? value)
+            => InvokeOnUIThread(_ => _globalOptions.SetGlobalOption(option.GetKey(language), value));
 
         private static object GetValue(object value, IOption option)
         {

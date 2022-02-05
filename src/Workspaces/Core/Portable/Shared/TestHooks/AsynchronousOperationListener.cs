@@ -40,33 +40,55 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             TrackActiveTokens = Debugger.IsAttached || enableDiagnosticTokens;
         }
 
-        public async Task<bool> Delay(TimeSpan delay, CancellationToken cancellationToken)
+        [PerformanceSensitive(
+            "https://github.com/dotnet/roslyn/pull/58646",
+            Constraint = "Cannot use async/await because it produces large numbers of first-chance cancellation exceptions.")]
+        public Task<bool> Delay(TimeSpan delay, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            if (cancellationToken.IsCancellationRequested)
+                return Task.FromCanceled<bool>(cancellationToken);
 
             var expeditedDelayCancellationToken = _expeditedDelayCancellationTokenSource.Token;
             if (expeditedDelayCancellationToken.IsCancellationRequested)
             {
                 // The operation is already being expedited
-                return false;
+                return SpecializedTasks.False;
             }
 
-            using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, expeditedDelayCancellationToken);
+            var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, expeditedDelayCancellationToken);
 
             var delayTask = Task.Delay(delay, cancellationTokenSource.Token);
-            await delayTask.NoThrowAwaitableInternal(false);
-
-            if (delayTask.Status != TaskStatus.RanToCompletion)
+            if (delayTask.IsCompleted)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // The cancellation only occurred due to a request to expedite the operation.
-                // Don't use try-catch to reduce the number of first chance exceptions.
-                if (expeditedDelayCancellationToken.IsCancellationRequested)
-                    return false;
+                cancellationTokenSource.Dispose();
+                if (delayTask.Status == TaskStatus.RanToCompletion)
+                    return SpecializedTasks.True;
+                else if (cancellationToken.IsCancellationRequested)
+                    return Task.FromCanceled<bool>(cancellationToken);
+                else
+                    return SpecializedTasks.False;
             }
 
-            return true;
+            // Handle continuation in a local function to avoid capturing arguments when this path is avoided
+            return DelaySlow(delayTask, cancellationTokenSource, cancellationToken);
+
+            static Task<bool> DelaySlow(Task delayTask, CancellationTokenSource cancellationTokenSourceToDispose, CancellationToken cancellationToken)
+            {
+                return delayTask.ContinueWith(
+                    task =>
+                    {
+                        cancellationTokenSourceToDispose.Dispose();
+                        if (task.Status == TaskStatus.RanToCompletion)
+                            return SpecializedTasks.True;
+                        else if (cancellationToken.IsCancellationRequested)
+                            return Task.FromCanceled<bool>(cancellationToken);
+                        else
+                            return SpecializedTasks.False;
+                    },
+                    CancellationToken.None,
+                    TaskContinuationOptions.ExecuteSynchronously,
+                    TaskScheduler.Default).Unwrap();
+            }
         }
 
         public IAsyncToken BeginAsyncOperation(string name, object? tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)

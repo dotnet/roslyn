@@ -2554,7 +2554,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub TestWithModifiers_Sealed()
+        Public Sub TestWithModifiers_Sealed_Class()
             Dim classBlock = DirectCast(Generator.ClassDeclaration("C"), ClassBlockSyntax)
             Dim classBlockWithModifiers = Generator.WithModifiers(classBlock, DeclarationModifiers.Sealed)
             VerifySyntax(Of ClassBlockSyntax)(classBlockWithModifiers, "NotInheritable Class C
@@ -2563,6 +2563,17 @@ End Class")
             Dim classStatement = classBlock.ClassStatement
             Dim classStatementWithModifiers = Generator.WithModifiers(classStatement, DeclarationModifiers.Sealed)
             VerifySyntax(Of ClassStatementSyntax)(classStatementWithModifiers, "NotInheritable Class C")
+        End Sub
+
+        <Fact, WorkItem(23410, "https://github.com/dotnet/roslyn/issues/23410")>
+        Public Sub TestWithModifiers_Sealed_Member()
+            Dim classBlock = DirectCast(Generator.ClassDeclaration("C"), ClassBlockSyntax)
+            classBlock = DirectCast(Generator.AddMembers(classBlock, Generator.WithModifiers(Generator.MethodDeclaration("Goo"), DeclarationModifiers.Sealed)), ClassBlockSyntax)
+            VerifySyntax(Of ClassBlockSyntax)(classBlock, "Class C
+
+    NotOverridable Sub Goo()
+    End Sub
+End Class")
         End Sub
 
         <Fact>

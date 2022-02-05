@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var completionListCache = new CompletionListCache();
             return ImmutableArray.Create<IRequestHandler>(
                 new CompletionHandler(_globalOptions, _completionProviders, completionListCache),
-                new CompletionResolveHandler(completionListCache));
+                new CompletionResolveHandler(_globalOptions, completionListCache));
         }
     }
 }
