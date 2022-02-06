@@ -16,9 +16,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public static readonly Option2<bool> PreferBuildErrorsOverLiveErrors = new(nameof(InternalDiagnosticsOptions), "Errors from build will be preferred over live errors from same analyzer", defaultValue: true,
             storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Errors from build will be preferred over live errors from same analyzer"));
 
-        public static readonly Option2<bool> PutCustomTypeInBingSearch = new(nameof(InternalDiagnosticsOptions), nameof(PutCustomTypeInBingSearch), defaultValue: true,
-            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "PutCustomTypeInBingSearch"));
-
         public static readonly Option2<bool> CrashOnAnalyzerException = new(nameof(InternalDiagnosticsOptions), nameof(CrashOnAnalyzerException), defaultValue: false,
             storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "CrashOnAnalyzerException"));
 

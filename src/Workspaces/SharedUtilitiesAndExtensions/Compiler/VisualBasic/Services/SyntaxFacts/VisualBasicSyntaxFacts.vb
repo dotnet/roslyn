@@ -1425,10 +1425,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return node.IsKind(SyntaxKind.TypeOfIsExpression)
         End Function
 
-        Public Function WalkDownParentheses(node As SyntaxNode) As SyntaxNode Implements ISyntaxFacts.WalkDownParentheses
-            Return If(TryCast(node, ExpressionSyntax)?.WalkDownParentheses(), node)
-        End Function
-
         Public Sub GetPartsOfTupleExpression(Of TArgumentSyntax As SyntaxNode)(node As SyntaxNode, ByRef openParen As SyntaxToken, ByRef arguments As SeparatedSyntaxList(Of TArgumentSyntax), ByRef closeParen As SyntaxToken) Implements ISyntaxFacts.GetPartsOfTupleExpression
             Dim tupleExpr = DirectCast(node, TupleExpressionSyntax)
             openParen = tupleExpr.OpenParenToken

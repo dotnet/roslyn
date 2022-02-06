@@ -63,7 +63,7 @@ internal class ExperimentalDocumentPullDiagnosticsHandler : AbstractPullDiagnost
         return null;
     }
 
-    protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, Document document, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
+    protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, Document document, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
     {
         // We are intentionally getting diagnostics for the up to date LSP snapshot instead of from the IDiagnosticService
         // as the solution crawler does not run in VSCode.  When the solution crawler is removed from VS, the VS LSP diagnostics

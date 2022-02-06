@@ -1733,6 +1733,210 @@ public class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestNullCheckWithElse1()
+        {
+            await new VerifyCS.Test()
+            {
+                TestCode = @"using System;
+public class C
+{
+    public void M(string s)
+    {
+        [|if (s == null) throw new ArgumentNullException();|]
+        else Console.Write(1);
+    }
+}",
+                FixedCode = @"using System;
+public class C
+{
+    public void M(string s!!)
+    {
+        Console.Write(1);
+    }
+}",
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestNullCheckWithElse2()
+        {
+            await new VerifyCS.Test()
+            {
+                TestCode = @"using System;
+public class C
+{
+    public void M(string s)
+    {
+        [|if (s == null) throw new ArgumentNullException();|]
+        else if (s.Length == 0) Console.Write(1);
+    }
+}",
+                FixedCode = @"using System;
+public class C
+{
+    public void M(string s!!)
+    {
+        if (s.Length == 0) Console.Write(1);
+    }
+}",
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestNullCheckWithElse3()
+        {
+            await new VerifyCS.Test()
+            {
+                TestCode = @"using System;
+public class C
+{
+    public void M(string s)
+    {
+        Console.Write(0);
+        [|if (s == null) throw new ArgumentNullException();|]
+        else
+        {
+            Console.Write(1);
+            Console.Write(2);
+        }
+        Console.Write(3);
+    }
+}",
+                FixedCode = @"using System;
+public class C
+{
+    public void M(string s!!)
+    {
+        Console.Write(0);
+        Console.Write(1);
+        Console.Write(2);
+        Console.Write(3);
+    }
+}",
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestNullCheckWithElse4()
+        {
+            await new VerifyCS.Test()
+            {
+                TestCode = @"using System;
+public class C
+{
+    public void M(string s)
+    {
+        [|if (s == null) throw new ArgumentNullException();|]
+        else if (s.Length == 0)
+        {
+            Console.Write(1);
+            Console.Write(2);
+        }
+    }
+}",
+                FixedCode = @"using System;
+public class C
+{
+    public void M(string s!!)
+    {
+        if (s.Length == 0)
+        {
+            Console.Write(1);
+            Console.Write(2);
+        }
+    }
+}",
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestNullCheckWithElse5()
+        {
+            await new VerifyCS.Test()
+            {
+                TestCode = @"using System;
+public class C
+{
+    public void M(string s1, string s2)
+    {
+        [|if (s1 == null) throw new ArgumentNullException();|]
+        else if (s2 == null) throw new ArgumentNullException();
+    }
+}",
+                FixedCode = @"using System;
+public class C
+{
+    public void M(string s1!!, string s2!!)
+    {
+    }
+}",
+                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                NumberOfIncrementalIterations = 2,
+                NumberOfFixAllIterations = 2
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestNullCheckWithElse6()
+        {
+            await new VerifyCS.Test()
+            {
+                TestCode = @"using System;
+public class C
+{
+    public void M(string s1)
+    {
+        [|if (s1 == null) throw new ArgumentNullException();|]
+        else /* comment1 */ s1.ToString() /* comment2 */; // comment3
+    }
+}",
+                FixedCode = @"using System;
+public class C
+{
+    public void M(string s1!!)
+    {
+        s1.ToString() /* comment2 */; // comment3
+    }
+}",
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestNullCheckWithElse7()
+        {
+            await new VerifyCS.Test()
+            {
+                TestCode = @"using System;
+public class C
+{
+    public void M(string s1)
+    {
+        [|if (s1 == null) throw new ArgumentNullException();|]
+        else
+        {
+            /* comment1 */ s1.ToString() /* comment2 */; // comment3
+        }
+    }
+}",
+                FixedCode = @"using System;
+public class C
+{
+    public void M(string s1!!)
+    {
+        /* comment1 */
+        s1.ToString() /* comment2 */; // comment3
+    }
+}",
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestWithUserDefinedOperator()
         {
             await new VerifyCS.Test()

@@ -431,9 +431,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode? GetContainingMemberDeclaration(SyntaxNode root, int position, bool useFullSpan = true);
         SyntaxNode? GetContainingVariableDeclaratorOfFieldDeclaration(SyntaxNode? node);
 
-        [return: NotNullIfNotNull("node")]
-        SyntaxNode? WalkDownParentheses(SyntaxNode? node);
-
         // Violation.  This is a feature level API.
         [return: NotNullIfNotNull("node")]
         SyntaxNode? ConvertToSingleLine(SyntaxNode? node, bool useElasticTrivia = false);

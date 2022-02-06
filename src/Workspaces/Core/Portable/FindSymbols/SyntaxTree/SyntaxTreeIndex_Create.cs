@@ -19,12 +19,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal interface IDeclaredSymbolInfoFactoryService : ILanguageService
-    {
-        // `rootNamespace` is required for VB projects that has non-global namespace as root namespace,
-        // otherwise we would not be able to get correct data from syntax.
-        void AddDeclaredSymbolInfos(Document document, SyntaxNode root, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, Dictionary<string, ArrayBuilder<int>> extensionMethodInfo, CancellationToken cancellationToken);
-    }
 
     internal sealed partial class SyntaxTreeIndex
     {

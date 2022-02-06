@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             EmbeddedLanguageInfo info,
             INamedTypeSymbol? regexType,
             HashSet<string> methodNamesOfInterest)
-            : base(info, s_languageCommentDetector)
+            : base("Regex", info, s_languageCommentDetector)
         {
             _regexType = regexType;
             _methodNamesOfInterest = methodNamesOfInterest;
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             return result;
         }
 
-        protected override bool IsEmbeddedLanguageString(
+        protected override bool IsArgumentToWellKnownAPI(
             SyntaxToken token,
             SyntaxNode argumentNode,
             SemanticModel semanticModel,
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
                 return false;
             }
 
-            options = GetOptionsFromSiblingArgument(argumentNode, semanticModel, cancellationToken);
+            options = GetOptionsFromSiblingArgument(argumentNode, semanticModel, cancellationToken) ?? default;
             return true;
         }
 
