@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return;
 
             var parameterSyntax = context.LeftToken.GetAncestor(n => n.IsKind(SyntaxKind.Parameter)) as ParameterSyntax;
-            if (parameterSyntax is not { Type: { } parameterType, Parent: { Parent: BaseMethodDeclarationSyntax baseMethod } })
+            if (parameterSyntax is not { Type: { } parameterType, Parent.Parent: BaseMethodDeclarationSyntax baseMethod })
                 return;
 
             var methodParameterType = semanticModel.GetTypeInfo(parameterType, cancellationToken).Type;
