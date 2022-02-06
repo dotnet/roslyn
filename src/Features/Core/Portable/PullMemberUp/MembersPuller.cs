@@ -9,7 +9,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
@@ -275,9 +275,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 });
 
             var context = new CodeGenerationContext(reuseSyntax: true, generateMethodBodies: false);
-            var options = await CodeGenerationOptions.FromDocumentAsync(context, document, cancellationToken).ConfigureAwait(false);
+            var codeGenOptions = await CodeGenerationOptions.FromDocumentAsync(context, document, cancellationToken).ConfigureAwait(false);
 
-            var newDestination = codeGenerationService.AddMembers(destinationSyntaxNode, pullUpMembersSymbols, options, cancellationToken);
+            var newDestination = codeGenerationService.AddMembers(destinationSyntaxNode, pullUpMembersSymbols, codeGenOptions, cancellationToken);
 
             using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var sourceImports);
             var destinationEditor = await solutionEditor.GetDocumentEditorAsync(
@@ -338,17 +338,20 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             // add imports by moving all source imports to destination container, then taking out unneccessary
             // imports that we just added (marked by our annotation).
             var addImportsService = destinationEditor.OriginalDocument.GetRequiredLanguageService<IAddImportsService>();
+            var importsPlacement = await AddImportPlacementOptions.FromDocumentAsync(destinationEditor.OriginalDocument, cancellationToken).ConfigureAwait(false);
+
             var destinationTrivia = GetLeadingTriviaBeforeFirstMember(destinationEditor.OriginalRoot, syntaxFacts);
+
             destinationEditor.ReplaceNode(destinationEditor.OriginalRoot, (root, _) =>
                 RemoveLeadingTriviaBeforeFirstMember(root, syntaxFacts));
+
             destinationEditor.ReplaceNode(destinationEditor.OriginalRoot, (node, generator) => addImportsService.AddImports(
                 destinationEditor.SemanticModel.Compilation,
                 node,
                 node.GetCurrentNode(newDestination),
                 sourceImports,
                 generator,
-                options.Preferences,
-                destinationEditor.OriginalDocument.CanAddImportsInHiddenRegions(),
+                importsPlacement,
                 cancellationToken));
 
             var removeImportsService = destinationEditor.OriginalDocument.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();

@@ -3184,7 +3184,11 @@ namespace System.Runtime.CompilerServices
             Assert.Equal("", constructor.GetParameters()[0].GetDocumentationCommentXml());
 
             var property = cMember.GetMembers("I1").Single();
-            Assert.Equal("", property.GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:C.I1"">
+    <summary>Description for I1</summary>
+</member>
+", property.GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -3223,6 +3227,110 @@ namespace System.Runtime.CompilerServices
 
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
             Assert.Equal(SymbolKind.Property, model.GetSymbolInfo(cref).Symbol!.Kind);
+
+            var property = comp.GetMember("C.I1");
+            AssertEx.Equal(
+@"<member name=""P:C.I1"">
+    <summary>Description for <see cref=""P:C.I1""/></summary>
+</member>
+", property.GetDocumentationCommentXml());
+        }
+
+        [Fact]
+        public void XmlDoc_Cref_OtherMember()
+        {
+            var src = @"
+/// <summary>Summary</summary>
+/// <param name=""I1"">Description for <see cref=""I2""/></param>
+public record struct C(int I1, int I2)
+{
+    /// <summary>Summary</summary>
+    /// <param name=""x"">Description for <see cref=""x""/></param>
+    public void M(int x) { }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>Ignored</summary>
+    public static class IsExternalInit
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics(
+                // (4,36): warning CS1573: Parameter 'I2' has no matching param tag in the XML comment for 'C.C(int, int)' (but other parameters do)
+                // public record struct C(int I1, int I2)
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "I2").WithArguments("I2", "C.C(int, int)").WithLocation(4, 36),
+                // (7,52): warning CS1574: XML comment has cref attribute 'x' that could not be resolved
+                //     /// <param name="x">Description for <see cref="x"/></param>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "x").WithArguments("x").WithLocation(7, 52)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+            var cref = docComments.First().DescendantNodes().OfType<XmlCrefAttributeSyntax>().First().Cref;
+            Assert.Equal("I2", cref.ToString());
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            Assert.Equal(SymbolKind.Property, model.GetSymbolInfo(cref).Symbol!.Kind);
+
+            var property = comp.GetMember("C.I1");
+            AssertEx.Equal(
+@"<member name=""P:C.I1"">
+    <summary>Description for <see cref=""P:C.I2""/></summary>
+</member>
+", property.GetDocumentationCommentXml());
+        }
+
+        [Fact]
+        public void XmlDoc_SeeAlso_InsideParamTag()
+        {
+            var src = @"
+/// <summary>Summary</summary>
+/// <param name=""I1"">Description for <seealso cref=""I2""/>something like I2</seealso></param>
+public record struct C(int I1, int I2)
+{
+    /// <summary>Summary</summary>
+    /// <param name=""x"">Description for <see cref=""x""/></param>
+    public void M(int x) { }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>Ignored</summary>
+    public static class IsExternalInit
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularWithDocumentationComments);
+            comp.VerifyDiagnostics(
+                // (3,77): warning CS1570: XML comment has badly formed XML -- 'End tag 'seealso' does not match the start tag 'param'.'
+                // /// <param name="I1">Description for <seealso cref="I2"/>something like I2</seealso></param>
+                Diagnostic(ErrorCode.WRN_XMLParseError, "seealso").WithArguments("seealso", "param").WithLocation(3, 77),
+                // (3,85): warning CS1570: XML comment has badly formed XML -- 'End tag was not expected at this location.'
+                // /// <param name="I1">Description for <seealso cref="I2"/>something like I2</seealso></param>
+                Diagnostic(ErrorCode.WRN_XMLParseError, "<").WithLocation(3, 85),
+                // (7,52): warning CS1574: XML comment has cref attribute 'x' that could not be resolved
+                //     /// <param name="x">Description for <see cref="x"/></param>
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "x").WithArguments("x").WithLocation(7, 52)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var docComments = tree.GetCompilationUnitRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>();
+            var cref = docComments.First().DescendantNodes().OfType<XmlCrefAttributeSyntax>().First().Cref;
+            Assert.Equal("I2", cref.ToString());
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            Assert.Equal(SymbolKind.Property, model.GetSymbolInfo(cref).Symbol!.Kind);
+
+            var property = comp.GetMember("C.I1");
+            AssertEx.Equal(
+@"<!-- Badly formed XML comment ignored for member ""P:C.I1"" -->
+", property.GetDocumentationCommentXml());
         }
 
         [Fact]

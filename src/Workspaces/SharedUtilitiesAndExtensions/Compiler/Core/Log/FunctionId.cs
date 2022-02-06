@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         WorkCoordinatorRegistrationService_Unregister = 224,
         WorkCoordinatorRegistrationService_Reanalyze = 225,
 
-        // obsolete: WorkCoordinator_SolutionCrawlerOption = 226,
+        WorkCoordinator_SolutionCrawlerOption = 226,
         WorkCoordinator_PersistentStorageAdded = 227,
         WorkCoordinator_PersistentStorageRemoved = 228,
         WorkCoordinator_Shutdown = 229,
