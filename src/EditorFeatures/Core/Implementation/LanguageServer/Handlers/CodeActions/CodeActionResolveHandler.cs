@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -36,15 +37,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly CodeActionsCache _codeActionsCache;
         private readonly ICodeFixService _codeFixService;
         private readonly ICodeRefactoringService _codeRefactoringService;
+        private readonly IGlobalOptionService _globalOptions;
 
         public CodeActionResolveHandler(
             CodeActionsCache codeActionsCache,
             ICodeFixService codeFixService,
-            ICodeRefactoringService codeRefactoringService)
+            ICodeRefactoringService codeRefactoringService,
+            IGlobalOptionService globalOptions)
         {
             _codeActionsCache = codeActionsCache;
             _codeFixService = codeFixService;
             _codeRefactoringService = codeRefactoringService;
+            _globalOptions = globalOptions;
         }
 
         public string Method => LSP.Methods.CodeActionResolveName;
@@ -63,10 +67,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var data = ((JToken)codeAction.Data!).ToObject<CodeActionResolveData>();
             Assumes.Present(data);
 
+            var options = _globalOptions.GetCodeActionOptions(document.Project.Language, isBlocking: false);
+
             var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
                 _codeActionsCache,
                 document,
                 data.Range,
+                options,
                 _codeFixService,
                 _codeRefactoringService,
                 cancellationToken).ConfigureAwait(false);

@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
 {
     using static EmbeddedSyntaxHelpers;
     using static JsonHelpers;
@@ -103,14 +103,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         /// diagnostics.  Parsing should always succeed, except in the case of the stack 
         /// overflowing.
         /// </summary>
-        public static JsonTree? TryParse(VirtualCharSequence text, bool strict)
+        public static JsonTree? TryParse(VirtualCharSequence text, JsonOptions options)
         {
             try
             {
-                if (text.Length == 0)
+                if (text.IsDefaultOrEmpty)
                     return null;
 
-                return new JsonParser(text).ParseTree(strict);
+                return new JsonParser(text).ParseTree(options);
             }
             catch (InsufficientExecutionStackException)
             {
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             }
         }
 
-        private JsonTree ParseTree(bool strict)
+        private JsonTree ParseTree(JsonOptions options)
         {
             var arraySequence = this.ParseSequence();
             Debug.Assert(_lexer.Position == _lexer.Text.Length);
@@ -133,8 +133,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             // We want to avoid reporting a ton of cascaded errors.
             var diagnostic1 = GetFirstDiagnostic(root);
             var diagnostic2 = CheckTopLevel(_lexer.Text, root);
-            var diagnostic3 = strict
-                ? StrictSyntaxChecker.CheckSyntax(root)
+            var diagnostic3 = options.HasFlag(JsonOptions.Strict)
+                ? StrictSyntaxChecker.CheckRootSyntax(root, options)
                 : JsonNetSyntaxChecker.CheckSyntax(root);
 
             var diagnostic = Earliest(Earliest(diagnostic1, diagnostic2), diagnostic3);
@@ -142,17 +142,17 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             return new JsonTree(_lexer.Text, root, diagnostic == null
                 ? ImmutableArray<EmbeddedDiagnostic>.Empty
                 : ImmutableArray.Create(diagnostic.Value));
+        }
 
-            static EmbeddedDiagnostic? Earliest(EmbeddedDiagnostic? d1, EmbeddedDiagnostic? d2)
-            {
-                if (d1 == null)
-                    return d2;
+        private static EmbeddedDiagnostic? Earliest(EmbeddedDiagnostic? d1, EmbeddedDiagnostic? d2)
+        {
+            if (d1 == null)
+                return d2;
 
-                if (d2 == null)
-                    return d1;
+            if (d2 == null)
+                return d1;
 
-                return d1.Value.Span.Start <= d2.Value.Span.Start ? d1 : d2;
-            }
+            return d1.Value.Span.Start <= d2.Value.Span.Start ? d1 : d2;
         }
 
         /// <summary>
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                     _ => null,
                 };
 
-                return diagnostic ?? CheckChildren(node);
+                return Earliest(diagnostic, CheckChildren(node));
             }
 
             static EmbeddedDiagnostic? CheckChildren(JsonNode node)

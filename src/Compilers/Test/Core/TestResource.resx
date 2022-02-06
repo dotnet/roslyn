@@ -866,6 +866,14 @@ namespace Comments.XmlComments.UndocumentedKeywords
     }
 }
 
+class RawStringLiterals
+{
+    public const string SingleLine = """single line""";
+    public const string MultiLine = """
+                                    Multi line
+                                    """;
+}
+
 #line 6
 #line 2 "test.cs"
 #line default

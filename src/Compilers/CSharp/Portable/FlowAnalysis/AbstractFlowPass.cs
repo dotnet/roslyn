@@ -947,7 +947,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             VisitPattern(pattern);
-            var reachableLabels = node.DecisionDag.ReachableLabels;
+            var reachableLabels = node.ReachabilityDecisionDag.ReachableLabels;
             if (!reachableLabels.Contains(node.WhenTrueLabel))
             {
                 SetState(this.StateWhenFalse);

@@ -3,9 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.AddMissingImports;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -115,9 +116,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
                 return;
             }
 
-            var options = new AddMissingImportsOptions(
-                HideAdvancedMembers: document.Project.Solution.Options.GetOption(CompletionOptions.Metadata.HideAdvancedMembers, document.Project.Language));
-
             using var _ = executionContext.OperationContext.AddScope(allowCancellation: true, DialogText);
             var cancellationToken = executionContext.OperationContext.UserCancellationToken;
 
@@ -127,7 +125,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AddImports
 
             var addMissingImportsService = document.GetRequiredLanguageService<IAddMissingImportsFeatureService>();
 #pragma warning disable VSTHRD102 // Implement internal logic asynchronously
-            var updatedDocument = _threadingContext.JoinableTaskFactory.Run(() => addMissingImportsService.AddMissingImportsAsync(document, textSpan, options, cancellationToken));
+            var updatedDocument = _threadingContext.JoinableTaskFactory.Run(async () =>
+            {
+                var placement = await AddImportPlacementOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+
+                var options = new AddMissingImportsOptions(
+                    HideAdvancedMembers: _globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, document.Project.Language),
+                    placement);
+
+                return await addMissingImportsService.AddMissingImportsAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
+            });
 #pragma warning restore VSTHRD102 // Implement internal logic asynchronously
             if (updatedDocument is null)
             {

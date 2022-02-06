@@ -147,6 +147,11 @@
         <target state="translated">Default' ifadesini basitleştir</target>
         <note />
       </trans-unit>
+      <trans-unit id="Simplify_delegate_invocation">
+        <source>Simplify delegate invocation</source>
+        <target state="new">Simplify delegate invocation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Simplify_property_pattern">
         <source>Simplify property pattern</source>
         <target state="translated">Özellik desenini basitleştir</target>

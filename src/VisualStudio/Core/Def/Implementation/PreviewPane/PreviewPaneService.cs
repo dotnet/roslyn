@@ -13,6 +13,7 @@ using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -92,9 +93,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                     previewContent: previewContent, logIdVerbatimInTelemetry: false, uiShell: _uiShell);
             }
 
-            var helpLinkUri = BrowserHelper.GetHelpLink(data);
-            var helpLinkToolTip = BrowserHelper.GetHelpLinkToolTip(data.Id, helpLinkUri);
-
             Guid optionPageGuid = default;
             if (data.Properties.TryGetValue("OptionName", out var optionName))
             {
@@ -102,12 +100,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 optionPageGuid = GetOptionPageGuidForOptionName(optionName, optionLanguage);
             }
 
+            var helpLinkUri = data.GetValidHelpLinkUri();
+
             return new PreviewPane(
                 severityIcon: GetSeverityIconForDiagnostic(data),
                 id: data.Id, title: title,
                 description: data.Description.ToString(CultureInfo.CurrentUICulture),
                 helpLink: helpLinkUri,
-                helpLinkToolTipText: helpLinkToolTip,
+                helpLinkToolTipText: (helpLinkUri != null) ? string.Format(EditorFeaturesResources.Get_help_for_0, data.Id) : null,
                 previewContent: previewContent,
                 logIdVerbatimInTelemetry: data.CustomTags.Contains(WellKnownDiagnosticTags.Telemetry),
                 uiShell: _uiShell,

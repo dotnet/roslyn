@@ -296,7 +296,8 @@ stages:
       dependsOn:
         - OfficialBuild
       pool:
-        vmImage: windows-2019
+        name: NetCore1ESPool-Svc-Internal
+        demands: ImageOverride -equals Build.Server.Amd64.VS2019
 
 - stage: insert
   dependsOn:
@@ -307,7 +308,8 @@ stages:
   - job: insert
     displayName: Insert to VS
     pool:
-      vmImage: windows-2019
+      name: NetCore1ESPool-Svc-Internal
+      demands: ImageOverride -equals Build.Server.Amd64.VS2019
     steps:
     - powershell: |
         $branchName = "$(Build.SourceBranch)".Substring("refs/heads/".Length)
