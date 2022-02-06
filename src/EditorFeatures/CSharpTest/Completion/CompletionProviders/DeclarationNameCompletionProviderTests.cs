@@ -756,6 +756,39 @@ public class C
             await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
+        public async Task DoNotSuggestInGenericType()
+        {
+            var markup = @"
+using System.Collections.Generic;
+public class C
+{
+    void M(IEnumerable<int> numbers) { }
+
+    void M(List<$$>) { }
+}
+";
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
+        public async Task DoNotSuggestInOptionalParameterDefaultValue()
+        {
+            var markup = @"
+using System.Collections.Generic;
+public class C
+{
+    private const int ZERO = 0;
+    void M(int num = ZERO) { }
+
+    void M(int x, int num = $$) { }
+}
+";
+            await VerifyNoItemsExistAsync(markup);
+        }
+
         [WorkItem(19260, "https://github.com/dotnet/roslyn/issues/19260")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EscapeKeywords1()
