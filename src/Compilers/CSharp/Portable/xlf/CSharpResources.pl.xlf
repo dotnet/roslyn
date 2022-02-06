@@ -1322,6 +1322,11 @@
         <target state="translated">Typ „{0}” musi być publiczny, aby można go było używać jako konwencji wywoływania.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnexpectedMemberInTopLevelMain">
+        <source>A top-level entry point cannot directly contain members such as fields, properties, and methods</source>
+        <target state="new">A top-level entry point cannot directly contain members such as fields, properties, and methods</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnmanagedCallersOnlyMethodsCannotBeCalledDirectly">
         <source>'{0}' is attributed with 'UnmanagedCallersOnly' and cannot be called directly. Obtain a function pointer to this method.</source>
         <target state="translated">Element „{0}” ma atrybut „UnmanagedCallersOnly” i nie można go wywołać bezpośrednio. Uzyskaj wskaźnik funkcji do tej metody.</target>

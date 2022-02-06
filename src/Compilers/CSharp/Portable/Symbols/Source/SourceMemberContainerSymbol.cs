@@ -4287,7 +4287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var fieldSyntax = (FieldDeclarationSyntax)m;
                             if (IsImplicitClass && reportMisplacedGlobalCode)
                             {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
+                                diagnostics.Add(getMisplacedMemberError(fieldSyntax),
                                     new SourceLocation(fieldSyntax.Declaration.Variables.First().Identifier));
                             }
 
@@ -4331,7 +4331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var methodSyntax = (MethodDeclarationSyntax)m;
                             if (IsImplicitClass && reportMisplacedGlobalCode)
                             {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
+                                diagnostics.Add(getMisplacedMemberError(methodSyntax),
                                     new SourceLocation(methodSyntax.Identifier));
                             }
 
@@ -4345,7 +4345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var constructorSyntax = (ConstructorDeclarationSyntax)m;
                             if (IsImplicitClass && reportMisplacedGlobalCode)
                             {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
+                                diagnostics.Add(getMisplacedMemberError(constructorSyntax),
                                     new SourceLocation(constructorSyntax.Identifier));
                             }
 
@@ -4364,7 +4364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var destructorSyntax = (DestructorDeclarationSyntax)m;
                             if (IsImplicitClass && reportMisplacedGlobalCode)
                             {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
+                                diagnostics.Add(getMisplacedMemberError(destructorSyntax),
                                     new SourceLocation(destructorSyntax.Identifier));
                             }
 
@@ -4382,7 +4382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var propertySyntax = (PropertyDeclarationSyntax)m;
                             if (IsImplicitClass && reportMisplacedGlobalCode)
                             {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
+                                diagnostics.Add(getMisplacedMemberError(propertySyntax),
                                     new SourceLocation(propertySyntax.Identifier));
                             }
 
@@ -4434,7 +4434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (IsImplicitClass && reportMisplacedGlobalCode)
                             {
                                 diagnostics.Add(
-                                    ErrorCode.ERR_NamespaceUnexpected,
+                                    getMisplacedMemberError(eventFieldSyntax),
                                     new SourceLocation(eventFieldSyntax.Declaration.Variables.First().Identifier));
                             }
 
@@ -4487,7 +4487,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var eventSyntax = (EventDeclarationSyntax)m;
                             if (IsImplicitClass && reportMisplacedGlobalCode)
                             {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
+                                diagnostics.Add(getMisplacedMemberError(eventSyntax),
                                     new SourceLocation(eventSyntax.Identifier));
                             }
 
@@ -4507,7 +4507,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var indexerSyntax = (IndexerDeclarationSyntax)m;
                             if (IsImplicitClass && reportMisplacedGlobalCode)
                             {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
+                                diagnostics.Add(getMisplacedMemberError(indexerSyntax),
                                     new SourceLocation(indexerSyntax.ThisKeyword));
                             }
 
@@ -4524,7 +4524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var conversionOperatorSyntax = (ConversionOperatorDeclarationSyntax)m;
                             if (IsImplicitClass && reportMisplacedGlobalCode)
                             {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
+                                diagnostics.Add(getMisplacedMemberError(conversionOperatorSyntax),
                                     new SourceLocation(conversionOperatorSyntax.OperatorKeyword));
                             }
 
@@ -4539,7 +4539,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var operatorSyntax = (OperatorDeclarationSyntax)m;
                             if (IsImplicitClass && reportMisplacedGlobalCode)
                             {
-                                diagnostics.Add(ErrorCode.ERR_NamespaceUnexpected,
+                                diagnostics.Add(getMisplacedMemberError(operatorSyntax),
                                     new SourceLocation(operatorSyntax.OperatorKeyword));
                             }
 
@@ -4617,6 +4617,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             AddInitializers(builder.InstanceInitializers, instanceInitializers);
             AddInitializers(builder.StaticInitializers, staticInitializers);
+
+            // local functions
+            static ErrorCode getMisplacedMemberError(SyntaxNode node)
+            {
+                if (node.Parent is CompilationUnitSyntax compilationUnit &&
+                    SyntaxFacts.IsSimpleProgramTopLevelStatement((GlobalStatementSyntax?)compilationUnit.Members.FirstOrDefault(m => m.IsKind(SyntaxKind.GlobalStatement))))
+                {
+                    return ErrorCode.ERR_UnexpectedMemberInTopLevelMain;
+                }
+
+                return ErrorCode.ERR_NamespaceUnexpected;
+            }
         }
 
         private void AddAccessorIfAvailable(ArrayBuilder<Symbol> symbols, MethodSymbol? accessorOpt)

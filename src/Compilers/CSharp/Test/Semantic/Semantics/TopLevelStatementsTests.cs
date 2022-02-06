@@ -734,18 +734,18 @@ System.Console.WriteLine(g);
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (2,12): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,12): error CS9010: A top-level entry point cannot directly contain members such as fields, properties, and methods
                 // new string a = "Hi!";
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "a").WithLocation(2, 12),
+                Diagnostic(ErrorCode.ERR_UnexpectedMemberInTopLevelMain, "a").WithLocation(2, 12),
                 // (2,12): warning CS0109: The member '<invalid-global-code>.a' does not hide an accessible member. The new keyword is not required.
                 // new string a = "Hi!";
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "a").WithArguments("<invalid-global-code>.a").WithLocation(2, 12),
                 // (3,26): error CS0103: The name 'a' does not exist in the current context
                 // System.Console.WriteLine(a);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(3, 26),
-                // (4,15): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (4,15): error CS9010: A top-level entry point cannot directly contain members such as fields, properties, and methods
                 // public string b = "Hi!";
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "b").WithLocation(4, 15),
+                Diagnostic(ErrorCode.ERR_UnexpectedMemberInTopLevelMain, "b").WithLocation(4, 15),
                 // (5,26): error CS0103: The name 'b' does not exist in the current context
                 // System.Console.WriteLine(b);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(5, 26),
@@ -2559,9 +2559,9 @@ new void M()
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (5,10): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (5,10): error CS9010: A top-level entry point cannot directly contain members such as fields, properties, and methods
                 // new void M()
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "M").WithLocation(5, 10),
+                Diagnostic(ErrorCode.ERR_UnexpectedMemberInTopLevelMain, "M").WithLocation(5, 10),
                 // (5,10): warning CS0109: The member '<invalid-global-code>.M()' does not hide an accessible member. The new keyword is not required.
                 // new void M()
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "M").WithArguments("<invalid-global-code>.M()").WithLocation(5, 10)
@@ -2590,9 +2590,9 @@ class C1
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (5,9): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (5,9): error CS9010: A top-level entry point cannot directly contain members such as fields, properties, and methods
                 // new int F = C1.GetInt(out var Test);
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "F").WithLocation(5, 9),
+                Diagnostic(ErrorCode.ERR_UnexpectedMemberInTopLevelMain, "F").WithLocation(5, 9),
                 // (5,9): warning CS0109: The member '<invalid-global-code>.F' does not hide an accessible member. The new keyword is not required.
                 // new int F = C1.GetInt(out var Test);
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "F").WithArguments("<invalid-global-code>.F").WithLocation(5, 9)
@@ -2615,9 +2615,9 @@ new void M()
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (5,10): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (5,10): error CS9010: A top-level entry point cannot directly contain members such as fields, properties, and methods
                 // new void M()
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "M").WithLocation(5, 10),
+                Diagnostic(ErrorCode.ERR_UnexpectedMemberInTopLevelMain, "M").WithLocation(5, 10),
                 // (5,10): warning CS0109: The member '<invalid-global-code>.M()' does not hide an accessible member. The new keyword is not required.
                 // new void M()
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "M").WithArguments("<invalid-global-code>.M()").WithLocation(5, 10)
@@ -4303,9 +4303,9 @@ interface I1
                 // (4,6): error CS0540: '<invalid-global-code>.I1.local()': containing type does not implement interface 'I1'
                 // void I1.local()
                 Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I1").WithArguments("<invalid-global-code>.I1.local()", "I1").WithLocation(4, 6),
-                // (4,9): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (4,9): error CS9010: A top-level entry point cannot directly contain members such as fields, properties, and methods
                 // void I1.local()
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "local").WithLocation(4, 9)
+                Diagnostic(ErrorCode.ERR_UnexpectedMemberInTopLevelMain, "local").WithLocation(4, 9)
                 );
         }
 
@@ -4337,9 +4337,9 @@ localI();
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (2,10): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (2,10): error CS9010: A top-level entry point cannot directly contain members such as fields, properties, and methods
                 // new void localA() => System.Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "localA").WithLocation(2, 10),
+                Diagnostic(ErrorCode.ERR_UnexpectedMemberInTopLevelMain, "localA").WithLocation(2, 10),
                 // (2,10): warning CS0109: The member '<invalid-global-code>.localA()' does not hide an accessible member. The new keyword is not required.
                 // new void localA() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.WRN_NewNotRequired, "localA").WithArguments("<invalid-global-code>.localA()").WithLocation(2, 10),
@@ -4349,27 +4349,27 @@ localI();
                 // (4,1): error CS0106: The modifier 'public' is not valid for this item
                 // public void localB() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(4, 1),
-                // (6,14): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (6,14): error CS9010: A top-level entry point cannot directly contain members such as fields, properties, and methods
                 // virtual void localC() => System.Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "localC").WithLocation(6, 14),
+                Diagnostic(ErrorCode.ERR_UnexpectedMemberInTopLevelMain, "localC").WithLocation(6, 14),
                 // (6,14): error CS0621: '<invalid-global-code>.localC()': virtual or abstract members cannot be private
                 // virtual void localC() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_VirtualPrivate, "localC").WithArguments("<invalid-global-code>.localC()").WithLocation(6, 14),
                 // (7,1): error CS0103: The name 'localC' does not exist in the current context
                 // localC();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "localC").WithArguments("localC").WithLocation(7, 1),
-                // (8,13): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (8,13): error CS9010: A top-level entry point cannot directly contain members such as fields, properties, and methods
                 // sealed void localD() => System.Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "localD").WithLocation(8, 13),
+                Diagnostic(ErrorCode.ERR_UnexpectedMemberInTopLevelMain, "localD").WithLocation(8, 13),
                 // (8,13): error CS0238: '<invalid-global-code>.localD()' cannot be sealed because it is not an override
                 // sealed void localD() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_SealedNonOverride, "localD").WithArguments("<invalid-global-code>.localD()").WithLocation(8, 13),
                 // (9,1): error CS0103: The name 'localD' does not exist in the current context
                 // localD();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "localD").WithArguments("localD").WithLocation(9, 1),
-                // (10,15): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (10,15): error CS9010: A top-level entry point cannot directly contain members such as fields, properties, and methods
                 // override void localE() => System.Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "localE").WithLocation(10, 15),
+                Diagnostic(ErrorCode.ERR_UnexpectedMemberInTopLevelMain, "localE").WithLocation(10, 15),
                 // (10,15): error CS0621: '<invalid-global-code>.localE()': virtual or abstract members cannot be private
                 // override void localE() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_VirtualPrivate, "localE").WithArguments("<invalid-global-code>.localE()").WithLocation(10, 15),
@@ -4379,9 +4379,9 @@ localI();
                 // (11,1): error CS0103: The name 'localE' does not exist in the current context
                 // localE();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "localE").WithArguments("localE").WithLocation(11, 1),
-                // (12,15): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (12,15): error CS9010: A top-level entry point cannot directly contain members such as fields, properties, and methods
                 // abstract void localF() => System.Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "localF").WithLocation(12, 15),
+                Diagnostic(ErrorCode.ERR_UnexpectedMemberInTopLevelMain, "localF").WithLocation(12, 15),
                 // (12,15): error CS0500: '<invalid-global-code>.localF()' cannot declare a body because it is marked abstract
                 // abstract void localF() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "localF").WithArguments("<invalid-global-code>.localF()").WithLocation(12, 15),
@@ -4391,9 +4391,9 @@ localI();
                 // (13,1): error CS0103: The name 'localF' does not exist in the current context
                 // localF();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "localF").WithArguments("localF").WithLocation(13, 1),
-                // (14,14): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (14,14): error CS9010: A top-level entry point cannot directly contain members such as fields, properties, and methods
                 // partial void localG() => System.Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "localG").WithLocation(14, 14),
+                Diagnostic(ErrorCode.ERR_UnexpectedMemberInTopLevelMain, "localG").WithLocation(14, 14),
                 // (14,14): error CS0759: No defining declaration found for implementing declaration of partial method '<invalid-global-code>.localG()'
                 // partial void localG() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "localG").WithArguments("<invalid-global-code>.localG()").WithLocation(14, 14),
@@ -4754,9 +4754,9 @@ int local => 1;
                 // (2,5): error CS0103: The name 'local' does not exist in the current context
                 // _ = local;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(2, 5),
-                // (4,5): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (4,5): error CS9010: A top-level entry point cannot directly contain members such as fields, properties, and methods
                 // int local => 1;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "local").WithLocation(4, 5)
+                Diagnostic(ErrorCode.ERR_UnexpectedMemberInTopLevelMain, "local").WithLocation(4, 5)
                 );
         }
 
@@ -4775,9 +4775,9 @@ int local { get => 1; }
                 // (2,5): error CS0103: The name 'local' does not exist in the current context
                 // _ = local;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(2, 5),
-                // (4,5): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (4,5): error CS9010: A top-level entry point cannot directly contain members such as fields, properties, and methods
                 // int local { get => 1; }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "local").WithLocation(4, 5)
+                Diagnostic(ErrorCode.ERR_UnexpectedMemberInTopLevelMain, "local").WithLocation(4, 5)
                 );
         }
 
@@ -4796,9 +4796,9 @@ int local { get { return 1; } }
                 // (2,5): error CS0103: The name 'local' does not exist in the current context
                 // _ = local;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(2, 5),
-                // (4,5): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (4,5): error CS9010: A top-level entry point cannot directly contain members such as fields, properties, and methods
                 // int local { get { return 1; } }
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "local").WithLocation(4, 5)
+                Diagnostic(ErrorCode.ERR_UnexpectedMemberInTopLevelMain, "local").WithLocation(4, 5)
                 );
         }
 
@@ -4817,9 +4817,9 @@ event System.Action local;
                 // (2,1): error CS0103: The name 'local' does not exist in the current context
                 // local += null;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(2, 1),
-                // (4,21): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (4,21): error CS9010: A top-level entry point cannot directly contain members such as fields, properties, and methods
                 // event System.Action local;
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "local").WithLocation(4, 21)
+                Diagnostic(ErrorCode.ERR_UnexpectedMemberInTopLevelMain, "local").WithLocation(4, 21)
                 );
         }
 
@@ -4842,9 +4842,9 @@ event System.Action local
                 // (2,1): error CS0103: The name 'local' does not exist in the current context
                 // local -= null;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "local").WithArguments("local").WithLocation(2, 1),
-                // (4,21): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // (4,21): error CS9010: A top-level entry point cannot directly contain members such as fields, properties, and methods
                 // event System.Action local
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "local").WithLocation(4, 21)
+                Diagnostic(ErrorCode.ERR_UnexpectedMemberInTopLevelMain, "local").WithLocation(4, 21)
                 );
         }
 
