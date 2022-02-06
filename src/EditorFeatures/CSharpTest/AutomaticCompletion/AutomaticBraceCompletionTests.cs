@@ -1405,6 +1405,7 @@ class C
     {
         if (x is string
             {
+
             }
     }
 }" : @"

@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 // new { - Anonymous object creation
                 if (currentToken.Parent.IsKind(SyntaxKind.AnonymousObjectCreationExpression))
                 {
-                    return options.NewLines.HasFlag(NewLinePlacement.BeforeMembersInAnonymousTypes);
+                    return options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInAnonymousTypes);
                 }
 
                 // * { - in the control statement context
@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 // * { - in the type declaration context
                 if (currentToken.Parent is BaseTypeDeclarationSyntax or NamespaceDeclarationSyntax)
                 {
-                    return options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInTypes);;
+                    return options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInTypes);
                 }
 
                 return null;
