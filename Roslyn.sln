@@ -785,6 +785,35 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{
 		eng\pipelines\test-windows-job.yml = eng\pipelines\test-windows-job.yml
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "msbuild", "msbuild", "{E4A4E008-5B9A-46C3-9CE9-9EF36F0D0F13}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
+		Directory.Build.rsp = Directory.Build.rsp
+		Directory.Build.targets = Directory.Build.targets
+		NuGet.config = NuGet.config
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "targets", "targets", "{9E8320DC-7DB8-4AF3-AD25-7F91E3432D8F}"
+	ProjectSection(SolutionItems) = preProject
+		eng\targets\Bootstrap.props = eng\targets\Bootstrap.props
+		eng\targets\Bootstrap.targets = eng\targets\Bootstrap.targets
+		eng\targets\DiaSymReaderNative.targets = eng\targets\DiaSymReaderNative.targets
+		eng\targets\GenerateCompilerExecutableBindingRedirects.targets = eng\targets\GenerateCompilerExecutableBindingRedirects.targets
+		eng\targets\GeneratePkgDef.targets = eng\targets\GeneratePkgDef.targets
+		eng\targets\GenerateServiceHubConfigurationFiles.targets = eng\targets\GenerateServiceHubConfigurationFiles.targets
+		eng\targets\ILAsm.targets = eng\targets\ILAsm.targets
+		eng\targets\ILDAsm.targets = eng\targets\ILDAsm.targets
+		eng\targets\Imports.targets = eng\targets\Imports.targets
+		eng\targets\PackageProject.props = eng\targets\PackageProject.props
+		eng\targets\PackageProject.targets = eng\targets\PackageProject.targets
+		eng\targets\README.md = eng\targets\README.md
+		eng\targets\Services.props = eng\targets\Services.props
+		eng\targets\Settings.props = eng\targets\Settings.props
+		eng\targets\VisualStudio.targets = eng\targets\VisualStudio.targets
+		eng\targets\Vsdconfig.targets = eng\targets\Vsdconfig.targets
+		eng\targets\XUnit.targets = eng\targets\XUnit.targets
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Analyzers\VisualBasic\CodeFixes\VisualBasicCodeFixes.projitems*{0141285d-8f6c-42c7-baf3-3c0ccd61c716}*SharedItemsImports = 5
@@ -1830,6 +1859,8 @@ Global
 		{559F1286-BA12-4049-98B5-4AA964680129} = {E3FCA611-F2D3-43C7-B1D6-F679C663B197}
 		{6D7F0678-0CDB-4BF0-A695-F9AE955881D9} = {157EA250-2F28-4948-A8F2-D58EAEA05DC8}
 		{6B7763D3-9F30-4F05-94DE-38C20F48BFF4} = {6D7F0678-0CDB-4BF0-A695-F9AE955881D9}
+		{E4A4E008-5B9A-46C3-9CE9-9EF36F0D0F13} = {157EA250-2F28-4948-A8F2-D58EAEA05DC8}
+		{9E8320DC-7DB8-4AF3-AD25-7F91E3432D8F} = {E4A4E008-5B9A-46C3-9CE9-9EF36F0D0F13}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}
