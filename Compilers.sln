@@ -488,6 +488,80 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "eng", "eng", "{996D2F8A-5E4
 		eng\Versions.props = eng\Versions.props
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{F62A22E3-C6C1-45B1-AE1D-091B99D291DF}"
+	ProjectSection(SolutionItems) = preProject
+		Build.cmd = Build.cmd
+		build.sh = build.sh
+		Restore.cmd = Restore.cmd
+		restore.sh = restore.sh
+		Test.cmd = Test.cmd
+		test.sh = test.sh
+		Verify.cmd = Verify.cmd
+		verify.sh = verify.sh
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "continuous-integration", "continuous-integration", "{C817AAD7-6A1F-4D15-AD5E-8203F1B65827}"
+	ProjectSection(SolutionItems) = preProject
+		eng\build-utils-win.ps1 = eng\build-utils-win.ps1
+		eng\build-utils.ps1 = eng\build-utils.ps1
+		eng\build.ps1 = eng\build.ps1
+		eng\build.sh = eng\build.sh
+		eng\cibuild.sh = eng\cibuild.sh
+		eng\findibc.ps1 = eng\findibc.ps1
+		eng\generate-compiler-code.cmd = eng\generate-compiler-code.cmd
+		eng\generate-compiler-code.ps1 = eng\generate-compiler-code.ps1
+		eng\prepare-tests.ps1 = eng\prepare-tests.ps1
+		eng\prepare-tests.sh = eng\prepare-tests.sh
+		eng\publish-assets.ps1 = eng\publish-assets.ps1
+		eng\setup-pr-validation.ps1 = eng\setup-pr-validation.ps1
+		eng\test-build-correctness.cmd = eng\test-build-correctness.cmd
+		eng\test-build-correctness.ps1 = eng\test-build-correctness.ps1
+		eng\test-determinism.cmd = eng\test-determinism.cmd
+		eng\test-determinism.ps1 = eng\test-determinism.ps1
+		eng\test-rebuild.ps1 = eng\test-rebuild.ps1
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "utility", "utility", "{10823AC8-A41F-430E-900C-E68188AC1004}"
+	ProjectSection(SolutionItems) = preProject
+		scripts\all-ci-times.xlsx = scripts\all-ci-times.xlsx
+		scripts\build_mono.sh = scripts\build_mono.sh
+		scripts\check-for-loc-changes.cmd = scripts\check-for-loc-changes.cmd
+		scripts\check-for-loc-changes.ps1 = scripts\check-for-loc-changes.ps1
+		scripts\cleanup_perf.ps1 = scripts\cleanup_perf.ps1
+		scripts\crossgen.sh = scripts\crossgen.sh
+		scripts\edit-designers.ps1 = scripts\edit-designers.ps1
+		scripts\generate-badges.ps1 = scripts\generate-badges.ps1
+		scripts\merge-vs-deps.ps1 = scripts\merge-vs-deps.ps1
+		scripts\README.md = scripts\README.md
+		scripts\report-ci-times.ps1 = scripts\report-ci-times.ps1
+		scripts\run_perf.ps1 = scripts\run_perf.ps1
+		scripts\sort-unshipped.cmd = scripts\sort-unshipped.cmd
+		scripts\test-nuget-cache.ps1 = scripts\test-nuget-cache.ps1
+		scripts\vscode-build.ps1 = scripts\vscode-build.ps1
+		scripts\vscode-run-tests.ps1 = scripts\vscode-run-tests.ps1
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UploadAzureZip", "UploadAzureZip", "{7FE71690-658A-40CA-BE28-9E1747F722AB}"
+	ProjectSection(SolutionItems) = preProject
+		scripts\UploadAzureZip\CreateAndUploadNugetZip.ps1 = scripts\UploadAzureZip\CreateAndUploadNugetZip.ps1
+		scripts\UploadAzureZip\UploadPerfProject.ps1 = scripts\UploadAzureZip\UploadPerfProject.ps1
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PublicApi", "PublicApi", "{1898CC90-965D-4462-AF59-6D6E8CBE161A}"
+	ProjectSection(SolutionItems) = preProject
+		scripts\PublicApi\mark-shipped.cmd = scripts\PublicApi\mark-shipped.cmd
+		scripts\PublicApi\mark-shipped.ps1 = scripts\PublicApi\mark-shipped.ps1
+		scripts\PublicApi\README.md = scripts\PublicApi\README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GenerateSdkPackages", "GenerateSdkPackages", "{69E3CFEC-AC9C-471F-B361-8549F598BE8F}"
+	ProjectSection(SolutionItems) = preProject
+		scripts\GenerateSdkPackages\base.nuspec = scripts\GenerateSdkPackages\base.nuspec
+		scripts\GenerateSdkPackages\files.txt = scripts\GenerateSdkPackages\files.txt
+		scripts\GenerateSdkPackages\make-all.ps1 = scripts\GenerateSdkPackages\make-all.ps1
+		scripts\GenerateSdkPackages\README.md = scripts\GenerateSdkPackages\README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 5
@@ -854,6 +928,12 @@ Global
 		{E4A4E008-5B9A-46C3-9CE9-9EF36F0D0F13} = {157EA250-2F28-4948-A8F2-D58EAEA05DC8}
 		{9E8320DC-7DB8-4AF3-AD25-7F91E3432D8F} = {E4A4E008-5B9A-46C3-9CE9-9EF36F0D0F13}
 		{996D2F8A-5E42-420E-A64B-8B4E6BF4AC86} = {157EA250-2F28-4948-A8F2-D58EAEA05DC8}
+		{F62A22E3-C6C1-45B1-AE1D-091B99D291DF} = {157EA250-2F28-4948-A8F2-D58EAEA05DC8}
+		{C817AAD7-6A1F-4D15-AD5E-8203F1B65827} = {F62A22E3-C6C1-45B1-AE1D-091B99D291DF}
+		{10823AC8-A41F-430E-900C-E68188AC1004} = {F62A22E3-C6C1-45B1-AE1D-091B99D291DF}
+		{7FE71690-658A-40CA-BE28-9E1747F722AB} = {10823AC8-A41F-430E-900C-E68188AC1004}
+		{1898CC90-965D-4462-AF59-6D6E8CBE161A} = {10823AC8-A41F-430E-900C-E68188AC1004}
+		{69E3CFEC-AC9C-471F-B361-8549F598BE8F} = {10823AC8-A41F-430E-900C-E68188AC1004}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6F599E08-A9EA-4FAA-897F-5D824B0210E6}
