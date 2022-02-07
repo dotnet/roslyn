@@ -111,28 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             }
 
             for (var index = startIndexInclusive; index < endIndexExclusive;)
-            {
-                if (Rune.TryCreate(tokenText[index], out var rune))
-                {
-                    // First, see if this was a single char that can become a rune (the common case).
-                    result.Add(VirtualChar.Create(rune, new TextSpan(offset + index, 1)));
-                    index += 1;
-                }
-                else if (index + 1 < tokenText.Length &&
-                         Rune.TryCreate(tokenText[index], tokenText[index + 1], out rune))
-                {
-                    // Otherwise, see if we have a surrogate pair (less common, but possible).
-                    result.Add(VirtualChar.Create(rune, new TextSpan(offset + index, 2)));
-                    index += 2;
-                }
-                else
-                {
-                    // Something that couldn't be encoded as runes.
-                    Debug.Assert(char.IsSurrogate(tokenText[index]));
-                    result.Add(VirtualChar.Create(tokenText[index], new TextSpan(offset + index, 1)));
-                    index += 1;
-                }
-            }
+                index += ConvertTextAtIndexToRune(tokenText, index, result, offset);
 
             return CreateVirtualCharSequence(tokenText, offset, startIndexInclusive, endIndexExclusive, result);
         }
