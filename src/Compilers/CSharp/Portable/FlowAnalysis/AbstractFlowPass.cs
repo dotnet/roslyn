@@ -917,6 +917,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!IsConditionalState);
 
+            // Local functions below need to handle new kinds of patterns
+            Debug.Assert(node.Pattern is
+                BoundTypePattern or BoundRecursivePattern or BoundITuplePattern or BoundRelationalPattern or
+                BoundDeclarationPattern or BoundConstantPattern or BoundNegatedPattern or BoundBinaryPattern or
+                BoundDeclarationPattern or BoundDiscardPattern or BoundListPattern or BoundSlicePattern);
+
             bool negated = node.Pattern.IsNegated(out var pattern);
             Debug.Assert(negated == node.IsNegated);
 
