@@ -116,11 +116,10 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
         {
             options = default;
 
-            var syntaxFacts = Info.SyntaxFacts;
-            if (syntaxFacts.IsStringLiteral(token))
+            if (Info.IsAnyStringLiteral(token.RawKind))
                 return IsEmbeddedLanguageStringLiteralToken(token, semanticModel, cancellationToken, out options);
 
-            if (token.RawKind == syntaxFacts.SyntaxKinds.InterpolatedStringTextToken)
+            if (token.RawKind == Info.SyntaxKinds.InterpolatedStringTextToken)
             {
                 options = default;
                 return IsEmbeddedLanguageInterpolatedStringTextToken(token, semanticModel, cancellationToken);

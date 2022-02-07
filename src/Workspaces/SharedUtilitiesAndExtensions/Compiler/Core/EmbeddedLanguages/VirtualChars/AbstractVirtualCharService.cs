@@ -5,6 +5,7 @@
 using System;
 using System.Diagnostics;
 using System.Text;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -14,8 +15,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
     {
         public abstract bool TryGetEscapeCharacter(VirtualChar ch, out char escapedChar);
 
-        protected abstract bool IsStringOrCharLiteralToken(SyntaxToken token);
         protected abstract VirtualCharSequence TryConvertToVirtualCharsWorker(SyntaxToken token);
+
+        protected abstract ISyntaxFacts SyntaxFacts { get; }
 
         /// <summary>
         /// Returns <see langword="true"/> if the next two characters at <c>tokenText[index]</c> are <c>{{</c> or
@@ -66,7 +68,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             {
                 // Ensure that we properly broke up the token into a sequence of characters that
                 // matches what the compiler did.
-                if (IsStringOrCharLiteralToken(token))
+                var syntaxKinds = this.SyntaxFacts.SyntaxKinds;
+                if (token.RawKind == syntaxKinds.StringLiteralToken ||
+                    token.RawKind == syntaxKinds.CharacterLiteralToken)
                 {
                     var expectedValueText = token.ValueText;
                     var actualValueText = result.CreateString();
@@ -77,12 +81,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                 {
                     var currentVC = result[0];
                     Debug.Assert(currentVC.Span.Start >= token.SpanStart, "First span has to start after the start of the string token");
-                    if (IsStringOrCharLiteralToken(token))
+                    if (token.RawKind == syntaxKinds.StringLiteralToken ||
+                        token.RawKind == syntaxKinds.CharacterLiteralToken)
                     {
                         Debug.Assert(currentVC.Span.Start == token.SpanStart + 1 ||
                                      currentVC.Span.Start == token.SpanStart + 2, "First span should start on the second or third char of the string.");
                     }
-                    else
+                    else if (token.RawKind == syntaxKinds.InterpolatedStringTextToken)
                     {
                         Debug.Assert(currentVC.Span.Start == token.SpanStart, "First span should start on the first char of the string.");
                     }
@@ -96,11 +101,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
                     var lastVC = result.Last();
 
-                    if (IsStringOrCharLiteralToken(token))
+                    if (token.RawKind == syntaxKinds.StringLiteralToken ||
+                        token.RawKind == syntaxKinds.CharacterLiteralToken)
                     {
                         Debug.Assert(lastVC.Span.End == token.Span.End - 1, "Last span has to end right before the end of the string token.");
                     }
-                    else
+                    else if (token.RawKind == syntaxKinds.InterpolatedStringTextToken)
                     {
                         Debug.Assert(lastVC.Span.End == token.Span.End, "Last span has to end right before the end of the string token.");
                     }

@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
                 else
                 {
                     var token = child.AsToken();
-                    if (token.RawKind == _info.StringLiteralTokenKind &&
+                    if (_info.IsAnyStringLiteral(token.RawKind) &&
                         detector.TryParseString(token, context.SemanticModel, cancellationToken) == null &&
                         IsProbablyJson(token))
                     {

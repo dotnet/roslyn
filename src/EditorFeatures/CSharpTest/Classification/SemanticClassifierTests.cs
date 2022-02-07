@@ -3422,6 +3422,62 @@ Regex.OtherEscape("0020"),
 Regex.Grouping(")"));
         }
 
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexSingleLineRawStringLiteral(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regex */ """"""$\a(?#comment)"""""";
+    }
+}",
+testHost, Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexMultiLineRawStringLiteral(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regex */ """"""
+            $\a(?#comment)
+            """""";
+    }
+}",
+testHost, Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Regex.Text(@"
+            "),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"),
+Regex.Text(@"
+            "));
+        }
+
         [Theory, WorkItem(47079, "https://github.com/dotnet/roslyn/issues/47079")]
         [CombinatorialData]
         public async Task TestRegexWithSpecialCSharpCharLiterals(TestHost testHost)
