@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -48,17 +46,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
-        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
-        {
-            var ch = text[characterPosition];
-            return ch == ' ' ||
-                (CompletionUtilities.IsStartingNewWord(text, characterPosition) &&
-                options.GetOption(CompletionOptions.TriggerOnTypingLetters2, LanguageNames.CSharp));
-        }
+        internal override string Language => LanguageNames.CSharp;
+
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
+            => text[characterPosition] == ' ' ||
+               options.TriggerOnTypingLetters && CompletionUtilities.IsStartingNewWord(text, characterPosition);
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.SpaceTriggerCharacter;
 
-        protected override SyntaxNode GetPartialTypeSyntaxNode(SyntaxTree tree, int position, CancellationToken cancellationToken)
+        protected override SyntaxNode? GetPartialTypeSyntaxNode(SyntaxTree tree, int position, CancellationToken cancellationToken)
             => tree.IsPartialTypeDeclarationNameContext(position, cancellationToken, out var declaration) ? declaration : null;
 
         protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(INamedTypeSymbol symbol, CSharpSyntaxContext context)
@@ -67,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return (displayAndInsertionText, "", displayAndInsertionText);
         }
 
-        protected override IEnumerable<INamedTypeSymbol> LookupCandidateSymbols(CSharpSyntaxContext context, INamedTypeSymbol declaredSymbol, CancellationToken cancellationToken)
+        protected override IEnumerable<INamedTypeSymbol>? LookupCandidateSymbols(CSharpSyntaxContext context, INamedTypeSymbol declaredSymbol, CancellationToken cancellationToken)
         {
             var candidates = base.LookupCandidateSymbols(context, declaredSymbol, cancellationToken);
 

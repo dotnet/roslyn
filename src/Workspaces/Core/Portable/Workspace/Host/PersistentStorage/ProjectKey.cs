@@ -48,8 +48,5 @@ namespace Microsoft.CodeAnalysis.Storage
 
         public static ProjectKey ToProjectKey(SolutionKey solutionKey, ProjectState projectState)
             => new(solutionKey, projectState.Id, projectState.FilePath, projectState.Name, projectState.GetParseOptionsChecksum());
-
-        public ProjectKey WithWorkspaceKind(string workspaceKind)
-            => new(Solution.WithWorkspaceKind(workspaceKind), Id, FilePath, Name, ParseOptionsChecksum);
     }
 }

@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
@@ -24,8 +23,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         private readonly AbstractEmbeddedLanguageFeaturesProvider _provider;
 
         public ISyntaxClassifier Classifier { get; }
-        public IDocumentHighlightsService DocumentHighlightsService { get; }
-        public CompletionProvider CompletionProvider { get; }
+        public IDocumentHighlightsService? DocumentHighlightsService { get; }
+        public EmbeddedLanguageCompletionProvider CompletionProvider { get; }
 
         public RegexEmbeddedLanguage(
             AbstractEmbeddedLanguageFeaturesProvider provider,
@@ -40,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             CompletionProvider = new RegexEmbeddedCompletionProvider(this);
         }
 
+#nullable disable
         internal async Task<(RegexTree tree, SyntaxToken token)> TryGetTreeAndTokenAtPositionAsync(
             Document document, int position, CancellationToken cancellationToken)
         {

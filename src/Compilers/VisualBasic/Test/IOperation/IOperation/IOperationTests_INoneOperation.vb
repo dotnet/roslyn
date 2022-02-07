@@ -33,11 +33,11 @@ Block[B1] - Block
             IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'Mid(str, 1, 1) = ""')
               Children(2):
                   IParameterReferenceOperation: str (OperationKind.ParameterReference, Type: System.String) (Syntax: 'str')
-                  IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'Mid(str, 1, 1) = ""')
+                  IOperation:  (OperationKind.None, Type: System.String, IsImplicit) (Syntax: 'Mid(str, 1, 1) = ""')
                     Children(4):
                         IParenthesizedOperation (OperationKind.Parenthesized, Type: System.String) (Syntax: 'Mid(str, 1, 1)')
                           Operand: 
-                            IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'str')
+                            IOperation:  (OperationKind.None, Type: System.String, IsImplicit) (Syntax: 'str')
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                         ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "") (Syntax: '""')
@@ -83,7 +83,7 @@ Block[B0] - Entry
               Value: 
                 IParenthesizedOperation (OperationKind.Parenthesized, Type: System.String) (Syntax: 'Mid(str, 1, 1)')
                   Operand: 
-                    IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'str')
+                    IOperation:  (OperationKind.None, Type: System.String, IsImplicit) (Syntax: 'str')
 
             IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '1')
               Value: 
@@ -121,7 +121,7 @@ Block[B0] - Entry
                 IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'Mid(str, 1, ... str1, str2)')
                   Children(2):
                       IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'str')
-                      IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'Mid(str, 1, ... str1, str2)')
+                      IOperation:  (OperationKind.None, Type: System.String, IsImplicit) (Syntax: 'Mid(str, 1, ... str1, str2)')
                         Children(4):
                             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'Mid(str, 1, 1)')
                             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
@@ -198,7 +198,7 @@ Block[B0] - Entry
                       IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'If(b, str1, str2)')
                         Children(1):
                             IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'If(b, str1, str2)')
-                      IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'Mid(If(b, s ... 1, 1) = str')
+                      IOperation:  (OperationKind.None, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'Mid(If(b, s ... 1, 1) = str')
                         Children(4):
                             IParenthesizedOperation (OperationKind.Parenthesized, Type: System.String, IsInvalid) (Syntax: 'Mid(If(b, s ... tr2), 1, 1)')
                               Operand: 

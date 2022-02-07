@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Setup;
@@ -23,6 +24,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     /// <summary>
     /// An <see cref="IOptionPersister"/> that syncs core language settings against the settings that exist for all languages
     /// in Visual Studio and whose backing store is provided by the shell. This includes things like default tab size, tabs vs. spaces, etc.
+    /// 
+    /// TODO: replace with free-threaded impl: https://github.com/dotnet/roslyn/issues/56815
     /// </summary>
     internal sealed class LanguageSettingsPersister : ForegroundThreadAffinitizedObject, IVsTextManagerEvents4, IOptionPersister
     {
@@ -54,25 +57,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _textManager = textManager;
             _optionService = optionService;
 
-            // TODO: make this configurable
-            _languageMap = BidirectionalMap<string, Tuple<Guid>>.Empty.Add(LanguageNames.CSharp, Tuple.Create(Guids.CSharpLanguageServiceId))
-                                                               .Add(LanguageNames.VisualBasic, Tuple.Create(Guids.VisualBasicLanguageServiceId))
-                                                               .Add(InternalLanguageNames.TypeScript, Tuple.Create(new Guid("4a0dddb5-7a95-4fbf-97cc-616d07737a77")))
-                                                               .Add("F#", Tuple.Create(new Guid("BC6DD5A5-D4D6-4dab-A00D-A51242DBAF1B")))
-                                                               .Add("Xaml", Tuple.Create(new Guid("CD53C9A1-6BC2-412B-BE36-CC715ED8DD41")));
+            var languageMap = BidirectionalMap<string, Tuple<Guid>>.Empty;
 
-            foreach (var languageGuid in _languageMap.Values)
+            InitializeSettingsForLanguage(LanguageNames.CSharp, Guids.CSharpLanguageServiceId);
+            InitializeSettingsForLanguage(LanguageNames.VisualBasic, Guids.VisualBasicLanguageServiceId);
+            InitializeSettingsForLanguage(InternalLanguageNames.TypeScript, new Guid("4a0dddb5-7a95-4fbf-97cc-616d07737a77"));
+            InitializeSettingsForLanguage("F#", new Guid("BC6DD5A5-D4D6-4dab-A00D-A51242DBAF1B"));
+            InitializeSettingsForLanguage("Xaml", new Guid("CD53C9A1-6BC2-412B-BE36-CC715ED8DD41"));
+
+            void InitializeSettingsForLanguage(string languageName, Guid languageGuid)
             {
                 var languagePreferences = new LANGPREFERENCES3[1];
-                languagePreferences[0].guidLang = languageGuid.Item1;
+                languagePreferences[0].guidLang = languageGuid;
 
                 // The function can potentially fail if that language service isn't installed
                 if (ErrorHandler.Succeeded(_textManager.GetUserPreferences4(pViewPrefs: null, pLangPrefs: languagePreferences, pColorPrefs: null)))
                 {
-                    RefreshLanguageSettings(languagePreferences);
+                    RefreshLanguageSettings(languagePreferences, languageName);
+                    languageMap = languageMap.Add(languageName, Tuple.Create(languageGuid));
+                }
+                else
+                {
+                    FatalError.ReportWithDumpAndCatch(new InvalidOperationException("GetUserPreferences4 failed"), ErrorSeverity.Diagnostic);
                 }
             }
 
+            _languageMap = languageMap;
             _textManagerEvents2Sink = ComEventSink.Advise<IVsTextManagerEvents4>(_textManager, this);
         }
 
@@ -82,11 +92,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             FormattingOptions.TabSize,
             FormattingOptions.SmartIndent,
             FormattingOptions.IndentationSize,
-            CompletionOptions.HideAdvancedMembers,
-            CompletionOptions.TriggerOnTyping,
-            SignatureHelpOptions.ShowSignatureHelp,
-            NavigationBarOptions.ShowNavigationBar,
-            BraceCompletionOptions.Enable,
+            CompletionOptions.Metadata.HideAdvancedMembers,
+            CompletionOptions.Metadata.TriggerOnTyping,
+            SignatureHelpViewOptions.ShowSignatureHelp,
+            NavigationBarViewOptions.ShowNavigationBar
         };
 
         int IVsTextManagerEvents4.OnUserPreferencesChanged4(
@@ -107,13 +116,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             this.AssertIsForeground();
             if (_languageMap.TryGetKey(Tuple.Create(langPrefs[0].guidLang), out var languageName))
             {
-                foreach (var option in _supportedOptions)
-                {
-                    var keyWithLanguage = new OptionKey(option, languageName);
-                    var newValue = GetValueForOption(option, langPrefs[0]);
+                RefreshLanguageSettings(langPrefs, languageName);
+            }
+        }
 
-                    _optionService.RefreshOption(keyWithLanguage, newValue);
-                }
+        private void RefreshLanguageSettings(LANGPREFERENCES3[] langPrefs, string languageName)
+        {
+            this.AssertIsForeground();
+
+            foreach (var option in _supportedOptions)
+            {
+                var keyWithLanguage = new OptionKey(option, languageName);
+                var newValue = GetValueForOption(option, langPrefs[0]);
+
+                _optionService.RefreshOption(keyWithLanguage, newValue);
             }
         }
 
@@ -143,25 +159,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                         return FormattingOptions.IndentStyle.Smart;
                 }
             }
-            else if (option == CompletionOptions.HideAdvancedMembers)
+            else if (option == CompletionOptions.Metadata.HideAdvancedMembers)
             {
                 return languagePreference.fHideAdvancedAutoListMembers != 0;
             }
-            else if (option == CompletionOptions.TriggerOnTyping)
+            else if (option == CompletionOptions.Metadata.TriggerOnTyping)
             {
                 return languagePreference.fAutoListMembers != 0;
             }
-            else if (option == SignatureHelpOptions.ShowSignatureHelp)
+            else if (option == SignatureHelpViewOptions.ShowSignatureHelp)
             {
                 return languagePreference.fAutoListParams != 0;
             }
-            else if (option == NavigationBarOptions.ShowNavigationBar)
+            else if (option == NavigationBarViewOptions.ShowNavigationBar)
             {
                 return languagePreference.fDropdownBar != 0;
-            }
-            else if (option == BraceCompletionOptions.Enable)
-            {
-                return languagePreference.fBraceCompletion != 0;
             }
             else
             {
@@ -198,25 +210,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                         break;
                 }
             }
-            else if (option == CompletionOptions.HideAdvancedMembers)
+            else if (option == CompletionOptions.Metadata.HideAdvancedMembers)
             {
                 languagePreference.fHideAdvancedAutoListMembers = Convert.ToUInt32((bool)value ? 1 : 0);
             }
-            else if (option == CompletionOptions.TriggerOnTyping)
+            else if (option == CompletionOptions.Metadata.TriggerOnTyping)
             {
                 languagePreference.fAutoListMembers = Convert.ToUInt32((bool)value ? 1 : 0);
             }
-            else if (option == SignatureHelpOptions.ShowSignatureHelp)
+            else if (option == SignatureHelpViewOptions.ShowSignatureHelp)
             {
                 languagePreference.fAutoListParams = Convert.ToUInt32((bool)value ? 1 : 0);
             }
-            else if (option == NavigationBarOptions.ShowNavigationBar)
+            else if (option == NavigationBarViewOptions.ShowNavigationBar)
             {
                 languagePreference.fDropdownBar = Convert.ToUInt32((bool)value ? 1 : 0);
-            }
-            else if (option == BraceCompletionOptions.Enable)
-            {
-                languagePreference.fBraceCompletion = Convert.ToUInt32((bool)value ? 1 : 0);
             }
             else
             {
@@ -229,7 +237,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             // This particular serializer is a bit strange, since we have to initially read things out on the UI thread.
             // Therefore, we refresh the values in the constructor, meaning that this should never get called for our values.
 
-            Contract.ThrowIfTrue(_supportedOptions.Contains(optionKey.Option) && _languageMap.ContainsKey(optionKey.Language));
+            if (_supportedOptions.Contains(optionKey.Option) && _languageMap.ContainsKey(optionKey.Language))
+            {
+                FatalError.ReportWithDumpAndCatch(new InvalidOperationException("Unexpected call to " + nameof(LanguageSettingsPersister) + "." + nameof(TryFetch)), ErrorSeverity.Diagnostic);
+            }
 
             value = null;
             return false;

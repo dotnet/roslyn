@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
 {
-    [ExportOptionProvider, Shared]
+    [ExportGlobalOptionProvider, Shared]
     internal sealed class KeybindingResetOptions : IOptionProvider
     {
         private const string LocalRegistryPath = @"Roslyn\Internal\KeybindingsStatus\";

@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
     ' Note: by default, TestWorkspace produces a composition from all assemblies except EditorServicesTest2.
@@ -61,12 +62,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
                 Return Task.FromResult(TrySymbolNavigationNotifyReturnValue)
             End Function
 
-            Public Function WouldNavigateToSymbolAsync(
+            Public Function GetExternalNavigationSymbolLocationAsync(
                     definitionItem As DefinitionItem,
-                    cancellationToken As CancellationToken) As Task(Of (filePath As String, lineNumber As Integer, charOffset As Integer)?) Implements ISymbolNavigationService.WouldNavigateToSymbolAsync
+                    cancellationToken As CancellationToken) As Task(Of (filePath As String, LinePosition As LinePosition)?) Implements ISymbolNavigationService.GetExternalNavigationSymbolLocationAsync
                 Me.WouldNavigateToSymbolProvidedDefinitionItem = definitionItem
 
-                Return Task.FromResult(Of (filePath As String, lineNumber As Integer, charOffset As Integer)?)((Me.NavigationFilePathReturnValue, Me.NavigationLineNumberReturnValue, Me.NavigationCharOffsetReturnValue))
+                Return Task.FromResult(Of (filePath As String, linePosition As LinePosition)?)((Me.NavigationFilePathReturnValue, New LinePosition(Me.NavigationLineNumberReturnValue, Me.NavigationCharOffsetReturnValue)))
             End Function
         End Class
     End Class

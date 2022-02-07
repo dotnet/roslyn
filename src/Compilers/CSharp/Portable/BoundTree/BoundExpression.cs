@@ -123,6 +123,78 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public CodeAnalysis.ITypeSymbol? GetPublicTypeSymbol()
             => Type?.GetITypeSymbol(TopLevelNullability.FlowState.ToAnnotation());
+
+        public virtual bool IsEquivalentToThisReference => false;
+    }
+
+    internal partial class BoundValuePlaceholderBase
+    {
+        public abstract override bool IsEquivalentToThisReference { get; }
+    }
+
+    internal partial class BoundValuePlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable;
+    }
+
+    internal partial class BoundInterpolatedStringHandlerPlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference => false;
+    }
+
+    internal partial class BoundDeconstructValuePlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference => false; // Preserving old behavior
+    }
+
+    internal partial class BoundTupleOperandPlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable;
+    }
+
+    internal partial class BoundAwaitableValuePlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference => false; // Preserving old behavior
+    }
+
+    internal partial class BoundDisposableValuePlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference => false;
+    }
+
+    internal partial class BoundObjectOrCollectionValuePlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference => false;
+    }
+
+    internal partial class BoundImplicitIndexerValuePlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable;
+    }
+
+    internal partial class BoundListPatternReceiverPlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference => false;
+    }
+
+    internal partial class BoundListPatternIndexPlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable;
+    }
+
+    internal partial class BoundSlicePatternReceiverPlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference => false;
+    }
+
+    internal partial class BoundSlicePatternRangePlaceholder
+    {
+        public sealed override bool IsEquivalentToThisReference => throw ExceptionUtilities.Unreachable;
+    }
+
+    internal partial class BoundThisReference
+    {
+        public sealed override bool IsEquivalentToThisReference => true;
     }
 
     internal partial class BoundPassByCopy

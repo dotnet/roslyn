@@ -4109,7 +4109,7 @@ IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'AddressOf C1.
   Children(1):
       IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'C1.S1')
         Children(1):
-            IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'C1')
+            IOperation:  (OperationKind.None, Type: M1.C1, IsInvalid) (Syntax: 'C1')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[

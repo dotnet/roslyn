@@ -34,7 +34,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly TaskScheduler _scheduler;
         private static readonly TaskScheduler s_exclusiveScheduler = new ConcurrentExclusiveSchedulerPair().ExclusiveScheduler;
 
-        private readonly ConcurrentDictionary<ISymbol, SymbolGroup> _symbolToGroup = new();
+        /// <summary>
+        /// Mapping from symbols (unified across metadata/retargeting) and the set of symbols that was produced for 
+        /// them in the case of linked files across projects.  This allows references to be found to any of the unified
+        /// symbols, while the user only gets a single reported group back that corresponds to that entire set.
+        /// </summary>
+        private readonly ConcurrentDictionary<ISymbol, SymbolGroup> _symbolToGroup = new(MetadataUnifyingEquivalenceComparer.Instance);
 
         public FindReferencesSearchEngine(
             Solution solution,
@@ -76,7 +81,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 // Determine the set of projects we actually have to walk to find results in.  If the caller provided a
                 // set of documents to search, we only bother with those.
-                var projectsToSearch = await GetProjectIdsToSearchAsync(symbolSet.GetAllSymbols(), cancellationToken).ConfigureAwait(false);
+                var projectsToSearch = await GetProjectIdsToSearchAsync(allSymbols, cancellationToken).ConfigureAwait(false);
 
                 // We need to process projects in order when updating our symbol set.  Say we have three projects (A, B
                 // and C), we cannot necessarily find inherited symbols in C until we have searched B.  Importantly,

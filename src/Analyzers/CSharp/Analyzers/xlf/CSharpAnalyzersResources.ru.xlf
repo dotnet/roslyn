@@ -107,6 +107,11 @@
         <target state="translated">Предпочитать проверку "null" проверке типа</target>
         <note />
       </trans-unit>
+      <trans-unit id="Property_pattern_can_be_simplified">
+        <source>Property pattern can be simplified</source>
+        <target state="new">Property pattern can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_operator_preserves_semantics">
         <source>Remove operator (preserves semantics)</source>
         <target state="translated">Удалить оператор (семантика сохраняется)</target>
@@ -130,6 +135,11 @@
       <trans-unit id="Simplify_default_expression">
         <source>Simplify 'default' expression</source>
         <target state="translated">Упростить выражение default</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_property_pattern">
+        <source>Simplify property pattern</source>
+        <target state="new">Simplify property pattern</target>
         <note />
       </trans-unit>
       <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
@@ -275,6 +285,11 @@
       <trans-unit id="Use_switch_expression">
         <source>Use 'switch' expression</source>
         <target state="translated">Использовать выражение switch</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_tuple_to_swap_values">
+        <source>Use tuple to swap values</source>
+        <target state="new">Use tuple to swap values</target>
         <note />
       </trans-unit>
       <trans-unit id="Using_directives_must_be_placed_inside_of_a_namespace_declaration">

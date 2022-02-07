@@ -671,7 +671,7 @@ Imports System
 end class",
 "class C
     sub M(x as String)
-        If x IsNot ""a"" Then
+        If x <> ""a"" Then
             DoSomething()
         End If
     end sub
@@ -698,7 +698,7 @@ end class")
 end class",
 "class C
     sub M(x as String)
-        If x IsNot ""a"" Then
+        If x <> ""a"" Then
             DoSomething()
         Else
             ' A comment in a blank if statement
@@ -724,7 +724,7 @@ end class")
 end class",
 "class C
     sub M(x as String)
-        If x IsNot ""a"" Then
+        If x <> ""a"" Then
             Return
         End If
         ' Comment

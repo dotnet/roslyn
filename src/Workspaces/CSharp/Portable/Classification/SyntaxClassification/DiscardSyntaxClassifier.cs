@@ -21,11 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             typeof(IdentifierNameSyntax));
 
         public override void AddClassifications(
-           Workspace workspace,
            SyntaxNode syntax,
            SemanticModel semanticModel,
-           ArrayBuilder<ClassifiedSpan> result,
-           CancellationToken cancellationToken)
+           ClassificationOptions options,
+           ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             if (syntax.IsKind(SyntaxKind.DiscardDesignation) || syntax.IsKind(SyntaxKind.DiscardPattern))
             {

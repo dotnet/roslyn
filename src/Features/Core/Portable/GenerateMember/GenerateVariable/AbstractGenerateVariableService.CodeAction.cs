@@ -202,15 +202,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 get
                 {
                     var text = _isConstant
-                        ? FeaturesResources.Generate_constant_1_0
+                        ? FeaturesResources.Generate_constant_0
                         : _generateProperty
-                            ? _isReadonly ? FeaturesResources.Generate_read_only_property_1_0 : FeaturesResources.Generate_property_1_0
-                            : _isReadonly ? FeaturesResources.Generate_read_only_field_1_0 : FeaturesResources.Generate_field_1_0;
+                            ? _isReadonly ? FeaturesResources.Generate_read_only_property_0 : FeaturesResources.Generate_property_0
+                            : _isReadonly ? FeaturesResources.Generate_read_only_field_0 : FeaturesResources.Generate_field_0;
 
                     return string.Format(
                         text,
-                        _state.IdentifierToken.ValueText,
-                        _state.TypeToGenerateIn.Name);
+                        _state.IdentifierToken.ValueText);
                 }
             }
 

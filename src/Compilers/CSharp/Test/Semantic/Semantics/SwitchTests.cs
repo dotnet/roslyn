@@ -105,7 +105,7 @@ public class Test
         }
     }
 }
-enum color
+enum @color
 {
     blue,
     green

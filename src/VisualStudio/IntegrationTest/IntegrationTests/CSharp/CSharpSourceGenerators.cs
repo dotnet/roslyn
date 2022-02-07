@@ -123,7 +123,7 @@ internal static class Program
             var programReferencesCaption = $"'{HelloWorldGenerator.GeneratedEnglishClassName}' references";
             var results = VisualStudio.FindReferencesWindow.GetContents(programReferencesCaption);
             var referenceInGeneratedFile = results.Single(r => r.Code.Contains("<summary>"));
-            VisualStudio.FindReferencesWindow.NavigateTo(programReferencesCaption, referenceInGeneratedFile, isPreview: isPreview);
+            VisualStudio.FindReferencesWindow.NavigateTo(programReferencesCaption, referenceInGeneratedFile, isPreview: isPreview, shouldActivate: true);
 
             // Assert we are in the right file now
             Assert.Equal($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs {ServicesVSResources.generated_suffix}", VisualStudio.Shell.GetActiveWindowCaption());

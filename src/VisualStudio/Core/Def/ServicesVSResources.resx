@@ -222,9 +222,6 @@
   <data name="Base_Types" xml:space="preserve">
     <value>Base Types</value>
   </data>
-  <data name="Miscellaneous_Files" xml:space="preserve">
-    <value>Miscellaneous Files</value>
-  </data>
   <data name="Could_not_find_project_0" xml:space="preserve">
     <value>Could not find project '{0}'</value>
   </data>
@@ -1699,6 +1696,18 @@ Additional information: {1}</value>
   <data name="This_rule_is_not_configurable" xml:space="preserve">
     <value>This rule is not configurable</value>
   </data>
+  <data name="Inline_Diagnostics_experimental" xml:space="preserve">
+    <value>Inline Diagnostics (experimental)</value>
+  </data>
+  <data name="Display_diagnostics_inline_experimental" xml:space="preserve">
+    <value>Display diagnostics inline (experimental)</value>
+  </data>
+  <data name="at_the_end_of_the_line_of_code" xml:space="preserve">
+    <value>at the end of the line of code</value>
+  </data>
+  <data name="on_the_right_edge_of_the_editor_window" xml:space="preserve">
+    <value>on the right edge of the editor window</value>
+  </data>
   <data name="Multiple_members_are_inherited" xml:space="preserve">
     <value>Multiple members are inherited</value>
   </data>
@@ -1743,6 +1752,12 @@ Additional information: {1}</value>
   </data>
   <data name="Inherited_interfaces" xml:space="preserve">
     <value>Inherited interfaces</value>
+  </data>
+  <data name="Invalid_type_name" xml:space="preserve">
+    <value>Invalid type name</value>
+  </data>
+  <data name="Move_static_members_to_another_type_colon" xml:space="preserve">
+    <value>Move Static Members to Another Type:</value>
   </data>
   <data name="Select_an_appropriate_symbol_to_start_value_tracking" xml:space="preserve">
     <value>Select an appropriate symbol to start value tracking</value>
@@ -1793,18 +1808,8 @@ Additional information: {1}</value>
   <data name="Quick_Actions" xml:space="preserve">
     <value>Quick Actions</value>
   </data>
-  <data name="Language_client_initialization_failed" xml:space="preserve">
-    <value>{0} failed to initialize. Status = {1}. Exception = {2}</value>
-    <comment>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</comment>
-  </data>
   <data name="Combine_inheritance_margin_with_indicator_margin" xml:space="preserve">
     <value>Combine inheritance margin with indicator margin</value>
-  </data>
-  <data name="Package_install_canceled" xml:space="preserve">
-    <value>Package install canceled</value>
-  </data>
-  <data name="Package_uninstall_canceled" xml:space="preserve">
-    <value>Package uninstall canceled</value>
   </data>
   <data name="Default_Current_Document" xml:space="preserve">
     <value>Default (Current Document)</value>
@@ -1817,6 +1822,18 @@ Additional information: {1}</value>
   <data name="Default_Open_Documents" xml:space="preserve">
     <value>Default (Open Documents)</value>
     <comment>This text is a menu command</comment>
+  </data>
+  <data name="Suppress_hints_when_argument_matches_parameter_name" xml:space="preserve">
+    <value>Suppress hints when argument matches parameter name</value>
+  </data>
+  <data name="Package_install_canceled" xml:space="preserve">
+    <value>Package install canceled</value>
+  </data>
+  <data name="Package_uninstall_canceled" xml:space="preserve">
+    <value>Package uninstall canceled</value>
+  </data>
+  <data name="Prefer_tuple_swap" xml:space="preserve">
+    <value>Prefer tuple swap</value>
   </data>
   <data name="Always" xml:space="preserve">
     <value>Always</value>
@@ -1847,5 +1864,37 @@ Additional information: {1}</value>
   </data>
   <data name="End_of_line" xml:space="preserve">
     <value>End of line</value>
+  </data>
+  <data name="Paste_valid_stack_trace" xml:space="preserve">
+    <value>Paste a valid stack trace to view and navigate it's values</value>
+    <comment>"Stack Trace" is a language term and should be kept the same. </comment>
+  </data>
+  <data name="Stack_Trace_Explorer" xml:space="preserve">
+    <value>Stack Trace Explorer</value>
+    <comment>"Stack Trace" is a language term and should be kept the same. This is for viewing/exploring stack traces</comment>
+  </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Clear</value>
+    <comment>Clear content action</comment>
+  </data>
+  <data name="Close_tab" xml:space="preserve">
+    <value>Close Tab</value>
+  </data>
+  <data name="Paste" xml:space="preserve">
+    <value>Paste</value>
+  </data>
+  <data name="Stack_trace_0" xml:space="preserve">
+    <value>Stack Trace {0}</value>
+    <comment>Header for numbered stack trace view tabs</comment>
+  </data>
+  <data name="Remove_unnecessary_usings" xml:space="preserve">
+    <value>Remove unnecessary usings</value>
+  </data>
+  <data name="Sort_usings" xml:space="preserve">
+    <value>Sort usings</value>
+  </data>
+  <data name="Automatically_open_stack_trace_explorer_on_focus" xml:space="preserve">
+    <value>Automatically open Stack Trace Explorer on focus</value>
+    <comment>"Stack Trace Explorer" is a tool window that is owned by the Roslyn package</comment>
   </data>
 </root>

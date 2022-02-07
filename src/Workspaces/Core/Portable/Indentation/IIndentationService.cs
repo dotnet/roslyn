@@ -5,6 +5,7 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Indentation
@@ -61,6 +62,20 @@ namespace Microsoft.CodeAnalysis.Indentation
             var style = options.GetOption(FormattingOptions.SmartIndent, document.Project.Language);
 
             return service.GetIndentation(document, lineNumber, style, cancellationToken);
+        }
+    }
+
+    internal static class IndentationResultExtensions
+    {
+        public static string GetIndentationString(this IndentationResult indentationResult, SourceText sourceText, bool useTabs, int tabSize)
+        {
+            var baseLine = sourceText.Lines.GetLineFromPosition(indentationResult.BasePosition);
+            var baseOffsetInLine = indentationResult.BasePosition - baseLine.Start;
+
+            var indent = baseOffsetInLine + indentationResult.Offset;
+
+            var indentString = indent.CreateIndentationString(useTabs, tabSize);
+            return indentString;
         }
     }
 }

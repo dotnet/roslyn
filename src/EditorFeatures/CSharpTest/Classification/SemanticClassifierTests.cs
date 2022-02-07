@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -14,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -291,7 +290,9 @@ class C
 class C
 {
     dynamic<int> d;
-}", testHost);
+}",
+                testHost,
+                Class("dynamic"));
         }
 
         [Theory]
@@ -1461,7 +1462,8 @@ class C
             await TestInMethodAsync(@"global::System.String.Clone("");",
                 testHost,
                 Namespace("System"),
-                Class("String"));
+                Class("String"),
+                Method("Clone"));
         }
 
         [Theory]
@@ -1974,12 +1976,12 @@ class Serializable
 {
 }
 
-[NonSerialized]           // Binds to global::NonSerializedAttribute; not colorized
+[NonSerialized]           // Binds to global::NonSerializedAttribute; colorized
 class NonSerializedAttribute
 {
 }
 
-[NonSerializedAttribute]  // Binds to global::NonSerializedAttribute; not colorized
+[NonSerializedAttribute]  // Binds to global::NonSerializedAttribute; colorized
 class NonSerializedAttribute
 {
 }
@@ -1997,6 +1999,8 @@ class ObsoleteAttribute : Attribute
                 Namespace("System"),
                 Class("Serializable"),
                 Class("SerializableAttribute"),
+                Class("NonSerialized"),
+                Class("NonSerializedAttribute"),
                 Class("Obsolete"),
                 Class("Attribute"),
                 Class("ObsoleteAttribute"),
@@ -2589,7 +2593,8 @@ struct Type<T>
     }
 }",
                 testHost,
-                Keyword("var"));
+                Keyword("var"),
+                Method("nameof"));
         }
 
         [WpfFact]
@@ -2598,22 +2603,24 @@ struct Type<T>
         {
             // don't crash
             using var workspace = TestWorkspace.CreateCSharp("");
-            var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
+            var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
 
-            var contentTypeService = document.GetLanguageService<IContentTypeLanguageService>();
+            var contentTypeService = document.GetRequiredLanguageService<IContentTypeLanguageService>();
             var contentType = contentTypeService.GetDefaultContentType();
             var extraBuffer = workspace.ExportProvider.GetExportedValue<ITextBufferFactoryService>().CreateTextBuffer("", contentType);
 
             WpfTestRunner.RequireWpfFact($"Creates an {nameof(IWpfTextView)} explicitly with an unrelated buffer");
             using var disposableView = workspace.ExportProvider.GetExportedValue<ITextEditorFactoryService>().CreateDisposableTextView(extraBuffer);
             var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+            var globalOptions = workspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
 
             var provider = new SemanticClassificationViewTaggerProvider(
-                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
-                workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
+                workspace.GetService<IThreadingContext>(),
+                workspace.GetService<ClassificationTypeMap>(),
+                globalOptions,
                 listenerProvider);
 
-            using var tagger = (IDisposable)provider.CreateTagger<IClassificationTag>(disposableView.TextView, extraBuffer);
+            using var tagger = (IDisposable?)provider.CreateTagger<IClassificationTag>(disposableView.TextView, extraBuffer);
             using (var edit = extraBuffer.CreateEdit())
             {
                 edit.Insert(0, "class A { }");
@@ -3615,6 +3622,17 @@ class X
                 Escape(@"}}"));
         }
 
+        [Theory]
+        [CombinatorialData]
+        public async Task TestStringEscape9(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $@""{{{12:X}}}"";",
+                testHost,
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
+        }
+
         [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
         [Theory]
         [CombinatorialData]
@@ -4450,6 +4468,44 @@ class C
 class C { }",
                 testHost,
                 Namespace("NS"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task NullCheckedParameterClassification(TestHost testHost)
+        {
+            await TestAsync(
+@"
+class C
+{
+    void M(string s!!) { }
+}",
+                testHost);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(57184, "https://github.com/dotnet/roslyn/issues/57184")]
+        public async Task MethodGroupClassifications(TestHost testHost)
+        {
+            await TestAsync(
+@"var f = m;
+Delegate d = m;
+MulticastDelegate md = m;
+ICloneable c = m;
+object obj = m;
+m(m);
+
+int m(Delegate d) { }",
+                testHost,
+                    Keyword("var"),
+                    Method("m"),
+                    Method("m"),
+                    Method("m"),
+                    Method("m"),
+                    Method("m"),
+                    Method("m"),
+                    Method("m"));
         }
     }
 }

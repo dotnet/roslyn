@@ -24,22 +24,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     [UseExportProvider]
     public class ExtensionMethodImportCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
-        private bool? ShowImportCompletionItemsOptionValue { get; set; } = true;
-
-        // -1 would disable timebox, whereas 0 means always timeout.
-        private int TimeoutInMilliseconds { get; set; } = -1;
-
-        private bool IsExpandedCompletion { get; set; } = true;
-
-        private bool HideAdvancedMembers { get; set; }
-
-        protected override OptionSet WithChangedOptions(OptionSet options)
+        public ExtensionMethodImportCompletionProviderTests()
         {
-            return base.WithChangedOptions(options)
-                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue)
-                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
-                .WithChangedOption(CompletionOptions.HideAdvancedMembers, LanguageNames.CSharp, HideAdvancedMembers)
-                .WithChangedOption(CompletionServiceOptions.TimeoutInMillisecondsForExtensionMethodImportCompletion, TimeoutInMilliseconds);
+            ShowImportCompletionItemsOptionValue = true;
+            TimeoutInMilliseconds = -1; // -1 disables timeout
+            IsExpandedCompletion = true;
         }
 
         internal override Type GetCompletionProviderType()

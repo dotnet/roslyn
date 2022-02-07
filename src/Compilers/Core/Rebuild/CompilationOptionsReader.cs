@@ -196,10 +196,10 @@ namespace Microsoft.CodeAnalysis.Rebuild
 
         private EmbeddedSourceTextInfo? ResolveEmbeddedSource(DocumentHandle document, SourceTextInfo sourceTextInfo)
         {
-            byte[] bytes = (from handle in PdbReader.GetCustomDebugInformation(document)
-                            let cdi = PdbReader.GetCustomDebugInformation(handle)
-                            where PdbReader.GetGuid(cdi.Kind) == EmbeddedSourceGuid
-                            select PdbReader.GetBlobBytes(cdi.Value)).SingleOrDefault();
+            var bytes = (from handle in PdbReader.GetCustomDebugInformation(document)
+                         let cdi = PdbReader.GetCustomDebugInformation(handle)
+                         where PdbReader.GetGuid(cdi.Kind) == EmbeddedSourceGuid
+                         select PdbReader.GetBlobBytes(cdi.Value)).SingleOrDefault();
 
             if (bytes is null)
             {

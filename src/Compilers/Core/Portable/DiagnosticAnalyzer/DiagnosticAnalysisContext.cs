@@ -648,12 +648,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken { get { return _cancellationToken; } }
 
+        /// <summary>
+        /// Optional filter span for which to compute diagnostics.
+        /// </summary>
+        internal TextSpan? FilterSpan { get; }
+
         public SemanticModelAnalysisContext(SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, CancellationToken cancellationToken)
+            : this(semanticModel, options, reportDiagnostic, isSupportedDiagnostic, filterSpan: null, cancellationToken)
+        {
+        }
+
+        internal SemanticModelAnalysisContext(SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, Func<Diagnostic, bool> isSupportedDiagnostic, TextSpan? filterSpan, CancellationToken cancellationToken)
         {
             _semanticModel = semanticModel;
             _options = options;
             _reportDiagnostic = reportDiagnostic;
             _isSupportedDiagnostic = isSupportedDiagnostic;
+            FilterSpan = filterSpan;
             _cancellationToken = cancellationToken;
         }
 

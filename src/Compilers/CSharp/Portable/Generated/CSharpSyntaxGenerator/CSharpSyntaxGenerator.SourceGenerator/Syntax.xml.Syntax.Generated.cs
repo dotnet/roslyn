@@ -5607,6 +5607,118 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         public UnaryPatternSyntax WithPattern(PatternSyntax pattern) => Update(this.OperatorToken, pattern);
     }
 
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.ListPattern"/></description></item>
+    /// </list>
+    /// </remarks>
+    public sealed partial class ListPatternSyntax : PatternSyntax
+    {
+        private SyntaxNode? patterns;
+        private VariableDesignationSyntax? designation;
+
+        internal ListPatternSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        public SyntaxToken OpenBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ListPatternSyntax)this.Green).openBracketToken, Position, 0);
+
+        public SeparatedSyntaxList<PatternSyntax> Patterns
+        {
+            get
+            {
+                var red = GetRed(ref this.patterns, 1);
+                return red != null ? new SeparatedSyntaxList<PatternSyntax>(red, GetChildIndex(1)) : default;
+            }
+        }
+
+        public SyntaxToken CloseBracketToken => new SyntaxToken(this, ((Syntax.InternalSyntax.ListPatternSyntax)this.Green).closeBracketToken, GetChildPosition(2), GetChildIndex(2));
+
+        public VariableDesignationSyntax? Designation => GetRed(ref this.designation, 3);
+
+        internal override SyntaxNode? GetNodeSlot(int index)
+            => index switch
+            {
+                1 => GetRed(ref this.patterns, 1)!,
+                3 => GetRed(ref this.designation, 3),
+                _ => null,
+            };
+
+        internal override SyntaxNode? GetCachedSlot(int index)
+            => index switch
+            {
+                1 => this.patterns,
+                3 => this.designation,
+                _ => null,
+            };
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitListPattern(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitListPattern(this);
+
+        public ListPatternSyntax Update(SyntaxToken openBracketToken, SeparatedSyntaxList<PatternSyntax> patterns, SyntaxToken closeBracketToken, VariableDesignationSyntax? designation)
+        {
+            if (openBracketToken != this.OpenBracketToken || patterns != this.Patterns || closeBracketToken != this.CloseBracketToken || designation != this.Designation)
+            {
+                var newNode = SyntaxFactory.ListPattern(openBracketToken, patterns, closeBracketToken, designation);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        public ListPatternSyntax WithOpenBracketToken(SyntaxToken openBracketToken) => Update(openBracketToken, this.Patterns, this.CloseBracketToken, this.Designation);
+        public ListPatternSyntax WithPatterns(SeparatedSyntaxList<PatternSyntax> patterns) => Update(this.OpenBracketToken, patterns, this.CloseBracketToken, this.Designation);
+        public ListPatternSyntax WithCloseBracketToken(SyntaxToken closeBracketToken) => Update(this.OpenBracketToken, this.Patterns, closeBracketToken, this.Designation);
+        public ListPatternSyntax WithDesignation(VariableDesignationSyntax? designation) => Update(this.OpenBracketToken, this.Patterns, this.CloseBracketToken, designation);
+
+        public ListPatternSyntax AddPatterns(params PatternSyntax[] items) => WithPatterns(this.Patterns.AddRange(items));
+    }
+
+    /// <remarks>
+    /// <para>This node is associated with the following syntax kinds:</para>
+    /// <list type="bullet">
+    /// <item><description><see cref="SyntaxKind.SlicePattern"/></description></item>
+    /// </list>
+    /// </remarks>
+    public sealed partial class SlicePatternSyntax : PatternSyntax
+    {
+        private PatternSyntax? pattern;
+
+        internal SlicePatternSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
+          : base(green, parent, position)
+        {
+        }
+
+        public SyntaxToken DotDotToken => new SyntaxToken(this, ((Syntax.InternalSyntax.SlicePatternSyntax)this.Green).dotDotToken, Position, 0);
+
+        public PatternSyntax? Pattern => GetRed(ref this.pattern, 1);
+
+        internal override SyntaxNode? GetNodeSlot(int index) => index == 1 ? GetRed(ref this.pattern, 1) : null;
+
+        internal override SyntaxNode? GetCachedSlot(int index) => index == 1 ? this.pattern : null;
+
+        public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitSlicePattern(this);
+        public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitSlicePattern(this);
+
+        public SlicePatternSyntax Update(SyntaxToken dotDotToken, PatternSyntax? pattern)
+        {
+            if (dotDotToken != this.DotDotToken || pattern != this.Pattern)
+            {
+                var newNode = SyntaxFactory.SlicePattern(dotDotToken, pattern);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
+            }
+
+            return this;
+        }
+
+        public SlicePatternSyntax WithDotDotToken(SyntaxToken dotDotToken) => Update(dotDotToken, this.Pattern);
+        public SlicePatternSyntax WithPattern(PatternSyntax? pattern) => Update(this.DotDotToken, pattern);
+    }
+
     public abstract partial class InterpolatedStringContentSyntax : CSharpSyntaxNode
     {
         internal InterpolatedStringContentSyntax(InternalSyntax.CSharpSyntaxNode green, SyntaxNode? parent, int position)
@@ -13051,14 +13163,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         /// <summary>Gets the identifier.</summary>
         public SyntaxToken Identifier => new SyntaxToken(this, ((Syntax.InternalSyntax.ParameterSyntax)this.Green).identifier, GetChildPosition(3), GetChildIndex(3));
 
-        public EqualsValueClauseSyntax? Default => GetRed(ref this.@default, 4);
+        public SyntaxToken ExclamationExclamationToken
+        {
+            get
+            {
+                var slot = ((Syntax.InternalSyntax.ParameterSyntax)this.Green).exclamationExclamationToken;
+                return slot != null ? new SyntaxToken(this, slot, GetChildPosition(4), GetChildIndex(4)) : default;
+            }
+        }
+
+        public EqualsValueClauseSyntax? Default => GetRed(ref this.@default, 5);
 
         internal override SyntaxNode? GetNodeSlot(int index)
             => index switch
             {
                 0 => GetRedAtZero(ref this.attributeLists)!,
                 2 => GetRed(ref this.type, 2),
-                4 => GetRed(ref this.@default, 4),
+                5 => GetRed(ref this.@default, 5),
                 _ => null,
             };
 
@@ -13067,18 +13188,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 0 => this.attributeLists,
                 2 => this.type,
-                4 => this.@default,
+                5 => this.@default,
                 _ => null,
             };
 
         public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitParameter(this);
         public override TResult? Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) where TResult : default => visitor.VisitParameter(this);
 
-        public ParameterSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax? type, SyntaxToken identifier, EqualsValueClauseSyntax? @default)
+        public ParameterSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, TypeSyntax? type, SyntaxToken identifier, SyntaxToken exclamationExclamationToken, EqualsValueClauseSyntax? @default)
         {
-            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || type != this.Type || identifier != this.Identifier || @default != this.Default)
+            if (attributeLists != this.AttributeLists || modifiers != this.Modifiers || type != this.Type || identifier != this.Identifier || exclamationExclamationToken != this.ExclamationExclamationToken || @default != this.Default)
             {
-                var newNode = SyntaxFactory.Parameter(attributeLists, modifiers, type, identifier, @default);
+                var newNode = SyntaxFactory.Parameter(attributeLists, modifiers, type, identifier, exclamationExclamationToken, @default);
                 var annotations = GetAnnotations();
                 return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
@@ -13087,13 +13208,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         internal override BaseParameterSyntax WithAttributeListsCore(SyntaxList<AttributeListSyntax> attributeLists) => WithAttributeLists(attributeLists);
-        public new ParameterSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.Type, this.Identifier, this.Default);
+        public new ParameterSyntax WithAttributeLists(SyntaxList<AttributeListSyntax> attributeLists) => Update(attributeLists, this.Modifiers, this.Type, this.Identifier, this.ExclamationExclamationToken, this.Default);
         internal override BaseParameterSyntax WithModifiersCore(SyntaxTokenList modifiers) => WithModifiers(modifiers);
-        public new ParameterSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.Type, this.Identifier, this.Default);
+        public new ParameterSyntax WithModifiers(SyntaxTokenList modifiers) => Update(this.AttributeLists, modifiers, this.Type, this.Identifier, this.ExclamationExclamationToken, this.Default);
         internal override BaseParameterSyntax WithTypeCore(TypeSyntax? type) => WithType(type);
-        public new ParameterSyntax WithType(TypeSyntax? type) => Update(this.AttributeLists, this.Modifiers, type, this.Identifier, this.Default);
-        public ParameterSyntax WithIdentifier(SyntaxToken identifier) => Update(this.AttributeLists, this.Modifiers, this.Type, identifier, this.Default);
-        public ParameterSyntax WithDefault(EqualsValueClauseSyntax? @default) => Update(this.AttributeLists, this.Modifiers, this.Type, this.Identifier, @default);
+        public new ParameterSyntax WithType(TypeSyntax? type) => Update(this.AttributeLists, this.Modifiers, type, this.Identifier, this.ExclamationExclamationToken, this.Default);
+        public ParameterSyntax WithIdentifier(SyntaxToken identifier) => Update(this.AttributeLists, this.Modifiers, this.Type, identifier, this.ExclamationExclamationToken, this.Default);
+        public ParameterSyntax WithExclamationExclamationToken(SyntaxToken exclamationExclamationToken) => Update(this.AttributeLists, this.Modifiers, this.Type, this.Identifier, exclamationExclamationToken, this.Default);
+        public ParameterSyntax WithDefault(EqualsValueClauseSyntax? @default) => Update(this.AttributeLists, this.Modifiers, this.Type, this.Identifier, this.ExclamationExclamationToken, @default);
 
         internal override BaseParameterSyntax AddAttributeListsCore(params AttributeListSyntax[] items) => AddAttributeLists(items);
         public new ParameterSyntax AddAttributeLists(params AttributeListSyntax[] items) => WithAttributeLists(this.AttributeLists.AddRange(items));

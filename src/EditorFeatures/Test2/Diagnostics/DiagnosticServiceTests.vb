@@ -7,12 +7,14 @@ Imports System.IO
 Imports System.Reflection
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics
@@ -147,8 +149,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Assert.Equal(workspaceDiagnosticAnalyzer.DiagDescriptor.Id, descriptors(0).Id)
 
                 ' Add an existing workspace analyzer to the project, ensure no duplicate diagnostics.
-                Dim duplicateProjectAnalyzersReference = hostAnalyzers.GetHostAnalyzerReferencesMap().First().Value
-                project = project.WithAnalyzerReferences({duplicateProjectAnalyzersReference})
+                project = project.WithAnalyzerReferences(hostAnalyzers.HostAnalyzerReferences)
 
                 ' Verify duplicate descriptors or diagnostics.
                 descriptorsMap = hostAnalyzers.GetDiagnosticDescriptorsPerReference(diagnosticService.AnalyzerInfoCache, project)
@@ -2185,6 +2186,56 @@ class MyClass
             End Using
         End Function
 
+        <WpfFact, WorkItem(56843, "https://github.com/dotnet/roslyn/issues/56843")>
+        Friend Async Function TestCompilerAnalyzerForSpanBasedQuery() As Task
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document><![CDATA[
+class C
+{
+    void M1()
+    {
+        int x1 = 0;
+    }
+}]]>
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspace.CreateWorkspace(test, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
+                Dim solution = workspace.CurrentSolution
+                Dim project = solution.Projects.Single()
+
+                ' Add compiler analyzer
+                Dim analyzer = DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp)
+                Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(analyzer))
+                project = project.AddAnalyzerReference(analyzerReference)
+
+                ' Get span to analyze
+                Dim document = project.Documents.Single()
+                Dim root = Await document.GetSyntaxRootAsync(CancellationToken.None)
+                Dim localDecl = root.DescendantNodes().OfType(Of CodeAnalysis.CSharp.Syntax.LocalDeclarationStatementSyntax).Single()
+                Dim span = localDecl.Span
+
+                Dim mefExportProvider = DirectCast(workspace.Services.HostServices, IMefHostExportProvider)
+                Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
+                Dim diagnosticService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
+                Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
+
+                ' Verify diagnostics for span
+                Dim diagnostics As New PooledObjects.ArrayBuilder(Of DiagnosticData)
+                Await diagnosticService.TryAppendDiagnosticsForSpanAsync(document, span, diagnostics)
+                Dim diagnostic = Assert.Single(diagnostics)
+                Assert.Equal("CS0219", diagnostic.Id)
+
+                ' Verify no diagnostics outside the local decl span
+                span = localDecl.GetLastToken().GetNextToken().GetNextToken().Span
+                diagnostics.Clear()
+                Await diagnosticService.TryAppendDiagnosticsForSpanAsync(document, span, diagnostics)
+                Assert.Empty(diagnostics)
+            End Using
+        End Function
+
         <WpfFact>
         Public Async Function TestEnsureNoMergedNamespaceSymbolAnalyzerAsync() As Task
             Dim test = <Workspace>
@@ -2222,5 +2273,118 @@ class MyClass
                 Assert.Equal(0, diagnostics.Count())
             End Using
         End Function
+
+        <WpfTheory>
+        <InlineData(DiagnosticAnalyzerCategory.SemanticSpanAnalysis, True)>
+        <InlineData(DiagnosticAnalyzerCategory.SemanticDocumentAnalysis, False)>
+        <InlineData(DiagnosticAnalyzerCategory.ProjectAnalysis, False)>
+        Friend Async Function TestTryAppendDiagnosticsForSpanAsync(category As DiagnosticAnalyzerCategory, isSpanBasedAnalyzer As Boolean) As Task
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document><![CDATA[
+class MyClass
+{
+    void M()
+    {
+        int x = 0;
+    }
+}]]>
+                               </Document>
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspace.CreateWorkspace(test, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
+                Dim solution = workspace.CurrentSolution
+                Dim project = solution.Projects.Single()
+
+                ' Add analyzer
+                Dim analyzer = New AnalyzerWithCustomDiagnosticCategory(category)
+                Dim analyzerReference = New AnalyzerImageReference(ImmutableArray.Create(Of DiagnosticAnalyzer)(analyzer))
+                project = project.AddAnalyzerReference(analyzerReference)
+                Assert.False(analyzer.ReceivedOperationCallback)
+
+                ' Get span to analyze
+                Dim document = project.Documents.Single()
+                Dim root = Await document.GetSyntaxRootAsync(CancellationToken.None)
+                Dim localDecl = root.DescendantNodes().OfType(Of CodeAnalysis.CSharp.Syntax.LocalDeclarationStatementSyntax).Single()
+                Dim span = localDecl.Span
+
+                Dim mefExportProvider = DirectCast(workspace.Services.HostServices, IMefHostExportProvider)
+                Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
+                Dim diagnosticService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
+                Dim incrementalAnalyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
+
+                ' Verify available diagnostic descriptors
+                Dim descriptorsMap = solution.State.Analyzers.GetDiagnosticDescriptorsPerReference(diagnosticService.AnalyzerInfoCache, project)
+                Assert.Equal(1, descriptorsMap.Count)
+                Dim descriptors = descriptorsMap.First().Value
+                Assert.Equal(1, descriptors.Length)
+                Assert.Equal(analyzer.Descriptor.Id, descriptors.Single().Id)
+
+                ' Try get diagnostics for span
+                Dim diagnostics As New PooledObjects.ArrayBuilder(Of DiagnosticData)
+                Await diagnosticService.TryAppendDiagnosticsForSpanAsync(document, span, diagnostics)
+
+                ' Verify only span-based analyzer is invoked with TryAppendDiagnosticsForSpanAsync
+                Assert.Equal(isSpanBasedAnalyzer, analyzer.ReceivedOperationCallback)
+            End Using
+        End Function
+
+        <WpfFact>
+        Public Sub ReanalysisScopeExcludesMissingDocuments()
+            Dim test = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                           </Project>
+                       </Workspace>
+
+            Using workspace = TestWorkspace.CreateWorkspace(test, composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
+                Dim solution = workspace.CurrentSolution
+                Dim project = solution.Projects.Single()
+
+                Dim missingDocumentId = DocumentId.CreateNewId(project.Id, "Missing ID")
+                Dim reanalysisScope = New SolutionCrawlerRegistrationService.ReanalyzeScope(documentIds:={missingDocumentId})
+                Assert.Empty(reanalysisScope.GetDocumentIds(solution))
+            End Using
+        End Sub
+
+        <DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
+        Private NotInheritable Class AnalyzerWithCustomDiagnosticCategory
+            Inherits DiagnosticAnalyzer
+            Implements IBuiltInAnalyzer
+
+            Private ReadOnly _category As DiagnosticAnalyzerCategory
+            Public Property Descriptor As New DiagnosticDescriptor("ID0001", "Title", "Message", "Category", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
+            Public Property ReceivedOperationCallback As Boolean
+
+            Public Sub New(category As DiagnosticAnalyzerCategory)
+                _category = category
+            End Sub
+
+            Public ReadOnly Property RequestPriority As CodeActionRequestPriority Implements IBuiltInAnalyzer.RequestPriority
+                Get
+                    Return CodeActionRequestPriority.Normal
+                End Get
+            End Property
+
+            Public Function GetAnalyzerCategory() As DiagnosticAnalyzerCategory Implements IBuiltInAnalyzer.GetAnalyzerCategory
+                Return _category
+            End Function
+
+            Public Function OpenFileOnly(options As OptionSet) As Boolean Implements IBuiltInAnalyzer.OpenFileOnly
+                Return False
+            End Function
+
+            Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
+                Get
+                    Return ImmutableArray.Create(Descriptor)
+                End Get
+            End Property
+
+            Public Overrides Sub Initialize(context As AnalysisContext)
+                context.RegisterOperationAction(Sub(operationContext As OperationAnalysisContext)
+                                                    ReceivedOperationCallback = True
+                                                End Sub, OperationKind.VariableDeclaration)
+            End Sub
+        End Class
     End Class
 End Namespace

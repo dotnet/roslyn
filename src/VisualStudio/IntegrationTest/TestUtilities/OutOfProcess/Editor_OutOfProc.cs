@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -320,18 +321,27 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         {
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
             _editorInProc.SelectNavBarItem(0, item);
+
+            // Navigation and/or code generation following selection is tracked under FeatureAttribute.NavigationBar
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
         }
 
         public void SelectTypeNavBarItem(string item)
         {
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
             _editorInProc.SelectNavBarItem(1, item);
+
+            // Navigation and/or code generation following selection is tracked under FeatureAttribute.NavigationBar
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
         }
 
         public void SelectMemberNavBarItem(string item)
         {
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
             _editorInProc.SelectNavBarItem(2, item);
+
+            // Navigation and/or code generation following selection is tracked under FeatureAttribute.NavigationBar
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
         }
 
         public bool IsNavBarEnabled()
@@ -371,11 +381,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void GoToImplementation(string expectedWindowName)
         {
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
             _editorInProc.GoToImplementation();
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.GoToImplementation);
             _editorInProc.WaitForActiveWindow(expectedWindowName);
         }
 
         public void SendExplicitFocus()
             => _editorInProc.SendExplicitFocus();
+
+        public void WaitForEditorOperations(TimeSpan timeout)
+            => _editorInProc.WaitForEditorOperations(timeout);
     }
 }

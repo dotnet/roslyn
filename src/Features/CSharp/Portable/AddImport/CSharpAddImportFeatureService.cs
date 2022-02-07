@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
 
             var namePiece = SyntaxFactory.IdentifierName(part);
             return index == 0
-                ? (NameSyntax)namePiece
+                ? namePiece
                 : SyntaxFactory.QualifiedName(CreateNameSyntax(namespaceParts, index - 1), namePiece);
         }
 

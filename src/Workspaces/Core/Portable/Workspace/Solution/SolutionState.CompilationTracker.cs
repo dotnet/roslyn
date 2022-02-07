@@ -44,14 +44,18 @@ namespace Microsoft.CodeAnalysis
             // guarantees only one thread is building at a time
             private readonly SemaphoreSlim _buildLock = new(initialCount: 1);
 
+            public SkeletonReferenceCache SkeletonReferenceCache { get; }
+
             private CompilationTracker(
                 ProjectState project,
-                CompilationTrackerState state)
+                CompilationTrackerState state,
+                SkeletonReferenceCache cachedSkeletonReferences)
             {
                 Contract.ThrowIfNull(project);
 
                 this.ProjectState = project;
                 _stateDoNotAccessDirectly = state;
+                this.SkeletonReferenceCache = cachedSkeletonReferences;
             }
 
             /// <summary>
@@ -59,7 +63,7 @@ namespace Microsoft.CodeAnalysis
             /// and will have no extra information beyond the project itself.
             /// </summary>
             public CompilationTracker(ProjectState project)
-                : this(project, CompilationTrackerState.Empty)
+                : this(project, CompilationTrackerState.Empty, cachedSkeletonReferences: new())
             {
             }
 
@@ -72,11 +76,20 @@ namespace Microsoft.CodeAnalysis
                 {
                     // Allow the cache service to create a strong reference to the compilation. We'll get the "furthest along" compilation we have
                     // and hold onto that.
-                    var compilationToCache = state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull() ?? state.CompilationWithoutGeneratedDocuments?.GetValueOrNull();
+                    var compilationToCache = state.FinalCompilationWithGeneratedDocuments ?? state.CompilationWithoutGeneratedDocuments;
                     solutionServices.CacheService.CacheObjectIfCachingEnabledForKey(ProjectState.Id, state, compilationToCache);
                 }
 
                 Volatile.Write(ref _stateDoNotAccessDirectly, state);
+            }
+
+            public GeneratorDriver? GeneratorDriver
+            {
+                get
+                {
+                    var state = this.ReadState();
+                    return state.GeneratorInfo.Driver;
+                }
             }
 
             public bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary)
@@ -102,13 +115,14 @@ namespace Microsoft.CodeAnalysis
             /// compilation state as the now 'old' state
             /// </summary>
             public ICompilationTracker Fork(
+                SolutionServices solutionServices,
                 ProjectState newProject,
                 CompilationAndGeneratorDriverTranslationAction? translate = null,
                 CancellationToken cancellationToken = default)
             {
                 var state = ReadState();
 
-                var baseCompilation = state.CompilationWithoutGeneratedDocuments?.GetValueOrNull(cancellationToken);
+                var baseCompilation = state.CompilationWithoutGeneratedDocuments;
                 if (baseCompilation != null)
                 {
                     var intermediateProjects = state is InProgressState inProgressState
@@ -139,15 +153,24 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
 
-                    var newState = CompilationTrackerState.Create(baseCompilation, state.GeneratorInfo, state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken), intermediateProjects);
+                    var newState = CompilationTrackerState.Create(
+                        baseCompilation, state.GeneratorInfo, state.FinalCompilationWithGeneratedDocuments, intermediateProjects);
 
-                    return new CompilationTracker(newProject, newState);
+                    return new CompilationTracker(newProject, newState, this.SkeletonReferenceCache.Clone());
                 }
                 else
                 {
-                    // We have no compilation, but we might have information about generated docs.
-                    var newState = new NoCompilationState(state.GeneratorInfo.WithDocumentsAreFinal(false));
-                    return new CompilationTracker(newProject, newState);
+                    // We may still have a cached generator; we'll have to remember to run generators again since we are making some
+                    // change here. We'll also need to update the other state of the driver if appropriate.
+                    var generatorInfo = state.GeneratorInfo.WithDocumentsAreFinal(false);
+
+                    if (generatorInfo.Driver != null && translate != null)
+                    {
+                        generatorInfo = generatorInfo.WithDriver(translate.TransformGeneratorDriver(generatorInfo.Driver));
+                    }
+
+                    var newState = new NoCompilationState(generatorInfo);
+                    return new CompilationTracker(newProject, newState, this.SkeletonReferenceCache.Clone());
                 }
             }
 
@@ -182,8 +205,7 @@ namespace Microsoft.CodeAnalysis
                 // have the compilation immediately disappear.  So we force it to stay around with a ConstantValueSource.
                 // As a policy, all partial-state projects are said to have incomplete references, since the state has no guarantees.
                 var finalState = FinalState.Create(
-                    finalCompilationSource: new ConstantValueSource<Optional<Compilation>>(compilationPair.CompilationWithGeneratedDocuments),
-                    compilationWithoutGeneratedFilesSource: new ConstantValueSource<Optional<Compilation>>(compilationPair.CompilationWithoutGeneratedDocuments),
+                    finalCompilationSource: compilationPair.CompilationWithGeneratedDocuments,
                     compilationWithoutGeneratedFiles: compilationPair.CompilationWithoutGeneratedDocuments,
                     hasSuccessfullyLoaded: false,
                     generatorInfo,
@@ -191,7 +213,7 @@ namespace Microsoft.CodeAnalysis
                     this.ProjectState.Id,
                     metadataReferenceToProjectId);
 
-                return new CompilationTracker(inProgressProject, finalState);
+                return new CompilationTracker(inProgressProject, finalState, this.SkeletonReferenceCache.Clone());
             }
 
             /// <summary>
@@ -213,7 +235,7 @@ namespace Microsoft.CodeAnalysis
                 CancellationToken cancellationToken)
             {
                 var state = ReadState();
-                var compilationWithoutGeneratedDocuments = state.CompilationWithoutGeneratedDocuments?.GetValueOrNull(cancellationToken);
+                var compilationWithoutGeneratedDocuments = state.CompilationWithoutGeneratedDocuments;
 
                 // check whether we can bail out quickly for typing case
                 var inProgressState = state as InProgressState;
@@ -246,20 +268,18 @@ namespace Microsoft.CodeAnalysis
                 // if we already have a final compilation we are done.
                 if (compilationWithoutGeneratedDocuments != null && state is FinalState finalState)
                 {
-                    var finalCompilation = finalState.FinalCompilationWithGeneratedDocuments.GetValueOrNull(cancellationToken);
+                    var finalCompilation = finalState.FinalCompilationWithGeneratedDocuments;
+                    Contract.ThrowIfNull(finalCompilation, "We have a FinalState, so we must have a non-null final compilation");
 
-                    if (finalCompilation != null)
-                    {
-                        compilations = new CompilationPair(compilationWithoutGeneratedDocuments, finalCompilation);
+                    compilations = new CompilationPair(compilationWithoutGeneratedDocuments, finalCompilation);
 
-                        // This should hopefully be safe to return as null.  Because we already reached the 'FinalState'
-                        // before, we should have already recorded the assembly symbols for it.  So not recording them
-                        // again is likely ok (as long as compilations continue to return the same IAssemblySymbols for
-                        // the same references across source edits).
-                        metadataReferenceToProjectId = null;
-                        SolutionLogger.UseExistingFullProjectState();
-                        return;
-                    }
+                    // This should hopefully be safe to return as null.  Because we already reached the 'FinalState'
+                    // before, we should have already recorded the assembly symbols for it.  So not recording them
+                    // again is likely ok (as long as compilations continue to return the same IAssemblySymbols for
+                    // the same references across source edits).
+                    metadataReferenceToProjectId = null;
+                    SolutionLogger.UseExistingFullProjectState();
+                    return;
                 }
 
                 // 1) if we have an in-progress compilation use it.  
@@ -342,14 +362,8 @@ namespace Microsoft.CodeAnalysis
             public bool TryGetCompilation([NotNullWhen(true)] out Compilation? compilation)
             {
                 var state = ReadState();
-                if (state.FinalCompilationWithGeneratedDocuments != null && state.FinalCompilationWithGeneratedDocuments.TryGetValue(out var compilationOpt) && compilationOpt.HasValue)
-                {
-                    compilation = compilationOpt.Value;
-                    return true;
-                }
-
-                compilation = null;
-                return false;
+                compilation = state.FinalCompilationWithGeneratedDocuments;
+                return compilation != null;
             }
 
             public Task<Compilation> GetCompilationAsync(SolutionState solution, CancellationToken cancellationToken)
@@ -385,13 +399,13 @@ namespace Microsoft.CodeAnalysis
                         var state = ReadState();
 
                         // we are already in the final stage. just return it.
-                        var compilation = state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken);
+                        var compilation = state.FinalCompilationWithGeneratedDocuments;
                         if (compilation != null)
                         {
                             return compilation;
                         }
 
-                        compilation = state.CompilationWithoutGeneratedDocuments?.GetValueOrNull(cancellationToken);
+                        compilation = state.CompilationWithoutGeneratedDocuments;
                         if (compilation == null)
                         {
                             // We've got nothing.  Build it from scratch :(
@@ -413,7 +427,7 @@ namespace Microsoft.CodeAnalysis
                         return compilation;
                     }
                 }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -434,7 +448,7 @@ namespace Microsoft.CodeAnalysis
                         var state = ReadState();
 
                         // Try to get the built compilation.  If it exists, then we can just return that.
-                        var finalCompilation = state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken);
+                        var finalCompilation = state.FinalCompilationWithGeneratedDocuments;
                         if (finalCompilation != null)
                         {
                             RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
@@ -456,7 +470,7 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
                 }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -476,14 +490,14 @@ namespace Microsoft.CodeAnalysis
 
                 // if we already have a compilation, we must be already done!  This can happen if two
                 // threads were waiting to build, and we came in after the other succeeded.
-                var compilation = state.FinalCompilationWithGeneratedDocuments?.GetValueOrNull(cancellationToken);
+                var compilation = state.FinalCompilationWithGeneratedDocuments;
                 if (compilation != null)
                 {
                     RoslynDebug.Assert(state.HasSuccessfullyLoaded.HasValue);
                     return new CompilationInfo(compilation, state.HasSuccessfullyLoaded.Value, state.GeneratorInfo.Documents);
                 }
 
-                compilation = state.CompilationWithoutGeneratedDocuments?.GetValueOrNull(cancellationToken);
+                compilation = state.CompilationWithoutGeneratedDocuments;
 
                 if (compilation == null)
                 {
@@ -531,7 +545,7 @@ namespace Microsoft.CodeAnalysis
                         compilationWithStaleGeneratedTrees: null,
                         cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -561,7 +575,7 @@ namespace Microsoft.CodeAnalysis
                     WriteState(new AllSyntaxTreesParsedState(compilation, generatorInfo), solutionServices);
                     return compilation;
                 }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -658,12 +672,13 @@ namespace Microsoft.CodeAnalysis
                         // even if we were to get cancelled at a later point.
                         intermediateProjects = intermediateProjects.RemoveAt(0);
 
-                        this.WriteState(CompilationTrackerState.Create(compilationWithoutGenerators, state.GeneratorInfo.WithDriver(generatorDriver), compilationWithGenerators, intermediateProjects), solutionServices);
+                        this.WriteState(CompilationTrackerState.Create(
+                            compilationWithoutGenerators, state.GeneratorInfo.WithDriver(generatorDriver), compilationWithGenerators, intermediateProjects), solutionServices);
                     }
 
                     return (compilationWithoutGenerators, compilationWithGenerators, generatorDriver);
                 }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -799,6 +814,24 @@ namespace Microsoft.CodeAnalysis
                                         this.ProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider,
                                         additionalTexts));
                             }
+                            else
+                            {
+#if DEBUG
+
+                                // Assert that the generator driver is in sync with our additional document states; there's not a public
+                                // API to get this, but we'll reflect in DEBUG-only.
+                                var driverType = generatorInfo.Driver.GetType();
+                                var stateMember = driverType.GetField("_state", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                                Contract.ThrowIfNull(stateMember);
+                                var additionalTextsMember = stateMember.FieldType.GetField("AdditionalTexts", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                                Contract.ThrowIfNull(additionalTextsMember);
+                                var state = stateMember.GetValue(generatorInfo.Driver);
+                                var additionalTexts = (ImmutableArray<AdditionalText>)additionalTextsMember.GetValue(state)!;
+
+                                Contract.ThrowIfFalse(additionalTexts.Length == this.ProjectState.AdditionalDocumentStates.Count);
+
+#endif
+                            }
 
                             generatorInfo = generatorInfo.WithDriver(generatorInfo.Driver!.RunGenerators(compilationWithoutGenerators, cancellationToken));
                             var runResult = generatorInfo.Driver!.GetRunResult();
@@ -880,8 +913,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     var finalState = FinalState.Create(
-                        CompilationTrackerState.CreateValueSource(compilationWithGenerators, solution.Services),
-                        CompilationTrackerState.CreateValueSource(compilationWithoutGenerators, solution.Services),
+                        compilationWithGenerators,
                         compilationWithoutGenerators,
                         hasSuccessfullyLoaded,
                         generatorInfo,
@@ -905,7 +937,7 @@ namespace Microsoft.CodeAnalysis
                     await Task.Yield().ConfigureAwait(false);
                     throw;
                 }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -937,40 +969,6 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            public async Task<MetadataReference> GetMetadataReferenceAsync(
-                SolutionState solution,
-                ProjectState fromProject,
-                ProjectReference projectReference,
-                CancellationToken cancellationToken)
-            {
-                try
-                {
-                    // if we already have the compilation and its right kind then use it.
-                    if (this.ProjectState.LanguageServices == fromProject.LanguageServices
-                        && this.TryGetCompilation(out var compilation))
-                    {
-                        return compilation.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
-                    }
-
-                    // If same language then we can wrap the other project's compilation into a compilation reference
-                    if (this.ProjectState.LanguageServices == fromProject.LanguageServices)
-                    {
-                        // otherwise, base it off the compilation by building it first.
-                        compilation = await this.GetCompilationAsync(solution, cancellationToken).ConfigureAwait(false);
-                        return compilation.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
-                    }
-                    else
-                    {
-                        // otherwise get a metadata only image reference that is built by emitting the metadata from the referenced project's compilation and re-importing it.
-                        return await this.GetMetadataOnlyImageReferenceAsync(solution, projectReference, cancellationToken).ConfigureAwait(false);
-                    }
-                }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
-                {
-                    throw ExceptionUtilities.Unreachable;
-                }
-            }
-
             /// <summary>
             /// Attempts to get (without waiting) a metadata reference to a possibly in progress
             /// compilation. Only actual compilation references are returned. Could potentially 
@@ -981,58 +979,14 @@ namespace Microsoft.CodeAnalysis
                 var state = ReadState();
 
                 // get compilation in any state it happens to be in right now.
-                if (state.CompilationWithoutGeneratedDocuments != null &&
-                    state.CompilationWithoutGeneratedDocuments.TryGetValue(out var compilationOpt) &&
-                    compilationOpt.HasValue &&
+                if (state.CompilationWithoutGeneratedDocuments is { } compilationOpt &&
                     ProjectState.LanguageServices == fromProject.LanguageServices)
                 {
                     // if we have a compilation and its the correct language, use a simple compilation reference
-                    return compilationOpt.Value.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
+                    return compilationOpt.ToMetadataReference(projectReference.Aliases, projectReference.EmbedInteropTypes);
                 }
 
                 return null;
-            }
-
-            /// <summary>
-            /// Gets a metadata reference to the metadata-only-image corresponding to the compilation.
-            /// </summary>
-            private async Task<MetadataReference> GetMetadataOnlyImageReferenceAsync(
-                SolutionState solution, ProjectReference projectReference, CancellationToken cancellationToken)
-            {
-                try
-                {
-                    using (Logger.LogBlock(FunctionId.Workspace_SkeletonAssembly_GetMetadataOnlyImage, cancellationToken))
-                    {
-                        var version = await this.GetDependentSemanticVersionAsync(solution, cancellationToken).ConfigureAwait(false);
-
-                        // get or build compilation up to declaration state. this compilation will be used to provide live xml doc comment
-                        var declarationCompilation = await this.GetOrBuildDeclarationCompilationAsync(solution.Services, cancellationToken: cancellationToken).ConfigureAwait(false);
-                        solution.Workspace.LogTestMessage($"Looking for a cached skeleton assembly for {projectReference.ProjectId} before taking the lock...");
-
-                        if (!MetadataOnlyReference.TryGetReference(solution, projectReference, declarationCompilation, version, out var reference))
-                        {
-                            // using async build lock so we don't get multiple consumers attempting to build metadata-only images for the same compilation.
-                            using (await _buildLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-                            {
-                                solution.Workspace.LogTestMessage($"Build lock taken for {ProjectState.Id}...");
-
-                                // okay, we still don't have one. bring the compilation to final state since we are going to use it to create skeleton assembly
-                                var compilationInfo = await this.GetOrBuildCompilationInfoAsync(solution, lockGate: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-                                reference = MetadataOnlyReference.GetOrBuildReference(solution, projectReference, compilationInfo.Compilation, version, cancellationToken);
-                            }
-                        }
-                        else
-                        {
-                            solution.Workspace.LogTestMessage($"Reusing the already cached skeleton assembly for {projectReference.ProjectId}");
-                        }
-
-                        return reference;
-                    }
-                }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
-                {
-                    throw ExceptionUtilities.Unreachable;
-                }
             }
 
             public Task<bool> HasSuccessfullyLoadedAsync(SolutionState solution, CancellationToken cancellationToken)
@@ -1077,12 +1031,13 @@ namespace Microsoft.CodeAnalysis
                 return state is FinalState finalState ? finalState.GeneratorInfo.Documents.GetState(documentId) : null;
             }
 
-            #region Versions
+            #region Versions and Checksums
 
             // Dependent Versions are stored on compilation tracker so they are more likely to survive when unrelated solution branching occurs.
 
             private AsyncLazy<VersionStamp>? _lazyDependentVersion;
             private AsyncLazy<VersionStamp>? _lazyDependentSemanticVersion;
+            private AsyncLazy<Checksum>? _lazyDependentChecksum;
 
             public Task<VersionStamp> GetDependentVersionAsync(SolutionState solution, CancellationToken cancellationToken)
             {
@@ -1147,6 +1102,52 @@ namespace Microsoft.CodeAnalysis
 
                 return version;
             }
+
+            public Task<Checksum> GetDependentChecksumAsync(SolutionState solution, CancellationToken cancellationToken)
+            {
+                if (_lazyDependentChecksum == null)
+                {
+                    var tmp = solution; // temp. local to avoid a closure allocation for the fast path
+                    // note: solution is captured here, but it will go away once GetValueAsync executes.
+                    Interlocked.CompareExchange(ref _lazyDependentChecksum, new AsyncLazy<Checksum>(c => ComputeDependentChecksumAsync(tmp, c), cacheResult: true), null);
+                }
+
+                return _lazyDependentChecksum.GetValueAsync(cancellationToken);
+            }
+
+            private async Task<Checksum> ComputeDependentChecksumAsync(SolutionState solution, CancellationToken cancellationToken)
+            {
+                using var tempChecksumArray = TemporaryArray<Checksum>.Empty;
+
+                // Get the checksum for the project itself.
+                var projectChecksum = await this.ProjectState.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+                tempChecksumArray.Add(projectChecksum);
+
+                // Calculate a checksum this project and for each dependent project that could affect semantics for
+                // this project. Ensure that the checksum calculation orders the projects consistently so that we get
+                // the same checksum across sessions of VS.  Note: we use the project filepath+name as a unique way
+                // to reference a project.  This matches the logic in our persistence-service implemention as to how
+                // information is associated with a project.
+                var transitiveDependencies = solution.GetProjectDependencyGraph().GetProjectsThatThisProjectTransitivelyDependsOn(this.ProjectState.Id);
+                var orderedProjectIds = transitiveDependencies.OrderBy(id =>
+                {
+                    var depProject = solution.GetRequiredProjectState(id);
+                    return (depProject.FilePath, depProject.Name);
+                });
+
+                foreach (var projectId in orderedProjectIds)
+                {
+                    var referencedProject = solution.GetRequiredProjectState(projectId);
+
+                    // Note that these checksums should only actually be calculated once, if the project is unchanged
+                    // the same checksum will be returned.
+                    var referencedProjectChecksum = await referencedProject.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+                    tempChecksumArray.Add(referencedProjectChecksum);
+                }
+
+                return Checksum.Create(tempChecksumArray.ToImmutableAndClear());
+            }
+
             #endregion
         }
     }
