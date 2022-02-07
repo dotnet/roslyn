@@ -38,17 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
         {
         }
 
-        private static SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token)
-        {
-            var node = token.GetAncestor(node => node.IsAsyncSupportingFunctionSyntax());
-            if (node is LocalFunctionStatementSyntax { ExpressionBody: null, Body: null })
-            {
-                return node.Parent?.FirstAncestorOrSelf<SyntaxNode>(node => node.IsAsyncSupportingFunctionSyntax());
-            }
-
-            return node;
-        }
-
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             var document = context.Document;
@@ -141,9 +130,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
                 return root;
             }
 
+            // Get the argument list to annotate so we can place the cursor in the list
             var argumentListNode = snippetExpressionNode.DescendantNodes().OfType<ArgumentListSyntax>().First();
             var annotedSnippet = argumentListNode.WithAdditionalAnnotations(cursorAnnotation);
             return root.ReplaceNode(argumentListNode, annotedSnippet);
+        }
+
+        private static SyntaxNode? GetAsyncSupportingDeclaration(SyntaxToken token)
+        {
+            var node = token.GetAncestor(node => node.IsAsyncSupportingFunctionSyntax());
+            if (node is LocalFunctionStatementSyntax { ExpressionBody: null, Body: null })
+            {
+                return node.Parent?.FirstAncestorOrSelf<SyntaxNode>(node => node.IsAsyncSupportingFunctionSyntax());
+            }
+
+            return node;
         }
     }
 }

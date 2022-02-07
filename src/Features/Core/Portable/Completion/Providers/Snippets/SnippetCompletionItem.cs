@@ -40,9 +40,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             return 0;
         }
 
-        public static int GetLine(CompletionItem item)
+        public static int GetTokenSpanEnd(CompletionItem item)
         {
-            if (item.Properties.TryGetValue("Line", out var text)
+            if (item.Properties.TryGetValue("TokenSpanEnd", out var text)
                 && int.TryParse(text, out var number))
             {
                 return number;
@@ -51,9 +51,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             return 0;
         }
 
-        public static int GetTokenSpanEnd(CompletionItem item)
+        public static int GetLine(CompletionItem item)
         {
-            if (item.Properties.TryGetValue("TokenSpanEnd", out var text)
+            if (item.Properties.TryGetValue("Line", out var text)
                 && int.TryParse(text, out var number))
             {
                 return number;
