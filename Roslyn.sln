@@ -814,6 +814,21 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "targets", "targets", "{9E83
 		eng\targets\XUnit.targets = eng\targets\XUnit.targets
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "eng", "eng", "{996D2F8A-5E42-420E-A64B-8B4E6BF4AC86}"
+	ProjectSection(SolutionItems) = preProject
+		dotnet-tools.json = dotnet-tools.json
+		global.json = global.json
+		eng\InternalTools.props = eng\InternalTools.props
+		NuGet.config = NuGet.config
+		eng\Publishing.props = eng\Publishing.props
+		eng\Signing.props = eng\Signing.props
+		eng\SourceBuild.props = eng\SourceBuild.props
+		eng\SourceBuildPrebuiltBaseline.xml = eng\SourceBuildPrebuiltBaseline.xml
+		eng\Tools.props = eng\Tools.props
+		eng\Version.Details.xml = eng\Version.Details.xml
+		eng\Versions.props = eng\Versions.props
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Analyzers\VisualBasic\CodeFixes\VisualBasicCodeFixes.projitems*{0141285d-8f6c-42c7-baf3-3c0ccd61c716}*SharedItemsImports = 5
@@ -1861,6 +1876,7 @@ Global
 		{6B7763D3-9F30-4F05-94DE-38C20F48BFF4} = {6D7F0678-0CDB-4BF0-A695-F9AE955881D9}
 		{E4A4E008-5B9A-46C3-9CE9-9EF36F0D0F13} = {157EA250-2F28-4948-A8F2-D58EAEA05DC8}
 		{9E8320DC-7DB8-4AF3-AD25-7F91E3432D8F} = {E4A4E008-5B9A-46C3-9CE9-9EF36F0D0F13}
+		{996D2F8A-5E42-420E-A64B-8B4E6BF4AC86} = {157EA250-2F28-4948-A8F2-D58EAEA05DC8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}
