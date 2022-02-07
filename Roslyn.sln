@@ -935,6 +935,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "globalconfigs", "globalconf
 		eng\config\globalconfigs\Shipping.globalconfig = eng\config\globalconfigs\Shipping.globalconfig
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "repo", "repo", "{1B65B7FF-EC0D-4B13-B70C-BE47222B8601}"
+	ProjectSection(SolutionItems) = preProject
+		CODE-OF-CONDUCT.md = CODE-OF-CONDUCT.md
+		CONTRIBUTING.md = CONTRIBUTING.md
+		README.md = README.md
+		SECURITY.md = SECURITY.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Analyzers\VisualBasic\CodeFixes\VisualBasicCodeFixes.projitems*{0141285d-8f6c-42c7-baf3-3c0ccd61c716}*SharedItemsImports = 5
@@ -1994,6 +2002,7 @@ Global
 		{26484676-A7F6-4280-AA70-94F0A07D05A2} = {643B5F23-417A-4B22-A075-69B6FE109768}
 		{8B7E3F14-0B96-492E-BF7A-D50391678D3D} = {643B5F23-417A-4B22-A075-69B6FE109768}
 		{0B65A63D-9854-488E-B184-E27514955CEA} = {16FBBB1E-2C00-4C2D-A046-B8E0F286C2E5}
+		{1B65B7FF-EC0D-4B13-B70C-BE47222B8601} = {157EA250-2F28-4948-A8F2-D58EAEA05DC8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}
