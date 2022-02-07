@@ -35,16 +35,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceUsingStatement
             Return parentOfStatementsToSurround.ReplaceStatements(statements)
         End Function
 
-        Protected Overrides Function CreateUsingStatement(declarationStatement As LocalDeclarationStatementSyntax, sameLineTrivia As SyntaxTriviaList, statementsToSurround As SyntaxList(Of StatementSyntax)) As StatementSyntax
-            Dim usingStatement =
-                SyntaxFactory.UsingStatement(
-                    expression:=Nothing,
-                    variables:=declarationStatement.Declarators)
+        Protected Overrides Function CreateUsingStatement(
+                declarationStatement As LocalDeclarationStatementSyntax,
+                statementsToSurround As SyntaxList(Of StatementSyntax)) As StatementSyntax
+            Dim usingStatement = SyntaxFactory.UsingStatement(
+                expression:=Nothing,
+                variables:=declarationStatement.Declarators)
 
-            If sameLineTrivia.Any Then
-                usingStatement = usingStatement.WithTrailingTrivia(sameLineTrivia)
-            End If
-
+            usingStatement = usingStatement.WithoutTrivia().WithTriviaFrom(declarationStatement)
             Return SyntaxFactory.UsingBlock(usingStatement, statementsToSurround)
         End Function
     End Class
