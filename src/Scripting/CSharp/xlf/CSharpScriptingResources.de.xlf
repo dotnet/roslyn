@@ -50,7 +50,7 @@ Optionen:
                                  (alternative Formate: /libPath /libPaths).
   /u:&lt;Namespace&gt;                 Definiert einen globalen Namespace mit "using" (alternative Formate: /using, /usings, /import, /imports).
   /langversion:?                 Zeigt die zulässigen Werte für die Sprachversion an und beendet den Vorgang.
-  /langversion:&lt;string&gt;          Gibt die Sprachversion an, z. B.
+  /langversion:&lt;string&gt;          Gibt die Sprachversion an, z.B.
                                  "latest" (neueste Version, einschließlich Nebenversionen),
                                  "default" (entspricht "latest"),
                                  "latestmajor" (neueste Version ohne Nebenversionen),

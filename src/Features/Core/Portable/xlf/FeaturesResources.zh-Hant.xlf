@@ -1160,11 +1160,11 @@ This option is recommended if you know that backtracking will not succeed. Preve
 'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
 The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</source>
-        <target state="translated">平衡群組定義會刪除先前已定義群組的定義，並將先前定義的群組和目前群組間的間隔儲存在目前的群組內。
+        <target state="new">A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group.
     
-'name1' 是目前的群組 (選擇性)，'name2' 是先前定義的群組，'subexpression' 是任何有效的規則運算式模式。平衡群組定義會刪除 name2 的定義，並將 name2 與 name1 之間的間隔儲存在 name1 內。如果未指定 name2 群組，則比對會回溯。因為刪除 name2 的上一個定義會顯示 name2 先前的定義，所以此建構可讓您使用群組 name2 的擷取堆疊來作為計數器，用來追蹤括號或左右括弧等巢狀建構。
+'name1' is the current group (optional), 'name2' is a previously defined group, and 'subexpression' is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
 
-平衡群組定義會使用 'name2' 作為堆疊。各巢狀建構的開頭字元會置於群組和其 Group.Captures 集合內。符合右側字元時，會將其對應的左側字元從群組移除，使 Captures 集合減少一。當所有巢狀建構的左側和右側字元均相符後，'name1' 會空白。</target>
+The balancing group definition uses 'name2' as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, 'name1' is empty.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_balancing_group_short">
@@ -3237,32 +3237,32 @@ If the "M" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="Generate_enum_member_1_0">
         <source>Generate enum member '{1}.{0}'</source>
-        <target state="translated">產生列舉成員 '{1}.{0}'</target>
+        <target state="new">Generate enum member '{1}.{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constant_1_0">
         <source>Generate constant '{1}.{0}'</source>
-        <target state="translated">產生常數 '{1}.{0}'</target>
+        <target state="new">Generate constant '{1}.{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_read_only_property_1_0">
         <source>Generate read-only property '{1}.{0}'</source>
-        <target state="translated">產生唯讀屬性 '{1}.{0}'</target>
+        <target state="new">Generate read-only property '{1}.{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_property_1_0">
         <source>Generate property '{1}.{0}'</source>
-        <target state="translated">產生屬性 '{1}.{0}'</target>
+        <target state="new">Generate property '{1}.{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_read_only_field_1_0">
         <source>Generate read-only field '{1}.{0}'</source>
-        <target state="translated">產生唯讀欄位 '{1}.{0}'</target>
+        <target state="new">Generate read-only field '{1}.{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_field_1_0">
         <source>Generate field '{1}.{0}'</source>
-        <target state="translated">產生欄位 '{1}.{0}'</target>
+        <target state="new">Generate field '{1}.{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_local_0">
@@ -3352,7 +3352,7 @@ If the "M" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="Anonymous_Types_colon">
         <source>Anonymous Types:</source>
-        <target state="translated">匿名類型:</target>
+        <target state="new">Anonymous Types:</target>
         <note />
       </trans-unit>
       <trans-unit id="is_">
@@ -3481,17 +3481,17 @@ If the "g" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="Generate_abstract_property_1_0">
         <source>Generate abstract property '{1}.{0}'</source>
-        <target state="translated">產生抽象屬性 '{1}.{0}'</target>
+        <target state="new">Generate abstract property '{1}.{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_abstract_method_1_0">
         <source>Generate abstract method '{1}.{0}'</source>
-        <target state="translated">產生抽象方法 '{1}.{0}'</target>
+        <target state="new">Generate abstract method '{1}.{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_method_1_0">
         <source>Generate method '{1}.{0}'</source>
-        <target state="translated">產生方法 '{1}.{0}'</target>
+        <target state="new">Generate method '{1}.{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Requested_assembly_already_loaded_from_0">
@@ -4167,12 +4167,12 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="Make_containing_scope_async">
         <source>Make containing scope async</source>
-        <target state="translated">讓包含範圍非同步</target>
+        <target state="new">Make containing scope async</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_containing_scope_async_return_Task">
         <source>Make containing scope async (return Task)</source>
-        <target state="translated">讓包含範圍非同步 (傳回工作)</target>
+        <target state="new">Make containing scope async (return Task)</target>
         <note />
       </trans-unit>
       <trans-unit id="paren_Unknown_paren">

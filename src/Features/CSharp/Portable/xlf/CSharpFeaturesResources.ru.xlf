@@ -679,7 +679,7 @@
       </trans-unit>
       <trans-unit id="interface_name">
         <source>&lt;interface name&gt;</source>
-        <target state="translated">&lt; имя интерфейса &gt;</target>
+        <target state="translated">&lt;имя интерфейса&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="designation_name">

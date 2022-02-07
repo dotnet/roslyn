@@ -514,7 +514,7 @@
       </trans-unit>
       <trans-unit id="cmdidshowValueTracking|ButtonText">
         <source>Track Value Source</source>
-        <target state="translated">トラック値のソース</target>
+        <target state="translated">値のソースの追跡</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidshowValueTracking|CommandName">
@@ -524,7 +524,7 @@
       </trans-unit>
       <trans-unit id="cmdidshowValueTracking|LocCanonicalName">
         <source>ViewEditorConfigSettings</source>
-        <target state="translated">ViewEditorConfigSettings</target>
+        <target state="new">ViewEditorConfigSettings</target>
         <note />
       </trans-unit>
       <trans-unit id="guidCSharpInteractiveCommandSet|cmdidResetInteractiveFromProject|ButtonText">

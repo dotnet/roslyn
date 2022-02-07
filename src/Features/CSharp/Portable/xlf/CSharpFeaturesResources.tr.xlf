@@ -214,7 +214,7 @@
       </trans-unit>
       <trans-unit id="lambda_expression">
         <source>&lt;lambda expression&gt;</source>
-        <target state="translated">&lt; lambda ifadesi &gt;</target>
+        <target state="translated">&lt;lambda ifadesi&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_potential_lambda_declaration">
@@ -229,7 +229,7 @@
       </trans-unit>
       <trans-unit id="member_name">
         <source>&lt;member name&gt; = </source>
-        <target state="translated">&lt; üye adı &gt; = </target>
+        <target state="translated">&lt;üye adı&gt; = </target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_possible_explicitly_named_anonymous_type_member_creation">
@@ -239,7 +239,7 @@
       </trans-unit>
       <trans-unit id="element_name">
         <source>&lt;element name&gt; : </source>
-        <target state="translated">&lt; öğe adı &gt;: </target>
+        <target state="translated">&lt;öğe adı&gt;: </target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_possible_tuple_type_element_creation">
@@ -254,7 +254,7 @@
       </trans-unit>
       <trans-unit id="range_variable">
         <source>&lt;range variable&gt;</source>
-        <target state="translated">&lt; Aralık değişkeni &gt;</target>
+        <target state="translated">&lt;Aralık değişkeni&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_potential_range_variable_declaration">
@@ -649,7 +649,7 @@
       </trans-unit>
       <trans-unit id="namespace_name">
         <source>&lt;namespace name&gt;</source>
-        <target state="translated">&lt; ad alanı adı &gt;</target>
+        <target state="translated">&lt;ad alanı adı&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_type_declaration">
@@ -674,22 +674,22 @@
       </trans-unit>
       <trans-unit id="class_name">
         <source>&lt;class name&gt;</source>
-        <target state="translated">&lt; sınıf adı &gt;</target>
+        <target state="translated">&lt;sınıf adı&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="interface_name">
         <source>&lt;interface name&gt;</source>
-        <target state="translated">&lt; arabirim adı &gt;</target>
+        <target state="translated">&lt;arabirim adı&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="designation_name">
         <source>&lt;designation name&gt;</source>
-        <target state="translated">&lt; atama adı &gt;</target>
+        <target state="translated">&lt;atama adı&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="struct_name">
         <source>&lt;struct name&gt;</source>
-        <target state="translated">&lt; yapı adı &gt;</target>
+        <target state="translated">&lt;yapı adı&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_method_async">
@@ -704,7 +704,7 @@
       </trans-unit>
       <trans-unit id="Name">
         <source>&lt;Name&gt;</source>
-        <target state="translated">&lt; ad &gt;</target>
+        <target state="translated">&lt;ad&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_member_declaration">
