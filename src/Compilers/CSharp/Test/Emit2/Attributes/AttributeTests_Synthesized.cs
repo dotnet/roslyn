@@ -697,9 +697,9 @@ record R
 
                 var ctor = record.GetMembers(WellKnownMemberNames.InstanceConstructorName);
                 Assert.Equal(2, ctor.Length);
-                Assert.Equal(1, ctor[0].GetParameters().Length); // copy constructor
-                validateCompilerGeneratedAttribute(ctor[0]); // should have attribute.
-                Assert.Empty(ctor[1].GetParameters()); // parameterless constructor
+                Assert.Equal("R..ctor(R original)", ctor[0].ToTestDisplayString());
+                validateCompilerGeneratedAttribute(ctor[0]);
+                Assert.Equal("R..ctor()", ctor[1].ToTestDisplayString()); // parameterless constructor
                 Assert.Empty(ctor[1].GetAttributes()); // shouldn't have attribute.
 
                 var equalityContract = record.GetMember("EqualityContract");
@@ -922,6 +922,94 @@ record struct R(int P1);
             {
                 var attributeNames = GetAttributeNames(symbol.GetAttributes());
                 Assert.Contains("CompilerGeneratedAttribute", attributeNames);
+            }
+        }
+
+        [Fact]
+        [WorkItem(46439, "https://github.com/dotnet/roslyn/issues/46439")]
+        public void AttributeIsMissing()
+        {
+            string source = @"
+record struct R;
+
+namespace System
+{
+    public interface IEquatable<T>
+    {
+        bool Equals(T other);
+    }
+
+    public class Object
+    {
+        public virtual bool Equals(object obj)
+        {
+            return true;
+        }
+
+        public virtual int GetHashCode()
+        {
+            return 0;
+        }
+
+        public virtual string ToString()
+        {
+            return null;
+        }
+    }
+    public class Boolean { }
+    public class String { }
+    public struct Int32 { }
+    public struct Char { }
+    public class ValueType { }
+    public class Attribute { }
+    public struct Void { }
+    public class Exception { }
+}
+
+namespace System.Text
+{
+    public class StringBuilder
+    {
+        public StringBuilder Append(char c)
+        {
+            return this;
+        }
+
+        public StringBuilder Append(string s)
+        {
+            return this;
+        }
+    }
+}
+
+";
+            var comp = CreateEmptyCompilation(source);
+            CompileAndVerify(comp, symbolValidator: validate);
+
+            void validate(ModuleSymbol module)
+            {
+                var record = module.GlobalNamespace.GetTypeMember("R");
+                Assert.Equal(7, record.GetMembers().Length); // If a new record member is added, extend the test with its behavior regarding CompilerGeneratedAttribute.
+
+                var ctor = record.GetMember(WellKnownMemberNames.InstanceConstructorName);
+                Assert.Empty(ctor.GetAttributes());
+
+                var toString = record.GetMember(WellKnownMemberNames.ObjectToString);
+                Assert.Empty(toString.GetAttributes());
+
+                var op_Equality = record.GetMember(WellKnownMemberNames.EqualityOperatorName);
+                Assert.Empty(op_Equality.GetAttributes());
+
+                var op_Inequality = record.GetMember(WellKnownMemberNames.InequalityOperatorName);
+                Assert.Empty(op_Inequality.GetAttributes());
+
+                var getHashCode = record.GetMember(WellKnownMemberNames.ObjectGetHashCode);
+                Assert.Empty(getHashCode.GetAttributes());
+
+                var equals = record.GetMembers(WellKnownMemberNames.ObjectEquals);
+                Assert.Equal(2, equals.Length);
+                Assert.Empty(equals[0].GetAttributes());
+                Assert.Empty(equals[1].GetAttributes());
             }
         }
 
