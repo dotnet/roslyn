@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="ERR_AddressOfMethodGroupInExpressionTree">
         <source>'&amp;' on method groups cannot be used in expression trees</source>
-        <target state="translated">&amp; pro skupiny metod se nedá použít ve stromech výrazů.</target>
+        <target state="translated">'&amp;' pro skupiny metod se nedá použít ve stromech výrazů.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AddressOfToNonFunctionPointer">
@@ -454,7 +454,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsPatternIndexOrRangeIndexer">
         <source>An expression tree may not contain a pattern System.Index or System.Range indexer access</source>
-        <target state="translated">Strom výrazů možná neobsahuje vzor přístupu indexeru System.Index nebo System.Range.</target>
+        <target state="new">An expression tree may not contain a pattern System.Index or System.Range indexer access</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsRangeExpression">
@@ -829,7 +829,7 @@
       </trans-unit>
       <trans-unit id="ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString">
         <source>Newlines are not allowed inside a non-verbatim interpolated string</source>
-        <target state="translated">Nové řádky se uvnitř nedoslovného interpolovaného řetězce nepovolují.</target>
+        <target state="new">Newlines are not allowed inside a non-verbatim interpolated string</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
@@ -1459,7 +1459,7 @@
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter">
         <source>Parameter {0} occurs after {1} in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</source>
-        <target state="translated">Parametr {0} se v seznamu parametrů nachází za {1}, ale používá se jako argument pro převody obslužných rutin interpolovaných řetězců. To vyžaduje, aby volající změnil pořadí parametrů s pojmenovanými argumenty na lokalitě volání. Doporučujeme, abyste parametr obslužné rutiny interpolovaného řetězce vložili za všechny ostatní zahrnuté argumenty.</target>
+        <target state="new">Parameter {0} occurs after {1} in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter_Title">
@@ -3498,7 +3498,7 @@
       </trans-unit>
       <trans-unit id="XML_LessThanInAttributeValue">
         <source>The character '&lt;' cannot be used in an attribute value.</source>
-        <target state="translated">Znak &lt; se nedá použít v hodnotě atributu.</target>
+        <target state="translated">Znak '&lt;' se nedá použít v hodnotě atributu.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_MissingEqualsAttribute">
@@ -3553,7 +3553,7 @@
       </trans-unit>
       <trans-unit id="XML_CDataEndTagNotAllowed">
         <source>The literal string ']]&gt;' is not allowed in element content.</source>
-        <target state="translated">V obsahu elementu není povolený řetězec literálu ]]&gt;.</target>
+        <target state="translated">V obsahu elementu není povolený řetězec literálu ']]&gt;'.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_DuplicateAttribute">
