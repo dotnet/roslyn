@@ -57,10 +57,7 @@ class C2 { }
 class C3 { }
 ";
 
-            MarkupTestFile.GetPosition(expected, out expected, out int caretPosition);
-
-            await TestServices.EditorVerifier.TextContainsAsync(expected, cancellationToken: HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.CaretPositionAsync(caretPosition, HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.TextContainsAsync(expected, assertCaretPosition: true, cancellationToken: HangMitigatingCancellationToken);
         }
     }
 }
