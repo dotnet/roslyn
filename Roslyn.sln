@@ -903,6 +903,38 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GenerateSdkPackages", "Gene
 		scripts\GenerateSdkPackages\README.md = scripts\GenerateSdkPackages\README.md
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "config", "config", "{16FBBB1E-2C00-4C2D-A046-B8E0F286C2E5}"
+	ProjectSection(SolutionItems) = preProject
+		eng\config\app.manifest = eng\config\app.manifest
+		eng\config\BannedSymbols.txt = eng\config\BannedSymbols.txt
+		eng\config\OptProf.json = eng\config\OptProf.json
+		eng\config\PublishData.json = eng\config\PublishData.json
+		eng\config\runtimeconfig.template.json = eng\config\runtimeconfig.template.json
+		eng\config\xunit.runner.json = eng\config\xunit.runner.json
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{643B5F23-417A-4B22-A075-69B6FE109768}"
+	ProjectSection(SolutionItems) = preProject
+		eng\config\test\BannedSymbols.txt = eng\config\test\BannedSymbols.txt
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Desktop", "Desktop", "{26484676-A7F6-4280-AA70-94F0A07D05A2}"
+	ProjectSection(SolutionItems) = preProject
+		eng\config\test\Desktop\app.config = eng\config\test\Desktop\app.config
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{8B7E3F14-0B96-492E-BF7A-D50391678D3D}"
+	ProjectSection(SolutionItems) = preProject
+		eng\config\test\Core\InstallTraceListener.cs = eng\config\test\Core\InstallTraceListener.cs
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "globalconfigs", "globalconfigs", "{0B65A63D-9854-488E-B184-E27514955CEA}"
+	ProjectSection(SolutionItems) = preProject
+		eng\config\globalconfigs\Common.globalconfig = eng\config\globalconfigs\Common.globalconfig
+		eng\config\globalconfigs\NonShipping.globalconfig = eng\config\globalconfigs\NonShipping.globalconfig
+		eng\config\globalconfigs\Shipping.globalconfig = eng\config\globalconfigs\Shipping.globalconfig
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Analyzers\VisualBasic\CodeFixes\VisualBasicCodeFixes.projitems*{0141285d-8f6c-42c7-baf3-3c0ccd61c716}*SharedItemsImports = 5
@@ -1957,6 +1989,11 @@ Global
 		{7FE71690-658A-40CA-BE28-9E1747F722AB} = {10823AC8-A41F-430E-900C-E68188AC1004}
 		{1898CC90-965D-4462-AF59-6D6E8CBE161A} = {10823AC8-A41F-430E-900C-E68188AC1004}
 		{69E3CFEC-AC9C-471F-B361-8549F598BE8F} = {10823AC8-A41F-430E-900C-E68188AC1004}
+		{16FBBB1E-2C00-4C2D-A046-B8E0F286C2E5} = {996D2F8A-5E42-420E-A64B-8B4E6BF4AC86}
+		{643B5F23-417A-4B22-A075-69B6FE109768} = {16FBBB1E-2C00-4C2D-A046-B8E0F286C2E5}
+		{26484676-A7F6-4280-AA70-94F0A07D05A2} = {643B5F23-417A-4B22-A075-69B6FE109768}
+		{8B7E3F14-0B96-492E-BF7A-D50391678D3D} = {643B5F23-417A-4B22-A075-69B6FE109768}
+		{0B65A63D-9854-488E-B184-E27514955CEA} = {16FBBB1E-2C00-4C2D-A046-B8E0F286C2E5}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}
