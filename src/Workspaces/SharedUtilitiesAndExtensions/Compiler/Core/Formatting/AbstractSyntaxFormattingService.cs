@@ -24,11 +24,13 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
         }
 
+        public abstract SyntaxFormattingOptions GetFormattingOptions(AnalyzerConfigOptions options);
+
         public abstract IEnumerable<AbstractFormattingRule> GetDefaultFormattingRules();
 
         protected abstract IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? formattingSpans = null);
 
-        protected abstract AbstractFormattingResult Format(SyntaxNode node, AnalyzerConfigOptions options, IEnumerable<AbstractFormattingRule> rules, SyntaxToken token1, SyntaxToken token2, CancellationToken cancellationToken);
+        protected abstract AbstractFormattingResult Format(SyntaxNode node, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule> rules, SyntaxToken startToken, SyntaxToken endToken, CancellationToken cancellationToken);
 
         public IFormattingResult GetFormattingResult(SyntaxNode node, IEnumerable<TextSpan>? spans, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule>? rules, CancellationToken cancellationToken)
         {
@@ -61,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 }
 
                 results ??= new List<AbstractFormattingResult>();
-                results.Add(Format(node, options.Options, rules, startToken, endToken, cancellationToken));
+                results.Add(Format(node, options, rules, startToken, endToken, cancellationToken));
             }
 
             // quick simple case check

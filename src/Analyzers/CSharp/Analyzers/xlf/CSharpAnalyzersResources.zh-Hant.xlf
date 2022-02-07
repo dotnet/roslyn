@@ -67,6 +67,11 @@
         <target state="translated">內嵌變數宣告</target>
         <note />
       </trans-unit>
+      <trans-unit id="Lambda_expression_can_be_removed">
+        <source>Lambda expression can be removed</source>
+        <target state="new">Lambda expression can be removed</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Misplaced_using_directive">
         <source>Misplaced using directive</source>
         <target state="translated">using 指示詞位置錯誤</target>
@@ -122,6 +127,11 @@
         <target state="translated">移除隱藏的運算子</target>
         <note />
       </trans-unit>
+      <trans-unit id="Remove_unnecessary_lambda_expression">
+        <source>Remove unnecessary lambda expression</source>
+        <target state="new">Remove unnecessary lambda expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_unnecessary_suppression_operator">
         <source>Remove unnecessary suppression operator</source>
         <target state="translated">移除隱藏運算子中不需要的運算子</target>
@@ -135,6 +145,11 @@
       <trans-unit id="Simplify_default_expression">
         <source>Simplify 'default' expression</source>
         <target state="translated">簡化 'default' 運算式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_delegate_invocation">
+        <source>Simplify delegate invocation</source>
+        <target state="new">Simplify delegate invocation</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_property_pattern">

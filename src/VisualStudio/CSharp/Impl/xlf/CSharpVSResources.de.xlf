@@ -204,7 +204,7 @@
       </trans-unit>
       <trans-unit id="Insert_Snippet">
         <source>Insert Snippet</source>
-        <target state="translated">Ausschnitt einfügen</target>
+        <target state="translated">Schnipsel einfügen</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_format_block_on_close_brace">
@@ -614,7 +614,7 @@
       </trans-unit>
       <trans-unit id="Place_code_snippets_in_completion_lists">
         <source>Place _code snippets in completion lists</source>
-        <target state="translated">_Codeausschnitte in Vervollständigungslisten anordnen</target>
+        <target state="translated">_Codeschnipsel in Vervollständigungslisten anordnen</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_In_Completion_List">
@@ -764,22 +764,22 @@
       </trans-unit>
       <trans-unit id="Always_include_snippets">
         <source>Always include snippets</source>
-        <target state="translated">Ausschnitte immer einschließen</target>
+        <target state="translated">Schnipsel immer einschließen</target>
         <note />
       </trans-unit>
       <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
         <source>Include snippets when ?-Tab is typed after an identifier</source>
-        <target state="translated">Ausschnitte einschließen, wenn ?-TAB nach einem Bezeichner eingegeben wird</target>
+        <target state="translated">Schnipsel einschließen, wenn ?-TAB nach einem Bezeichner eingegeben wird</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_include_snippets">
         <source>Never include snippets</source>
-        <target state="translated">Ausschnitte nie einschließen</target>
+        <target state="translated">Schnipsel nie einschließen</target>
         <note />
       </trans-unit>
       <trans-unit id="Snippets_behavior">
         <source>Snippets behavior</source>
-        <target state="translated">Ausschnittverhalten</target>
+        <target state="translated">Schnipselverhalten</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_list_after_a_character_is_deleted">

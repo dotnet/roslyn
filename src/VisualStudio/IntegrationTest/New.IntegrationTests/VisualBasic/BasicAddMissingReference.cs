@@ -8,11 +8,11 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
-using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using Xunit;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
 {
+    [Trait(Traits.Feature, Traits.Features.AddMissingReference)]
     public class BasicAddMissingReference : AbstractEditorTest
     {
         private const string FileInLibraryProject1 = @"Public Class Class1
@@ -144,7 +144,26 @@ End Module
                 "</Solution>"), HangMitigatingCancellationToken);
         }
 
-        [IdeFact, Trait(Traits.Feature, Traits.Features.AddMissingReference)]
+        [IdeFact]
+        public async Task VerifyAvailableCodeActions()
+        {
+            var consoleProject = ConsoleProjectName;
+            await TestServices.SolutionExplorer.OpenFileAsync(consoleProject, "Module1.vb", HangMitigatingCancellationToken);
+            await TestServices.Editor.PlaceCaretAsync("y.goo", charsOffset: 1, HangMitigatingCancellationToken);
+            await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.CodeActionAsync("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false, cancellationToken: HangMitigatingCancellationToken);
+            await TestServices.Editor.PlaceCaretAsync("x.goo", charsOffset: 1, HangMitigatingCancellationToken);
+            await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.CodeActionAsync("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false, cancellationToken: HangMitigatingCancellationToken);
+            await TestServices.Editor.PlaceCaretAsync("z.DialogResult", charsOffset: 1, HangMitigatingCancellationToken);
+            await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.CodeActionAsync("Add reference to 'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.", applyFix: false, cancellationToken: HangMitigatingCancellationToken);
+            await TestServices.Editor.PlaceCaretAsync("a.bar", charsOffset: 1, HangMitigatingCancellationToken);
+            await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.CodeActionAsync("Add project reference to 'ClassLibrary3'.", applyFix: false, cancellationToken: HangMitigatingCancellationToken);
+        }
+
+        [IdeFact]
         public async Task InvokeSomeFixesInVisualBasicThenVerifyReferences()
         {
             await TestServices.SolutionExplorer.OpenFileAsync(ConsoleProjectName, "Module1.vb", HangMitigatingCancellationToken);

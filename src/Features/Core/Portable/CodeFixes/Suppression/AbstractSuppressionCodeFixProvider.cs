@@ -10,7 +10,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 skipSuppressMessage = suppressMessageAttribute == null || !suppressMessageAttribute.IsAttribute();
             }
 
-            var lazyFormattingOptions = (SyntaxFormattingOptions?)null;
+            var lazyFormattingOptions = (SyntaxFormattingOptions)null;
             var result = ArrayBuilder<CodeFix>.GetInstance();
             foreach (var diagnostic in diagnostics)
             {
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     {
                         // pragma warning disable.
                         lazyFormattingOptions ??= await SyntaxFormattingOptions.FromDocumentAsync(documentOpt, cancellationToken).ConfigureAwait(false);
-                        nestedActions.Add(PragmaWarningCodeAction.Create(suppressionTargetInfo, documentOpt, lazyFormattingOptions.Value, diagnostic, this));
+                        nestedActions.Add(PragmaWarningCodeAction.Create(suppressionTargetInfo, documentOpt, lazyFormattingOptions, diagnostic, this));
                     }
 
                     // SuppressMessageAttribute suppression is not supported for compiler diagnostics.

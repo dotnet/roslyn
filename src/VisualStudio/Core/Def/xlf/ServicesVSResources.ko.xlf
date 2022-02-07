@@ -242,6 +242,11 @@
         <target state="translated">색 힌트</target>
         <note />
       </trans-unit>
+      <trans-unit id="Colorize_JSON_strings">
+        <source>Colorize JSON strings</source>
+        <target state="new">Colorize JSON strings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
         <source>Colorize regular expressions</source>
         <target state="translated">정규식 색 지정</target>
@@ -300,6 +305,11 @@
       <trans-unit id="Derived_types">
         <source>Derived types</source>
         <target state="translated">파생 형식</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Detect_and_offer_editor_features_for_likely_JSON_strings">
+        <source>Detect and offer editor features for likely JSON strings</source>
+        <target state="new">Detect and offer editor features for likely JSON strings</target>
         <note />
       </trans-unit>
       <trans-unit id="Disabled">
@@ -540,6 +550,11 @@
       <trans-unit id="Item_origin">
         <source>Item origin</source>
         <target state="translated">항목 원본</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_strings">
+        <source>JSON strings</source>
+        <target state="new">JSON strings</target>
         <note />
       </trans-unit>
       <trans-unit id="Keep">
@@ -992,6 +1007,11 @@
         <target state="translated">인덱스 연산자 선호</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_method_group_conversion">
+        <source>Prefer method group conversion</source>
+        <target state="new">Prefer method group conversion</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_namespace_and_folder_match_structure">
         <source>Prefer namespace and folder match structure</source>
         <target state="translated">네임스페이스 및 폴더 일치 구조 선호</target>
@@ -1080,6 +1100,11 @@
       <trans-unit id="Rename_0_to_1">
         <source>Rename {0} to {1}</source>
         <target state="translated">{0} 이름을 {1}(으)로 바꾸기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Report_invalid_JSON_strings">
+        <source>Report invalid JSON strings</source>
+        <target state="new">Report invalid JSON strings</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_regular_expressions">

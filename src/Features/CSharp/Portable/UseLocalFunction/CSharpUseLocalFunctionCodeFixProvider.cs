@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             var currentRoot = root.TrackNodes(nodesToTrack);
 
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var languageVersion = ((CSharpParseOptions)semanticModel.SyntaxTree.Options).LanguageVersion;
+            var languageVersion = semanticModel.SyntaxTree.Options.LanguageVersion();
             var makeStaticIfPossible = languageVersion >= LanguageVersion.CSharp8 &&
                 options.GetOption(CSharpCodeStyleOptions.PreferStaticLocalFunction).Value;
 

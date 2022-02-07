@@ -10,8 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -54,7 +52,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             private async Task<ImmutableArray<TextChange>> GetTextChangesAsync(
                 Document document, SyntaxNode contextNode,
-                bool allowInHiddenRegions, bool hasExistingImport,
+                AddImportPlacementOptions options, bool hasExistingImport,
                 CancellationToken cancellationToken)
             {
                 // Defer to the language to add the actual import/using.
@@ -68,7 +66,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                 var updatedDocument = await provider.AddImportAsync(
                     newContextNode, SymbolResult.Symbol, newDocument,
-                    allowInHiddenRegions, cancellationToken).ConfigureAwait(false);
+                    options, cancellationToken).ConfigureAwait(false);
 
                 var cleanedDocument = await CodeAction.CleanupDocumentAsync(
                     updatedDocument, cancellationToken).ConfigureAwait(false);
@@ -81,11 +79,10 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             public sealed override async Task<AddImportFixData> TryGetFixDataAsync(
                 Document document, SyntaxNode node,
-                bool allowInHiddenRegions, CancellationToken cancellationToken)
+                AddImportPlacementOptions options, CancellationToken cancellationToken)
             {
-                var preferences = await CodeGenerationPreferences.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var (description, hasExistingImport) = GetDescription(document, preferences, node, semanticModel, cancellationToken);
+                var (description, hasExistingImport) = GetDescription(document, options, node, semanticModel, cancellationToken);
                 if (description == null)
                 {
                     return null;
@@ -116,7 +113,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 }
 
                 var textChanges = await GetTextChangesAsync(
-                    document, node, allowInHiddenRegions, hasExistingImport, cancellationToken).ConfigureAwait(false);
+                    document, node, options, hasExistingImport, cancellationToken).ConfigureAwait(false);
 
                 return GetFixData(
                     document, textChanges, description,
@@ -130,11 +127,11 @@ namespace Microsoft.CodeAnalysis.AddImport
             protected abstract CodeActionPriority GetPriority(Document document);
 
             protected virtual (string description, bool hasExistingImport) GetDescription(
-                Document document, CodeGenerationPreferences preferences, SyntaxNode node,
+                Document document, AddImportPlacementOptions options, SyntaxNode node,
                 SemanticModel semanticModel, CancellationToken cancellationToken)
             {
                 return provider.GetDescription(
-                    document, preferences, SymbolResult.Symbol, semanticModel, node, cancellationToken);
+                    document, options, SymbolResult.Symbol, semanticModel, node, cancellationToken);
             }
         }
     }

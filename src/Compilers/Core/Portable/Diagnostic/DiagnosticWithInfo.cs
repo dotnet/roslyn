@@ -142,11 +142,6 @@ namespace Microsoft.CodeAnalysis
             return Hash.Combine(this.Location.GetHashCode(), this.Info.GetHashCode());
         }
 
-        public override bool Equals(object? obj)
-        {
-            return Equals(obj as Diagnostic);
-        }
-
         public override bool Equals(Diagnostic? obj)
         {
             if (ReferenceEquals(this, obj))

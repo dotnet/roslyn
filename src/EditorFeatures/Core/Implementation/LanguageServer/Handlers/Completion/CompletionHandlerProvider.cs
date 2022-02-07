@@ -33,12 +33,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _completionProviders = completionProviders;
         }
 
-        public override ImmutableArray<IRequestHandler> CreateRequestHandlers()
+        public override ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
         {
             var completionListCache = new CompletionListCache();
             return ImmutableArray.Create<IRequestHandler>(
                 new CompletionHandler(_globalOptions, _completionProviders, completionListCache),
-                new CompletionResolveHandler(completionListCache));
+                new CompletionResolveHandler(_globalOptions, completionListCache));
         }
     }
 }

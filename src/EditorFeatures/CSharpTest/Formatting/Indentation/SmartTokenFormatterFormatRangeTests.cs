@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -3588,7 +3589,7 @@ class Program{
             }
 
             Assert.Equal(tokenKind, endToken.Kind());
-            var options = await document.GetOptionsAsync();
+            var options = await IndentationOptions.FromDocumentAsync(document, CancellationToken.None);
             var formatter = new CSharpSmartTokenFormatter(options, rules, root);
 
             var tokenRange = FormattingRangeHelper.FindAppropriateRange(endToken);

@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return true;
         }
 
-        private ContainedLanguageRenameType GetRenameType(ISymbol symbol)
+        private static ContainedLanguageRenameType GetRenameType(ISymbol symbol)
         {
             if (symbol is INamespaceSymbol)
             {
