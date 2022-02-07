@@ -160,6 +160,263 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.vsconfig = .vsconfig
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{E3FCA611-F2D3-43C7-B1D6-F679C663B197}"
+	ProjectSection(SolutionItems) = preProject
+		docs\Adding Optional Parameters in Public API.md = docs\Adding Optional Parameters in Public API.md
+		docs\area-owners.md = docs\area-owners.md
+		docs\Breaking API Changes.md = docs\Breaking API Changes.md
+		docs\Language Feature Status.md = docs\Language Feature Status.md
+		docs\README.md = docs\README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "analyzers", "analyzers", "{D64F0E49-A249-48CE-823D-9D795CDFD538}"
+	ProjectSection(SolutionItems) = preProject
+		docs\analyzers\Analyzer Actions Semantics.md = docs\analyzers\Analyzer Actions Semantics.md
+		docs\analyzers\Analyzer Samples.md = docs\analyzers\Analyzer Samples.md
+		docs\analyzers\DiagnosticSuppressorDesign.md = docs\analyzers\DiagnosticSuppressorDesign.md
+		docs\analyzers\FixAllProvider.md = docs\analyzers\FixAllProvider.md
+		docs\analyzers\Localizing Analyzers.md = docs\analyzers\Localizing Analyzers.md
+		docs\analyzers\Report Analyzer Format.md = docs\analyzers\Report Analyzer Format.md
+		docs\analyzers\Using Additional Files.md = docs\analyzers\Using Additional Files.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "compilers", "compilers", "{92E68F43-D3FD-466B-8AE2-CD91ABD32516}"
+	ProjectSection(SolutionItems) = preProject
+		docs\compilers\analyzer-config.md = docs\compilers\analyzer-config.md
+		docs\compilers\Boolean Representation.md = docs\compilers\Boolean Representation.md
+		docs\compilers\Co-located core types.md = docs\compilers\Co-located core types.md
+		docs\compilers\Compiler Server.md = docs\compilers\Compiler Server.md
+		docs\compilers\Compiler Toolset NuPkgs.md = docs\compilers\Compiler Toolset NuPkgs.md
+		docs\compilers\Deterministic Inputs.md = docs\compilers\Deterministic Inputs.md
+		docs\compilers\Error Log Format.md = docs\compilers\Error Log Format.md
+		docs\compilers\Extension Methods in Aliased Assemblies.md = docs\compilers\Extension Methods in Aliased Assemblies.md
+		docs\compilers\Interactive Imports.md = docs\compilers\Interactive Imports.md
+		docs\compilers\IOperation Test Hook.md = docs\compilers\IOperation Test Hook.md
+		docs\compilers\README.md = docs\compilers\README.md
+		docs\compilers\Rule Set Format.md = docs\compilers\Rule Set Format.md
+		docs\compilers\terrapin.md = docs\compilers\terrapin.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "API Notes", "API Notes", "{21023C6F-3181-4635-8D4D-23391A08168F}"
+	ProjectSection(SolutionItems) = preProject
+		docs\compilers\API Notes\10-29-19.md = docs\compilers\API Notes\10-29-19.md
+		docs\compilers\API Notes\4-15-20.md = docs\compilers\API Notes\4-15-20.md
+		docs\compilers\API Notes\6-11-20.md = docs\compilers\API Notes\6-11-20.md
+		docs\compilers\API Notes\8-19-20.md = docs\compilers\API Notes\8-19-20.md
+		docs\compilers\API Notes\9-30-19.md = docs\compilers\API Notes\9-30-19.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CSharp", "CSharp", "{FC348F4F-C992-4499-A222-42156176A9D7}"
+	ProjectSection(SolutionItems) = preProject
+		docs\compilers\CSharp\__arglist.md = docs\compilers\CSharp\__arglist.md
+		docs\compilers\CSharp\CodeGen Differences.md = docs\compilers\CSharp\CodeGen Differences.md
+		docs\compilers\CSharp\COM Interop.md = docs\compilers\CSharp\COM Interop.md
+		docs\compilers\CSharp\CommandLine.md = docs\compilers\CSharp\CommandLine.md
+		docs\compilers\CSharp\Compiler Breaking Changes - DotNet 5.md = docs\compilers\CSharp\Compiler Breaking Changes - DotNet 5.md
+		docs\compilers\CSharp\Compiler Breaking Changes - DotNet 6.md = docs\compilers\CSharp\Compiler Breaking Changes - DotNet 6.md
+		docs\compilers\CSharp\Compiler Breaking Changes - DotNet 7.md = docs\compilers\CSharp\Compiler Breaking Changes - DotNet 7.md
+		docs\compilers\CSharp\Compiler Breaking Changes - post DotNet 5.md = docs\compilers\CSharp\Compiler Breaking Changes - post DotNet 5.md
+		docs\compilers\CSharp\Compiler Breaking Changes - post VS2017.md = docs\compilers\CSharp\Compiler Breaking Changes - post VS2017.md
+		docs\compilers\CSharp\Compiler Breaking Changes - post VS2019.md = docs\compilers\CSharp\Compiler Breaking Changes - post VS2019.md
+		docs\compilers\CSharp\Compiler Breaking Changes - VS2015.md = docs\compilers\CSharp\Compiler Breaking Changes - VS2015.md
+		docs\compilers\CSharp\Compiler Breaking Changes - VS2017.md = docs\compilers\CSharp\Compiler Breaking Changes - VS2017.md
+		docs\compilers\CSharp\Compiler Breaking Changes - VS2019.md = docs\compilers\CSharp\Compiler Breaking Changes - VS2019.md
+		docs\compilers\CSharp\Definite Assignment And Dynamic.md = docs\compilers\CSharp\Definite Assignment And Dynamic.md
+		docs\compilers\CSharp\Definite Assignment And Partials.md = docs\compilers\CSharp\Definite Assignment And Partials.md
+		docs\compilers\CSharp\Definite Assignment.md = docs\compilers\CSharp\Definite Assignment.md
+		docs\compilers\CSharp\Expression Breakpoints.md = docs\compilers\CSharp\Expression Breakpoints.md
+		docs\compilers\CSharp\Indexed Property Access.md = docs\compilers\CSharp\Indexed Property Access.md
+		docs\compilers\CSharp\Internal Access.md = docs\compilers\CSharp\Internal Access.md
+		docs\compilers\CSharp\Multiple Inheritance Lookup Ambuguity.md = docs\compilers\CSharp\Multiple Inheritance Lookup Ambuguity.md
+		docs\compilers\CSharp\Nullability Public API Design Notes.md = docs\compilers\CSharp\Nullability Public API Design Notes.md
+		docs\compilers\CSharp\Overload Resolution.md = docs\compilers\CSharp\Overload Resolution.md
+		docs\compilers\CSharp\readme.md = docs\compilers\CSharp\readme.md
+		docs\compilers\CSharp\Source-Metadata Conflict.md = docs\compilers\CSharp\Source-Metadata Conflict.md
+		docs\compilers\CSharp\Static Type Constraints.md = docs\compilers\CSharp\Static Type Constraints.md
+		docs\compilers\CSharp\System.TypedReference.md = docs\compilers\CSharp\System.TypedReference.md
+		docs\compilers\CSharp\Unicode Version.md = docs\compilers\CSharp\Unicode Version.md
+		docs\compilers\CSharp\Warnversion Warning Waves.md = docs\compilers\CSharp\Warnversion Warning Waves.md
+		docs\compilers\CSharp\Win32 Resources.md = docs\compilers\CSharp\Win32 Resources.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Design", "Design", "{6952F4FE-D5AF-49F1-A5E6-2071F9266A41}"
+	ProjectSection(SolutionItems) = preProject
+		docs\compilers\Design\Bound Node Design.md = docs\compilers\Design\Bound Node Design.md
+		docs\compilers\Design\Closure Conversion.md = docs\compilers\Design\Closure Conversion.md
+		docs\compilers\Design\Editor Config.md = docs\compilers\Design\Editor Config.md
+		docs\compilers\Design\Parser.md = docs\compilers\Design\Parser.md
+		docs\compilers\Design\README.md = docs\compilers\Design\README.md
+		docs\compilers\Design\Unexpected Conditions.md = docs\compilers\Design\Unexpected Conditions.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dynamic Analysis", "Dynamic Analysis", "{5711D926-8066-4B25-BE75-E6B258E73DB4}"
+	ProjectSection(SolutionItems) = preProject
+		docs\compilers\Dynamic Analysis\MetadataFormat.md = docs\compilers\Dynamic Analysis\MetadataFormat.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Visual Basic", "Visual Basic", "{18EE1631-1058-4D0A-990A-ABD93FC95D7F}"
+	ProjectSection(SolutionItems) = preProject
+		docs\compilers\Visual Basic\Clashing Enum Members.md = docs\compilers\Visual Basic\Clashing Enum Members.md
+		docs\compilers\Visual Basic\CommandLine.md = docs\compilers\Visual Basic\CommandLine.md
+		docs\compilers\Visual Basic\Compiler Breaking Changes - post VS2017.md = docs\compilers\Visual Basic\Compiler Breaking Changes - post VS2017.md
+		docs\compilers\Visual Basic\Compiler Breaking Changes - post VS2019.md = docs\compilers\Visual Basic\Compiler Breaking Changes - post VS2019.md
+		docs\compilers\Visual Basic\Compiler Breaking Changes - VS2015.md = docs\compilers\Visual Basic\Compiler Breaking Changes - VS2015.md
+		docs\compilers\Visual Basic\Compiler Breaking Changes - VS2019.md = docs\compilers\Visual Basic\Compiler Breaking Changes - VS2019.md
+		docs\compilers\Visual Basic\Overflow In Embedded Runtime.md = docs\compilers\Visual Basic\Overflow In Embedded Runtime.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "contributing", "contributing", "{E31A13E5-F821-49F5-8DD5-98B686332160}"
+	ProjectSection(SolutionItems) = preProject
+		docs\contributing\API Review Process.md = docs\contributing\API Review Process.md
+		docs\contributing\Building, Debugging, and Testing on Unix.md = docs\contributing\Building, Debugging, and Testing on Unix.md
+		docs\contributing\Building, Debugging, and Testing on Windows.md = docs\contributing\Building, Debugging, and Testing on Windows.md
+		docs\contributing\Compiler Test Plan.md = docs\contributing\Compiler Test Plan.md
+		docs\contributing\Developing a Language Feature.md = docs\contributing\Developing a Language Feature.md
+		docs\contributing\Documentation for IDE CodeStyle analyzers.md = docs\contributing\Documentation for IDE CodeStyle analyzers.md
+		docs\contributing\IDE Test Plan.md = docs\contributing\IDE Test Plan.md
+		docs\contributing\Nullable Annotations.md = docs\contributing\Nullable Annotations.md
+		docs\contributing\Powershell Guidelines.md = docs\contributing\Powershell Guidelines.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "features", "features", "{72D79062-E487-4FF6-A343-31D3DB68AC11}"
+	ProjectSection(SolutionItems) = preProject
+		docs\features\async-main.md = docs\features\async-main.md
+		docs\features\async-main.test.md = docs\features\async-main.test.md
+		docs\features\async-streams.md = docs\features\async-streams.md
+		docs\features\deconstruction.md = docs\features\deconstruction.md
+		docs\features\DefaultInterfaceImplementation.md = docs\features\DefaultInterfaceImplementation.md
+		docs\features\discards.md = docs\features\discards.md
+		docs\features\dynamic-analysis.work.md = docs\features\dynamic-analysis.work.md
+		docs\features\enhanced-using.md = docs\features\enhanced-using.md
+		docs\features\ExperimentalAttribute.md = docs\features\ExperimentalAttribute.md
+		docs\features\ExpressionVariables.md = docs\features\ExpressionVariables.md
+		docs\features\generators.md = docs\features\generators.md
+		docs\features\GlobalUsingDirective.md = docs\features\GlobalUsingDirective.md
+		docs\features\incremental-generators.md = docs\features\incremental-generators.md
+		docs\features\local-functions.md = docs\features\local-functions.md
+		docs\features\local-functions.test.md = docs\features\local-functions.test.md
+		docs\features\local-functions.work.md = docs\features\local-functions.work.md
+		docs\features\NativeIntegerAttribute.md = docs\features\NativeIntegerAttribute.md
+		docs\features\nullable-metadata.md = docs\features\nullable-metadata.md
+		docs\features\nullable-reference-types.md = docs\features\nullable-reference-types.md
+		docs\features\outvar.md = docs\features\outvar.md
+		docs\features\patterns.md = docs\features\patterns.md
+		docs\features\patterns.work.md = docs\features\patterns.work.md
+		docs\features\pdb-compilation-options.md = docs\features\pdb-compilation-options.md
+		docs\features\private-protected.md = docs\features\private-protected.md
+		docs\features\private-protected.work.md = docs\features\private-protected.work.md
+		docs\features\readonly-instance-members.md = docs\features\readonly-instance-members.md
+		docs\features\records.md = docs\features\records.md
+		docs\features\records.work.md = docs\features\records.work.md
+		docs\features\ref-reassignment.md = docs\features\ref-reassignment.md
+		docs\features\refout.md = docs\features\refout.md
+		docs\features\sdk.md = docs\features\sdk.md
+		docs\features\skiplocalsinit.md = docs\features\skiplocalsinit.md
+		docs\features\source-generators.cookbook.md = docs\features\source-generators.cookbook.md
+		docs\features\source-generators.md = docs\features\source-generators.md
+		docs\features\StaticAbstractMembersInInterfaces.md = docs\features\StaticAbstractMembersInInterfaces.md
+		docs\features\task-types.md = docs\features\task-types.md
+		docs\features\throwexpr.md = docs\features\throwexpr.md
+		docs\features\TopLevelStatements.md = docs\features\TopLevelStatements.md
+		docs\features\tuples.md = docs\features\tuples.md
+		docs\features\UsedAssemblyReferences.md = docs\features\UsedAssemblyReferences.md
+		docs\features\wildcards.work.md = docs\features\wildcards.work.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ide", "ide", "{76EAEB79-3582-4EDD-BA72-4BCAE0FB0F76}"
+	ProjectSection(SolutionItems) = preProject
+		docs\ide\external-access.md = docs\ide\external-access.md
+		docs\ide\glossary.md = docs\ide\glossary.md
+		docs\ide\README.md = docs\ide\README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "api-designs", "api-designs", "{EA6901E2-28FF-4701-94E1-D66E623D9C31}"
+	ProjectSection(SolutionItems) = preProject
+		docs\ide\api-designs\Workspace and Source Generated Documents.md = docs\ide\api-designs\Workspace and Source Generated Documents.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test-plans", "test-plans", "{CE9E30E8-B960-4583-B38C-03E8103E570A}"
+	ProjectSection(SolutionItems) = preProject
+		docs\ide\test-plans\source-generators.md = docs\ide\test-plans\source-generators.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "infrastructure", "infrastructure", "{5DA49802-FFA2-4016-9EF4-246D472CA979}"
+	ProjectSection(SolutionItems) = preProject
+		docs\infrastructure\cross-platform.md = docs\infrastructure\cross-platform.md
+		docs\infrastructure\feature branches azure.md = docs\infrastructure\feature branches azure.md
+		docs\infrastructure\msbuild.md = docs\infrastructure\msbuild.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "specs", "specs", "{BAE4B11A-22E1-42C7-B2BA-6BD5CD501D54}"
+	ProjectSection(SolutionItems) = preProject
+		docs\specs\PortablePdb-Metadata.md = docs\specs\PortablePdb-Metadata.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CSharp 6", "CSharp 6", "{DBB05127-C4CC-417C-A5D3-7D1A22C5F2DF}"
+	ProjectSection(SolutionItems) = preProject
+		docs\specs\CSharp 6\Better Betterness.md = docs\specs\CSharp 6\Better Betterness.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "wiki", "wiki", "{559F1286-BA12-4049-98B5-4AA964680129}"
+	ProjectSection(SolutionItems) = preProject
+		docs\wiki\API-Changes.md = docs\wiki\API-Changes.md
+		docs\wiki\Branch-Cleanup.md = docs\wiki\Branch-Cleanup.md
+		docs\wiki\Building-Testing-and-Debugging.md = docs\wiki\Building-Testing-and-Debugging.md
+		docs\wiki\C#-Interactive-Walkthrough.md = docs\wiki\C#-Interactive-Walkthrough.md
+		docs\wiki\Changelog-for-C#-and-VB-compilers.md = docs\wiki\Changelog-for-C#-and-VB-compilers.md
+		docs\wiki\Compiler-Queries.md = docs\wiki\Compiler-Queries.md
+		docs\wiki\Compiler-release-process.md = docs\wiki\Compiler-release-process.md
+		docs\wiki\Compiler-supporting-types.md = docs\wiki\Compiler-supporting-types.md
+		docs\wiki\Contributing-Code.md = docs\wiki\Contributing-Code.md
+		docs\wiki\Diagnosing-Project-System-Build-Errors.md = docs\wiki\Diagnosing-Project-System-Build-Errors.md
+		docs\wiki\EnC-Supported-Edits.md = docs\wiki\EnC-Supported-Edits.md
+		docs\wiki\FAQ.md = docs\wiki\FAQ.md
+		docs\wiki\Getting-Started-C#-Semantic-Analysis.md = docs\wiki\Getting-Started-C#-Semantic-Analysis.md
+		docs\wiki\Getting-Started-C#-Syntax-Analysis.md = docs\wiki\Getting-Started-C#-Syntax-Analysis.md
+		docs\wiki\Getting-Started-C#-Syntax-Transformation.md = docs\wiki\Getting-Started-C#-Syntax-Transformation.md
+		docs\wiki\Getting-Started-on-Visual-Studio-2015-CTP-5.md = docs\wiki\Getting-Started-on-Visual-Studio-2015-CTP-5.md
+		docs\wiki\Getting-Started-on-Visual-Studio-2015-CTP-6.md = docs\wiki\Getting-Started-on-Visual-Studio-2015-CTP-6.md
+		docs\wiki\Getting-Started-on-Visual-Studio-2015-Preview.md = docs\wiki\Getting-Started-on-Visual-Studio-2015-Preview.md
+		docs\wiki\Getting-Started-on-Visual-Studio-2015-RC.md = docs\wiki\Getting-Started-on-Visual-Studio-2015-RC.md
+		docs\wiki\Getting-Started-on-Visual-Studio-2015.md = docs\wiki\Getting-Started-on-Visual-Studio-2015.md
+		docs\wiki\Getting-Started-VB-Semantic-Analysis.md = docs\wiki\Getting-Started-VB-Semantic-Analysis.md
+		docs\wiki\Getting-Started-VB-Syntax-Analysis.md = docs\wiki\Getting-Started-VB-Syntax-Analysis.md
+		docs\wiki\Getting-Started-VB-Syntax-Transformation.md = docs\wiki\Getting-Started-VB-Syntax-Transformation.md
+		docs\wiki\Getting-Started-Writing-a-Custom-Analyzer-&-Code-Fix.md = docs\wiki\Getting-Started-Writing-a-Custom-Analyzer-&-Code-Fix.md
+		docs\wiki\How-To-Investigate-CI-Test-Failures.md = docs\wiki\How-To-Investigate-CI-Test-Failures.md
+		docs\wiki\How-to-support-new-C#-language-features-by-Edit-And-Continue-(ENC).md = docs\wiki\How-to-support-new-C#-language-features-by-Edit-And-Continue-(ENC).md
+		docs\wiki\How-To-Write-a-C#-Analyzer-and-Code-Fix.md = docs\wiki\How-To-Write-a-C#-Analyzer-and-Code-Fix.md
+		docs\wiki\How-To-Write-a-Visual-Basic-Analyzer-and-Code-Fix.md = docs\wiki\How-To-Write-a-Visual-Basic-Analyzer-and-Code-Fix.md
+		docs\wiki\Interactive-Window.md = docs\wiki\Interactive-Window.md
+		docs\wiki\Labels-used-for-issues.md = docs\wiki\Labels-used-for-issues.md
+		docs\wiki\Languages-features-in-C#-6-and-VB-14.md = docs\wiki\Languages-features-in-C#-6-and-VB-14.md
+		docs\wiki\Linux-Instructions.md = docs\wiki\Linux-Instructions.md
+		docs\wiki\Manual-Testing.md = docs\wiki\Manual-Testing.md
+		docs\wiki\Measuring-Compiler-Performance.md = docs\wiki\Measuring-Compiler-Performance.md
+		docs\wiki\New-Language-Features-in-C#-6.md = docs\wiki\New-Language-Features-in-C#-6.md
+		docs\wiki\New-Language-Features-in-VB-14.md = docs\wiki\New-Language-Features-in-VB-14.md
+		docs\wiki\Notes-on-formatting.md = docs\wiki\Notes-on-formatting.md
+		docs\wiki\Notes-on-nullability.md = docs\wiki\Notes-on-nullability.md
+		docs\wiki\NuGet-packages.md = docs\wiki\NuGet-packages.md
+		docs\wiki\Performance-considerations-for-large-solutions.md = docs\wiki\Performance-considerations-for-large-solutions.md
+		docs\wiki\Performance-Investigations.md = docs\wiki\Performance-Investigations.md
+		docs\wiki\README.md = docs\wiki\README.md
+		docs\wiki\Recording-performance-traces-with-PerfView.md = docs\wiki\Recording-performance-traces-with-PerfView.md
+		docs\wiki\Reporting-Visual-Studio-crashes-and-performance-issues.md = docs\wiki\Reporting-Visual-Studio-crashes-and-performance-issues.md
+		docs\wiki\Responding-to-customers-encountering-crashes-or-performance-issues.md = docs\wiki\Responding-to-customers-encountering-crashes-or-performance-issues.md
+		docs\wiki\Roadmap.md = docs\wiki\Roadmap.md
+		docs\wiki\Roslyn-Overview.md = docs\wiki\Roslyn-Overview.md
+		docs\wiki\Runtime-code-generation-using-Roslyn-compilations-in-.NET-Core-App.md = docs\wiki\Runtime-code-generation-using-Roslyn-compilations-in-.NET-Core-App.md
+		docs\wiki\Samples-and-Walkthroughs.md = docs\wiki\Samples-and-Walkthroughs.md
+		docs\wiki\Scripting-API-Samples.md = docs\wiki\Scripting-API-Samples.md
+		docs\wiki\Syntax-Visualizer.md = docs\wiki\Syntax-Visualizer.md
+		docs\wiki\Troubleshooting-tips.md = docs\wiki\Troubleshooting-tips.md
+		docs\wiki\VS-2015-CTP-5-API-Changes.md = docs\wiki\VS-2015-CTP-5-API-Changes.md
+		docs\wiki\VS-2015-CTP-6-API-Changes.md = docs\wiki\VS-2015-CTP-6-API-Changes.md
+		docs\wiki\VS-2015-RC-API-Changes.md = docs\wiki\VS-2015-RC-API-Changes.md
+		docs\wiki\Walkthroughs.md = docs\wiki\Walkthroughs.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 5
@@ -504,6 +761,23 @@ Global
 		{321F9FED-AACC-42CB-93E5-541D79E099E8} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
 		{FDBFBB64-5980-41C2-9E3E-FB8E2F700A5C} = {A41D1B99-F489-4C43-BBDF-96D61B19A6B9}
 		{AAEDD19A-9D73-42C4-A2BB-ACDE36F170D5} = {32A48625-F0AD-419D-828B-A50BDABA38EA}
+		{E3FCA611-F2D3-43C7-B1D6-F679C663B197} = {43BA76D0-D61A-4206-A207-8E5E989927AD}
+		{D64F0E49-A249-48CE-823D-9D795CDFD538} = {E3FCA611-F2D3-43C7-B1D6-F679C663B197}
+		{92E68F43-D3FD-466B-8AE2-CD91ABD32516} = {E3FCA611-F2D3-43C7-B1D6-F679C663B197}
+		{21023C6F-3181-4635-8D4D-23391A08168F} = {92E68F43-D3FD-466B-8AE2-CD91ABD32516}
+		{FC348F4F-C992-4499-A222-42156176A9D7} = {92E68F43-D3FD-466B-8AE2-CD91ABD32516}
+		{6952F4FE-D5AF-49F1-A5E6-2071F9266A41} = {92E68F43-D3FD-466B-8AE2-CD91ABD32516}
+		{5711D926-8066-4B25-BE75-E6B258E73DB4} = {92E68F43-D3FD-466B-8AE2-CD91ABD32516}
+		{18EE1631-1058-4D0A-990A-ABD93FC95D7F} = {92E68F43-D3FD-466B-8AE2-CD91ABD32516}
+		{E31A13E5-F821-49F5-8DD5-98B686332160} = {E3FCA611-F2D3-43C7-B1D6-F679C663B197}
+		{72D79062-E487-4FF6-A343-31D3DB68AC11} = {E3FCA611-F2D3-43C7-B1D6-F679C663B197}
+		{76EAEB79-3582-4EDD-BA72-4BCAE0FB0F76} = {E3FCA611-F2D3-43C7-B1D6-F679C663B197}
+		{EA6901E2-28FF-4701-94E1-D66E623D9C31} = {76EAEB79-3582-4EDD-BA72-4BCAE0FB0F76}
+		{CE9E30E8-B960-4583-B38C-03E8103E570A} = {76EAEB79-3582-4EDD-BA72-4BCAE0FB0F76}
+		{5DA49802-FFA2-4016-9EF4-246D472CA979} = {E3FCA611-F2D3-43C7-B1D6-F679C663B197}
+		{BAE4B11A-22E1-42C7-B2BA-6BD5CD501D54} = {E3FCA611-F2D3-43C7-B1D6-F679C663B197}
+		{DBB05127-C4CC-417C-A5D3-7D1A22C5F2DF} = {BAE4B11A-22E1-42C7-B2BA-6BD5CD501D54}
+		{559F1286-BA12-4049-98B5-4AA964680129} = {E3FCA611-F2D3-43C7-B1D6-F679C663B197}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6F599E08-A9EA-4FAA-897F-5D824B0210E6}
