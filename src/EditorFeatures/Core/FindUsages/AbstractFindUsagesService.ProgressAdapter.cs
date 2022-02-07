@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -23,27 +24,30 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// Forwards <see cref="IStreamingFindLiteralReferencesProgress"/> calls to an
         /// <see cref="IFindUsagesContext"/> instance.
         /// </summary>
-        private class FindLiteralsProgressAdapter : IStreamingFindLiteralReferencesProgress
+        private sealed class FindLiteralsProgressAdapter : IStreamingFindLiteralReferencesProgress
         {
             private readonly IFindUsagesContext _context;
             private readonly DefinitionItem _definition;
-            private readonly ClassificationOptions _classificationOptions;
 
             public IStreamingProgressTracker ProgressTracker
                 => _context.ProgressTracker;
 
             public FindLiteralsProgressAdapter(
-                IFindUsagesContext context, DefinitionItem definition, ClassificationOptions classificationOptions)
+                IFindUsagesContext context, DefinitionItem definition)
             {
                 _context = context;
                 _definition = definition;
-                _classificationOptions = classificationOptions;
             }
 
             public async ValueTask OnReferenceFoundAsync(Document document, TextSpan span, CancellationToken cancellationToken)
             {
+                // TODO:
+                // var options = await _context.GetOptionsAsync(document.Project.Language, cancellationToken).ConfigureAwait(false);
+                var classificationOptions = ClassificationOptions.From(document.Project);
+
                 var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
-                    document, span, _classificationOptions, cancellationToken).ConfigureAwait(false);
+                    document, span, classificationOptions, cancellationToken).ConfigureAwait(false);
+
                 await _context.OnReferenceFoundAsync(
                     new SourceReferenceItem(_definition, documentSpan, SymbolUsageInfo.None), cancellationToken).ConfigureAwait(false);
             }
@@ -52,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// <summary>
         /// Forwards IFindReferencesProgress calls to an IFindUsagesContext instance.
         /// </summary>
-        private class FindReferencesProgressAdapter : IStreamingFindReferencesProgress
+        private sealed class FindReferencesProgressAdapter : IStreamingFindReferencesProgress
         {
             private readonly Solution _solution;
             private readonly IFindUsagesContext _context;
@@ -124,7 +128,9 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             {
                 var definitionItem = await GetDefinitionItemAsync(group, cancellationToken).ConfigureAwait(false);
                 var referenceItem = await location.TryCreateSourceReferenceItemAsync(
-                    definitionItem, includeHiddenLocations: false,
+                    _context,
+                    definitionItem,
+                    includeHiddenLocations: false,
                     cancellationToken).ConfigureAwait(false);
 
                 if (referenceItem != null)

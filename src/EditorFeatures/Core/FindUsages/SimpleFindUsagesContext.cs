@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
     /// Simple implementation of a <see cref="FindUsagesContext"/> that just aggregates the results
     /// for consumers that just want the data once it is finally computed.
     /// </summary>
-    internal class SimpleFindUsagesContext : FindUsagesContext
+    internal sealed class SimpleFindUsagesContext : FindUsagesContext
     {
         private readonly object _gate = new();
         private readonly ImmutableArray<DefinitionItem>.Builder _definitionItems =
@@ -25,7 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         private readonly ImmutableArray<SourceReferenceItem>.Builder _referenceItems =
             ImmutableArray.CreateBuilder<SourceReferenceItem>();
 
-        public SimpleFindUsagesContext()
+        public SimpleFindUsagesContext(IGlobalOptionService globalOptions)
+            : base(globalOptions)
         {
         }
 
