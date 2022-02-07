@@ -976,6 +976,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundRelationalPattern:
                     case BoundDeclarationPattern { IsVar: false }:
                     case BoundConstantPattern { ConstantValue: { IsNull: false } }:
+                    case BoundListPattern:
+                    case BoundSlicePattern: // Only occurs in error cases
                         return false;
                     case BoundConstantPattern { ConstantValue: { IsNull: true } }:
                         return true;
@@ -1036,6 +1038,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundRelationalPattern:
                     case BoundDeclarationPattern:
                     case BoundListPattern:
+                    case BoundSlicePattern: // Only occurs in error cases
                         return null;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
