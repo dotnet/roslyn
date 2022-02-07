@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
         Private Async Function TestAPIAndFeature(definition As XElement, kind As TestKind, host As TestHost, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
             If kind = TestKind.API Then
-                Await TestAPI(definition, host, searchSingleFileOnly, uiVisibleOnly, options:=Nothing)
+                Await TestAPI(definition, host, searchSingleFileOnly, uiVisibleOnly)
             Else
                 Assert.Equal(TestKind.StreamingFeature, kind)
                 Await TestStreamingFeature(definition, host, searchSingleFileOnly, uiVisibleOnly)
@@ -260,8 +260,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Optional searchSingleFileOnly As Boolean = False,
                 Optional uiVisibleOnly As Boolean = False) As Task
 
-            Await TestAPI(definition, host, searchSingleFileOnly, uiVisibleOnly, New FindReferencesSearchOptions(Explicit:=True))
             Await TestAPI(definition, host, searchSingleFileOnly, uiVisibleOnly, New FindReferencesSearchOptions(Explicit:=False))
+            Await TestAPI(definition, host, searchSingleFileOnly, uiVisibleOnly, New FindReferencesSearchOptions(Explicit:=True))
         End Function
 
         Private Async Function TestAPI(
