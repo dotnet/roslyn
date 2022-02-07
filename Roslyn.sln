@@ -758,6 +758,33 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "wiki", "wiki", "{559F1286-B
 		docs\wiki\Walkthroughs.md = docs\wiki\Walkthroughs.md
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pipelines", "pipelines", "{6D7F0678-0CDB-4BF0-A695-F9AE955881D9}"
+	ProjectSection(SolutionItems) = preProject
+		azure-pipelines-integration-corehost.yml = azure-pipelines-integration-corehost.yml
+		azure-pipelines-integration-dartlab.yml = azure-pipelines-integration-dartlab.yml
+		azure-pipelines-integration-lsp.yml = azure-pipelines-integration-lsp.yml
+		azure-pipelines-integration.yml = azure-pipelines-integration.yml
+		azure-pipelines-official.yml = azure-pipelines-official.yml
+		azure-pipelines-pr-validation.yml = azure-pipelines-pr-validation.yml
+		azure-pipelines-richnav.yml = azure-pipelines-richnav.yml
+		azure-pipelines.yml = azure-pipelines.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "templates", "templates", "{6B7763D3-9F30-4F05-94DE-38C20F48BFF4}"
+	ProjectSection(SolutionItems) = preProject
+		eng\pipelines\build-unix-job.yml = eng\pipelines\build-unix-job.yml
+		eng\pipelines\build-windows-job.yml = eng\pipelines\build-windows-job.yml
+		eng\pipelines\checkout-unix-task.yml = eng\pipelines\checkout-unix-task.yml
+		eng\pipelines\checkout-windows-task.yml = eng\pipelines\checkout-windows-task.yml
+		eng\pipelines\insert.yml = eng\pipelines\insert.yml
+		eng\pipelines\publish-logs.yml = eng\pipelines\publish-logs.yml
+		eng\pipelines\test-integration-job.yml = eng\pipelines\test-integration-job.yml
+		eng\pipelines\test-unix-job-single-machine.yml = eng\pipelines\test-unix-job-single-machine.yml
+		eng\pipelines\test-unix-job.yml = eng\pipelines\test-unix-job.yml
+		eng\pipelines\test-windows-job-single-machine.yml = eng\pipelines\test-windows-job-single-machine.yml
+		eng\pipelines\test-windows-job.yml = eng\pipelines\test-windows-job.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Analyzers\VisualBasic\CodeFixes\VisualBasicCodeFixes.projitems*{0141285d-8f6c-42c7-baf3-3c0ccd61c716}*SharedItemsImports = 5
@@ -1801,6 +1828,8 @@ Global
 		{BAE4B11A-22E1-42C7-B2BA-6BD5CD501D54} = {E3FCA611-F2D3-43C7-B1D6-F679C663B197}
 		{DBB05127-C4CC-417C-A5D3-7D1A22C5F2DF} = {BAE4B11A-22E1-42C7-B2BA-6BD5CD501D54}
 		{559F1286-BA12-4049-98B5-4AA964680129} = {E3FCA611-F2D3-43C7-B1D6-F679C663B197}
+		{6D7F0678-0CDB-4BF0-A695-F9AE955881D9} = {157EA250-2F28-4948-A8F2-D58EAEA05DC8}
+		{6B7763D3-9F30-4F05-94DE-38C20F48BFF4} = {6D7F0678-0CDB-4BF0-A695-F9AE955881D9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}
