@@ -145,7 +145,7 @@ jobs:
     buildJobName: Build_Unix_Debug
     testArtifactName: Transport_Artifacts_Unix_Debug
     configuration: Debug
-    testArguments: --testCoreClr --helixQueueName OSX.1014.Amd64.Open
+    testArguments: --testCoreClr --helixQueueName OSX.1015.Amd64.Open
 
 - template: eng/common/templates/jobs/source-build.yml
 
