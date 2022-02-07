@@ -4,7 +4,10 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
@@ -24,6 +27,39 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             LanguageVersion = languageVersion;
         }
+
+        public ExpressionBodyPreference PreferExpressionBodiedMethods
+            => Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods).Value;
+
+        public ExpressionBodyPreference PreferExpressionBodiedAccessors
+            => Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
+
+        public ExpressionBodyPreference PreferExpressionBodiedProperties
+            => Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties).Value;
+
+        public ExpressionBodyPreference PreferExpressionBodiedIndexers
+            => Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers).Value;
+
+        public ExpressionBodyPreference PreferExpressionBodiedConstructors
+            => Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors).Value;
+
+        public ExpressionBodyPreference PreferExpressionBodiedOperators
+            => Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedOperators).Value;
+
+        public ExpressionBodyPreference PreferExpressionBodiedLocalFunctions
+            => Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedLocalFunctions).Value;
+
+        public NamespaceDeclarationPreference NamespaceDeclarations
+            => Options.GetOption(CSharpCodeStyleOptions.NamespaceDeclarations).Value;
+
+        public AddImportPlacement PreferredUsingDirectivePlacement
+            => Options.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement).Value;
+
+        public override bool PlaceImportsInsideNamespaces
+            => PreferredUsingDirectivePlacement == AddImportPlacement.InsideNamespace;
+
+        public override string Language
+            => LanguageNames.CSharp;
 
         public override CodeGenerationOptions GetOptions(CodeGenerationContext context)
             => new CSharpCodeGenerationOptions(context, this);

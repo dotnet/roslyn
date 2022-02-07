@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifi
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.QuickInfo
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
@@ -40,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         Private Shared Async Function TestSharedAsync(workspace As TestWorkspace, service As QuickInfoService, position As Integer, expectedResults() As Action(Of QuickInfoItem)) As Task
             Dim info = Await service.GetQuickInfoAsync(
                 workspace.CurrentSolution.Projects.First().Documents.First(),
-                position, cancellationToken:=CancellationToken.None)
+                position, SymbolDescriptionOptions.Default, CancellationToken.None)
 
             If expectedResults Is Nothing Then
                 Assert.Null(info)

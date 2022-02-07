@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MoveStaticMembers;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.MoveStaticMembers;
@@ -2566,16 +2567,32 @@ namespace TestNs1
         }
         #endregion
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveStaticMembers)]
+        public async Task NoOptionsService_NoAction()
+        {
+            var initialMarkup = @"
+namespace TestNs1
+{
+    public class Class1
+    {
+        public static int TestField = 1;[||]
+    }
+}";
+            await TestNoRefactoringAsync(initialMarkup, hostServices: FeaturesTestCompositions.Features.GetHostServices()).ConfigureAwait(false);
+        }
+
         private class Test : VerifyCS.Test
         {
             public Test(
                 string destinationType,
                 ImmutableArray<string> selection,
-                string destinationName = "a.cs")
+                string destinationName = "a.cs",
+                HostServices? hostServices = null)
             {
                 _destinationType = destinationType;
                 _selection = selection;
                 _destinationName = destinationName;
+                _hostServices = hostServices;
             }
 
             private readonly string _destinationType;
@@ -2584,15 +2601,20 @@ namespace TestNs1
 
             private readonly string _destinationName;
 
+            private readonly HostServices? _hostServices;
+
             protected override Workspace CreateWorkspaceImpl()
             {
-                var hostServices = s_testServices.GetHostServices();
+                var hostServices = _hostServices ?? s_testServices.GetHostServices();
 
                 var workspace = new AdhocWorkspace(hostServices);
-                var testOptionsService = (TestMoveStaticMembersService)workspace.Services.GetRequiredService<IMoveStaticMembersOptionsService>();
-                testOptionsService.DestinationType = _destinationType;
-                testOptionsService.SelectedMembers = _selection;
-                testOptionsService.Filename = _destinationName;
+                var testOptionsService = workspace.Services.GetService<IMoveStaticMembersOptionsService>() as TestMoveStaticMembersService;
+                if (testOptionsService is not null)
+                {
+                    testOptionsService.DestinationType = _destinationType;
+                    testOptionsService.SelectedMembers = _selection;
+                    testOptionsService.Filename = _destinationName;
+                }
 
                 return workspace;
             }
@@ -2618,9 +2640,9 @@ namespace TestNs1
                 },
             }.RunAsync().ConfigureAwait(false);
 
-        private static async Task TestNoRefactoringAsync(string initialMarkup)
+        private static async Task TestNoRefactoringAsync(string initialMarkup, HostServices? hostServices = null)
         {
-            await new Test("", ImmutableArray<string>.Empty)
+            await new Test("", ImmutableArray<string>.Empty, hostServices: hostServices)
             {
                 TestCode = initialMarkup,
                 FixedCode = initialMarkup,

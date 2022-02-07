@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
             {
             }
 
-            public override ImmutableArray<IRequestHandler> CreateRequestHandlers() => ImmutableArray.Create<IRequestHandler>(new GetLSPSolutionHandler());
+            public override ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind) => ImmutableArray.Create<IRequestHandler>(new GetLSPSolutionHandler());
         }
 
         private class GetLSPSolutionHandler : IRequestHandler<Uri, Solution>

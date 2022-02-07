@@ -271,8 +271,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                         textSpan = new TextSpan(text.Lines[endLine].Start, endOffSet);
                     }
 
-                    var updatedClassifiedSpan = new ClassifiedSpan(textSpan.Value, classificationType);
-                    updatedClassifiedSpans.Add(updatedClassifiedSpan);
+                    // Omit 0-length spans created in this fashion.
+                    if (textSpan.Value.Length > 0)
+                    {
+                        var updatedClassifiedSpan = new ClassifiedSpan(textSpan.Value, classificationType);
+                        updatedClassifiedSpans.Add(updatedClassifiedSpan);
+                    }
 
                     // Since spans are expected to be ordered, when breaking up a multi-line span, we may have to insert
                     // other spans in-between. For example, we may encounter this case when breaking up a multi-line verbatim

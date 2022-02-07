@@ -282,7 +282,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
         protected static void AssertFormatOnArbitraryNode(SyntaxNode node, string expected)
         {
             using var workspace = new AdhocWorkspace();
-            var options = SyntaxFormattingOptions.Default;
+            var formattingService = workspace.Services.GetLanguageServices(node.Language).GetRequiredService<ISyntaxFormattingService>();
+            var options = formattingService.GetFormattingOptions(DictionaryAnalyzerConfigOptions.Empty);
             var result = Formatter.Format(node, workspace.Services, options, CancellationToken.None);
             var actual = result.GetText().ToString();
 

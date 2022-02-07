@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -2193,7 +2194,7 @@ namespace TestApp
 
             using var workspace = new AdhocWorkspace();
 
-            var options = SyntaxFormattingOptions.Default;
+            var options = CSharpSyntaxFormattingOptions.Default;
 
             var formattedRoot = Formatter.Format(root, workspace.Services, options, CancellationToken.None);
             var annotatedTrivia = formattedRoot.GetAnnotatedTrivia("marker");

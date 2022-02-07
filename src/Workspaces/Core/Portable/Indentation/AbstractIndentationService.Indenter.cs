@@ -51,14 +51,14 @@ namespace Microsoft.CodeAnalysis.Indentation
                 Options = options;
                 Root = (TSyntaxRoot)document.Root;
                 LineToBeIndented = lineToBeIndented;
-                _tabSize = options.FormattingOptions.GetOption(FormattingOptions2.TabSize);
+                _tabSize = options.FormattingOptions.TabSize;
                 CancellationToken = cancellationToken;
 
                 Rules = rules;
                 Finder = new BottomUpBaseIndentationFinder(
                     new ChainedFormattingRules(this.Rules, options.FormattingOptions),
                     _tabSize,
-                    options.FormattingOptions.GetOption(FormattingOptions2.IndentationSize),
+                    options.FormattingOptions.IndentationSize,
                     tokenStream: null,
                     document.Document.GetRequiredLanguageService<IHeaderFactsService>());
             }

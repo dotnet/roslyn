@@ -170,7 +170,7 @@ class A { }";
 
             var syntaxTree = await document.GetSyntaxTreeAsync();
             var root = await syntaxTree.GetRootAsync();
-            var result = Formatter.Format(root, TextSpan.FromBounds(0, 0), workspace.Services, SyntaxFormattingOptions.Default, CancellationToken.None);
+            var result = Formatter.Format(root, TextSpan.FromBounds(0, 0), workspace.Services, CSharpSyntaxFormattingOptions.Default, CancellationToken.None);
         }
 
         private Task AssertFormatAsync(string content, string expected, OptionsCollection changedOptionSet = null)

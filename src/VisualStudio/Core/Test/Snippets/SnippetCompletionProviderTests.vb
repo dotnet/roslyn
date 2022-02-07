@@ -82,8 +82,7 @@ End Class</File>.Value
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic, extraParts:={GetType(MockSnippetInfoService)})
             Using testState
                 Dim workspace = testState.Workspace
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(New Options.OptionKey(CompletionOptions.Metadata.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)))
+                workspace.GlobalOptions.SetGlobalOption(New Options.OptionKey(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)
                 testState.SendTypeChars("'T")
                 Await testState.AssertNoCompletionSession()
             End Using
@@ -100,8 +99,7 @@ End Class</File>.Value
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic, extraParts:={GetType(MockSnippetInfoService)})
             Using testState
                 Dim workspace = testState.Workspace
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(New Options.OptionKey(CompletionOptions.Metadata.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)))
+                workspace.GlobalOptions.SetGlobalOption(New Options.OptionKey(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)
                 testState.SendTypeChars("'''T")
                 Await testState.AssertNoCompletionSession()
             End Using
@@ -117,8 +115,7 @@ End Class</File>.Value
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic, extraParts:={GetType(MockSnippetInfoService)})
             Using testState
                 Dim workspace = testState.Workspace
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(New Options.OptionKey(CompletionOptions.Metadata.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)))
+                workspace.GlobalOptions.SetGlobalOption(New Options.OptionKey(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)
                 testState.SendTypeChars("Shortcut")
                 Await testState.AssertSelectedCompletionItem(displayText:="Shortcut")
             End Using
