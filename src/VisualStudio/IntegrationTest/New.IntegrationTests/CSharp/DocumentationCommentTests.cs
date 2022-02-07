@@ -28,13 +28,13 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
         {
             var code =
 @"
-//$$[||]
+//{|selection:|}
 class C1 { }
 
-//[||]
+//{|selection:|}
 class C2 { }
 
-//[||]
+//{|selection:|}
 class C3 { }
 ";
             await SetUpEditorAsync(code, HangMitigatingCancellationToken);
@@ -47,17 +47,20 @@ class C3 { }
 class C1 { }
 
 /// <summary>
-///
+/// 
 /// </summary>
 class C2 { }
 
 /// <summary>
-///
+/// 
 /// </summary>
 class C3 { }
 ";
 
+            MarkupTestFile.GetPosition(expected, out expected, out int caretPosition);
+
             await TestServices.EditorVerifier.TextContainsAsync(expected, cancellationToken: HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.CaretPositionAsync(caretPosition, HangMitigatingCancellationToken);
         }
     }
 }
