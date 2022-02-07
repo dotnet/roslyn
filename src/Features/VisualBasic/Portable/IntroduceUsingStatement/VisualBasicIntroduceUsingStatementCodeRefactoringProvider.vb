@@ -40,9 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceUsingStatement
                 statementsToSurround As SyntaxList(Of StatementSyntax)) As StatementSyntax
             Dim usingStatement = SyntaxFactory.UsingStatement(
                 expression:=Nothing,
-                variables:=declarationStatement.Declarators)
-
-            usingStatement = usingStatement.WithoutTrivia().WithTriviaFrom(declarationStatement)
+                variables:=declarationStatement.Declarators).WithTriviaFrom(declarationStatement)
             Return SyntaxFactory.UsingBlock(usingStatement, statementsToSurround)
         End Function
     End Class
