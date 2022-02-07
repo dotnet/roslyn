@@ -3690,6 +3690,32 @@ Json.Comment("// comment"));
 
         [Theory]
         [CombinatorialData]
+        public async Task TestJson_RawString(TestHost testHost)
+        {
+            await TestAsync(
+@"
+class Program
+{
+    void Goo()
+    {
+        // lang=json
+        var r = """"""[/*comment*/{ 'goo': 0 }]"""""";
+    }
+}",
+testHost,
+Keyword("var"),
+Json.Array("["),
+Json.Comment("/*comment*/"),
+Json.Object("{"),
+Json.PropertyName("'goo'"),
+Json.Punctuation(":"),
+Json.Number("0"),
+Json.Object("}"),
+Json.Array("]"));
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task TestMultiLineJson1(TestHost testHost)
         {
             await TestAsync(
