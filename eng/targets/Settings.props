@@ -13,6 +13,10 @@
     <CommonExtensionInstallationRoot>CommonExtensions</CommonExtensionInstallationRoot>
     <LanguageServicesExtensionInstallationFolder>Microsoft\VBCSharp\LanguageServices</LanguageServicesExtensionInstallationFolder>
 
+    <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
+
+    <!-- Disable the implicit nuget fallback folder as it makes it hard to locate and copy ref assemblies to the test output folder -->
+    <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <ToolsetPackagesDir>$(RepoRoot)build\ToolsetPackages\</ToolsetPackagesDir>
     <UseSharedCompilation>true</UseSharedCompilation>
 
@@ -160,20 +164,6 @@
   <PropertyGroup Condition="'$(RoslynEnforceCodeStyle)' != 'true'">
     <!-- Don't treat FormattingAnalyzer as an error, even when TreatWarningsAsErrors is specified. -->
     <WarningsNotAsErrors>$(WarningsNotAsErrors);IDE0055</WarningsNotAsErrors>
-  </PropertyGroup>
-
-  <!--
-    Nuget settings
-  -->
-  <PropertyGroup Condition="'$(RoslynEnforceCodeStyle)' != 'true'">
-    <!-- Don't warn that we are restoring .NET Framework proejct dependencies for .NET Core. -->
-    <NoWarn>$(NoWarn);NU1701</NoWarn>
-
-    <!-- Opt-in to faster up-to-date check for restore -->
-    <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
-
-    <!-- Disable the implicit nuget fallback folder as it makes it hard to locate and copy ref assemblies to the test output folder -->
-    <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
   </PropertyGroup>
 
   <!--
