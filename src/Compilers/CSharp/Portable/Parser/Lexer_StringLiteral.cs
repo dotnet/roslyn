@@ -77,11 +77,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
             else
             {
-                // PROTOTYPE(UTF8StringLiterals) : Should the suffix be case-insensitive?
-                if (!inDirective && TextWindow.PeekChar() == 'u' && TextWindow.PeekChar(1) == '8')
+                if (!inDirective && ScanUTF8Suffix())
                 {
                     info.Kind = SyntaxKind.UTF8StringLiteralToken;
-                    TextWindow.AdvanceChar(2);
                 }
                 else
                 {
@@ -99,6 +97,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     info.StringValue = string.Empty;
                 }
             }
+        }
+
+        private bool ScanUTF8Suffix()
+        {
+            if (TextWindow.PeekChar() is ('u' or 'U') && TextWindow.PeekChar(1) == '8')
+            {
+                TextWindow.AdvanceChar(2);
+                return true;
+            }
+
+            return false;
         }
 
         private char ScanEscapeSequence(out char surrogateCharacter)
@@ -194,11 +203,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 _builder.Append(ch);
             }
 
-            // PROTOTYPE(UTF8StringLiterals) : Should the suffix be case-insensitive?
-            if (TextWindow.PeekChar() == 'u' && TextWindow.PeekChar(1) == '8')
+            if (ScanUTF8Suffix())
             {
                 info.Kind = SyntaxKind.UTF8StringLiteralToken;
-                TextWindow.AdvanceChar(2);
             }
             else
             {

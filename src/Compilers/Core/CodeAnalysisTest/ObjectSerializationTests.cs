@@ -952,10 +952,23 @@ namespace Microsoft.CodeAnalysis.UnitTests
             writer.WriteValue(Double.MaxValue);
             writer.WriteValue(Single.MaxValue);
             writer.WriteValue('X');
-            writer.WriteValue("YYY");
-            writer.WriteValue("\uD800\uDC00"); // valid surrogate pair
-            writer.WriteValue("\uDC00\uD800"); // invalid surrogate pair
-            writer.WriteValue("\uD800"); // incomplete surrogate pair
+
+            // PROTOTYPE(UTF8StringLiterals) : An explicit cast is added to work around the break -   
+            // error CS0121: The call is ambiguous between the following methods or properties: 'ObjectWriter.WriteValue(object ?)' and 'ObjectWriter.WriteValue(ReadOnlySpan<byte>)'
+            writer.WriteValue((object)"YYY");
+
+            // PROTOTYPE(UTF8StringLiterals) : An explicit cast is added to work around the break -   
+            // error CS0121: The call is ambiguous between the following methods or properties: 'ObjectWriter.WriteValue(object ?)' and 'ObjectWriter.WriteValue(ReadOnlySpan<byte>)'
+            writer.WriteValue((object)"\uD800\uDC00"); // valid surrogate pair
+
+            // PROTOTYPE(UTF8StringLiterals) : An explicit cast is added to work around the break -   
+            // error CS0121: The call is ambiguous between the following methods or properties: 'ObjectWriter.WriteValue(object ?)' and 'ObjectWriter.WriteValue(ReadOnlySpan<byte>)'
+            writer.WriteValue((object)"\uDC00\uD800"); // invalid surrogate pair
+
+            // PROTOTYPE(UTF8StringLiterals) : An explicit cast is added to work around the break -   
+            // error CS0121: The call is ambiguous between the following methods or properties: 'ObjectWriter.WriteValue(object ?)' and 'ObjectWriter.WriteValue(ReadOnlySpan<byte>)'
+            writer.WriteValue((object)"\uD800"); // incomplete surrogate pair
+
             writer.WriteValue((object)null);
             writer.WriteValue((IObjectWritable)null);
             unchecked

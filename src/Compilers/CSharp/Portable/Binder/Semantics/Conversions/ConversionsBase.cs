@@ -649,7 +649,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // with the exception of the switch expression conversion.
 
             Conversion conversion = ClassifyImplicitBuiltInConversionFromExpression(sourceExpression, compilation, source, destination, ref useSiteInfo);
-            if (conversion.Exists)
+            if (conversion.Exists &&
+                !conversion.IsUtf8StringLiteral) // UTF-8 string conversion is not a standard conversion.
             {
                 Debug.Assert(IsStandardImplicitConversionFromExpression(conversion.Kind));
                 return conversion;
@@ -1107,7 +1108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConstantValue constantValue = sourceExpression.ConstantValue;
 
             TypeSymbol destinationOriginalDefinition = destination.OriginalDefinition;
-            if (constantValue?.IsString == true && // PROTOTYPE(UTF8StringLiterals) : confirm if we actually want it to work with 'null' constant value.
+            if (constantValue is ({ IsString: true } or { IsNull: true }) &&
                 sourceExpression.Type?.SpecialType == SpecialType.System_String &&
                 (destination is ArrayTypeSymbol { IsSZArray: true, ElementType.SpecialType: SpecialType.System_Byte } || // byte[]
                  (destinationOriginalDefinition.TypeKind == TypeKind.Struct && destinationOriginalDefinition.IsRefLikeType &&

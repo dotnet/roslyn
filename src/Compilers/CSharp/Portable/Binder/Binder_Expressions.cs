@@ -5913,7 +5913,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var value = (string)node.Token.Value;
             var type = ArrayTypeSymbol.CreateSZArray(Compilation.Assembly, TypeWithAnnotations.Create(GetSpecialType(SpecialType.System_Byte, diagnostics, node)));
 
-            // PROTOTYPE(UTF8StringLiterals) : The result type is a deviation from the proposal, but I think it simplifies language rules. Will bring this for discussion to LDM.
             return new BoundUTF8String(node, value, type);
         }
 

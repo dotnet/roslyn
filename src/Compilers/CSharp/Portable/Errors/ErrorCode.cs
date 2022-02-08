@@ -2028,6 +2028,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullCheckingOnNullableType = 8995,
 
         ERR_CannotBeConvertedToUTF8 = 9100, // PROTOTYPE(UTF8StringLiterals) : pack numbers
+        ERR_ExpressionTreeContainsUTF8StringLiterals = 9101,
 
         #endregion
 

@@ -79,7 +79,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundNode RewriteUtf8StringLiteralConversion(BoundConversion node)
         {
             string? value = node.Operand.ConstantValue?.StringValue;
-            Debug.Assert(value != null); // PROTOTYPE(UTF8StringLiterals) : Adjust if we actually want it to work with 'null' value.
+
+            if (value == null)
+            {
+                return new BoundDefaultExpression(node.Syntax, node.Type);
+            }
 
             ArrayTypeSymbol byteArray;
 

@@ -1871,7 +1871,49 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 N(SyntaxKind.EndOfDirectiveToken);
             }
             EOF();
+        }
 
+        [Fact]
+        public void NotUTF8StringLiteral_03()
+        {
+            string source = @"#line 1 ""file.cs""U8";
+
+            UsingLineDirective(source, options: null,
+                // (1,18): error CS1025: Single-line comment or end-of-line expected
+                // #line 1 "file.cs"U8
+                Diagnostic(ErrorCode.ERR_EndOfPPLineExpected, "U8").WithLocation(1, 18)
+                );
+
+            N(SyntaxKind.LineDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.NumericLiteralToken, "1");
+                N(SyntaxKind.StringLiteralToken, "\"file.cs\"");
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NotUTF8StringLiteral_04()
+        {
+            string source = @"#line 1 @""file.cs""U8";
+
+            UsingLineDirective(source, options: null,
+                // (1,9): error CS1578: Quoted file name, single-line comment or end-of-line expected
+                // #line 1 @"file.cs"U8
+                Diagnostic(ErrorCode.ERR_MissingPPFile, "@").WithLocation(1, 9)
+                );
+
+            N(SyntaxKind.LineDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.NumericLiteralToken, "1");
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
         }
     }
 }
