@@ -32,6 +32,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
                 nodesAndTokens.AddRange(collectionInitializer.Initializer.Initializers.GetWithSeparators())
             End If
 
+            ' If we have an odd number of elements already, add a comma at the end so that we can add the rest of the
+            ' items afterwards without a syntax issue.
             If nodesAndTokens.Count Mod 2 = 1 Then
                 Dim last = nodesAndTokens.Last()
                 nodesAndTokens.RemoveLast()
