@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         Private Shared ReadOnly Property VerifyOnMonoOrCoreClr As Verification
             Get
-                Return If(ExecutionConditionUtil.IsMonoOrCoreClr, Verification.FailsIlVerify, Verification.Skipped)
+                Return If(ExecutionConditionUtil.IsMonoOrCoreClr, Verification.FailsILVerify, Verification.Skipped)
             End Get
         End Property
 
@@ -2404,7 +2404,7 @@ public interface ITest33
 
             For Each reference2 In {compilation1.ToMetadataReference(), compilation1.EmitToImageReference()}
                 Dim compilation2 = CreateCompilation(consumer2, options:=TestOptions.ReleaseExe, references:={reference2, pia2Reference})
-                CompileAndVerify(compilation2, expectedOutput:="Test.M1", verify:=Verification.FailsIlVerify)
+                CompileAndVerify(compilation2, expectedOutput:="Test.M1", verify:=Verification.FailsILVerify)
             Next
         End Sub
 

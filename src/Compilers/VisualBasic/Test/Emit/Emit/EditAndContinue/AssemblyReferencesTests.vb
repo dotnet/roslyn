@@ -330,7 +330,7 @@ End Class
             Dim compilation1 = compilation0.WithSource(src1).WithReferences({MscorlibRef, ref02, ref12})
 
             ' ILVerify: Failed to load type 'D1' from assembly 'Lib, Version=1.0.0.1, Culture=neutral, PublicKeyToken=ce65828c82a341f2'
-            Dim v0 = CompileAndVerify(compilation0, verify:=Verification.FailsIlVerify)
+            Dim v0 = CompileAndVerify(compilation0, verify:=Verification.FailsILVerify)
 
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")

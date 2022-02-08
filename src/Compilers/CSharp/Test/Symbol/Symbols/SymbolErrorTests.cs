@@ -6073,7 +6073,7 @@ namespace NS
                 });
 
             // ILVerify: Assembly or module not found: ErrTestMod02
-            CompileAndVerify(comp, verify: Verification.FailsIlVerify).VerifyDiagnostics();
+            CompileAndVerify(comp, verify: Verification.FailsILVerify).VerifyDiagnostics();
         }
 
         [Fact()]

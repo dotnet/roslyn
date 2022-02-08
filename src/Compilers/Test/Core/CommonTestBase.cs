@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         Skipped = 0,
         Passes = 1 << 1,
 
-        FailsPeVerify = 1 << 2,
-        FailsIlVerify = 1 << 3,
-        Fails = FailsPeVerify | FailsIlVerify,
+        FailsPEVerify = 1 << 2,
+        FailsILVerify = 1 << 3,
+        Fails = FailsPEVerify | FailsILVerify,
     }
 
     /// <summary>

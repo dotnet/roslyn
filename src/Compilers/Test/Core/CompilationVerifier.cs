@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 var result = verifier.Verify(resolver.Resolve(_allModuleData[0].SimpleName));
                 if (result.Count() == 0)
                 {
-                    if ((verification & Verification.FailsIlVerify) == 0)
+                    if ((verification & Verification.FailsILVerify) == 0)
                     {
                         return;
                     }
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     throw new Exception("IL Verify succeeded unexpectedly");
                 }
 
-                if ((verification & Verification.FailsIlVerify) != 0)
+                if ((verification & Verification.FailsILVerify) != 0)
                 {
                     return;
                 }
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
             catch (Exception)
             {
-                if ((verification & Verification.FailsIlVerify) != 0)
+                if ((verification & Verification.FailsILVerify) != 0)
                 {
                     return;
                 }

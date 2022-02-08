@@ -863,7 +863,7 @@ namespace System.Runtime.CompilerServices
             var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 );
             // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(compilation, verify: Verification.FailsIlVerify, expectedOutput: "2");
+            CompileAndVerify(compilation, verify: Verification.FailsILVerify, expectedOutput: "2");
         }
 
         // Test suggested by @VSadov

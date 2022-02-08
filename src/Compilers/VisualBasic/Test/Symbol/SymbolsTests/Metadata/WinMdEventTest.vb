@@ -222,7 +222,7 @@ End Class
                     CSharpRef,
                     _eventLibRef,
                     dynamicCommonRef},
-                verify:=Verification.FailsIlVerify)
+                verify:=Verification.FailsILVerify)
             verifier.VerifyIL("C.Main", <![CDATA[
 {
   // Code size      931 (0x3a3)
@@ -768,7 +768,7 @@ Public Partial Class A
 }
                     </output>
             ' ILVerify: Missing method 'System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken Windows.UI.Xaml.Application.add_Suspending(Windows.UI.Xaml.SuspendingEventHandler)'
-            CompileAndVerify(compilation, verify:=Verification.FailsIlVerify).VerifyIL("abcdef.goo", expectedIL.Value())
+            CompileAndVerify(compilation, verify:=Verification.FailsILVerify).VerifyIL("abcdef.goo", expectedIL.Value())
         End Sub
 
         <Fact()>

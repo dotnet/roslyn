@@ -471,7 +471,7 @@ class Program
             compilation.VerifyDiagnostics(
                 );
             // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
-            var comp = CompileAndVerify(compilation, verify: Verification.FailsIlVerify, expectedOutput: expectedOutput);
+            var comp = CompileAndVerify(compilation, verify: Verification.FailsILVerify, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(35278, "https://github.com/dotnet/roslyn/issues/35278")]

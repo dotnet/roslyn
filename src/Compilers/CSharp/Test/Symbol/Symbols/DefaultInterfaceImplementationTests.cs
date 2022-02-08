@@ -52,7 +52,7 @@ public interface I1
         {
             get
             {
-                return ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.FailsIlVerify : Verification.Skipped;
+                return ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.FailsILVerify : Verification.Skipped;
             }
         }
 

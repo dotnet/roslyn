@@ -2368,7 +2368,7 @@ interface I2
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1)
                 );
             // ILVerify: no corlib
-            CompileAndVerify(compilation5, verify: Verification.FailsIlVerify);
+            CompileAndVerify(compilation5, verify: Verification.FailsILVerify);
 
             Assert.Equal(TypeKind.Struct, compilation5.GetTypeByMetadataName("A").TypeKind);
             Assert.Equal(TypeKind.Enum, compilation5.GetTypeByMetadataName("B").TypeKind);

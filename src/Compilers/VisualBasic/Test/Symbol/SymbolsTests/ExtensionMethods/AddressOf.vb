@@ -202,7 +202,7 @@ End Namespace
 </compilation>
 
             CompileAndVerify(compilationDef,
-                             verify:=Verification.FailsIlVerify,
+                             verify:=Verification.FailsILVerify,
                              expectedOutput:=
             <![CDATA[
 -- Test1 --
@@ -633,7 +633,7 @@ End Namespace
 </compilation>
 
             CompileAndVerify(compilationDef,
-                             verify:=Verification.FailsIlVerify,
+                             verify:=Verification.FailsILVerify,
                              expectedOutput:=
             <![CDATA[
 M2.F1
@@ -943,7 +943,7 @@ End Namespace
 </compilation>
             ' ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 8 }
             CompileAndVerify(compilationDef,
-                             verify:=Verification.FailsIlVerify,
+                             verify:=Verification.FailsILVerify,
                              expectedOutput:=
             <![CDATA[
 2

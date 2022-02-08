@@ -148,7 +148,7 @@ static class E
 }
 ";
         // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 14 }
-        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: VerifyNoCacheContainersIn("C"), verify: Verification.FailsIlVerify);
+        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: VerifyNoCacheContainersIn("C"), verify: Verification.FailsILVerify);
         verifier.VerifyIL("C.Main", @"
 {
   // Code size       37 (0x25)
@@ -191,7 +191,7 @@ static class E
 }
 ";
         // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 14 }
-        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: VerifyNoCacheContainersIn("C"), verify: Verification.FailsIlVerify);
+        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: VerifyNoCacheContainersIn("C"), verify: Verification.FailsILVerify);
         verifier.VerifyIL("C.Main", @"
 {
   // Code size       37 (0x25)

@@ -5535,7 +5535,7 @@ public class DerivingClass<T> : BaseClass<T>
             var comp = CreateCompilation("public class B : A { }", references: new[] { modRef }, assemblyName: "sourceMod");
 
             // ILVerify: Assembly or module not found: refMod
-            CompileAndVerify(comp, verify: Verification.FailsIlVerify, symbolValidator: module =>
+            CompileAndVerify(comp, verify: Verification.FailsILVerify, symbolValidator: module =>
             {
                 var b = module.GlobalNamespace.GetTypeMember("B");
                 Assert.Equal("B", b.Name);

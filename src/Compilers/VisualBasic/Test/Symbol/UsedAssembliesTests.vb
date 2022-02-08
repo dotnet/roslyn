@@ -27,7 +27,7 @@ End Interface
 
             Dim comp1 = CreateEmptyCompilation(source)
             ' ILVerify: Failed to load type 'System.String' from assembly ...
-            CompileAndVerify(comp1, verify:=Verification.FailsIlVerify)
+            CompileAndVerify(comp1, verify:=Verification.FailsILVerify)
 
             Assert.Empty(comp1.GetUsedAssemblyReferences())
 
@@ -49,7 +49,7 @@ End Interface
     </compilation>
 
             Dim comp1 = CreateEmptyCompilation(source)
-            CompileAndVerify(comp1, verify:=Verification.FailsIlVerify)
+            CompileAndVerify(comp1, verify:=Verification.FailsILVerify)
 
             Dim source2 =
     <compilation>
@@ -236,7 +236,7 @@ End Interface
     </compilation>
 
             Dim comp1 = CreateEmptyCompilation(source)
-            CompileAndVerify(comp1, verify:=Verification.FailsIlVerify)
+            CompileAndVerify(comp1, verify:=Verification.FailsILVerify)
 
             Dim source2 =
     <compilation>

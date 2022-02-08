@@ -5011,7 +5011,7 @@ Class C
 End Class
 
     </file>
-</compilation>, references:={ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef_v46}, expectedOutput:=<![CDATA[42]]>, verify:=Verification.FailsIlVerify)
+</compilation>, references:={ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef_v46}, expectedOutput:=<![CDATA[42]]>, verify:=Verification.FailsILVerify)
 
             verifier.VerifyDiagnostics()
             verifier.VerifyIL("C.VB$StateMachine_2_Test(Of SM$T).MoveNext()", <![CDATA[
@@ -5130,7 +5130,7 @@ Class C
     End Function
 End Class
     </file>
-</compilation>, references:={ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef_v46}, expectedOutput:=<![CDATA[(42, 42)]]>, verify:=Verification.FailsIlVerify)
+</compilation>, references:={ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef_v46}, expectedOutput:=<![CDATA[(42, 42)]]>, verify:=Verification.FailsILVerify)
 
             verifier.VerifyDiagnostics()
             verifier.VerifyIL("C.VB$StateMachine_2_Test(Of SM$T).MoveNext()", <![CDATA[
@@ -5299,7 +5299,7 @@ Class C
     End Function
 End Class
     </file>
-</compilation>, references:={ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef_v46}, expectedOutput:=<![CDATA[42]]>, verify:=Verification.FailsIlVerify)
+</compilation>, references:={ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef_v46}, expectedOutput:=<![CDATA[42]]>, verify:=Verification.FailsILVerify)
 
             verifier.VerifyDiagnostics()
 

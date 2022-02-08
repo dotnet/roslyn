@@ -295,7 +295,7 @@ static class Program
 @"ABC
 123
 123
-xyz", verify: Verification.FailsIlVerify);
+xyz", verify: Verification.FailsILVerify);
         }
 
         [WorkItem(541143, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541143")]
@@ -378,7 +378,7 @@ static class Program
 }
 ";
             // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 7 }
-            CompileAndVerify(source, expectedOutput: "2", verify: Verification.FailsIlVerify);
+            CompileAndVerify(source, expectedOutput: "2", verify: Verification.FailsILVerify);
         }
 
         [WorkItem(528426, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528426")]
@@ -876,7 +876,7 @@ static class B
     internal static void G(this object x, object y) { }
 }";
             // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 8 }
-            var compilation = CompileAndVerify(source, verify: Verification.FailsIlVerify);
+            var compilation = CompileAndVerify(source, verify: Verification.FailsILVerify);
             compilation.VerifyIL("N.C.M",
 @"{
   // Code size       71 (0x47)
@@ -943,7 +943,7 @@ static class S2
     internal static void F4(this object x, object y) { }
 }";
             // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 8 }
-            var compilation = CompileAndVerify(source, verify: Verification.FailsIlVerify);
+            var compilation = CompileAndVerify(source, verify: Verification.FailsILVerify);
             compilation.VerifyIL("N.C.M",
 @"
 {
@@ -1928,7 +1928,7 @@ static class S
     }
 }";
             // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 11 }
-            CompileAndVerify(source, expectedOutput: "6", verify: Verification.FailsIlVerify);
+            CompileAndVerify(source, expectedOutput: "6", verify: Verification.FailsILVerify);
         }
 
         [Fact]
@@ -2303,7 +2303,7 @@ static class C
 @"F: System.Int32
 F: S
 G: System.Int32
-G: S", verify: Verification.FailsIlVerify);
+G: S", verify: Verification.FailsILVerify);
             compilation.VerifyIL("C.Main",
 @"{
   // Code size      105 (0x69)
@@ -2385,7 +2385,7 @@ static class E
 System.Object
 System.Int32
 B
-B", verify: Verification.FailsIlVerify);
+B", verify: Verification.FailsILVerify);
             compilation.VerifyIL("C.M<T1, T2, T3, T4, T5>",
 @"{
   // Code size      112 (0x70)

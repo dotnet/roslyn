@@ -1588,11 +1588,11 @@ class Program
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyDiagnostics();
             // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
-            CompileAndVerify(compilation, verify: Verification.FailsIlVerify, expectedOutput: "3");
+            CompileAndVerify(compilation, verify: Verification.FailsILVerify, expectedOutput: "3");
 
             compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation, verify: Verification.FailsIlVerify, expectedOutput: "3");
+            CompileAndVerify(compilation, verify: Verification.FailsILVerify, expectedOutput: "3");
         }
     }
 }

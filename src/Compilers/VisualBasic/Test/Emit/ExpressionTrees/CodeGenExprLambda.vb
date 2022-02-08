@@ -3711,7 +3711,7 @@ Module Form1
     End Sub
 End Module
 ]]></file>
-            TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests02_v40_Result, verify:=Verification.FailsIlVerify)
+            TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests02_v40_Result, verify:=Verification.FailsILVerify)
         End Sub
 
         <Fact>
@@ -3754,7 +3754,7 @@ Module Form1
     End Sub
 End Module
 ]]></file>
-            TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests02_v45_Result, latestReferences:=True, verify:=Verification.FailsIlVerify)
+            TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests02_v45_Result, latestReferences:=True, verify:=Verification.FailsILVerify)
         End Sub
 
         <Fact>

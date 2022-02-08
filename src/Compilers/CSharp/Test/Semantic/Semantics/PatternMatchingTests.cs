@@ -6221,7 +6221,7 @@ unsafe public class C {
             var compilation = CreateCompilation(program, options: TestOptions.DebugExe.WithAllowUnsafe(true));
             compilation.VerifyDiagnostics(
                 );
-            var comp = CompileAndVerify(compilation, expectedOutput: "ok", verify: Verification.FailsIlVerify);
+            var comp = CompileAndVerify(compilation, expectedOutput: "ok", verify: Verification.FailsILVerify);
         }
 
         [Fact]
@@ -6520,7 +6520,7 @@ False";
             // PEVerify:
             // [ : Program::Main][mdToken=0x6000001][offset 0x00000002] Unmanaged pointers are not a verifiable type.
             // [ : Program::Main][mdToken= 0x6000001][offset 0x00000002] Unable to resolve token.
-            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.FailsPeVerify);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.FailsPEVerify);
         }
 
         [Fact]

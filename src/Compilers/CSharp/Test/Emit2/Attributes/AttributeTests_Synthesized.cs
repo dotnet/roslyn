@@ -958,7 +958,7 @@ public class Test
                 // ILVerify: The format of a DLL or executable being loaded is invalid
                 var verify = outputKind.IsNetModule()
                     ? Verification.Fails
-                    : Verification.FailsIlVerify;
+                    : Verification.FailsILVerify;
 
                 CompileAndVerify(compilation, verify: verify, symbolValidator: module =>
                 {

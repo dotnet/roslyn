@@ -313,7 +313,7 @@ namespace Roslyn.Test.Utilities.Desktop
                 return;
             }
 
-            var shouldSucceed = (verification & Verification.FailsPeVerify) == 0;
+            var shouldSucceed = (verification & Verification.FailsPEVerify) == 0;
             var emitData = GetEmitData();
 
             try

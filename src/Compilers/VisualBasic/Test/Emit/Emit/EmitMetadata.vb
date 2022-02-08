@@ -270,7 +270,7 @@ End Class
                                         TestOptions.ReleaseDll)
 
             ' ILVerify: The method or operation is not implemented.
-            dllImage = CompileAndVerify(c2, verify:=Verification.FailsIlVerify).EmittedAssemblyData
+            dllImage = CompileAndVerify(c2, verify:=Verification.FailsILVerify).EmittedAssemblyData
 
             Using metadata = AssemblyMetadata.CreateFromImage(dllImage)
                 Dim emitAssemblyRefs2 As PEAssembly = metadata.GetAssembly
@@ -309,7 +309,7 @@ End Class
             Assert.Equal(1, class1.Count())
 
             ' ILVerify: Assembly or module not found: netModule1
-            Dim manifestModule = CompileAndVerify(c1, verify:=Verification.FailsIlVerify).EmittedAssemblyData
+            Dim manifestModule = CompileAndVerify(c1, verify:=Verification.FailsILVerify).EmittedAssemblyData
 
             Using metadata = AssemblyMetadata.Create(ModuleMetadata.CreateFromImage(manifestModule), netModule1, netModule2)
                 Dim emitAddModule As PEAssembly = metadata.GetAssembly

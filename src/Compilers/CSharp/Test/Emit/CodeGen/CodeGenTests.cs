@@ -78,7 +78,7 @@ class Program
     }
 }";
             // ILVerify: Unexpected type on the stack. { Offset = 59, Found = readonly address of '[...]DoubleAndStruct', Expected = address of '[...]DoubleAndStruct' }
-            var result = CompileAndVerify(source, verify: Verification.FailsIlVerify, options: TestOptions.DebugDll);
+            var result = CompileAndVerify(source, verify: Verification.FailsILVerify, options: TestOptions.DebugDll);
 
             result.VerifyIL("Program.Main(object[])",
 @"
@@ -166,7 +166,7 @@ class Program
     }
 }";
             // ILVerify: Unexpected type on the stack. { Offset = 34, Found = readonly address of '[...]OuterStruct', Expected = address of '[...]OuterStruct' }
-            var result = CompileAndVerify(source, verify: Verification.FailsIlVerify, options: TestOptions.DebugDll);
+            var result = CompileAndVerify(source, verify: Verification.FailsILVerify, options: TestOptions.DebugDll);
 
             result.VerifyIL("Program.Main(object[])",
 @"
@@ -4361,7 +4361,7 @@ public class Program
         Callee3<T>(default(T), default(T));
     }
 }
-", verify: Verification.FailsPeVerify, options: TestOptions.ReleaseExe);
+", verify: Verification.FailsPEVerify, options: TestOptions.ReleaseExe);
             verifier.VerifyIL("Program.M<T>()",
 @"{
   // Code size      297 (0x129)
@@ -4494,7 +4494,7 @@ public class Program
         Callee3<string>();
     }
 }
-", verify: Verification.FailsPeVerify, options: TestOptions.ReleaseExe);
+", verify: Verification.FailsPEVerify, options: TestOptions.ReleaseExe);
             verifier.VerifyIL("Program.M<T>()",
 @"{
   // Code size       34 (0x22)
@@ -10466,7 +10466,7 @@ class Test
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "Goo").WithArguments("Test.Goo()"));
 
             // NOTE: the resulting IL is unverifiable, but not an error for compat reasons
-            CompileAndVerify(comp, verify: Verification.FailsPeVerify).VerifyIL("Test.Main",
+            CompileAndVerify(comp, verify: Verification.FailsPEVerify).VerifyIL("Test.Main",
                 @"
 {
   // Code size       11 (0xb)
@@ -17223,7 +17223,7 @@ class Program
 System.Threading.Tasks.Task`1[System.Object]
 Success
 True
-", verify: Verification.FailsIlVerify).VerifyDiagnostics();
+", verify: Verification.FailsILVerify).VerifyDiagnostics();
         }
     }
 }

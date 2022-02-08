@@ -52,7 +52,7 @@ Structure OuterStruct
     Public z As DoubleAndStruct
 End Structure
     </file>
-</compilation>, verify:=Verification.FailsIlVerify).
+</compilation>, verify:=Verification.FailsILVerify).
             VerifyIL("Program.M",
             <![CDATA[
 {
@@ -166,7 +166,7 @@ Structure OuterStruct
     Public z As DoubleAndStruct
 End Structure
     </file>
-</compilation>, verify:=Verification.FailsIlVerify).
+</compilation>, verify:=Verification.FailsILVerify).
             VerifyIL("Program.M",
             <![CDATA[
 {
@@ -6289,7 +6289,7 @@ Module Program1
 
 End Module
     </file>
-</compilation>, references:={TestReferences.SymbolsTests.PropertiesWithByRef}, verify:=Verification.FailsIlVerify)
+</compilation>, references:={TestReferences.SymbolsTests.PropertiesWithByRef}, verify:=Verification.FailsILVerify)
 
             verifier.VerifyIL("Module1.M",
             <![CDATA[

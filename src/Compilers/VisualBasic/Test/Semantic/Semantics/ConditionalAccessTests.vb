@@ -4061,7 +4061,7 @@ C1
 Ext4
 C1
 ---------
-]]>, verify:=Verification.FailsIlVerify)
+]]>, verify:=Verification.FailsILVerify)
         End Sub
 
 

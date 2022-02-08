@@ -2660,7 +2660,7 @@ unsafe
         System.Console.Write(t);
     }
 }
-", expectedOutput: "11", options: TestOptions.UnsafeReleaseExe, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.FailsIlVerify : Verification.Skipped);
+", expectedOutput: "11", options: TestOptions.UnsafeReleaseExe, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.FailsILVerify : Verification.Skipped);
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {

@@ -2969,7 +2969,7 @@ Module M
     End Sub
 End Module
     ]]></file>
-</compilation>, references:=Net40XmlReferences, verify:=Verification.FailsIlVerify)
+</compilation>, references:=Net40XmlReferences, verify:=Verification.FailsILVerify)
             compilation.VerifyIL("M.M(Of T)", <![CDATA[
 {
   // Code size      166 (0xa6)

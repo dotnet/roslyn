@@ -666,7 +666,7 @@ BC30652: Reference required to assembly 'mincorlib, Version=0.0.0.0, Culture=neu
 
             compilation5.VerifyEmitDiagnostics()
             ' ILVerify: no corlib
-            CompileAndVerify(compilation5, verify:=Verification.FailsIlVerify)
+            CompileAndVerify(compilation5, verify:=Verification.FailsILVerify)
 
             Assert.Equal(TypeKind.Struct, compilation5.GetTypeByMetadataName("A").TypeKind)
             Assert.Equal(TypeKind.Enum, compilation5.GetTypeByMetadataName("B").TypeKind)

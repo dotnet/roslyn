@@ -9038,7 +9038,7 @@ public static class Class
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(compilation, verify: Verification.FailsIlVerify, expectedOutput:
+            CompileAndVerify(compilation, verify: Verification.FailsILVerify, expectedOutput:
 @"RemoveDetail
 RemoveDetail
 RemoveDetail
@@ -11294,7 +11294,7 @@ public static class Extensions
 }";
 
             // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(code, verify: Verification.FailsIlVerify, expectedOutput: @"2");
+            CompileAndVerify(code, verify: Verification.FailsILVerify, expectedOutput: @"2");
         }
 
         [Fact]

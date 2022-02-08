@@ -1025,7 +1025,7 @@ var a = new C2();
             });
             assembly.VerifyEmitDiagnostics();
             // ILVerify: Assembly or module not found: a2
-            CompileAndVerify(assembly, verify: Verification.FailsIlVerify);
+            CompileAndVerify(assembly, verify: Verification.FailsILVerify);
         }
 
         [WorkItem(713356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/713356")]

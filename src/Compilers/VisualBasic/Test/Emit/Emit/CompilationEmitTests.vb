@@ -691,7 +691,7 @@ End Class"
             Dim comp = CreateEmptyCompilation({Parse("")})
             comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor)
             ' ILVerify: Failed to load type 'System.String' from assembly ...
-            CompileAndVerify(comp, emitOptions:=emitRefAssembly, verify:=Verification.FailsIlVerify, validator:=assemblyValidator)
+            CompileAndVerify(comp, emitOptions:=emitRefAssembly, verify:=Verification.FailsILVerify, validator:=assemblyValidator)
         End Sub
 
         <Fact>
@@ -3849,7 +3849,7 @@ End Class
 
             Dim comp = CreateCompilationWithMscorlib40(source1, OutputKind.NetModule)
             Dim metadataRef = comp.EmitToImageReference()
-            CompileAndVerify(source2, references:={metadataRef}, options:=TestOptions.ReleaseModule, verify:=Verification.FailsPeVerify Or Verification.FailsIlVerify)
+            CompileAndVerify(source2, references:={metadataRef}, options:=TestOptions.ReleaseModule, verify:=Verification.FailsPEVerify Or Verification.FailsILVerify)
         End Sub
 
         <Fact>

@@ -133,7 +133,7 @@ ProcessReadOnlyList3
 ProcessReadOnlyList3
 ProcessReadOnlyList3
 ProcessReadOnlyListOfObject3
-]]>, verify:=Verification.FailsIlVerify)
+]]>, verify:=Verification.FailsILVerify)
 
         End Sub
 
@@ -349,7 +349,7 @@ ProcessReadOnlyCollection3
 ProcessReadOnlyCollection3
 ProcessReadOnlyCollection3
 ProcessReadOnlyCollectionOfObject3
-]]>, verify:=Verification.FailsIlVerify)
+]]>, verify:=Verification.FailsILVerify)
 
         End Sub
 

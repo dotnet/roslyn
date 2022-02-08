@@ -1385,7 +1385,7 @@ ref struct DisposableEnumerator
     public void Dispose() { System.Console.WriteLine(""Done with DisposableEnumerator""); }
 }";
             // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
-            var compilation = CompileAndVerify(source, verify: Verification.FailsIlVerify, expectedOutput: @"
+            var compilation = CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput: @"
 1
 2
 3
@@ -1449,7 +1449,7 @@ ref struct DisposableEnumerator
     public void Dispose(params object[] args) { System.Console.WriteLine($""Done with DisposableEnumerator. args was {args}, length {args.Length}""); }
 }";
             // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
-            var compilation = CompileAndVerify(source, verify: Verification.FailsIlVerify, expectedOutput: @"
+            var compilation = CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput: @"
 1
 2
 3
@@ -1484,7 +1484,7 @@ ref struct DisposableEnumerator
     public void Dispose(int arg = 1) { System.Console.WriteLine($""Done with DisposableEnumerator. arg was {arg}""); }
 }";
             // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
-            var compilation = CompileAndVerify(source, verify: Verification.FailsIlVerify, expectedOutput: @"
+            var compilation = CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput: @"
 1
 2
 3
@@ -1525,7 +1525,7 @@ static class DisposeExtension
 ";
             // extension methods do not contribute to disposal
             // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
-            CompileAndVerify(source, verify: Verification.FailsIlVerify, expectedOutput: @"123");
+            CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput: @"123");
         }
 
         [Fact]
@@ -1566,7 +1566,7 @@ static class DisposeExtension2
 ";
             // extension methods do not contribute to disposal
             // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
-            CompileAndVerify(source, verify: Verification.FailsIlVerify, expectedOutput: @"123");
+            CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput: @"123");
         }
 
         [Fact]
@@ -1603,7 +1603,7 @@ static class DisposeExtension
 ";
             // extension methods do not contribute to disposal
             // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
-            CompileAndVerify(source, verify: Verification.FailsIlVerify, expectedOutput: @"123");
+            CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput: @"123");
         }
 
         [Fact]
@@ -1640,7 +1640,7 @@ static class DisposeExtension
 ";
             // extension methods do not contribute to disposal
             // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
-            CompileAndVerify(source, verify: Verification.FailsIlVerify, expectedOutput: @"123");
+            CompileAndVerify(source, verify: Verification.FailsILVerify, expectedOutput: @"123");
         }
 
         [Fact]
@@ -1737,7 +1737,7 @@ ref struct DisposableEnumerator
     public void Dispose() { System.Console.WriteLine(""Done with DisposableEnumerator""); }
 }";
             // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
-            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular7_3, verify: Verification.FailsIlVerify, expectedOutput: @"
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular7_3, verify: Verification.FailsILVerify, expectedOutput: @"
 1
 2
 3");
@@ -4734,7 +4734,7 @@ ref struct Enumerator
     public void Dispose() { Console.Write(""Disposed""); }
 }";
             // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
-            CompileAndVerify(source, parseOptions: TestOptions.Regular9, verify: Verification.FailsIlVerify, expectedOutput: @"123Disposed")
+            CompileAndVerify(source, parseOptions: TestOptions.Regular9, verify: Verification.FailsILVerify, expectedOutput: @"123Disposed")
                 .VerifyIL("C.Main", @"
 {
   // Code size       45 (0x2d)

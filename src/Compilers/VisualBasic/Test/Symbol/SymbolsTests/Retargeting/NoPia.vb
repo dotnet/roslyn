@@ -1634,7 +1634,7 @@ End Class
                              New VisualBasicCompilationReference(pia1)})
 
             ' ILVerify: The method or operation is not implemented.
-            CompileAndVerify(consumer, verify:=Verification.FailsIlVerify)
+            CompileAndVerify(consumer, verify:=Verification.FailsILVerify)
         End Sub
 
         <Fact, WorkItem(528047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528047")>
