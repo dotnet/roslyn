@@ -2,27 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Immutable;
-using System.Composition;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
-    [ExportGlobalOptionProvider, Shared]
-    internal sealed class FindUsagesOptions : IOptionProvider
+    internal static class FindUsagesPresentationOptionsStorage
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FindUsagesOptions()
-        {
-        }
-
-        ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
-            DefinitionGroupingPriority);
-
         private const string LocalRegistryPath = @"Roslyn\Internal\FindUsages\";
 
         /// <summary>
@@ -32,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         /// next FindReferences call.
         /// </summary>
         public static readonly Option2<int> DefinitionGroupingPriority = new(
-            nameof(FindUsagesOptions), nameof(DefinitionGroupingPriority), defaultValue: -1,
-            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(DefinitionGroupingPriority)));
+            "FindUsagesOptions", "DefinitionGroupingPriority", defaultValue: -1,
+            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "DefinitionGroupingPriority"));
     }
 }

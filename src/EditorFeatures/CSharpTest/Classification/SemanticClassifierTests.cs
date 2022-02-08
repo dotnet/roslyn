@@ -3561,6 +3561,35 @@ EnumMember("IgnorePatternWhitespace"));
 
         [Theory]
         [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_Attribute(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+[AttributeUsage(AttributeTargets.Field)]
+class RegexTestAttribute : Attribute
+{
+    public RegexTestAttribute([StringSyntax(StringSyntaxAttribute.Regex)] string value) { }
+}
+
+class Program
+{
+    [|[RegexTest(@""$\a(?#comment)"")]|]
+    private string field;
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Class("RegexTest"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task TestIncompleteRegexLeadingToStringInsideSkippedTokensInsideADirective(TestHost testHost)
         {
             await TestAsync(

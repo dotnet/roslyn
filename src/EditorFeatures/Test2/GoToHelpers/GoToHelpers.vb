@@ -25,7 +25,7 @@ Friend Class GoToHelpers
             Dim solution = workspace.CurrentSolution
             Dim document = solution.GetDocument(documentWithCursor.Id)
 
-            Dim context = New SimpleFindUsagesContext()
+            Dim context = New SimpleFindUsagesContext(workspace.GlobalOptions)
             Await testingMethod(document, position, context)
 
             If Not shouldSucceed Then

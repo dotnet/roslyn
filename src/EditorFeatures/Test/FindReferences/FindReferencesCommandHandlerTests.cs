@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
@@ -29,7 +30,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     {
         private class MockFindUsagesContext : FindUsagesContext
         {
-            public readonly List<DefinitionItem> Result = new List<DefinitionItem>();
+            public readonly List<DefinitionItem> Result = new();
+
+            public MockFindUsagesContext(IGlobalOptionService globalOptions)
+                : base(globalOptions)
+            {
+            }
 
             public override ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
             {
@@ -64,13 +70,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         public async Task TestFindReferencesAsynchronousCall()
         {
             using var workspace = TestWorkspace.CreateCSharp("class C { C() { new C(); } }");
-            var context = new MockFindUsagesContext();
+            var context = new MockFindUsagesContext(workspace.GlobalOptions);
             var presenter = new MockStreamingFindUsagesPresenter(context);
 
             var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
             var handler = new FindReferencesCommandHandler(
                 presenter,
+                workspace.GlobalOptions,
                 listenerProvider);
 
             var textView = workspace.Documents[0].GetTextView();

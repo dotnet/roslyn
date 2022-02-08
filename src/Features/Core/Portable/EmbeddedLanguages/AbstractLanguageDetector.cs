@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
@@ -150,6 +151,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
                 if (IsArgumentToParameterWithMatchingStringSyntaxAttribute(semanticModel, argument, cancellationToken, out options))
                     return true;
             }
+            else if (syntaxFacts.IsAttributeArgument(parent.Parent))
+            {
+                var argument = parent.Parent;
+                if (IsArgumentToAttributeParameterWithMatchingStringSyntaxAttribute(semanticModel, argument, cancellationToken, out options))
+                    return true;
+            }
             else
             {
                 var statement = parent.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsStatement);
@@ -167,13 +174,24 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
             return false;
         }
 
-        private bool IsArgumentToParameterWithMatchingStringSyntaxAttribute(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken, out TOptions options)
+        private bool IsArgumentToAttributeParameterWithMatchingStringSyntaxAttribute(
+            SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken, out TOptions options)
         {
-            var operation = semanticModel.GetOperation(argumentNode, cancellationToken);
-            if (operation is IArgumentOperation { Parameter: { } parameter } &&
-                HasMatchingStringSyntaxAttribute(parameter))
+            var parameter = Info.SemanticFacts.FindParameterForAttributeArgument(semanticModel, argument, cancellationToken);
+            return IsParameterWithMatchingStringSyntaxAttribute(semanticModel, argument, parameter, cancellationToken, out options);
+        }
+
+        private bool IsArgumentToParameterWithMatchingStringSyntaxAttribute(SemanticModel semanticModel, SyntaxNode argument, CancellationToken cancellationToken, out TOptions options)
+        {
+            var parameter = Info.SemanticFacts.FindParameterForArgument(semanticModel, argument, cancellationToken);
+            return IsParameterWithMatchingStringSyntaxAttribute(semanticModel, argument, parameter, cancellationToken, out options);
+        }
+
+        private bool IsParameterWithMatchingStringSyntaxAttribute(SemanticModel semanticModel, SyntaxNode argument, IParameterSymbol parameter, CancellationToken cancellationToken, out TOptions options)
+        {
+            if (HasMatchingStringSyntaxAttribute(parameter))
             {
-                options = GetOptionsFromSiblingArgument(argumentNode, semanticModel, cancellationToken) ??
+                options = GetOptionsFromSiblingArgument(argument, semanticModel, cancellationToken) ??
                           GetStringSyntaxDefaultOptions();
                 return true;
             }
@@ -190,12 +208,15 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
                 HasMatchingStringSyntaxAttribute(symbol);
         }
 
-        private bool HasMatchingStringSyntaxAttribute(ISymbol symbol)
+        private bool HasMatchingStringSyntaxAttribute([NotNullWhen(true)] ISymbol? symbol)
         {
-            foreach (var attribute in symbol.GetAttributes())
+            if (symbol != null)
             {
-                if (IsMatchingStringSyntaxAttribute(attribute))
-                    return true;
+                foreach (var attribute in symbol.GetAttributes())
+                {
+                    if (IsMatchingStringSyntaxAttribute(attribute))
+                        return true;
+                }
             }
 
             return false;
@@ -241,18 +262,22 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
         }
 
         protected TOptions? GetOptionsFromSiblingArgument(
-            SyntaxNode argumentNode,
+            SyntaxNode argument,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
             var syntaxFacts = Info.SyntaxFacts;
-            var argumentList = argumentNode.GetRequiredParent();
-            var arguments = syntaxFacts.GetArgumentsOfArgumentList(argumentList);
+            var argumentList = argument.GetRequiredParent();
+            var arguments = syntaxFacts.IsArgument(argument)
+                ? syntaxFacts.GetArgumentsOfArgumentList(argumentList)
+                : syntaxFacts.GetArgumentsOfAttributeArgumentList(argumentList);
             foreach (var siblingArg in arguments)
             {
-                if (siblingArg != argumentNode)
+                if (siblingArg != argument)
                 {
-                    var expr = syntaxFacts.GetExpressionOfArgument(siblingArg);
+                    var expr = syntaxFacts.IsArgument(argument)
+                        ? syntaxFacts.GetExpressionOfArgument(siblingArg)
+                        : syntaxFacts.GetExpressionOfAttributeArgument(siblingArg);
                     if (expr != null)
                     {
                         var exprType = semanticModel.GetTypeInfo(expr, cancellationToken);

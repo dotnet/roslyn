@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
     internal abstract partial class AbstractFindUsagesService
     {
         public async Task FindImplementationsAsync(
-            Document document, int position, IFindUsagesContext context, CancellationToken cancellationToken)
+            IFindUsagesContext context, Document document, int position, CancellationToken cancellationToken)
         {
             // If this is a symbol from a metadata-as-source project, then map that symbol back to a symbol in the primary workspace.
             var symbolAndProjectOpt = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
@@ -34,11 +34,11 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             var symbolAndProject = symbolAndProjectOpt.Value;
             await FindImplementationsAsync(
-                symbolAndProject.symbol, symbolAndProject.project, context, cancellationToken).ConfigureAwait(false);
+                context, symbolAndProject.symbol, symbolAndProject.project, cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task FindImplementationsAsync(
-            ISymbol symbol, Project project, IFindUsagesContext context, CancellationToken cancellationToken)
+            IFindUsagesContext context, ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
             var solution = project.Solution;
             var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);

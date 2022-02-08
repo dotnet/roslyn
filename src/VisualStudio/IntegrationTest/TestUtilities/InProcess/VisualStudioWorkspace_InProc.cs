@@ -231,17 +231,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 GetWaitingService().EnableActiveTokenTracking(true);
             });
 
-        public void SetFeatureOption(string feature, string optionName, string language, string? valueString)
+        public void SetFeatureOption(string feature, string optionName, string? language, string? valueString)
             => InvokeOnUIThread(cancellationToken =>
             {
                 var option = GetOption(optionName, feature);
 
                 var value = TypeDescriptor.GetConverter(option.Type).ConvertFromString(valueString);
-                var optionKey = string.IsNullOrWhiteSpace(language)
-                    ? new OptionKey(option)
-                    : new OptionKey(option, language);
-
-                SetOption(optionKey, value);
+                SetOption(new OptionKey(option, language), value);
             });
 
         public string? GetWorkingFolder()
