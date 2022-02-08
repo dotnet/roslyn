@@ -23,8 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
                     .WithArgumentList(null);
             }
 
-            return objectCreation.WithInitializer(
-                InitializerExpression(SyntaxKind.ObjectInitializerExpression, expressions));
+            var firstExpression = expressions.First();
+            var initializerKind = firstExpression is AssignmentExpressionSyntax
+                ? SyntaxKind.ObjectInitializerExpression
+                : SyntaxKind.CollectionInitializerExpression;
+
+            return objectCreation.WithInitializer(InitializerExpression(initializerKind, expressions));
         }
 
         public static void AddExistingItems(ObjectCreationExpressionSyntax objectCreation, ArrayBuilder<SyntaxNodeOrToken> nodesAndTokens)

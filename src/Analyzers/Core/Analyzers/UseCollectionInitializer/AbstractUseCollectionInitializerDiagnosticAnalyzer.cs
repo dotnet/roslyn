@@ -42,15 +42,16 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         {
         }
 
+        protected abstract ISyntaxFacts GetSyntaxFacts();
+        protected abstract bool AreCollectionInitializersSupported(Compilation compilation);
+
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(OnCompilationStart);
 
         private void OnCompilationStart(CompilationStartAnalysisContext context)
         {
             if (!AreCollectionInitializersSupported(context.Compilation))
-            {
                 return;
-            }
 
             var ienumerableType = context.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName!);
             if (ienumerableType != null)
@@ -61,8 +62,6 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                     syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ObjectCreationExpression));
             }
         }
-
-        protected abstract bool AreCollectionInitializersSupported(Compilation compilation);
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context, INamedTypeSymbol ienumerableType)
         {
@@ -101,11 +100,10 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
 
-            var severity = option.Notification.Severity;
             context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
-                objectCreationExpression.GetLocation(),
-                severity,
+                objectCreationExpression.GetFirstToken().GetLocation(),
+                option.Notification.Severity,
                 additionalLocations: locations,
                 properties: null));
 
@@ -122,9 +120,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var fadeOutCode = context.GetOption(
                 CodeStyleOptions2.PreferCollectionInitializer_FadeOutCode, context.Node.Language);
             if (!fadeOutCode)
-            {
                 return;
-            }
 
             var syntaxFacts = GetSyntaxFacts();
 
@@ -152,7 +148,5 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 }
             }
         }
-
-        protected abstract ISyntaxFacts GetSyntaxFacts();
     }
 }
