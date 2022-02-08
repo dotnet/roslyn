@@ -984,7 +984,7 @@ namespace System.Text
 
 ";
             var comp = CreateEmptyCompilation(source);
-            CompileAndVerify(comp, symbolValidator: validate);
+            CompileAndVerify(comp, symbolValidator: validate, verify: Verification.Skipped);
 
             void validate(ModuleSymbol module)
             {
