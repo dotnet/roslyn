@@ -6,20 +6,14 @@
 
 #if NETCOREAPP
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using static Roslyn.Test.Utilities.RuntimeEnvironmentUtilities;
-using System.Reflection.PortableExecutable;
-using System.Reflection;
-using System.Reflection.Metadata;
-using Roslyn.Test.Utilities;
-using Microsoft.CodeAnalysis.PooledObjects;
-using System.Diagnostics.Tracing;
 
 namespace Roslyn.Test.Utilities.CoreClr
 {
