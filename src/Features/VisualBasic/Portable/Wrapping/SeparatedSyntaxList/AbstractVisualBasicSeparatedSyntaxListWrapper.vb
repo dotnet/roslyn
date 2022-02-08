@@ -15,6 +15,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping.SeparatedSyntaxList
             MyBase.New(VisualBasicIndentationService.WithoutParameterAlignmentInstance)
         End Sub
 
+        ' The visual basic language always requires the open brace to be on the same line as the collection
+        ' being initialized.
         Protected NotOverridable Overrides Function ShouldMoveOpenBraceToNewLine(options As OptionSet) As Boolean
             Return False
         End Function
