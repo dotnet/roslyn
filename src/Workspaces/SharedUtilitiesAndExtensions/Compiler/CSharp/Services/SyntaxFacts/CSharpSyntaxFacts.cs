@@ -1579,7 +1579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => node is AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression) { Left: IdentifierNameSyntax };
 
         public bool IsElementAccessInitializer([NotNullWhen(true)] SyntaxNode? node)
-            => node is AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression) { Left: ElementAccessExpressionSyntax };
+            => node is AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression) { Left: ImplicitElementAccessSyntax };
 
         public bool IsObjectMemberInitializer([NotNullWhen(true)] SyntaxNode? node)
             => node is InitializerExpressionSyntax(SyntaxKind.ObjectInitializerExpression);

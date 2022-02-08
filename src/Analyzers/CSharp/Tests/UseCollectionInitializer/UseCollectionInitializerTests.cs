@@ -120,9 +120,20 @@ class C
             await TestInRegularAndScriptAsync(
 @"
 using System.Collections.Generic;
+
+class A
+{
+    public B b;
+}
+
+class B
+{
+    public List<int> c;
+}
+
 class C
 {
-    void M()
+    void M(A a)
     {
         a.b.c = [|new|] List<int>();
         a.b.c[1] = 2;
@@ -130,9 +141,20 @@ class C
 }",
 @"
 using System.Collections.Generic;
+
+class A
+{
+    public B b;
+}
+
+class B
+{
+    public List<int> c;
+}
+
 class C
 {
-    void M()
+    void M(A a)
     {
         a.b.c = new List<int>
         {
@@ -613,26 +635,41 @@ class C
         public async Task TestFixAllInDocument2()
         {
             await TestInRegularAndScriptAsync(
-@"using System.Collections.Generic;
+@"
+using System;
+using System.Collections;
+using System.Collections.Generic;
 
 class C
 {
     void M()
     {
-        var list1 = new List<int>(() => {
-            var list2 = new List<int>();
+        var list1 = [|new|] Bar(() => {
+            var list2 = [|new|] List<int>();
             list2.Add(2);
         });
         list1.Add(1);
     }
-}",
-@"using System.Collections.Generic;
+}
+
+class Bar : IEnumerable
+{
+    public Bar(Action action) { }
+
+    public IEnumerator GetEnumerator() => null;
+    public void Add(int i) { }
+}
+",
+@"
+using System;
+using System.Collections;
+using System.Collections.Generic;
 
 class C
 {
     void M()
     {
-        var list1 = new List<int>(() =>
+        var list1 = new Bar(() =>
         {
             var list2 = new List<int>
             {
@@ -643,33 +680,49 @@ class C
             1
         };
     }
-}");
+}
+
+class Bar : IEnumerable
+{
+    public Bar(Action action) { }
+
+    public IEnumerator GetEnumerator() => null;
+    public void Add(int i) { }
+}
+");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [Fact(Skip = "Unknown fix all behavior"), Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
         public async Task TestFixAllInDocument3()
         {
-            await TestInRegularAndScriptAsync(
-@"using System.Collections.Generic;
+            await new VerifyCS.Test
+            {
+                TestCode =
+@"
+using System;
+using System.Collections.Generic;
 
 class C
 {
     void M()
     {
-        var list1 = {|FixAllInDocument:new|} List<int>();
+        var list1 = [|new|] List<Action>();
         list1.Add(() => {
-            var list2 = new List<int>();
+            var list2 = [|new|] List<int>();
             list2.Add(2);
         });
     }
 }",
-@"using System.Collections.Generic;
+                FixedCode =
+@"
+using System;
+using System.Collections.Generic;
 
 class C
 {
     void M()
     {
-        var list1 = new List<int>
+        var list1 = new List<Action>
         {
             () =>
             {
@@ -680,7 +733,8 @@ class C
             }
         };
     }
-}");
+}",
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
