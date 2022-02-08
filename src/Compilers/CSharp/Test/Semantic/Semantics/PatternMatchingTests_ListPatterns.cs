@@ -278,7 +278,10 @@ public class X
     }
 }
 ";
-        var verifier = CompileAndVerify(new[] { source, TestSources.Index, TestSources.Range }, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
+        var verifier = CompileAndVerify(new[] { source, TestSources.Index, TestSources.Range }, parseOptions: TestOptions.RegularWithListPatterns,
+            options: TestOptions.ReleaseDll, verify: Verification.FailsILVerify);
+        verifier.VerifyDiagnostics();
         AssertEx.Multiple(
             () => verifier.VerifyIL("X.Test1", @"
 {
