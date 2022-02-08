@@ -277,9 +277,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
-        public async Task TestMissingWithExistingInitializer()
+        [WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")]
+        public async Task TestWithExistingInitializer()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     int i;
@@ -289,6 +290,92 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
     {
         var c = [||]new C() { i = 1 };
         c.j = 1;
+    }
+}",
+@"class C
+{
+    int i;
+    int j;
+
+    void M()
+    {
+        var c = [||]new C
+        {
+            i = 1,
+            j = 1
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")]
+        public async Task TestWithExistingInitializerComma()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    int i;
+    int j;
+
+    void M()
+    {
+        var c = [||]new C()
+        {
+            i = 1,
+        };
+        c.j = 1;
+    }
+}",
+@"class C
+{
+    int i;
+    int j;
+
+    void M()
+    {
+        var c = [||]new C
+        {
+            i = 1,
+            j = 1
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        [WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")]
+        public async Task TestWithExistingInitializerNotIfAlreadyInitialized()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    int i;
+    int j;
+
+    void M()
+    {
+        var c = [||]new C()
+        {
+            i = 1,
+        };
+        c.j = 1;
+        c.i = 2;
+    }
+}",
+@"class C
+{
+    int i;
+    int j;
+
+    void M()
+    {
+        var c = [||]new C
+        {
+            i = 1,
+            j = 1
+        };
+        c.i = 2;
     }
 }");
         }

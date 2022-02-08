@@ -164,8 +164,9 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
-        Public Async Function TestMissingWithExistingInitializer() As Task
-            Await TestMissingInRegularAndScriptAsync(
+        <WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")>
+        Public Async Function TestWithExistingInitializer() As Task
+            Await TestInRegularAndScript1Async(
 "
 Class C
     Dim i As Integer
@@ -175,6 +176,47 @@ Class C
             .i = 1
         }
         c.j = 1
+    End Sub
+End Class",
+"
+Class C
+    Dim i As Integer
+    Dim j As Integer
+    Sub M()
+        Dim c = [||]New C With {
+            .i = 1,
+            .j = 1
+        }
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        <WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")>
+        Public Async Function TestWithExistingInitializerNotIfAlreadyInitialized() As Task
+            Await TestInRegularAndScript1Async(
+"
+Class C
+    Dim i As Integer
+    Dim j As Integer
+    Sub M()
+        Dim c = [||]New C() With {
+            .i = 1
+        }
+        c.j = 1
+        c.i = 2
+    End Sub
+End Class",
+"
+Class C
+    Dim i As Integer
+    Dim j As Integer
+    Sub M()
+        Dim c = [||]New C With {
+            .i = 1,
+            .j = 1
+        }
+        c.i = 2
     End Sub
 End Class")
         End Function
