@@ -1154,13 +1154,13 @@ public class Test
 }";
 
             CompileAndVerify(code, verify: Verification.Fails, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
-           {
-               AssertNoIsReadOnlyAttributeExists(module.ContainingAssembly);
+            {
+                AssertNoIsReadOnlyAttributeExists(module.ContainingAssembly);
 
-               var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("M").GetParameters().Single();
-               Assert.Equal(RefKind.In, parameter.RefKind);
-               Assert.Empty(parameter.GetAttributes());
-           });
+                var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("M").GetParameters().Single();
+                Assert.Equal(RefKind.In, parameter.RefKind);
+                Assert.Empty(parameter.GetAttributes());
+            });
         }
 
         [Fact]
