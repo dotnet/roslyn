@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             var initializer = _syntaxFacts.GetInitializerOfObjectCreationExpression(_objectCreationExpression);
             if (initializer != null)
             {
-                foreach (var init in _syntaxFacts.GetMemberInitializersOfInitializer(initializer))
+                foreach (var init in _syntaxFacts.GetInitializersOfObjectMemberInitializer(initializer))
                 {
                     if (_syntaxFacts.IsNamedMemberInitializer(init))
                     {

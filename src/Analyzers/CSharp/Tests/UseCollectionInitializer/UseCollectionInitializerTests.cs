@@ -309,7 +309,7 @@ class C
 {
     void M()
     {
-        var c = new List<int>();
+        List<int> c = new List<int>();
         c.Add(1);
     }
 }", LanguageVersion.CSharp2);
@@ -328,6 +328,8 @@ class C
         var c = new C();
         c.Add(1);
     }
+
+    void Add(int i) { }
 }");
         }
 
@@ -417,12 +419,21 @@ class C
 
 class C
 {
-    void M()
+    void M(int i)
     {
-        var c = new List<int>();
+        var c = new List();
         c.Add(ref i);
     }
-}");
+}
+
+
+class List
+{
+    public void Add(ref int i)
+    {
+    }
+}
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
@@ -466,7 +477,7 @@ class C
     void M()
     {
         var c = new List<int>();
-        c.Add(arg: 1);
+        c.Add(item: 1);
     }
 }");
         }

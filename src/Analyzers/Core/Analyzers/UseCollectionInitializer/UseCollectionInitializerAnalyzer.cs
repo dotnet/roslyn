@@ -63,6 +63,14 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var seenInvocation = false;
             var seenIndexAssignment = false;
 
+            var initializer = _syntaxFacts.GetInitializerOfObjectCreationExpression(_objectCreationExpression);
+            if (initializer != null)
+            {
+                var firstInit = _syntaxFacts.GetExpressionsOfObjectCollectionInitializer(initializer).First();
+                seenIndexAssignment = _syntaxFacts.IsElementAccessInitializer(firstInit);
+                seenInvocation = !seenIndexAssignment;
+            }
+
             foreach (var child in containingBlock.ChildNodesAndTokens())
             {
                 if (!foundStatement)
@@ -76,14 +84,10 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 }
 
                 if (child.IsToken)
-                {
                     return;
-                }
 
                 if (child.AsNode() is not TExpressionStatementSyntax statement)
-                {
                     return;
-                }
 
                 SyntaxNode? instance = null;
                 if (!seenIndexAssignment && TryAnalyzeAddInvocation(statement, out instance))
@@ -104,7 +108,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         protected override bool ShouldAnalyze()
         {
-            if (_syntaxFacts.IsNamedMemberInitializer(_syntaxFacts.GetInitializerOfObjectCreationExpression(_objectCreationExpression)))
+            if (_syntaxFacts.IsObjectMemberInitializer(_syntaxFacts.GetInitializerOfObjectCreationExpression(_objectCreationExpression)))
                 return false;
 
             var type = _semanticModel.GetTypeInfo(_objectCreationExpression, _cancellationToken).Type;
