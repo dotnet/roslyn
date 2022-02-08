@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                                                 _forceIndentation,
                                                 _indentation,
                                                 _indentationDelta,
-                                                _options.GetOption(FormattingOptions2.UseTabs),
-                                                _options.GetOption(FormattingOptions2.TabSize));
+                                                _options.UseTabs,
+                                                _options.TabSize);
 
                         if (triviaText == newTriviaText)
                         {

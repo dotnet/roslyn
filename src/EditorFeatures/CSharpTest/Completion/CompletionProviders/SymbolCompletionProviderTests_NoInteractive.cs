@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
@@ -338,7 +339,7 @@ class C
             var service = CompletionService.GetService(document);
             var options = CompletionOptions.Default;
             var displayOptions = SymbolDescriptionOptions.Default;
-            var (completions, _) = await service.GetCompletionsInternalAsync(document, position, options);
+            var completions = await service.GetCompletionsAsync(document, position, options, OptionValueSet.Empty);
 
             var item = completions.Items.First(i => i.DisplayText == "Beep");
             var edit = testDocument.GetTextBuffer().CreateEdit();

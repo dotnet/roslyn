@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Xunit
@@ -3029,7 +3030,7 @@ End Module"
                 Dim project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.VisualBasic)
                 Dim document = project.AddDocument("Document", SourceText.From(inputOutput))
                 Dim root = Await document.GetSyntaxRootAsync()
-                Dim options = SyntaxFormattingOptions.Default
+                Dim options = VisualBasicSyntaxFormattingOptions.Default
 
                 ' format first time
                 Dim result = Formatter.GetFormattedTextChanges(root, workspace.Services, options, CancellationToken.None)
@@ -3857,7 +3858,7 @@ End Class</text>.Value.Replace(vbLf, vbCrLf)
             root = root.ReplaceNode(method, method.NormalizeWhitespace(elasticTrivia:=True).WithAdditionalAnnotations(goo))
 
             Using workspace = New AdhocWorkspace()
-                Dim result = Formatter.Format(root, goo, workspace.Services, SyntaxFormattingOptions.Default, CancellationToken.None).ToString()
+                Dim result = Formatter.Format(root, goo, workspace.Services, VisualBasicSyntaxFormattingOptions.Default, CancellationToken.None).ToString()
                 Assert.Equal(expected, result)
             End Using
         End Sub

@@ -5,9 +5,11 @@
 #nullable disable
 
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.VisualBasic.Formatting;
 using Roslyn.Test.Utilities;
 using Xunit;
 using CS = Microsoft.CodeAnalysis.CSharp;
@@ -70,20 +72,19 @@ End Class
         private static void AssertFormatCSharp(string expected, string input)
         {
             var tree = CS.SyntaxFactory.ParseSyntaxTree(input);
-            AssertFormat(expected, tree);
+            AssertFormat(expected, tree, CSharpSyntaxFormattingOptions.Default);
         }
 
         private static void AssertFormatVB(string expected, string input)
         {
             var tree = VB.SyntaxFactory.ParseSyntaxTree(input);
-            AssertFormat(expected, tree);
+            AssertFormat(expected, tree, VisualBasicSyntaxFormattingOptions.Default);
         }
 
-        private static void AssertFormat(string expected, SyntaxTree tree)
+        private static void AssertFormat(string expected, SyntaxTree tree, SyntaxFormattingOptions options)
         {
             using var workspace = new AdhocWorkspace();
 
-            var options = SyntaxFormattingOptions.Default;
             var formattedRoot = Formatter.Format(tree.GetRoot(), workspace.Services, options, CancellationToken.None);
             var actualFormattedText = formattedRoot.ToFullString();
 

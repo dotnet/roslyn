@@ -246,7 +246,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return controlService.CreateDisposableToolTip(document, textBuffer, contentSpan, EnvironmentColors.ToolWindowBackgroundBrushKey);
             }
 
-            private void SetStaticClassifications(ITextBuffer textBuffer, ImmutableArray<ClassifiedSpan> classifiedSpans)
+            private static void SetStaticClassifications(ITextBuffer textBuffer, ImmutableArray<ClassifiedSpan> classifiedSpans)
             {
                 var key = PredefinedPreviewTaggerKeys.StaticClassificationSpansKey;
                 textBuffer.Properties.RemoveProperty(key);

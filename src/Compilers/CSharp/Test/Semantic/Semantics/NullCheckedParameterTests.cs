@@ -399,16 +399,6 @@ class C
             var tree = Parse(source, options: TestOptions.RegularPreview);
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
-
-            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            SimpleLambdaExpressionSyntax node = comp.GlobalNamespace.GetTypeMember("C")
-                                                                    .GetMember<SourceMethodSymbol>("M")
-                                                                    .GetNonNullSyntaxNode()
-                                                                    .DescendantNodes()
-                                                                    .OfType<SimpleLambdaExpressionSyntax>()
-                                                                    .Single();
-            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol!;
-            Assert.True(methodSymbol.Parameters[0].IsNullChecked);
         }
 
         [Fact]
@@ -426,17 +416,6 @@ class C
             var tree = Parse(source, options: TestOptions.RegularPreview);
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
-
-            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            ParenthesizedLambdaExpressionSyntax node = comp.GlobalNamespace.GetTypeMember("C")
-                                                                           .GetMember<SourceMethodSymbol>("M")
-                                                                           .GetNonNullSyntaxNode()
-                                                                           .DescendantNodes()
-                                                                           .OfType<ParenthesizedLambdaExpressionSyntax>()
-                                                                           .Single();
-            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol!;
-            Assert.True(methodSymbol.Parameters[0].IsNullChecked);
-            Assert.False(methodSymbol.Parameters[1].IsNullChecked);
         }
 
         [Fact]
@@ -454,16 +433,6 @@ class C
             var tree = Parse(source, options: TestOptions.RegularPreview);
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
-
-            CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            Syntax.ParenthesizedLambdaExpressionSyntax node = comp.GlobalNamespace.GetTypeMember("C")
-                                                                                  .GetMember<SourceMethodSymbol>("M")
-                                                                                  .GetNonNullSyntaxNode()
-                                                                                  .DescendantNodes()
-                                                                                  .OfType<Syntax.ParenthesizedLambdaExpressionSyntax>()
-                                                                                  .Single();
-            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol!;
-            Assert.True(methodSymbol.Parameters[0].IsNullChecked);
         }
 
         [Fact]
@@ -571,16 +540,6 @@ class C
             var tree = Parse(source, options: TestOptions.RegularPreview);
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
-
-            CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            ParenthesizedLambdaExpressionSyntax node = comp.GlobalNamespace.GetTypeMember("C")
-                                                                           .GetMember<SourceMethodSymbol>("M")
-                                                                           .GetNonNullSyntaxNode()
-                                                                           .DescendantNodes()
-                                                                           .OfType<ParenthesizedLambdaExpressionSyntax>()
-                                                                           .Single();
-            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol!;
-            Assert.True(methodSymbol.Parameters[0].IsNullChecked);
         }
 
         [Fact]
@@ -598,17 +557,6 @@ class C
             var tree = Parse(source, options: TestOptions.RegularPreview);
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
-
-            CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            ParenthesizedLambdaExpressionSyntax node = comp.GlobalNamespace.GetTypeMember("C")
-                                                                           .GetMember<SourceMethodSymbol>("M")
-                                                                           .GetNonNullSyntaxNode()
-                                                                           .DescendantNodes()
-                                                                           .OfType<ParenthesizedLambdaExpressionSyntax>()
-                                                                           .Single();
-            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol!;
-            Assert.True(methodSymbol.Parameters[0].IsNullChecked);
-            Assert.False(methodSymbol.Parameters[1].IsNullChecked);
         }
 
         [Fact]
@@ -626,21 +574,10 @@ class C
             var tree = Parse(source, options: TestOptions.RegularPreview);
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
-
-            CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            ParenthesizedLambdaExpressionSyntax node = comp.GlobalNamespace.GetTypeMember("C")
-                                                           .GetMember<SourceMethodSymbol>("M")
-                                                           .GetNonNullSyntaxNode()
-                                                           .DescendantNodes()
-                                                           .OfType<ParenthesizedLambdaExpressionSyntax>()
-                                                           .Single();
-            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol!;
-            Assert.True(methodSymbol.Parameters[0].IsNullChecked);
-            Assert.True(methodSymbol.Parameters[1].IsNullChecked);
         }
 
         [Fact]
-        public void NullCheckedDiscard()
+        public void NullCheckedDiscard_1()
         {
             var source = @"
 using System;
@@ -649,21 +586,40 @@ class C
     public void M()
     {
         Func<string, int> func1 = (_!!) => 42;
+        Func<string, string, int> func2 = (_!!, x) => 42;
     }
 }";
             var tree = Parse(source, options: TestOptions.RegularPreview);
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
+        }
 
-            CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            ParenthesizedLambdaExpressionSyntax node = comp.GlobalNamespace.GetTypeMember("C")
-                                                                           .GetMember<SourceMethodSymbol>("M")
-                                                                           .GetNonNullSyntaxNode()
-                                                                           .DescendantNodes()
-                                                                           .OfType<ParenthesizedLambdaExpressionSyntax>()
-                                                                           .Single();
-            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol!;
-            Assert.True(methodSymbol.Parameters[0].IsNullChecked);
+        [Fact]
+        public void NullCheckedDiscard_2()
+        {
+            var source = @"
+using System;
+class C
+{
+    public Action<string, string> action0 = (_, _) => { }; // 1
+    public Action<string, string> action1 = (_!!, _) => { }; // 1
+    public Action<string, string> action2 = (_, _!!) => { }; // 2
+    public Action<string, string> action3 = (_!!, _!!) => { }; // 3, 4
+}";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyDiagnostics(
+                // (6,46): error CS8990: Discard parameter cannot be null-checked.
+                //     public Action<string, string> action1 = (_!!, _) => { }; // 1
+                Diagnostic(ErrorCode.ERR_DiscardCannotBeNullChecked, "_").WithLocation(6, 46),
+                // (7,49): error CS8990: Discard parameter cannot be null-checked.
+                //     public Action<string, string> action2 = (_, _!!) => { }; // 2
+                Diagnostic(ErrorCode.ERR_DiscardCannotBeNullChecked, "_").WithLocation(7, 49),
+                // (8,46): error CS8990: Discard parameter cannot be null-checked.
+                //     public Action<string, string> action3 = (_!!, _!!) => { }; // 3, 4
+                Diagnostic(ErrorCode.ERR_DiscardCannotBeNullChecked, "_").WithLocation(8, 46),
+                // (8,51): error CS8990: Discard parameter cannot be null-checked.
+                //     public Action<string, string> action3 = (_!!, _!!) => { }; // 3, 4
+                Diagnostic(ErrorCode.ERR_DiscardCannotBeNullChecked, "_").WithLocation(8, 51));
         }
 
         [Fact]

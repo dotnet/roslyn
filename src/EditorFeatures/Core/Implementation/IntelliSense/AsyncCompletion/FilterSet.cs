@@ -170,19 +170,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         public void CombineData(int filterSetData)
             => _vector[filterSetData] = true;
 
-        public ImmutableArray<CompletionFilterWithState> GetFilterStatesInSet(bool addUnselectedExpander)
+        public ImmutableArray<CompletionFilterWithState> GetFilterStatesInSet()
         {
             var builder = new ArrayBuilder<CompletionFilterWithState>();
 
-            // An unselected expander is only added if `addUnselectedExpander == true` and the expander is not in the set.
-            if (_vector[s_expanderMask])
-            {
-                builder.Add(new CompletionFilterWithState(Expander, isAvailable: true, isSelected: true));
-            }
-            else if (addUnselectedExpander)
-            {
-                builder.Add(new CompletionFilterWithState(Expander, isAvailable: true, isSelected: false));
-            }
+            // We always show expander but its selection state depends on whether it is in the set.
+            builder.Add(new CompletionFilterWithState(Expander, isAvailable: true, isSelected: _vector[s_expanderMask]));
 
             foreach (var filterWithMask in s_filters)
             {
@@ -195,16 +188,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return builder.ToImmutableAndFree();
         }
 
-        private readonly struct FilterWithMask
-        {
-            public readonly CompletionFilter Filter;
-            public readonly int Mask;
-
-            public FilterWithMask(CompletionFilter filter, int mask)
-            {
-                Filter = filter;
-                Mask = mask;
-            }
-        }
+        private readonly record struct FilterWithMask(CompletionFilter Filter, int Mask);
     }
 }

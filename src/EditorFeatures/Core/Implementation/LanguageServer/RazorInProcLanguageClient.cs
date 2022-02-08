@@ -5,10 +5,12 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServer.Client;
@@ -43,23 +45,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 
         protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
 
-        /// <summary>
-        /// Gets the name of the language client (displayed in yellow bars).
-        /// </summary>
-        public override string Name => "Razor C# Language Server Client";
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RazorInProcLanguageClient(
             RequestDispatcherFactory csharpVBRequestDispatcherFactory,
             IGlobalOptionService globalOptions,
-            IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             DefaultCapabilitiesProvider defaultCapabilitiesProvider,
             IThreadingContext threadingContext,
             ILspLoggerFactory lspLoggerFactory)
-            : base(csharpVBRequestDispatcherFactory, globalOptions, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, ClientName)
+            : base(csharpVBRequestDispatcherFactory, globalOptions, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, ClientName)
         {
             _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
@@ -73,7 +69,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 
             if (capabilities is VSInternalServerCapabilities vsServerCapabilities)
             {
-                vsServerCapabilities.SupportsDiagnosticRequests = GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.RazorDiagnosticMode);
+                vsServerCapabilities.SupportsDiagnosticRequests = true;
+
+                var regexExpression = string.Join("|", InlineCompletionsHandler.BuiltInSnippets);
+                var regex = new Regex(regexExpression, RegexOptions.Compiled | RegexOptions.Singleline, TimeSpan.FromSeconds(1));
+                vsServerCapabilities.InlineCompletionOptions = new VSInternalInlineCompletionOptions
+                {
+                    Pattern = regex
+                };
+
                 return vsServerCapabilities;
             }
 
@@ -84,5 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// If the razor server is activated then any failures are catastrophic as no razor c# features will work.
         /// </summary>
         public override bool ShowNotificationOnInitializeFailed => true;
+
+        public override WellKnownLspServerKinds ServerKind => WellKnownLspServerKinds.RazorLspServer;
     }
 }

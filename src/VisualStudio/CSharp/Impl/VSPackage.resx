@@ -189,10 +189,16 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
+Colorize regular expressions;
+Highlight related components under cursor;
+Report invalid regular expressions;
+JSON;
+Colorize JSON strings;
+Report invalid JSON strings;
+Detect and offer editor features for JSON strings;
 Use enhanced colors;
 Editor Color Scheme;
-Inheritance Margin;
-Stack Trace Explorer;</value>
+Inheritance Margin;</value>
     <comment>C# Advanced options page keywords</comment>
   </data>
   <data name="307" xml:space="preserve">

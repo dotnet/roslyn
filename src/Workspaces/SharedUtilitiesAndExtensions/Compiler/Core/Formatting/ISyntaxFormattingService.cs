@@ -22,27 +22,41 @@ namespace Microsoft.CodeAnalysis.Formatting
         : ILanguageService
 #endif
     {
+        SyntaxFormattingOptions GetFormattingOptions(AnalyzerConfigOptions options);
         IEnumerable<AbstractFormattingRule> GetDefaultFormattingRules();
         IFormattingResult GetFormattingResult(SyntaxNode node, IEnumerable<TextSpan>? spans, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule>? rules, CancellationToken cancellationToken);
     }
 
-    internal readonly record struct SyntaxFormattingOptions(
-        AnalyzerConfigOptions Options)
+    internal abstract class SyntaxFormattingOptions
     {
-        public static readonly SyntaxFormattingOptions Default = Create(DictionaryAnalyzerConfigOptions.Empty);
+        public readonly bool UseTabs;
+        public readonly int TabSize;
+        public readonly int IndentationSize;
+        public readonly string NewLine;
 
-        public static SyntaxFormattingOptions Create(AnalyzerConfigOptions options)
-            => new(options);
+        public readonly bool SeparateImportDirectiveGroups;
 
-        public T GetOption<T>(Option2<T> option)
-            => Options.GetOption(option);
-
-        public T GetOption<T>(PerLanguageOption2<T> option)
-            => Options.GetOption(option);
+        protected SyntaxFormattingOptions(
+            bool useTabs,
+            int tabSize,
+            int indentationSize,
+            string newLine,
+            bool separateImportDirectiveGroups)
+        {
+            UseTabs = useTabs;
+            TabSize = tabSize;
+            IndentationSize = indentationSize;
+            NewLine = newLine;
+            SeparateImportDirectiveGroups = separateImportDirectiveGroups;
+        }
 
 #if !CODE_STYLE
         public static SyntaxFormattingOptions Create(OptionSet options, HostWorkspaceServices services, string language)
-            => new(options.AsAnalyzerConfigOptions(services.GetRequiredService<IOptionService>(), language));
+        {
+            var formattingService = services.GetRequiredLanguageService<ISyntaxFormattingService>(language);
+            var configOptions = options.AsAnalyzerConfigOptions(services.GetRequiredService<IOptionService>(), language);
+            return formattingService.GetFormattingOptions(configOptions);
+        }
 
         public static async Task<SyntaxFormattingOptions> FromDocumentAsync(Document document, CancellationToken cancellationToken)
         {

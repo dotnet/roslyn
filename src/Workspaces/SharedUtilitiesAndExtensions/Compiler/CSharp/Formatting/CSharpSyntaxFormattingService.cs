@@ -54,6 +54,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public override IEnumerable<AbstractFormattingRule> GetDefaultFormattingRules()
             => _rules;
 
+        public override SyntaxFormattingOptions GetFormattingOptions(AnalyzerConfigOptions options)
+            => CSharpSyntaxFormattingOptions.Create(options);
+
         protected override IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? formattingSpans = null)
             => new AggregatedFormattingResult(node, results, formattingSpans);
 

@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             var textToFormat = originalDocumentText;
             if (closingPointLine - openingPointLine == 1)
             {
-                var newLineString = options.FormattingOptions.GetOption(FormattingOptions2.NewLine);
+                var newLineString = options.FormattingOptions.NewLine;
                 newLineEdit = new TextChange(new TextSpan(closingPoint - 1, 0), newLineString);
                 textToFormat = originalDocumentText.WithChanges(newLineEdit.Value);
 
@@ -330,14 +330,14 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 new BraceCompletionFormattingRule(FormattingOptions.IndentStyle.Smart));
 
             private readonly FormattingOptions.IndentStyle _indentStyle;
-            private readonly CachedOptions _options;
+            private readonly CSharpSyntaxFormattingOptions _options;
 
             public BraceCompletionFormattingRule(FormattingOptions.IndentStyle indentStyle)
-                : this(indentStyle, new CachedOptions(null))
+                : this(indentStyle, CSharpSyntaxFormattingOptions.Default)
             {
             }
 
-            private BraceCompletionFormattingRule(FormattingOptions.IndentStyle indentStyle, CachedOptions options)
+            private BraceCompletionFormattingRule(FormattingOptions.IndentStyle indentStyle, CSharpSyntaxFormattingOptions options)
             {
                 _indentStyle = indentStyle;
                 _options = options;
@@ -351,14 +351,14 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
             public override AbstractFormattingRule WithOptions(SyntaxFormattingOptions options)
             {
-                var cachedOptions = new CachedOptions(options.Options);
+                var newOptions = options as CSharpSyntaxFormattingOptions ?? CSharpSyntaxFormattingOptions.Default;
 
-                if (cachedOptions == _options)
+                if (_options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers) == newOptions.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers))
                 {
                     return this;
                 }
 
-                return new BraceCompletionFormattingRule(_indentStyle, cachedOptions);
+                return new BraceCompletionFormattingRule(_indentStyle, newOptions);
             }
 
             public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                     SyntaxKind.ArrayInitializerExpression,
                     SyntaxKind.ImplicitArrayCreationExpression))
                 {
-                    if (_options.NewLinesForBracesInObjectCollectionArrayInitializers)
+                    if (_options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers))
                     {
                         return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                     }
@@ -417,45 +417,6 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 {
                     // remove any suppression operation
                     list.RemoveAll(s_predicate);
-                }
-            }
-
-            private readonly struct CachedOptions : IEquatable<CachedOptions>
-            {
-                public readonly bool NewLinesForBracesInObjectCollectionArrayInitializers;
-
-                public CachedOptions(AnalyzerConfigOptions? options)
-                {
-                    NewLinesForBracesInObjectCollectionArrayInitializers = GetOptionOrDefault(options, CSharpFormattingOptions2.NewLinesForBracesInObjectCollectionArrayInitializers);
-                }
-
-                public static bool operator ==(CachedOptions left, CachedOptions right)
-                    => left.Equals(right);
-
-                public static bool operator !=(CachedOptions left, CachedOptions right)
-                    => !(left == right);
-
-                private static T GetOptionOrDefault<T>(AnalyzerConfigOptions? options, Option2<T> option)
-                {
-                    if (options is null)
-                        return option.DefaultValue;
-
-                    return options.GetOption(option);
-                }
-
-                public override bool Equals(object? obj)
-                    => obj is CachedOptions options && Equals(options);
-
-                public bool Equals(CachedOptions other)
-                {
-                    return NewLinesForBracesInObjectCollectionArrayInitializers == other.NewLinesForBracesInObjectCollectionArrayInitializers;
-                }
-
-                public override int GetHashCode()
-                {
-                    var hashCode = 0;
-                    hashCode = (hashCode << 1) + (NewLinesForBracesInObjectCollectionArrayInitializers ? 1 : 0);
-                    return hashCode;
                 }
             }
         }

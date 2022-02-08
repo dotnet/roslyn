@@ -96,12 +96,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild PopulateSwitchExpression = /*IDE0072*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild SimplifyLinqExpression = /*IDE0120*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild UseNullCheckOverTypeCheck = /*IDE0150*/ EnforceOnBuild.WhenExplicitlyEnabled;
-        public const EnforceOnBuild Regex = /*RE0001*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild MultipleBlankLines = /*IDE2000*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild EmbeddedStatementPlacement = /*IDE2001*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild ConsecutiveBracePlacement = /*IDE2002*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild ConsecutiveStatementPlacement = /*IDE2003*/ EnforceOnBuild.WhenExplicitlyEnabled;
         public const EnforceOnBuild ConstructorInitializerPlacement = /*IDE2004*/ EnforceOnBuild.WhenExplicitlyEnabled;
+
+        public const EnforceOnBuild Regex = /*RE0001*/ EnforceOnBuild.WhenExplicitlyEnabled;
+        public const EnforceOnBuild Json = /*JSON001*/ EnforceOnBuild.WhenExplicitlyEnabled;
 
         /* EnforceOnBuild.Never */
         // TODO: Allow enforcing simplify names and related diagnostics on build once we validate their performance charactericstics.
@@ -113,5 +115,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const EnforceOnBuild ConvertAnonymousTypeToTuple = /*IDE0050*/ EnforceOnBuild.Never;
         public const EnforceOnBuild RemoveUnreachableCode = /*IDE0035*/ EnforceOnBuild.Never; // Non-configurable fading diagnostic corresponding to CS0162.
         public const EnforceOnBuild RemoveUnnecessarySuppression = /*IDE0079*/ EnforceOnBuild.Never; // IDE-only analyzer.
+
+        // Pure IDE feature for lighting up editor features.  Do not enforce on build.
+        public const EnforceOnBuild DetectProbableJsonStrings = /*JSON002*/ EnforceOnBuild.Never;
     }
 }

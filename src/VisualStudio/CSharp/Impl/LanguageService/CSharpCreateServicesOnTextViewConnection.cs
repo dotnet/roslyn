@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Completion.Providers.ImportCompletion;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
@@ -36,9 +37,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpCreateServicesOnTextViewConnection(
             VisualStudioWorkspace workspace,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
             IThreadingContext threadingContext)
-            : base(workspace, listenerProvider, threadingContext, LanguageNames.CSharp)
+            : base(workspace, globalOptions, listenerProvider, threadingContext, LanguageNames.CSharp)
         {
         }
 
@@ -53,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
         protected override Task InitializeServiceForOpenedDocumentAsync(Document document)
         {
             // Only pre-populate cache if import completion is enabled
-            if (this.Workspace.Options.GetOption(CompletionOptions.Metadata.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp) != true)
+            if (GlobalOptions.GetOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp) != true)
                 return Task.CompletedTask;
 
             lock (_gate)
