@@ -613,7 +613,7 @@ public class Goo
     {
 #if true
         var goo = [||]new Goo();
-        goo.Value = "";
+        goo.Value = """";
 #endif
     }
 
@@ -627,7 +627,7 @@ public class Goo
 #if true
         var goo = new Goo
         {
-            Value = "";
+            Value = """"
         };
 #endif
     }
