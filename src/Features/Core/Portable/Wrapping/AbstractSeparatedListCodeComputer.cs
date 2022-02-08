@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 // indented.
                 var openToken = _listSyntax.GetFirstToken();
 
-                return GetSmartIndentationAfter(openToken);
+                return GetIndentationAfter(openToken, FormattingOptions.IndentStyle.Smart);
             }
 
             protected void AddTextChangeBetweenOpenAndFirstItem(
