@@ -45,7 +45,9 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
         {
         }
 
-        protected abstract bool GetDoMoveOpenBraceToNewLine(OptionSet options);
+        protected abstract bool ShouldMoveCloseBraceToNewLine { get; }
+        protected abstract bool ShouldMoveOpenBraceToNewLine(OptionSet options);
+
         protected abstract TListSyntax? TryGetApplicableList(SyntaxNode node);
         protected abstract SeparatedSyntaxList<TListItemSyntax> GetListItems(TListSyntax listSyntax);
         protected abstract bool PositionIsApplicable(
@@ -80,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             return new SeparatedSyntaxListCodeActionComputer(
-                this, document, sourceText, options, listSyntax, listItems, GetDoMoveOpenBraceToNewLine(options), cancellationToken);
+                this, document, sourceText, options, listSyntax, listItems, cancellationToken);
         }
     }
 }

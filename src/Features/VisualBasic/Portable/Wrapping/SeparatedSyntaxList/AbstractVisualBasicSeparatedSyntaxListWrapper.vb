@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping.SeparatedSyntaxList
             MyBase.New(VisualBasicIndentationService.WithoutParameterAlignmentInstance)
         End Sub
 
-        Protected NotOverridable Overrides Function GetDoMoveOpenBraceToNewLine(options As OptionSet) As Boolean
+        Protected NotOverridable Overrides Function ShouldMoveOpenBraceToNewLine(options As OptionSet) As Boolean
             Return False
         End Function
     End Class

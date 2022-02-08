@@ -29,7 +29,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
         public override bool Supports_WrapEveryGroup_UnwrapFirst => true;
         public override bool Supports_WrapLongGroup_UnwrapFirst => true;
 
-        protected override bool GetDoMoveOpenBraceToNewLine(OptionSet options)
+        protected override bool ShouldMoveOpenBraceToNewLine(OptionSet options)
+            => false;
+
+        protected override bool ShouldMoveCloseBraceToNewLine
             => false;
 
         protected override SeparatedSyntaxList<ArgumentSyntax> GetListItems(BaseArgumentListSyntax listSyntax)

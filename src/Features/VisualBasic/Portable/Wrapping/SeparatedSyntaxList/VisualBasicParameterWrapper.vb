@@ -24,6 +24,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping.SeparatedSyntaxList
         Public Overrides ReadOnly Property Supports_WrapEveryGroup_UnwrapFirst As Boolean = True
         Public Overrides ReadOnly Property Supports_WrapLongGroup_UnwrapFirst As Boolean = True
 
+        Protected Overrides ReadOnly Property ShouldMoveCloseBraceToNewLine As Boolean = False
+
         Protected Overrides Function GetListItems(listSyntax As ParameterListSyntax) As SeparatedSyntaxList(Of ParameterSyntax)
             Return listSyntax.Parameters
         End Function

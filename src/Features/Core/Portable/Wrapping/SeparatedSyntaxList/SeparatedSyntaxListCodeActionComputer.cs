@@ -58,7 +58,9 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             ///     |
             /// </summary>
             private readonly SyntaxTrivia _braceIndentationTrivia;
-            private readonly bool _doMoveOpenBraceToNewLine;
+
+            private readonly bool _shouldMoveOpenBraceToNewLine;
+            private readonly bool _shouldMoveCloseBraceToNewLine;
 
             public SeparatedSyntaxListCodeActionComputer(
                 AbstractSeparatedSyntaxListWrapper<TListSyntax, TListItemSyntax> service,
@@ -67,13 +69,14 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 DocumentOptionSet options,
                 TListSyntax listSyntax,
                 SeparatedSyntaxList<TListItemSyntax> listItems,
-                bool doMoveOpenBraceToNewLine,
                 CancellationToken cancellationToken)
                 : base(service, document, sourceText, options, cancellationToken)
             {
                 _listSyntax = listSyntax;
                 _listItems = listItems;
-                _doMoveOpenBraceToNewLine = doMoveOpenBraceToNewLine;
+
+                _shouldMoveOpenBraceToNewLine = service.ShouldMoveOpenBraceToNewLine(options);
+                _shouldMoveCloseBraceToNewLine = service.ShouldMoveCloseBraceToNewLine;
 
                 var generator = SyntaxGenerator.GetGenerator(OriginalDocument);
 
@@ -175,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             {
                 using var _ = ArrayBuilder<Edit>.GetInstance(out var result);
 
-                if (_doMoveOpenBraceToNewLine)
+                if (_shouldMoveOpenBraceToNewLine)
                     result.Add(Edit.DeleteBetween(_listSyntax.GetFirstToken().GetPreviousToken(), _listSyntax.GetFirstToken()));
 
                 AddTextChangeBetweenOpenAndFirstItem(wrappingStyle, result);
@@ -256,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             {
                 using var _ = ArrayBuilder<Edit>.GetInstance(out var result);
 
-                if (_doMoveOpenBraceToNewLine)
+                if (_shouldMoveOpenBraceToNewLine)
                     result.Add(Edit.UpdateBetween(_listSyntax.GetFirstToken().GetPreviousToken(), NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetFirstToken()));
 
                 AddTextChangeBetweenOpenAndFirstItem(wrappingStyle, result);
@@ -302,7 +305,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                     }
                 }
 
-                if (_doMoveOpenBraceToNewLine)
+                if (this.Wrapper.ShouldMoveCloseBraceToNewLine)
                 {
                     result.Add(Edit.UpdateBetween(_listItems.Last(), NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetLastToken()));
                 }
@@ -382,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             {
                 using var _ = ArrayBuilder<Edit>.GetInstance(out var result);
 
-                if (_doMoveOpenBraceToNewLine)
+                if (_shouldMoveOpenBraceToNewLine)
                     result.Add(Edit.UpdateBetween(_listSyntax.GetFirstToken().GetPreviousToken(), NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetFirstToken()));
 
                 AddTextChangeBetweenOpenAndFirstItem(wrappingStyle, result);
@@ -404,7 +407,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                     }
                 }
 
-                if (_doMoveOpenBraceToNewLine)
+                if (_shouldMoveCloseBraceToNewLine)
                 {
                     result.Add(Edit.UpdateBetween(_listItems.Last(), NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetLastToken()));
                 }
