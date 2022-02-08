@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -46,17 +45,16 @@ namespace Microsoft.CodeAnalysis.AddImport
         protected abstract ITypeSymbol GetQueryClauseInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
         protected abstract bool IsViableExtensionMethod(IMethodSymbol method, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken);
 
-        protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, INamespaceOrTypeSymbol symbol, Document document, bool allowInHiddenRegions, CancellationToken cancellationToken);
-        protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, IReadOnlyList<string> nameSpaceParts, Document document, bool allowInHiddenRegions, CancellationToken cancellationToken);
+        protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, INamespaceOrTypeSymbol symbol, Document document, AddImportPlacementOptions options, CancellationToken cancellationToken);
+        protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, IReadOnlyList<string> nameSpaceParts, Document document, AddImportPlacementOptions options, CancellationToken cancellationToken);
 
         protected abstract bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel);
 
         protected abstract string GetDescription(IReadOnlyList<string> nameParts);
-        protected abstract (string description, bool hasExistingImport) GetDescription(Document document, CodeGenerationPreferences preferences, INamespaceOrTypeSymbol symbol, SemanticModel semanticModel, SyntaxNode root, CancellationToken cancellationToken);
+        protected abstract (string description, bool hasExistingImport) GetDescription(Document document, AddImportPlacementOptions options, INamespaceOrTypeSymbol symbol, SemanticModel semanticModel, SyntaxNode root, CancellationToken cancellationToken);
 
         public async Task<ImmutableArray<AddImportFixData>> GetFixesAsync(
             Document document, TextSpan span, string diagnosticId, int maxResults,
-            bool allowInHiddenRegions,
             ISymbolSearchService symbolSearchService, AddImportOptions options,
             ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
         {
@@ -66,7 +64,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 var result = await client.TryInvokeAsync<IRemoteMissingImportDiscoveryService, ImmutableArray<AddImportFixData>>(
                     document.Project.Solution,
                     (service, solutionInfo, callbackId, cancellationToken) =>
-                        service.GetFixesAsync(solutionInfo, callbackId, document.Id, span, diagnosticId, maxResults, allowInHiddenRegions, options, packageSources, cancellationToken),
+                        service.GetFixesAsync(solutionInfo, callbackId, document.Id, span, diagnosticId, maxResults, options, packageSources, cancellationToken),
                     callbackTarget: symbolSearchService,
                     cancellationToken).ConfigureAwait(false);
 
@@ -75,14 +73,12 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             return await GetFixesInCurrentProcessAsync(
                 document, span, diagnosticId, maxResults,
-                allowInHiddenRegions,
                 symbolSearchService, options,
                 packageSources, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<ImmutableArray<AddImportFixData>> GetFixesInCurrentProcessAsync(
             Document document, TextSpan span, string diagnosticId, int maxResults,
-            bool allowInHiddenRegions,
             ISymbolSearchService symbolSearchService, AddImportOptions options,
             ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
         {
@@ -98,7 +94,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 {
                     if (!cancellationToken.IsCancellationRequested)
                     {
-                        if (CanAddImport(node, allowInHiddenRegions, cancellationToken))
+                        if (CanAddImport(node, options.Placement.AllowInHiddenRegions, cancellationToken))
                         {
                             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                             var allSymbolReferences = await FindResultsAsync(
@@ -110,7 +106,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                             {
                                 cancellationToken.ThrowIfCancellationRequested();
 
-                                var fixData = await reference.TryGetFixDataAsync(document, node, allowInHiddenRegions, cancellationToken).ConfigureAwait(false);
+                                var fixData = await reference.TryGetFixDataAsync(document, node, options.Placement, cancellationToken).ConfigureAwait(false);
                                 result.AddIfNotNull(fixData);
                             }
                         }
@@ -495,18 +491,12 @@ namespace Microsoft.CodeAnalysis.AddImport
             // We might have multiple different diagnostics covering the same span.  Have to
             // process them all as we might produce different fixes for each diagnostic.
 
-            // Normally we don't allow generation into a hidden region in the file.  However, if we have a
-            // modern span mapper at our disposal, we do allow it as that host span mapper can handle mapping
-            // our edit to their domain appropriate.
-            var allowInHiddenRegions = document.CanAddImportsInHiddenRegions();
-
             var fixesForDiagnosticBuilder = ArrayBuilder<(Diagnostic, ImmutableArray<AddImportFixData>)>.GetInstance();
 
             foreach (var diagnostic in diagnostics)
             {
                 var fixes = await GetFixesAsync(
                     document, span, diagnostic.Id, maxResultsPerDiagnostic,
-                    allowInHiddenRegions,
                     symbolSearchService, options,
                     packageSources, cancellationToken).ConfigureAwait(false);
 
@@ -549,8 +539,6 @@ namespace Microsoft.CodeAnalysis.AddImport
             ImmutableArray<PackageSource> packageSources,
             CancellationToken cancellationToken)
         {
-            var allowInHiddenRegions = document.CanAddImportsInHiddenRegions();
-
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // Get the diagnostics that indicate a missing import.

@@ -787,8 +787,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     : (SourceCodeKind)Enum.Parse(typeof(SourceCodeKind), attr.Value);
             }
 
-            TestFileMarkupParser.GetPositionAndSpans(markupCode,
-                out var code, out int? cursorPosition, out ImmutableDictionary<string, ImmutableArray<TextSpan>> spans);
+            var markupAttribute = documentElement.Attribute(MarkupAttributeName);
+            var isMarkup = markupAttribute == null || (bool)markupAttribute == true;
+
+            string code;
+            int? cursorPosition;
+            ImmutableDictionary<string, ImmutableArray<TextSpan>> spans;
+
+            if (isMarkup)
+            {
+                TestFileMarkupParser.GetPositionAndSpans(markupCode, out code, out cursorPosition, out spans);
+            }
+            else
+            {
+                code = markupCode;
+                cursorPosition = null;
+                spans = ImmutableDictionary<string, ImmutableArray<TextSpan>>.Empty;
+            }
 
             var testDocumentServiceProvider = GetDocumentServiceProvider(documentElement);
 
@@ -1076,6 +1091,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 ((bool?)netstandard20).Value)
             {
                 references = TargetFrameworkUtil.NetStandard20References.ToList();
+            }
+
+            var net6 = element.Attribute(CommonReferencesNet6Name);
+            if (net6 != null &&
+                ((bool?)net6).HasValue &&
+                ((bool?)net6).Value)
+            {
+                references = TargetFrameworkUtil.GetReferences(TargetFramework.Net60).ToList();
             }
 
             return references;

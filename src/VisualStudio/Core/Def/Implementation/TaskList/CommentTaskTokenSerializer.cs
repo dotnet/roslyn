@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         public bool TryFetch(OptionKey optionKey, out object? value)
         {
             value = string.Empty;
-            if (optionKey != TodoCommentOptions.TokenList)
+            if (optionKey != new OptionKey(TodoCommentOptions.TokenList))
             {
                 return false;
             }
@@ -73,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             _lastCommentTokenCache = commentString;
 
             // let people to know that comment string has changed
-            _globalOptionService.RefreshOption(TodoCommentOptions.TokenList, _lastCommentTokenCache);
+            _globalOptionService.RefreshOption(new OptionKey(TodoCommentOptions.TokenList), _lastCommentTokenCache);
         }
 
         private static string GetTaskTokenList(ITaskList? taskList)

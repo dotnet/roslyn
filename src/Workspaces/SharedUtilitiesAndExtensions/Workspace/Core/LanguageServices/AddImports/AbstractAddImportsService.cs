@@ -9,10 +9,8 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CodeGeneration;
 
-namespace Microsoft.CodeAnalysis.AddImports
+namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract class AbstractAddImportsService<TCompilationUnitSyntax, TNamespaceDeclarationSyntax, TUsingOrAliasSyntax, TExternSyntax>
         : IAddImportsService
@@ -30,6 +28,10 @@ namespace Microsoft.CodeAnalysis.AddImports
         protected abstract SyntaxList<TUsingOrAliasSyntax> GetUsingsAndAliases(SyntaxNode node);
         protected abstract SyntaxList<TExternSyntax> GetExterns(SyntaxNode node);
         protected abstract bool IsStaticUsing(TUsingOrAliasSyntax usingOrAlias);
+
+#if !CODE_STYLE
+        public abstract bool PlaceImportsInsideNamespaces(Options.OptionSet optionSet);
+#endif
 
         private bool IsSimpleUsing(TUsingOrAliasSyntax usingOrAlias) => !IsAlias(usingOrAlias) && !IsStaticUsing(usingOrAlias);
         private bool IsAlias(TUsingOrAliasSyntax usingOrAlias) => GetAlias(usingOrAlias) != null;
@@ -88,10 +90,10 @@ namespace Microsoft.CodeAnalysis.AddImports
 
         protected abstract bool IsEquivalentImport(SyntaxNode a, SyntaxNode b);
 
-        public SyntaxNode GetImportContainer(SyntaxNode root, SyntaxNode? contextLocation, SyntaxNode import, CodeGenerationPreferences preferences)
+        public SyntaxNode GetImportContainer(SyntaxNode root, SyntaxNode? contextLocation, SyntaxNode import, AddImportPlacementOptions options)
         {
             contextLocation ??= root;
-            GetContainers(root, contextLocation, preferences,
+            GetContainers(root, contextLocation, options,
                 out var externContainer, out var usingContainer, out var staticUsingContainer, out var aliasContainer);
 
             switch (import)
@@ -121,8 +123,7 @@ namespace Microsoft.CodeAnalysis.AddImports
             SyntaxNode? contextLocation,
             IEnumerable<SyntaxNode> newImports,
             SyntaxGenerator generator,
-            CodeGenerationPreferences preferences,
-            bool allowInHiddenRegions,
+            AddImportPlacementOptions options,
             CancellationToken cancellationToken)
         {
             contextLocation ??= root;
@@ -136,13 +137,13 @@ namespace Microsoft.CodeAnalysis.AddImports
             var staticUsingDirectives = filteredImports.OfType<TUsingOrAliasSyntax>().Where(IsStaticUsing).ToArray();
             var aliasDirectives = filteredImports.OfType<TUsingOrAliasSyntax>().Where(IsAlias).ToArray();
 
-            GetContainers(root, contextLocation, preferences,
+            GetContainers(root, contextLocation, options,
                 out var externContainer, out var usingContainer, out var aliasContainer, out var staticUsingContainer);
 
             var newRoot = Rewrite(
                 externAliases, usingDirectives, staticUsingDirectives, aliasDirectives,
                 externContainer, usingContainer, staticUsingContainer, aliasContainer,
-                preferences.PlaceSystemNamespaceFirst, allowInHiddenRegions, root, cancellationToken);
+                options, root, cancellationToken);
 
             return newRoot;
         }
@@ -150,9 +151,9 @@ namespace Microsoft.CodeAnalysis.AddImports
         protected abstract SyntaxNode Rewrite(
             TExternSyntax[] externAliases, TUsingOrAliasSyntax[] usingDirectives, TUsingOrAliasSyntax[] staticUsingDirectives, TUsingOrAliasSyntax[] aliasDirectives,
             SyntaxNode externContainer, SyntaxNode usingContainer, SyntaxNode staticUsingContainer, SyntaxNode aliasContainer,
-            bool placeSystemNamespaceFirst, bool allowInHiddenRegions, SyntaxNode root, CancellationToken cancellationToken);
+            AddImportPlacementOptions options, SyntaxNode root, CancellationToken cancellationToken);
 
-        private void GetContainers(SyntaxNode root, SyntaxNode contextLocation, CodeGenerationPreferences preferences, out SyntaxNode externContainer, out SyntaxNode usingContainer, out SyntaxNode staticUsingContainer, out SyntaxNode aliasContainer)
+        private void GetContainers(SyntaxNode root, SyntaxNode contextLocation, AddImportPlacementOptions options, out SyntaxNode externContainer, out SyntaxNode usingContainer, out SyntaxNode staticUsingContainer, out SyntaxNode aliasContainer)
         {
             var applicableContainer = GetFirstApplicableContainer(contextLocation);
             var contextSpine = applicableContainer.GetAncestorsOrThis<SyntaxNode>().ToImmutableArray();
@@ -164,7 +165,7 @@ namespace Microsoft.CodeAnalysis.AddImports
 
             // If there aren't any existing imports then make sure we honour the inside namespace preference
             // for using directings if it's set
-            if (fallbackNode is null && preferences.PlaceImportsInsideNamespaces)
+            if (fallbackNode is null && options.PlaceImportsInsideNamespaces)
                 fallbackNode = contextSpine.OfType<TNamespaceDeclarationSyntax>().FirstOrDefault();
 
             // If all else fails use the root

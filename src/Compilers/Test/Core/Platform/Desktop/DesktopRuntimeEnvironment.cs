@@ -242,7 +242,7 @@ namespace Roslyn.Test.Utilities.Desktop
             }
         }
 
-        public int Execute(string moduleName, string[] args, string expectedOutput)
+        public int Execute(string moduleName, string[] args, string expectedOutput, bool trimOutput = true)
         {
             try
             {
@@ -250,10 +250,13 @@ namespace Roslyn.Test.Utilities.Desktop
                 emitData.RuntimeData.ExecuteRequested = true;
                 var resultCode = emitData.Manager.Execute(moduleName, args, expectedOutputLength: expectedOutput?.Length, out var output);
 
-                if (expectedOutput != null && expectedOutput.Trim() != output.Trim())
+                if (expectedOutput != null)
                 {
-                    GetEmitData().Manager.DumpAssemblyData(out var dumpDir);
-                    throw new ExecutionException(expectedOutput, output, dumpDir);
+                    if (trimOutput ? (expectedOutput.Trim() != output.Trim()) : (expectedOutput != output))
+                    {
+                        GetEmitData().Manager.DumpAssemblyData(out var dumpDir);
+                        throw new ExecutionException(expectedOutput, output, moduleName);
+                    }
                 }
 
                 return resultCode;

@@ -231,6 +231,207 @@ public class X
     }
 
     [Fact]
+    [WorkItem(57731, "https://github.com/dotnet/roslyn/issues/57731")]
+    public void ListPattern_Codegen()
+    {
+        var source = @"
+public class X
+{
+    static int Test1(int[] x)
+    {
+        switch (x)
+        {
+            case [.., 1] and [1, ..]: return 0;
+        }
+
+        return 1;
+    }
+    static int Test2(int[] x)
+    {
+        switch (x)
+        {
+            case [2, ..] and [.., 1]: return 0;
+        }
+
+        return 3;
+    }
+    static int Test3(int[] x)
+    {
+        switch (x)
+        {
+            case [2, ..]: return 4;
+            case [.., 1]: return 5;
+        }
+
+        return 3;
+    }
+    static int Test4(int[] x)
+    {
+        switch (x)
+        {
+            case [2, ..]: return 4;
+            case [.., 1]: return 5;
+            case [6, .., 7]: return 8;
+        }
+
+        return 3;
+    }
+}
+";
+        var verifier = CompileAndVerify(new[] { source, TestSources.Index, TestSources.Range }, parseOptions: TestOptions.RegularWithListPatterns, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+        AssertEx.Multiple(
+            () => verifier.VerifyIL("X.Test1", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_001b
+  IL_0003:  ldarg.0
+  IL_0004:  ldlen
+  IL_0005:  conv.i4
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  blt.s      IL_001b
+  IL_000b:  ldarg.0
+  IL_000c:  ldloc.0
+  IL_000d:  ldc.i4.1
+  IL_000e:  sub
+  IL_000f:  ldelem.i4
+  IL_0010:  ldc.i4.1
+  IL_0011:  bne.un.s   IL_001b
+  IL_0013:  ldarg.0
+  IL_0014:  ldc.i4.0
+  IL_0015:  ldelem.i4
+  IL_0016:  ldc.i4.1
+  IL_0017:  bne.un.s   IL_001b
+  IL_0019:  ldc.i4.0
+  IL_001a:  ret
+  IL_001b:  ldc.i4.1
+  IL_001c:  ret
+}"),
+            () => verifier.VerifyIL("X.Test2", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_001b
+  IL_0003:  ldarg.0
+  IL_0004:  ldlen
+  IL_0005:  conv.i4
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  blt.s      IL_001b
+  IL_000b:  ldarg.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ldelem.i4
+  IL_000e:  ldc.i4.2
+  IL_000f:  bne.un.s   IL_001b
+  IL_0011:  ldarg.0
+  IL_0012:  ldloc.0
+  IL_0013:  ldc.i4.1
+  IL_0014:  sub
+  IL_0015:  ldelem.i4
+  IL_0016:  ldc.i4.1
+  IL_0017:  bne.un.s   IL_001b
+  IL_0019:  ldc.i4.0
+  IL_001a:  ret
+  IL_001b:  ldc.i4.3
+  IL_001c:  ret
+}"),
+            () => verifier.VerifyIL("X.Test3", @"
+{
+  // Code size       33 (0x21)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_001f
+  IL_0003:  ldarg.0
+  IL_0004:  ldlen
+  IL_0005:  conv.i4
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  blt.s      IL_001f
+  IL_000b:  ldarg.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ldelem.i4
+  IL_000e:  ldc.i4.2
+  IL_000f:  beq.s      IL_001b
+  IL_0011:  ldarg.0
+  IL_0012:  ldloc.0
+  IL_0013:  ldc.i4.1
+  IL_0014:  sub
+  IL_0015:  ldelem.i4
+  IL_0016:  ldc.i4.1
+  IL_0017:  beq.s      IL_001d
+  IL_0019:  br.s       IL_001f
+  IL_001b:  ldc.i4.4
+  IL_001c:  ret
+  IL_001d:  ldc.i4.5
+  IL_001e:  ret
+  IL_001f:  ldc.i4.3
+  IL_0020:  ret
+}"),
+            () => verifier.VerifyIL("X.Test4", @"
+{
+  // Code size       51 (0x33)
+  .maxstack  3
+  .locals init (int V_0,
+              int V_1,
+              int V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0031
+  IL_0003:  ldarg.0
+  IL_0004:  ldlen
+  IL_0005:  conv.i4
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  blt.s      IL_0031
+  IL_000b:  ldarg.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ldelem.i4
+  IL_000e:  stloc.1
+  IL_000f:  ldloc.1
+  IL_0010:  ldc.i4.2
+  IL_0011:  beq.s      IL_002b
+  IL_0013:  ldarg.0
+  IL_0014:  ldloc.0
+  IL_0015:  ldc.i4.1
+  IL_0016:  sub
+  IL_0017:  ldelem.i4
+  IL_0018:  stloc.2
+  IL_0019:  ldloc.2
+  IL_001a:  ldc.i4.1
+  IL_001b:  beq.s      IL_002d
+  IL_001d:  ldloc.0
+  IL_001e:  ldc.i4.2
+  IL_001f:  blt.s      IL_0031
+  IL_0021:  ldloc.1
+  IL_0022:  ldc.i4.6
+  IL_0023:  bne.un.s   IL_0031
+  IL_0025:  ldloc.2
+  IL_0026:  ldc.i4.7
+  IL_0027:  beq.s      IL_002f
+  IL_0029:  br.s       IL_0031
+  IL_002b:  ldc.i4.4
+  IL_002c:  ret
+  IL_002d:  ldc.i4.5
+  IL_002e:  ret
+  IL_002f:  ldc.i4.8
+  IL_0030:  ret
+  IL_0031:  ldc.i4.3
+  IL_0032:  ret
+}
+")
+        );
+    }
+
+    [Fact]
     public void ListPattern_LangVer()
     {
         var source = @"

@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var span = documentsWithSelections.Single().SelectedSpans.Single();
             var actions = ArrayBuilder<(CodeAction, TextSpan?)>.GetInstance();
             var document = workspace.CurrentSolution.GetDocument(documentsWithSelections.Single().Id);
-            var options = CodeActionOptionsFactory.GetCodeActionOptions(document.Project, isBlocking: false);
+            var options = CodeActionOptions.Default;
             var context = new CodeRefactoringContext(document, span, (a, t) => actions.Add((a, t)), options, CancellationToken.None);
             await provider.ComputeRefactoringsAsync(context);
 

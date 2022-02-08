@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override ImmutableHashSet<char> TriggerCharacters { get; }
 
-        internal sealed override bool ShouldTriggerCompletion(HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options)
+        internal sealed override bool ShouldTriggerCompletion(HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options, OptionSet passThroughOptions)
         {
             foreach (var language in GetLanguageProviders(languageServices))
             {
@@ -107,17 +107,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
-            => GetLanguage(item).CompletionProvider.GetChangeAsync(document, item, commitKey, cancellationToken);
+            => GetLanguage(item).CompletionProvider!.GetChangeAsync(document, item, commitKey, cancellationToken);
 
         internal override Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
-            => GetLanguage(item).CompletionProvider.GetDescriptionAsync(document, item, cancellationToken);
+            => GetLanguage(item).CompletionProvider!.GetDescriptionAsync(document, item, cancellationToken);
 
         private IEmbeddedLanguageFeatures GetLanguage(CompletionItem item)
         {
             if (_languageProviders.IsDefault)
                 throw ExceptionUtilities.Unreachable;
 
-            return (IEmbeddedLanguageFeatures)_languageProviders.Single(lang => (lang as IEmbeddedLanguageFeatures)?.CompletionProvider.Name == item.Properties[EmbeddedProviderName]);
+            return (IEmbeddedLanguageFeatures)_languageProviders.Single(lang => (lang as IEmbeddedLanguageFeatures)?.CompletionProvider?.Name == item.Properties[EmbeddedProviderName]);
         }
     }
 }

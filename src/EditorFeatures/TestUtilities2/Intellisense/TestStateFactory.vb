@@ -4,6 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Friend Class TestStateFactory
@@ -24,8 +25,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                  excludedTypes, extraExportedTypes,
                                  includeFormatCommandHandler, workspaceKind:=Nothing)
 
-            testState.Workspace.SetOptions(
-                testState.Workspace.Options.WithChangedOption(CompletionOptions.Metadata.TriggerInArgumentLists, LanguageNames.CSharp, showCompletionInArgumentLists))
+            testState.Workspace.GlobalOptions.SetGlobalOption(
+                New OptionKey(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp), showCompletionInArgumentLists)
 
             Return testState
         End Function
@@ -52,8 +53,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim testState = New TestState(
                 workspaceElement, excludedTypes:=Nothing, extraExportedTypes, includeFormatCommandHandler:=False, workspaceKind)
 
-            testState.Workspace.SetOptions(
-                testState.Workspace.Options.WithChangedOption(CompletionOptions.Metadata.TriggerInArgumentLists, LanguageNames.CSharp, showCompletionInArgumentLists))
+            testState.Workspace.GlobalOptions.SetGlobalOption(
+                New OptionKey(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp), showCompletionInArgumentLists)
 
             Return testState
         End Function
