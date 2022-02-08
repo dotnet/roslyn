@@ -931,60 +931,11 @@ record struct R(int P1);
         {
             string source = @"
 record struct R;
-
-namespace System
-{
-    public interface IEquatable<T>
-    {
-        bool Equals(T other);
-    }
-
-    public class Object
-    {
-        public virtual bool Equals(object obj)
-        {
-            return true;
-        }
-
-        public virtual int GetHashCode()
-        {
-            return 0;
-        }
-
-        public virtual string ToString()
-        {
-            return null;
-        }
-    }
-    public class Boolean { }
-    public class String { }
-    public struct Int32 { }
-    public struct Char { }
-    public class ValueType { }
-    public class Attribute { }
-    public struct Void { }
-    public class Exception { }
-}
-
-namespace System.Text
-{
-    public class StringBuilder
-    {
-        public StringBuilder Append(char c)
-        {
-            return this;
-        }
-
-        public StringBuilder Append(string s)
-        {
-            return this;
-        }
-    }
-}
-
 ";
-            var comp = CreateEmptyCompilation(source);
-            CompileAndVerify(comp, symbolValidator: validate, verify: Verification.Skipped);
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_CompilerGeneratedAttribute);
+            var verifier = CompileAndVerify(comp, symbolValidator: validate);
+            verifier.VerifyDiagnostics();
 
             void validate(ModuleSymbol module)
             {
