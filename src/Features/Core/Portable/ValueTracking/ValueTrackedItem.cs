@@ -51,21 +51,8 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             Contract.ThrowIfNull(location.SourceTree);
 
             var document = solution.GetRequiredDocument(location.SourceTree);
-
-            var excerptService = document.Services.GetService<IDocumentExcerptService>();
-            SourceText? sourceText = null;
-
-            if (excerptService != null)
-            {
-                var result = await excerptService.TryExcerptAsync(document, location.SourceSpan, ExcerptMode.SingleLine, cancellationToken).ConfigureAwait(false);
-                sourceText = result?.Content;
-            }
-
-            if (sourceText is null)
-            {
-                var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                sourceText = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            }
+            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var sourceText = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             return new ValueTrackedItem(
                 SymbolKey.Create(symbol, cancellationToken),
