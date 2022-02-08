@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
@@ -176,31 +177,53 @@ class C
         {
             await TestInRegularAndScriptAsync(
 @"
-using System.Collections.Generic;
+using System.Collections;
+
 class C
 {
     void M()
     {
-        var c = [|new|] List<int>();
+        var c = [|new|] X();
         c[1] = 2;
         c[2] = """";
         c[3, 4] = 5;
     }
-}",
+}
+
+class X : IEnumerable
+{
+    public object this[int i] { get => null; set { } }
+    public object this[int i, int j] { get => null; set { } }
+
+    public IEnumerator GetEnumerator() => null;
+    public void Add(int i) { }
+}
+",
 @"
-using System.Collections.Generic;
+using System.Collections;
+
 class C
 {
     void M()
     {
-        var c = new List<int>
+        var c = new X
         {
             [1] = 2,
             [2] = """",
             [3, 4] = 5
         };
     }
-}");
+}
+
+class X : IEnumerable
+{
+    public object this[int i] { get => null; set { } }
+    public object this[int i, int j] { get => null; set { } }
+
+    public IEnumerator GetEnumerator() => null;
+    public void Add(int i) { }
+}
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
