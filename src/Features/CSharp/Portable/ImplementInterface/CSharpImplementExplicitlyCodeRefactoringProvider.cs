@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             //
             // This can save a lot of extra time spent finding callers, especially for methods with
             // high fan-out (like IDisposable.Dispose()).
-            var findRefsOptions = FindReferencesSearchOptions.Default.With(cascade: false);
+            var findRefsOptions = FindReferencesSearchOptions.Default with { Cascade = false };
             var references = await SymbolFinder.FindReferencesAsync(
                 implMember, solution, findRefsOptions, cancellationToken).ConfigureAwait(false);
 

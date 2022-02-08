@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
     internal abstract partial class AbstractFindUsagesService
     {
         public async Task FindImplementationsAsync(
-            Document document, int position, IFindUsagesContext context, CancellationToken cancellationToken)
+            IFindUsagesContext context, Document document, int position, CancellationToken cancellationToken)
         {
             // If this is a symbol from a metadata-as-source project, then map that symbol back to a symbol in the primary workspace.
             var symbolAndProjectOpt = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
@@ -34,11 +34,11 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             var symbolAndProject = symbolAndProjectOpt.Value;
             await FindImplementationsAsync(
-                symbolAndProject.symbol, symbolAndProject.project, context, cancellationToken).ConfigureAwait(false);
+                context, symbolAndProject.symbol, symbolAndProject.project, cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task FindImplementationsAsync(
-            ISymbol symbol, Project project, IFindUsagesContext context, CancellationToken cancellationToken)
+            IFindUsagesContext context, ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
             var solution = project.Solution;
             var client = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             foreach (var linkedSymbol in linkedSymbols)
             {
-                var implementations = await FindSourceImplementationsWorkerAsync(
+                var implementations = await FindImplementationsWorkerAsync(
                     solution, linkedSymbol, cancellationToken).ConfigureAwait(false);
                 foreach (var implementation in implementations)
                 {
@@ -125,8 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             {
                 foreach (var location in implementation.Locations)
                 {
-                    Contract.ThrowIfFalse(location.IsInSource);
-                    if (!seenLocations.Add((location.SourceTree.FilePath, location.SourceSpan)))
+                    if (location.IsInSource && !seenLocations.Add((location.SourceTree.FilePath, location.SourceSpan)))
                         return false;
                 }
 
@@ -134,26 +133,26 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             }
         }
 
-        private static async Task<ImmutableArray<ISymbol>> FindSourceImplementationsWorkerAsync(
+        private static async Task<ImmutableArray<ISymbol>> FindImplementationsWorkerAsync(
             Solution solution, ISymbol symbol, CancellationToken cancellationToken)
         {
             var implementations = await FindSourceAndMetadataImplementationsAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
-            var sourceImplementations = new HashSet<ISymbol>(implementations.Where(s => s.IsFromSource()).Select(s => s.OriginalDefinition));
+            var result = new HashSet<ISymbol>(implementations.Select(s => s.OriginalDefinition));
 
             // For members, if we've found overrides of the original symbol, then filter out any abstract
             // members these inherit from.  The user has asked for literal implementations, and in the case
             // of an override, including the abstract as well isn't helpful.
-            var overrides = sourceImplementations.Where(s => s.IsOverride).ToImmutableArray();
+            var overrides = result.Where(s => s.IsOverride).ToImmutableArray();
             foreach (var ov in overrides)
             {
                 for (var overridden = ov.GetOverriddenMember(); overridden != null; overridden = overridden.GetOverriddenMember())
                 {
                     if (overridden.IsAbstract)
-                        sourceImplementations.Remove(overridden.OriginalDefinition);
+                        result.Remove(overridden.OriginalDefinition);
                 }
             }
 
-            return sourceImplementations.ToImmutableArray();
+            return result.ToImmutableArray();
         }
 
         private static async Task<ImmutableArray<ISymbol>> FindSourceAndMetadataImplementationsAsync(
