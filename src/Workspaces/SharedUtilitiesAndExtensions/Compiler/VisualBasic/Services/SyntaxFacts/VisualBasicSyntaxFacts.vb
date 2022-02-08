@@ -1222,6 +1222,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return DirectCast(node, ArgumentListSyntax).Arguments
         End Function
 
+        Public Function GetArgumentsOfAttributeArgumentList(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetArgumentsOfAttributeArgumentList
+            Return GetArgumentsOfArgumentList(node)
+        End Function
+
         Public Function ConvertToSingleLine(node As SyntaxNode, Optional useElasticTrivia As Boolean = False) As SyntaxNode Implements ISyntaxFacts.ConvertToSingleLine
             Return node.ConvertToSingleLine(useElasticTrivia)
         End Function
