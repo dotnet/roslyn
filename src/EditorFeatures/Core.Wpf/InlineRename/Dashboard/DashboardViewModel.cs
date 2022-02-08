@@ -10,43 +10,26 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
-using Microsoft.CodeAnalysis.Rename;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.InlineRename;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal class DashboardViewModel : INotifyPropertyChanged, IDisposable
     {
-        private readonly Visibility _renameOverloadsVisibility;
-
-        private DashboardSeverity _severity = DashboardSeverity.None;
         private readonly InlineRenameSession _session;
 
+        private DashboardSeverity _severity = DashboardSeverity.None;
         private string _searchText;
         private int _resolvableConflictCount;
         private int _unresolvableConflictCount;
         private string _errorText;
-        private bool _defaultRenameOverloadFlag;
-        private readonly bool _isRenameOverloadsEditable;
-        private bool _defaultRenameInStringsFlag;
-        private bool _defaultRenameInCommentsFlag;
-        private bool _defaultRenameFileFlag;
-        private bool _defaultPreviewChangesFlag;
         private bool _isReplacementTextValid;
 
         public DashboardViewModel(InlineRenameSession session)
         {
-            Contract.ThrowIfNull(session);
             _session = session;
             _searchText = EditorFeaturesResources.Searching;
-
-            _renameOverloadsVisibility = session.HasRenameOverloads ? Visibility.Visible : Visibility.Collapsed;
-            _isRenameOverloadsEditable = !session.ForceRenameOverloads;
-
-            _defaultRenameOverloadFlag = session.OptionSet.GetOption(RenameOptions.RenameOverloads) || session.ForceRenameOverloads;
-            _defaultRenameInStringsFlag = session.OptionSet.GetOption(RenameOptions.RenameInStrings);
-            _defaultRenameInCommentsFlag = session.OptionSet.GetOption(RenameOptions.RenameInComments);
-            _defaultPreviewChangesFlag = session.OptionSet.GetOption(RenameOptions.PreviewChanges);
 
             _session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
             _session.ReplacementsComputed += OnReplacementsComputed;
@@ -82,8 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private void ComputeDefaultRenameFileFlag()
         {
             // If replacementText is invalid, we won't rename the file.
-            DefaultRenameFileFlag = _isReplacementTextValid
-                && (_session.OptionSet.GetOption(RenameOptions.RenameFile) || AllowFileRename);
+            DefaultRenameFileFlag = _isReplacementTextValid && AllowFileRename && _session.Options.RenameFile;
         }
 
         private void OnReplacementsComputed(object sender, IInlineRenameReplacementInfo result)
@@ -249,82 +231,70 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         public bool HasError
-        {
-            get { return _errorText != null; }
-        }
+            => _errorText != null;
 
         public string ErrorText => _errorText;
 
-        public Visibility RenameOverloadsVisibility => _renameOverloadsVisibility;
+        public Visibility RenameOverloadsVisibility
+            => _session.HasRenameOverloads ? Visibility.Visible : Visibility.Collapsed;
 
-        public bool IsRenameOverloadsEditable => _isRenameOverloadsEditable;
+        public bool IsRenameOverloadsEditable
+            => !_session.MustRenameOverloads;
 
         public bool DefaultRenameOverloadFlag
         {
-            get
-            {
-                return _defaultRenameOverloadFlag;
-            }
+            get => _session.Options.RenameOverloads;
 
             set
             {
                 if (IsRenameOverloadsEditable)
                 {
-                    _defaultRenameOverloadFlag = value;
-                    _session.RefreshRenameSessionWithOptionsChanged(RenameOptions.RenameOverloads, value);
+                    _session.RenameService.GlobalOptions.SetGlobalOption(new OptionKey(InlineRenameSessionOptionsStorage.RenameOverloads), value);
+                    _session.RefreshRenameSessionWithOptionsChanged(_session.Options with { RenameOverloads = value });
                 }
             }
         }
 
         public bool DefaultRenameInStringsFlag
         {
-            get
-            {
-                return _defaultRenameInStringsFlag;
-            }
+            get => _session.Options.RenameInStrings;
 
             set
             {
-                _defaultRenameInStringsFlag = value;
-                _session.RefreshRenameSessionWithOptionsChanged(RenameOptions.RenameInStrings, value);
+                _session.RenameService.GlobalOptions.SetGlobalOption(new OptionKey(InlineRenameSessionOptionsStorage.RenameInStrings), value);
+                _session.RefreshRenameSessionWithOptionsChanged(_session.Options with { RenameInStrings = value });
             }
         }
 
         public bool DefaultRenameInCommentsFlag
         {
-            get
-            {
-                return _defaultRenameInCommentsFlag;
-            }
+            get => _session.Options.RenameInComments;
 
             set
             {
-                _defaultRenameInCommentsFlag = value;
-                _session.RefreshRenameSessionWithOptionsChanged(RenameOptions.RenameInComments, value);
+                _session.RenameService.GlobalOptions.SetGlobalOption(new OptionKey(InlineRenameSessionOptionsStorage.RenameInComments), value);
+                _session.RefreshRenameSessionWithOptionsChanged(_session.Options with { RenameInComments = value });
             }
         }
 
         public bool DefaultRenameFileFlag
         {
-            get => _defaultRenameFileFlag;
+            get => _session.Options.RenameFile;
             set
             {
-                _defaultRenameFileFlag = value;
-                _session.RefreshRenameSessionWithOptionsChanged(RenameOptions.RenameFile, value);
+                _session.RenameService.GlobalOptions.SetGlobalOption(new OptionKey(InlineRenameSessionOptionsStorage.RenameFile), value);
+                _session.RefreshRenameSessionWithOptionsChanged(_session.Options with { RenameFile = value });
             }
         }
 
         public bool DefaultPreviewChangesFlag
         {
-            get
-            {
-                return _defaultPreviewChangesFlag;
-            }
+            get => _session.PreviewChanges;
 
             set
             {
-                _defaultPreviewChangesFlag = value;
-                _session.RefreshRenameSessionWithOptionsChanged(RenameOptions.PreviewChanges, value);
+                _session.RenameService.GlobalOptions.SetGlobalOption(new OptionKey(InlineRenameSessionOptionsStorage.PreviewChanges), value);
+                _session.SetPreviewChanges(value);
             }
         }
 
