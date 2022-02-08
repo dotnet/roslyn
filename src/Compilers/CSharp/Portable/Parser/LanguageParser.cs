@@ -10161,9 +10161,11 @@ tryAgain:
                 case SyntaxKind.OpenParenToken:
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.StringLiteralToken:
-                case SyntaxKind.SingleLineRawStringLiteralToken:
-                case SyntaxKind.MultiLineRawStringLiteralToken:
                 case SyntaxKind.UTF8StringLiteralToken:
+                case SyntaxKind.SingleLineRawStringLiteralToken:
+                case SyntaxKind.UTF8SingleLineRawStringLiteralToken:
+                case SyntaxKind.MultiLineRawStringLiteralToken:
+                case SyntaxKind.UTF8MultiLineRawStringLiteralToken:
                 case SyntaxKind.InterpolatedStringToken:
                 case SyntaxKind.InterpolatedStringStartToken:
                 case SyntaxKind.InterpolatedVerbatimStringStartToken:
@@ -10453,7 +10455,9 @@ tryAgain:
                     case SyntaxKind.FalseKeyword:
                     case SyntaxKind.StringLiteralToken:
                     case SyntaxKind.SingleLineRawStringLiteralToken:
+                    case SyntaxKind.UTF8SingleLineRawStringLiteralToken: // PROTOTYPE(UTF8StringLiterals) : add test coverage for this code path.
                     case SyntaxKind.MultiLineRawStringLiteralToken:
+                    case SyntaxKind.UTF8MultiLineRawStringLiteralToken: // PROTOTYPE(UTF8StringLiterals) : add test coverage for this code path.
                     case SyntaxKind.InterpolatedStringToken:
                     case SyntaxKind.UTF8StringLiteralToken: // PROTOTYPE(UTF8StringLiterals) : add test coverage for this code path.
                     case SyntaxKind.InterpolatedStringStartToken:
@@ -10893,9 +10897,11 @@ tryAgain:
                 case SyntaxKind.NullKeyword:
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.StringLiteralToken:
-                case SyntaxKind.SingleLineRawStringLiteralToken:
-                case SyntaxKind.MultiLineRawStringLiteralToken:
                 case SyntaxKind.UTF8StringLiteralToken:
+                case SyntaxKind.SingleLineRawStringLiteralToken:
+                case SyntaxKind.UTF8SingleLineRawStringLiteralToken:
+                case SyntaxKind.MultiLineRawStringLiteralToken:
+                case SyntaxKind.UTF8MultiLineRawStringLiteralToken:
                 case SyntaxKind.CharacterLiteralToken:
                     return _syntaxFactory.LiteralExpression(SyntaxFacts.GetLiteralExpression(tk), this.EatToken());
                 case SyntaxKind.InterpolatedStringStartToken:

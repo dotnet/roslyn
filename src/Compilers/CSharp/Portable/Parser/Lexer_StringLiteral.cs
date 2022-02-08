@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 TextWindow.PeekChar(1) == '"' &&
                 TextWindow.PeekChar(2) == '"')
             {
-                ScanRawStringLiteral(ref info);
+                ScanRawStringLiteral(ref info, inDirective);
                 if (inDirective)
                 {
                     // Reinterpret this as just a string literal so that the directive parser can consume this.  

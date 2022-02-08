@@ -924,6 +924,8 @@ literal_expression
   | numeric_literal_token
   | single_line_raw_string_literal_token
   | string_literal_token
+  | utf_8_multi_line_raw_string_literal_token
+  | utf_8_single_line_raw_string_literal_token
   | utf_8_string_literal_token
   ;
 
@@ -1385,6 +1387,14 @@ string_literal_token
   ;
 
 syntax_token
+  : /* see lexical specification */
+  ;
+
+utf_8_multi_line_raw_string_literal_token
+  : /* see lexical specification */
+  ;
+
+utf_8_single_line_raw_string_literal_token
   : /* see lexical specification */
   ;
 
