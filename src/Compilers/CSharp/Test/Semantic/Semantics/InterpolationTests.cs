@@ -132,9 +132,9 @@ class Program {
                 // (5,63): error CS1010: Newline in constant
                 //         Console.WriteLine($"Jenny don\'t change your number { ");
                 Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(5, 63),
-                // (5,66): error CS8967: Newlines are not allowed inside a non-verbatim interpolated string
-                //         Console.WriteLine($"Jenny don\'t change your number { ");
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "").WithLocation(5, 66),
+                // (6,5): error CS1010: Newline in constant
+                //     }
+                Diagnostic(ErrorCode.ERR_NewlineInConst, "}").WithLocation(6, 5),
                 // (6,6): error CS1026: ) expected
                 //     }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(6, 6),
@@ -159,9 +159,9 @@ class Program {
 }";
             // too many diagnostics perhaps, but it starts the right way.
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (5,71): error CS8077: A single-line comment may not be used in an interpolated string.
-                //         Console.WriteLine($"Jenny don\'t change your number { 8675309 // ");
-                Diagnostic(ErrorCode.ERR_SingleLineCommentInExpressionHole, "//").WithLocation(5, 71),
+                // (6,5): error CS1010: Newline in constant
+                //     }
+                Diagnostic(ErrorCode.ERR_NewlineInConst, "}").WithLocation(6, 5),
                 // (6,6): error CS1026: ) expected
                 //     }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(6, 6),
@@ -186,12 +186,12 @@ class Program {
 }";
             // too many diagnostics perhaps, but it starts the right way.
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (5,60): error CS8076: Missing close delimiter '}' for interpolated expression started with '{'.
+                //         Console.WriteLine($"Jenny don\'t change your number { 8675309 /* ");
+                Diagnostic(ErrorCode.ERR_UnclosedExpressionHole, " {").WithLocation(5, 60),
                 // (5,71): error CS1035: End-of-file found, '*/' expected
                 //         Console.WriteLine($"Jenny don\'t change your number { 8675309 /* ");
                 Diagnostic(ErrorCode.ERR_OpenEndedComment, "").WithLocation(5, 71),
-                // (5,77): error CS8967: Newlines are not allowed inside a non-verbatim interpolated string
-                //         Console.WriteLine($"Jenny don\'t change your number { 8675309 /* ");
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "").WithLocation(5, 77),
                 // (7,2): error CS1026: ) expected
                 // }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(7, 2),
@@ -358,12 +358,13 @@ class Program
         Console.WriteLine( $""{"" );
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(   // (6,31): error CS1010: Newline in constant
-                                                                         //         Console.WriteLine( $"{" );
-                Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(6, 31),
-                // (6,35): error CS8958: Newlines are not allowed inside a non-verbatim interpolated string
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (6,31): error CS1010: Newline in constant
                 //         Console.WriteLine( $"{" );
-                Diagnostic(ErrorCode.ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString, "").WithLocation(6, 35),
+                Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(6, 31),
+                // (7,5): error CS1010: Newline in constant
+                //     }
+                Diagnostic(ErrorCode.ERR_NewlineInConst, "}").WithLocation(7, 5),
                 // (7,6): error CS1026: ) expected
                 //     }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(7, 6),
@@ -417,6 +418,25 @@ class Program
                 // (6,32): error CS8089: Empty format specifier.
                 //         Console.WriteLine( $"{3:}" );
                 Diagnostic(ErrorCode.ERR_EmptyFormatSpecifier, ":").WithLocation(6, 32)
+                );
+        }
+
+        [Fact]
+        public void InvalidCharInFormatSpecifier()
+        {
+            string source =
+@"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine( $""{3:{}"" );
+    }
+}";
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (6,33): error CS1056: Unerwartetes Zeichen "{".
+                //         Console.WriteLine( $"{3:{}" );
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "{").WithArguments("{").WithLocation(6, 33)
                 );
         }
 
@@ -1113,6 +1133,116 @@ class Program {
 }");
         }
 
+
+
+        [WorkItem(57750, "https://github.com/dotnet/roslyn/issues/57750")]
+#if NETCOREAPP
+        [InlineData(TargetFramework.Net60)]
+        [InlineData(TargetFramework.Net50)]
+#endif
+        [InlineData(TargetFramework.NetFramework)]
+        [InlineData(TargetFramework.NetStandard20)]
+        [InlineData(TargetFramework.Mscorlib461)]
+        [InlineData(TargetFramework.Mscorlib40)]
+        [Theory]
+        public void InterpolatedStringWithCurlyBracesFollowerAfterFormatSpecifierTest(TargetFramework framework)
+        {
+            var text =
+@"using System;
+
+class App{
+  public static void Main(){
+    var str = $""Before {{{12:X}}} After"";
+    Console.WriteLine(str);
+  }
+}";
+            var parseOptions = new CSharpParseOptions(
+                languageVersion: LanguageVersion.CSharp10,
+                documentationMode: DocumentationMode.Parse,
+                kind: SourceCodeKind.Regular
+            );
+            var compOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication);
+
+            //string.Format was fixed in dotnet core 3
+            var expectedOutput =
+#if NETCOREAPP3_0_OR_GREATER
+                "Before {C} After"
+#else
+                "Before {X} After"
+#endif
+                ;
+
+
+            var comp = CreateCompilation(text, targetFramework: framework,
+                    parseOptions: parseOptions, options: compOptions);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
+
+            switch (framework)
+            {
+                case TargetFramework.Net60:
+                    checkNet60IL(verifier);
+                    break;
+                default:
+                    checkNet50IL(verifier);
+                    break;
+            }
+
+            static void checkNet50IL(CompilationVerifier verifier)
+            {
+                verifier.VerifyIL("App.Main", @"{
+   // Code size       27 (0x1b)
+   .maxstack  2
+   .locals init (string V_0) //str
+   IL_0000:  nop
+   IL_0001:  ldstr      ""Before {{{0:X}}} After""
+   IL_0006:  ldc.i4.s   12
+   IL_0008:  box        ""int""
+   IL_000d:  call       ""string string.Format(string, object)""
+   IL_0012:  stloc.0
+   IL_0013:  ldloc.0
+   IL_0014:  call       ""void System.Console.WriteLine(string)""
+   IL_0019:  nop
+   IL_001a:  ret
+}");
+            }
+
+            static void checkNet60IL(CompilationVerifier verifier)
+            {
+                verifier.VerifyIL("App.Main", @"{
+   // Code size       68 (0x44)
+   .maxstack  3
+   .locals init (string V_0, //str
+                 System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
+   IL_0000:  nop
+   IL_0001:  ldloca.s   V_1
+   IL_0003:  ldc.i4.s   15
+   IL_0005:  ldc.i4.1
+   IL_0006:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
+   IL_000b:  ldloca.s   V_1
+   IL_000d:  ldstr      ""Before {""
+   IL_0012:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)""
+   IL_0017:  nop
+   IL_0018:  ldloca.s   V_1
+   IL_001a:  ldc.i4.s   12
+   IL_001c:  ldstr      ""X""
+   IL_0021:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted<int>(int, string)""
+   IL_0026:  nop
+   IL_0027:  ldloca.s   V_1
+   IL_0029:  ldstr      ""} After""
+   IL_002e:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)""
+   IL_0033:  nop
+   IL_0034:  ldloca.s   V_1
+   IL_0036:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+   IL_003b:  stloc.0
+   IL_003c:  ldloc.0
+   IL_003d:  call       ""void System.Console.WriteLine(string)""
+   IL_0042:  nop
+   IL_0043:  ret
+}");
+            }
+        }
+
         [WorkItem(1097386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1097386")]
         [Fact]
         public void Syntax01()
@@ -1125,9 +1255,8 @@ class Program
     {
         var x = $""{ Math.Abs(value: 1):\}"";
         var y = x;
-        }
     } 
-";
+}";
             CreateCompilation(text).VerifyDiagnostics(
                 // (6,40): error CS8087: A '}' character may only be escaped by doubling '}}' in an interpolated string.
                 //         var x = $"{ Math.Abs(value: 1):\}";
@@ -1171,9 +1300,12 @@ class Program
     } 
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,18): error CS8076: Missing close delimiter '}' for interpolated expression started with '{'.
+                // (6,39): error CS8089: Empty format specifier.
                 //         var x = $"{ Math.Abs(value: 1):}}";
-                Diagnostic(ErrorCode.ERR_UnclosedExpressionHole, @"""{").WithLocation(6, 18)
+                Diagnostic(ErrorCode.ERR_EmptyFormatSpecifier, ":").WithLocation(6, 39),
+                // (6,41): error CS8086: A '}' character must be escaped (by doubling) in an interpolated string.
+                //         var x = $"{ Math.Abs(value: 1):}}";
+                Diagnostic(ErrorCode.ERR_UnescapedCurly, "}").WithArguments("}").WithLocation(6, 41)
                 );
         }
 
@@ -7110,10 +7242,11 @@ i:10
 literal:text
 ");
             verifier.VerifyDiagnostics(
-                // (6,27): warning CS8947: Parameter i occurs after CustomHandler in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller
-                // to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.
+                // (6,27): warning CS8947: Parameter 'i' occurs after 'c' in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to
+                //         reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.
                 //     public static void M([InterpolatedStringHandlerArgumentAttribute("i")] CustomHandler c, int i) => Console.WriteLine(c.ToString());
-                Diagnostic(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, @"InterpolatedStringHandlerArgumentAttribute(""i"")").WithArguments("i", "CustomHandler").WithLocation(6, 27)
+                Diagnostic(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, @"InterpolatedStringHandlerArgumentAttribute(""i"")").WithArguments("i", "c").WithLocation(6, 27)
+
 
             );
 
@@ -7126,10 +7259,11 @@ literal:text
                 // (1,10): error CS8950: Parameter 'i' is an argument to the interpolated string handler conversion on parameter 'c', but is specified after the interpolated string constant. Reorder the arguments to move 'i' before 'c'.
                 // C.M($"", 1);
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentLocatedAfterInterpolatedString, "1").WithArguments("i", "c").WithLocation(1, 7 + expression.Length),
-                // (6,27): warning CS8947: Parameter i occurs after CustomHandler in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller
-                // to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.
+                // (6,27): warning CS8947: Parameter 'i' occurs after 'c' in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to
+                //         reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.
                 //     public static void M([InterpolatedStringHandlerArgumentAttribute("i")] CustomHandler c, int i) => Console.WriteLine(c.ToString());
-                Diagnostic(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, @"InterpolatedStringHandlerArgumentAttribute(""i"")").WithArguments("i", "CustomHandler").WithLocation(6, 27)
+                Diagnostic(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, @"InterpolatedStringHandlerArgumentAttribute(""i"")").WithArguments("i", "c").WithLocation(6, 27)
+
             );
 
             static void validate(ModuleSymbol module)
@@ -7265,9 +7399,11 @@ public partial struct CustomHandler
                 // (4,5): error CS8951: Parameter 'i' is not explicitly provided, but is used as an argument to the interpolated string handler conversion on parameter 'c'. Specify the value of 'i' before 'c'.
                 // C.M($"");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentOptionalNotSpecified, expression).WithArguments("i", "c").WithLocation(4, 5),
-                // (8,27): warning CS8947: Parameter i occurs after CustomHandler in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.
-                //     public static void M([InterpolatedStringHandlerArgumentAttribute("i")] CustomHandler c, params int[] i) { }
-                Diagnostic(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, @"InterpolatedStringHandlerArgumentAttribute(""i"")").WithArguments("i", "CustomHandler").WithLocation(8, 27)
+                // (8,27): warning CS8947: Parameter 'i' occurs after 'c' in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder
+                //         parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.
+                //     public static void M([InterpolatedStringHandlerArgumentAttribute("i")] CustomHandler c, int i = 0) { }
+                Diagnostic(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, @"InterpolatedStringHandlerArgumentAttribute(""i"")").WithArguments("i", "c").WithLocation(8, 27)
+
             );
         }
 
@@ -7301,9 +7437,10 @@ public partial struct CustomHandler
                 // (4,5): error CS8951: Parameter 'i' is not explicitly provided, but is used as an argument to the interpolated string handler conversion on parameter 'c'. Specify the value of 'i' before 'c'.
                 // C.M($"");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentOptionalNotSpecified, expression).WithArguments("i", "c").WithLocation(4, 5),
-                // (8,27): warning CS8947: Parameter i occurs after CustomHandler in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.
+                // (8,27): warning CS8947: Parameter 'i' occurs after 'c' in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder
+                //         parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.
                 //     public static void M([InterpolatedStringHandlerArgumentAttribute("i")] CustomHandler c, params int[] i) { }
-                Diagnostic(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, @"InterpolatedStringHandlerArgumentAttribute(""i"")").WithArguments("i", "CustomHandler").WithLocation(8, 27)
+                Diagnostic(ErrorCode.WRN_ParameterOccursAfterInterpolatedStringHandlerParameter, @"InterpolatedStringHandlerArgumentAttribute(""i"")").WithArguments("i", "c").WithLocation(8, 27)
             );
         }
 
@@ -8997,17 +9134,17 @@ public partial struct CustomHandler
 
             comp.VerifyDiagnostics(extraConstructorArg != ""
                 ? new[] {
+                    // (6,1): error CS1620: Argument 3 must be passed with the 'ref' keyword
+                    // GetC(ref c).M($"literal" + $"");
+                    Diagnostic(ErrorCode.ERR_BadArgRef, "GetC(ref c)").WithArguments("3", "ref").WithLocation(6, 1),
                     // (6,15): error CS7036: There is no argument given that corresponds to the required formal parameter 'success' of 'CustomHandler.CustomHandler(int, int, ref C, out bool)'
-                    // GetC(ref c).M($"literal");
-                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, expression).WithArguments("success", "CustomHandler.CustomHandler(int, int, ref C, out bool)").WithLocation(6, 15),
-                    // (6,15): error CS1620: Argument 3 must be passed with the 'ref' keyword
-                    // GetC(ref c).M($"literal");
-                    Diagnostic(ErrorCode.ERR_BadArgRef, expression).WithArguments("3", "ref").WithLocation(6, 15)
+                    // GetC(ref c).M($"literal" + $"");
+                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, expression).WithArguments("success", "CustomHandler.CustomHandler(int, int, ref C, out bool)").WithLocation(6, 15)
                 }
                 : new[] {
-                    // (6,15): error CS1620: Argument 3 must be passed with the 'ref' keyword
-                    // GetC(ref c).M($"literal");
-                    Diagnostic(ErrorCode.ERR_BadArgRef, expression).WithArguments("3", "ref").WithLocation(6, 15)
+                    // (6,1): error CS1620: Argument 3 must be passed with the 'ref' keyword
+                    // GetC(ref c).M($"literal" + $"");
+                    Diagnostic(ErrorCode.ERR_BadArgRef, "GetC(ref c)").WithArguments("3", "ref").WithLocation(6, 1)
                 });
         }
 
@@ -9039,9 +9176,9 @@ public partial struct CustomHandler
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             comp.VerifyDiagnostics(
-                // (5,10): error CS1620: Argument 3 must be passed with the 'ref' keyword
-                // GetC().M($"literal");
-                Diagnostic(ErrorCode.ERR_BadArgRef, expression).WithArguments("3", "ref").WithLocation(5, 10)
+                // (5,1): error CS1620: Argument 3 must be passed with the 'ref' keyword
+                // GetC().M($"literal" + $"");
+                Diagnostic(ErrorCode.ERR_BadArgRef, "GetC()").WithArguments("3", "ref").WithLocation(5, 1)
             );
         }
 
@@ -9345,9 +9482,9 @@ public partial struct CustomHandler
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
             comp.VerifyDiagnostics(
-                // (8,14): error CS1620: Argument 3 must be passed with the 'ref' keyword
+                // (8,1): error CS1620: Argument 3 must be passed with the 'ref' keyword
                 // s1.M(ref s2, $"");
-                Diagnostic(ErrorCode.ERR_BadArgRef, expression).WithArguments("3", "ref").WithLocation(8, 14)
+                Diagnostic(ErrorCode.ERR_BadArgRef, "s1").WithArguments("3", "ref").WithLocation(8, 1)
             );
         }
 
@@ -10560,39 +10697,11 @@ public partial struct CustomHandler
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false);
 
             var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, handler });
-            var verifier = CompileAndVerify(comp, expectedOutput: @"
-c.Field:1
-literal:literal
-");
-            verifier.VerifyDiagnostics();
-
-            verifier.VerifyIL("<top-level-statements-entry-point>", @"
-{
-  // Code size       40 (0x28)
-  .maxstack  4
-  .locals init (C V_0,
-                CustomHandler V_1,
-                CustomHandler V_2)
-  IL_0000:  ldc.i4.1
-  IL_0001:  newobj     ""C..ctor(int)""
-  IL_0006:  stloc.0
-  IL_0007:  ldloca.s   V_2
-  IL_0009:  ldc.i4.7
-  IL_000a:  ldc.i4.0
-  IL_000b:  ldloc.0
-  IL_000c:  call       ""CustomHandler..ctor(int, int, C)""
-  IL_0011:  ldloca.s   V_2
-  IL_0013:  ldstr      ""literal""
-  IL_0018:  call       ""void CustomHandler.AppendLiteral(string)""
-  IL_001d:  ldloc.2
-  IL_001e:  stloc.1
-  IL_001f:  ldloc.0
-  IL_0020:  ldloc.1
-  IL_0021:  ldc.i4.1
-  IL_0022:  callvirt   ""void C.this[CustomHandler].set""
-  IL_0027:  ret
-}
-");
+            comp.VerifyDiagnostics(
+                // (5,17): error CS8976: Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.
+                // _ = new C(1) { [$"literal"] = 1 };
+                Diagnostic(ErrorCode.ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers, expression).WithLocation(5, 17)
+            );
         }
 
         [Theory]
@@ -12761,183 +12870,315 @@ format:
             verifier.VerifyDiagnostics();
 
             VerifyOperationTreeForTest<BinaryExpressionSyntax>(comp, @"
-IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '((($""{i1}""  ... + $""{i6}""))')
+IInterpolatedStringAdditionOperation (OperationKind.InterpolatedStringAddition, Type: null) (Syntax: '((($""{i1}""  ... + $""{i6}""))')
   Left:
-    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '(($""{i1}"" + ... + $""{i6}""))')
+    IInterpolatedStringAdditionOperation (OperationKind.InterpolatedStringAddition, Type: null) (Syntax: '(($""{i1}"" + ... + $""{i6}""))')
       Left:
-        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '($""{i1}"" +  ... ) + $""{i3}""')
+        IInterpolatedStringAdditionOperation (OperationKind.InterpolatedStringAddition, Type: null) (Syntax: '($""{i1}"" +  ... ) + $""{i3}""')
           Left:
-            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '$""{i1}"" + $""{i2}""')
+            IInterpolatedStringAdditionOperation (OperationKind.InterpolatedStringAddition, Type: null) (Syntax: '$""{i1}"" + $""{i2}""')
               Left:
                 IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i1}""')
                   Parts(1):
-                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i1}')
-                        Expression:
-                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i1')
-                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            Operand:
-                              ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i1')
-                        Alignment:
-                          null
-                        FormatString:
-                          null
+                      IInterpolatedStringAppendOperation (OperationKind.InterpolatedStringAppendFormatted, Type: null, IsImplicit) (Syntax: '{i1}')
+                        AppendCall:
+                          IInvocationOperation ( void CustomHandler.AppendFormatted(System.Object o, [System.Int32 alignment = 0], [System.String format = null])) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '{i1}')
+                            Instance Receiver:
+                              IInstanceReferenceOperation (ReferenceKind: InterpolatedStringHandler) (OperationKind.InstanceReference, Type: CustomHandler, IsImplicit) (Syntax: '((($""{i1}""  ... + $""{i6}""))')
+                            Arguments(3):
+                                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: o) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'i1')
+                                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i1')
+                                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                    Operand:
+                                      ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i1')
+                                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: alignment) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{i1}')
+                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '{i1}')
+                                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: format) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{i1}')
+                                  IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: '{i1}')
+                                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Right:
                 IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i2}""')
                   Parts(1):
-                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i2}')
-                        Expression:
-                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i2')
-                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            Operand:
-                              ILocalReferenceOperation: i2 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i2')
-                        Alignment:
-                          null
-                        FormatString:
-                          null
+                      IInterpolatedStringAppendOperation (OperationKind.InterpolatedStringAppendFormatted, Type: null, IsImplicit) (Syntax: '{i2}')
+                        AppendCall:
+                          IInvocationOperation ( void CustomHandler.AppendFormatted(System.Object o, [System.Int32 alignment = 0], [System.String format = null])) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '{i2}')
+                            Instance Receiver:
+                              IInstanceReferenceOperation (ReferenceKind: InterpolatedStringHandler) (OperationKind.InstanceReference, Type: CustomHandler, IsImplicit) (Syntax: '((($""{i1}""  ... + $""{i6}""))')
+                            Arguments(3):
+                                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: o) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'i2')
+                                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i2')
+                                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                    Operand:
+                                      ILocalReferenceOperation: i2 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i2')
+                                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: alignment) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{i2}')
+                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '{i2}')
+                                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: format) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{i2}')
+                                  IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: '{i2}')
+                                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Right:
             IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i3}""')
               Parts(1):
-                  IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i3}')
-                    Expression:
-                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i3')
-                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        Operand:
-                          ILocalReferenceOperation: i3 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i3')
-                    Alignment:
-                      null
-                    FormatString:
-                      null
+                  IInterpolatedStringAppendOperation (OperationKind.InterpolatedStringAppendFormatted, Type: null, IsImplicit) (Syntax: '{i3}')
+                    AppendCall:
+                      IInvocationOperation ( void CustomHandler.AppendFormatted(System.Object o, [System.Int32 alignment = 0], [System.String format = null])) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '{i3}')
+                        Instance Receiver:
+                          IInstanceReferenceOperation (ReferenceKind: InterpolatedStringHandler) (OperationKind.InstanceReference, Type: CustomHandler, IsImplicit) (Syntax: '((($""{i1}""  ... + $""{i6}""))')
+                        Arguments(3):
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: o) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'i3')
+                              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i3')
+                                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                Operand:
+                                  ILocalReferenceOperation: i3 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i3')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: alignment) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{i3}')
+                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '{i3}')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: format) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{i3}')
+                              IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: '{i3}')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Right:
-        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '$""{i4}"" + ( ...  + $""{i6}"")')
+        IInterpolatedStringAdditionOperation (OperationKind.InterpolatedStringAddition, Type: null) (Syntax: '$""{i4}"" + ( ...  + $""{i6}"")')
           Left:
             IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i4}""')
               Parts(1):
-                  IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i4}')
-                    Expression:
-                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i4')
-                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        Operand:
-                          ILocalReferenceOperation: i4 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i4')
-                    Alignment:
-                      null
-                    FormatString:
-                      null
+                  IInterpolatedStringAppendOperation (OperationKind.InterpolatedStringAppendFormatted, Type: null, IsImplicit) (Syntax: '{i4}')
+                    AppendCall:
+                      IInvocationOperation ( void CustomHandler.AppendFormatted(System.Object o, [System.Int32 alignment = 0], [System.String format = null])) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '{i4}')
+                        Instance Receiver:
+                          IInstanceReferenceOperation (ReferenceKind: InterpolatedStringHandler) (OperationKind.InstanceReference, Type: CustomHandler, IsImplicit) (Syntax: '((($""{i1}""  ... + $""{i6}""))')
+                        Arguments(3):
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: o) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'i4')
+                              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i4')
+                                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                Operand:
+                                  ILocalReferenceOperation: i4 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i4')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: alignment) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{i4}')
+                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '{i4}')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: format) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{i4}')
+                              IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: '{i4}')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Right:
-            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '$""{i5}"" + $""{i6}""')
+            IInterpolatedStringAdditionOperation (OperationKind.InterpolatedStringAddition, Type: null) (Syntax: '$""{i5}"" + $""{i6}""')
               Left:
                 IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i5}""')
                   Parts(1):
-                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i5}')
-                        Expression:
-                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i5')
-                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            Operand:
-                              ILocalReferenceOperation: i5 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i5')
-                        Alignment:
-                          null
-                        FormatString:
-                          null
+                      IInterpolatedStringAppendOperation (OperationKind.InterpolatedStringAppendFormatted, Type: null, IsImplicit) (Syntax: '{i5}')
+                        AppendCall:
+                          IInvocationOperation ( void CustomHandler.AppendFormatted(System.Object o, [System.Int32 alignment = 0], [System.String format = null])) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '{i5}')
+                            Instance Receiver:
+                              IInstanceReferenceOperation (ReferenceKind: InterpolatedStringHandler) (OperationKind.InstanceReference, Type: CustomHandler, IsImplicit) (Syntax: '((($""{i1}""  ... + $""{i6}""))')
+                            Arguments(3):
+                                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: o) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'i5')
+                                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i5')
+                                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                    Operand:
+                                      ILocalReferenceOperation: i5 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i5')
+                                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: alignment) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{i5}')
+                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '{i5}')
+                                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: format) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{i5}')
+                                  IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: '{i5}')
+                                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Right:
                 IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i6}""')
                   Parts(1):
-                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i6}')
-                        Expression:
-                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i6')
-                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            Operand:
-                              ILocalReferenceOperation: i6 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i6')
-                        Alignment:
-                          null
-                        FormatString:
-                          null
+                      IInterpolatedStringAppendOperation (OperationKind.InterpolatedStringAppendFormatted, Type: null, IsImplicit) (Syntax: '{i6}')
+                        AppendCall:
+                          IInvocationOperation ( void CustomHandler.AppendFormatted(System.Object o, [System.Int32 alignment = 0], [System.String format = null])) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '{i6}')
+                            Instance Receiver:
+                              IInstanceReferenceOperation (ReferenceKind: InterpolatedStringHandler) (OperationKind.InstanceReference, Type: CustomHandler, IsImplicit) (Syntax: '((($""{i1}""  ... + $""{i6}""))')
+                            Arguments(3):
+                                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: o) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'i6')
+                                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i6')
+                                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                    Operand:
+                                      ILocalReferenceOperation: i6 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i6')
+                                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: alignment) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{i6}')
+                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '{i6}')
+                                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: format) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{i6}')
+                                  IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: '{i6}')
+                                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Right:
-    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '($""{i1}"" +  ...  + $""{i6}"")')
+    IInterpolatedStringAdditionOperation (OperationKind.InterpolatedStringAddition, Type: null) (Syntax: '($""{i1}"" +  ...  + $""{i6}"")')
       Left:
-        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '$""{i1}"" + ( ...  + $""{i3}"")')
+        IInterpolatedStringAdditionOperation (OperationKind.InterpolatedStringAddition, Type: null) (Syntax: '$""{i1}"" + ( ...  + $""{i3}"")')
           Left:
             IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i1}""')
               Parts(1):
-                  IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i1}')
-                    Expression:
-                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i1')
-                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        Operand:
-                          ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i1')
-                    Alignment:
-                      null
-                    FormatString:
-                      null
+                  IInterpolatedStringAppendOperation (OperationKind.InterpolatedStringAppendFormatted, Type: null, IsImplicit) (Syntax: '{i1}')
+                    AppendCall:
+                      IInvocationOperation ( void CustomHandler.AppendFormatted(System.Object o, [System.Int32 alignment = 0], [System.String format = null])) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '{i1}')
+                        Instance Receiver:
+                          IInstanceReferenceOperation (ReferenceKind: InterpolatedStringHandler) (OperationKind.InstanceReference, Type: CustomHandler, IsImplicit) (Syntax: '((($""{i1}""  ... + $""{i6}""))')
+                        Arguments(3):
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: o) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'i1')
+                              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i1')
+                                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                Operand:
+                                  ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i1')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: alignment) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{i1}')
+                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '{i1}')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: format) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{i1}')
+                              IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: '{i1}')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Right:
-            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '$""{i2}"" + $""{i3}""')
+            IInterpolatedStringAdditionOperation (OperationKind.InterpolatedStringAddition, Type: null) (Syntax: '$""{i2}"" + $""{i3}""')
               Left:
                 IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i2}""')
                   Parts(1):
-                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i2}')
-                        Expression:
-                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i2')
-                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            Operand:
-                              ILocalReferenceOperation: i2 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i2')
-                        Alignment:
-                          null
-                        FormatString:
-                          null
+                      IInterpolatedStringAppendOperation (OperationKind.InterpolatedStringAppendFormatted, Type: null, IsImplicit) (Syntax: '{i2}')
+                        AppendCall:
+                          IInvocationOperation ( void CustomHandler.AppendFormatted(System.Object o, [System.Int32 alignment = 0], [System.String format = null])) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '{i2}')
+                            Instance Receiver:
+                              IInstanceReferenceOperation (ReferenceKind: InterpolatedStringHandler) (OperationKind.InstanceReference, Type: CustomHandler, IsImplicit) (Syntax: '((($""{i1}""  ... + $""{i6}""))')
+                            Arguments(3):
+                                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: o) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'i2')
+                                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i2')
+                                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                    Operand:
+                                      ILocalReferenceOperation: i2 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i2')
+                                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: alignment) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{i2}')
+                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '{i2}')
+                                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: format) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{i2}')
+                                  IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: '{i2}')
+                                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Right:
                 IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i3}""')
                   Parts(1):
-                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i3}')
-                        Expression:
-                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i3')
-                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            Operand:
-                              ILocalReferenceOperation: i3 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i3')
-                        Alignment:
-                          null
-                        FormatString:
-                          null
+                      IInterpolatedStringAppendOperation (OperationKind.InterpolatedStringAppendFormatted, Type: null, IsImplicit) (Syntax: '{i3}')
+                        AppendCall:
+                          IInvocationOperation ( void CustomHandler.AppendFormatted(System.Object o, [System.Int32 alignment = 0], [System.String format = null])) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '{i3}')
+                            Instance Receiver:
+                              IInstanceReferenceOperation (ReferenceKind: InterpolatedStringHandler) (OperationKind.InstanceReference, Type: CustomHandler, IsImplicit) (Syntax: '((($""{i1}""  ... + $""{i6}""))')
+                            Arguments(3):
+                                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: o) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'i3')
+                                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i3')
+                                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                    Operand:
+                                      ILocalReferenceOperation: i3 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i3')
+                                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: alignment) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{i3}')
+                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '{i3}')
+                                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: format) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{i3}')
+                                  IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: '{i3}')
+                                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Right:
-        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '($""{i4}"" +  ... ) + $""{i6}""')
+        IInterpolatedStringAdditionOperation (OperationKind.InterpolatedStringAddition, Type: null) (Syntax: '($""{i4}"" +  ... ) + $""{i6}""')
           Left:
-            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.String) (Syntax: '$""{i4}"" + $""{i5}""')
+            IInterpolatedStringAdditionOperation (OperationKind.InterpolatedStringAddition, Type: null) (Syntax: '$""{i4}"" + $""{i5}""')
               Left:
                 IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i4}""')
                   Parts(1):
-                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i4}')
-                        Expression:
-                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i4')
-                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            Operand:
-                              ILocalReferenceOperation: i4 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i4')
-                        Alignment:
-                          null
-                        FormatString:
-                          null
+                      IInterpolatedStringAppendOperation (OperationKind.InterpolatedStringAppendFormatted, Type: null, IsImplicit) (Syntax: '{i4}')
+                        AppendCall:
+                          IInvocationOperation ( void CustomHandler.AppendFormatted(System.Object o, [System.Int32 alignment = 0], [System.String format = null])) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '{i4}')
+                            Instance Receiver:
+                              IInstanceReferenceOperation (ReferenceKind: InterpolatedStringHandler) (OperationKind.InstanceReference, Type: CustomHandler, IsImplicit) (Syntax: '((($""{i1}""  ... + $""{i6}""))')
+                            Arguments(3):
+                                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: o) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'i4')
+                                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i4')
+                                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                    Operand:
+                                      ILocalReferenceOperation: i4 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i4')
+                                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: alignment) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{i4}')
+                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '{i4}')
+                                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: format) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{i4}')
+                                  IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: '{i4}')
+                                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               Right:
                 IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i5}""')
                   Parts(1):
-                      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i5}')
-                        Expression:
-                          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i5')
-                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            Operand:
-                              ILocalReferenceOperation: i5 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i5')
-                        Alignment:
-                          null
-                        FormatString:
-                          null
+                      IInterpolatedStringAppendOperation (OperationKind.InterpolatedStringAppendFormatted, Type: null, IsImplicit) (Syntax: '{i5}')
+                        AppendCall:
+                          IInvocationOperation ( void CustomHandler.AppendFormatted(System.Object o, [System.Int32 alignment = 0], [System.String format = null])) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '{i5}')
+                            Instance Receiver:
+                              IInstanceReferenceOperation (ReferenceKind: InterpolatedStringHandler) (OperationKind.InstanceReference, Type: CustomHandler, IsImplicit) (Syntax: '((($""{i1}""  ... + $""{i6}""))')
+                            Arguments(3):
+                                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: o) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'i5')
+                                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i5')
+                                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                    Operand:
+                                      ILocalReferenceOperation: i5 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i5')
+                                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: alignment) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{i5}')
+                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '{i5}')
+                                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: format) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{i5}')
+                                  IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: '{i5}')
+                                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Right:
             IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$""{i6}""')
               Parts(1):
-                  IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i6}')
-                    Expression:
-                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i6')
-                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        Operand:
-                          ILocalReferenceOperation: i6 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i6')
-                    Alignment:
-                      null
-                    FormatString:
-                      null
+                  IInterpolatedStringAppendOperation (OperationKind.InterpolatedStringAppendFormatted, Type: null, IsImplicit) (Syntax: '{i6}')
+                    AppendCall:
+                      IInvocationOperation ( void CustomHandler.AppendFormatted(System.Object o, [System.Int32 alignment = 0], [System.String format = null])) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '{i6}')
+                        Instance Receiver:
+                          IInstanceReferenceOperation (ReferenceKind: InterpolatedStringHandler) (OperationKind.InstanceReference, Type: CustomHandler, IsImplicit) (Syntax: '((($""{i1}""  ... + $""{i6}""))')
+                        Arguments(3):
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: o) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'i6')
+                              IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'i6')
+                                Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                Operand:
+                                  ILocalReferenceOperation: i6 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i6')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: alignment) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{i6}')
+                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: '{i6}')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: format) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{i6}')
+                              IDefaultValueOperation (OperationKind.DefaultValue, Type: System.String, Constant: null, IsImplicit) (Syntax: '{i6}')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ");
         }
 
@@ -13950,6 +14191,7 @@ s.M($"""");
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 
@@ -13969,9 +14211,9 @@ partial struct CustomHandler
                 // (5,5): error CS8949: The InterpolatedStringHandlerArgumentAttribute applied to parameter 'CustomHandler' is malformed and cannot be interpreted. Construct an instance of 'CustomHandler' manually.
                 // s.M($"");
                 Diagnostic(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, @"$""""").WithArguments("CustomHandler", "CustomHandler").WithLocation(5, 5),
-                // (14,38): error CS8944: 'S1Ext.M(S1, CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
+                // (15,38): error CS8944: 'S1Ext.M(S1, CustomHandler)' is not an instance method, the receiver cannot be an interpolated string handler argument.
                 //     public static void M(this S1 s, [InterpolatedStringHandlerArgument("")] CustomHandler c) => throw null;
-                Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgument("""")").WithArguments("S1Ext.M(S1, CustomHandler)").WithLocation(14, 38)
+                Diagnostic(ErrorCode.ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName, @"InterpolatedStringHandlerArgument("""")").WithArguments("S1Ext.M(S1, CustomHandler)").WithLocation(15, 38)
             );
         }
 
@@ -13987,6 +14229,7 @@ s.M($"""");
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 
@@ -14017,6 +14260,7 @@ s.M($"""");
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 
@@ -14067,6 +14311,7 @@ s.M($"""");
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 
@@ -14115,6 +14360,7 @@ s.M($"""");
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 
@@ -14148,6 +14394,7 @@ s.M($"""");
 
 public struct S1
 {
+    public S1() { }
     public int Field = 1;
 }
 
@@ -14194,6 +14441,204 @@ struct CustomHandler
                 // CustomHandler c = $"";
                 Diagnostic(ErrorCode.ERR_BadArgExtraRef, @"$""""").WithArguments("3", "out").WithLocation(4, 19)
             );
+        }
+
+        [Theory]
+        [InlineData(@"$""literal{1}""")]
+        [InlineData(@"$""literal"" + $""{1}""")]
+        public void ReferencingThis_TopLevelObjectInitializer(string expression)
+        {
+            var code = @"
+using System.Runtime.CompilerServices;
+
+_ = new C2 { [" + expression + @"] = { A = 1, B = 2 } };
+
+public class C2
+{
+    public C3 this[[InterpolatedStringHandlerArgument("""")] CustomHandler c]
+    {
+        get => new C3();
+        set { }
+    }
+}
+
+public class C3
+{
+    public int A
+    {
+        get => 0;
+        set { }
+    }
+    public int B
+    {
+        get => 0;
+        set { }
+    }
+}
+
+public partial struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, C2 c) : this(literalLength, formattedCount)
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) });
+            comp.VerifyDiagnostics(
+                // (4,15): error CS8976: Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.
+                // _ = new C2 { [$"literal" + $"{1}"] = { A = 1, B = 2 } };
+                Diagnostic(ErrorCode.ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers, expression).WithLocation(4, 15)
+            );
+        }
+
+        [Theory]
+        [InlineData(@"$""literal{1}""")]
+        [InlineData(@"$""literal"" + $""{1}""")]
+        public void ReferencingThis_NestedObjectInitializer(string expression)
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+
+_ = new C1 { C2 = { [" + expression + @"] = { A = 1, B = 2 } } };
+
+class C1
+{
+    public C2 C2 { get => null; set { } }
+}
+
+public class C2
+{
+    public C3 this[[InterpolatedStringHandlerArgument("""")] CustomHandler c]
+    {
+        get => new C3();
+        set { }
+    }
+}
+
+public class C3
+{
+    public int A
+    {
+        get => 0;
+        set { }
+    }
+    public int B
+    {
+        get => 0;
+        set { }
+    }
+}
+
+public partial struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, C2 c) : this(literalLength, formattedCount)
+    {
+        Console.WriteLine(""CustomHandler ctor"");
+    }
+}
+";
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerArgumentAttribute, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) });
+            comp.VerifyDiagnostics(
+                // (5,22): error CS8976: Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.
+                // _ = new C1 { C2 = { [$"literal{1}"] = { A = 1, B = 2 } } };
+                Diagnostic(ErrorCode.ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers, expression).WithLocation(5, 22)
+            );
+        }
+
+        [Theory]
+        [InlineData(@"$""literal{1}""")]
+        [InlineData(@"$""literal"" + $""{1}""")]
+        public void NotReferencingThis_NestedObjectInitializer(string expression)
+        {
+            var code = @"
+using System;
+using System.Runtime.CompilerServices;
+
+_ = new C1 { C2 = { [3, " + expression + @"] = { A = 1, B = 2 } } };
+
+class C1
+{
+    public C2 C2 { get { Console.WriteLine(""get_C2""); return new C2(); } set { } }
+}
+
+public class C2
+{
+    public C3 this[int arg1, [InterpolatedStringHandlerArgument(""arg1"")] CustomHandler c]
+    {
+        get { Console.WriteLine(""Indexer""); return new C3(); }
+        set { }
+    }
+}
+
+public class C3
+{
+    public int A
+    {
+        get => 0;
+        set { }
+    }
+    public int B
+    {
+        get => 0;
+        set { }
+    }
+}
+
+public partial struct CustomHandler
+{
+    public CustomHandler(int literalLength, int formattedCount, int arg1) : this(literalLength, formattedCount)
+    {
+        Console.WriteLine(""CustomHandler ctor"");
+    }
+}
+";
+            CompileAndVerify(new[] { code, InterpolatedStringHandlerArgumentAttribute, GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false) },
+                             expectedOutput: @"
+CustomHandler ctor
+get_C2
+Indexer
+get_C2
+Indexer");
+        }
+
+        [Fact]
+        public void InterpolatedStringBeforeCSharp6()
+        {
+            var text = @"
+class C
+{
+    string M()
+    {
+        return $""hello"";
+    }
+}";
+
+            CreateCompilation(text, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
+                // (6,16): error CS8026: Feature 'interpolated strings' is not available in C# 5. Please use language version 6 or greater.
+                //         return $"hello";
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, @"$""hello""").WithArguments("interpolated strings", "6").WithLocation(6, 16));
+        }
+
+        [Fact]
+        public void InterpolatedStringWithReplacementBeforeCSharp6()
+        {
+            var text = @"
+class C
+{
+    string M()
+    {
+        string other = ""world"";
+        return $""hello + {other}"";
+    }
+}";
+
+
+            CreateCompilation(text, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
+                // (7,16): error CS8026: Feature 'interpolated strings' is not available in C# 5. Please use language version 6 or greater.
+                //         return $"hello + {other}";
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, @"$""hello + {other}""").WithArguments("interpolated strings", "6").WithLocation(7, 16));
         }
     }
 }

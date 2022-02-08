@@ -34,7 +34,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null) (Syntax: 'Conditional(field)')
+IOperation:  (OperationKind.None, Type: System.Diagnostics.ConditionalAttribute) (Syntax: 'Conditional(field)')
   Children(1):
       IFieldReferenceOperation: System.String C.field (Static) (OperationKind.FieldReference, Type: System.String, Constant: ""field"") (Syntax: 'field')
         Instance Receiver: 
@@ -275,7 +275,7 @@ unsafe class C
             string expectedOperationTree = @"
 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 's.field[3] = 1')
   Left: 
-    IOperation:  (OperationKind.None, Type: null) (Syntax: 's.field[3]')
+    IOperation:  (OperationKind.None, Type: System.Int32) (Syntax: 's.field[3]')
       Children(2):
           IFieldReferenceOperation: System.Int32* S1.field (OperationKind.FieldReference, Type: System.Int32*) (Syntax: 's.field')
             Instance Receiver: 
@@ -313,7 +313,7 @@ unsafe class C
             string expectedOperationTree = @"
 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 's.field[3] = 1')
   Left: 
-    IOperation:  (OperationKind.None, Type: null) (Syntax: 's.field[3]')
+    IOperation:  (OperationKind.None, Type: System.Int32) (Syntax: 's.field[3]')
       Children(2):
           IFieldReferenceOperation: System.Int32* S1.field (OperationKind.FieldReference, Type: System.Int32*) (Syntax: 's.field')
             Instance Receiver: 

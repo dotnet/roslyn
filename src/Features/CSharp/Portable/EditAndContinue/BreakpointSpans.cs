@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return createSpanForSwitchArm(switchArm);
 
                     TextSpan createSpanForSwitchArm(SwitchExpressionArmSyntax switchArm) =>
-                        CreateSpan((position <= switchArm.WhenClause?.FullSpan.End == true) ? switchArm.WhenClause : (SyntaxNode)switchArm.Expression);
+                        CreateSpan((position <= switchArm.WhenClause?.FullSpan.End == true) ? switchArm.WhenClause : switchArm.Expression);
 
                 case SyntaxKind.SwitchExpression when
                             node is SwitchExpressionSyntax switchExpression &&
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 default:
                     if (node is ExpressionSyntax expression)
                     {
-                        return IsBreakableExpression(expression) ? CreateSpan(expression) : (TextSpan?)null;
+                        return IsBreakableExpression(expression) ? CreateSpan(expression) : null;
                     }
 
                     if (node is StatementSyntax statement)
@@ -801,7 +801,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 return TextSpan.FromBounds(firstSpan.Start, lastSpan.End);
             }
 
-            if (declaration is CompilationUnitSyntax unit && unit.ContainsTopLevelStatements())
+            if (declaration is CompilationUnitSyntax unit && unit.ContainsGlobalStatements())
             {
                 return TextSpan.FromBounds(unit.Members[0].SpanStart, unit.Members.OfType<GlobalStatementSyntax>().Last().Span.End);
             }

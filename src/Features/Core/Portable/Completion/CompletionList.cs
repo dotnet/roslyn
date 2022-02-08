@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
@@ -51,13 +49,13 @@ namespace Microsoft.CodeAnalysis.Completion
         /// The item specified determines the text displayed and the description associated with it unless a different item is manually selected.
         /// No text is ever inserted when this item is completed, leaving the text the user typed instead.
         /// </summary>
-        public CompletionItem SuggestionModeItem { get; }
+        public CompletionItem? SuggestionModeItem { get; }
 
         private CompletionList(
             TextSpan defaultSpan,
             ImmutableArray<CompletionItem> items,
-            CompletionRules rules,
-            CompletionItem suggestionModeItem,
+            CompletionRules? rules,
+            CompletionItem? suggestionModeItem,
             bool isExclusive)
         {
             Span = defaultSpan;
@@ -84,8 +82,8 @@ namespace Microsoft.CodeAnalysis.Completion
         public static CompletionList Create(
             TextSpan defaultSpan,
             ImmutableArray<CompletionItem> items,
-            CompletionRules rules = null,
-            CompletionItem suggestionModeItem = null)
+            CompletionRules? rules = null,
+            CompletionItem? suggestionModeItem = null)
         {
             return Create(defaultSpan, items, rules, suggestionModeItem, isExclusive: false);
         }
@@ -93,8 +91,8 @@ namespace Microsoft.CodeAnalysis.Completion
         internal static CompletionList Create(
             TextSpan defaultSpan,
             ImmutableArray<CompletionItem> items,
-            CompletionRules rules,
-            CompletionItem suggestionModeItem,
+            CompletionRules? rules,
+            CompletionItem? suggestionModeItem,
             bool isExclusive)
         {
             return new CompletionList(defaultSpan, items, rules, suggestionModeItem, isExclusive);

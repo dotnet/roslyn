@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 ? await FindDocumentWithIndexerMemberCrefAsync(project, documents, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<Document>.Empty;
 
-            var documentsWithGlobalAttributes = await FindDocumentsWithGlobalAttributesAsync(project, documents, cancellationToken).ConfigureAwait(false);
+            var documentsWithGlobalAttributes = await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, cancellationToken).ConfigureAwait(false);
             return ordinaryDocuments.Concat(forEachDocuments, elementAccessDocument, indexerMemberCrefDocument, documentsWithGlobalAttributes);
         }
 

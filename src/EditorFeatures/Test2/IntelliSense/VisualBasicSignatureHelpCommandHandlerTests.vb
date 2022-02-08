@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.Options
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
@@ -282,9 +283,7 @@ End Class
                               </Document>)
 
                 ' disable implicit sig help then type a trigger character -> no session should be available
-                Dim workspace = state.Workspace
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(SignatureHelpOptions.ShowSignatureHelp, LanguageNames.VisualBasic, False)))
+                state.Workspace.GetService(Of IGlobalOptionService).SetGlobalOption(New OptionKey(SignatureHelpViewOptions.ShowSignatureHelp, LanguageNames.VisualBasic), False)
                 state.SendTypeChars("(")
                 Await state.AssertNoSignatureHelpSession()
 

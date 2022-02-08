@@ -1070,6 +1070,30 @@ class Customer
 }}
 ";
 
+        private static readonly string s_preferTupleSwap = $@"
+using System;
+
+class Customer
+{{
+    void M1(string[] args)
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        (args[1], args[0]) = (args[0], args[1]);
+//]
+    }}
+    void M2(string[] args)
+    {{
+//[
+        // {ServicesVSResources.Over_colon}
+        var temp = args[0];
+        args[0] = args[1];
+        args[1] = temp;
+//]
+    }}
+}}
+";
+
         private static readonly string s_preferIsNullOverReferenceEquals = $@"
 using System;
 
@@ -2062,6 +2086,8 @@ class C2
 
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferIndexOperator, ServicesVSResources.Prefer_index_operator, s_preferIndexOperator, s_preferIndexOperator, this, optionStore, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferRangeOperator, ServicesVSResources.Prefer_range_operator, s_preferRangeOperator, s_preferRangeOperator, this, optionStore, expressionPreferencesGroupTitle));
+
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferTupleSwap, ServicesVSResources.Prefer_tuple_swap, s_preferTupleSwap, s_preferTupleSwap, this, optionStore, expressionPreferencesGroupTitle));
 
             // Pattern matching
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferPatternMatching, CSharpVSResources.Prefer_pattern_matching, s_preferPatternMatching, s_preferPatternMatching, this, optionStore, patternMatchingPreferencesGroupTitle));

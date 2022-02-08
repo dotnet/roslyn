@@ -13,6 +13,9 @@ namespace Microsoft.CodeAnalysis
         private interface ICompilationTracker
         {
             ProjectState ProjectState { get; }
+            GeneratorDriver? GeneratorDriver { get; }
+
+            SkeletonReferenceCache SkeletonReferenceCache { get; }
 
             /// <summary>
             /// Returns <see langword="true"/> if this <see cref="Project"/>/<see cref="Compilation"/> could produce the
@@ -29,19 +32,14 @@ namespace Microsoft.CodeAnalysis
             /// any of the references of the <see cref="Compilation.References"/>.
             /// </remarks>
             bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary);
-            ICompilationTracker Fork(ProjectState newProject, CompilationAndGeneratorDriverTranslationAction? translate = null, CancellationToken cancellationToken = default);
+            ICompilationTracker Fork(SolutionServices solutionServices, ProjectState newProject, CompilationAndGeneratorDriverTranslationAction? translate = null, CancellationToken cancellationToken = default);
             ICompilationTracker FreezePartialStateWithTree(SolutionState solution, DocumentState docState, SyntaxTree tree, CancellationToken cancellationToken);
             Task<Compilation> GetCompilationAsync(SolutionState solution, CancellationToken cancellationToken);
-            Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionState solution, CancellationToken cancellationToken);
-            Task<VersionStamp> GetDependentVersionAsync(SolutionState solution, CancellationToken cancellationToken);
 
-            /// <summary>
-            /// Get a metadata reference to this compilation info's compilation with respect to
-            /// another project. For cross language references produce a skeletal assembly. If the
-            /// compilation is not available, it is built. If a skeletal assembly reference is
-            /// needed and does not exist, it is also built.
-            /// </summary>
-            Task<MetadataReference> GetMetadataReferenceAsync(SolutionState solution, ProjectState fromProject, ProjectReference projectReference, CancellationToken cancellationToken);
+            Task<VersionStamp> GetDependentVersionAsync(SolutionState solution, CancellationToken cancellationToken);
+            Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionState solution, CancellationToken cancellationToken);
+            Task<Checksum> GetDependentChecksumAsync(SolutionState solution, CancellationToken cancellationToken);
+
             CompilationReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference);
             ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(SolutionState solution, CancellationToken cancellationToken);
             Task<bool> HasSuccessfullyLoadedAsync(SolutionState solution, CancellationToken cancellationToken);

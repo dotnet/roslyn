@@ -1982,7 +1982,7 @@ class C
             // multiplying constants in checked statement that causes overflow behaves like unchecked
 
             var source = @"
-public class goo
+public class @goo
 {
     const int i = 1000000;
     const int j = 1000000;

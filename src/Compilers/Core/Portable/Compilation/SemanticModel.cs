@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -78,7 +79,9 @@ namespace Microsoft.CodeAnalysis
             {
                 return GetOperationCore(node, cancellationToken);
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+#pragma warning disable CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete; tracked by https://github.com/dotnet/roslyn/issues/58375
+            catch (Exception e) when (FatalError.ReportIfNonFatalAndCatchUnlessCanceled(e, cancellationToken))
+#pragma warning restore CS0618 // ReportIfNonFatalAndCatchUnlessCanceled is obsolete
             {
                 // Log a Non-fatal-watson and then ignore the crash in the attempt of getting operation
                 Debug.Assert(false, "\n" + e.ToString());
@@ -709,7 +712,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Analyze data-flow within a part of a method body.
         /// </summary>
-        /// <param name="statementOrExpression">The statement or expression to be analyzed.</param>
+        /// <param name="statementOrExpression">The statement or expression to be analyzed. A ConstructorInitializerSyntax / PrimaryConstructorBaseTypeSyntax is treated here as a regular statement.</param>
         /// <returns>An object that can be used to obtain the result of the data flow analysis.</returns>
         /// <exception cref="System.ArgumentException">The statement or expression is not with a method
         /// body or field or property initializer.</exception>

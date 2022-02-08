@@ -343,12 +343,10 @@ namespace Microsoft.CodeAnalysis.AddParameter
         private static string GetCodeFixTitle(string resourceString, IMethodSymbol methodToUpdate, bool includeParameters)
         {
             var methodDisplay = methodToUpdate.ToDisplayString(new SymbolDisplayFormat(
-                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
                 extensionMethodStyle: SymbolDisplayExtensionMethodStyle.StaticMethod,
                 parameterOptions: SymbolDisplayParameterOptions.None,
-                memberOptions: methodToUpdate.IsConstructor()
-                    ? SymbolDisplayMemberOptions.None
-                    : SymbolDisplayMemberOptions.IncludeContainingType));
+                memberOptions: SymbolDisplayMemberOptions.None));
 
             var parameters = methodToUpdate.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
             var signature = includeParameters

@@ -122,6 +122,11 @@
         <target state="translated">Null 許容型として宣言する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enable_nullable_reference_types_in_project">
+        <source>Enable nullable reference types in project</source>
+        <target state="new">Enable nullable reference types in project</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_return_type">
         <source>Fix return type</source>
         <target state="translated">戻り値の型の修正</target>
@@ -162,6 +167,16 @@
         <target state="translated">'for' ステートメントの反転</target>
         <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Selection_cannot_include_global_statements">
+        <source>Selection cannot include global statements</source>
+        <target state="new">Selection cannot include global statements</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_cannot_include_top_level_statements">
+        <source>Selection cannot include top-level statements</source>
+        <target state="new">Selection cannot include top-level statements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Simplify_lambda_expression">
         <source>Simplify lambda expression</source>
         <target state="translated">ラムダ式の簡略化</target>
@@ -185,6 +200,11 @@
       <trans-unit id="Use_recursive_patterns">
         <source>Use recursive patterns</source>
         <target state="translated">再帰パターンを使用する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_Expression_may_change_code_meaning">
+        <source>Warning: Expression may have side effects. Code meaning may change.</source>
+        <target state="new">Warning: Expression may have side effects. Code meaning may change.</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">

@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -35,14 +36,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         public string HostDisplayName => "Visual Studio";
 
-        public void ShowGlobalErrorInfo(string message, Exception? exception, params InfoBarUI[] items)
+        public void ShowGlobalErrorInfo(string message, TelemetryFeatureName featureName, Exception? exception, params InfoBarUI[] items)
         {
-            var detailedMessage = exception is null ? "" : GetFormattedExceptionStack(exception);
-            LogGlobalErrorToActivityLog(message, detailedMessage);
+            var stackTrace = exception is null ? "" : GetFormattedExceptionStack(exception);
+            LogGlobalErrorToActivityLog(message, stackTrace);
             _infoBarService.ShowInfoBar(message, items);
 
-            // Have to use KeyValueLogMessage so it gets reported in telemetry
-            Logger.Log(FunctionId.VS_ErrorReportingService_ShowGlobalErrorInfo, message, LogLevel.Information);
+            Logger.Log(FunctionId.VS_ErrorReportingService_ShowGlobalErrorInfo, KeyValueLogMessage.Create(LogType.UserAction, m =>
+            {
+                m["Message"] = message;
+                m["FeatureName"] = featureName.ToString();
+            }));
         }
 
         public void ShowDetailedErrorInfo(Exception exception)
@@ -51,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             new DetailedErrorInfoDialog(exception.Message, errorInfo).ShowModal();
         }
 
-        public void ShowFeatureNotAvailableErrorInfo(string message, Exception? exception)
+        public void ShowFeatureNotAvailableErrorInfo(string message, TelemetryFeatureName featureName, Exception? exception)
         {
             var infoBarUIs = new List<InfoBarUI>();
 
@@ -64,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     closeAfterAction: true));
             }
 
-            ShowGlobalErrorInfo(message, exception, infoBarUIs.ToArray());
+            ShowGlobalErrorInfo(message, featureName, exception, infoBarUIs.ToArray());
         }
 
         private void LogGlobalErrorToActivityLog(string message, string? detailedError)

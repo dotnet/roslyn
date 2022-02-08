@@ -314,14 +314,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private readonly struct HostAnalyzerStateSetKey : IEquatable<HostAnalyzerStateSetKey>
             {
-                public HostAnalyzerStateSetKey(string language, ImmutableDictionary<object, AnalyzerReference> analyzerReferences)
+                public HostAnalyzerStateSetKey(string language, IReadOnlyList<AnalyzerReference> analyzerReferences)
                 {
                     Language = language;
                     AnalyzerReferences = analyzerReferences;
                 }
 
                 public string Language { get; }
-                public ImmutableDictionary<object, AnalyzerReference> AnalyzerReferences { get; }
+                public IReadOnlyList<AnalyzerReference> AnalyzerReferences { get; }
 
                 public bool Equals(HostAnalyzerStateSetKey other)
                     => Language == other.Language && AnalyzerReferences == other.AnalyzerReferences;

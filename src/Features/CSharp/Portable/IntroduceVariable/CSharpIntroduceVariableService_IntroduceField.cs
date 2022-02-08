@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
             var oldTypeDeclaration = expression.GetAncestorOrThis<TypeDeclarationSyntax>();
 
             var oldType = oldTypeDeclaration != null
-                ? document.SemanticModel.GetDeclaredSymbol(oldTypeDeclaration, cancellationToken) as INamedTypeSymbol
+                ? document.SemanticModel.GetDeclaredSymbol(oldTypeDeclaration, cancellationToken)
                 : document.SemanticModel.Compilation.ScriptClass;
             var newNameToken = GenerateUniqueFieldName(document, expression, isConstant, cancellationToken);
             var typeDisplayString = oldType.ToMinimalDisplayString(document.SemanticModel, expression.SpanStart);

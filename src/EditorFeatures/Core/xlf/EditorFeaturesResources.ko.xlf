@@ -42,6 +42,11 @@
         <target state="translated">계속하시겠습니까? 계속하면 손상된 코드가 생성될 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Execute_Suggested_Action">
+        <source>Execute Suggested Action</source>
+        <target state="new">Execute Suggested Action</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expander_display_text">
         <source>items from unimported namespaces</source>
         <target state="translated">가져오지 않은 네임스페이스의 항목</target>
@@ -112,6 +117,21 @@
         <target state="translated">들여쓰기 크기</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inline_Diagnostics_Error">
+        <source>Inline Diagnostics - Error</source>
+        <target state="new">Inline Diagnostics - Error</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Diagnostics_Rude_Edit">
+        <source>Inline Diagnostics - Rude Edit</source>
+        <target state="new">Inline Diagnostics - Rude Edit</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_Diagnostics_Warning">
+        <source>Inline Diagnostics - Warning</source>
+        <target state="new">Inline Diagnostics - Warning</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inline_Hints">
         <source>Inline Hints</source>
         <target state="translated">인라인 힌트</target>
@@ -136,6 +156,11 @@
         <source>Keyword - Control</source>
         <target state="translated">키워드 - 제어</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Language_client_initialization_failed">
+        <source>{0} failed to initialize. Status = {1}. Exception = {2}</source>
+        <target state="new">{0} failed to initialize. Status = {1}. Exception = {2}</target>
+        <note>{0} is the language server name.  Status is the status of the initialization.  Exception is the exception encountered during initialization.</note>
       </trans-unit>
       <trans-unit id="Locating_bases">
         <source>Locating bases...</source>
@@ -240,6 +265,11 @@
       <trans-unit id="Tab_Size">
         <source>Tab Size</source>
         <target state="translated">탭 크기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_results_may_be_incomplete_due_to_the_solution_still_loading_projects">
+        <source>The results may be incomplete due to the solution still loading projects.</source>
+        <target state="new">The results may be incomplete due to the solution still loading projects.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_symbol_has_no_base">

@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     [Order]
     [SuggestedActionPriority(DefaultOrderings.Highest)]
     [SuggestedActionPriority(DefaultOrderings.Default)]
+    [SuggestedActionPriority(DefaultOrderings.Lowest)]
     internal partial class SuggestedActionsSourceProvider : ISuggestedActionsSourceProvider
     {
         private static readonly Guid s_CSharpSourceGuid = new Guid("b967fea8-e2c3-4984-87d4-71a38f49e16a");
@@ -90,7 +91,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             if (textBuffer.IsInLspEditorContext())
                 return null;
 
-            var asyncEnabled = _globalOptions.GetOption(SuggestionsOptions.Asynchronous) ?? _globalOptions.GetOption(SuggestionsOptions.AsynchronousQuickActionsEnableFeatureFlag);
+            // if user has explicitly set the option defer to that.  otherwise, we are enabled by default (unless our
+            // A/B escape hatch disables us).
+            var asyncEnabled = _globalOptions.GetOption(SuggestionsOptions.Asynchronous) is bool b ? b : !_globalOptions.GetOption(SuggestionsOptions.AsynchronousQuickActionsDisableFeatureFlag);
 
             return asyncEnabled
                 ? new AsyncSuggestedActionsSource(_threadingContext, _globalOptions, this, textView, textBuffer, _suggestedActionCategoryRegistry)

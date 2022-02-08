@@ -9,8 +9,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode.Api
 {
     internal static class IntelliCodeCompletionOptions
     {
-        public static PerLanguageOption<bool> TriggerOnTyping { get; } = (PerLanguageOption<bool>)CompletionOptions.TriggerOnTyping;
+        public static PerLanguageOption<bool> TriggerOnTyping { get; } = (PerLanguageOption<bool>)CompletionOptions.Metadata.TriggerOnTyping;
 
-        public static PerLanguageOption<bool> TriggerOnTypingLetters { get; } = (PerLanguageOption<bool>)CompletionOptions.TriggerOnTypingLetters2;
+        public static PerLanguageOption<bool> TriggerOnTypingLetters { get; } = (PerLanguageOption<bool>)CompletionOptions.Metadata.TriggerOnTypingLetters;
     }
 }

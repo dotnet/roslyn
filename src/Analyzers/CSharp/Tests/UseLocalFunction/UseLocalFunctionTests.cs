@@ -1533,7 +1533,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         [WorkItem(23118, "https://github.com/dotnet/roslyn/issues/23118")]
         public async Task TestAvailableIfConvertedToCoContraVariantDelegate1()
         {
@@ -1564,7 +1564,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         [WorkItem(23118, "https://github.com/dotnet/roslyn/issues/23118")]
         public async Task TestAvailableIfConvertedToCoContraVariantDelegate2()
         {
@@ -1595,7 +1595,7 @@ class Program
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         [WorkItem(23118, "https://github.com/dotnet/roslyn/issues/23118")]
         public async Task TestAvailableIfConvertedToCoContraVariantDelegate3()
         {
@@ -3121,7 +3121,7 @@ class Enclosing<U> : DelegateEnclosing<U>
         }
 
         [WorkItem(26526, "https://github.com/dotnet/roslyn/issues/26526")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/56963"), Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
         public async Task TestAvailableWithCastIntroducedIfAssignedToVar()
         {
             await TestInRegularAndScript1Async(

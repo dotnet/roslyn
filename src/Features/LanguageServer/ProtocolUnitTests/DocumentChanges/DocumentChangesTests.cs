@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
                 var document = testLspServer.GetQueueAccessor().GetTrackedTexts().FirstOrDefault();
 
-                Assert.NotNull(document);
+                AssertEx.NotNull(document);
                 Assert.Equal(documentText, document.ToString());
             }
         }
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
                 var document = testLspServer.GetQueueAccessor().GetTrackedTexts().FirstOrDefault();
 
-                Assert.NotNull(document);
+                AssertEx.NotNull(document);
                 Assert.Equal(expected, document.ToString());
             }
         }
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
                 var document = testLspServer.GetQueueAccessor().GetTrackedTexts().FirstOrDefault();
 
-                Assert.NotNull(document);
+                AssertEx.NotNull(document);
                 Assert.Equal(expected, document.ToString());
             }
         }
@@ -310,15 +310,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
                 var document = testLspServer.GetQueueAccessor().GetTrackedTexts().FirstOrDefault();
 
-                Assert.NotNull(document);
+                AssertEx.NotNull(document);
                 Assert.Equal(expected, document.ToString());
             }
         }
 
         private async Task<(TestLspServer, LSP.Location, string)> GetTestLspServerAndLocationAsync(string source)
         {
-            var testLspServer = CreateTestLspServer(source, out var locations);
-            var locationTyped = locations["type"].Single();
+            var testLspServer = await CreateTestLspServerAsync(source);
+            var locationTyped = testLspServer.GetLocations("type").Single();
             var documentText = await testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single().GetTextAsync();
 
             return (testLspServer, locationTyped, documentText.ToString());
