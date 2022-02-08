@@ -18,10 +18,10 @@ using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation;
-using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.Internal.VisualStudio.PlatformUI;
@@ -33,10 +33,8 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 using VSLangProj140;
-using Workspace = Microsoft.CodeAnalysis.Workspace;
 using VSUtilities = Microsoft.VisualStudio.Utilities;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Workspace = Microsoft.CodeAnalysis.Workspace;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
@@ -405,12 +403,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             }
         }
 
-#pragma warning disable VSTHRD100 // Avoid async void methods. This signature is required for events.
-        private async void SetSeverityHandler(object sender, EventArgs args)
-#pragma warning restore VSTHRD100 // Avoid async void methods
+        private void SetSeverityHandler(object sender, EventArgs args)
         {
-            try
+            _threadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
+                using var asyncToken = _listener.BeginAsyncOperation(nameof(SetSeverityHandler));
                 if (TryGetWorkspace() is not VisualStudioWorkspaceImpl workspace)
                     return;
 
@@ -423,25 +420,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 if (notificationMessages.Count > 0)
                 {
                     var totalMessage = string.Join(Environment.NewLine, notificationMessages);
-                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
 
                     SendErrorNotification(
                         workspace,
                         SolutionExplorerShim.The_rule_set_file_could_not_be_updated,
                         totalMessage);
                 }
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
-            {
-            }
+            }).Task.ReportNonFatalErrorUnlessCancelledAsync(_threadingContext.DisposalToken);
         }
 
         private async Task SetSeverityHandlerAsync(VisualStudioWorkspaceImpl workspace, MenuCommand selectedItem, ArrayBuilder<string> notificationMessages)
         {
-            using var token = _listener.BeginAsyncOperation(nameof(SetSeverityHandler));
             var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
             var uiThreadOperationExecutor = componentModel.GetService<VSUtilities.IUIThreadOperationExecutor>();
 

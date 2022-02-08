@@ -9,8 +9,8 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
-Imports Microsoft.CodeAnalysis.Indentation
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                 End Get
             End Property
 
-            Public Function StartInlineSession(snapshot As Document, triggerSpan As TextSpan, Optional cancellationToken As CancellationToken = Nothing) As InlineRenameSessionInfo Implements IInlineRenameService.StartInlineSession
+            Public Function StartInlineSession(snapshot As Document, triggerSpan As TextSpan, cancellationToken As CancellationToken) As InlineRenameSessionInfo Implements IInlineRenameService.StartInlineSession
                 Throw New NotImplementedException()
             End Function
 

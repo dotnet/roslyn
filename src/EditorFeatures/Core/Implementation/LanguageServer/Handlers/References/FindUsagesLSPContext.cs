@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -27,7 +28,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 {
-    internal class FindUsagesLSPContext : FindUsagesContext
+    internal sealed class FindUsagesLSPContext : FindUsagesContext
     {
         private readonly IProgress<VSInternalReferenceItem[]> _progress;
         private readonly Document _document;
@@ -75,7 +76,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             int position,
             IMetadataAsSourceFileService metadataAsSourceFileService,
             IAsynchronousOperationListener asyncListener,
+            IGlobalOptionService globalOptions,
             CancellationToken cancellationToken)
+            : base(globalOptions)
         {
             _progress = progress;
             _document = document;

@@ -407,6 +407,11 @@
         <target state="translated">Toda la solución</target>
         <note />
       </trans-unit>
+      <trans-unit id="Entire_solution_and_external_sources">
+        <source>Entire Solution and External Sources</source>
+        <target state="new">Entire Solution and External Sources</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Error">
         <source>Error</source>
         <target state="translated">Error</target>
@@ -420,6 +425,11 @@
       <trans-unit id="Evaluating_0_tasks_in_queue">
         <source>Evaluating ({0} tasks in queue)</source>
         <target state="translated">Evaluando ({0} tareas en cola)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="External_sources">
+        <source>External Sources</source>
+        <target state="new">External Sources</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_Base_Class">

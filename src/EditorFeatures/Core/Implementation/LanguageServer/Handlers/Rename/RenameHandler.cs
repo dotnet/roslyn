@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -53,8 +54,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return null;
             }
 
-            var renameLocationSet = await renameInfo.FindRenameLocationsAsync(oldSolution.Options, cancellationToken).ConfigureAwait(false);
-            var renameReplacementInfo = await renameLocationSet.GetReplacementsAsync(request.NewName, oldSolution.Options, cancellationToken).ConfigureAwait(false);
+            var options = new SymbolRenameOptions(
+                RenameOverloads: false,
+                RenameInStrings: false,
+                RenameInComments: false,
+                RenameFile: false);
+
+            var renameLocationSet = await renameInfo.FindRenameLocationsAsync(options, cancellationToken).ConfigureAwait(false);
+            var renameReplacementInfo = await renameLocationSet.GetReplacementsAsync(request.NewName, options, cancellationToken).ConfigureAwait(false);
 
             var renamedSolution = renameReplacementInfo.NewSolution;
             var solutionChanges = renamedSolution.GetChanges(oldSolution);

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
 {
     internal abstract partial class AbstractGoToBaseService : IGoToBaseService
     {
-        public async Task FindBasesAsync(Document document, int position, IFindUsagesContext context, CancellationToken cancellationToken)
+        public async Task FindBasesAsync(IFindUsagesContext context, Document document, int position, CancellationToken cancellationToken)
         {
             var symbolAndProjectOpt = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
