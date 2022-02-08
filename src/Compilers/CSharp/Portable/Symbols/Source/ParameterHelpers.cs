@@ -809,12 +809,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_DiscardCannotBeNullChecked, location);
             }
-            if (parameter.TypeWithAnnotations.NullableAnnotation.IsAnnotated()
-                || parameter.Type.IsNullableTypeOrTypeParameter())
+
+            var annotations = parameter.FlowAnalysisAnnotations;
+            if ((annotations & FlowAnalysisAnnotations.AllowNull) != 0
+                || ((annotations & (FlowAnalysisAnnotations.DisallowNull | FlowAnalysisAnnotations.NotNull)) == 0
+                    && (parameter.TypeWithAnnotations.NullableAnnotation.IsAnnotated()
+                        || parameter.Type.IsNullableTypeOrTypeParameter())))
             {
                 diagnostics.Add(ErrorCode.WRN_NullCheckingOnNullableType, location, parameter);
             }
-            else if (parameter.Type.IsValueType && !parameter.Type.IsPointerOrFunctionPointer())
+
+            if (parameter.Type.IsNonNullableValueType() && !parameter.Type.IsPointerOrFunctionPointer())
             {
                 diagnostics.Add(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, location, parameter);
             }

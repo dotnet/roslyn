@@ -1034,6 +1034,9 @@ class Program
                 // (16,9): warning CS8602: Dereference of a possibly null reference.
                 //         x1.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(16, 9),
+                // (19,55): warning CS8995: Nullable type 'T' is null-checked and will throw if null.
+                //     static void M3<T>([AllowNull] T x2, [AllowNull] T y2!!)
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "y2").WithArguments("T").WithLocation(19, 55),
                 // (21,9): warning CS8602: Dereference of a possibly null reference.
                 //         x2.ToString(); // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(21, 9));
@@ -1068,6 +1071,95 @@ class Derived : Base
                 // (13,26): warning CS8765: Nullability of type of parameter 's' doesn't match overridden member (possibly because of nullability attributes).
                 //     public override void M2(string s) { } // 3
                 Diagnostic(ErrorCode.WRN_TopLevelNullabilityMismatchInParameterTypeOnOverride, "M2").WithArguments("s").WithLocation(13, 26)
+            );
+        }
+
+        [Fact]
+        public void TestNullabilityAttributes()
+        {
+            var source =
+@"
+#nullable enable
+using System.Diagnostics.CodeAnalysis;
+
+class C
+{
+    void M0([AllowNull, DisallowNull] string s!!) { } // 1
+
+    void M1(string s!!) { }
+    void M2([NotNull] string s!!) { }
+    void M3([DisallowNull] string s!!) { }
+    void M4([AllowNull] string s!!) { } // 2
+
+    void M5(string? s!!) { } // 3
+    void M6([NotNull] string? s!!) { } // ok: this is a typical signature for an 'AssertNotNull' style method.
+    void M7([DisallowNull] string? s!!) { }
+    void M8([AllowNull] string? s!!) { } // 4
+
+    void M9<T>(T s!!) { }
+    void M10<T>([NotNull] T s!!) { }
+    void M11<T>([DisallowNull] T s!!) { }
+    void M12<T>([AllowNull] T s!!) { } // 5
+
+    void M13<T>(T? s!!) { } // 6
+    void M14<T>([NotNull] T? s!!) { }
+    void M15<T>([DisallowNull] T? s!!) { }
+    void M16<T>([AllowNull] T? s!!) { } // 7
+
+    void M17(int s!!) { } // 8
+    void M18([NotNull] int s!!) { } // 9
+    void M19([DisallowNull] int s!!) { } // 10
+    void M20([AllowNull] int s!!) { } // 11, 12
+
+    void M21(int? s!!) { } // 13
+    void M22([NotNull] int? s!!) { }
+    void M23([DisallowNull] int? s!!) { }
+    void M24([AllowNull] int? s!!) { } // 14
+}";
+            var comp = CreateCompilation(new[] { source, AllowNullAttributeDefinition, DisallowNullAttributeDefinition, NotNullAttributeDefinition }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (7,46): warning CS8995: Nullable type 'string' is null-checked and will throw if null.
+                //     void M0([AllowNull, DisallowNull] string s!!) { } // 1
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "s").WithArguments("string").WithLocation(7, 46),
+                // (12,32): warning CS8995: Nullable type 'string' is null-checked and will throw if null.
+                //     void M4([AllowNull] string s!!) { } // 2
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "s").WithArguments("string").WithLocation(12, 32),
+                // (14,21): warning CS8995: Nullable type 'string?' is null-checked and will throw if null.
+                //     void M5(string? s!!) { } // 3
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "s").WithArguments("string?").WithLocation(14, 21),
+                // (17,33): warning CS8995: Nullable type 'string?' is null-checked and will throw if null.
+                //     void M8([AllowNull] string? s!!) { } // 4
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "s").WithArguments("string?").WithLocation(17, 33),
+                // (22,31): warning CS8995: Nullable type 'T' is null-checked and will throw if null.
+                //     void M12<T>([AllowNull] T s!!) { } // 5
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "s").WithArguments("T").WithLocation(22, 31),
+                // (24,20): warning CS8995: Nullable type 'T?' is null-checked and will throw if null.
+                //     void M13<T>(T? s!!) { } // 6
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "s").WithArguments("T?").WithLocation(24, 20),
+                // (27,32): warning CS8995: Nullable type 'T?' is null-checked and will throw if null.
+                //     void M16<T>([AllowNull] T? s!!) { } // 7
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "s").WithArguments("T?").WithLocation(27, 32),
+                // (29,18): error CS8992: Parameter 'int' is a non-nullable value type and cannot be null-checked.
+                //     void M17(int s!!) { } // 8
+                Diagnostic(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, "s").WithArguments("int").WithLocation(29, 18),
+                // (30,28): error CS8992: Parameter 'int' is a non-nullable value type and cannot be null-checked.
+                //     void M18([NotNull] int s!!) { } // 9
+                Diagnostic(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, "s").WithArguments("int").WithLocation(30, 28),
+                // (31,33): error CS8992: Parameter 'int' is a non-nullable value type and cannot be null-checked.
+                //     void M19([DisallowNull] int s!!) { } // 10
+                Diagnostic(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, "s").WithArguments("int").WithLocation(31, 33),
+                // (32,30): warning CS8995: Nullable type 'int' is null-checked and will throw if null.
+                //     void M20([AllowNull] int s!!) { } // 11, 12
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "s").WithArguments("int").WithLocation(32, 30),
+                // (32,30): error CS8992: Parameter 'int' is a non-nullable value type and cannot be null-checked.
+                //     void M20([AllowNull] int s!!) { } // 11, 12
+                Diagnostic(ErrorCode.ERR_NonNullableValueTypeIsNullChecked, "s").WithArguments("int").WithLocation(32, 30),
+                // (34,19): warning CS8995: Nullable type 'int?' is null-checked and will throw if null.
+                //     void M21(int? s!!) { } // 13
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "s").WithArguments("int?").WithLocation(34, 19),
+                // (37,31): warning CS8995: Nullable type 'int?' is null-checked and will throw if null.
+                //     void M24([AllowNull] int? s!!) { } // 14
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "s").WithArguments("int?").WithLocation(37, 31)
             );
         }
     }
