@@ -175,7 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 _glyphService,
                 _threadingContext,
                 solution.Workspace,
-                children: childViewModels);
+                childViewModels);
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 

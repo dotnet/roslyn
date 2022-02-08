@@ -24,13 +24,13 @@ namespace Microsoft.CodeAnalysis.ValueTracking
         public SourceText SourceText { get; }
         public Glyph Glyph { get; }
 
-        private ValueTrackedItem(
+        internal ValueTrackedItem(
             SymbolKey symbolKey,
             SourceText sourceText,
             TextSpan textSpan,
             DocumentId documentId,
             Glyph glyph,
-            ValueTrackedItem? parent = null)
+            ValueTrackedItem? parent)
         {
             SymbolKey = symbolKey;
             Parent = parent;
@@ -46,27 +46,19 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             return subText.ToString();
         }
 
-        public static Task<ValueTrackedItem?> TryCreateAsync(Solution solution, Location location, ISymbol symbol, ValueTrackedItem? parent = null, CancellationToken cancellationToken = default)
+        public static async ValueTask<ValueTrackedItem?> TryCreateAsync(Solution solution, Location location, ISymbol symbol, ValueTrackedItem? parent = null, CancellationToken cancellationToken = default)
         {
             Contract.ThrowIfNull(location.SourceTree);
 
             var document = solution.GetRequiredDocument(location.SourceTree);
-            return TryCreateAsync(document, location.SourceSpan, symbol, parent, cancellationToken);
-        }
 
-        public static async Task<ValueTrackedItem?> TryCreateAsync(Document document, TextSpan textSpan, ISymbol symbol, ValueTrackedItem? parent = null, CancellationToken cancellationToken = default)
-        {
             var excerptService = document.Services.GetService<IDocumentExcerptService>();
             SourceText? sourceText = null;
 
             if (excerptService != null)
             {
-                var result = await excerptService.TryExcerptAsync(document, textSpan, ExcerptMode.SingleLine, cancellationToken).ConfigureAwait(false);
-                if (result.HasValue)
-                {
-                    var value = result.Value;
-                    sourceText = value.Content;
-                }
+                var result = await excerptService.TryExcerptAsync(document, location.SourceSpan, ExcerptMode.SingleLine, cancellationToken).ConfigureAwait(false);
+                sourceText = result?.Content;
             }
 
             if (sourceText is null)
@@ -76,12 +68,12 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             }
 
             return new ValueTrackedItem(
-                        SymbolKey.Create(symbol, cancellationToken),
-                        sourceText,
-                        textSpan,
-                        document.Id,
-                        symbol.GetGlyph(),
-                        parent: parent);
+                SymbolKey.Create(symbol, cancellationToken),
+                sourceText,
+                location.SourceSpan,
+                document.Id,
+                symbol.GetGlyph(),
+                parent);
         }
     }
 }

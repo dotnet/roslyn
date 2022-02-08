@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                   glyphService,
                   threadingContext,
                   solution.Workspace,
-                  children: children)
+                  children)
         {
 
             _trackedItem = trackedItem;
@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             _glyphService = glyphService;
             _valueTrackingService = valueTrackingService;
 
-            if (children.IsDefaultOrEmpty)
+            if (children.IsEmpty)
             {
                 // Add an empty item so the treeview has an expansion showing to calculate
                 // the actual children of the node
@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 valueTrackingService,
                 threadingContext,
                 fileName,
-                children: default);
+                children: ImmutableArray<TreeItemViewModel>.Empty);
         }
 
         private void CalculateChildren()
@@ -123,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             var computingItem = new ComputingTreeViewItem();
             ChildItems.Add(computingItem);
 
-            System.Threading.Tasks.Task.Run(async () =>
+            Task.Run(async () =>
             {
                 try
                 {
