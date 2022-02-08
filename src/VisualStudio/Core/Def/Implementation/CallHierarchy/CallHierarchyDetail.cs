@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
             _text = ComputeText(location);
         }
 
-        private string ComputeText(Location location)
+        private static string ComputeText(Location location)
         {
             var lineSpan = location.GetLineSpan();
             var start = location.SourceTree.GetText().Lines[lineSpan.StartLinePosition.Line].Start;

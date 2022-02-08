@@ -375,7 +375,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             Assert.Empty(testAccessor.GetFileUrisInPublishDiagnostics());
         }
 
-        private async Task<(VisualStudioInProcLanguageServer.TestAccessor, List<LSP.PublishDiagnosticParams>)> RunPublishDiagnosticsAsync(
+        private static async Task<(VisualStudioInProcLanguageServer.TestAccessor, List<LSP.PublishDiagnosticParams>)> RunPublishDiagnosticsAsync(
             TestWorkspace workspace,
             IDiagnosticService diagnosticService,
             int expectedNumberOfCallbacks,
@@ -439,7 +439,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
             }
         }
 
-        private void SetupMockWithDiagnostics(Mock<IDiagnosticService> diagnosticServiceMock, DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)
+        private static void SetupMockWithDiagnostics(Mock<IDiagnosticService> diagnosticServiceMock, DocumentId documentId, ImmutableArray<DiagnosticData> diagnostics)
         {
             diagnosticServiceMock.Setup(d => d.GetPushDiagnosticsAsync(
                 It.IsAny<Workspace>(),
@@ -451,7 +451,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                 It.IsAny<CancellationToken>())).Returns(new ValueTask<ImmutableArray<DiagnosticData>>(diagnostics));
         }
 
-        private void SetupMockDiagnosticSequence(Mock<IDiagnosticService> diagnosticServiceMock, DocumentId documentId,
+        private static void SetupMockDiagnosticSequence(Mock<IDiagnosticService> diagnosticServiceMock, DocumentId documentId,
             ImmutableArray<DiagnosticData> firstDiagnostics, ImmutableArray<DiagnosticData> secondDiagnostics)
         {
             diagnosticServiceMock.SetupSequence(d => d.GetPushDiagnosticsAsync(
@@ -466,14 +466,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
                 .Returns(new ValueTask<ImmutableArray<DiagnosticData>>(secondDiagnostics));
         }
 
-        private async Task<ImmutableArray<DiagnosticData>> CreateMockDiagnosticDataAsync(Document document, string id)
+        private static async Task<ImmutableArray<DiagnosticData>> CreateMockDiagnosticDataAsync(Document document, string id)
         {
             var descriptor = new DiagnosticDescriptor(id, "", "", "", DiagnosticSeverity.Error, true);
             var location = Location.Create(await document.GetRequiredSyntaxTreeAsync(CancellationToken.None).ConfigureAwait(false), new TextSpan());
             return ImmutableArray.Create(DiagnosticData.Create(Diagnostic.Create(descriptor, location), document));
         }
 
-        private async Task<ImmutableArray<DiagnosticData>> CreateMockDiagnosticDatasWithMappedLocationAsync(Document document, params (string diagnosticId, string mappedFilePath)[] diagnostics)
+        private static async Task<ImmutableArray<DiagnosticData>> CreateMockDiagnosticDatasWithMappedLocationAsync(Document document, params (string diagnosticId, string mappedFilePath)[] diagnostics)
         {
             var tree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None).ConfigureAwait(false);
 

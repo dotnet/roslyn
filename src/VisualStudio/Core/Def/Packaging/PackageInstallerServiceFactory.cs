@@ -654,7 +654,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             return versionsAndSplits.Select(v => v.Version).ToImmutableArray();
         }
 
-        private int CompareSplit(string[] split1, string[] split2)
+        private static int CompareSplit(string[] split1, string[] split2)
         {
             ThisCanBeCalledOnAnyThread();
 

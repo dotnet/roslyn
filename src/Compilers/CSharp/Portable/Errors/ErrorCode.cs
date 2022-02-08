@@ -2020,7 +2020,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_StructHasInitializersAndNoDeclaredConstructor = 8983,
         ERR_EncUpdateFailedDelegateTypeChanged = 8984,
 
-        ERR_IncorrectNullCheckSyntax = 8990,
+        ERR_DiscardCannotBeNullChecked = 8990,
         ERR_MustNullCheckInImplementation = 8991,
         ERR_NonNullableValueTypeIsNullChecked = 8992,
         WRN_NullCheckedHasDefaultNull = 8993,

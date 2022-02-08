@@ -1231,6 +1231,57 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestDiscard1()
+        {
+            await new VerifyCS.Test()
+            {
+                TestCode = @"using System;
+
+class C
+{
+    Action<string> lambda = _ =>
+    {
+        [|if (_ is null)
+            throw new ArgumentNullException(nameof(_));|]
+    };
+}
+",
+                FixedCode = @"using System;
+
+class C
+{
+    Action<string> lambda = _!! =>
+    {
+    };
+}
+",
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestDiscard2()
+        {
+            var testCode = @"
+using System;
+
+class C
+{
+    Action<string, string> lambda = (_, _) =>
+    {
+        if ({|CS0103:_|} is null)
+            throw new ArgumentNullException(nameof({|CS0103:_|}));
+    };
+}";
+            await new VerifyCS.Test()
+            {
+                TestCode = testCode,
+                FixedCode = testCode,
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestAnonymousMethod()
         {
             await new VerifyCS.Test()
@@ -1544,6 +1595,33 @@ class C
 class C
 {
     static unsafe void M(delegate*<int, void> ptr!!)
+    {
+    }
+}
+",
+                LanguageVersion = LanguageVersionExtensions.CSharpNext
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestNullableValueType()
+        {
+            await new VerifyCS.Test()
+            {
+                TestCode = @"using System;
+class C
+{
+    static void M(int? value)
+    {
+        [|if (value == null)
+            throw new ArgumentNullException(nameof(value));|]
+    }
+}
+",
+                FixedCode = @"using System;
+class C
+{
+    static void M(int? value!!)
     {
     }
 }

@@ -746,7 +746,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             buildOutputWindowPane.Clear();
         }
 
-        private EnvDTE.OutputWindowPane GetBuildOutputWindowPane()
+        private static EnvDTE.OutputWindowPane GetBuildOutputWindowPane()
         {
             var dte = (DTE2)GetDTE();
             var outputWindow = dte.ToolWindows.OutputWindow;

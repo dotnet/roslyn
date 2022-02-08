@@ -1063,6 +1063,10 @@ namespace Microsoft.CodeAnalysis
         /// a match is found in one module in an assembly, no further modules within that assembly are searched.
         /// </para>
         /// <para>Type forwarders are ignored, and not considered part of the assembly where the TypeForwardAttribute is written.</para>
+        /// <para>
+        /// Ambiguities are detected on each nested level. For example, if <c>A+B</c> is requested, and there are multiple <c>A</c>s but only one of them has a <c>B</c> nested
+        /// type, the lookup will be considered ambiguous and null will be returned.
+        /// </para>
         /// </remarks>
         public INamedTypeSymbol? GetTypeByMetadataName(string fullyQualifiedMetadataName)
         {
