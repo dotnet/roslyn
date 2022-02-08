@@ -32,3 +32,5 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.InterpolatedStringExpression(
 Microsoft.CodeAnalysis.CSharp.Conversion.IsUtf8StringLiteral.get -> bool
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.UTF8StringLiteralExpression = 8756 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.UTF8StringLiteralToken = 8518 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.UTF8SingleLineRawStringLiteralToken = 8519 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.UTF8MultiLineRawStringLiteralToken = 8520 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind

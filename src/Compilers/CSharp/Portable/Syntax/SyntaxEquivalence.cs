@@ -84,7 +84,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.StringLiteralToken:
                 case SyntaxKind.UTF8StringLiteralToken: // PROTOTYPE(UTF8StringLiterals) : add test coverage for this code path.
                 case SyntaxKind.SingleLineRawStringLiteralToken:
+                case SyntaxKind.UTF8SingleLineRawStringLiteralToken: // PROTOTYPE(UTF8StringLiterals) : add test coverage for this code path.
                 case SyntaxKind.MultiLineRawStringLiteralToken:
+                case SyntaxKind.UTF8MultiLineRawStringLiteralToken: // PROTOTYPE(UTF8StringLiterals) : add test coverage for this code path.
                 case SyntaxKind.InterpolatedStringTextToken:
                     if (((Green.SyntaxToken)before).Text != ((Green.SyntaxToken)after).Text)
                     {

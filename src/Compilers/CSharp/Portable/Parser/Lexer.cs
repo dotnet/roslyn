@@ -388,7 +388,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case SyntaxKind.StringLiteralToken:
                     case SyntaxKind.UTF8StringLiteralToken:
                     case SyntaxKind.SingleLineRawStringLiteralToken:
+                    case SyntaxKind.UTF8SingleLineRawStringLiteralToken:
                     case SyntaxKind.MultiLineRawStringLiteralToken:
+                    case SyntaxKind.UTF8MultiLineRawStringLiteralToken:
                         token = SyntaxFactory.Literal(leadingNode, info.Text, info.Kind, info.StringValue, trailingNode);
                         break;
                     case SyntaxKind.CharacterLiteralToken:
