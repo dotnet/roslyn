@@ -45,6 +45,33 @@ class A
         }
 
         [Fact]
+        [WorkItem(59120, "https://github.com/dotnet/roslyn/issues/59120")]
+        public async Task TestGetDocumentHighlightAsync_Keywords()
+        {
+            var markup =
+@"using System.Threading.Tasks;
+class A
+{
+    {|text:async|} Task MAsync()
+    {
+        {|text:await|} Task.Delay(100);
+        {|caret:|}{|text:await|} Task.Delay(100);
+    }
+}";
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+
+            var expectedLocations = testLspServer.GetLocations("text");
+
+            var results = await RunGetDocumentHighlightAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+
+            Assert.Equal(3, results.Length);
+            Assert.All(results, r => Assert.Equal(LSP.DocumentHighlightKind.Text, r.Kind));
+            Assert.Equal(expectedLocations[0].Range, results[0].Range);
+            Assert.Equal(expectedLocations[1].Range, results[1].Range);
+            Assert.Equal(expectedLocations[2].Range, results[2].Range);
+        }
+
+        [Fact]
         public async Task TestGetDocumentHighlightAsync_InvalidLocation()
         {
             var markup =

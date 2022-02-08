@@ -170,7 +170,7 @@ class C
 
             workspace.TryApplyChanges(workspace.CurrentSolution
                 .WithAnalyzerReferences(new[] { analyzerReference })
-                .AddAdditionalDocument(additionalDocId, "add.config", additionalText.GetText()));
+                .AddAdditionalDocument(additionalDocId, "add.config", additionalText.GetText()!));
 
             var sourceDocument = workspace.CurrentSolution.Projects.Single().Documents.Single();
             await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, sourceDocument, new TextSpan(0, sourceDocument.GetTextAsync().Result.Length));

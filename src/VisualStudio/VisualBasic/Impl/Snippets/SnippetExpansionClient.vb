@@ -5,9 +5,8 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.CodeGeneration
+Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
@@ -20,12 +19,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Editor
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
-Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets.SnippetFunctions
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding
-Imports Microsoft.VisualStudio.TextManager.Interop
-Imports MSXML
 Imports VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
@@ -101,37 +97,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 
         Protected Overrides ReadOnly Property FallbackDefaultLiteral As String = "Nothing"
 
-        Public Overrides Function GetExpansionFunction(xmlFunctionNode As IXMLDOMNode, bstrFieldName As String, ByRef pFunc As IVsExpansionFunction) As Integer
-            Dim snippetFunctionName As String = Nothing
-            Dim param As String = Nothing
-
-            If Not TryGetSnippetFunctionInfo(xmlFunctionNode, snippetFunctionName, param) Then
-                pFunc = Nothing
-                Return VSConstants.E_INVALIDARG
-            End If
-
-            Select Case snippetFunctionName
-                Case "SimpleTypeName"
-                    pFunc = New SnippetFunctionSimpleTypeName(Me, SubjectBuffer, bstrFieldName, param)
-                    Return VSConstants.S_OK
-                Case "ClassName"
-                    pFunc = New SnippetFunctionClassName(Me, SubjectBuffer, bstrFieldName)
-                    Return VSConstants.S_OK
-                Case "GenerateSwitchCases"
-                    pFunc = New SnippetFunctionGenerateSwitchCases(Me, SubjectBuffer, bstrFieldName, param)
-                    Return VSConstants.S_OK
-                Case Else
-                    pFunc = Nothing
-                    Return VSConstants.E_INVALIDARG
-            End Select
-        End Function
-
         Friend Overrides Function AddImports(
                 document As Document,
-                preferences As CodeGenerationPreferences,
+                options As AddImportPlacementOptions,
                 position As Integer,
                 snippetNode As XElement,
-                allowInHiddenRegions As Boolean,
                 cancellationToken As CancellationToken) As Document
             Dim importsNode = snippetNode.Element(XName.Get("Imports", snippetNode.Name.NamespaceName))
             If importsNode Is Nothing OrElse
@@ -154,9 +124,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 
             Dim root = document.GetSyntaxRootSynchronously(cancellationToken)
 
-            Dim placeSystemNamespaceFirst = preferences.Options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language)
-
-            Dim newRoot = CType(root, CompilationUnitSyntax).AddImportsStatements(newImportsStatements, placeSystemNamespaceFirst)
+            Dim newRoot = CType(root, CompilationUnitSyntax).AddImportsStatements(newImportsStatements, options.PlaceSystemNamespaceFirst)
             Dim newDocument = document.WithSyntaxRoot(newRoot)
 
             Dim formattedDocument = Formatter.FormatAsync(newDocument, Formatter.Annotation, cancellationToken:=cancellationToken).WaitAndGetResult(cancellationToken)

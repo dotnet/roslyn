@@ -281,6 +281,27 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public static bool IsRegularOrDocumentationComment(this ISyntaxFacts syntaxFacts, SyntaxTrivia trivia)
             => syntaxFacts.IsRegularComment(trivia) || syntaxFacts.IsDocumentationComment(trivia);
 
+        [return: NotNullIfNotNull("node")]
+        public static SyntaxNode? WalkDownParentheses(this ISyntaxFacts syntaxFacts, SyntaxNode? node)
+        {
+            while (syntaxFacts.IsParenthesizedExpression(node))
+            {
+                syntaxFacts.GetPartsOfParenthesizedExpression(node, out _, out var child, out _);
+                node = child;
+            }
+
+            return node;
+        }
+
+        [return: NotNullIfNotNull("node")]
+        public static SyntaxNode? WalkUpParentheses(this ISyntaxFacts syntaxFacts, SyntaxNode? node)
+        {
+            while (syntaxFacts.IsParenthesizedExpression(node?.Parent))
+                node = node.Parent;
+
+            return node;
+        }
+
         public static void GetPartsOfAssignmentStatement(
             this ISyntaxFacts syntaxFacts, SyntaxNode statement,
             out SyntaxNode left, out SyntaxNode right)

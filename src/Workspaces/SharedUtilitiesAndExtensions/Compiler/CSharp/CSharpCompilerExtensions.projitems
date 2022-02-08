@@ -54,6 +54,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxTriviaListExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\VariableDeclaratorExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpSyntaxFormattingOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpFormattingOptions2.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpFormattingOptions2.Parsers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpSyntaxFormattingService.cs" />

@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var workspace = document.Project.Solution.Workspace;
                 var supportsFeatureService = workspace.Services.GetRequiredService<ITextBufferSupportsFeatureService>();
 
-                var options = CodeActionOptionsFactory.GetCodeActionOptions(document.Project, isBlocking: false);
+                var options = GlobalOptions.GetCodeActionOptions(document.Project.Language, isBlocking: false);
 
                 var fixesTask = GetCodeFixesAsync(
                     state, supportsFeatureService, requestedActionCategories, workspace, document, range,

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text.Adornments;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
@@ -24,17 +25,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// references to VS icon types and classified text runs are removed.
     /// See https://github.com/dotnet/roslyn/issues/55142
     /// </summary>
-    internal class CompletionResolveHandler : IRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
+    internal sealed class CompletionResolveHandler : IRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
     {
         private readonly CompletionListCache _completionListCache;
+        private readonly IGlobalOptionService _globalOptions;
 
         public string Method => LSP.Methods.TextDocumentCompletionResolveName;
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
-        public CompletionResolveHandler(CompletionListCache completionListCache)
+        public CompletionResolveHandler(IGlobalOptionService globalOptions, CompletionListCache completionListCache)
         {
+            _globalOptions = globalOptions;
             _completionListCache = completionListCache;
         }
 
@@ -64,7 +67,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return completionItem;
             }
 
-            var options = CompletionOptions.From(document.Project);
+            var options = _globalOptions.GetCompletionOptions(document.Project.Language);
             var displayOptions = SymbolDescriptionOptions.From(document.Project);
             var description = await completionService.GetDescriptionAsync(document, selectedItem, options, displayOptions, cancellationToken).ConfigureAwait(false)!;
             if (description != null)

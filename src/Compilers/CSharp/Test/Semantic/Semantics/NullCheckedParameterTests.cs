@@ -399,16 +399,6 @@ class C
             var tree = Parse(source, options: TestOptions.RegularPreview);
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
-
-            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            SimpleLambdaExpressionSyntax node = comp.GlobalNamespace.GetTypeMember("C")
-                                                                    .GetMember<SourceMethodSymbol>("M")
-                                                                    .GetNonNullSyntaxNode()
-                                                                    .DescendantNodes()
-                                                                    .OfType<SimpleLambdaExpressionSyntax>()
-                                                                    .Single();
-            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol!;
-            Assert.True(methodSymbol.Parameters[0].IsNullChecked);
         }
 
         [Fact]
@@ -426,17 +416,6 @@ class C
             var tree = Parse(source, options: TestOptions.RegularPreview);
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
-
-            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            ParenthesizedLambdaExpressionSyntax node = comp.GlobalNamespace.GetTypeMember("C")
-                                                                           .GetMember<SourceMethodSymbol>("M")
-                                                                           .GetNonNullSyntaxNode()
-                                                                           .DescendantNodes()
-                                                                           .OfType<ParenthesizedLambdaExpressionSyntax>()
-                                                                           .Single();
-            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol!;
-            Assert.True(methodSymbol.Parameters[0].IsNullChecked);
-            Assert.False(methodSymbol.Parameters[1].IsNullChecked);
         }
 
         [Fact]
@@ -454,16 +433,6 @@ class C
             var tree = Parse(source, options: TestOptions.RegularPreview);
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
-
-            CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            Syntax.ParenthesizedLambdaExpressionSyntax node = comp.GlobalNamespace.GetTypeMember("C")
-                                                                                  .GetMember<SourceMethodSymbol>("M")
-                                                                                  .GetNonNullSyntaxNode()
-                                                                                  .DescendantNodes()
-                                                                                  .OfType<Syntax.ParenthesizedLambdaExpressionSyntax>()
-                                                                                  .Single();
-            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol!;
-            Assert.True(methodSymbol.Parameters[0].IsNullChecked);
         }
 
         [Fact]
@@ -571,16 +540,6 @@ class C
             var tree = Parse(source, options: TestOptions.RegularPreview);
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
-
-            CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            ParenthesizedLambdaExpressionSyntax node = comp.GlobalNamespace.GetTypeMember("C")
-                                                                           .GetMember<SourceMethodSymbol>("M")
-                                                                           .GetNonNullSyntaxNode()
-                                                                           .DescendantNodes()
-                                                                           .OfType<ParenthesizedLambdaExpressionSyntax>()
-                                                                           .Single();
-            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol!;
-            Assert.True(methodSymbol.Parameters[0].IsNullChecked);
         }
 
         [Fact]
@@ -598,17 +557,6 @@ class C
             var tree = Parse(source, options: TestOptions.RegularPreview);
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
-
-            CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            ParenthesizedLambdaExpressionSyntax node = comp.GlobalNamespace.GetTypeMember("C")
-                                                                           .GetMember<SourceMethodSymbol>("M")
-                                                                           .GetNonNullSyntaxNode()
-                                                                           .DescendantNodes()
-                                                                           .OfType<ParenthesizedLambdaExpressionSyntax>()
-                                                                           .Single();
-            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol!;
-            Assert.True(methodSymbol.Parameters[0].IsNullChecked);
-            Assert.False(methodSymbol.Parameters[1].IsNullChecked);
         }
 
         [Fact]
@@ -626,17 +574,6 @@ class C
             var tree = Parse(source, options: TestOptions.RegularPreview);
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
-
-            CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            ParenthesizedLambdaExpressionSyntax node = comp.GlobalNamespace.GetTypeMember("C")
-                                                           .GetMember<SourceMethodSymbol>("M")
-                                                           .GetNonNullSyntaxNode()
-                                                           .DescendantNodes()
-                                                           .OfType<ParenthesizedLambdaExpressionSyntax>()
-                                                           .Single();
-            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(node).Symbol!;
-            Assert.True(methodSymbol.Parameters[0].IsNullChecked);
-            Assert.True(methodSymbol.Parameters[1].IsNullChecked);
         }
 
         [Fact]
@@ -655,23 +592,6 @@ class C
             var tree = Parse(source, options: TestOptions.RegularPreview);
             var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
-
-            CSharpSemanticModel model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            ParenthesizedLambdaExpressionSyntax[] nodes = comp.GlobalNamespace.GetTypeMember("C")
-                .GetMember<SourceMethodSymbol>("M")
-                .GetNonNullSyntaxNode()
-                .DescendantNodes()
-                .OfType<ParenthesizedLambdaExpressionSyntax>()
-                .ToArray();
-
-            Assert.Equal(2, nodes.Length);
-
-            var methodSymbol = (IMethodSymbol)model.GetSymbolInfo(nodes[0]).Symbol!;
-            Assert.True(methodSymbol.Parameters[0].IsNullChecked);
-
-            methodSymbol = (IMethodSymbol)model.GetSymbolInfo(nodes[1]).Symbol!;
-            Assert.True(methodSymbol.Parameters[0].IsNullChecked);
-            Assert.False(methodSymbol.Parameters[1].IsNullChecked);
         }
 
         [Fact]

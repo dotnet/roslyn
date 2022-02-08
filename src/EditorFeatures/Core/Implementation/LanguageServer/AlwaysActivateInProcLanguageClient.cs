@@ -43,14 +43,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             DefaultCapabilitiesProvider defaultCapabilitiesProvider,
             ILspLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext)
-            : base(csharpVBRequestDispatcherFactory, globalOptions, diagnosticService: null, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, diagnosticsClientName: null)
+            : base(csharpVBRequestDispatcherFactory, globalOptions, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, diagnosticsClientName: null)
         {
             _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
 
         protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
-
-        public override string Name => CSharpVisualBasicLanguageServerFactory.UserVisibleName;
 
         public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
@@ -117,5 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// as the failure is not catastrophic.
         /// </summary>
         public override bool ShowNotificationOnInitializeFailed => GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
+
+        public override WellKnownLspServerKinds ServerKind => WellKnownLspServerKinds.AlwaysActiveVSLspServer;
     }
 }

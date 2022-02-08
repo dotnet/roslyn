@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
             var newAccessor = AddStatement(accessor, statement);
             var accessorDeclarationSyntax = (AccessorDeclarationSyntax)newAccessor;
 
-            var preference = GetAccessorExpressionBodyPreference(preferences);
+            var preference = preferences.PreferExpressionBodiedAccessors;
             if (preference == ExpressionBodyPreference.Never)
             {
                 return accessorDeclarationSyntax.WithSemicolonToken(default);
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
         {
             var propertyDeclaration = (PropertyDeclarationSyntax)property;
 
-            var preference = GetPropertyExpressionBodyPreference(preferences);
+            var preference = preferences.PreferExpressionBodiedProperties;
             if (preference == ExpressionBodyPreference.Never)
             {
                 return propertyDeclaration.WithSemicolonToken(default);
@@ -138,12 +138,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
 
             return propertyDeclaration.WithSemicolonToken(default);
         }
-
-        internal static ExpressionBodyPreference GetAccessorExpressionBodyPreference(CSharpCodeGenerationPreferences preferences)
-            => preferences.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
-
-        internal static ExpressionBodyPreference GetPropertyExpressionBodyPreference(CSharpCodeGenerationPreferences preferences)
-            => preferences.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties).Value;
 
         internal override SyntaxNode GetTypeBlock(SyntaxNode syntaxNode)
             => syntaxNode;

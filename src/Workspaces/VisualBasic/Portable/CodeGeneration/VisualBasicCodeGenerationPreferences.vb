@@ -14,6 +14,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             MyBase.New(options)
         End Sub
 
+        Public Overrides ReadOnly Property PlaceImportsInsideNamespaces As Boolean
+            Get
+                ' Visual Basic doesn't support imports inside namespaces
+                Return False
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
+
         Public Overrides Function GetOptions(context As CodeGenerationContext) As CodeGenerationOptions
             Return New VisualBasicCodeGenerationOptions(context, Me)
         End Function
