@@ -55,7 +55,7 @@ internal class ExperimentalWorkspacePullDiagnosticsHandler : AbstractPullDiagnos
         return null;
     }
 
-    protected override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, Document document, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken)
+    protected override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, Document document, DiagnosticMode diagnosticMode, CancellationToken cancellationToken)
     {
         var diagnostics = await _analyzerService.GetDiagnosticsForSpanAsync(document, range: null, cancellationToken: cancellationToken).ConfigureAwait(false);
         return diagnostics;
