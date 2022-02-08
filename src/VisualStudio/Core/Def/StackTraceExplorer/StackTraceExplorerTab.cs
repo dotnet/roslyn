@@ -23,11 +23,11 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         public event EventHandler? OnClosed;
         public bool IsEmpty => _stackExplorerVM.Frames.Count == 0;
 
-        public StackTraceExplorerTab(IThreadingContext threadingContext, VisualStudioWorkspace workspace, IClassificationFormatMap formatMap, ClassificationTypeMap typeMap, IStreamingFindUsagesPresenter streamingFindUsagesPresenter, int nameIndex)
+        public StackTraceExplorerTab(IThreadingContext threadingContext, VisualStudioWorkspace workspace, IClassificationFormatMap formatMap, ClassificationTypeMap typeMap, int nameIndex)
         {
             NameIndex = nameIndex;
 
-            _stackExplorerVM = new StackTraceExplorerViewModel(threadingContext, workspace, typeMap, formatMap, streamingFindUsagesPresenter);
+            _stackExplorerVM = new StackTraceExplorerViewModel(threadingContext, workspace, typeMap, formatMap);
             Content = new StackTraceExplorer(_stackExplorerVM);
 
             CloseClick = new DelegateCommand(_ =>

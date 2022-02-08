@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Design;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -40,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly ICodeActionEditHandlerService _editHandlerService;
-        private readonly IWpfTableControl _tableControl;
+        private readonly IWpfTableControl? _tableControl;
         private readonly IAsynchronousOperationListener _listener;
 
         [ImportingConstructor]
@@ -114,40 +113,40 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         private void OnAddSuppressionsStatus(object sender, EventArgs e)
         {
-            var command = sender as MenuCommand;
+            var command = (MenuCommand)sender;
             command.Visible = _suppressionStateService.CanSuppressSelectedEntries;
             command.Enabled = command.Visible && !KnownUIContexts.SolutionBuildingContext.IsActive;
         }
 
         private void OnRemoveSuppressionsStatus(object sender, EventArgs e)
         {
-            var command = sender as MenuCommand;
+            var command = (MenuCommand)sender;
             command.Visible = _suppressionStateService.CanRemoveSuppressionsSelectedEntries;
             command.Enabled = command.Visible && !KnownUIContexts.SolutionBuildingContext.IsActive;
         }
 
         private void OnAddSuppressionsInSourceStatus(object sender, EventArgs e)
         {
-            var command = sender as MenuCommand;
+            var command = (MenuCommand)sender;
             command.Visible = _suppressionStateService.CanSuppressSelectedEntriesInSource;
             command.Enabled = command.Visible && !KnownUIContexts.SolutionBuildingContext.IsActive;
         }
 
         private void OnAddSuppressionsInSuppressionFileStatus(object sender, EventArgs e)
         {
-            var command = sender as MenuCommand;
+            var command = (MenuCommand)sender;
             command.Visible = _suppressionStateService.CanSuppressSelectedEntriesInSuppressionFiles;
             command.Enabled = command.Visible && !KnownUIContexts.SolutionBuildingContext.IsActive;
         }
 
         private void OnAddSuppressionsInSource(object sender, EventArgs e)
-            => _suppressionFixService.AddSuppressions(selectedErrorListEntriesOnly: true, suppressInSource: true, projectHierarchyOpt: null);
+            => _suppressionFixService.AddSuppressions(selectedErrorListEntriesOnly: true, suppressInSource: true, projectHierarchy: null);
 
         private void OnAddSuppressionsInSuppressionFile(object sender, EventArgs e)
-            => _suppressionFixService.AddSuppressions(selectedErrorListEntriesOnly: true, suppressInSource: false, projectHierarchyOpt: null);
+            => _suppressionFixService.AddSuppressions(selectedErrorListEntriesOnly: true, suppressInSource: false, projectHierarchy: null);
 
         private void OnRemoveSuppressions(object sender, EventArgs e)
-            => _suppressionFixService.RemoveSuppressions(selectedErrorListEntriesOnly: true, projectHierarchyOpt: null);
+            => _suppressionFixService.RemoveSuppressions(selectedErrorListEntriesOnly: true, projectHierarchy: null);
 
         private void OnErrorListSetSeveritySubMenuStatus(object sender, EventArgs e)
         {
@@ -158,7 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             var selectedEntry = TryGetSingleSelectedEntry();
             command.Visible = selectedEntry != null &&
                 !SuppressionHelpers.IsNotConfigurableDiagnostic(selectedEntry) &&
-                TryGetPathToAnalyzerConfigDoc(selectedEntry, out _) != null;
+                TryGetPathToAnalyzerConfigDoc(selectedEntry, out _, out _);
             command.Enabled = command.Visible && !KnownUIContexts.SolutionBuildingContext.IsActive;
         }
 
@@ -177,15 +176,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return;
             }
 
-            var pathToAnalyzerConfigDoc = TryGetPathToAnalyzerConfigDoc(selectedDiagnostic, out var project);
-            if (pathToAnalyzerConfigDoc != null)
+            if (TryGetPathToAnalyzerConfigDoc(selectedDiagnostic, out var project, out _))
             {
                 // Fire and forget.
-                _ = SetSeverityHandlerAsync(reportDiagnostic, selectedDiagnostic, project);
+                _ = SetSeverityHandlerAsync(reportDiagnostic.Value, selectedDiagnostic, project);
             }
         }
 
-        private async Task SetSeverityHandlerAsync(ReportDiagnostic? reportDiagnostic, DiagnosticData selectedDiagnostic, Project project)
+        private async Task SetSeverityHandlerAsync(ReportDiagnostic reportDiagnostic, DiagnosticData selectedDiagnostic, Project project)
         {
             try
             {
@@ -229,11 +227,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             async System.Threading.Tasks.Task<Solution> ConfigureSeverityAsync(CancellationToken cancellationToken)
             {
                 var diagnostic = await selectedDiagnostic.ToDiagnosticAsync(project, cancellationToken).ConfigureAwait(false);
-                return await ConfigurationUpdater.ConfigureSeverityAsync(reportDiagnostic.Value, diagnostic, project, cancellationToken).ConfigureAwait(false);
+                return await ConfigurationUpdater.ConfigureSeverityAsync(reportDiagnostic, diagnostic, project, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private DiagnosticData TryGetSingleSelectedEntry()
+        private DiagnosticData? TryGetSingleSelectedEntry()
         {
             if (_tableControl?.SelectedEntries.Count() != 1)
             {
@@ -249,10 +247,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return roslynSnapshot.GetItem(index)?.Data;
         }
 
-        private string TryGetPathToAnalyzerConfigDoc(DiagnosticData selectedDiagnostic, out Project project)
+        private bool TryGetPathToAnalyzerConfigDoc(DiagnosticData selectedDiagnostic, [NotNullWhen(true)] out Project? project, [NotNullWhen(true)] out string? pathToAnalyzerConfigDoc)
         {
             project = _workspace.CurrentSolution.GetProject(selectedDiagnostic.ProjectId);
-            return project?.TryGetAnalyzerConfigPathForProjectConfiguration();
+            pathToAnalyzerConfigDoc = project?.TryGetAnalyzerConfigPathForProjectConfiguration();
+            return pathToAnalyzerConfigDoc is not null;
         }
 
         private static ReportDiagnostic? TryMapSelectedItemToReportDiagnostic(MenuCommand selectedItem)

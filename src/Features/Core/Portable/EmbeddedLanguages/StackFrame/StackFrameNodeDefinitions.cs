@@ -194,6 +194,105 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             };
     }
 
+    internal abstract class StackFrameGeneratedNameNode : StackFrameSimpleNameNode
+    {
+        protected StackFrameGeneratedNameNode(StackFrameToken identifier, StackFrameKind kind) : base(identifier, kind)
+        {
+        }
+    }
+
+    /// <summary>
+    /// Generated methods follow the pattern Namespace.ClassName.&gt;MethodName$&lt;(), where 
+    /// the "$" is optional.
+    /// </summary>
+    internal sealed class StackFrameGeneratedMethodNameNode : StackFrameGeneratedNameNode
+    {
+        public readonly StackFrameToken LessThanToken;
+        public readonly StackFrameToken GreaterThanToken;
+        public readonly StackFrameToken? DollarToken;
+
+        internal override int ChildCount => 4;
+
+        public StackFrameGeneratedMethodNameNode(StackFrameToken lessThanToken, StackFrameToken identifier, StackFrameToken greaterThanToken, StackFrameToken? dollarToken)
+            : base(identifier, StackFrameKind.GeneratedIdentifier)
+        {
+            Debug.Assert(lessThanToken.Kind == StackFrameKind.LessThanToken);
+            Debug.Assert(greaterThanToken.Kind == StackFrameKind.GreaterThanToken);
+            Debug.Assert(!dollarToken.HasValue || dollarToken.Value.Kind == StackFrameKind.DollarToken);
+
+            LessThanToken = lessThanToken;
+            GreaterThanToken = greaterThanToken;
+            DollarToken = dollarToken;
+        }
+
+        public override void Accept(IStackFrameNodeVisitor visitor)
+            => visitor.Visit(this);
+
+        internal override StackFrameNodeOrToken ChildAt(int index)
+            => index switch
+            {
+                0 => LessThanToken,
+                1 => Identifier,
+                2 => GreaterThanToken,
+                3 => DollarToken.HasValue ? DollarToken.Value : null,
+                _ => throw new InvalidOperationException()
+            };
+    }
+
+    /// <summary>
+    /// Local method names are identifiers for local functions. They follow the pattern
+    /// <code>
+    /// Namespace.ClassName.&gt;ContainingMember&lt;g__LocalMethodName|0_0()
+    ///                     ^----------------------^-------------------------- EncapsulatingMethod
+    ///                                             ^-^----------------------- GeneratedNameSeparator
+    ///                                                ^--------------^------- Identifier 
+    ///                                                                ^------ PipeToken
+    ///                                                                 ^--^-- Suffix
+    /// </code>                                                               
+    /// </summary>
+    internal sealed class StackFrameLocalMethodNameNode : StackFrameGeneratedNameNode
+    {
+        internal readonly StackFrameGeneratedMethodNameNode EncapsulatingMethod;
+        internal readonly StackFrameToken GeneratedNameSeparator;
+        internal readonly StackFrameToken PipeToken;
+        internal readonly StackFrameToken Suffix;
+
+        internal override int ChildCount => 5;
+
+        public StackFrameLocalMethodNameNode(
+            StackFrameGeneratedMethodNameNode encapsulatngMethod,
+            StackFrameToken generatedNameSeparator,
+            StackFrameToken identifier,
+            StackFrameToken pipeToken,
+            StackFrameToken suffix)
+            : base(identifier, StackFrameKind.LocalMethodIdentifier)
+        {
+            Debug.Assert(generatedNameSeparator.Kind == StackFrameKind.GeneratedNameSeparatorToken);
+            Debug.Assert(identifier.Kind == StackFrameKind.IdentifierToken);
+            Debug.Assert(pipeToken.Kind == StackFrameKind.PipeToken);
+            Debug.Assert(suffix.Kind == StackFrameKind.GeneratedNameSuffixToken);
+
+            EncapsulatingMethod = encapsulatngMethod;
+            GeneratedNameSeparator = generatedNameSeparator;
+            PipeToken = pipeToken;
+            Suffix = suffix;
+        }
+
+        public override void Accept(IStackFrameNodeVisitor visitor)
+            => visitor.Visit(this);
+
+        internal override StackFrameNodeOrToken ChildAt(int index)
+        => index switch
+        {
+            0 => EncapsulatingMethod,
+            1 => GeneratedNameSeparator,
+            2 => Identifier,
+            3 => PipeToken,
+            4 => Suffix,
+            _ => throw new InvalidOperationException()
+        };
+    }
+
     /// <summary>
     /// Represents an array type declaration, such as string[,][]
     /// </summary>
@@ -201,27 +300,31 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
     {
         /// <summary>
         /// The type identifier without the array indicators.
+        /// <code>
         /// string[][]
         /// ^----^
+        /// </code>
         /// </summary>
         public readonly StackFrameNameNode TypeIdentifier;
 
         /// <summary>
         /// Each unique array identifier for the type
+        /// <code>
         /// string[,][]
-        ///        ^--- First array expression = "[,]"
-        ///           ^- Second array expression = "[]" 
+        ///        ^---  First array rank specifier  = "[,]"
+        ///           ^- Second array rank specifier = "[]" 
+        /// </code>
         /// </summary>
-        public ImmutableArray<StackFrameArrayRankSpecifier> ArrayExpressions;
+        public ImmutableArray<StackFrameArrayRankSpecifier> ArrayRankSpecifiers;
 
-        public StackFrameArrayTypeNode(StackFrameNameNode typeIdentifier, ImmutableArray<StackFrameArrayRankSpecifier> arrayExpressions) : base(StackFrameKind.ArrayTypeExpression)
+        public StackFrameArrayTypeNode(StackFrameNameNode typeIdentifier, ImmutableArray<StackFrameArrayRankSpecifier> arrayRankSpecifiers) : base(StackFrameKind.ArrayTypeExpression)
         {
-            Debug.Assert(!arrayExpressions.IsDefaultOrEmpty);
+            Debug.Assert(!arrayRankSpecifiers.IsDefaultOrEmpty);
             TypeIdentifier = typeIdentifier;
-            ArrayExpressions = arrayExpressions;
+            ArrayRankSpecifiers = arrayRankSpecifiers;
         }
 
-        internal override int ChildCount => 1 + ArrayExpressions.Length;
+        internal override int ChildCount => 1 + ArrayRankSpecifiers.Length;
 
         public override void Accept(IStackFrameNodeVisitor visitor)
             => visitor.Visit(this);
@@ -230,7 +333,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
             => index switch
             {
                 0 => TypeIdentifier,
-                _ => ArrayExpressions[index - 1]
+                _ => ArrayRankSpecifiers[index - 1]
             };
     }
 

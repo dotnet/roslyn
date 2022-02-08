@@ -161,10 +161,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 // this grouping.  So if we note this grouping we'll end up not causing that error
                 // to happen, bringing out behavior out of sync with the native system.
                 var expr = node.Expression;
-                while (expr is RegexAlternationNode alternation)
-                {
-                    expr = alternation.Left;
-                }
+                if (expr is RegexAlternationNode alternation)
+                    expr = alternation.SequenceList[0];
 
                 if (expr is RegexSequenceNode sequence &&
                     sequence.ChildCount > 0)

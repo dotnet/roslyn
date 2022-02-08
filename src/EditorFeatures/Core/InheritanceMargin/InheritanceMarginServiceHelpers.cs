@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin
 {
@@ -219,6 +220,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         {
             var baseSymbolItems = await baseSymbols
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
+                .WhereAsArray(IsNavigableSymbol)
                 .Distinct()
                 .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
                     solution,
@@ -229,6 +231,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             var derivedTypeItems = await derivedTypesSymbols
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
+                .WhereAsArray(IsNavigableSymbol)
                 .Distinct()
                 .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(solution,
                     symbol,
@@ -252,6 +255,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         {
             var implementedMemberItems = await implementingMembers
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
+                .WhereAsArray(IsNavigableSymbol)
                 .Distinct()
                 .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
                     solution,
@@ -278,6 +282,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             // and if it is an class/struct, it whould be shown as 'Base Type'
             var baseSymbolItems = await baseSymbols
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
+                .WhereAsArray(IsNavigableSymbol)
                 .Distinct()
                 .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
                     solution,
@@ -287,6 +292,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             var derivedTypeItems = await derivedTypesSymbols
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
+                .WhereAsArray(IsNavigableSymbol)
                 .Distinct()
                 .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(solution,
                     symbol,
@@ -312,6 +318,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         {
             var implementedMemberItems = await implementedMembers
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
+                .WhereAsArray(IsNavigableSymbol)
                 .Distinct()
                 .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
                     solution,
@@ -321,6 +328,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             var overridenMemberItems = await overriddenMembers
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
+                .WhereAsArray(IsNavigableSymbol)
                 .Distinct()
                 .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
                     solution,
@@ -330,6 +338,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
 
             var overridingMemberItems = await overridingMembers
                 .SelectAsArray(symbol => symbol.OriginalDefinition)
+                .WhereAsArray(IsNavigableSymbol)
                 .Distinct()
                 .SelectAsArrayAsync((symbol, _) => CreateInheritanceItemAsync(
                     solution,
@@ -354,9 +363,9 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             targetSymbol = symbolInSource ?? targetSymbol;
 
             // Right now the targets are not shown in a classified way.
-            var definition = await targetSymbol.ToNonClassifiedDefinitionItemAsync(
+            var definition = await ToSlimDefinitionItemAsync(
+                targetSymbol,
                 solution,
-                includeHiddenLocations: false,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
             var displayName = targetSymbol.ToDisplayString(s_displayFormat);
@@ -486,6 +495,67 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
                     transitive: true,
                     cancellationToken: cancellationToken).ConfigureAwait(false);
             }
+        }
+
+        /// <summary>
+        /// Create the DefinitionItem based on the numbers of locations for <paramref name="symbol"/>.
+        /// If there is only one location, create the DefinitionItem contains only the documentSpan or symbolKey to save memory.
+        /// Because in such case, when clicking InheritanceMarginGlpph, it will directly navigate to the symbol.
+        /// Otherwise, create the full non-classified DefinitionItem. Because in such case we want to display all the locations to the user
+        /// by reusing the FAR window.
+        /// </summary>
+        private static async Task<DefinitionItem> ToSlimDefinitionItemAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
+        {
+            RoslynDebug.Assert(IsNavigableSymbol(symbol));
+            var locations = symbol.Locations;
+            if (locations.Length > 1)
+            {
+                return await symbol.ToNonClassifiedDefinitionItemAsync(
+                    solution,
+                    includeHiddenLocations: false,
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
+            }
+
+            if (locations.Length == 1)
+            {
+                var location = locations[0];
+                if (location.IsInMetadata)
+                {
+                    return DefinitionItem.CreateMetadataDefinition(
+                        tags: ImmutableArray<string>.Empty,
+                        displayParts: ImmutableArray<TaggedText>.Empty,
+                        nameDisplayParts: ImmutableArray<TaggedText>.Empty,
+                        solution,
+                        symbol);
+                }
+                else if (location.IsInSource && location.IsVisibleSourceLocation())
+                {
+                    var document = solution.GetDocument(location.SourceTree);
+                    if (document != null)
+                    {
+                        var documentSpan = new DocumentSpan(document, location.SourceSpan);
+                        return DefinitionItem.Create(
+                            tags: ImmutableArray<string>.Empty,
+                            displayParts: ImmutableArray<TaggedText>.Empty,
+                            documentSpan,
+                            nameDisplayParts: ImmutableArray<TaggedText>.Empty);
+                    }
+                }
+            }
+
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        private static bool IsNavigableSymbol(ISymbol symbol)
+        {
+            var locations = symbol.Locations;
+            if (locations.Length == 1)
+            {
+                var location = locations[0];
+                return location.IsInMetadata || (location.IsInSource && location.IsVisibleSourceLocation());
+            }
+
+            return !locations.IsEmpty;
         }
     }
 }

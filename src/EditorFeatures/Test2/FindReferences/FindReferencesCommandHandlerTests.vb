@@ -38,9 +38,10 @@ class C
 
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
 
-                Dim context = New FindReferencesTests.TestContext()
+                Dim context = New FindReferencesTests.TestContext(workspace.GlobalOptions)
                 Dim commandHandler = New FindReferencesCommandHandler(
                     New MockStreamingFindReferencesPresenter(context),
+                    workspace.GlobalOptions,
                     listenerProvider)
 
                 Dim document = workspace.CurrentSolution.GetDocument(testDocument.Id)

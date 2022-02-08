@@ -142,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls
             }
         }
 
-        private void SelectMembers(ImmutableArray<PullMemberUpSymbolViewModel> members, bool isChecked = true)
+        private static void SelectMembers(ImmutableArray<PullMemberUpSymbolViewModel> members, bool isChecked = true)
         {
             foreach (var member in members.Where(viewModel => viewModel.IsCheckable))
             {

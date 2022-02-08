@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.VisualStudio.Text;
-using EditorAsyncCompletion = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using EditorAsyncCompletionData = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 using RoslynTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
@@ -28,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         /// <returns>Roslyn completion trigger</returns>
         internal static RoslynTrigger GetRoslynTrigger(EditorAsyncCompletionData.CompletionTrigger trigger, SnapshotPoint triggerLocation)
         {
-            var completionTriggerKind = GetRoslynTriggerKind(trigger);
+            var completionTriggerKind = GetRoslynTriggerKind(trigger.Reason);
             if (completionTriggerKind == CompletionTriggerKind.Deletion)
             {
                 var snapshotBeforeEdit = trigger.ViewSnapshotBeforeTrigger;
@@ -51,36 +49,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
         }
 
-        internal static CompletionTriggerKind GetRoslynTriggerKind(EditorAsyncCompletionData.CompletionTrigger trigger)
+        internal static CompletionTriggerKind GetRoslynTriggerKind(EditorAsyncCompletionData.CompletionTriggerReason triggerReason)
         {
-            switch (trigger.Reason)
+            return triggerReason switch
             {
-                case EditorAsyncCompletionData.CompletionTriggerReason.InvokeAndCommitIfUnique:
-                    return CompletionTriggerKind.InvokeAndCommitIfUnique;
-                case EditorAsyncCompletionData.CompletionTriggerReason.Insertion:
-                    return CompletionTriggerKind.Insertion;
-                case EditorAsyncCompletionData.CompletionTriggerReason.Deletion:
-                case EditorAsyncCompletionData.CompletionTriggerReason.Backspace:
-                    return CompletionTriggerKind.Deletion;
-                case EditorAsyncCompletionData.CompletionTriggerReason.SnippetsMode:
-                    return CompletionTriggerKind.Snippets;
-                default:
-                    return CompletionTriggerKind.Invoke;
-            }
+                EditorAsyncCompletionData.CompletionTriggerReason.InvokeAndCommitIfUnique => CompletionTriggerKind.InvokeAndCommitIfUnique,
+                EditorAsyncCompletionData.CompletionTriggerReason.Insertion => CompletionTriggerKind.Insertion,
+                EditorAsyncCompletionData.CompletionTriggerReason.Deletion or EditorAsyncCompletionData.CompletionTriggerReason.Backspace => CompletionTriggerKind.Deletion,
+                EditorAsyncCompletionData.CompletionTriggerReason.SnippetsMode => CompletionTriggerKind.Snippets,
+                _ => CompletionTriggerKind.Invoke,
+            };
         }
 
-        internal static CompletionFilterReason GetFilterReason(EditorAsyncCompletionData.CompletionTrigger trigger)
+        internal static CompletionFilterReason GetFilterReason(EditorAsyncCompletionData.CompletionTriggerReason triggerReason)
         {
-            switch (trigger.Reason)
+            return triggerReason switch
             {
-                case EditorAsyncCompletionData.CompletionTriggerReason.Insertion:
-                    return CompletionFilterReason.Insertion;
-                case EditorAsyncCompletionData.CompletionTriggerReason.Deletion:
-                case EditorAsyncCompletionData.CompletionTriggerReason.Backspace:
-                    return CompletionFilterReason.Deletion;
-                default:
-                    return CompletionFilterReason.Other;
-            }
+                EditorAsyncCompletionData.CompletionTriggerReason.Insertion => CompletionFilterReason.Insertion,
+                EditorAsyncCompletionData.CompletionTriggerReason.Deletion or EditorAsyncCompletionData.CompletionTriggerReason.Backspace => CompletionFilterReason.Deletion,
+                _ => CompletionFilterReason.Other,
+            };
         }
 
         internal static bool IsFilterCharacter(RoslynCompletionItem item, char ch, string textTypedSoFar)

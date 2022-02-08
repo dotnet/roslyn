@@ -6,10 +6,11 @@ Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports System.Globalization
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.AddImports
+Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.Suppression
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -24,18 +25,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
         Public Sub New()
         End Sub
 
-        Protected Overrides Function CreatePragmaRestoreDirectiveTrivia(diagnostic As Diagnostic, formatNode As Func(Of SyntaxNode, SyntaxNode), needsLeadingEndOfLine As Boolean, needsTrailingEndOfLine As Boolean) As SyntaxTriviaList
+        Protected Overrides Function CreatePragmaRestoreDirectiveTrivia(diagnostic As Diagnostic, formatNode As Func(Of SyntaxNode, CancellationToken, SyntaxNode), needsLeadingEndOfLine As Boolean, needsTrailingEndOfLine As Boolean, cancellationToken As CancellationToken) As SyntaxTriviaList
             Dim includeTitle As Boolean
             Dim errorCodes = GetErrorCodes(diagnostic, includeTitle)
             Dim pragmaDirective = SyntaxFactory.EnableWarningDirectiveTrivia(errorCodes)
-            Return CreatePragmaDirectiveTrivia(pragmaDirective, includeTitle, diagnostic, formatNode, needsLeadingEndOfLine, needsTrailingEndOfLine)
+            Return CreatePragmaDirectiveTrivia(pragmaDirective, includeTitle, diagnostic, formatNode, needsLeadingEndOfLine, needsTrailingEndOfLine, cancellationToken)
         End Function
 
-        Protected Overrides Function CreatePragmaDisableDirectiveTrivia(diagnostic As Diagnostic, formatNode As Func(Of SyntaxNode, SyntaxNode), needsLeadingEndOfLine As Boolean, needsTrailingEndOfLine As Boolean) As SyntaxTriviaList
+        Protected Overrides Function CreatePragmaDisableDirectiveTrivia(diagnostic As Diagnostic, formatNode As Func(Of SyntaxNode, CancellationToken, SyntaxNode), needsLeadingEndOfLine As Boolean, needsTrailingEndOfLine As Boolean, cancellationToken As CancellationToken) As SyntaxTriviaList
             Dim includeTitle As Boolean
             Dim errorCodes = GetErrorCodes(diagnostic, includeTitle)
             Dim pragmaDirective = SyntaxFactory.DisableWarningDirectiveTrivia(errorCodes)
-            Return CreatePragmaDirectiveTrivia(pragmaDirective, includeTitle, diagnostic, formatNode, needsLeadingEndOfLine, needsTrailingEndOfLine)
+            Return CreatePragmaDirectiveTrivia(pragmaDirective, includeTitle, diagnostic, formatNode, needsLeadingEndOfLine, needsTrailingEndOfLine, cancellationToken)
         End Function
 
         Private Shared Function GetErrorCodes(diagnostic As Diagnostic, ByRef includeTitle As Boolean) As SeparatedSyntaxList(Of IdentifierNameSyntax)
@@ -47,8 +48,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
             Return New SeparatedSyntaxList(Of IdentifierNameSyntax)().Add(SyntaxFactory.IdentifierName(text))
         End Function
 
-        Private Shared Function CreatePragmaDirectiveTrivia(enableOrDisablePragmaDirective As StructuredTriviaSyntax, includeTitle As Boolean, diagnostic As Diagnostic, formatNode As Func(Of SyntaxNode, SyntaxNode), needsLeadingEndOfLine As Boolean, needsTrailingEndOfLine As Boolean) As SyntaxTriviaList
-            enableOrDisablePragmaDirective = CType(formatNode(enableOrDisablePragmaDirective), StructuredTriviaSyntax)
+        Private Shared Function CreatePragmaDirectiveTrivia(
+                enableOrDisablePragmaDirective As StructuredTriviaSyntax,
+                includeTitle As Boolean,
+                diagnostic As Diagnostic,
+                formatNode As Func(Of SyntaxNode, CancellationToken, SyntaxNode),
+                needsLeadingEndOfLine As Boolean,
+                needsTrailingEndOfLine As Boolean,
+                cancellationToken As CancellationToken) As SyntaxTriviaList
+
+            enableOrDisablePragmaDirective = CType(formatNode(enableOrDisablePragmaDirective, cancellationToken), StructuredTriviaSyntax)
             Dim pragmaDirectiveTrivia = SyntaxFactory.Trivia(enableOrDisablePragmaDirective)
             Dim endOfLineTrivia = SyntaxFactory.ElasticCarriageReturnLineFeed
             Dim triviaList = SyntaxFactory.TriviaList(pragmaDirectiveTrivia)
@@ -109,8 +118,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
                 targetSymbol As ISymbol,
                 suppressMessageAttribute As INamedTypeSymbol,
                 diagnostic As Diagnostic,
-                workspace As Workspace,
-                compilation As Compilation,
+                services As HostWorkspaceServices,
+                options As SyntaxFormattingOptions,
                 addImportsService As IAddImportsService,
                 cancellationToken As CancellationToken) As SyntaxNode
             Dim compilationRoot = DirectCast(newRoot, CompilationUnitSyntax)
@@ -129,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
                 End If
             End If
 
-            attributeStatement = CType(Formatter.Format(attributeStatement, workspace, cancellationToken:=cancellationToken), AttributesStatementSyntax)
+            attributeStatement = CType(Formatter.Format(attributeStatement, services, options, cancellationToken), AttributesStatementSyntax)
 
             Dim leadingTrivia = If(isFirst AndAlso Not compilationRoot.HasLeadingTrivia,
                 SyntaxFactory.TriviaList(SyntaxFactory.CommentTrivia(GlobalSuppressionsFileHeaderComment)),
@@ -252,7 +261,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
                     Return SyntaxFactory.Trivia(newPragmaWarning)
 
                 Case Else
-                    throw ExceptionUtilities.UnexpectedValue(trivia.Kind())
+                    Throw ExceptionUtilities.UnexpectedValue(trivia.Kind())
             End Select
         End Function
     End Class

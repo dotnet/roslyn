@@ -1902,12 +1902,15 @@ class myClass : alias::Uri
             Assert.Equal(2, comp.References.Count());
             Assert.Equal("alias", comp.References.Last().Properties.Aliases.Single());
             comp.VerifyDiagnostics(
+                // (2,7): warning CS8981: The type name 'alias' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // using alias=alias;
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "alias").WithArguments("alias").WithLocation(2, 7),
                 // (2,1): error CS1537: The using alias 'alias' appeared previously in this namespace
                 // using alias=alias;
-                Diagnostic(ErrorCode.ERR_DuplicateAlias, "using alias=alias;").WithArguments("alias"),
+                Diagnostic(ErrorCode.ERR_DuplicateAlias, "using alias=alias;").WithArguments("alias").WithLocation(2, 1),
                 // (3,17): error CS0104: 'alias' is an ambiguous reference between '<global namespace>' and '<global namespace>'
                 // class myClass : alias::Uri
-                Diagnostic(ErrorCode.ERR_AmbigContext, "alias").WithArguments("alias", "<global namespace>", "<global namespace>"));
+                Diagnostic(ErrorCode.ERR_AmbigContext, "alias").WithArguments("alias", "<global namespace>", "<global namespace>").WithLocation(3, 17));
         }
 
         [WorkItem(546088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546088")]
@@ -3030,6 +3033,283 @@ void M1()
 System.Action a = () => { return; };
 42", parseOptions: TestOptions.Script);
             compilation.VerifyDiagnostics();
+        }
+
+        #endregion
+
+        #region GetTypesByMetadataName Tests
+
+        [Fact]
+        public void GetTypesByMetadataName_NotInSourceNotInReferences()
+        {
+            var comp = CreateCompilation("");
+            comp.VerifyDiagnostics();
+
+            var types = comp.GetTypesByMetadataName("N.C`1");
+            Assert.Empty(types);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void GetTypesByMetadataName_SingleInSourceNotInReferences(
+            bool useMetadataReference,
+            [CombinatorialValues("public", "internal")] string accessibility)
+        {
+            var referenceComp = CreateCompilation("");
+
+            var comp = CreateCompilation(
+$@"namespace N;
+{accessibility} class C<T> {{}}", new[] { useMetadataReference ? referenceComp.ToMetadataReference() : referenceComp.EmitToImageReference() });
+
+            comp.VerifyDiagnostics();
+
+            var types = comp.GetTypesByMetadataName("N.C`1");
+
+            Assert.Single(types);
+            AssertEx.Equal("N.C<T>", types[0].ToTestDisplayString());
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void GetTypesByMetadataName_MultipleInSourceNotInReferences(
+            bool useMetadataReference,
+            [CombinatorialValues("public", "internal")] string accessibility)
+        {
+            var referenceComp = CreateCompilation("");
+
+            var comp = CreateCompilation(
+$@"namespace N;
+{accessibility} class C<T> {{}}
+{accessibility} class C<T> {{}}", new[] { useMetadataReference ? referenceComp.ToMetadataReference() : referenceComp.EmitToImageReference() });
+
+            comp.VerifyDiagnostics(
+                // (3,16): error CS0101: The namespace 'N' already contains a definition for 'C'
+                // internal class C<T> {}
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "C").WithArguments("C", "N").WithLocation(3, 8 + accessibility.Length)
+            );
+
+            var types = comp.GetTypesByMetadataName("N.C`1");
+
+            Assert.Single(types);
+            AssertEx.Equal("N.C<T>", types[0].ToTestDisplayString());
+            Assert.Equal(2, types[0].Locations.Length);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void GetTypesByMetadataName_SingleInSourceSingleInReferences(
+            bool useMetadataReference,
+            [CombinatorialValues("public", "internal")] string accessibility)
+        {
+            string source = $@"namespace N;
+{accessibility} class C<T> {{}}";
+
+            var referenceComp = CreateCompilation(source);
+
+            referenceComp.VerifyDiagnostics();
+
+            MetadataReference reference = useMetadataReference ? referenceComp.ToMetadataReference() : referenceComp.EmitToImageReference();
+            var comp = CreateCompilation(source, new[] { reference });
+            comp.VerifyDiagnostics();
+
+            var types = comp.GetTypesByMetadataName("N.C`1");
+
+            Assert.Equal(2, types.Length);
+            AssertEx.Equal("N.C<T>", types[0].ToTestDisplayString());
+            Assert.Same(comp.Assembly.GetPublicSymbol(), types[0].ContainingAssembly);
+            AssertEx.Equal("N.C<T>", types[1].ToTestDisplayString());
+
+            var assembly1 = comp.GetAssemblyOrModuleSymbol(reference).GetPublicSymbol();
+            Assert.Same(types[1].ContainingAssembly, assembly1);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void GetTypesByMetadataName_NotInSourceSingleInReferences(
+            bool useMetadataReference,
+            [CombinatorialValues("public", "internal")] string accessibility)
+        {
+            string source = @$"namespace N;
+{accessibility} class C<T> {{}}";
+
+            var referenceComp = CreateCompilation(source);
+
+            referenceComp.VerifyDiagnostics();
+
+            MetadataReference reference = useMetadataReference ? referenceComp.ToMetadataReference() : referenceComp.EmitToImageReference();
+            var comp = CreateCompilation("", new[] { reference });
+            comp.VerifyDiagnostics();
+
+            var types = comp.GetTypesByMetadataName("N.C`1");
+
+
+            Assert.Single(types);
+            AssertEx.Equal("N.C<T>", types[0].ToTestDisplayString());
+
+            var assembly1 = comp.GetAssemblyOrModuleSymbol(reference).GetPublicSymbol();
+            Assert.Same(types[0].ContainingAssembly, assembly1);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void GetTypesByMetadataName_NotInSourceMultipleInReferences(
+            bool useMetadataReference,
+            [CombinatorialValues("public", "internal")] string accessibility)
+        {
+            string source = @$"namespace N;
+{accessibility} class C<T> {{}}";
+
+            var referenceComp1 = CreateCompilation(source);
+            referenceComp1.VerifyDiagnostics();
+
+            var referenceComp2 = CreateCompilation(source);
+            referenceComp2.VerifyDiagnostics();
+
+            MetadataReference reference1 = getReference(referenceComp1);
+            MetadataReference reference2 = getReference(referenceComp2);
+            var comp = CreateCompilation("", new[] { reference1, reference2 });
+            comp.VerifyDiagnostics();
+
+            var types = comp.GetTypesByMetadataName("N.C`1");
+
+            Assert.Equal(2, types.Length);
+            AssertEx.Equal("N.C<T>", types[0].ToTestDisplayString());
+            AssertEx.Equal("N.C<T>", types[1].ToTestDisplayString());
+
+            var assembly1 = comp.GetAssemblyOrModuleSymbol(reference1).GetPublicSymbol();
+            Assert.Same(types[0].ContainingAssembly, assembly1);
+
+            var assembly2 = comp.GetAssemblyOrModuleSymbol(reference2).GetPublicSymbol();
+            Assert.Same(types[1].ContainingAssembly, assembly2);
+
+            MetadataReference getReference(CSharpCompilation referenceComp1)
+            {
+                return useMetadataReference ? referenceComp1.ToMetadataReference() : referenceComp1.EmitToImageReference();
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void GetTypesByMetadataName_SingleInSourceMultipleInReferences(
+            bool useMetadataReference,
+            [CombinatorialValues("public", "internal")] string accessibility)
+        {
+            string source = @$"namespace N;
+{accessibility} class C<T> {{}}";
+
+            var referenceComp1 = CreateCompilation(source);
+            referenceComp1.VerifyDiagnostics();
+
+            var referenceComp2 = CreateCompilation(source);
+            referenceComp2.VerifyDiagnostics();
+
+            MetadataReference reference1 = getReference(referenceComp1);
+            MetadataReference reference2 = getReference(referenceComp2);
+            var comp = CreateCompilation(source, new[] { reference1, reference2 });
+            comp.VerifyDiagnostics();
+
+            var types = comp.GetTypesByMetadataName("N.C`1");
+
+            Assert.Equal(3, types.Length);
+            AssertEx.Equal("N.C<T>", types[0].ToTestDisplayString());
+            Assert.Same(comp.Assembly.GetPublicSymbol(), types[0].ContainingAssembly);
+            AssertEx.Equal("N.C<T>", types[1].ToTestDisplayString());
+            AssertEx.Equal("N.C<T>", types[2].ToTestDisplayString());
+
+            var assembly1 = comp.GetAssemblyOrModuleSymbol(reference1).GetPublicSymbol();
+            Assert.Same(types[1].ContainingAssembly, assembly1);
+
+            var assembly2 = comp.GetAssemblyOrModuleSymbol(reference2).GetPublicSymbol();
+            Assert.Same(types[2].ContainingAssembly, assembly2);
+
+            MetadataReference getReference(CSharpCompilation referenceComp1)
+            {
+                return useMetadataReference ? referenceComp1.ToMetadataReference() : referenceComp1.EmitToImageReference();
+            }
+        }
+
+        [Fact]
+        public void GetTypesByMetadataName_Ordering()
+        {
+            var corlibSource = @"
+namespace System
+{
+    public class Object {}
+    public class Void {}
+}
+
+public class C {}
+";
+
+            var corlib = CreateEmptyCompilation(corlibSource);
+            var corlibReference = corlib.EmitToImageReference();
+
+            var other = CreateEmptyCompilation(@"public class C {}", new[] { corlibReference });
+            var otherReference = other.EmitToImageReference();
+
+            var current = CreateEmptyCompilation(@"public class C {}", new[] { otherReference, corlibReference });
+            current.VerifyDiagnostics();
+
+            var types = current.GetTypesByMetadataName("C");
+
+            AssertEx.Equal(types.Select(t => t.ToTestDisplayString()), new[] { "C", "C", "C" });
+            Assert.Same(types[0].ContainingAssembly, current.Assembly.GetPublicSymbol());
+
+            var corlibAssembly = current.GetAssemblyOrModuleSymbol(corlibReference).GetPublicSymbol();
+            Assert.Same(types[1].ContainingAssembly, corlibAssembly);
+
+            var otherAssembly = current.GetAssemblyOrModuleSymbol(otherReference).GetPublicSymbol();
+            Assert.Same(types[2].ContainingAssembly, otherAssembly);
+        }
+
+        [Fact]
+        public void GetTypeByMetadataName_CorLibViaExtern()
+        {
+            var corlibSource = @"
+namespace System
+{
+    public class Object {}
+    public class Void {}
+}
+
+public class C {}
+";
+
+            var corlib = CreateEmptyCompilation(corlibSource);
+            var corlibReference = corlib.EmitToImageReference(aliases: ImmutableArray.Create("corlib"));
+
+            var current = CreateEmptyCompilation(@"", new[] { corlibReference });
+            current.VerifyDiagnostics();
+
+            var type = ((Compilation)current).GetTypeByMetadataName("C");
+            Assert.NotNull(type);
+
+            var corlibAssembly = current.GetAssemblyOrModuleSymbol(corlibReference).GetPublicSymbol();
+            Assert.Same(type.ContainingAssembly, corlibAssembly);
+        }
+
+        [Fact]
+        public void GetTypeByMetadataName_OtherViaExtern()
+        {
+            var corlibSource = @"
+namespace System
+{
+    public class Object {}
+    public class Void {}
+}
+";
+
+            var corlib = CreateEmptyCompilation(corlibSource);
+            var corlibReference = corlib.EmitToImageReference();
+
+            var other = CreateEmptyCompilation(@"public class C {}", new[] { corlibReference });
+            var otherReference = other.EmitToImageReference(aliases: ImmutableArray.Create("other"));
+
+            var current = CreateEmptyCompilation(@"", new[] { otherReference, corlibReference });
+            current.VerifyDiagnostics();
+
+            var type = ((Compilation)current).GetTypeByMetadataName("C");
+            Assert.Null(type);
         }
 
         #endregion

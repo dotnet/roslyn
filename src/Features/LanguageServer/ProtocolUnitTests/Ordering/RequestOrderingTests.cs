@@ -173,9 +173,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 
             // The failed request returns to the client before the shutdown completes.
             // Wait for the queue to finish handling the failed request and shutdown.
-            var operations = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
-            var waiter = operations.GetWaiter(FeatureAttribute.LanguageServer);
-            await waiter.ExpeditedWaitAsync();
+            await testLspServer.GetQueueAccessor().WaitForProcessingToStopAsync().ConfigureAwait(false);
 
             // remaining tasks should be canceled
             var areAllItemsCancelled = await testLspServer.GetQueueAccessor().AreAllItemsCancelledUnsafeAsync();

@@ -3084,7 +3084,7 @@ using System;
 using System.Linq;
 class Program
 {
-    static void M<x>()
+    static void M<@x>()
     {
         Action a1 = () => { object x = 0; }; // local
         Action<string> a2 = x => { }; // parameter
@@ -3238,7 +3238,7 @@ using System;
 using System.Linq;
 class Program
 {
-    static void M<x>()
+    static void M<@x>()
     {
         Action a1 = delegate() { object x = 0; }; // local
         Action<string> a2 = delegate(string x) { }; // parameter
@@ -5250,21 +5250,12 @@ class Program
                 // (7,13): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
                 //         d = TypedReference () => throw null;
                 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "TypedReference").WithArguments("System.TypedReference").WithLocation(7, 13),
-                // (7,13): error CS8917: The delegate type could not be inferred.
-                //         d = TypedReference () => throw null;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "TypedReference () => throw null").WithLocation(7, 13),
                 // (8,13): error CS1599: The return type of a method, delegate, or function pointer cannot be 'RuntimeArgumentHandle'
                 //         d = RuntimeArgumentHandle () => throw null;
                 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "RuntimeArgumentHandle").WithArguments("System.RuntimeArgumentHandle").WithLocation(8, 13),
-                // (8,13): error CS8917: The delegate type could not be inferred.
-                //         d = RuntimeArgumentHandle () => throw null;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "RuntimeArgumentHandle () => throw null").WithLocation(8, 13),
                 // (9,13): error CS1599: The return type of a method, delegate, or function pointer cannot be 'ArgIterator'
                 //         d = ArgIterator () => throw null;
-                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator").WithLocation(9, 13),
-                // (9,13): error CS8917: The delegate type could not be inferred.
-                //         d = ArgIterator () => throw null;
-                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "ArgIterator () => throw null").WithLocation(9, 13));
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator").WithLocation(9, 13));
         }
 
         [Fact]
@@ -5538,6 +5529,9 @@ class Program
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
+                // (2,7): warning CS8981: The type name 'var' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class var { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "var").WithArguments("var").WithLocation(2, 7),
                 // (8,13): error CS8975: The contextual keyword 'var' cannot be used as an explicit lambda return type
                 //         d = var () => default;
                 Diagnostic(ErrorCode.ERR_LambdaExplicitReturnTypeVar, "var").WithLocation(8, 13),
@@ -5551,7 +5545,7 @@ class Program
         {
             var source =
 @"using System;
-class var { }
+class @var { }
 class Program
 {
     static void Main()
@@ -5580,9 +5574,9 @@ class Program
         {
             var source =
 @"using System;
-struct var
+struct @var
 {
-    internal class other { }
+    internal class @other { }
     internal other o;
 }
 class Program
@@ -5613,7 +5607,7 @@ class Program
         {
             var source =
 @"using System;
-using var = System.Int32;
+using @var = System.Int32;
 class Program
 {
     static void Main()
@@ -5639,7 +5633,7 @@ class Program
 @"using System;
 class Program
 {
-    static void M<var>()
+    static void M<@var>()
     {
         F(var (var v) => v);
         F(@var (var v) => v);
@@ -5660,7 +5654,7 @@ class Program
         {
             var source =
 @"using System;
-static class var { }
+static class @var { }
 class Program
 {
     static void Main()

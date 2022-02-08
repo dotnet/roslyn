@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis
                "System.Runtime.CompilerServices.Unsafe",
                "System.Runtime.Extensions",
                "System.Runtime.InteropServices",
+               "System.Runtime.InteropServices.RuntimeInformation",
                "System.Runtime.Loader",
                "System.Runtime.Numerics",
                "System.Runtime.Serialization.Primitives",
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis
         private readonly object _guard = new object();
         private readonly Dictionary<string, DirectoryLoadContext> _loadContextByDirectory = new Dictionary<string, DirectoryLoadContext>(StringComparer.Ordinal);
 
-        protected override Assembly LoadFromPathImpl(string fullPath)
+        protected override Assembly LoadFromPathUncheckedImpl(string fullPath)
         {
             DirectoryLoadContext? loadContext;
 

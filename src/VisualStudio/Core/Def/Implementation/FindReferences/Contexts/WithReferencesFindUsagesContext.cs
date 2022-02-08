@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
@@ -26,15 +27,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         /// This context supports showing reference items, and will display appropriate messages
         /// about no-references being found for a definition at the end of the search.
         /// </summary>
-        private class WithReferencesFindUsagesContext : AbstractTableDataSourceFindUsagesContext
+        private sealed class WithReferencesFindUsagesContext : AbstractTableDataSourceFindUsagesContext
         {
             public WithReferencesFindUsagesContext(
                 StreamingFindUsagesPresenter presenter,
                 IFindAllReferencesWindow findReferencesWindow,
                 ImmutableArray<ITableColumnDefinition> customColumns,
+                IGlobalOptionService globalOptions,
                 bool includeContainingTypeAndMemberColumns,
                 bool includeKindColumn)
-                : base(presenter, findReferencesWindow, customColumns, includeContainingTypeAndMemberColumns, includeKindColumn)
+                : base(presenter, findReferencesWindow, customColumns, globalOptions, includeContainingTypeAndMemberColumns, includeKindColumn)
             {
             }
 
@@ -259,31 +261,25 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             private async Task CreateNoResultsFoundEntryIfNecessaryAsync(CancellationToken cancellationToken)
             {
-                bool noDefinitions;
+                string message;
                 lock (Gate)
                 {
-                    noDefinitions = this.Definitions.Count == 0;
+                    // If we got definitions, then no need to show the 'no results found' message.
+                    if (this.Definitions.Count > 0)
+                        return;
+
+                    message = NoDefinitionsFoundMessage;
                 }
 
-                if (noDefinitions)
-                {
-                    // Create a fake definition/reference called "search found no results"
-                    await OnEntryFoundAsync(
-                        NoResultsDefinitionItem,
-                        bucket => SimpleMessageEntry.CreateAsync(bucket, null, ServicesVSResources.Search_found_no_results)!,
-                        addToEntriesWhenGroupingByDefinition: true,
-                        addToEntriesWhenNotGroupingByDefinition: true,
-                        expandedByDefault: true,
-                        cancellationToken).ConfigureAwait(false);
-                }
+                // Create a fake definition/reference called "search found no results"
+                await OnEntryFoundAsync(
+                    CreateNoResultsDefinitionItem(message),
+                    bucket => SimpleMessageEntry.CreateAsync(bucket, navigationBucket: null, message)!,
+                    addToEntriesWhenGroupingByDefinition: true,
+                    addToEntriesWhenNotGroupingByDefinition: true,
+                    expandedByDefault: true,
+                    cancellationToken).ConfigureAwait(false);
             }
-
-            private static readonly DefinitionItem NoResultsDefinitionItem =
-                DefinitionItem.CreateNonNavigableItem(
-                    GlyphTags.GetTags(Glyph.StatusInformation),
-                    ImmutableArray.Create(new TaggedText(
-                        TextTags.Text,
-                        ServicesVSResources.Search_found_no_results)));
 
             private static readonly DefinitionItem SymbolsWithoutReferencesDefinitionItem =
                 DefinitionItem.CreateNonNavigableItem(

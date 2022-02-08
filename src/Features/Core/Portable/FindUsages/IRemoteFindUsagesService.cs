@@ -22,9 +22,11 @@ namespace Microsoft.CodeAnalysis.FindUsages
     {
         internal interface ICallback
         {
+            ValueTask<FindUsagesOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken);
             ValueTask AddItemsAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken);
             ValueTask ItemsCompletedAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken);
             ValueTask ReportMessageAsync(RemoteServiceCallbackId callbackId, string message, CancellationToken cancellationToken);
+            ValueTask ReportInformationalMessageAsync(RemoteServiceCallbackId callbackId, string message, CancellationToken cancellationToken);
             ValueTask SetSearchTitleAsync(RemoteServiceCallbackId callbackId, string title, CancellationToken cancellationToken);
             ValueTask OnDefinitionFoundAsync(RemoteServiceCallbackId callbackId, SerializableDefinitionItem definition, CancellationToken cancellationToken);
             ValueTask OnReferenceFoundAsync(RemoteServiceCallbackId callbackId, SerializableSourceReferenceItem reference, CancellationToken cancellationToken);
@@ -56,6 +58,9 @@ namespace Microsoft.CodeAnalysis.FindUsages
         private new FindUsagesServerCallback GetCallback(RemoteServiceCallbackId callbackId)
             => (FindUsagesServerCallback)base.GetCallback(callbackId);
 
+        public ValueTask<FindUsagesOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken)
+            => GetCallback(callbackId).GetOptionsAsync(language, cancellationToken);
+
         public ValueTask AddItemsAsync(RemoteServiceCallbackId callbackId, int count, CancellationToken cancellationToken)
             => GetCallback(callbackId).AddItemsAsync(count, cancellationToken);
 
@@ -70,6 +75,9 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         public ValueTask ReportMessageAsync(RemoteServiceCallbackId callbackId, string message, CancellationToken cancellationToken)
             => GetCallback(callbackId).ReportMessageAsync(message, cancellationToken);
+
+        public ValueTask ReportInformationalMessageAsync(RemoteServiceCallbackId callbackId, string message, CancellationToken cancellationToken)
+            => GetCallback(callbackId).ReportInformationalMessageAsync(message, cancellationToken);
 
         public ValueTask SetSearchTitleAsync(RemoteServiceCallbackId callbackId, string title, CancellationToken cancellationToken)
             => GetCallback(callbackId).SetSearchTitleAsync(title, cancellationToken);
@@ -87,6 +95,9 @@ namespace Microsoft.CodeAnalysis.FindUsages
             _context = context;
         }
 
+        public ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
+            => _context.GetOptionsAsync(language, cancellationToken);
+
         public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken)
             => _context.ProgressTracker.AddItemsAsync(count, cancellationToken);
 
@@ -95,6 +106,9 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         public ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken)
             => _context.ReportMessageAsync(message, cancellationToken);
+
+        public ValueTask ReportInformationalMessageAsync(string message, CancellationToken cancellationToken)
+            => _context.ReportInformationalMessageAsync(message, cancellationToken);
 
         public ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)
             => _context.SetSearchTitleAsync(title, cancellationToken);

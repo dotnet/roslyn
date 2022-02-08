@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.CodeFixes.RemoveUnusedUsings
             return Task.CompletedTask;
         }
 
-        private Task<Document> RemoveUnnecessaryImportsAsync(
+        private static Task<Document> RemoveUnnecessaryImportsAsync(
             Document document, CancellationToken cancellationToken)
         {
             var service = document.GetLanguageService<IRemoveUnnecessaryImportsService>();

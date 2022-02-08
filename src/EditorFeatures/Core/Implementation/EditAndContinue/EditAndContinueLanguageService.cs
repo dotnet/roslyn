@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             try
             {
-                await session.BreakStateOrCapabilitiesChangedAsync(_diagnosticService, inBreakState: true, cancellationToken).ConfigureAwait(false);
+                await session.BreakStateOrCapabilitiesChangedAsync(_diagnosticService, _diagnosticUpdateSource, inBreakState: true, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             try
             {
-                await session.BreakStateOrCapabilitiesChangedAsync(_diagnosticService, inBreakState: false, cancellationToken).ConfigureAwait(false);
+                await session.BreakStateOrCapabilitiesChangedAsync(_diagnosticService, _diagnosticUpdateSource, inBreakState: false, cancellationToken).ConfigureAwait(false);
                 GetActiveStatementTrackingService().EndTracking();
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 
             try
             {
-                await GetDebuggingSession().BreakStateOrCapabilitiesChangedAsync(_diagnosticService, inBreakState: null, cancellationToken).ConfigureAwait(false);
+                await GetDebuggingSession().BreakStateOrCapabilitiesChangedAsync(_diagnosticService, _diagnosticUpdateSource, inBreakState: null, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             _pendingUpdatedSolution = solution;
 
             var updates = moduleUpdates.Updates.SelectAsArray(
-                update => new ManagedHotReloadUpdate(update.Module, update.ILDelta, update.MetadataDelta, update.UpdatedTypes));
+                update => new ManagedHotReloadUpdate(update.Module, update.ILDelta, update.MetadataDelta, update.PdbDelta, update.UpdatedTypes));
 
             var diagnostics = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, diagnosticData, rudeEdits, syntaxError, cancellationToken).ConfigureAwait(false);
 

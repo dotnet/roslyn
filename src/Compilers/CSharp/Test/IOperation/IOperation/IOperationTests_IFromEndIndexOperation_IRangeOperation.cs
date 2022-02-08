@@ -34,34 +34,41 @@ class C
             const string expectedOperationTree = @"
 IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '_ = this[^0];')
-    Expression: 
+    Expression:
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '_ = this[^0]')
-        Left: 
+        Left:
           IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: '_')
-        Right: 
-          IOperation:  (OperationKind.None, Type: System.Int32) (Syntax: 'this[^0]')
-            Children(2):
-                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
-                IUnaryOperation (UnaryOperatorKind.Hat) (OperationKind.Unary, Type: System.Index) (Syntax: '^0')
-                  Operand: 
-                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+        Right:
+          IImplicitIndexerReferenceOperation (OperationKind.ImplicitIndexerReference, Type: System.Int32) (Syntax: 'this[^0]')
+            Instance:
+              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
+            Argument:
+              IUnaryOperation (UnaryOperatorKind.Hat) (OperationKind.Unary, Type: System.Index) (Syntax: '^0')
+                Operand:
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+            LengthSymbol: System.Int32 C.Length { get; }
+            IndexerSymbol: System.Int32 C.this[System.Int32 i] { get; }
   IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '_ = this[0..];')
-    Expression: 
+    Expression:
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '_ = this[0..]')
-        Left: 
+        Left:
           IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: '_')
-        Right: 
-          IOperation:  (OperationKind.None, Type: System.Int32) (Syntax: 'this[0..]')
-            Children(2):
-                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
-                IRangeOperation (OperationKind.Range, Type: System.Range) (Syntax: '0..')
-                  LeftOperand: 
-                    IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Index System.Index.op_Implicit(System.Int32 value)) (OperationKind.Conversion, Type: System.Index, IsImplicit) (Syntax: '0')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Index System.Index.op_Implicit(System.Int32 value))
-                      Operand: 
-                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-                  RightOperand: 
-                    null";
+        Right:
+          IImplicitIndexerReferenceOperation (OperationKind.ImplicitIndexerReference, Type: System.Int32) (Syntax: 'this[0..]')
+            Instance:
+              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
+            Argument:
+              IRangeOperation (OperationKind.Range, Type: System.Range) (Syntax: '0..')
+                LeftOperand:
+                  IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Index System.Index.op_Implicit(System.Int32 value)) (OperationKind.Conversion, Type: System.Index, IsImplicit) (Syntax: '0')
+                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Index System.Index.op_Implicit(System.Int32 value))
+                    Operand:
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                RightOperand:
+                  null
+            LengthSymbol: System.Int32 C.Length { get; }
+            IndexerSymbol: System.Int32 C.Slice(System.Int32 i, System.Int32 j)
+";
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(comp, expectedOperationTree, DiagnosticDescription.None);
 
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(comp, expectedOperationTree, DiagnosticDescription.None);
@@ -74,39 +81,46 @@ Block[B1] - Block
     Predecessors: [B0]
     Statements (2)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '_ = this[^0];')
-          Expression: 
+          Expression:
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '_ = this[^0]')
-              Left: 
+              Left:
                 IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: '_')
-              Right: 
-                IOperation:  (OperationKind.None, Type: System.Int32) (Syntax: 'this[^0]')
-                  Children(2):
-                      IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
-                      IUnaryOperation (UnaryOperatorKind.Hat) (OperationKind.Unary, Type: System.Index) (Syntax: '^0')
-                        Operand: 
-                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+              Right:
+                IImplicitIndexerReferenceOperation (OperationKind.ImplicitIndexerReference, Type: System.Int32) (Syntax: 'this[^0]')
+                  Instance:
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
+                  Argument:
+                    IUnaryOperation (UnaryOperatorKind.Hat) (OperationKind.Unary, Type: System.Index) (Syntax: '^0')
+                      Operand:
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                  LengthSymbol: System.Int32 C.Length { get; }
+                  IndexerSymbol: System.Int32 C.this[System.Int32 i] { get; }
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '_ = this[0..];')
-          Expression: 
+          Expression:
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '_ = this[0..]')
-              Left: 
+              Left:
                 IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: '_')
-              Right: 
-                IOperation:  (OperationKind.None, Type: System.Int32) (Syntax: 'this[0..]')
-                  Children(2):
-                      IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
-                      IRangeOperation (OperationKind.Range, Type: System.Range) (Syntax: '0..')
-                        LeftOperand: 
-                          IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Index System.Index.op_Implicit(System.Int32 value)) (OperationKind.Conversion, Type: System.Index, IsImplicit) (Syntax: '0')
-                            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Index System.Index.op_Implicit(System.Int32 value))
-                              (ImplicitUserDefined)
-                            Operand: 
-                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-                        RightOperand: 
-                          null
+              Right:
+                IImplicitIndexerReferenceOperation (OperationKind.ImplicitIndexerReference, Type: System.Int32) (Syntax: 'this[0..]')
+                  Instance:
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
+                  Argument:
+                    IRangeOperation (OperationKind.Range, Type: System.Range) (Syntax: '0..')
+                      LeftOperand:
+                        IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Index System.Index.op_Implicit(System.Int32 value)) (OperationKind.Conversion, Type: System.Index, IsImplicit) (Syntax: '0')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Index System.Index.op_Implicit(System.Int32 value))
+                            (ImplicitUserDefined)
+                          Operand:
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                      RightOperand:
+                        null
+                  LengthSymbol: System.Int32 C.Length { get; }
+                  IndexerSymbol: System.Int32 C.Slice(System.Int32 i, System.Int32 j)
     Next (Regular) Block[B2]
 Block[B2] - Exit
     Predecessors: [B1]
-    Statements (0)";
+    Statements (0)
+";
 
             VerifyFlowGraphForTest<BlockSyntax>(comp, expectedFlowGraph);
         }

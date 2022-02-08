@@ -39,9 +39,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
             _feedbackService = feedbackService;
         }
 
-        public override RequestDispatcher CreateRequestDispatcher(ImmutableArray<string> supportedLanguages)
+        public override RequestDispatcher CreateRequestDispatcher(ImmutableArray<string> supportedLanguages, WellKnownLspServerKinds serverKind)
         {
-            return new XamlRequestDispatcher(_projectService, _requestHandlerProviders, _feedbackService, supportedLanguages);
+            return new XamlRequestDispatcher(_projectService, _requestHandlerProviders, _feedbackService, supportedLanguages, serverKind);
         }
 
         private class XamlRequestDispatcher : RequestDispatcher
@@ -53,7 +53,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
                 XamlProjectService projectService,
                 ImmutableArray<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders,
                 IXamlLanguageServerFeedbackService? feedbackService,
-                ImmutableArray<string> languageNames) : base(requestHandlerProviders, languageNames)
+                ImmutableArray<string> languageNames,
+                WellKnownLspServerKinds serverKind) : base(requestHandlerProviders, languageNames, serverKind)
             {
                 _projectService = projectService;
                 _feedbackService = feedbackService;

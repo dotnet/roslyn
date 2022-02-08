@@ -152,9 +152,18 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         if (firstOp == null)
                             return false;
 
-                        // unwrap: { throw new NYI(); }
                         if (firstOp is IExpressionStatementOperation expressionStatement)
+                        {
+                            // unwrap: { throw new NYI(); }
                             firstOp = expressionStatement.Operation;
+                        }
+                        else if (firstOp is IReturnOperation returnOperation)
+                        {
+                            // unwrap: 'int M(int p) => throw new NYI();'
+                            // For this case, the throw operation is wrapped within a conversion operation to 'int',
+                            // which in turn is wrapped within a return operation.
+                            firstOp = returnOperation.ReturnedValue.WalkDownConversion();
+                        }
 
                         // => throw new NotImplementedOperation(...)
                         return IsThrowNotImplementedOperation(notImplementedExceptionType, firstOp);
@@ -177,7 +186,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                         return firstOp;
                     }
 
-                    static bool IsThrowNotImplementedOperation(INamedTypeSymbol notImplementedExceptionType, IOperation operation)
+                    static bool IsThrowNotImplementedOperation(INamedTypeSymbol notImplementedExceptionType, IOperation? operation)
                         => operation is IThrowOperation throwOperation &&
                            UnwrapImplicitConversion(throwOperation.Exception) is IObjectCreationOperation objectCreation &&
                            notImplementedExceptionType.Equals(objectCreation.Type);

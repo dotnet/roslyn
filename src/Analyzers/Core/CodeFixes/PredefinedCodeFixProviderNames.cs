@@ -62,6 +62,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string ImplementInterface = nameof(ImplementInterface);
         public const string InlineDeclaration = nameof(InlineDeclaration);
         public const string InvokeDelegateWithConditionalAccess = nameof(InvokeDelegateWithConditionalAccess);
+        public const string JsonDetection = nameof(JsonDetection);
         public const string MakeFieldReadonly = nameof(MakeFieldReadonly);
         public const string MakeLocalFunctionStatic = nameof(MakeLocalFunctionStatic);
         public const string MakeMemberStatic = nameof(MakeMemberStatic);
@@ -91,6 +92,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string RemoveUnnecessaryCast = nameof(RemoveUnnecessaryCast);
         public const string RemoveUnnecessaryDiscardDesignation = nameof(RemoveUnnecessaryDiscardDesignation);
         public const string RemoveUnnecessaryImports = nameof(RemoveUnnecessaryImports);
+        public const string RemoveUnnecessaryLambdaExpression = nameof(RemoveUnnecessaryLambdaExpression);
         public const string RemoveUnnecessaryParentheses = nameof(RemoveUnnecessaryParentheses);
         public const string RemoveUnnecessaryPragmaSuppressions = nameof(RemoveUnnecessaryPragmaSuppressions);
         public const string RemoveUnreachableCode = nameof(RemoveUnreachableCode);
@@ -133,6 +135,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string UseInterpolatedVerbatimString = nameof(UseInterpolatedVerbatimString);
         public const string UseIsNotExpression = nameof(UseIsNotExpression);
         public const string UseIsNullCheck = nameof(UseIsNullCheck);
+        public const string UseParameterNullChecking = nameof(UseParameterNullChecking);
         public const string UseIsNullCheckForCastAndEqualityOperator = nameof(UseIsNullCheckForCastAndEqualityOperator);
         public const string UseIsNullCheckForReferenceEquals = nameof(UseIsNullCheckForReferenceEquals);
         public const string UseLocalFunction = nameof(UseLocalFunction);

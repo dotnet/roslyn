@@ -275,9 +275,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                     return false;
                 }
 
-                var firstComment = startToken.LeadingTrivia.FirstOrNull(t => t.IsKind(SyntaxKind.SingleLineCommentTrivia));
+                var firstComment = startToken.LeadingTrivia.FirstOrNull(t => t.IsKind(SyntaxKind.SingleLineCommentTrivia) || t.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia));
 
-                var startPosition = firstComment.HasValue ? firstComment.Value.SpanStart : startToken.SpanStart;
+                var startPosition = firstComment.HasValue ? firstComment.Value.FullSpan.Start : startToken.SpanStart;
                 var endPosition = endToken.SpanStart;
 
                 // TODO (tomescht): Mark the regions to be collapsed by default.

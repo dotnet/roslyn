@@ -235,7 +235,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void WaitForLastReplInputContains(string outputText)
             => WaitForPredicate(GetLastReplInput, outputText, s_contains, "contain");
 
-        private void WaitForPredicate(Func<string> getValue, string expectedValue, Func<string, string, bool> valueComparer, string verb)
+        private static void WaitForPredicate(Func<string> getValue, string expectedValue, Func<string, string, bool> valueComparer, string verb)
         {
             var beginTime = DateTime.UtcNow;
 

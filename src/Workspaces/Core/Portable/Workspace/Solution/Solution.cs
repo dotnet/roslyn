@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes, SerializableOptionSet options, IReadOnlyList<AnalyzerReference> analyzerReferences)
-            : this(new SolutionState(new SolutionServices(workspace), solutionAttributes, options, analyzerReferences))
+            : this(new SolutionState(workspace.PrimaryBranchId, new SolutionServices(workspace), solutionAttributes, options, analyzerReferences))
         {
         }
 
@@ -47,6 +47,8 @@ namespace Microsoft.CodeAnalysis
         internal int WorkspaceVersion => _state.WorkspaceVersion;
 
         internal SolutionServices Services => _state.Services;
+
+        internal BranchId BranchId => _state.BranchId;
 
         internal ProjectState? GetProjectState(ProjectId projectId) => _state.GetProjectState(projectId);
 

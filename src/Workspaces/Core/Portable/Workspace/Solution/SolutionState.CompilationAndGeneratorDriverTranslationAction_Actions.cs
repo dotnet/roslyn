@@ -84,17 +84,7 @@ namespace Microsoft.CodeAnalysis
                     var oldText = _oldState.AdditionalText;
                     var newText = _newState.AdditionalText;
 
-                    try
-                    {
-                        return generatorDriver.ReplaceAdditionalText(oldText, newText);
-                    }
-                    catch (ArgumentException ex) when (FatalError.ReportAndCatch(ex))
-                    {
-                        // For some reason, our generator driver has gotten out of sync; by returning null here we force
-                        // ourselves to create a new driver in FinalizeCompilationAsync. This is the investigation for
-                        // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1423058.
-                        return null;
-                    }
+                    return generatorDriver.ReplaceAdditionalText(oldText, newText);
                 }
             }
 
@@ -246,15 +236,17 @@ namespace Microsoft.CodeAnalysis
                 public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput => true;
             }
 
-            internal sealed class AddAnalyzerReferencesAction : CompilationAndGeneratorDriverTranslationAction
+            internal sealed class AddOrRemoveAnalyzerReferencesAction : CompilationAndGeneratorDriverTranslationAction
             {
-                private readonly ImmutableArray<AnalyzerReference> _analyzerReferences;
                 private readonly string _language;
+                private readonly ImmutableArray<AnalyzerReference> _referencesToAdd;
+                private readonly ImmutableArray<AnalyzerReference> _referencesToRemove;
 
-                public AddAnalyzerReferencesAction(ImmutableArray<AnalyzerReference> analyzerReferences, string language)
+                public AddOrRemoveAnalyzerReferencesAction(string language, ImmutableArray<AnalyzerReference> referencesToAdd = default, ImmutableArray<AnalyzerReference> referencesToRemove = default)
                 {
-                    _analyzerReferences = analyzerReferences;
                     _language = language;
+                    _referencesToAdd = referencesToAdd;
+                    _referencesToRemove = referencesToRemove;
                 }
 
                 // Changing analyzer references doesn't change the compilation directly, so we can "apply" the
@@ -264,28 +256,17 @@ namespace Microsoft.CodeAnalysis
 
                 public override GeneratorDriver? TransformGeneratorDriver(GeneratorDriver generatorDriver)
                 {
-                    return generatorDriver.AddGenerators(_analyzerReferences.SelectMany(r => r.GetGenerators(_language)).ToImmutableArray());
-                }
-            }
+                    if (!_referencesToRemove.IsDefaultOrEmpty)
+                    {
+                        generatorDriver = generatorDriver.RemoveGenerators(_referencesToRemove.SelectMany(r => r.GetGenerators(_language)).ToImmutableArray());
+                    }
 
-            internal sealed class RemoveAnalyzerReferencesAction : CompilationAndGeneratorDriverTranslationAction
-            {
-                private readonly ImmutableArray<AnalyzerReference> _analyzerReferences;
-                private readonly string _language;
+                    if (!_referencesToAdd.IsDefaultOrEmpty)
+                    {
+                        generatorDriver = generatorDriver.AddGenerators(_referencesToAdd.SelectMany(r => r.GetGenerators(_language)).ToImmutableArray());
+                    }
 
-                public RemoveAnalyzerReferencesAction(ImmutableArray<AnalyzerReference> analyzerReferences, string language)
-                {
-                    _analyzerReferences = analyzerReferences;
-                    _language = language;
-                }
-
-                // Changing analyzer references doesn't change the compilation directly, so we can "apply" the
-                // translation (which is a no-op). Since we use a 'false' here to mean that it's not worth keeping
-                // the compilation with stale trees around, answering true is still important.
-                public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput => true;
-                public override GeneratorDriver? TransformGeneratorDriver(GeneratorDriver generatorDriver)
-                {
-                    return generatorDriver.RemoveGenerators(_analyzerReferences.SelectMany(r => r.GetGenerators(_language)).ToImmutableArray());
+                    return generatorDriver;
                 }
             }
 

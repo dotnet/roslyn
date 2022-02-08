@@ -194,7 +194,7 @@ class Program
             void verify(CSharpParseOptions parseOptions, params string[] expectedAnalyzedKeys)
             {
                 var comp = CreateCompilation(source, parseOptions: parseOptions);
-                comp.NullableAnalysisData = new();
+                comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
                 if (expectedAnalyzedKeys.Length > 0)
                 {
                     comp.VerifyDiagnostics(
@@ -207,7 +207,7 @@ class Program
                     comp.VerifyDiagnostics();
                 }
 
-                var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData);
+                var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData);
                 AssertEx.Equal(expectedAnalyzedKeys, actualAnalyzedKeys);
             }
         }
@@ -243,7 +243,7 @@ class Program
             void verify(CSharpParseOptions parseOptions, params string[] expectedAnalyzedKeys)
             {
                 var comp = CreateCompilation(source, parseOptions: parseOptions);
-                comp.NullableAnalysisData = new();
+                comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
                 if (expectedAnalyzedKeys.Length > 0)
                 {
                     comp.VerifyDiagnostics(
@@ -256,7 +256,7 @@ class Program
                     comp.VerifyDiagnostics();
                 }
 
-                var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData);
+                var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData);
                 AssertEx.Equal(expectedAnalyzedKeys, actualAnalyzedKeys);
             }
         }
@@ -302,7 +302,7 @@ struct B2
             void verify(CSharpParseOptions parseOptions, params string[] expectedAnalyzedKeys)
             {
                 var comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: parseOptions);
-                comp.NullableAnalysisData = new();
+                comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
                 if (expectedAnalyzedKeys.Length > 0)
                 {
                     comp.VerifyDiagnostics(
@@ -315,7 +315,7 @@ struct B2
                     comp.VerifyDiagnostics();
                 }
 
-                var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData);
+                var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData);
                 AssertEx.Equal(expectedAnalyzedKeys, actualAnalyzedKeys);
             }
         }
@@ -344,7 +344,7 @@ class Program
             void verify(CSharpParseOptions parseOptions, bool expectedFlowState, params string[] expectedAnalyzedKeys)
             {
                 var comp = CreateCompilation(source, parseOptions: parseOptions);
-                comp.NullableAnalysisData = new();
+                comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
                 var syntaxTree = comp.SyntaxTrees[0];
                 var model = comp.GetSemanticModel(syntaxTree);
                 var syntax = syntaxTree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Skip(1).Single();
@@ -353,7 +353,7 @@ class Program
                 var expectedNullability = expectedFlowState ? Microsoft.CodeAnalysis.NullableFlowState.NotNull : Microsoft.CodeAnalysis.NullableFlowState.None;
                 Assert.Equal(expectedNullability, typeInfo.Nullability.FlowState);
 
-                var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData);
+                var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData);
                 AssertEx.Equal(expectedAnalyzedKeys, actualAnalyzedKeys);
             }
         }
@@ -383,7 +383,7 @@ class B
             void verify(CSharpParseOptions parseOptions, bool expectedFlowState, params string[] expectedAnalyzedKeys)
             {
                 var comp = CreateCompilation(source, parseOptions: parseOptions);
-                comp.NullableAnalysisData = new();
+                comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
                 var syntaxTree = comp.SyntaxTrees[0];
                 var model = comp.GetSemanticModel(syntaxTree);
                 var syntax = syntaxTree.GetRoot().DescendantNodes().OfType<AttributeArgumentSyntax>().Single();
@@ -392,7 +392,7 @@ class B
                 var expectedNullability = expectedFlowState ? Microsoft.CodeAnalysis.NullableFlowState.MaybeNull : Microsoft.CodeAnalysis.NullableFlowState.None;
                 Assert.Equal(expectedNullability, typeInfo.Nullability.FlowState);
 
-                var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData);
+                var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData);
                 AssertEx.Equal(expectedAnalyzedKeys, actualAnalyzedKeys);
             }
         }
@@ -418,7 +418,7 @@ class Program
             void verify(CSharpParseOptions parseOptions, bool expectedFlowState, params string[] expectedAnalyzedKeys)
             {
                 var comp = CreateCompilation(source, parseOptions: parseOptions);
-                comp.NullableAnalysisData = new();
+                comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
                 var syntaxTree = comp.SyntaxTrees[0];
                 var model = comp.GetSemanticModel(syntaxTree);
                 var syntax = syntaxTree.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().First().Value;
@@ -427,7 +427,7 @@ class Program
                 var expectedNullability = expectedFlowState ? Microsoft.CodeAnalysis.NullableFlowState.MaybeNull : Microsoft.CodeAnalysis.NullableFlowState.None;
                 Assert.Equal(expectedNullability, typeInfo.Nullability.FlowState);
 
-                var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData);
+                var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData);
                 AssertEx.Equal(expectedAnalyzedKeys, actualAnalyzedKeys);
             }
         }
@@ -558,7 +558,7 @@ static class B
             var options = TestOptions.ReleaseDll;
             if (projectContext != null) options = options.WithNullableContextOptions(projectContext.Value);
             var comp = CreateCompilation(sourceB, options: options, references: new[] { refA });
-            comp.NullableAnalysisData = new();
+            comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
 
             if (isNullableEnabledForMethod)
             {
@@ -572,7 +572,7 @@ static class B
                 comp.VerifyDiagnostics();
             }
 
-            var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true);
+            var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData, requiredAnalysis: true);
             Assert.Equal(isNullableEnabledForMethod, actualAnalyzedKeys.Contains("Main"));
 
             var tree = (CSharpSyntaxTree)comp.SyntaxTrees[0];
@@ -721,11 +721,11 @@ static class Program
             static void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {
                 var comp = CreateCompilation(source);
-                comp.NullableAnalysisData = new();
+                comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
-                AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
-                AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.NullableAnalysisData));
+                AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData, requiredAnalysis: true));
+                AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.TestOnlyCompilationData));
 
                 var tree = (CSharpSyntaxTree)comp.SyntaxTrees[0];
                 var methodDeclarations = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().ToArray();
@@ -981,11 +981,11 @@ struct S
             static void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {
                 var comp = CreateCompilation(source);
-                comp.NullableAnalysisData = new();
+                comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
-                AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
-                AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.NullableAnalysisData));
+                AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData, requiredAnalysis: true));
+                AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.TestOnlyCompilationData));
             }
         }
 
@@ -1062,11 +1062,11 @@ partial class Program
             static void verify(string[] source, CSharpCompilationOptions options, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {
                 var comp = CreateCompilation(source, options: options);
-                comp.NullableAnalysisData = new();
+                comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
-                AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
-                AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.NullableAnalysisData));
+                AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData, requiredAnalysis: true));
+                AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.TestOnlyCompilationData));
             }
         }
 
@@ -1146,11 +1146,11 @@ class Program
             static void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {
                 var comp = CreateCompilation(source);
-                comp.NullableAnalysisData = new();
+                comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
-                AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
-                AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.NullableAnalysisData));
+                AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData, requiredAnalysis: true));
+                AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.TestOnlyCompilationData));
             }
         }
 
@@ -1205,11 +1205,11 @@ class Program
             static void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {
                 var comp = CreateCompilation(source);
-                comp.NullableAnalysisData = new();
+                comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
-                AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
-                AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.NullableAnalysisData));
+                AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData, requiredAnalysis: true));
+                AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.TestOnlyCompilationData));
             }
         }
 
@@ -1296,11 +1296,11 @@ class Program
             static void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {
                 var comp = CreateCompilation(source);
-                comp.NullableAnalysisData = new();
+                comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
-                AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
-                AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.NullableAnalysisData));
+                AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData, requiredAnalysis: true));
+                AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.TestOnlyCompilationData));
             }
         }
 
@@ -1353,11 +1353,11 @@ class B
             static void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {
                 var comp = CreateCompilation(source);
-                comp.NullableAnalysisData = new();
+                comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
-                AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
-                AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.NullableAnalysisData));
+                AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData, requiredAnalysis: true));
+                AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.TestOnlyCompilationData));
             }
         }
 
@@ -1448,10 +1448,10 @@ record B2() : A(
             static void verify(string source, string[] expectedAnalyzedKeys, params DiagnosticDescription[] expectedDiagnostics)
             {
                 var comp = CreateCompilation(new[] { source, IsExternalInitTypeDefinition });
-                comp.NullableAnalysisData = new();
+                comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
-                var actualAnalyzedKeys = GetIsNullableEnabledMethods(comp.NullableAnalysisData, key => ((MethodSymbol)key).ToTestDisplayString());
+                var actualAnalyzedKeys = GetIsNullableEnabledMethods(comp.TestOnlyCompilationData, key => ((MethodSymbol)key).ToTestDisplayString());
                 AssertEx.Equal(expectedAnalyzedKeys, actualAnalyzedKeys);
             }
         }
@@ -1482,7 +1482,7 @@ record B2() : A(
 }";
 
             var comp = CreateCompilation(new[] { source1, source2 });
-            comp.NullableAnalysisData = new();
+            comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
             comp.VerifyDiagnostics(
                 // (4,43): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //     partial void F1(ref object o1) { o1 = null; }
@@ -1492,8 +1492,8 @@ record B2() : A(
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 43));
 
             var expectedAnalyzedKeys = new[] { "F1", "F4" };
-            AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
-            AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.NullableAnalysisData));
+            AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData, requiredAnalysis: true));
+            AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.TestOnlyCompilationData));
         }
 
         [Fact]
@@ -1512,7 +1512,7 @@ record B2() : A(
 }";
 
             var comp = CreateCompilation(source);
-            comp.NullableAnalysisData = new();
+            comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
             comp.VerifyDiagnostics(
                 // (4,32): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //     partial void F1(object x = null);
@@ -1527,7 +1527,7 @@ record B2() : A(
                 //     partial void F1(object x = null) { }
                 Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "x").WithArguments("x").WithLocation(7, 28));
 
-            var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true);
+            var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData, requiredAnalysis: true);
             AssertEx.Equal(new[] { "= null", "= null", "F2" }, actualAnalyzedKeys);
         }
 
@@ -1583,10 +1583,10 @@ class A : System.Attribute
 }";
 
             var comp = CreateCompilation(source);
-            comp.NullableAnalysisData = new();
+            comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
             comp.VerifyDiagnostics();
 
-            var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true);
+            var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData, requiredAnalysis: true);
             var expectedAnalyzedKeys = new[]
             {
                 ".cctor",
@@ -1735,11 +1735,11 @@ _ = x.ToString();
                 var options = TestOptions.ReleaseExe;
                 if (projectContext != null) options = options.WithNullableContextOptions(projectContext.GetValueOrDefault());
                 var comp = CreateCompilation(source, options: options);
-                comp.NullableAnalysisData = new();
+                comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
                 comp.VerifyDiagnostics(expectedDiagnostics);
 
-                AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
-                AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.NullableAnalysisData));
+                AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData, requiredAnalysis: true));
+                AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.TestOnlyCompilationData));
             }
         }
 
@@ -1765,7 +1765,7 @@ _ = x.ToString();
 }";
 
             var comp = CreateCompilation(source);
-            comp.NullableAnalysisData = new();
+            comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
             var syntaxTree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(syntaxTree);
             var returnStatements = syntaxTree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().ToArray();
@@ -1781,8 +1781,8 @@ _ = x.ToString();
             Assert.Equal(Microsoft.CodeAnalysis.NullableFlowState.None, typeInfo.Nullability.FlowState);
 
             var expectedAnalyzedKeys = new[] { "F1" };
-            AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
-            AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.NullableAnalysisData));
+            AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData, requiredAnalysis: true));
+            AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.TestOnlyCompilationData));
         }
 
         [Fact]
@@ -1834,7 +1834,7 @@ _ = x.ToString();
             static void verify(string source, Microsoft.CodeAnalysis.NullableFlowState expectedFlowState, params string[] expectedAnalyzedKeys)
             {
                 var comp = CreateCompilation(source);
-                comp.NullableAnalysisData = new();
+                comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
 
                 var syntaxTree = comp.SyntaxTrees[0];
                 var model = comp.GetSemanticModel(syntaxTree);
@@ -1843,8 +1843,8 @@ _ = x.ToString();
                 var typeInfo = model.GetTypeInfo(syntax);
                 Assert.Equal(expectedFlowState, typeInfo.Nullability.FlowState);
 
-                AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true));
-                AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.NullableAnalysisData));
+                AssertEx.Equal(expectedAnalyzedKeys, GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData, requiredAnalysis: true));
+                AssertEx.Equal(expectedAnalyzedKeys, GetIsNullableEnabledMethods(comp.TestOnlyCompilationData));
             }
         }
 
@@ -1872,7 +1872,7 @@ class B2
 }";
 
             var comp = CreateCompilation(source);
-            comp.NullableAnalysisData = new();
+            comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
             var syntaxTree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(syntaxTree);
             var attributeArguments = syntaxTree.GetRoot().DescendantNodes().OfType<AttributeArgumentSyntax>().ToArray();
@@ -1880,7 +1880,7 @@ class B2
             verify(attributeArguments[0], "A.F1 = null", Microsoft.CodeAnalysis.NullableFlowState.MaybeNull);
             verify(attributeArguments[1], "A.F2 = null", Microsoft.CodeAnalysis.NullableFlowState.None);
 
-            var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true);
+            var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData, requiredAnalysis: true);
             AssertEx.Equal(new[] { "A(A.F1 = null)" }, actualAnalyzedKeys);
 
             void verify(AttributeArgumentSyntax syntax, string expectedText, Microsoft.CodeAnalysis.NullableFlowState expectedFlowState)
@@ -1921,7 +1921,7 @@ class Program
 }";
 
             var comp = CreateCompilation(source);
-            comp.NullableAnalysisData = new();
+            comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
             var syntaxTree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(syntaxTree);
             var attributeArguments = syntaxTree.GetRoot().DescendantNodes().OfType<AttributeArgumentSyntax>().ToArray();
@@ -1929,7 +1929,7 @@ class Program
             verify(attributeArguments[0], "C1", Microsoft.CodeAnalysis.NullableFlowState.MaybeNull);
             verify(attributeArguments[1], "C2", Microsoft.CodeAnalysis.NullableFlowState.None);
 
-            var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true);
+            var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData, requiredAnalysis: true);
             var expectedAnalyzedKey =
 @"DefaultParameterValue(
 #nullable enable
@@ -1963,7 +1963,7 @@ class Program
 }";
 
             var comp = CreateCompilation(source);
-            comp.NullableAnalysisData = new();
+            comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
             var syntaxTree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(syntaxTree);
             var equalsValueClauses = syntaxTree.GetRoot().DescendantNodes().OfType<EqualsValueClauseSyntax>().ToArray();
@@ -1971,7 +1971,7 @@ class Program
             verify(equalsValueClauses[0], "(F1 = null)", Microsoft.CodeAnalysis.NullableFlowState.MaybeNull);
             verify(equalsValueClauses[1], "(F2 = null)", Microsoft.CodeAnalysis.NullableFlowState.None);
 
-            var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true);
+            var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData, requiredAnalysis: true);
             AssertEx.Equal(new[] { "o1" }, actualAnalyzedKeys);
 
             void verify(EqualsValueClauseSyntax syntax, string expectedText, Microsoft.CodeAnalysis.NullableFlowState expectedFlowState)
@@ -2003,7 +2003,7 @@ class B
 }";
 
             var comp = CreateCompilation(source);
-            comp.NullableAnalysisData = new();
+            comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
             var syntaxTree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(syntaxTree);
             var declarations = syntaxTree.GetRoot().DescendantNodes().OfType<FieldDeclarationSyntax>().Select(f => f.Declaration.Variables[0]).ToArray();
@@ -2012,7 +2012,7 @@ class B
             verify(declarations[1], "F2", Microsoft.CodeAnalysis.NullableFlowState.MaybeNull);
             verify(declarations[2], "F3", Microsoft.CodeAnalysis.NullableFlowState.MaybeNull);
 
-            var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true);
+            var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData, requiredAnalysis: true);
             AssertEx.Equal(new[] { "F2", "F3" }, actualAnalyzedKeys);
 
             void verify(VariableDeclaratorSyntax syntax, string expectedText, Microsoft.CodeAnalysis.NullableFlowState expectedFlowState)
@@ -2042,7 +2042,7 @@ class B
 }";
 
             var comp = CreateCompilation(source);
-            comp.NullableAnalysisData = new();
+            comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData();
             var syntaxTree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(syntaxTree);
             var declarations = syntaxTree.GetRoot().DescendantNodes().OfType<PropertyDeclarationSyntax>().ToArray();
@@ -2051,7 +2051,7 @@ class B
             verify(declarations[1], "P2", Microsoft.CodeAnalysis.NullableFlowState.MaybeNull);
             verify(declarations[2], "P3", Microsoft.CodeAnalysis.NullableFlowState.MaybeNull);
 
-            var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.NullableAnalysisData, requiredAnalysis: true);
+            var actualAnalyzedKeys = GetNullableDataKeysAsStrings(comp.TestOnlyCompilationData, requiredAnalysis: true);
             AssertEx.Equal(new[] { "P2", "P3" }, actualAnalyzedKeys);
 
             void verify(PropertyDeclarationSyntax syntax, string expectedText, Microsoft.CodeAnalysis.NullableFlowState expectedFlowState)
@@ -2232,17 +2232,19 @@ string";
             Assert.Equal(expectedAnnotation, typeInfo.Nullability.Annotation);
         }
 
-        private static string[] GetNullableDataKeysAsStrings(CSharpCompilation.NullableData nullableData, bool requiredAnalysis = false) =>
-            nullableData.Data.
+        private static string[] GetNullableDataKeysAsStrings(object compilationData, bool requiredAnalysis = false)
+        {
+            return ((NullableWalker.NullableAnalysisData)compilationData).Data.
                 Where(pair => !requiredAnalysis || pair.Value.RequiredAnalysis).
                 Select(pair => GetNullableDataKeyAsString(pair.Key)).
                 OrderBy(key => key).
                 ToArray();
+        }
 
-        private static string[] GetIsNullableEnabledMethods(CSharpCompilation.NullableData nullableData, Func<object, string> toString = null)
+        private static string[] GetIsNullableEnabledMethods(object compilationData, Func<object, string> toString = null)
         {
             toString ??= GetNullableDataKeyAsString;
-            return nullableData.Data.
+            return ((NullableWalker.NullableAnalysisData)compilationData).Data.
                 Where(pair => pair.Value.RequiredAnalysis && pair.Key is MethodSymbol method && method.IsNullableAnalysisEnabled()).
                 Select(pair => toString(pair.Key)).
                 OrderBy(key => key).

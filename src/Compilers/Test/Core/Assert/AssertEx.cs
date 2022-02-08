@@ -16,6 +16,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using DiffPlex;
+using DiffPlex.Chunkers;
 using DiffPlex.DiffBuilder;
 using DiffPlex.DiffBuilder.Model;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -28,6 +29,10 @@ namespace Roslyn.Test.Utilities
     /// </summary>
     public static class AssertEx
     {
+        private static readonly IChunker s_lineChunker = new LineChunker();
+        private static readonly IChunker s_lineEndingsPreservingChunker = new LineEndingsPreservingChunker();
+        private static readonly InlineDiffBuilder s_diffBuilder = new InlineDiffBuilder(new Differ());
+
         #region AssertEqualityComparer<T>
 
         private class AssertEqualityComparer<T> : IEqualityComparer<T>
@@ -229,6 +234,22 @@ namespace Roslyn.Test.Utilities
             Assert.True(false, GetAssertMessage(expected, actual, comparer, message, itemInspector, itemSeparator, expectedValueSourcePath, expectedValueSourceLine));
         }
 
+        public static void Equal<T>(
+            ReadOnlySpan<T> expected,
+            ReadOnlySpan<T> actual,
+            IEqualityComparer<T> comparer = null,
+            string message = null,
+            string itemSeparator = null,
+            Func<T, string> itemInspector = null,
+            string expectedValueSourcePath = null,
+            int expectedValueSourceLine = 0)
+        {
+            if (SequenceEqual(expected, actual, comparer))
+                return;
+
+            Assert.True(false, GetAssertMessage(expected, actual, comparer, message, itemInspector, itemSeparator, expectedValueSourcePath, expectedValueSourceLine));
+        }
+
         /// <summary>
         /// Asserts that two strings are equal, and prints a diff between the two if they are not.
         /// </summary>
@@ -242,30 +263,35 @@ namespace Roslyn.Test.Utilities
                 return;
             }
 
-            var diffBuilder = new InlineDiffBuilder(new Differ());
-            var diff = diffBuilder.BuildDiffModel(expected, actual, ignoreWhitespace: false);
+            var diff = s_diffBuilder.BuildDiffModel(expected, actual, ignoreWhitespace: false, ignoreCase: false, s_lineChunker);
             var messageBuilder = new StringBuilder();
             messageBuilder.AppendLine(
                 string.IsNullOrEmpty(message)
                     ? "Actual and expected values differ. Expected shown in baseline of diff:"
                     : message);
 
+            if (!diff.Lines.Any(line => line.Type == ChangeType.Inserted || line.Type == ChangeType.Deleted))
+            {
+                // We have a failure only caused by line ending differences; recalculate with line endings visible
+                diff = s_diffBuilder.BuildDiffModel(expected, actual, ignoreWhitespace: false, ignoreCase: false, s_lineEndingsPreservingChunker);
+            }
+
             foreach (var line in diff.Lines)
             {
                 switch (line.Type)
                 {
                     case ChangeType.Inserted:
-                        messageBuilder.Append("+");
+                        messageBuilder.Append('+');
                         break;
                     case ChangeType.Deleted:
-                        messageBuilder.Append("-");
+                        messageBuilder.Append('-');
                         break;
                     default:
-                        messageBuilder.Append(" ");
+                        messageBuilder.Append(' ');
                         break;
                 }
 
-                messageBuilder.AppendLine(line.Text);
+                messageBuilder.AppendLine(line.Text.Replace("\r", "<CR>").Replace("\n", "<LF>"));
             }
 
             Assert.True(false, messageBuilder.ToString());
@@ -318,6 +344,22 @@ namespace Roslyn.Test.Utilities
                 var value2 = enumerator2.Current;
 
                 if (!(comparer != null ? comparer.Equals(value1, value2) : AssertEqualityComparer<T>.Equals(value1, value2)))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool SequenceEqual<T>(ReadOnlySpan<T> expected, ReadOnlySpan<T> actual, IEqualityComparer<T> comparer = null)
+        {
+            if (expected.Length != actual.Length)
+                return false;
+
+            for (int i = 0; i < expected.Length; i++)
+            {
+                if (!(comparer is not null ? comparer.Equals(expected[i], actual[i]) : AssertEqualityComparer<T>.Equals(expected[i], actual[i])))
                 {
                     return false;
                 }
@@ -663,6 +705,86 @@ namespace Roslyn.Test.Utilities
             return message.ToString();
         }
 
+        public static string GetAssertMessage<T>(
+            ReadOnlySpan<T> expected,
+            ReadOnlySpan<T> actual,
+            IEqualityComparer<T> comparer = null,
+            string prefix = null,
+            Func<T, string> itemInspector = null,
+            string itemSeparator = null,
+            string expectedValueSourcePath = null,
+            int expectedValueSourceLine = 0)
+        {
+            if (itemInspector == null)
+            {
+                if (typeof(T) == typeof(byte))
+                {
+                    itemInspector = b => $"0x{b:X2}";
+                }
+                else
+                {
+                    itemInspector = new Func<T, string>(obj => (obj != null) ? obj.ToString() : "<null>");
+                }
+            }
+
+            if (itemSeparator == null)
+            {
+                if (typeof(T) == typeof(byte))
+                {
+                    itemSeparator = ", ";
+                }
+                else
+                {
+                    itemSeparator = "," + Environment.NewLine;
+                }
+            }
+
+            const int maxDisplayedExpectedEntries = 10;
+            var expectedString = join(itemSeparator, expected[..Math.Min(expected.Length, maxDisplayedExpectedEntries)], itemInspector);
+            var actualString = join(itemSeparator, actual, itemInspector);
+
+            var message = new StringBuilder();
+
+            if (!string.IsNullOrEmpty(prefix))
+            {
+                message.AppendLine(prefix);
+                message.AppendLine();
+            }
+
+            message.AppendLine("Expected:");
+            message.AppendLine(expectedString);
+            if (expected.Length > maxDisplayedExpectedEntries)
+            {
+                message.AppendLine("... truncated ...");
+            }
+
+            message.AppendLine("Actual:");
+            message.AppendLine(actualString);
+            message.AppendLine("Differences:");
+            message.AppendLine(DiffUtil.DiffReport(expected.ToArray(), actual.ToArray(), itemSeparator, comparer, itemInspector));
+
+            if (TryGenerateExpectedSourceFileAndGetDiffLink(actualString, expected.Length, expectedValueSourcePath, expectedValueSourceLine, out var link))
+            {
+                message.AppendLine(link);
+            }
+
+            return message.ToString();
+
+            static string join(string itemSeparator, ReadOnlySpan<T> items, Func<T, string> itemInspector)
+            {
+                var result = new StringBuilder();
+                var iter = items.GetEnumerator();
+
+                if (iter.MoveNext())
+                    result.Append(itemInspector(iter.Current));
+
+                while (iter.MoveNext())
+                    result.Append($"{itemSeparator}{itemInspector(iter.Current)}");
+
+                return result.ToString();
+            }
+        }
+
         internal static bool TryGenerateExpectedSourceFileAndGetDiffLink(string actualString, int expectedLineCount, string expectedValueSourcePath, int expectedValueSourceLine, out string link)
         {
             // add a link to a .cmd file that opens a diff tool:
@@ -773,6 +895,56 @@ namespace Roslyn.Test.Utilities
 
                 Assert.True(false, builder.ToString());
             }
+        }
+
+        /// <summary>
+        /// Run multiple assertions at once and collect the result.
+        /// This is useful when you want to verify multiple assertions but don't want to re-run to adjust every other case.
+        /// </summary>
+        public static void Multiple(params Action[] assertions)
+        {
+            Multiple(includeStackTrace: false, assertions);
+        }
+
+        /// <inheritdoc cref="Multiple(System.Action[])"/>
+        public static void Multiple(bool includeStackTrace, params Action[] assertions)
+        {
+            List<(int, Exception)> exceptions = null;
+
+            // Run assertions in reverse order so that line numbers don't change as we adjust the baseline.
+            for (int index = assertions.Length - 1; index >= 0; --index)
+            {
+                try
+                {
+                    assertions[index]();
+                }
+                catch (Exception ex)
+                {
+                    (exceptions ??= new()).Add((index, ex));
+                }
+            }
+
+            if (exceptions is null)
+                return;
+
+            var stringBuilder = new StringBuilder()
+                .AppendLine($"{exceptions.Count} out of {assertions.Length} assertions failed.")
+                .AppendLine();
+            foreach (var (index, ex) in exceptions)
+            {
+                var stack = ex.StackTrace.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+                stringBuilder
+                    .AppendLine($"Assertion failed at index {index}:")
+                    .AppendLine(stack[^2]) // Prints the failing line in the original test case.
+                    .AppendLine(ex.Message);
+                if (includeStackTrace)
+                    stringBuilder.AppendLine(ex.StackTrace);
+                stringBuilder
+                    .AppendLine()
+                    .AppendLine();
+            }
+
+            Fail(stringBuilder.ToString());
         }
 
 #nullable enable

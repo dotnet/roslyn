@@ -279,16 +279,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                  Optional triggerSession As Boolean = True) As Controller
             Dim document As Document =
                 (Function()
-                     Dim workspace = TestWorkspace.CreateWorkspace(
+                     Dim w = TestWorkspace.CreateWorkspace(
                          <Workspace>
                              <Project Language="C#">
                                  <Document>
                                  </Document>
                              </Project>
                          </Workspace>)
-                     Return workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id)
+                     Return w.CurrentSolution.GetDocument(w.Documents.Single().Id)
                  End Function)()
-            Dim threadingContext = DirectCast(document.Project.Solution.Workspace, TestWorkspace).GetService(Of IThreadingContext)
+
+            Dim workspace = DirectCast(document.Project.Solution.Workspace, TestWorkspace)
+            Dim threadingContext = workspace.GetService(Of IThreadingContext)
             Dim bufferFactory As ITextBufferFactoryService = DirectCast(document.Project.Solution.Workspace, TestWorkspace).GetService(Of ITextBufferFactoryService)
             Dim buffer = bufferFactory.CreateTextBuffer()
             Dim view = CreateMockTextView(buffer)
@@ -313,6 +315,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             mockCompletionBroker.Setup(Function(b) b.GetSession(It.IsAny(Of ITextView))).Returns(DirectCast(Nothing, IAsyncCompletionSession))
 
             Dim controller = New Controller(
+                workspace.GlobalOptions,
                 threadingContext,
                 view.Object,
                 buffer,
