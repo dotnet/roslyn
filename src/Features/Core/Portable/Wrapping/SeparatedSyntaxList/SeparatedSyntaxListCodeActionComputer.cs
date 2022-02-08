@@ -59,6 +59,11 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             /// </summary>
             private readonly SyntaxTrivia _braceIndentationTrivia;
 
+            /// <summary>
+            /// Whether or not we should move the open brace of this separated list to a new line.  Many separated lists
+            /// will never move the brace (like a parameter list).  And some separated lists may move the brace
+            /// depending on if a particular option is set (like the collection initializer brace in C#).
+            /// </summary>
             private readonly bool _shouldMoveOpenBraceToNewLine;
             private readonly bool _shouldMoveCloseBraceToNewLine;
 
