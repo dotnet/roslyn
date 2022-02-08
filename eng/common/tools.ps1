@@ -96,7 +96,47 @@ function Exec-Process([string]$command, [string]$commandArgs) {
   }
 }
 
-function InitializeDotNetCli([bool]$install) {
+# Take the given block, print it, print what the block probably references from the current set of
+# variables using low-effort string matching, then run the block.
+#
+# This is intended to replace the pattern of manually copy-pasting a command, wrapping it in quotes,
+# and printing it using "Write-Host". The copy-paste method is more readable in build logs, but less
+# maintainable and less reliable. It is easy to make a mistake and modify the command without
+# properly updating the "Write-Host" line, resulting in misleading build logs. The probability of
+# this mistake makes the pattern hard to trust when it shows up in build logs. Finding the bug in
+# existing source code can also be difficult, because the strings are not aligned to each other and
+# the line may be 300+ columns long.
+#
+# By removing the need to maintain two copies of the command, Exec-BlockVerbosely avoids the issues.
+#
+# In Bash (or any posix-like shell), "set -x" prints usable verbose output automatically.
+# "Set-PSDebug" appears to be similar at first glance, but unfortunately, it isn't very useful: it
+# doesn't print any info about the variables being used by the command, which is normally the
+# interesting part to diagnose.
+function Exec-BlockVerbosely([scriptblock] $block) {
+  Write-Host "--- Running script block:"
+  $blockString = $block.ToString().Trim()
+  Write-Host $blockString
+
+  Write-Host "--- List of variables that might be used:"
+  # For each variable x in the environment, check the block for a reference to x via simple "$x" or
+  # "@x" syntax. This doesn't detect other ways to reference variables ("${x}" nor "$variable:x",
+  # among others). It only catches what this function was originally written for: simple
+  # command-line commands.
+  $variableTable = Get-Variable |
+    Where-Object {
+      $blockString.Contains("`$$($_.Name)") -or $blockString.Contains("@$($_.Name)")
+    } |
+    Format-Table -AutoSize -HideTableHeaders -Wrap |
+    Out-String
+  Write-Host $variableTable.Trim()
+
+  Write-Host "--- Executing:"
+  & $block
+  Write-Host "--- Done running script block!"
+}
+
+function InitializeDotNetCli([bool]$install, [string] $runtimeSourceFeed, [string] $runtimeSourceFeedKey) {
   if (Test-Path variable:global:_DotNetInstallDir) {
     return $global:_DotNetInstallDir
   }
@@ -138,7 +178,7 @@ function InitializeDotNetCli([bool]$install) {
 
     if (-not (Test-Path(Join-Path $dotnetRoot "sdk\$dotnetSdkVersion"))) {
       if ($install) {
-        InstallDotNetSdk $dotnetRoot $dotnetSdkVersion
+        InstallDotNetSdk -dotnetRoot $dotnetRoot -version $dotnetSdkVersion -runtimeSourceFeed $runtimeSourceFeed -runtimeSourceFeedKey $runtimeSourceFeedKey
       } else {
         Write-PipelineTelemetryError -Category "InitializeToolset" -Message "Unable to find dotnet with SDK version '$dotnetSdkVersion'"
         ExitWithExitCode 1
@@ -176,22 +216,47 @@ function GetDotNetInstallScript([string] $dotnetRoot) {
   if (!(Test-Path $installScript)) {
     Create-Directory $dotnetRoot
     $ProgressPreference = 'SilentlyContinue' # Don't display the console progress UI - it's a huge perf hit
-    Invoke-WebRequest "https://dot.net/$dotnetInstallScriptVersion/dotnet-install.ps1" -OutFile $installScript
+
+    $maxRetries = 5
+    $retries = 1
+
+    $uri = "https://dot.net/$dotnetInstallScriptVersion/dotnet-install.ps1"
+
+    while($true) {
+      try {
+        Write-Host "GET $uri"
+        Invoke-WebRequest $uri -OutFile $installScript
+        break
+      }
+      catch {
+        Write-Host "Failed to download '$uri'"
+        Write-Error $_.Exception.Message -ErrorAction Continue
+      }
+
+      if (++$retries -le $maxRetries) {
+        $delayInSeconds = [math]::Pow(2, $retries) - 1 # Exponential backoff
+        Write-Host "Retrying. Waiting for $delayInSeconds seconds before next attempt ($retries of $maxRetries)."
+        Start-Sleep -Seconds $delayInSeconds
+      }
+      else {
+        throw "Unable to download file in $maxRetries attempts."
+      }
+    }
   }
 
   return $installScript
 }
 
-function InstallDotNetSdk([string] $dotnetRoot, [string] $version, [string] $architecture = "") {
-  InstallDotNet $dotnetRoot $version $architecture
+function InstallDotNetSdk([string] $dotnetRoot, [string] $version, [string] $architecture = "", [string] $runtimeSourceFeed, [string] $runtimeSourceFeedKey ) {
+  InstallDotNet -dotnetRoot $dotnetRoot -version $version -architecture $architecture -skipNonVersionedFiles $false -runtimeSourceFeed $runtimeSourceFeed -runtimeSourceFeedKey $runtimeSourceFeedKey
 }
 
-function InstallDotNet([string] $dotnetRoot, 
-  [string] $version, 
-  [string] $architecture = "", 
-  [string] $runtime = "", 
-  [bool] $skipNonVersionedFiles = $false, 
-  [string] $runtimeSourceFeed = "", 
+function InstallDotNet([string] $dotnetRoot,
+  [string] $version,
+  [string] $architecture = "",
+  [string] $runtime = "",
+  [bool] $skipNonVersionedFiles = $false,
+  [string] $runtimeSourceFeed = "",
   [string] $runtimeSourceFeedKey = "") {
 
   $installScript = GetDotNetInstallScript $dotnetRoot
@@ -208,10 +273,9 @@ function InstallDotNet([string] $dotnetRoot,
     & $installScript @installParameters
   }
   catch {
-    Write-PipelineTelemetryError -Category "InitializeToolset" -Message "Failed to install dotnet runtime '$runtime' from public location."
-
-    # Only the runtime can be installed from a custom [private] location.
-    if ($runtime -and ($runtimeSourceFeed -or $runtimeSourceFeedKey)) {
+    # If we fail, retry from a custom (possibly private) location.
+    if ($runtimeSourceFeed -or $runtimeSourceFeedKey) {
+      Write-Host "Failed to install dotnet runtime '$runtime' version '$version' from public location; trying specified alternate feed credentials"
       if ($runtimeSourceFeed) { $installParameters.AzureFeed = $runtimeSourceFeed }
 
       if ($runtimeSourceFeedKey) {
@@ -228,6 +292,7 @@ function InstallDotNet([string] $dotnetRoot,
         ExitWithExitCode 1
       }
     } else {
+      Write-PipelineTelemetryError -Category "InitializeToolset" -Message "Failed to install dotnet runtime '$runtime' version '$version' from public location."
       ExitWithExitCode 1
     }
   }
@@ -298,7 +363,16 @@ function InitializeVisualStudioMSBuild([bool]$install, [object]$vsRequirements =
   }
 
   $msbuildVersionDir = if ([int]$vsMajorVersion -lt 16) { "$vsMajorVersion.0" } else { "Current" }
-  return $global:_MSBuildExe = Join-Path $vsInstallDir "MSBuild\$msbuildVersionDir\Bin\msbuild.exe"
+
+  $local:BinFolder = Join-Path $vsInstallDir "MSBuild\$msbuildVersionDir\Bin"
+  $local:Prefer64bit = if (Get-Member -InputObject $vsRequirements -Name 'Prefer64bit') { $vsRequirements.Prefer64bit } else { $false }
+  if ($local:Prefer64bit -and (Test-Path(Join-Path $local:BinFolder "amd64"))) {
+    $global:_MSBuildExe = Join-Path $local:BinFolder "amd64\msbuild.exe"
+  } else {
+    $global:_MSBuildExe = Join-Path $local:BinFolder "msbuild.exe"
+  }
+
+  return $global:_MSBuildExe
 }
 
 function InitializeVisualStudioEnvironmentVariables([string] $vsInstallDir, [string] $vsMajorVersion) {
@@ -366,7 +440,27 @@ function LocateVisualStudio([object]$vsRequirements = $null){
   if (!(Test-Path $vsWhereExe)) {
     Create-Directory $vsWhereDir
     Write-Host "Downloading vswhere"
-    Invoke-WebRequest "https://github.com/Microsoft/vswhere/releases/download/$vswhereVersion/vswhere.exe" -OutFile $vswhereExe
+    $maxRetries = 5
+    $retries = 1
+
+    while($true) {
+      try {
+        Invoke-WebRequest "https://netcorenativeassets.blob.core.windows.net/resource-packages/external/windows/vswhere/$vswhereVersion/vswhere.exe" -OutFile $vswhereExe
+        break
+      }
+      catch{
+        Write-PipelineTelemetryError -Category 'InitializeToolset' -Message $_
+      }
+
+      if (++$retries -le $maxRetries) {
+        $delayInSeconds = [math]::Pow(2, $retries) - 1 # Exponential backoff
+        Write-Host "Retrying. Waiting for $delayInSeconds seconds before next attempt ($retries of $maxRetries)."
+        Start-Sleep -Seconds $delayInSeconds
+      }
+      else {
+        Write-PipelineTelemetryError -Category 'InitializeToolset' -Message "Unable to download file in $maxRetries attempts."
+      }
+    }
   }
 
   if (!$vsRequirements) { $vsRequirements = $GlobalJson.tools.vs }
@@ -394,7 +488,7 @@ function LocateVisualStudio([object]$vsRequirements = $null){
   return $vsInfo[0]
 }
 
-function InitializeBuildTool() {
+function InitializeBuildTool([string] $runtimeSourceFeed, [string] $runtimeSourceFeedKey) {
   if (Test-Path variable:global:_BuildTool) {
     return $global:_BuildTool
   }
@@ -406,7 +500,7 @@ function InitializeBuildTool() {
   # Initialize dotnet cli if listed in 'tools'
   $dotnetRoot = $null
   if (Get-Member -InputObject $GlobalJson.tools -Name "dotnet") {
-    $dotnetRoot = InitializeDotNetCli -install:$restore
+    $dotnetRoot = InitializeDotNetCli -install:$restore -runtimeSourceFeed $runtimeSourceFeed -runtimeSourceFeedKey $runtimeSourceFeedKey
   }
 
   if ($msbuildEngine -eq "dotnet") {
@@ -478,7 +572,8 @@ function InitializeNativeTools() {
   }
 }
 
-function InitializeToolset() {
+function InitializeToolset([string] $runtimeSourceFeed, [string] $runtimeSourceFeedKey)
+{
   if (Test-Path variable:global:_ToolsetBuildProj) {
     return $global:_ToolsetBuildProj
   }
@@ -500,7 +595,7 @@ function InitializeToolset() {
     ExitWithExitCode 1
   }
 
-  $buildTool = InitializeBuildTool
+  $buildTool = InitializeBuildTool -runtimeSourceFeed $runtimeSourceFeed -runtimeSourceFeedKey $runtimeSourceFeedKey
 
   $proj = Join-Path $ToolsetDir "restore.proj"
   $bl = if ($binaryLog) { "/bl:" + (Join-Path $LogDir "ToolsetRestore.binlog") } else { "" }
@@ -522,6 +617,17 @@ function ExitWithExitCode([int] $exitCode) {
     Stop-Processes
   }
   exit $exitCode
+}
+
+# Check if $LASTEXITCODE is a nonzero exit code (NZEC). If so, print a Azure Pipeline error for
+# diagnostics, then exit the script with the $LASTEXITCODE.
+function Exit-IfNZEC([string] $category = "General") {
+  Write-Host "Exit code $LASTEXITCODE"
+  if ($LASTEXITCODE -ne 0) {
+    $message = "Last command failed with exit code $LASTEXITCODE."
+    Write-PipelineTelemetryError -Force -Category $category -Message $message
+    ExitWithExitCode $LASTEXITCODE
+  }
 }
 
 function Stop-Processes() {
