@@ -692,7 +692,7 @@ class Bar : IEnumerable
 ");
         }
 
-        [Fact(Skip = "Unknown fix all behavior"), Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
         public async Task TestFixAllInDocument3()
         {
             await new VerifyCS.Test
@@ -714,6 +714,24 @@ class C
     }
 }",
                 FixedCode =
+@"
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var list1 = new List<Action>
+        {
+            () =>
+            {
+                var list2 = new List<int> { 2 };
+            }
+        };
+    }
+}",
+                BatchFixedCode =
 @"
 using System;
 using System.Collections.Generic;
