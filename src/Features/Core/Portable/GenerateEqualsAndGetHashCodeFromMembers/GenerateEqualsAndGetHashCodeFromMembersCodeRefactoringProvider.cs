@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 document, typeDeclaration, containingType, viableMembers,
                 hasEquals, hasGetHashCode, withDialog: true, cancellationToken).ConfigureAwait(false);
 
-            context.RegisterRefactorings(actions);
+            context.RegisterRefactorings(actions, textSpan);
         }
 
         private static bool HasOperators(INamedTypeSymbol containingType)
