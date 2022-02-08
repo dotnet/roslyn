@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return result;
                 }
 
-                return new(
+                return new NameDeclarationInfo(
                     possibleSymbolKinds: ImmutableArray<SymbolKindOrTypeKind>.Empty,
                     accessibility: null,
                     declarationModifiers: default,
