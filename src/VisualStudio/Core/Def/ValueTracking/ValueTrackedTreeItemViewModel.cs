@@ -14,10 +14,11 @@ using Microsoft.CodeAnalysis.ValueTracking;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.CodeAnalysis.Classification;
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 {
-    internal class ValueTrackedTreeItemViewModel : TreeItemViewModel
+    internal sealed class ValueTrackedTreeItemViewModel : TreeItemViewModel
     {
         private bool _childrenCalculated;
         private readonly Solution _solution;
@@ -35,22 +36,23 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             }
         }
 
-        public ValueTrackedTreeItemViewModel(
+        private ValueTrackedTreeItemViewModel(
             ValueTrackedItem trackedItem,
+            ImmutableArray<ClassifiedSpan> classifiedSpans,
             Solution solution,
             ValueTrackingTreeViewModel treeViewModel,
             IGlyphService glyphService,
             IValueTrackingService valueTrackingService,
             IThreadingContext threadingContext,
             string fileName,
-            ImmutableArray<TreeItemViewModel> children = default)
+            ImmutableArray<TreeItemViewModel> children)
             : base(
                   trackedItem.Span,
                   trackedItem.SourceText,
                   trackedItem.DocumentId,
                   fileName,
                   trackedItem.Glyph,
-                  trackedItem.ClassifiedSpans,
+                  classifiedSpans,
                   treeViewModel,
                   glyphService,
                   threadingContext,
@@ -74,6 +76,35 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                     NotifyPropertyChanged(nameof(ChildItems));
                 };
             }
+        }
+
+        internal static async ValueTask<TreeItemViewModel> CreateAsync(
+            Solution solution,
+            ValueTrackedItem item,
+            ValueTrackingTreeViewModel treeViewModel,
+            IGlyphService glyphService,
+            IValueTrackingService valueTrackingService,
+            IThreadingContext threadingContext,
+            CancellationToken cancellationToken)
+        {
+            var document = solution.GetRequiredDocument(item.DocumentId);
+            var fileName = document.FilePath ?? document.Name;
+
+            var options = ClassificationOptions.From(document.Project);
+            var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(document, item.Span, options, cancellationToken).ConfigureAwait(false);
+            var classificationResult = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(documentSpan, options, cancellationToken).ConfigureAwait(false);
+            var classifiedSpans = classificationResult.ClassifiedSpans;
+
+            return new ValueTrackedTreeItemViewModel(
+                item,
+                classifiedSpans,
+                solution,
+                treeViewModel,
+                glyphService,
+                valueTrackingService,
+                threadingContext,
+                fileName,
+                children: default);
         }
 
         private void CalculateChildren()
@@ -140,25 +171,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 _trackedItem,
                 cancellationToken).ConfigureAwait(false);
 
-            var builder = ImmutableArray.CreateBuilder<TreeItemViewModel>(valueTrackedItems.Length);
-
-            foreach (var valueTrackedItem in valueTrackedItems)
-            {
-                var document = _solution.GetRequiredDocument(valueTrackedItem.DocumentId);
-                var fileName = document.FilePath ?? document.Name;
-
-                builder.Add(new ValueTrackedTreeItemViewModel(
-                    valueTrackedItem,
-                    _solution,
-                    TreeViewModel,
-                    _glyphService,
-                    _valueTrackingService,
-                    ThreadingContext,
-                    fileName
-                    ));
-            }
-
-            return builder.ToImmutableArray();
+            return await valueTrackedItems.SelectAsArrayAsync((item, cancellationToken) =>
+                CreateAsync(_solution, item, TreeViewModel, _glyphService, _valueTrackingService, ThreadingContext, cancellationToken), cancellationToken).ConfigureAwait(false);
         }
     }
 }

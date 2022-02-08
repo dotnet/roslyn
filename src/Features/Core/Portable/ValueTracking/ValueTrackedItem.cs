@@ -21,14 +21,12 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
         public DocumentId DocumentId { get; }
         public TextSpan Span { get; }
-        public ImmutableArray<ClassifiedSpan> ClassifiedSpans { get; }
         public SourceText SourceText { get; }
         public Glyph Glyph { get; }
 
         private ValueTrackedItem(
             SymbolKey symbolKey,
             SourceText sourceText,
-            ImmutableArray<ClassifiedSpan> classifiedSpans,
             TextSpan textSpan,
             DocumentId documentId,
             Glyph glyph,
@@ -38,7 +36,6 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             Parent = parent;
             Glyph = glyph;
             Span = textSpan;
-            ClassifiedSpans = classifiedSpans;
             SourceText = sourceText;
             DocumentId = documentId;
         }
@@ -61,7 +58,6 @@ namespace Microsoft.CodeAnalysis.ValueTracking
         {
             var excerptService = document.Services.GetService<IDocumentExcerptService>();
             SourceText? sourceText = null;
-            ImmutableArray<ClassifiedSpan> classifiedSpans = default;
 
             if (excerptService != null)
             {
@@ -75,10 +71,6 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
             if (sourceText is null)
             {
-                var options = ClassificationOptions.From(document.Project);
-                var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
-                var classificationResult = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(documentSpan, options, cancellationToken).ConfigureAwait(false);
-                classifiedSpans = classificationResult.ClassifiedSpans;
                 var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 sourceText = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
             }
@@ -86,7 +78,6 @@ namespace Microsoft.CodeAnalysis.ValueTracking
             return new ValueTrackedItem(
                         SymbolKey.Create(symbol, cancellationToken),
                         sourceText,
-                        classifiedSpans,
                         textSpan,
                         document.Id,
                         symbol.GetGlyph(),
