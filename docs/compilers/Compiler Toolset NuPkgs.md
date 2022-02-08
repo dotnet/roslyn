@@ -20,7 +20,7 @@ older version of MSBuild. For example using Microsoft.Net.Compilers.Toolset
 3.5 (C# 8) inside MSBuild 15 is explicitly not a supported scenario.
 
 Customers who want to use the compiler as a part of their supported build 
-infrastructure should use the [Visual Studio Build Tools SKU](https://docs.microsoft.com/en-us/visualstudio/install/workload-component-id-vs-build-tools?view=vs-2019])
+infrastructure should use the [Visual Studio Build Tools SKU](https://docs.microsoft.com/en-us/visualstudio/install/workload-component-id-vs-build-tools?view=vs-2022])
 ) or [.NET SDK](https://dotnet.microsoft.com/download/visual-studio-sdks)
 
 ## NuPkg Installation

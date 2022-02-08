@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 RudeEditKind.ChangingStateMachineShape,
                 RudeEditKind.InternalError,
                 RudeEditKind.MemberBodyInternalError,
+                RudeEditKind.ChangingNonCustomAttribute
             };
 
             var arg3 = new HashSet<RudeEditKind>()

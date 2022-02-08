@@ -2842,7 +2842,7 @@ End Class";
                 out var codeWithoutMarker, out ImmutableArray<TextSpan> textSpans);
 
             var document = CreateDocument(codeWithoutMarker, LanguageNames.VisualBasic);
-            var codeCleanups = CodeCleaner.GetDefaultProviders(document).WhereAsArray(p => p.Name == PredefinedCodeCleanupProviderNames.AddMissingTokens || p.Name == PredefinedCodeCleanupProviderNames.Format || p.Name == PredefinedCodeCleanupProviderNames.Simplification);
+            var codeCleanups = CodeCleaner.GetDefaultProviders(document).WhereAsArray(p => p.Name is PredefinedCodeCleanupProviderNames.AddMissingTokens or PredefinedCodeCleanupProviderNames.Format or PredefinedCodeCleanupProviderNames.Simplification);
 
             var cleanDocument = await CodeCleaner.CleanupAsync(document, textSpans[0], codeCleanups);
 

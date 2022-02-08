@@ -203,6 +203,40 @@ $$", "class {$$}");
         }
 
         [WpfFact]
+        [WorkItem(57323, "https://github.com/dotnet/roslyn/issues/57323")]
+        public void EmbededStatementFollowedByStatement()
+        {
+            Test(@"class C
+{
+    void Method()
+    {
+        if (true)
+        {
+        }
+        if (true)
+        {
+            $$
+        }
+        if (true)
+        {
+        }
+    }
+}", @"class C
+{
+    void Method()
+    {
+        if (true)
+        {
+        }
+        if (true$$)
+        if (true)
+        {
+        }
+    }
+}");
+        }
+
+        [WpfFact]
         public void Statement()
         {
             Test(@"class C
@@ -2679,6 +2713,82 @@ public class Bar
     {
         wh$$ile (tr$$ue)$$
         var c = 10;
+    }
+}");
+        }
+
+        [WpfFact]
+        public void TestSwitchExpression1()
+        {
+            Test(@"
+public class Bar
+{
+    public void Goo(int c)
+    {
+        var d = c switch
+        {
+            $$
+        }
+    }
+}",
+                @"
+public class Bar
+{
+    public void Goo(int c)
+    {
+        var d = c swi$$tch$$
+    }
+}");
+
+        }
+
+        [WpfFact]
+        public void TestSwitchExpression2()
+        {
+            Test(@"
+public class Bar
+{
+    public void Goo(int c)
+    {
+        var d = (c + 1) switch
+        {
+            $$
+        }
+    }
+}",
+                @"
+public class Bar
+{
+    public void Goo(int c)
+    {
+        var d = (c + 1) swi$$tch$$
+    }
+}");
+
+        }
+
+        [WpfFact]
+        public void TestSwitchStatementWithOnlyOpenParenthesis()
+        {
+            // This test is to make sure {} will be added to the switch statement,
+            // but our formatter now can't format the case when the CloseParenthesis token is missing.
+            // If any future formatter improvement can handle this case, this test can be modified safely
+            Test(@"
+public class bar
+{
+    public void TT()
+    {
+        switch (
+{
+            $$
+        }
+    }
+}", @"
+public class bar
+{
+    public void TT()
+    {
+        swi$$tch ($$
     }
 }");
         }

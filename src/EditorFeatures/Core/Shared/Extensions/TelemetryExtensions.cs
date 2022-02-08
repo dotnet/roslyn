@@ -6,6 +6,7 @@ using System;
 using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
@@ -34,18 +35,18 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             => type.IsConstructedGenericType ? type.GetGenericTypeDefinition() : type;
 
         public static short GetScopeIdForTelemetry(this FixAllScope scope)
-            => (short)(scope switch
+            => scope switch
             {
                 FixAllScope.Document => 1,
                 FixAllScope.Project => 2,
                 FixAllScope.Solution => 3,
                 _ => 4,
-            });
+            };
 
         public static string GetTelemetryDiagnosticID(this Diagnostic diagnostic)
         {
             // we log diagnostic id as it is if it is from us
-            if (diagnostic.Descriptor.CustomTags.Any(t => t == WellKnownDiagnosticTags.Telemetry))
+            if (diagnostic.Descriptor.ImmutableCustomTags().Any(t => t == WellKnownDiagnosticTags.Telemetry))
             {
                 return diagnostic.Id;
             }

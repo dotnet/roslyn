@@ -15,15 +15,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private partial class StateManager
         {
             public IEnumerable<StateSet> GetAllHostStateSets()
-                => _hostAnalyzerStateMap.Values.SelectMany(v => v.OrderedStateSets);
+            {
+                var analyzerReferences = _workspace.CurrentSolution.State.Analyzers.HostAnalyzerReferences;
+                foreach (var (key, value) in _hostAnalyzerStateMap)
+                {
+                    if (key.AnalyzerReferences == analyzerReferences)
+                    {
+                        foreach (var stateSet in value.OrderedStateSets)
+                        {
+                            yield return stateSet;
+                        }
+                    }
+                }
+            }
 
             private HostAnalyzerStateSets GetOrCreateHostStateSets(Project project, ProjectAnalyzerStateSets projectStateSets)
             {
-                var hostStateSets = ImmutableInterlocked.GetOrAdd(ref _hostAnalyzerStateMap, project.Language, CreateLanguageSpecificAnalyzerMap, project.Solution.State.Analyzers);
+                var key = new HostAnalyzerStateSetKey(project.Language, project.Solution.State.Analyzers.HostAnalyzerReferences);
+                var hostStateSets = ImmutableInterlocked.GetOrAdd(ref _hostAnalyzerStateMap, key, CreateLanguageSpecificAnalyzerMap, project.Solution.State.Analyzers);
                 return hostStateSets.WithExcludedAnalyzers(projectStateSets.SkippedAnalyzersInfo.SkippedAnalyzers);
 
-                static HostAnalyzerStateSets CreateLanguageSpecificAnalyzerMap(string language, HostDiagnosticAnalyzers hostAnalyzers)
+                static HostAnalyzerStateSets CreateLanguageSpecificAnalyzerMap(HostAnalyzerStateSetKey arg, HostDiagnosticAnalyzers hostAnalyzers)
                 {
+                    var language = arg.Language;
                     var analyzersPerReference = hostAnalyzers.GetOrCreateHostDiagnosticAnalyzersPerReference(language);
 
                     var analyzerMap = CreateStateSetMap(language, analyzersPerReference.Values, includeFileContentLoadAnalyzer: true);

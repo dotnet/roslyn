@@ -3,12 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.Text;
-
-#if DEBUG
-using System.Diagnostics;
-#endif
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 {
@@ -28,6 +25,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
             public abstract int Length { get; }
             public abstract VirtualChar this[int index] { get; }
+            public abstract VirtualChar? Find(int position);
         }
 
         /// <summary>
@@ -44,6 +42,28 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
             public override int Length => _array.Length;
             public override VirtualChar this[int index] => _array[index];
+
+            public override VirtualChar? Find(int position)
+            {
+                if (_array.Length == 0)
+                    return null;
+
+                if (position < _array[0].Span.Start || position >= _array[^1].Span.End)
+                    return null;
+
+                var index = _array.BinarySearch(position, static (ch, position) =>
+                {
+                    if (position < ch.Span.Start)
+                        return 1;
+
+                    if (position >= ch.Span.End)
+                        return -1;
+
+                    return 0;
+                });
+                Debug.Assert(index >= 0);
+                return _array[index];
+            }
         }
 
         /// <summary>
@@ -71,12 +91,21 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
             public override int Length => _underlyingData.Length;
 
+            public override VirtualChar? Find(int position)
+            {
+                var stringIndex = position - _firstVirtualCharPosition;
+                if (stringIndex < 0 || stringIndex >= _underlyingData.Length)
+                    return null;
+
+                return this[stringIndex];
+            }
+
             public override VirtualChar this[int index]
             {
                 get
                 {
 #if DEBUG
-                    // We should never have a property paired high/low surrogate in a StringChunk. We are only created
+                    // We should never have a properly paired high/low surrogate in a StringChunk. We are only created
                     // when the string has the same number of chars as there are VirtualChars.
                     if (char.IsHighSurrogate(_underlyingData[index]))
                     {

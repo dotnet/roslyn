@@ -857,7 +857,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 hasErrors = CheckSharedSymbolAccess(target, methodOrProperty.IsShared, receiver, group.QualificationKind, diagnostics)  ' give diagnostics if sharedness is wrong.
             End If
 
-            ReportDiagnosticsIfObsoleteOrNotSupportedByRuntime(diagnostics, methodOrProperty, node)
+            ReportDiagnosticsIfObsoleteOrNotSupported(diagnostics, methodOrProperty, node)
 
             hasErrors = hasErrors Or group.HasErrors
 
@@ -2424,7 +2424,9 @@ ProduceBoundNode:
                         ' Deal with Optional arguments
                         ' Need to handle optional arguments here, there could be conversion errors, etc.
 
-                        argument = GetArgumentForParameterDefaultValue(param, node, diagnostics, callerInfoOpt)
+                        ' reducedExtensionReceiverOpt is used to determine the default value of a CallerArgumentExpression when it refers to the first parameter of an extension method.
+                        ' Don't bother with correctly determining the correct value for this case since we're in an error case anyway.
+                        argument = GetArgumentForParameterDefaultValue(param, node, diagnostics, callerInfoOpt, parameterToArgumentMap, arguments, reducedExtensionReceiverOpt:=Nothing)
 
                         If argument Is Nothing Then
                             If Not includeMethodNameInErrorMessages Then
@@ -3098,7 +3100,13 @@ ProduceBoundNode:
 
         End Sub
 
-        Friend Function GetArgumentForParameterDefaultValue(param As ParameterSymbol, syntax As SyntaxNode, diagnostics As BindingDiagnosticBag, callerInfoOpt As SyntaxNode) As BoundExpression
+        Friend Function GetArgumentForParameterDefaultValue(param As ParameterSymbol,
+                                                            syntax As SyntaxNode,
+                                                            diagnostics As BindingDiagnosticBag,
+                                                            callerInfoOpt As SyntaxNode,
+                                                            parameterToArgumentMap As ArrayBuilder(Of Integer),
+                                                            arguments As ImmutableArray(Of BoundExpression),
+                                                            reducedExtensionReceiverOpt As BoundExpression) As BoundExpression
             Dim defaultArgument As BoundExpression = Nothing
 
             ' See Section 3 of §11.8.2 Applicable Methods
@@ -3114,8 +3122,11 @@ ProduceBoundNode:
                     Dim isCallerLineNumber As Boolean = param.IsCallerLineNumber
                     Dim isCallerMemberName As Boolean = param.IsCallerMemberName
                     Dim isCallerFilePath As Boolean = param.IsCallerFilePath
+                    Dim callerArgumentExpressionParameterIndex As Integer = param.CallerArgumentExpressionParameterIndex
 
-                    If isCallerLineNumber OrElse isCallerMemberName OrElse isCallerFilePath Then
+                    Dim isCallerArgumentExpression = callerArgumentExpressionParameterIndex > -1 OrElse (reducedExtensionReceiverOpt IsNot Nothing AndAlso callerArgumentExpressionParameterIndex > -2)
+
+                    If isCallerLineNumber OrElse isCallerMemberName OrElse isCallerFilePath OrElse isCallerArgumentExpression Then
                         Dim callerInfoValue As ConstantValue = Nothing
 
                         If isCallerLineNumber Then
@@ -3149,9 +3160,25 @@ ProduceBoundNode:
                             If container IsNot Nothing AndAlso container.Name IsNot Nothing Then
                                 callerInfoValue = ConstantValue.Create(container.Name)
                             End If
-                        Else
-                            Debug.Assert(isCallerFilePath)
+                        ElseIf isCallerFilePath Then
                             callerInfoValue = ConstantValue.Create(callerInfoOpt.SyntaxTree.GetDisplayPath(callerInfoOpt.Span, Me.Compilation.Options.SourceReferenceResolver))
+                        Else
+                            Debug.Assert(callerArgumentExpressionParameterIndex > -1 OrElse (reducedExtensionReceiverOpt IsNot Nothing AndAlso callerArgumentExpressionParameterIndex > -2))
+
+                            Dim argumentSyntax As SyntaxNode = Nothing
+                            If callerArgumentExpressionParameterIndex = -1 Then
+                                argumentSyntax = reducedExtensionReceiverOpt.Syntax
+                            Else
+                                Dim argumentIndex = parameterToArgumentMap(callerArgumentExpressionParameterIndex)
+                                Debug.Assert(argumentIndex < arguments.Length)
+                                If argumentIndex > -1 Then
+                                    argumentSyntax = arguments(argumentIndex).Syntax
+                                End If
+                            End If
+
+                            If argumentSyntax IsNot Nothing Then
+                                callerInfoValue = ConstantValue.Create(argumentSyntax.ToString())
+                            End If
                         End If
 
                         If callerInfoValue IsNot Nothing Then

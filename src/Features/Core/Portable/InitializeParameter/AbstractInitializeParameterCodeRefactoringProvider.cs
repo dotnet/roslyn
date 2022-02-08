@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         protected abstract Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
             Document document,
+            TParameterSyntax parameterSyntax,
             IParameterSymbol parameter,
             SyntaxNode functionDeclaration,
             IMethodSymbol methodSymbol,
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
         protected abstract void InsertStatement(
             SyntaxEditor editor, SyntaxNode functionDeclaration, bool returnsVoid,
-            SyntaxNode? statementToAddAfterOpt, TStatementSyntax statement);
+            SyntaxNode? statementToAddAfter, TStatementSyntax statement);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                 // Ok.  Looks like the selected parameter could be refactored. Defer to subclass to 
                 // actually determine if there are any viable refactorings here.
                 var refactorings = await GetRefactoringsForSingleParameterAsync(
-                    document, parameter, functionDeclaration, methodSymbol, blockStatementOpt, cancellationToken).ConfigureAwait(false);
+                    document, selectedParameter, parameter, functionDeclaration, methodSymbol, blockStatementOpt, cancellationToken).ConfigureAwait(false);
                 context.RegisterRefactorings(refactorings, context.Span);
             }
 
@@ -173,7 +174,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             // get it via `IAnonymousFunctionOperation.Body` instead of getting it directly from the body syntax.
 
             var operation = semanticModel.GetOperation(
-                syntaxFacts.IsAnonymousFunction(functionDeclaration) ? functionDeclaration : functionBody,
+                syntaxFacts.IsAnonymousFunctionExpression(functionDeclaration) ? functionDeclaration : functionBody,
                 cancellationToken);
 
             if (operation == null)

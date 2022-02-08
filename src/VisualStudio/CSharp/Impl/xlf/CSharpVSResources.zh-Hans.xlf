@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../CSharpVSResources.resx">
     <body>
@@ -37,6 +37,11 @@
         <target state="translated">自动显示参数列表中的补全列表</target>
         <note />
       </trans-unit>
+      <trans-unit id="Block_scoped">
+        <source>Block scoped</source>
+        <target state="translated">块范围限定</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CSharp">
         <source>C#</source>
         <target state="translated">C#</target>
@@ -65,6 +70,11 @@
       <trans-unit id="Edit_color_scheme">
         <source>Edit color scheme</source>
         <target state="translated">编辑配色方案</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="File_scoped">
+        <source>File scoped</source>
+        <target state="translated">文件范围限定</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
@@ -112,6 +122,11 @@
         <target state="translated">对于对象、集合、数组和 with 初始值设定项，另起一行放置左花括号</target>
         <note>{Locked="with"}</note>
       </trans-unit>
+      <trans-unit id="Prefer_extended_property_pattern">
+        <source>Prefer extended property pattern</source>
+        <target state="translated">首选扩展属性模式</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
         <source>Prefer implicit object creation when type is apparent</source>
         <target state="translated">类型明显时首选隐式对象创建</target>
@@ -124,7 +139,12 @@
       </trans-unit>
       <trans-unit id="Prefer_null_check_over_type_check">
         <source>Prefer 'null' check over type check</source>
-        <target state="new">Prefer 'null' check over type check</target>
+        <target state="translated">与类型检查相比，首选 Null 检查</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_parameter_null_checking">
+        <source>Prefer parameter null checking</source>
+        <target state="new">Prefer parameter null checking</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">

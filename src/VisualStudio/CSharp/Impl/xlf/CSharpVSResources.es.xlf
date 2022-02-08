@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="es" original="../CSharpVSResources.resx">
     <body>
@@ -37,6 +37,11 @@
         <target state="translated">Mostrar automáticamente la lista de finalización en las listas de argumentos</target>
         <note />
       </trans-unit>
+      <trans-unit id="Block_scoped">
+        <source>Block scoped</source>
+        <target state="translated">Bloque con ámbito</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CSharp">
         <source>C#</source>
         <target state="translated">C#</target>
@@ -65,6 +70,11 @@
       <trans-unit id="Edit_color_scheme">
         <source>Edit color scheme</source>
         <target state="translated">Editar esquema de color</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="File_scoped">
+        <source>File scoped</source>
+        <target state="translated">Archivo con ámbito</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
@@ -112,6 +122,11 @@
         <target state="translated">Colocar llave de apertura en la nueva línea para los inicializadores de objeto, colección, matriz y with</target>
         <note>{Locked="with"}</note>
       </trans-unit>
+      <trans-unit id="Prefer_extended_property_pattern">
+        <source>Prefer extended property pattern</source>
+        <target state="translated">Preferir patrón de propiedad extendido</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_implicit_object_creation_when_type_is_apparent">
         <source>Prefer implicit object creation when type is apparent</source>
         <target state="translated">Preferir la creación implícita de objetos cuando el tipo sea aparente</target>
@@ -124,7 +139,12 @@
       </trans-unit>
       <trans-unit id="Prefer_null_check_over_type_check">
         <source>Prefer 'null' check over type check</source>
-        <target state="new">Prefer 'null' check over type check</target>
+        <target state="translated">Preferir comprobación "null' sobre comprobación de tipo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_parameter_null_checking">
+        <source>Prefer parameter null checking</source>
+        <target state="new">Prefer parameter null checking</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_pattern_matching">

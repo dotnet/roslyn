@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly int _memberOffset;
 
-        protected SynthesizedRecordOrdinaryMethod(SourceMemberContainerTypeSymbol containingType, string name, bool hasBody, int memberOffset, BindingDiagnosticBag diagnostics)
+        protected SynthesizedRecordOrdinaryMethod(SourceMemberContainerTypeSymbol containingType, string name, bool isReadOnly, bool hasBody, int memberOffset, BindingDiagnosticBag diagnostics)
             : base(containingType, name, containingType.Locations[0], (CSharpSyntaxNode)containingType.SyntaxReferences[0].GetSyntax(), MethodKind.Ordinary,
-                   isIterator: false, isExtensionMethod: false, isPartial: false, hasBody: hasBody, isNullableAnalysisEnabled: false, diagnostics)
+                   isIterator: false, isExtensionMethod: false, isPartial: false, isReadOnly: isReadOnly, hasBody: hasBody, isNullableAnalysisEnabled: false, diagnostics)
         {
             _memberOffset = memberOffset;
         }

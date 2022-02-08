@@ -6,27 +6,6 @@
 
 namespace TestResources
 {
-    public static class AnalyzerTests
-    {
-        private static byte[] s_faultyAnalyzer;
-        public static byte[] FaultyAnalyzer => ResourceLoader.GetOrCreateResource(ref s_faultyAnalyzer, "Analyzers.FaultyAnalyzer.dll");
-    }
-
-    public static class AssemblyLoadTests
-    {
-        private static byte[] s_alpha;
-        public static byte[] Alpha => ResourceLoader.GetOrCreateResource(ref s_alpha, "AssemblyLoadTests.Alpha.dll");
-
-        private static byte[] s_beta;
-        public static byte[] Beta => ResourceLoader.GetOrCreateResource(ref s_beta, "AssemblyLoadTests.Beta.dll");
-
-        private static byte[] s_delta;
-        public static byte[] Delta => ResourceLoader.GetOrCreateResource(ref s_delta, "AssemblyLoadTests.Delta.dll");
-
-        private static byte[] s_gamma;
-        public static byte[] Gamma => ResourceLoader.GetOrCreateResource(ref s_gamma, "AssemblyLoadTests.Gamma.dll");
-    }
-
     public static class DiagnosticTests
     {
         private static byte[] s_badresfile;

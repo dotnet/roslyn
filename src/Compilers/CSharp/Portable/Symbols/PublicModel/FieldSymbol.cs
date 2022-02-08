@@ -83,6 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         bool IFieldSymbol.IsFixedSizeBuffer => _underlying.IsFixedSizeBuffer;
 
+        int IFieldSymbol.FixedSize => _underlying.FixedSize;
+
         bool IFieldSymbol.HasConstantValue => _underlying.HasConstantValue;
 
         object IFieldSymbol.ConstantValue => _underlying.ConstantValue;

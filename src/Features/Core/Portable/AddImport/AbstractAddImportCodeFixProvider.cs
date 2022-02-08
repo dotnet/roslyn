@@ -6,7 +6,10 @@
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -31,6 +34,14 @@ namespace Microsoft.CodeAnalysis.AddImport
             _symbolSearchService = symbolSearchService;
         }
 
+        /// <summary>
+        /// Add-using gets special privileges as being the most used code-action, along with being a core
+        /// 'smart tag' feature in VS prior to us even having 'light bulbs'.  We want them to be computed
+        /// first, ahead of everything else, and the main results should show up at the top of the list.
+        /// </summary>
+        private protected override CodeActionRequestPriority ComputeRequestPriority()
+            => CodeActionRequestPriority.High;
+
         public sealed override FixAllProvider GetFixAllProvider()
         {
             // Currently Fix All is not supported for this provider
@@ -48,12 +59,17 @@ namespace Microsoft.CodeAnalysis.AddImport
             var addImportService = document.GetLanguageService<IAddImportFeatureService>();
 
             var solution = document.Project.Solution;
-            var options = solution.Options;
 
-            var searchReferenceAssemblies = options.GetOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, document.Project.Language);
-            var searchNuGetPackages = options.GetOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, document.Project.Language);
+            var searchNuGetPackages = solution.Options.GetOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, document.Project.Language);
 
-            var symbolSearchService = searchReferenceAssemblies || searchNuGetPackages
+            var placement = await AddImportPlacementOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+
+            var options = new AddImportOptions(
+                context.Options.SearchReferenceAssemblies,
+                context.Options.HideAdvancedMembers,
+                placement);
+
+            var symbolSearchService = options.SearchReferenceAssemblies || searchNuGetPackages
                 ? _symbolSearchService ?? solution.Workspace.Services.GetService<ISymbolSearchService>()
                 : null;
 
@@ -63,7 +79,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 : ImmutableArray<PackageSource>.Empty;
 
             var fixesForDiagnostic = await addImportService.GetFixesForDiagnosticsAsync(
-                document, span, diagnostics, MaxResults, symbolSearchService, searchReferenceAssemblies, packageSources, cancellationToken).ConfigureAwait(false);
+                document, span, diagnostics, MaxResults, symbolSearchService, options, packageSources, cancellationToken).ConfigureAwait(false);
 
             foreach (var (diagnostic, fixes) in fixesForDiagnostic)
             {

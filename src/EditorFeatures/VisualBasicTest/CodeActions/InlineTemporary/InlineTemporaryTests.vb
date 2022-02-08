@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.I
         Inherits AbstractVisualBasicCodeActionTest
 
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
-            Return New InlineTemporaryCodeRefactoringProvider()
+            Return New VisualBasicInlineTemporaryCodeRefactoringProvider()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
@@ -2903,7 +2903,7 @@ Imports System.Linq
 Module Program
     Sub Main()
         Dim y = From x In ""
- _
+                            _
         [Take]()
         Dim t = 1
     End Sub
@@ -2939,7 +2939,7 @@ Imports System.Linq
 Module Program
     Sub Main()
         Dim y = From x In ""
- _ ' Test
+                            _ ' Test
         [Take]()
         Dim t = 1
     End Sub

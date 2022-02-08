@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected abstract Task<SyntaxNode> GenerateBodyForCallSiteContainerAsync(CancellationToken cancellationToken);
             protected abstract SyntaxNode GetPreviousMember(SemanticDocument document);
             protected abstract OperationStatus<IMethodSymbol> GenerateMethodDefinition(bool localFunction, CancellationToken cancellationToken);
+            protected abstract bool ShouldLocalFunctionCaptureParameter(SyntaxNode node);
 
             protected abstract SyntaxToken CreateIdentifier(string name);
             protected abstract SyntaxToken CreateMethodName();
@@ -104,10 +105,15 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                             OperationStatus.NoValidLocationToInsertMethodCall, callSiteDocument, cancellationToken).ConfigureAwait(false);
                     }
 
-                    var localMethod = codeGenerationService.CreateMethodDeclaration(
-                        method: result.Data,
-                        options: new CodeGenerationOptions(generateDefaultAccessibility: false, generateMethodBodies: true, options: Options, parseOptions: destination?.SyntaxTree.Options));
-                    newContainer = codeGenerationService.AddStatements(destination, new[] { localMethod }, cancellationToken: cancellationToken);
+                    var options = codeGenerationService.GetOptions(
+                        destination.SyntaxTree.Options,
+                        Options,
+                        new CodeGenerationContext(
+                            generateDefaultAccessibility: false,
+                            generateMethodBodies: true));
+
+                    var localMethod = codeGenerationService.CreateMethodDeclaration(result.Data, CodeGenerationDestination.Unspecified, options, cancellationToken);
+                    newContainer = codeGenerationService.AddStatements(destination, new[] { localMethod }, options, cancellationToken);
                 }
                 else
                 {
@@ -115,15 +121,20 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                     // it is possible in a script file case where there is no previous member. in that case, insert new text into top level script
                     destination = previousMemberNode.Parent ?? previousMemberNode;
-                    newContainer = codeGenerationService.AddMethod(
-                        destination, result.Data,
-                        new CodeGenerationOptions(afterThisLocation: previousMemberNode.GetLocation(), generateDefaultAccessibility: true, generateMethodBodies: true, options: Options),
-                        cancellationToken);
+
+                    var options = codeGenerationService.GetOptions(
+                        destination.SyntaxTree.Options,
+                        Options,
+                        new CodeGenerationContext(
+                            afterThisLocation: previousMemberNode.GetLocation(),
+                            generateDefaultAccessibility: true,
+                            generateMethodBodies: true));
+
+                    newContainer = codeGenerationService.AddMethod(destination, result.Data, options, cancellationToken);
                 }
 
                 var newSyntaxRoot = newCallSiteRoot.ReplaceNode(destination, newContainer);
                 var newDocument = callSiteDocument.Document.WithSyntaxRoot(newSyntaxRoot);
-                newDocument = await Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, null, cancellationToken).ConfigureAwait(false);
 
                 var generatedDocument = await SemanticDocument.CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
 
@@ -335,19 +346,22 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected ImmutableArray<IParameterSymbol> CreateMethodParameters()
             {
                 var parameters = ArrayBuilder<IParameterSymbol>.GetInstance();
-
+                var isLocalFunction = LocalFunction && ShouldLocalFunctionCaptureParameter(SemanticDocument.Root);
                 foreach (var parameter in AnalyzerResult.MethodParameters)
                 {
-                    var refKind = GetRefKind(parameter.ParameterModifier);
-                    var type = parameter.GetVariableType(SemanticDocument);
+                    if (!isLocalFunction || !parameter.CanBeCapturedByLocalFunction)
+                    {
+                        var refKind = GetRefKind(parameter.ParameterModifier);
+                        var type = parameter.GetVariableType(SemanticDocument);
 
-                    parameters.Add(
-                        CodeGenerationSymbolFactory.CreateParameterSymbol(
-                            attributes: ImmutableArray<AttributeData>.Empty,
-                            refKind: refKind,
-                            isParams: false,
-                            type: type,
-                            name: parameter.Name));
+                        parameters.Add(
+                            CodeGenerationSymbolFactory.CreateParameterSymbol(
+                                attributes: ImmutableArray<AttributeData>.Empty,
+                                refKind: refKind,
+                                isParams: false,
+                                type: type,
+                                name: parameter.Name));
+                    }
                 }
 
                 return parameters.ToImmutableAndFree();

@@ -100,7 +100,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)disposableInterface != null);
             bool hasErrors = ReportUseSite(disposableInterface, diagnostics, hasAwait ? awaitKeyword : usingKeyword);
 
-            Conversion iDisposableConversion;
             ImmutableArray<BoundLocalDeclaration> declarationsOpt = default;
             BoundMultipleLocalDeclarations? multipleDeclarationsOpt = null;
             BoundExpression? expressionOpt = null;
@@ -111,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isExpression)
             {
                 expressionOpt = usingBinderOpt!.BindTargetExpression(diagnostics, originalBinder);
-                hasErrors |= !populateDisposableConversionOrDisposeMethod(fromExpression: true, out iDisposableConversion, out patternDisposeInfo, out awaitableTypeOpt);
+                hasErrors |= !bindDisposable(fromExpression: true, out patternDisposeInfo, out awaitableTypeOpt);
             }
             else
             {
@@ -124,13 +123,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (declarationTypeOpt.IsDynamic())
                 {
-                    iDisposableConversion = Conversion.ImplicitDynamic;
                     patternDisposeInfo = null;
                     awaitableTypeOpt = null;
                 }
                 else
                 {
-                    hasErrors |= !populateDisposableConversionOrDisposeMethod(fromExpression: false, out iDisposableConversion, out patternDisposeInfo, out awaitableTypeOpt);
+                    hasErrors |= !bindDisposable(fromExpression: false, out patternDisposeInfo, out awaitableTypeOpt);
                 }
             }
 
@@ -156,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // In the future it might be better to have a separate shared type that we add the info to, and have the callers create the appropriate bound nodes from it
             if (isUsingDeclaration)
             {
-                return new BoundUsingLocalDeclarations(syntax, patternDisposeInfo, iDisposableConversion, awaitOpt, declarationsOpt, hasErrors);
+                return new BoundUsingLocalDeclarations(syntax, patternDisposeInfo, awaitOpt, declarationsOpt, hasErrors);
             }
             else
             {
@@ -167,17 +165,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     usingBinderOpt.Locals,
                     multipleDeclarationsOpt,
                     expressionOpt,
-                    iDisposableConversion,
                     boundBody,
                     awaitOpt,
                     patternDisposeInfo,
                     hasErrors);
             }
 
-            bool populateDisposableConversionOrDisposeMethod(bool fromExpression, out Conversion iDisposableConversion, out MethodArgumentInfo? patternDisposeInfo, out TypeSymbol? awaitableType)
+            bool bindDisposable(bool fromExpression, out MethodArgumentInfo? patternDisposeInfo, out TypeSymbol? awaitableType)
             {
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = originalBinder.GetNewCompoundUseSiteInfo(diagnostics);
-                iDisposableConversion = classifyConversion(fromExpression, disposableInterface, ref useSiteInfo);
+                Conversion iDisposableConversion = classifyConversion(fromExpression, disposableInterface, ref useSiteInfo);
                 patternDisposeInfo = null;
                 awaitableType = null;
 
@@ -257,9 +254,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Conversion classifyConversion(bool fromExpression, TypeSymbol targetInterface, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
             {
-                return fromExpression ?
-                    originalBinder.Conversions.ClassifyImplicitConversionFromExpression(expressionOpt, targetInterface, ref useSiteInfo) :
-                    originalBinder.Conversions.ClassifyImplicitConversionFromType(declarationTypeOpt, targetInterface, ref useSiteInfo);
+                var conversions = originalBinder.Conversions;
+                if (fromExpression)
+                {
+                    Debug.Assert(expressionOpt is { });
+                    var result = conversions.ClassifyImplicitConversionFromExpression(expressionOpt, targetInterface, ref useSiteInfo);
+
+                    Debug.Assert(expressionOpt.Type?.IsDynamic() != true || result.Kind == ConversionKind.ImplicitDynamic);
+                    return result;
+                }
+                else
+                {
+                    Debug.Assert(declarationTypeOpt is { });
+                    var result = conversions.ClassifyImplicitConversionFromType(declarationTypeOpt, targetInterface, ref useSiteInfo);
+
+                    Debug.Assert(!declarationTypeOpt.IsDynamic() || result.Kind == ConversionKind.ImplicitDynamic);
+                    return result;
+                }
             }
 
             TypeSymbol getDisposableInterface(bool isAsync)

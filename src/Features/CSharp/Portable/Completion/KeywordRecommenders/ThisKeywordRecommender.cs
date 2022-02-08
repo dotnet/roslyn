@@ -66,9 +66,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             if (context.SyntaxTree.IsParameterModifierContext(
                     context.Position, context.LeftToken, includeOperators: false, out var parameterIndex, out var previousModifier))
             {
-                if (previousModifier == SyntaxKind.None ||
-                    previousModifier == SyntaxKind.RefKeyword ||
-                    previousModifier == SyntaxKind.InKeyword)
+                if (previousModifier is SyntaxKind.None or
+                    SyntaxKind.RefKeyword or
+                    SyntaxKind.InKeyword)
                 {
                     if (parameterIndex == 0 &&
                         context.SyntaxTree.IsPossibleExtensionMethodContext(context.LeftToken))

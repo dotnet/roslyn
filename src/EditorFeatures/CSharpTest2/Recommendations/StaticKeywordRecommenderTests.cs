@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -102,6 +100,14 @@ $$");
         {
             await VerifyKeywordAsync(
 @"namespace N {}
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterFileScopedNamespace()
+        {
+            await VerifyKeywordAsync(
+@"namespace N;
 $$");
         }
 
@@ -487,7 +493,7 @@ System.Action x = async $$ (x) => { }"));
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAsyncLambdaParamInAssignment()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(@"
+            await VerifyKeywordAsync(AddInsideMethod(@"
 System.Action x = async async $$ (x) => { }"));
         }
 
@@ -515,21 +521,21 @@ M(param: $$"));
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInCallAfterRef()
         {
-            await VerifyKeywordAsync(AddInsideMethod(@"
+            await VerifyAbsenceAsync(AddInsideMethod(@"
 M(ref $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInCallAfterIn()
         {
-            await VerifyKeywordAsync(AddInsideMethod(@"
+            await VerifyAbsenceAsync(AddInsideMethod(@"
 M(in $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInCallAfterOut()
         {
-            await VerifyKeywordAsync(AddInsideMethod(@"
+            await VerifyAbsenceAsync(AddInsideMethod(@"
 M(in $$"));
         }
 

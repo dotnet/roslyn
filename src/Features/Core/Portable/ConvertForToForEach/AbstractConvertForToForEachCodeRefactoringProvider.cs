@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                         var shouldWarn = syntaxFacts.IsArgument(current.Parent);
                         shouldWarn |= semanticFacts.IsWrittenTo(semanticModel, current, cancellationToken);
                         shouldWarn |=
-                            syntaxFacts.IsAnyMemberAccessExpression(current.Parent) &&
+                            syntaxFacts.IsMemberAccessExpression(current.Parent) &&
                             syntaxFacts.IsInvocationExpression(current.Parent.Parent);
 
                         if (shouldWarn)
@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             bool CrossesFunctionBoundary(SyntaxNode node)
             {
                 var containingFunction = node.AncestorsAndSelf().FirstOrDefault(
-                    n => syntaxFacts.IsLocalFunctionStatement(n) || syntaxFacts.IsAnonymousFunction(n));
+                    n => syntaxFacts.IsLocalFunctionStatement(n) || syntaxFacts.IsAnonymousFunctionExpression(n));
 
                 if (containingFunction == null)
                 {

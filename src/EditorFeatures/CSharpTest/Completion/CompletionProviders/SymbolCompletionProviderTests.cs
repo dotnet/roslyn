@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Roslyn.Test.Utilities;
@@ -20,15 +19,11 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSetSources
 {
-
     [UseExportProvider]
     public partial class SymbolCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
         internal override Type GetCompletionProviderType()
             => typeof(SymbolCompletionProvider);
-
-        protected override TestComposition GetComposition()
-            => base.GetComposition().AddParts(typeof(TestExperimentationService));
 
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         [InlineData(SourceCodeKind.Regular)]
@@ -397,6 +392,18 @@ namespace $$";
 
         [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NamespaceName_Unqualified_TopLevelNoPeers_FileScopedNamespace()
+        {
+            var source = @"using System;
+
+namespace $$;";
+
+            await VerifyItemExistsAsync(source, "System", sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemIsAbsentAsync(source, "String", sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NamespaceName_Unqualified_TopLevelWithPeer()
         {
             var source = @"
@@ -546,6 +553,18 @@ namespace A.B.C3 { }";
 namespace A.B { }
 
 namespace A.$$";
+
+            await VerifyItemExistsAsync(source, "B", sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NamespaceName_Qualified_TopLevelWithPeer_FileScopedNamespace()
+        {
+            var source = @"
+namespace A.B { }
+
+namespace A.$$;";
 
             await VerifyItemExistsAsync(source, "B", sourceCodeKind: SourceCodeKind.Regular);
         }
@@ -1464,6 +1483,34 @@ $$";
         public async Task Parameters()
             => await VerifyItemExistsAsync(@"class c { void M(string args) { $$", "args");
 
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/55969")]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(55969, "https://github.com/dotnet/roslyn/issues/55969")]
+        public async Task Parameters_TopLevelStatement_1()
+            => await VerifyItemExistsAsync(@"$$", "args", sourceCodeKind: SourceCodeKind.Regular);
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/55969")]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(55969, "https://github.com/dotnet/roslyn/issues/55969")]
+        public async Task Parameters_TopLevelStatement_2()
+            => await VerifyItemExistsAsync(
+                @"using System;
+Console.WriteLine();
+$$", "args", sourceCodeKind: SourceCodeKind.Regular);
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/55969")]
+        [Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(55969, "https://github.com/dotnet/roslyn/issues/55969")]
+        public async Task Parameters_TopLevelStatement_3()
+            => await VerifyItemExistsAsync(
+                @"using System;
+$$", "args", sourceCodeKind: SourceCodeKind.Regular);
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(55969, "https://github.com/dotnet/roslyn/issues/55969")]
+        public async Task Parameters_TopLevelStatement_4()
+            => await VerifyItemExistsAsync(@"string first = $$", "args", sourceCodeKind: SourceCodeKind.Regular);
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task LambdaDiscardParameters()
             => await VerifyItemIsAbsentAsync(@"class C { void M() { System.Func<int, string, int> f = (int _, string _) => 1 + $$", "_");
@@ -2165,6 +2212,99 @@ class C
 }
 ";
             await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
+        public async Task AfterStaticLocalFunction_TypeOnly()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(String parameter)
+    {
+        static $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
+        }
+
+        [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("extern")]
+        [InlineData("static extern")]
+        [InlineData("extern static")]
+        [InlineData("async")]
+        [InlineData("static async")]
+        [InlineData("async static")]
+        [InlineData("unsafe")]
+        [InlineData("static unsafe")]
+        [InlineData("unsafe static")]
+        [InlineData("async unsafe")]
+        [InlineData("unsafe async")]
+        [InlineData("unsafe extern")]
+        [InlineData("extern unsafe")]
+        [InlineData("extern unsafe async static")]
+        public async Task AfterLocalFunction_TypeOnly(string keyword)
+        {
+            var markup = $@"
+using System;
+class C
+{{
+    void M(String parameter)
+    {{
+        {keyword} $$
+    }}
+}}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
+        public async Task AfterAsyncLocalFunctionWithTwoAsyncs()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(String parameter)
+    {
+        async async $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
+        }
+
+        [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData("void")]
+        [InlineData("string")]
+        [InlineData("String")]
+        [InlineData("(int, int)")]
+        [InlineData("async void")]
+        [InlineData("async System.Threading.Tasks.Task")]
+        [InlineData("int Function")]
+        public async Task NotAfterReturnTypeInLocalFunction(string returnType)
+        {
+            var markup = @$"
+using System;
+class C
+{{
+    void M(String parameter)
+    {{
+        static {returnType} $$
+    }}
+}}
+";
+            await VerifyItemIsAbsentAsync(markup, "String");
             await VerifyItemIsAbsentAsync(markup, "parameter");
         }
 
@@ -3317,7 +3457,7 @@ class C
             var expectedDescription =
 $@"({FeaturesResources.local_variable}) 'a a
 
-{FeaturesResources.Anonymous_Types_colon}
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} new {{  }}";
 
             await VerifyItemExistsAsync(markup, "a", expectedDescription);
@@ -4107,6 +4247,8 @@ public class Goo
     {
     }
 }";
+            HideAdvancedMembers = false;
+
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
@@ -4114,8 +4256,9 @@ public class Goo
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 1,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: false);
+                referencedLanguage: LanguageNames.CSharp);
+
+            HideAdvancedMembers = true;
 
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
@@ -4124,8 +4267,7 @@ public class Goo
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 0,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: true);
+                referencedLanguage: LanguageNames.CSharp);
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
@@ -4337,6 +4479,8 @@ public static class GooExtensions
     }
 }";
 
+            HideAdvancedMembers = false;
+
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
@@ -4344,8 +4488,9 @@ public static class GooExtensions
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 1,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: false);
+                referencedLanguage: LanguageNames.CSharp);
+
+            HideAdvancedMembers = true;
 
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
@@ -4354,8 +4499,7 @@ public static class GooExtensions
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 0,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: true);
+                referencedLanguage: LanguageNames.CSharp);
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
@@ -4965,6 +5109,8 @@ public class Goo
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
     public int bar;
 }";
+            HideAdvancedMembers = true;
+
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
@@ -4972,8 +5118,9 @@ public class Goo
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 0,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: true);
+                referencedLanguage: LanguageNames.CSharp);
+
+            HideAdvancedMembers = false;
 
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
@@ -4982,8 +5129,7 @@ public class Goo
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 1,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: false);
+                referencedLanguage: LanguageNames.CSharp);
         }
 
         [WorkItem(522440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/522440")]
@@ -5097,6 +5243,8 @@ public class Goo
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
     public int Bar {get; set;}
 }";
+            HideAdvancedMembers = true;
+
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
@@ -5104,8 +5252,9 @@ public class Goo
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 0,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: true);
+                referencedLanguage: LanguageNames.CSharp);
+
+            HideAdvancedMembers = false;
 
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
@@ -5114,8 +5263,7 @@ public class Goo
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 1,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: false);
+                referencedLanguage: LanguageNames.CSharp);
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
@@ -5201,15 +5349,7 @@ public class Goo
     {
     }
 }";
-            await VerifyItemInEditorBrowsableContextsAsync(
-                markup: markup,
-                referencedCode: referencedCode,
-                item: "Goo",
-                expectedSymbolsSameSolution: 1,
-                expectedSymbolsMetadataReference: 1,
-                sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: true);
+            HideAdvancedMembers = true;
 
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
@@ -5218,8 +5358,18 @@ public class Goo
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 1,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: false);
+                referencedLanguage: LanguageNames.CSharp);
+
+            HideAdvancedMembers = false;
+
+            await VerifyItemInEditorBrowsableContextsAsync(
+                markup: markup,
+                referencedCode: referencedCode,
+                item: "Goo",
+                expectedSymbolsSameSolution: 1,
+                expectedSymbolsMetadataReference: 1,
+                sourceLanguage: LanguageNames.CSharp,
+                referencedLanguage: LanguageNames.CSharp);
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
@@ -5376,6 +5526,9 @@ public class C
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Advanced)]
     public event Handler Changed;
 }";
+
+            HideAdvancedMembers = false;
+
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
@@ -5383,8 +5536,9 @@ public class C
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 1,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: false);
+                referencedLanguage: LanguageNames.CSharp);
+
+            HideAdvancedMembers = true;
 
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
@@ -5393,8 +5547,7 @@ public class C
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 0,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: true);
+                referencedLanguage: LanguageNames.CSharp);
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
@@ -5459,6 +5612,8 @@ class Program
 [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Advanced)]
 public delegate void Handler();";
 
+            HideAdvancedMembers = false;
+
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
@@ -5466,8 +5621,9 @@ public delegate void Handler();";
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 1,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: false);
+                referencedLanguage: LanguageNames.CSharp);
+
+            HideAdvancedMembers = true;
 
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
@@ -5476,8 +5632,7 @@ public delegate void Handler();";
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 0,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: true);
+                referencedLanguage: LanguageNames.CSharp);
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
@@ -5670,6 +5825,8 @@ class Program
 public class Goo
 {
 }";
+            HideAdvancedMembers = false;
+
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
@@ -5677,8 +5834,9 @@ public class Goo
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 1,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: false);
+                referencedLanguage: LanguageNames.CSharp);
+
+            HideAdvancedMembers = true;
 
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
@@ -5687,8 +5845,7 @@ public class Goo
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 0,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: true);
+                referencedLanguage: LanguageNames.CSharp);
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
@@ -5705,6 +5862,9 @@ class Program : $$
 public class Goo
 {
 }";
+
+            HideAdvancedMembers = false;
+
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
@@ -5712,8 +5872,9 @@ public class Goo
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 1,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: false);
+                referencedLanguage: LanguageNames.CSharp);
+
+            HideAdvancedMembers = true;
 
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
@@ -5722,8 +5883,7 @@ public class Goo
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 0,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: true);
+                referencedLanguage: LanguageNames.CSharp);
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
@@ -5750,6 +5910,8 @@ namespace NS
         }
     }
 }";
+            HideAdvancedMembers = false;
+
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
@@ -5757,8 +5919,9 @@ namespace NS
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 1,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: false);
+                referencedLanguage: LanguageNames.CSharp);
+
+            HideAdvancedMembers = true;
 
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
@@ -5767,8 +5930,7 @@ namespace NS
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 0,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: true);
+                referencedLanguage: LanguageNames.CSharp);
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
@@ -5925,6 +6087,8 @@ class Program
 public struct Goo
 {
 }";
+            HideAdvancedMembers = false;
+
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
@@ -5932,8 +6096,9 @@ public struct Goo
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 1,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: false);
+                referencedLanguage: LanguageNames.CSharp);
+
+            HideAdvancedMembers = true;
 
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
@@ -5942,8 +6107,7 @@ public struct Goo
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 0,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: true);
+                referencedLanguage: LanguageNames.CSharp);
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
@@ -5960,6 +6124,8 @@ class Program : $$
 public struct Goo
 {
 }";
+            HideAdvancedMembers = false;
+
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
@@ -5967,8 +6133,9 @@ public struct Goo
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 1,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: false);
+                referencedLanguage: LanguageNames.CSharp);
+
+            HideAdvancedMembers = true;
 
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
@@ -5977,8 +6144,7 @@ public struct Goo
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 0,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: true);
+                referencedLanguage: LanguageNames.CSharp);
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
@@ -6055,6 +6221,8 @@ class Program
 public enum Goo
 {
 }";
+            HideAdvancedMembers = false;
+
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
@@ -6062,8 +6230,9 @@ public enum Goo
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 1,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: false);
+                referencedLanguage: LanguageNames.CSharp);
+
+            HideAdvancedMembers = true;
 
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
@@ -6072,8 +6241,7 @@ public enum Goo
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 0,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: true);
+                referencedLanguage: LanguageNames.CSharp);
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
@@ -6198,6 +6366,8 @@ class Program
 public interface Goo
 {
 }";
+            HideAdvancedMembers = false;
+
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
@@ -6205,8 +6375,9 @@ public interface Goo
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 1,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: false);
+                referencedLanguage: LanguageNames.CSharp);
+
+            HideAdvancedMembers = true;
 
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
@@ -6215,8 +6386,7 @@ public interface Goo
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 0,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: true);
+                referencedLanguage: LanguageNames.CSharp);
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
@@ -6233,6 +6403,8 @@ class Program : $$
 public interface Goo
 {
 }";
+            HideAdvancedMembers = false;
+
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
@@ -6240,8 +6412,9 @@ public interface Goo
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 1,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: false);
+                referencedLanguage: LanguageNames.CSharp);
+
+            HideAdvancedMembers = true;
 
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
@@ -6250,8 +6423,7 @@ public interface Goo
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 0,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.CSharp,
-                hideAdvancedMembers: true);
+                referencedLanguage: LanguageNames.CSharp);
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
@@ -6271,6 +6443,7 @@ class Program
 <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Always)>
 Public Class Goo
 End Class";
+
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
@@ -6278,8 +6451,7 @@ End Class";
                 expectedSymbolsSameSolution: 1,
                 expectedSymbolsMetadataReference: 1,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.VisualBasic,
-                hideAdvancedMembers: false);
+                referencedLanguage: LanguageNames.VisualBasic);
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
@@ -6306,8 +6478,7 @@ End Class";
                 expectedSymbolsSameSolution: 0,
                 expectedSymbolsMetadataReference: 0,
                 sourceLanguage: LanguageNames.CSharp,
-                referencedLanguage: LanguageNames.VisualBasic,
-                hideAdvancedMembers: false);
+                referencedLanguage: LanguageNames.VisualBasic);
         }
 
         [WorkItem(7336, "DevDiv_Projects/Roslyn")]
@@ -7309,7 +7480,7 @@ public static class Consts
 {
     public const int C = 1;
 }";
-            await VerifyItemWithProjectReferenceAsync(markup, referencedCode, "C", 1, LanguageNames.CSharp, LanguageNames.CSharp, false);
+            await VerifyItemWithProjectReferenceAsync(markup, referencedCode, "C", 1, LanguageNames.CSharp, LanguageNames.CSharp);
         }
 
         [WorkItem(834605, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/834605")]
@@ -7437,7 +7608,7 @@ class C
         $$
     }
 }";
-            await VerifyItemWithAliasedMetadataReferencesAsync(markup, "Bar", "Bar", 1, "C#", "C#", false);
+            await VerifyItemWithAliasedMetadataReferencesAsync(markup, "Bar", "Bar", 1, "C#", "C#");
         }
 
         [WorkItem(635957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/635957")]
@@ -10668,7 +10839,7 @@ class AnotherBuilder
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
         public async Task TestTargetTypeFilterWithExperimentEnabled()
         {
-            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, true);
+            TargetTypedCompletionFilterFeatureFlag = true;
 
             var markup =
 @"public class C
@@ -10687,7 +10858,7 @@ class AnotherBuilder
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
         public async Task TestNoTargetTypeFilterWithExperimentDisabled()
         {
-            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, false);
+            TargetTypedCompletionFilterFeatureFlag = false;
 
             var markup =
 @"public class C
@@ -10706,7 +10877,7 @@ class AnotherBuilder
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
         public async Task TestTargetTypeFilter_NotOnObjectMembers()
         {
-            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, true);
+            TargetTypedCompletionFilterFeatureFlag = true;
 
             var markup =
 @"public class C
@@ -10724,7 +10895,7 @@ class AnotherBuilder
         [Fact, Trait(Traits.Feature, Traits.Features.TargetTypedCompletion)]
         public async Task TestTargetTypeFilter_NotNamedTypes()
         {
-            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, true);
+            TargetTypedCompletionFilterFeatureFlag = true;
 
             var markup =
 @"public class C
@@ -11267,7 +11438,7 @@ public class C
         public async Task TestTargetTypeCompletionDescription(string targetType, string expectedParameterList)
         {
             // Check the description displayed is based on symbol matches targeted type
-            SetExperimentOption(WellKnownExperimentNames.TargetTypedCompletionFilter, true);
+            TargetTypedCompletionFilterFeatureFlag = true;
 
             var markup =
 $@"public class C

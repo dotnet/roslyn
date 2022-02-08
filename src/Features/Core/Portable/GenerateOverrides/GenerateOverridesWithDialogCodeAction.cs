@@ -76,10 +76,9 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides
                     _document.Project.Solution,
                     _containingType,
                     members,
-                    new CodeGenerationOptions(
+                    new CodeGenerationContext(
                         afterThisLocation: afterThisLocation,
-                        contextLocation: syntaxTree.GetLocation(_textSpan),
-                        options: await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false)),
+                        contextLocation: syntaxTree.GetLocation(_textSpan)),
                     cancellationToken).ConfigureAwait(false);
 
                 return new CodeActionOperation[]

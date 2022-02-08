@@ -1202,7 +1202,7 @@ namespace System
                    {
                    }
                 }
-            ", targetFramework: TargetFramework.StandardCompat);
+            ", targetFramework: TargetFramework.NetStandard20);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -1238,7 +1238,7 @@ namespace System
                 {
                    public int Y;
                 }
-            ", targetFramework: TargetFramework.StandardCompat);
+            ", targetFramework: TargetFramework.NetStandard20);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -1272,7 +1272,7 @@ namespace System
                 {
                    void CM();
                 }
-            ", targetFramework: TargetFramework.StandardCompat);
+            ", targetFramework: TargetFramework.NetStandard20);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -1372,7 +1372,7 @@ class D<T>
                    void F();
                    void M<T, U, V>(T t, U u, V v);
                 }
-            ", targetFramework: TargetFramework.StandardCompat);
+            ", targetFramework: TargetFramework.NetStandard20);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -1585,7 +1585,7 @@ interface IB<T3, T4>
                    {
                    }
                 }
-            ", targetFramework: TargetFramework.StandardCompat);
+            ", targetFramework: TargetFramework.NetStandard20);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);

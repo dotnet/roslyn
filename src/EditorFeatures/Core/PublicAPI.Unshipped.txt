@@ -1,2 +1,1 @@
-*REMOVED*Microsoft.CodeAnalysis.Editor.Peek.IPeekableItemFactory
-*REMOVED*Microsoft.CodeAnalysis.Editor.Peek.IPeekableItemFactory.GetPeekableItemsAsync(Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.Project project, Microsoft.VisualStudio.Language.Intellisense.IPeekResultFactory peekResultFactory, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.VisualStudio.Language.Intellisense.IPeekableItem>>
+

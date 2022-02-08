@@ -249,6 +249,9 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     foreach (var invocation in invocations)
                     {
                         var argumentListSyntax = _syntaxFacts.GetArgumentListOfInvocationExpression(invocation);
+                        if (argumentListSyntax == null)
+                            continue;
+
                         editor.ReplaceNode(argumentListSyntax, (currentArgumentListSyntax, _) =>
                         {
                             return GenerateNewArgumentListSyntaxForTrampoline(compilation, invocationSemanticModel,
@@ -356,7 +359,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             {
                 var methodName = _generator.IdentifierName(newMethodIdentifier);
                 var fullExpression = _syntaxFacts.GetExpressionOfInvocationExpression(invocation);
-                if (_syntaxFacts.IsAnyMemberAccessExpression(fullExpression))
+                if (_syntaxFacts.IsMemberAccessExpression(fullExpression))
                 {
                     var receiverExpression = _syntaxFacts.GetExpressionOfMemberAccessExpression(fullExpression);
                     methodName = _generator.MemberAccessExpression(receiverExpression, newMethodIdentifier);
@@ -446,12 +449,14 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 string? newMethodIdentifier, ITypeSymbol? typeSymbol, bool isTrampoline, CancellationToken cancellationToken)
             {
                 var codeGenerationService = _originalDocument.GetRequiredLanguageService<ICodeGenerationService>();
-                var options = await _originalDocument.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var codeGenOptions = await CodeGenerationOptions.FromDocumentAsync(CodeGenerationContext.Default, _originalDocument, cancellationToken).ConfigureAwait(false);
 
                 var newMethod = isTrampoline
                     ? CodeGenerationSymbolFactory.CreateMethodSymbol(_methodSymbol, name: newMethodIdentifier, parameters: validParameters, statements: ImmutableArray.Create(newStatement), returnType: typeSymbol)
                     : CodeGenerationSymbolFactory.CreateMethodSymbol(_methodSymbol, statements: ImmutableArray.Create(newStatement), containingType: _methodSymbol.ContainingType);
-                var newMethodDeclaration = codeGenerationService.CreateMethodDeclaration(newMethod, options: new CodeGenerationOptions(options: options, parseOptions: _expression.SyntaxTree.Options));
+
+                var newMethodDeclaration = codeGenerationService.CreateMethodDeclaration(newMethod, CodeGenerationDestination.Unspecified, codeGenOptions, cancellationToken);
+                Contract.ThrowIfNull(newMethodDeclaration);
                 return newMethodDeclaration;
             }
 
@@ -497,6 +502,9 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     var argumentListSyntax = invocation is TObjectCreationExpressionSyntax
                         ? _syntaxFacts.GetArgumentListOfObjectCreationExpression(invocation)
                         : _syntaxFacts.GetArgumentListOfInvocationExpression(invocation);
+
+                    if (argumentListSyntax == null)
+                        continue;
 
                     var invocationArguments = _syntaxFacts.GetArgumentsOfArgumentList(argumentListSyntax);
                     parameterToArgumentMap.Clear();

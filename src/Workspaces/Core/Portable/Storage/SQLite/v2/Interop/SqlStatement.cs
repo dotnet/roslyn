@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2.Interop
             // Anything other than DONE or ROW is an error when stepping.
             // throw if the caller wants that, or just return the value
             // otherwise.
-            if (stepResult != Result.DONE && stepResult != Result.ROW)
+            if (stepResult is not Result.DONE and not Result.ROW)
             {
                 if (throwOnError)
                 {

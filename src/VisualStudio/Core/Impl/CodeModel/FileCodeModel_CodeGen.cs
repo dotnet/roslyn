@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -16,6 +14,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalE
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
@@ -154,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             return (EnvDTE80.CodeAttributeArgument)CodeModelService.CreateInternalCodeElement(this.State, fileCodeModel: this, node: newNode);
         }
 
-        internal EnvDTE.CodeAttribute AddAttribute(SyntaxNode containerNode, string name, string value, object position, string target = null)
+        internal EnvDTE.CodeAttribute AddAttribute(SyntaxNode containerNode, string name, string value, object position, string? target = null)
         {
             containerNode = CodeModelService.GetNodeWithAttributes(containerNode);
             var attributeNode = CodeModelService.CreateAttributeNode(CodeModelService.GetUnescapedName(name), value, target);
@@ -196,10 +195,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             var semanticModel = GetSemanticModel();
 
             var baseArray = GetValidArray(bases, allowMultipleElements: false);
-            Debug.Assert(baseArray.Length == 0 || baseArray.Length == 1);
+            Debug.Assert(baseArray.Length is 0 or 1);
 
             var baseTypeSymbol = baseArray.Length == 1
-                ? (INamedTypeSymbol)CodeModelService.GetTypeSymbol(baseArray[0], semanticModel, containerNodePosition)
+                ? (INamedTypeSymbol?)CodeModelService.GetTypeSymbol(baseArray[0], semanticModel, containerNodePosition)
                 : null;
 
             var implementedInterfaceArray = GetValidArray(implementedInterfaces, allowMultipleElements: true);
@@ -251,14 +250,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public EnvDTE.CodeVariable AddEnumMember(SyntaxNode containerNode, string name, object value, object position)
         {
-            if (value != null && !(value is string))
+            if (value is not null and not string)
             {
                 throw Exceptions.ThrowEInvalidArg();
             }
 
             var semanticModel = GetSemanticModel();
 
-            var type = semanticModel.GetDeclaredSymbol(containerNode) as ITypeSymbol;
+            var type = (ITypeSymbol?)semanticModel.GetDeclaredSymbol(containerNode);
+            if (type == null)
+            {
+                throw Exceptions.ThrowEInvalidArg();
+            }
+
             var newField = CreateFieldDeclaration(containerNode, CodeModelService.GetUnescapedName(name), EnvDTE.vsCMAccess.vsCMAccessPublic, type);
             if (value != null)
             {
@@ -293,8 +297,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             SyntaxNode newMember;
 
-            if (kind == EnvDTE.vsCMFunction.vsCMFunctionSub ||
-                kind == EnvDTE.vsCMFunction.vsCMFunctionFunction)
+            if (kind is EnvDTE.vsCMFunction.vsCMFunctionSub or
+                EnvDTE.vsCMFunction.vsCMFunctionFunction)
             {
                 var containerNodePosition = containerNode.SpanStart;
                 var semanticModel = GetSemanticModel();
@@ -646,7 +650,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
         }
 
-        private static int? GetRealPosition(object position)
+        private static int? GetRealPosition(object? position)
         {
             int? realPosition;
 
@@ -676,7 +680,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             return realPosition;
         }
 
-        internal void AddBase(SyntaxNode node, object @base, object position = null)
+        internal void AddBase(SyntaxNode node, object @base, object? position = null)
         {
             var semanticModel = GetSemanticModel();
             var typeSymbol = CodeModelService.GetTypeSymbol(@base, semanticModel, node.SpanStart);
@@ -712,7 +716,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
         }
 
-        internal string AddImplementedInterface(SyntaxNode node, object @base, object position = null)
+        internal string AddImplementedInterface(SyntaxNode node, object @base, object? position = null)
         {
             var semanticModel = GetSemanticModel();
             var typeSymbol = CodeModelService.GetTypeSymbol(@base, semanticModel, node.SpanStart);

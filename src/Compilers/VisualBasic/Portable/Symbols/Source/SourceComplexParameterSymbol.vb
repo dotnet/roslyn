@@ -2,15 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Binder
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -248,6 +244,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Dim data = attributeSource.GetEarlyDecodedWellKnownAttributeData()
                 Return data IsNot Nothing AndAlso data.HasCallerFilePathAttribute
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property CallerArgumentExpressionParameterIndex As Integer
+            Get
+                Dim attributeSource As SourceParameterSymbol = If(Me.BoundAttributesSource, Me)
+
+                Dim data = attributeSource.GetEarlyDecodedWellKnownAttributeData()
+                If data Is Nothing Then
+                    Return -1
+                End If
+
+                Return data.CallerArgumentExpressionParameterIndex
             End Get
         End Property
 

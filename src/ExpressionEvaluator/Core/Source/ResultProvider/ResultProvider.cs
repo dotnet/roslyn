@@ -33,15 +33,23 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     /// </remarks>
     public abstract class ResultProvider : IDkmClrResultProvider
     {
-        static ResultProvider()
-        {
-            FatalError.Handler = FailFast.OnFatalException;
-        }
+        // TODO: There is a potential that these values will conflict with debugger defined flags in future.
+        // It'd be better if we attached these flags to the DkmClrValue object via data items, however DkmClrValue is currently mutable
+        // and we can't clone it -- in some cases we might need to attach different flags in different code paths and it wouldn't be possible
+        // to do so due to mutability.
+        // See https://github.com/dotnet/roslyn/issues/55676.
+        internal const DkmEvaluationFlags NotRoot = (DkmEvaluationFlags)(1 << 30);
+        internal const DkmEvaluationFlags NoResults = (DkmEvaluationFlags)(1 << 31);
 
         // Fields should be removed and replaced with calls through DkmInspectionContext.
         // (see https://github.com/dotnet/roslyn/issues/6899).
         internal readonly IDkmClrFormatter2 Formatter2;
         internal readonly IDkmClrFullNameProvider FullNameProvider;
+
+        static ResultProvider()
+        {
+            FatalError.Handler = FailFast.Handler;
+        }
 
         internal ResultProvider(IDkmClrFormatter2 formatter2, IDkmClrFullNameProvider fullNameProvider)
         {
@@ -100,9 +108,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 throw ExceptionUtilities.Unreachable;
             }
         }
-
-        internal const DkmEvaluationFlags NotRoot = (DkmEvaluationFlags)0x20000;
-        internal const DkmEvaluationFlags NoResults = (DkmEvaluationFlags)0x40000;
 
         void IDkmClrResultProvider.GetChildren(DkmEvaluationResult evaluationResult, DkmWorkList workList, int initialRequestSize, DkmInspectionContext inspectionContext, DkmCompletionRoutine<DkmGetChildrenAsyncResult> completionRoutine)
         {

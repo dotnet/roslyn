@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -3211,7 +3212,7 @@ class C
                 .Select(x => x.Substring(x.IndexOf("//-", StringComparison.Ordinal) + 3).Trim())
                 .ToArray());
 
-            Assert.Equal(expected, results);
+            AssertEx.Equal(expected, results);
         }
 
         private void TestOperatorKinds(string source)
@@ -3240,7 +3241,21 @@ class C
                                               child.Text == "isDynamic" ||
                                               child.Text == "leftConversion" ||
                                               child.Text == "finalConversion"
-                                        select child.Text + ": " + (child.Text == "@operator" ? ((BinaryOperatorSignature)child.Value).Kind.ToString() : child.Value.ToString())));
+                                        select child.Text + ": " +
+                                               (child.Text switch
+                                               {
+                                                   "@operator" => ((BinaryOperatorSignature)child.Value).Kind.ToString(),
+                                                   "leftConversion" or "finalConversion" => (child.Children.SingleOrDefault() is TreeDumperNode node ?
+                                                                                                (node.Text switch
+                                                                                                {
+                                                                                                    "conversion" => node.Children.ElementAt(1).Value,
+                                                                                                    "valuePlaceholder" => Conversion.Identity,
+                                                                                                    _ => throw ExceptionUtilities.UnexpectedValue(node.Text)
+                                                                                                }) :
+                                                                                                Conversion.NoConversion
+                                                                                            ).ToString(),
+                                                   _ => child.Value.ToString()
+                                               })));
         }
 
         private void TestTypes(string source)
@@ -4976,7 +4991,7 @@ struct A
             CreateCompilation(source).VerifyDiagnostics(
                 // (8,18): error CS0457: Ambiguous user defined conversions 'B.implicit operator A(B)' and 'A.implicit operator A(B)' when converting from 'B' to 'A'
                 //         var c2 = b2 ?? a2;
-                Diagnostic(ErrorCode.ERR_AmbigUDConv, "b2").WithArguments("B.implicit operator A(B)", "A.implicit operator A(B)", "B", "A"));
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "b2 ?? a2").WithArguments("B.implicit operator A(B)", "A.implicit operator A(B)", "B", "A").WithLocation(8, 18));
         }
 
         [WorkItem(541343, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541343")]
@@ -11099,7 +11114,7 @@ public class C {
             // we produced a diagnostic.  However, the compiler still consumed O(n^2) memory for the
             // concatenation and this test used to consume so much memory that it would cause other tests running
             // in parallel to fail because they might not have enough memory to succeed.  So the test was
-            // disabled and eventually removed.  The compiler would still crash with programs constaining large
+            // disabled and eventually removed.  The compiler would still crash with programs containing large
             // string concatenations, so the underlying problem had not been addressed.  Now we have revised the
             // implementation of constant folding so that it requires O(n) memory. As a consequence this test now
             // runs very quickly and does not consume gobs of memory.
@@ -11174,7 +11189,7 @@ class M
             {
                 numChildren++;
                 Assert.NotNull(iop);
-                foreach (var child in iop.Children)
+                foreach (var child in iop.ChildOperations)
                 {
                     enumerateChildren(child);
                 }
@@ -11198,6 +11213,120 @@ class M
                 //         d += p;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "d += p").WithArguments("+=", "dynamic", "int*").WithLocation(5, 9)
                 );
+        }
+
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
+        public void LiftedUnaryOperator_InvalidTypeArgument01()
+        {
+            var code = @"
+S1? s1 = default;
+var s2 = +s1;
+
+struct S1
+{
+    public static S2 operator+(S1 s1) => throw null;
+}
+
+ref struct S2 {}
+";
+
+            var comp = CreateCompilation(code);
+            comp.VerifyDiagnostics(
+                // (3,10): error CS0023: Operator '+' cannot be applied to operand of type 'S1?'
+                // var s2 = +s1;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "+s1").WithArguments("+", "S1?").WithLocation(3, 10)
+            );
+        }
+
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
+        public void LiftedUnaryOperator_InvalidTypeArgument02()
+        {
+            var code = @"
+S1? s1 = default;
+var s2 = +s1;
+
+unsafe struct S1
+{
+    public static unsafe int* operator+(S1 s1) => throw null;
+}
+";
+
+            var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyDiagnostics(
+                // (3,10): error CS0023: Operator '+' cannot be applied to operand of type 'S1?'
+                // var s2 = +s1;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "+s1").WithArguments("+", "S1?").WithLocation(3, 10)
+            );
+        }
+
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
+        public void LiftedBinaryOperator_InvalidTypeArgument01()
+        {
+            var code = @"
+var x = new S1();
+int? y = 1;
+(x + y)?.M();
+
+public readonly ref struct S1
+{
+    public static S1 operator+ (S1 x, int y) => throw null;
+    public void M() {}
+}
+";
+
+            var comp = CreateCompilation(code);
+            comp.VerifyDiagnostics(
+                // (4,2): error CS0019: Operator '+' cannot be applied to operands of type 'S1' and 'int?'
+                // (x + y)?.M();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + y").WithArguments("+", "S1", "int?").WithLocation(4, 2)
+            );
+        }
+
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
+        public void LiftedBinaryOperator_InvalidTypeArgument02()
+        {
+            var code = @"
+var x = new S1();
+int? y = 1;
+(y + x)?.M();
+
+public readonly ref struct S1
+{
+    public static S1 operator+ (int y, S1 x) => throw null;
+    public void M() {}
+}
+";
+
+            var comp = CreateCompilation(code);
+            comp.VerifyDiagnostics(
+                // (4,2): error CS0019: Operator '+' cannot be applied to operands of type 'int?' and 'S1'
+                // (y + x)?.M();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "y + x").WithArguments("+", "int?", "S1").WithLocation(4, 2)
+            );
+        }
+
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
+        public void LiftedBinaryOperator_InvalidTypeArgument03()
+        {
+            var code = @"
+var x = new S1();
+int? y = 1;
+(y > x).ToString();
+
+public readonly ref struct S1
+{
+    public static bool operator >(int y, S1 x) => throw null;
+    public static bool operator <(int y, S1 x) => throw null;
+    public void M() {}
+}
+";
+
+            var comp = CreateCompilation(code);
+            comp.VerifyDiagnostics(
+                // (4,2): error CS0019: Operator '>' cannot be applied to operands of type 'int?' and 'S1'
+                // (y > x).ToString();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "y > x").WithArguments(">", "int?", "S1").WithLocation(4, 2)
+            );
         }
     }
 }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
@@ -28,7 +26,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             // When we are asked to flush, go actually acquire the write-scheduler and perform the actual writes from
             // it. Note: this is only called max every FlushAllDelayMS.  So we don't bother trying to avoid the delegate
             // allocation here.
-            await PerformWriteAsync(FlushInMemoryDataToDisk, cancellationToken).ConfigureAwait(false);
+            await PerformWriteAsync(_flushInMemoryDataToDisk, cancellationToken).ConfigureAwait(false);
         }
 
         private Task FlushWritesOnCloseAsync()
@@ -73,14 +71,12 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
 
             using var _ = _connectionPool.Target.GetPooledConnection(out var connection);
 
-            // Dummy value for RunInTransaction signature.
-            var unused = true;
-            connection.RunInTransaction(_ =>
+            connection.RunInTransaction(static state =>
             {
-                _solutionAccessor.FlushInMemoryDataToDisk_MustRunInTransaction(connection);
-                _projectAccessor.FlushInMemoryDataToDisk_MustRunInTransaction(connection);
-                _documentAccessor.FlushInMemoryDataToDisk_MustRunInTransaction(connection);
-            }, unused);
+                state.self._solutionAccessor.FlushInMemoryDataToDisk_MustRunInTransaction(state.connection);
+                state.self._projectAccessor.FlushInMemoryDataToDisk_MustRunInTransaction(state.connection);
+                state.self._documentAccessor.FlushInMemoryDataToDisk_MustRunInTransaction(state.connection);
+            }, (self: this, connection));
         }
     }
 }

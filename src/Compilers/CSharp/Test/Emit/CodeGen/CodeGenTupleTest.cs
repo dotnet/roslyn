@@ -23,6 +23,7 @@ using Roslyn.Utilities;
 using Xunit;
 using static TestResources.NetFX.ValueTuple;
 using static Roslyn.Test.Utilities.TestMetadata;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
@@ -4631,20 +4632,20 @@ namespace System
 
             // Note: fields come first
             AssertTestDisplayString(mTuple.GetMembers(),
-                "System.Int32 (System.String, System.String).Item2",
                 "System.String (System.String, System.String).Item1",
                 "System.String (System.String, System.String).Item2",
+                "System.Int32 (System.String, System.String).Item2",
                 "(System.String, System.String)..ctor(System.String item1, System.String item2)",
                 "(System.String, System.String)..ctor()");
 
             var m2Tuple = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M2").Parameters[0].Type;
             AssertTupleTypeEquality(m2Tuple);
             AssertTestDisplayString(m2Tuple.GetMembers(),
-                "System.Int32 (System.Int32 a, System.Int32 b).Item2",
                 "System.Int32 (System.Int32 a, System.Int32 b).Item1",
                 "System.Int32 (System.Int32 a, System.Int32 b).a",
                 "System.Int32 (System.Int32 a, System.Int32 b).Item2",
                 "System.Int32 (System.Int32 a, System.Int32 b).b",
+                "System.Int32 (System.Int32 a, System.Int32 b).Item2",
                 "(System.Int32 a, System.Int32 b)..ctor(System.Int32 item1, System.Int32 item2)",
                 "(System.Int32 a, System.Int32 b)..ctor()"
                 );
@@ -8090,6 +8091,227 @@ class C
         }
 
         [Fact]
+        public void TupleConversion03()
+        {
+            var source = @"
+
+var x = (1, new C());
+
+_ = ((int i, bool c))x;
+_ = ((int i, bool c))(1, new C());
+    
+(int i, bool c) z;
+
+z = x;
+z = (1, new C());
+z.i++;
+
+class C
+{
+    [System.Obsolete()]
+    public static implicit operator bool(C c) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (5,5): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // _ = ((int i, bool c))x;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "((int i, bool c))x").WithArguments("C.implicit operator bool(C)").WithLocation(5, 5),
+                // (6,26): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // _ = ((int i, bool c))(1, new C());
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new C()").WithArguments("C.implicit operator bool(C)").WithLocation(6, 26),
+                // (10,5): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // z = x;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "x").WithArguments("C.implicit operator bool(C)").WithLocation(10, 5),
+                // (11,9): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // z = (1, new C());
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new C()").WithArguments("C.implicit operator bool(C)").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void TupleConversion04()
+        {
+            var source = @"
+
+var x = (1, new C());
+
+_ = ((int i, bool c)?)x;
+_ = ((int i, bool c)?)(1, new C());
+    
+(int i, bool c)? z;
+
+z = x;
+z = (1, new C());
+_ = z?.i;
+
+class C
+{
+    [System.Obsolete()]
+    public static implicit operator bool(C c) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (5,5): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // _ = ((int i, bool c)?)x;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "((int i, bool c)?)x").WithArguments("C.implicit operator bool(C)").WithLocation(5, 5),
+                // (6,27): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // _ = ((int i, bool c)?)(1, new C());
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new C()").WithArguments("C.implicit operator bool(C)").WithLocation(6, 27),
+                // (10,5): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // z = x;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "x").WithArguments("C.implicit operator bool(C)").WithLocation(10, 5),
+                // (11,9): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // z = (1, new C());
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "new C()").WithArguments("C.implicit operator bool(C)").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void TupleConversion05()
+        {
+            var source = @"
+
+var x = (1, new C());
+
+_ = ((int i, bool c)?)x;
+_ = ((int i, bool c)?)(1, new C());
+    
+(int i, bool c)? z;
+
+z = x;
+z = (1, new C());
+_ = z?.i;
+
+class C
+{
+    [System.Obsolete(""Obsolete error"", true)]
+    public static implicit operator bool(C c) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (5,5): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // _ = ((int i, bool c)?)x;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "((int i, bool c)?)x").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(5, 5),
+                // (6,27): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // _ = ((int i, bool c)?)(1, new C());
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new C()").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(6, 27),
+                // (10,5): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // z = x;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "x").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(10, 5),
+                // (11,9): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // z = (1, new C());
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "new C()").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(11, 9)
+                );
+        }
+
+        [Fact]
+        public void TupleConversion06()
+        {
+            var source = @"
+
+(int, C)? x = (1, new C());
+
+_ = ((int i, bool c)?)x;
+    
+(int i, bool c)? z;
+
+z = x;
+_ = z?.i;
+
+class C
+{
+    [System.Obsolete()]
+    public static implicit operator bool(C c) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (5,5): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // _ = ((int i, bool c)?)x;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "((int i, bool c)?)x").WithArguments("C.implicit operator bool(C)").WithLocation(5, 5),
+                // (9,5): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // z = x;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "x").WithArguments("C.implicit operator bool(C)").WithLocation(9, 5)
+                );
+        }
+
+        [Fact]
+        public void TupleConversion07()
+        {
+            var source = @"
+
+(int, C)? x = (1, new C());
+
+_ = ((int i, bool c)?)x;
+    
+(int i, bool c)? z;
+
+z = x;
+_ = z?.i;
+
+class C
+{
+    [System.Obsolete(""Obsolete error"", true)]
+    public static implicit operator bool(C c) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (5,5): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // _ = ((int i, bool c)?)x;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "((int i, bool c)?)x").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(5, 5),
+                // (9,5): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // z = x;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "x").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(9, 5)
+                );
+        }
+
+        [Fact]
+        public void TupleConversion08()
+        {
+            var source = @"
+(int, C)? x = (1, new C());
+_ = ((int i, bool c))x;
+   
+class C
+{
+    [System.Obsolete()]
+    public static implicit operator bool(C c) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (3,5): warning CS0612: 'C.implicit operator bool(C)' is obsolete
+                // _ = ((int i, bool c))x;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "((int i, bool c))x").WithArguments("C.implicit operator bool(C)").WithLocation(3, 5)
+                );
+        }
+
+        [Fact]
+        public void TupleConversion09()
+        {
+            var source = @"
+(int, C)? x = (1, new C());
+_ = ((int i, bool c))x;
+
+class C
+{
+    [System.Obsolete(""Obsolete error"", true)]
+    public static implicit operator bool(C c) => true;
+}
+";
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (3,5): error CS0619: 'C.implicit operator bool(C)' is obsolete: 'Obsolete error'
+                // _ = ((int i, bool c))x;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "((int i, bool c))x").WithArguments("C.implicit operator bool(C)", "Obsolete error").WithLocation(3, 5)
+                );
+        }
+
+        [Fact]
         public void TupleConvertedType01()
         {
             var source = @"
@@ -11174,9 +11396,9 @@ class C
                 "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item5",
                 "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item6",
                 "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item7",
-                "(System.Int32, System.Int32) (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Rest",
                 "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item8",
                 "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item9",
+                "(System.Int32, System.Int32) (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Rest",
                 "(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32)..ctor()",
                 "(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32)..ctor(System.Int32 item1, System.Int32 item2, System.Int32 item3, System.Int32 item4, System.Int32 item5, System.Int32 item6, System.Int32 item7, (System.Int32, System.Int32) rest)",
                 "System.Boolean (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Equals(System.Object obj)",
@@ -11208,11 +11430,11 @@ class C
                 "System.Int32 (System.Int32 a2, System.Int32 b2, System.Int32 c2, System.Int32 d2, System.Int32 e2, System.Int32 f2, System.Int32 g2, System.Int32 h2, System.Int32 i2).f2",
                 "System.Int32 (System.Int32 a2, System.Int32 b2, System.Int32 c2, System.Int32 d2, System.Int32 e2, System.Int32 f2, System.Int32 g2, System.Int32 h2, System.Int32 i2).Item7",
                 "System.Int32 (System.Int32 a2, System.Int32 b2, System.Int32 c2, System.Int32 d2, System.Int32 e2, System.Int32 f2, System.Int32 g2, System.Int32 h2, System.Int32 i2).g2",
-                "(System.Int32, System.Int32) (System.Int32 a2, System.Int32 b2, System.Int32 c2, System.Int32 d2, System.Int32 e2, System.Int32 f2, System.Int32 g2, System.Int32 h2, System.Int32 i2).Rest",
                 "System.Int32 (System.Int32 a2, System.Int32 b2, System.Int32 c2, System.Int32 d2, System.Int32 e2, System.Int32 f2, System.Int32 g2, System.Int32 h2, System.Int32 i2).Item8",
                 "System.Int32 (System.Int32 a2, System.Int32 b2, System.Int32 c2, System.Int32 d2, System.Int32 e2, System.Int32 f2, System.Int32 g2, System.Int32 h2, System.Int32 i2).h2",
                 "System.Int32 (System.Int32 a2, System.Int32 b2, System.Int32 c2, System.Int32 d2, System.Int32 e2, System.Int32 f2, System.Int32 g2, System.Int32 h2, System.Int32 i2).Item9",
                 "System.Int32 (System.Int32 a2, System.Int32 b2, System.Int32 c2, System.Int32 d2, System.Int32 e2, System.Int32 f2, System.Int32 g2, System.Int32 h2, System.Int32 i2).i2",
+                "(System.Int32, System.Int32) (System.Int32 a2, System.Int32 b2, System.Int32 c2, System.Int32 d2, System.Int32 e2, System.Int32 f2, System.Int32 g2, System.Int32 h2, System.Int32 i2).Rest",
                 "(System.Int32 a2, System.Int32 b2, System.Int32 c2, System.Int32 d2, System.Int32 e2, System.Int32 f2, System.Int32 g2, System.Int32 h2, System.Int32 i2)..ctor()",
                 "(System.Int32 a2, System.Int32 b2, System.Int32 c2, System.Int32 d2, System.Int32 e2, System.Int32 f2, System.Int32 g2, System.Int32 h2, System.Int32 i2)..ctor(System.Int32 item1, System.Int32 item2, System.Int32 item3, System.Int32 item4, System.Int32 item5, System.Int32 item6, System.Int32 item7, (System.Int32, System.Int32) rest)",
                 "System.Boolean (System.Int32 a2, System.Int32 b2, System.Int32 c2, System.Int32 d2, System.Int32 e2, System.Int32 f2, System.Int32 g2, System.Int32 h2, System.Int32 i2).Equals(System.Object obj)",
@@ -11251,9 +11473,9 @@ class C
                 "Item5",
                 "Item6",
                 "Item7",
-                "Rest",
                 "Item8",
                 "Item9" ,
+                "Rest",
                 ".ctor",
                 "Equals",
                 "System.Collections.IStructuralEquatable.Equals",
@@ -11285,11 +11507,11 @@ class C
                 "f2",
                 "Item7",
                 "g2",
-                "Rest",
                 "Item8",
                 "h2",
                 "Item9",
                 "i2",
+                "Rest",
                 ".ctor",
                 "Equals",
                 "System.Collections.IStructuralEquatable.Equals",
@@ -11564,9 +11786,9 @@ class C
                 "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item5",
                 "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item6",
                 "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item7",
-                "(System.Int32, System.Int32) (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Rest",
                 "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item8",
                 "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item9",
+                "(System.Int32, System.Int32) (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Rest",
                 "(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32)..ctor()",
                 "(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32)..ctor(System.Int32 item1, System.Int32 item2, System.Int32 item3, System.Int32 item4, System.Int32 item5, System.Int32 item6, System.Int32 item7, (System.Int32, System.Int32) rest)",
                 "System.Boolean (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Equals(System.Object obj)",
@@ -11733,8 +11955,6 @@ class C
                     ".Item7",
                 "System.Int32 (System.Int32 a4, System.Int32 b4, System.Int32 c4, System.Int32 d4, System.Int32 e4, System.Int32 f4, System.Int32 g4, System.Int32 h4, System.Int32 i4)" +
                     ".g4",
-                "(System.Int32, System.Int32) (System.Int32 a4, System.Int32 b4, System.Int32 c4, System.Int32 d4, System.Int32 e4, System.Int32 f4, System.Int32 g4, System.Int32 h4, System.Int32 i4)" +
-                    ".Rest",
                 "System.Int32 (System.Int32 a4, System.Int32 b4, System.Int32 c4, System.Int32 d4, System.Int32 e4, System.Int32 f4, System.Int32 g4, System.Int32 h4, System.Int32 i4)" +
                     ".Item8",
                 "System.Int32 (System.Int32 a4, System.Int32 b4, System.Int32 c4, System.Int32 d4, System.Int32 e4, System.Int32 f4, System.Int32 g4, System.Int32 h4, System.Int32 i4)" +
@@ -11743,6 +11963,8 @@ class C
                     ".Item9",
                 "System.Int32 (System.Int32 a4, System.Int32 b4, System.Int32 c4, System.Int32 d4, System.Int32 e4, System.Int32 f4, System.Int32 g4, System.Int32 h4, System.Int32 i4)" +
                     ".i4",
+                "(System.Int32, System.Int32) (System.Int32 a4, System.Int32 b4, System.Int32 c4, System.Int32 d4, System.Int32 e4, System.Int32 f4, System.Int32 g4, System.Int32 h4, System.Int32 i4)" +
+                    ".Rest",
                 "(System.Int32 a4, System.Int32 b4, System.Int32 c4, System.Int32 d4, System.Int32 e4, System.Int32 f4, System.Int32 g4, System.Int32 h4, System.Int32 i4)" +
                     "..ctor()",
                 "(System.Int32 a4, System.Int32 b4, System.Int32 c4, System.Int32 d4, System.Int32 e4, System.Int32 f4, System.Int32 g4, System.Int32 h4, System.Int32 i4)" +
@@ -11996,7 +12218,6 @@ class C
 "System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Item5",
 "System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Item6",
 "System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Item7",
-"(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32) (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Rest",
 "System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Item8",
 "System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Item9",
 "System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Item10",
@@ -12006,6 +12227,7 @@ class C
 "System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Item14",
 "System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Item15",
 "System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Item16",
+"(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32) (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Rest",
 "(System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16)..ctor()",
 "(System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16)..ctor(System.Int32 item1, System.Int32 item2, System.Int32 item3, System.Int32 item4, System.Int32 item5, System.Int32 item6, System.Int32 item7, (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32) rest)",
 "System.Boolean (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9, System.Int32 Item10, System.Int32 Item11, System.Int32 Item12, System.Int32 Item13, System.Int32 Item14, System.Int32 Item15, System.Int32 Item16).Equals(System.Object obj)",
@@ -12055,9 +12277,9 @@ class C
 "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item5",
 "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item6",
 "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item7",
-"(System.Int32, System.Int32) (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Rest",
 "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item8",
 "System.Int32 (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Item9",
+"(System.Int32, System.Int32) (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Rest",
 "(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32)..ctor()",
 "(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32)..ctor(System.Int32 item1, System.Int32 item2, System.Int32 item3, System.Int32 item4, System.Int32 item5, System.Int32 item6, System.Int32 item7, (System.Int32, System.Int32) rest)",
 "System.Boolean (System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32).Equals(System.Object obj)",
@@ -12307,8 +12529,6 @@ class C
                     ".Item7",
                 "System.Int32 (System.Int32 Item9, System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8)" +
                     ".Item6",
-                "(System.Int32, System.Int32) (System.Int32 Item9, System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8)" +
-                    ".Rest",
                 "System.Int32 (System.Int32 Item9, System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8)" +
                     ".Item8",
                 "System.Int32 (System.Int32 Item9, System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8)" +
@@ -12317,6 +12537,8 @@ class C
                     ".Item9",
                 "System.Int32 (System.Int32 Item9, System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8)" +
                     ".Item8",
+                "(System.Int32, System.Int32) (System.Int32 Item9, System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8)" +
+                    ".Rest",
                 "(System.Int32 Item9, System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8)" +
                     "..ctor" +
                         "(System.Int32 item1, System.Int32 item2, System.Int32 item3, System.Int32 item4, System.Int32 item5, System.Int32 item6, System.Int32 item7, (System.Int32, System.Int32) rest)",
@@ -12372,9 +12594,9 @@ class C
                 "System.Int32 (System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1).a6",
                 "System.Int32 (System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1).Item7",
                 "System.Int32 (System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1).a7",
-                "System.ValueTuple<System.Int32> (System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1).Rest",
                 "System.Int32 (System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1).Item8",
                 "System.Int32 (System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1).Item1",
+                "System.ValueTuple<System.Int32> (System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1).Rest",
                 "(System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1)..ctor()",
                 "(System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1)..ctor(System.Int32 item1, System.Int32 item2, System.Int32 item3, System.Int32 item4, System.Int32 item5, System.Int32 item6, System.Int32 item7, System.ValueTuple<System.Int32> rest)",
                 "System.Boolean (System.Int32 a1, System.Int32 a2, System.Int32 a3, System.Int32 a4, System.Int32 a5, System.Int32 a6, System.Int32 a7, System.Int32 Item1).Equals(System.Object obj)",
@@ -12717,6 +12939,7 @@ namespace System
 
         public ValueTuple(T1 item1, T2 item2)
         {
+            _ = new C9();
             this.Item1 = item1;
             this.Item2 = item2;
         }
@@ -12738,7 +12961,10 @@ namespace System
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(10, 18),
                 // (10,23): error CS1525: Invalid expression term 'int'
                 //         var y = (int, int).C9;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(10, 23)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(10, 23),
+                // (10,28): error CS0572: 'C9': cannot reference a type through an expression; try '(int, int).C9' instead
+                //         var y = (int, int).C9;
+                Diagnostic(ErrorCode.ERR_BadTypeReference, "C9").WithArguments("C9", "(int, int).C9").WithLocation(10, 28)
                 );
 
             var c = comp.GetTypeByMetadataName("C");
@@ -12751,6 +12977,7 @@ namespace System
                 "System.Int32 (System.Int32, System.Int32).Item2",
                 "(System.Int32, System.Int32)..ctor(System.Int32 item1, System.Int32 item2)",
                 "System.String (System.Int32, System.Int32).ToString()",
+                "(System.Int32, System.Int32).C9",
                 "(System.Int32, System.Int32)..ctor()");
 
             Assert.True(m9Tuple.Equals(m9Tuple.TupleUnderlyingType, TypeCompareKind.ConsiderEverything));
@@ -12759,6 +12986,79 @@ namespace System
             Assert.Equal("(System.Int32, System.Int32).C9", m9Tuple.GetTypeMembers("C9").Single().ToTestDisplayString());
             Assert.Equal("(System.Int32, System.Int32).C9", m9Tuple.GetTypeMembers("C9", 0).Single().ToTestDisplayString());
             Assert.Equal("(System.Int32, System.Int32).C9", m9Tuple.GetTypeMembersUnordered().Single().ToTestDisplayString());
+        }
+
+        [Fact]
+        public void CustomValueTupleWithStrangeThings_01_PE()
+        {
+            var lib_cs = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+
+        public override string ToString()
+        {
+            return '{' + Item1?.ToString() + "", "" + Item2?.ToString() + '}';
+        }
+
+        public class C9 { }
+    }
+}
+" + tupleattributes_cs;
+
+            var source = @"
+class C
+{
+    static void M()
+    {
+        var y = (int, int).C9;
+
+        System.ValueTuple<int, int>.C9 z = null;
+        System.Console.WriteLine(z);
+    }
+
+    static (int, int) M9()
+    {
+        return (901, 902);
+    }
+}
+";
+
+            var libComp = CreateCompilationWithMscorlib40(lib_cs);
+            libComp.VerifyDiagnostics();
+
+            var comp = CreateCompilationWithMscorlib40(source, references: new[] { libComp.EmitToImageReference() });
+            comp.VerifyDiagnostics(
+                // (6,18): error CS1525: Invalid expression term 'int'
+                //         var y = (int, int).C9;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 18),
+                // (6,23): error CS1525: Invalid expression term 'int'
+                //         var y = (int, int).C9;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 23),
+                // (6,28): error CS0572: 'C9': cannot reference a type through an expression; try '(int, int).C9' instead
+                //         var y = (int, int).C9;
+                Diagnostic(ErrorCode.ERR_BadTypeReference, "C9").WithArguments("C9", "(int, int).C9").WithLocation(6, 28)
+                );
+
+            var c = comp.GetTypeByMetadataName("C");
+            var m9Tuple = (NamedTypeSymbol)c.GetMember<MethodSymbol>("M9").ReturnType;
+
+            AssertTestDisplayString(m9Tuple.GetMembers(),
+                "System.Int32 (System.Int32, System.Int32).Item1",
+                "System.Int32 (System.Int32, System.Int32).Item2",
+                "(System.Int32, System.Int32)..ctor()",
+                "(System.Int32, System.Int32)..ctor(System.Int32 item1, System.Int32 item2)",
+                "System.String (System.Int32, System.Int32).ToString()",
+                "(System.Int32, System.Int32).C9");
         }
 
         [Fact]
@@ -13025,6 +13325,116 @@ partial class C
 
             var m10E2 = m10Tuple.GetMember<EventSymbol>("E2");
             Assert.Equal("System.ObsoleteAttribute", m10E2.GetAttributes().Single().ToString());
+        }
+
+        [Fact, WorkItem(56327, "https://github.com/dotnet/roslyn/issues/56327")]
+        public void CustomValueTuple_RecordStruct()
+        {
+            var source = @"
+namespace System
+{
+    public record struct ValueTuple<T1, T2>(T1 Item1, T2 Item2)
+    {
+    }
+}
+" + tupleattributes_cs;
+
+            var comp = CreateCompilationWithMscorlib40(source);
+            comp.VerifyEmitDiagnostics();
+
+            var valuetuple = comp.GetTypeByMetadataName("System.ValueTuple`2");
+
+            AssertTestDisplayString(valuetuple.GetMembers(),
+                "(T1, T2)..ctor(T1 Item1, T2 Item2)",
+                "T1 (T1, T2).<Item1>k__BackingField",
+                "readonly T1 (T1, T2).Item1.get",
+                "void (T1, T2).Item1.set",
+                "T1 (T1, T2).Item1 { get; set; }",
+                "T2 (T1, T2).<Item2>k__BackingField",
+                "readonly T2 (T1, T2).Item2.get",
+                "void (T1, T2).Item2.set",
+                "T2 (T1, T2).Item2 { get; set; }",
+                "readonly System.String (T1, T2).ToString()",
+                "readonly System.Boolean (T1, T2).PrintMembers(System.Text.StringBuilder builder)",
+                "System.Boolean (T1, T2).op_Inequality((T1, T2) left, (T1, T2) right)",
+                "System.Boolean (T1, T2).op_Equality((T1, T2) left, (T1, T2) right)",
+                "readonly System.Int32 (T1, T2).GetHashCode()",
+                "readonly System.Boolean (T1, T2).Equals(System.Object obj)",
+                "readonly System.Boolean (T1, T2).Equals((T1, T2) other)",
+                "readonly void (T1, T2).Deconstruct(out T1 Item1, out T2 Item2)",
+                "(T1, T2)..ctor()",
+                "T1 (T1, T2).Item1",
+                "T2 (T1, T2).Item2"
+                );
+        }
+
+        [Fact, WorkItem(56327, "https://github.com/dotnet/roslyn/issues/56327")]
+        public void CustomValueTuple_Properties()
+        {
+            var source = @"
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1 { get; set; }
+        public T2 Item2 { get; set; }
+    }
+}
+" + tupleattributes_cs;
+
+            var comp = CreateCompilationWithMscorlib40(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem(56327, "https://github.com/dotnet/roslyn/issues/56327")]
+        public void CustomValueTuple_RecordStructWithConstructor()
+        {
+            var source = @"
+
+namespace System
+{
+    public record struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(string s) { }
+    }
+}
+" + tupleattributes_cs;
+
+            var comp = CreateCompilationWithMscorlib40(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
+                //         public ValueTuple(string s) { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(7, 16),
+                // (7,16): error CS0171: Field '(T1, T2).Item1' must be fully assigned before control is returned to the caller
+                //         public ValueTuple(string s) { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item1").WithLocation(7, 16)
+                );
+        }
+
+        [Fact, WorkItem(56327, "https://github.com/dotnet/roslyn/issues/56327")]
+        public void CustomValueTuple_StructWithConstructor()
+        {
+            var source = @"
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(string s) { }
+    }
+}
+" + tupleattributes_cs;
+
+            var comp = CreateCompilationWithMscorlib40(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,16): error CS0171: Field '(T1, T2).Item2' must be fully assigned before control is returned to the caller
+                //         public ValueTuple(string s) { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item2").WithLocation(7, 16),
+                // (7,16): error CS0171: Field '(T1, T2).Item1' must be fully assigned before control is returned to the caller
+                //         public ValueTuple(string s) { }
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "ValueTuple").WithArguments("(T1, T2).Item1").WithLocation(7, 16)
+                );
         }
 
         private void AssertTupleNonElementField(FieldSymbol sym)
@@ -13300,9 +13710,9 @@ namespace System
                     "System.Int32 System.ValueTuple<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32 a, System.Int32 b)>.Item5",
                     "System.Int32 System.ValueTuple<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32 a, System.Int32 b)>.Item6",
                     "System.Int32 System.ValueTuple<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32 a, System.Int32 b)>.Item7",
-                    "(System.Int32 a, System.Int32 b) System.ValueTuple<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32 a, System.Int32 b)>.Rest",
                     "System.Int32 System.ValueTuple<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32 a, System.Int32 b)>.Item8",
                     "System.Int32 System.ValueTuple<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32 a, System.Int32 b)>.Item9",
+                    "(System.Int32 a, System.Int32 b) System.ValueTuple<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32 a, System.Int32 b)>.Rest",
                     "System.ValueTuple<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32 a, System.Int32 b)>..ctor()",
                     "System.ValueTuple<System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, (System.Int32 a, System.Int32 b)>..ctor" +
                             "(System.Int32 item1, System.Int32 item2, System.Int32 item3, System.Int32 item4, System.Int32 item5, System.Int32 item6, System.Int32 item7, " +
@@ -13362,9 +13772,9 @@ namespace System
                     "System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9).Item5",
                     "System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9).Item6",
                     "System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9).Item7",
-                    "(System.Int32 Item1, System.Int32 Item2) (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9).Rest",
                     "System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9).Item8",
                     "System.Int32 (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9).Item9",
+                    "(System.Int32 Item1, System.Int32 Item2) (System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9).Rest",
                     "(System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9)..ctor()",
                     "(System.Int32 Item1, System.Int32 Item2, System.Int32 Item3, System.Int32 Item4, System.Int32 Item5, System.Int32 Item6, System.Int32 Item7, System.Int32 Item8, System.Int32 Item9)" +
                         "..ctor(System.Int32 item1, System.Int32 item2, System.Int32 item3, System.Int32 item4, System.Int32 item5, System.Int32 item6, System.Int32 item7, (System.Int32 Item1, System.Int32 Item2) rest)",
@@ -15373,9 +15783,9 @@ namespace System
             AssertTestDisplayString(m1Tuple.GetMembers(),
                 "System.Int32 (System.Int32, System.Int32).Item1",
                 "System.Int32 (System.Int32, System.Int32).Item2",
-                "System.Int32 (System.Int32, System.Int32).<P1>k__BackingField",
                 "(System.Int32, System.Int32)..ctor(System.Int32 item1, System.Int32 item2)",
                 "System.String (System.Int32, System.Int32).ToString()",
+                "System.Int32 (System.Int32, System.Int32).<P1>k__BackingField",
                 "System.Int32 (System.Int32, System.Int32).P1 { readonly get; set; }",
                 "readonly System.Int32 (System.Int32, System.Int32).P1.get",
                 "void (System.Int32, System.Int32).P1.set",
@@ -15384,8 +15794,8 @@ namespace System
                 "(System.Int32, System.Int32)..ctor()");
 
             AssertTupleTypeEquality(m1Tuple);
-            Assert.Equal(new string[] { "Item1", "Item2", "<P1>k__BackingField",
-                                        ".ctor", "ToString", "P1", "get_P1", "set_P1",
+            Assert.Equal(new string[] { "Item1", "Item2",
+                                        ".ctor", "ToString", "<P1>k__BackingField", "P1", "get_P1", "set_P1",
                                         "this[]", "get_Item"},
                          m1Tuple.MemberNames.ToArray());
             Assert.Equal("System.Int32 (System.Int32, System.Int32).P1 { readonly get; set; }", m1Tuple.GetEarlyAttributeDecodingMembers("P1").Single().ToTestDisplayString());
@@ -15600,11 +16010,11 @@ null
             AssertTestDisplayString(m1Tuple.GetMembers(),
                 "System.Int32 (System.Int32, System.Int64).Item1",
                 "System.Int64 (System.Int32, System.Int64).Item2",
-                "System.Action<System.Int64> (System.Int32, System.Int64)._e2",
                 "(System.Int32, System.Int64)..ctor(System.Int32 item1, System.Int64 item2)",
                 "void (System.Int32, System.Int64).E1.add",
                 "void (System.Int32, System.Int64).E1.remove",
                 "event System.Action<System.Int32> (System.Int32, System.Int64).E1",
+                "System.Action<System.Int64> (System.Int32, System.Int64)._e2",
                 "event System.Action<System.Int64> (System.Int32, System.Int64).E2",
                 "void (System.Int32, System.Int64).E2.add",
                 "void (System.Int32, System.Int64).E2.remove",
@@ -15614,7 +16024,7 @@ null
                 "(System.Int32, System.Int64)..ctor()");
 
             AssertTupleTypeEquality(m1Tuple);
-            Assert.Equal(new string[] { "Item1", "Item2", "_e2", ".ctor", "add_E1", "remove_E1", "E1", "E2", "add_E2", "remove_E2", "RaiseE1", "RaiseE2", "Test" },
+            Assert.Equal(new string[] { "Item1", "Item2", ".ctor", "add_E1", "remove_E1", "E1", "_e2", "E2", "add_E2", "remove_E2", "RaiseE1", "RaiseE2", "Test" },
                          m1Tuple.MemberNames.ToArray());
             Assert.Equal("event System.Action<System.Int32> (System.Int32, System.Int64).E1", m1Tuple.GetEarlyAttributeDecodingMembers("E1").Single().ToTestDisplayString());
             Assert.Equal("event System.Action<System.Int64> (System.Int32, System.Int64).E2", m1Tuple.GetEarlyAttributeDecodingMembers("E2").Single().ToTestDisplayString());
@@ -27682,6 +28092,27 @@ namespace System
                 var tuple2 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("System.ValueTuple.M2").ReturnType;
                 Assert.Equal("ConstructedNamedTypeSymbol: (T1 Item1, T2 Item2)", print(tuple2));
 
+                if (isSourceSymbol)
+                {
+                    AssertTestDisplayString(tuple2.GetMembers(),
+                        "T1 (T1 Item1, T2 Item2).Item1",
+                        "T2 (T1 Item1, T2 Item2).Item2",
+                        "(T1, T2) (T1 Item1, T2 Item2).M()",
+                        "(T1 Item1, T2 Item2) (T1 Item1, T2 Item2).M2()",
+                        "(T1, T2 Item2) (T1 Item1, T2 Item2).M3()",
+                        "(T1 Item1, T2 Item2)..ctor()");
+                }
+                else
+                {
+                    AssertTestDisplayString(tuple2.GetMembers(),
+                        "T1 (T1 Item1, T2 Item2).Item1",
+                        "T2 (T1 Item1, T2 Item2).Item2",
+                        "(T1 Item1, T2 Item2)..ctor()",
+                        "(T1, T2) (T1 Item1, T2 Item2).M()",
+                        "(T1 Item1, T2 Item2) (T1 Item1, T2 Item2).M2()",
+                        "(T1, T2 Item2) (T1 Item1, T2 Item2).M3()");
+                }
+
                 var tuple3 = (NamedTypeSymbol)module.GlobalNamespace.GetMember<MethodSymbol>("System.ValueTuple.M3").ReturnType;
                 Assert.Equal("ConstructedNamedTypeSymbol: (T1, T2 Item2)", print(tuple3));
             }
@@ -28131,33 +28562,41 @@ class C
         [Fact]
         public void TupleWithElementNamedWithDefaultName()
         {
-            string source = @"
+            // Instrumenting test as part of investigating flakiness: https://github.com/dotnet/roslyn/issues/52658
+            for (int i = 0; i < 1000; i++)
+            {
+                string source = @"
 class C
 {
     (int Item1, int Item2) M() => throw null;
 }
 ";
-            var comp = CreateCompilation(source);
-            var m = (MethodSymbol)comp.GetMember("C.M");
-            var tuple = m.ReturnType;
-            Assert.Equal("(System.Int32 Item1, System.Int32 Item2)", tuple.ToTestDisplayString());
-            Assert.IsType<ConstructedNamedTypeSymbol>(tuple);
+                var comp = CreateCompilation(source);
+                var m = (MethodSymbol)comp.GetMember("C.M");
+                var tuple = m.ReturnType;
+                Assert.Equal("(System.Int32 Item1, System.Int32 Item2)", tuple.ToTestDisplayString());
+                Assert.IsType<ConstructedNamedTypeSymbol>(tuple);
 
-            var item1 = tuple.GetMember<TupleElementFieldSymbol>("Item1");
-            Assert.Equal(0, item1.TupleElementIndex);
+                var item1 = tuple.GetMember<TupleElementFieldSymbol>("Item1");
+                // Instrumenting test as part of investigating flakiness: https://github.com/dotnet/roslyn/issues/52658
+                RoslynDebug.AssertOrFailFast(0 == item1.TupleElementIndex);
 
-            var item1Underlying = item1.TupleUnderlyingField;
-            Assert.IsType<SubstitutedFieldSymbol>(item1Underlying);
-            Assert.Equal("System.Int32 (System.Int32 Item1, System.Int32 Item2).Item1", item1Underlying.ToTestDisplayString());
-            Assert.Equal(0, item1Underlying.TupleElementIndex);
-            Assert.Same(item1Underlying, item1Underlying.TupleUnderlyingField);
+                var item1Underlying = item1.TupleUnderlyingField;
+                Assert.IsType<SubstitutedFieldSymbol>(item1Underlying);
+                Assert.Equal("System.Int32 (System.Int32 Item1, System.Int32 Item2).Item1", item1Underlying.ToTestDisplayString());
+                // Instrumenting test as part of investigating flakiness: https://github.com/dotnet/roslyn/issues/52658
+                RoslynDebug.AssertOrFailFast(0 == item1Underlying.TupleElementIndex);
+                Assert.Same(item1Underlying, item1Underlying.TupleUnderlyingField);
 
-            var item2 = tuple.GetMember<TupleElementFieldSymbol>("Item2");
-            Assert.Equal(1, item2.TupleElementIndex);
-            var item2Underlying = item2.TupleUnderlyingField;
-            Assert.IsType<SubstitutedFieldSymbol>(item2Underlying);
-            Assert.Equal(1, item2Underlying.TupleElementIndex);
-            Assert.Same(item2Underlying, item2Underlying.TupleUnderlyingField);
+                var item2 = tuple.GetMember<TupleElementFieldSymbol>("Item2");
+                // Instrumenting test as part of investigating flakiness: https://github.com/dotnet/roslyn/issues/52658
+                RoslynDebug.AssertOrFailFast(1 == item2.TupleElementIndex);
+                var item2Underlying = item2.TupleUnderlyingField;
+                Assert.IsType<SubstitutedFieldSymbol>(item2Underlying);
+                // Instrumenting test as part of investigating flakiness: https://github.com/dotnet/roslyn/issues/52658
+                RoslynDebug.AssertOrFailFast(1 == item2Underlying.TupleElementIndex);
+                Assert.Same(item2Underlying, item2Underlying.TupleUnderlyingField);
+            }
         }
 
         [Fact]

@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
             // Check that a => a. belongs to an invocation.
             // Find its' ordinal in the invocation, e.g. ThenInclude(a => a.Something, a=> a.
             var lambdaSyntax = owningMethod.DeclaringSyntaxReferences.Single().GetSyntax(_cancellationToken);
-            if (!(syntaxFactsService.IsAnonymousFunction(lambdaSyntax) &&
+            if (!(syntaxFactsService.IsAnonymousFunctionExpression(lambdaSyntax) &&
                   syntaxFactsService.IsArgument(lambdaSyntax.Parent) &&
                   syntaxFactsService.IsInvocationExpression(lambdaSyntax.Parent.Parent.Parent)))
             {
@@ -254,11 +254,8 @@ namespace Microsoft.CodeAnalysis.Recommendations
             where TNamespaceDeclarationSyntax : SyntaxNode
         {
             var declarationSyntax = _context.TargetToken.GetAncestor<TNamespaceDeclarationSyntax>();
-
             if (declarationSyntax == null)
-            {
                 return ImmutableArray<ISymbol>.Empty;
-            }
 
             var semanticModel = _context.SemanticModel;
             var containingNamespaceSymbol = semanticModel.Compilation.GetCompilationNamespace(

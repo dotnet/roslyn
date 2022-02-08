@@ -640,8 +640,8 @@ $$");
             => await VerifyKeywordAsync(@"class c { async $$ }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterAsyncAsType()
-            => await VerifyAbsenceAsync(@"class c { async async $$ }");
+        public async Task TestAfterAsyncAsType()
+            => await VerifyKeywordAsync(@"class c { async async $$ }");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInFunctionPointerType()

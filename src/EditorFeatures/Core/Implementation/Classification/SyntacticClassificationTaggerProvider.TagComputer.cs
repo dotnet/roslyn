@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private readonly SyntacticClassificationTaggerProvider _taggerProvider;
             private readonly ITextBuffer2 _subjectBuffer;
             private readonly IAsynchronousOperationListener _listener;
-            private readonly ClassificationTypeMap _typeMap;
+            private readonly IClassificationTypeMap _typeMap;
 
             private readonly WorkspaceRegistration _workspaceRegistration;
 
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 SyntacticClassificationTaggerProvider taggerProvider,
                 ITextBuffer2 subjectBuffer,
                 IAsynchronousOperationListener asyncListener,
-                ClassificationTypeMap typeMap,
+                IClassificationTypeMap typeMap,
                 TimeSpan diffTimeout)
                 : base(taggerProvider.ThreadingContext, assertIsForeground: false)
             {

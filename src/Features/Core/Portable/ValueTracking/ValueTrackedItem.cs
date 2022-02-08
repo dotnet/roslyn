@@ -75,8 +75,9 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
             if (sourceText is null)
             {
-                var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
-                var classificationResult = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(documentSpan, cancellationToken).ConfigureAwait(false);
+                var options = ClassificationOptions.From(document.Project);
+                var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
+                var classificationResult = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(documentSpan, options, cancellationToken).ConfigureAwait(false);
                 classifiedSpans = classificationResult.ClassifiedSpans;
                 var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 sourceText = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);

@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             }
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return new VSHover
+            return new VSInternalHover
             {
                 Range = ProtocolConversions.TextSpanToRange(info.Span, text),
                 Contents = new MarkupContent

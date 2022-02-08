@@ -677,7 +677,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
             if ((object)_thisParameter != null)
             {
-                var typeNameKind = GeneratedNames.GetKind(_thisParameter.TypeWithAnnotations.Type.Name);
+                var typeNameKind = GeneratedNameParser.GetKind(_thisParameter.TypeWithAnnotations.Type.Name);
                 if (typeNameKind != GeneratedNameKind.None && typeNameKind != GeneratedNameKind.AnonymousType)
                 {
                     Debug.Assert(typeNameKind == GeneratedNameKind.LambdaDisplayClass ||

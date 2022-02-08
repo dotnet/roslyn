@@ -4,6 +4,7 @@
 
 using System;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Telemetry;
 
 namespace Microsoft.CodeAnalysis.Extensions
 {
@@ -20,19 +21,10 @@ namespace Microsoft.CodeAnalysis.Extensions
         /// this kind error info should be something that affects whole roslyn such as
         /// background compilation is disabled due to memory issue and etc
         /// </summary>
-        void ShowGlobalErrorInfo(string message, params InfoBarUI[] items);
+        void ShowGlobalErrorInfo(string message, TelemetryFeatureName featureName, Exception? exception, params InfoBarUI[] items);
 
         void ShowDetailedErrorInfo(Exception exception);
 
-        /// <summary>
-        /// Shows info-bar reporting ServiceHub process crash.
-        /// "Unfortunately a process used by Visual Studio has encountered an unrecoverable error".
-        /// 
-        /// Obsolete - will remove once we remove JsonRpcConnection.
-        /// https://github.com/dotnet/roslyn/issues/45859
-        /// </summary>
-        void ShowRemoteHostCrashedErrorInfo(Exception? exception);
-
-        void ShowFeatureNotAvailableErrorInfo(string message, Exception? exception);
+        void ShowFeatureNotAvailableErrorInfo(string message, TelemetryFeatureName featureName, Exception? exception);
     }
 }

@@ -55,22 +55,24 @@ namespace Microsoft.CodeAnalysis
         {
             if (PlatformInformation.IsWindows)
             {
-                var serverIdentity = getIdentity(impersonating: false);
+#pragma warning disable CA1416 // Validate platform compatibility
+                var serverIdentity = getIdentity();
 
                 (string name, bool admin) clientIdentity = default;
-                pipeStream.RunAsClient(() => { clientIdentity = getIdentity(impersonating: true); });
+                pipeStream.RunAsClient(() => { clientIdentity = getIdentity(); });
 
                 return
                     StringComparer.OrdinalIgnoreCase.Equals(serverIdentity.name, clientIdentity.name) &&
                     serverIdentity.admin == clientIdentity.admin;
 
-                (string name, bool admin) getIdentity(bool impersonating)
+                (string name, bool admin) getIdentity()
                 {
-                    var currentIdentity = WindowsIdentity.GetCurrent(impersonating);
+                    var currentIdentity = WindowsIdentity.GetCurrent();
                     var currentPrincipal = new WindowsPrincipal(currentIdentity);
                     var elevatedToAdmin = currentPrincipal.IsInRole(WindowsBuiltInRole.Administrator);
                     return (currentIdentity.Name, elevatedToAdmin);
                 }
+#pragma warning restore CA1416 // Validate platform compatibility
             }
 
             return true;

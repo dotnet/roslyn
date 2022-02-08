@@ -9,13 +9,16 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Microsoft.VisualStudio.LanguageServices.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
 {
-    internal class TreeViewItemBase : INotifyPropertyChanged
+    internal class TreeViewItemBase : ViewModelBase
     {
         public ObservableCollection<TreeViewItemBase> ChildItems { get; } = new();
         public TreeViewItemBase? Parent { get; set; }
+
+        public virtual string AutomationName { get; } = string.Empty;
 
         private bool _isExpanded = false;
         public virtual bool IsNodeExpanded
@@ -37,8 +40,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             get => _isLoading;
             set => SetProperty(ref _isLoading, value);
         }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
 
         public TreeViewItemBase()
         {
@@ -130,19 +131,5 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 }
             }
         }
-
-        protected void SetProperty<T>(ref T field, T value, [CallerMemberName] string name = "")
-        {
-            if (EqualityComparer<T>.Default.Equals(field, value))
-            {
-                return;
-            }
-
-            field = value;
-            NotifyPropertyChanged(name);
-        }
-
-        protected void NotifyPropertyChanged(string name)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 }

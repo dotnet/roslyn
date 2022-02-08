@@ -6,6 +6,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.Navigation
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
+Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
     Friend Class MockDocumentNavigationService
@@ -39,6 +40,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
             Return _canNavigateToSpan
         End Function
 
+        Public Function CanNavigateToSpanAsync(workspace As Workspace, documentId As DocumentId, textSpan As TextSpan, cancellationToken As CancellationToken) As Task(Of Boolean) Implements IDocumentNavigationService.CanNavigateToSpanAsync
+            Return If(_canNavigateToSpan, SpecializedTasks.True, SpecializedTasks.False)
+        End Function
+
         Public Function TryNavigateToLineAndOffset(workspace As Workspace, documentId As DocumentId, lineNumber As Integer, offset As Integer, options As OptionSet, cancellationToken As CancellationToken) As Boolean Implements IDocumentNavigationService.TryNavigateToLineAndOffset
             _triedNavigationToLineAndOffset = True
             _documentId = documentId
@@ -66,6 +71,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
             _span = textSpan
 
             Return _canNavigateToSpan
+        End Function
+
+        Public Function TryNavigateToSpanAsync(workspace As Workspace, documentId As DocumentId, textSpan As TextSpan, options As OptionSet, allowInvalidSpan As Boolean, cancellationToken As CancellationToken) As Task(Of Boolean) Implements IDocumentNavigationService.TryNavigateToSpanAsync
+            _triedNavigationToSpan = True
+            _documentId = documentId
+            _options = options
+            _span = textSpan
+
+            Return If(_canNavigateToSpan, SpecializedTasks.True, SpecializedTasks.False)
         End Function
     End Class
 End Namespace

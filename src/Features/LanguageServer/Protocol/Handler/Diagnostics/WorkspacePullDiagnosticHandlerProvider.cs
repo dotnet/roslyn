@@ -11,8 +11,8 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
-    [ExportLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(MSLSPMethods.WorkspacePullDiagnosticName)]
+    [ExportRoslynLanguagesLspRequestHandlerProvider(), Shared]
+    [ProvidesMethod(VSInternalMethods.WorkspacePullDiagnosticName)]
     internal class WorkspacePullDiagnosticHandlerProvider : AbstractRequestHandlerProvider
     {
         private readonly IDiagnosticService _diagnosticService;
@@ -24,9 +24,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             _diagnosticService = diagnosticService;
         }
 
-        public override ImmutableArray<IRequestHandler> CreateRequestHandlers()
+        public override ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
         {
-            return ImmutableArray.Create<IRequestHandler>(new WorkspacePullDiagnosticHandler(_diagnosticService));
+            return ImmutableArray.Create<IRequestHandler>(new WorkspacePullDiagnosticHandler(serverKind, _diagnosticService));
         }
     }
 }

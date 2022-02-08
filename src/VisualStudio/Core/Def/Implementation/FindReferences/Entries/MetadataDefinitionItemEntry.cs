@@ -4,9 +4,11 @@
 
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
@@ -26,20 +28,29 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             {
                 switch (keyName)
                 {
+                    case StandardTableKeyNames.ProjectName:
+                        return DefinitionBucket.DefinitionItem.OriginationParts.JoinText();
+                    case StandardTableKeyNames.DocumentName:
+                        return DefinitionBucket.DefinitionItem.Properties[AbstractReferenceFinder.ContainingTypeInfoPropertyName];
                     case StandardTableKeyNames.Text:
                         return DefinitionBucket.DefinitionItem.DisplayParts.JoinText();
+                    case StandardTableKeyNames.ItemOrigin:
+                        return ItemOrigin.ExactMetadata;
                 }
 
                 return null;
             }
 
-            bool ISupportsNavigation.TryNavigateTo(bool isPreview, CancellationToken cancellationToken)
-                => DefinitionBucket.DefinitionItem.TryNavigateTo(
-                    Presenter._workspace, showInPreviewTab: isPreview, activateTab: !isPreview, cancellationToken); // Only activate the tab if not opening in preview
+            public bool CanNavigateTo()
+                => true;
+
+            public Task NavigateToAsync(bool isPreview, bool shouldActivate, CancellationToken cancellationToken)
+                => DefinitionBucket.DefinitionItem.TryNavigateToAsync(
+                    Presenter._workspace, showInPreviewTab: isPreview, activateTab: shouldActivate, cancellationToken); // Only activate the tab if requested
 
             protected override IList<Inline> CreateLineTextInlines()
                 => DefinitionBucket.DefinitionItem.DisplayParts
-                .ToInlines(Presenter.ClassificationFormatMap, Presenter.TypeMap);
+                    .ToInlines(Presenter.ClassificationFormatMap, Presenter.TypeMap);
         }
     }
 }

@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
     /// 'I↓ Implementing members'
     ///       Method 'Bar'
     /// </summary>
-    internal class HeaderMenuItemViewModel : InheritanceMenuItemViewModel
+    internal class HeaderMenuItemViewModel : MenuItemViewModel
     {
         public HeaderMenuItemViewModel(string displayContent, ImageMoniker imageMoniker, string automationName)
             : base(displayContent, imageMoniker, automationName)

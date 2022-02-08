@@ -644,9 +644,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnonymousTypeDescriptor typeDescriptor = new AnonymousTypeDescriptor(
                                                             ImmutableArray.Create<AnonymousTypeField>(
                                                                 new AnonymousTypeField(field1Name, field1Value.Syntax.Location,
-                                                                                       TypeWithAnnotations.Create(TypeOrError(field1Value))),
+                                                                                       TypeWithAnnotations.Create(TypeOrError(field1Value)), RefKind.None),
                                                                 new AnonymousTypeField(field2Name, field2Value.Syntax.Location,
-                                                                                        TypeWithAnnotations.Create(TypeOrError(field2Value)))
+                                                                                        TypeWithAnnotations.Create(TypeOrError(field2Value)), RefKind.None)
                                                             ),
                                                             node.Location
                                                      );
@@ -699,7 +699,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static UnboundLambda MakeQueryUnboundLambda(CSharpSyntaxNode node, QueryUnboundLambdaState state, bool withDependencies)
         {
             Debug.Assert(node is ExpressionSyntax || LambdaUtilities.IsQueryPairLambda(node));
-            var lambda = new UnboundLambda(node, state, withDependencies, hasErrors: false) { WasCompilerGenerated = true };
+            // Function type is null because query expression syntax does not allow an explicit signature.
+            var lambda = new UnboundLambda(node, state, functionType: null, withDependencies, hasErrors: false) { WasCompilerGenerated = true };
             state.SetUnboundLambda(lambda);
             return lambda;
         }

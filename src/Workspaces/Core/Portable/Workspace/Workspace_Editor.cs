@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis
 
                 var oldSolution = this.CurrentSolution;
                 var oldDocument = oldSolution.GetRequiredTextDocument(documentId);
-                Debug.Assert(oldDocument.Kind == TextDocumentKind.AdditionalDocument || oldDocument.Kind == TextDocumentKind.AnalyzerConfigDocument);
+                Debug.Assert(oldDocument.Kind is TextDocumentKind.AdditionalDocument or TextDocumentKind.AnalyzerConfigDocument);
 
                 var oldText = oldDocument.GetTextSynchronously(CancellationToken.None);
 
@@ -612,7 +612,7 @@ namespace Microsoft.CodeAnalysis
                     this.RaiseDocumentClosedEventAsync(newDoc); // don't wait for this
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagate(e))
+            catch (Exception e) when (FatalError.ReportAndPropagate(e, ErrorSeverity.General))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -658,7 +658,7 @@ namespace Microsoft.CodeAnalysis
 
                 var oldSolution = this.CurrentSolution;
                 var oldDocument = oldSolution.GetRequiredTextDocument(documentId);
-                Debug.Assert(oldDocument.Kind == TextDocumentKind.AdditionalDocument || oldDocument.Kind == TextDocumentKind.AnalyzerConfigDocument);
+                Debug.Assert(oldDocument.Kind is TextDocumentKind.AdditionalDocument or TextDocumentKind.AnalyzerConfigDocument);
 
                 var newSolution = withTextDocumentTextLoader(oldSolution, documentId, reloader, PreservationMode.PreserveValue);
                 newSolution = this.SetCurrentSolution(newSolution);

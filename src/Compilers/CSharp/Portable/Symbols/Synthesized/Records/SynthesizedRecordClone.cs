@@ -24,8 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SourceMemberContainerTypeSymbol containingType,
             int memberOffset,
             BindingDiagnosticBag diagnostics)
-            : base(containingType, WellKnownMemberNames.CloneMethodName, hasBody: !containingType.IsAbstract, memberOffset, diagnostics)
+            : base(containingType, WellKnownMemberNames.CloneMethodName, isReadOnly: false, hasBody: !containingType.IsAbstract, memberOffset, diagnostics)
         {
+            Debug.Assert(!containingType.IsRecordStruct);
         }
 
         protected override DeclarationModifiers MakeDeclarationModifiers(DeclarationModifiers allowedModifiers, BindingDiagnosticBag diagnostics)

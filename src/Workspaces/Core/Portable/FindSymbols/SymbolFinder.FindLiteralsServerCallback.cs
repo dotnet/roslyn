@@ -5,6 +5,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -27,8 +28,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public ValueTask AddItemsAsync(int count, CancellationToken cancellationToken)
                 => _progress.ProgressTracker.AddItemsAsync(count, cancellationToken);
 
-            public ValueTask ItemCompletedAsync(CancellationToken cancellationToken)
-                => _progress.ProgressTracker.ItemCompletedAsync(cancellationToken);
+            public ValueTask ItemsCompletedAsync(int count, CancellationToken cancellationToken)
+                => _progress.ProgressTracker.ItemsCompletedAsync(count, cancellationToken);
 
             public async ValueTask OnLiteralReferenceFoundAsync(DocumentId documentId, TextSpan span, CancellationToken cancellationToken)
             {

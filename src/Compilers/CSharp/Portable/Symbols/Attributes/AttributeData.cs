@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (this.AttributeClass is object)
             {
-                string className = this.AttributeClass.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat);
+                string className = this.AttributeClass.ToDisplayString(SymbolDisplayFormat.TestFormat);
 
                 if (!this.CommonConstructorArguments.Any() & !this.CommonNamedArguments.Any())
                 {

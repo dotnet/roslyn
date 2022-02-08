@@ -798,6 +798,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 #End Region
 
 #Region "Syntax And Semantic Utils"
+        Protected Overrides Function IsCompilationUnitWithGlobalStatements(node As SyntaxNode) As Boolean
+            Return False
+        End Function
+
+        Protected Overrides Function IsGlobalStatement(node As SyntaxNode) As Boolean
+            Return False
+        End Function
+
         Protected Overrides Function GetGlobalStatementDiagnosticSpan(node As SyntaxNode) As TextSpan
             Return Nothing
         End Function
@@ -1415,10 +1423,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Return True
             End Select
         End Function
-
-        Protected Overrides Sub ReportLocalFunctionsDeclarationRudeEdits(diagnostics As ArrayBuilder(Of RudeEditDiagnostic), bodyMatch As Match(Of SyntaxNode))
-            ' VB has no local functions so we don't have anything to report
-        End Sub
 #End Region
 
 #Region "Diagnostic Info"
@@ -2372,10 +2376,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 #End Region
 
 #Region "Semantic Rude Edits"
-        Protected Overrides Function AreFixedSizeBufferSizesEqual(oldField As IFieldSymbol, newField As IFieldSymbol, cancellationToken As CancellationToken) As Boolean
-            Throw ExceptionUtilities.Unreachable
-        End Function
-
         Protected Overrides Function AreHandledEventsEqual(oldMethod As IMethodSymbol, newMethod As IMethodSymbol) As Boolean
             Return oldMethod.HandledEvents.SequenceEqual(
                 newMethod.HandledEvents,

@@ -72,9 +72,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
 
         protected override bool IsCandidate(SyntaxNode node, SyntaxToken token, Diagnostic diagnostic)
         {
-            return node is BaseObjectCreationExpressionSyntax ||
-                   node is ConstructorInitializerSyntax ||
-                   node is AttributeSyntax;
+            return node is BaseObjectCreationExpressionSyntax or
+                   ConstructorInitializerSyntax or
+                   AttributeSyntax;
         }
 
         protected override SyntaxNode GetTargetNode(SyntaxNode node)

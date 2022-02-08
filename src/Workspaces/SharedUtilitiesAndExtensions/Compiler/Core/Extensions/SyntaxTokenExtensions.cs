@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool CheckParent<T>(this SyntaxToken token, Func<T, bool> valueChecker) where T : SyntaxNode
         {
-            if (!(token.Parent is T parentNode))
+            if (token.Parent is not T parentNode)
             {
                 return false;
             }

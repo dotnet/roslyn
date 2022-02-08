@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Fading;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
@@ -22,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
         private const string CS0162 = nameof(CS0162); // Unreachable code detected
 
         public const string IsSubsequentSection = nameof(IsSubsequentSection);
-        private static readonly ImmutableDictionary<string, string> s_subsequentSectionProperties = ImmutableDictionary<string, string>.Empty.Add(IsSubsequentSection, "");
+        private static readonly ImmutableDictionary<string, string?> s_subsequentSectionProperties = ImmutableDictionary<string, string?>.Empty.Add(IsSubsequentSection, "");
 
         public CSharpRemoveUnreachableCodeDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId,
@@ -43,8 +40,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 
         private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
         {
-            var fadeCode = context.GetOption(FadingOptions.FadeOutUnreachableCode, LanguageNames.CSharp);
-
+#if CODE_STYLE
+            var fadeCode = true;
+#else
+            var fadeCode = context.GetOption(Fading.FadingOptions.FadeOutUnreachableCode, LanguageNames.CSharp);
+#endif
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
 
@@ -148,8 +148,13 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
                     additionalUnnecessaryLocations = ImmutableArray.Create(location);
                 }
 
-                context.ReportDiagnostic(
-                    DiagnosticHelper.CreateWithLocationTags(Descriptor, location, ReportDiagnostic.Default, additionalLocations, additionalUnnecessaryLocations, s_subsequentSectionProperties));
+                context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+                    Descriptor,
+                    location,
+                    ReportDiagnostic.Default,
+                    additionalLocations,
+                    additionalUnnecessaryLocations,
+                    s_subsequentSectionProperties));
             }
         }
     }

@@ -60,11 +60,11 @@ namespace Microsoft.CodeAnalysis.Editing
 
         public static DeclarationModifiers From(ISymbol symbol)
         {
-            if (symbol is INamedTypeSymbol ||
-                 symbol is IFieldSymbol ||
-                 symbol is IPropertySymbol ||
-                 symbol is IMethodSymbol ||
-                 symbol is IEventSymbol)
+            if (symbol is INamedTypeSymbol or
+                 IFieldSymbol or
+                 IPropertySymbol or
+                 IMethodSymbol or
+                 IEventSymbol)
             {
                 var field = symbol as IFieldSymbol;
                 var property = symbol as IPropertySymbol;

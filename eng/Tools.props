@@ -8,6 +8,7 @@
       See https://github.com/dotnet/arcade/issues/7205
     -->
     <PackageReference Include="Microsoft.DotNet.Build.Tasks.Feed" Version="$(MicrosoftDotNetBuildTasksFeedVersion)" />
+    <PackageReference Include="Microsoft.DotNet.NuGetRepack.Tasks" Version="$(MicrosoftDotNetBuildTasksFeedVersion)" />
   </ItemGroup>
 
 </Project>

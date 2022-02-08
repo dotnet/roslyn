@@ -490,30 +490,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void reportNullableReferenceTypesIfNeeded(SyntaxToken questionToken, TypeWithAnnotations typeArgument = default)
             {
-                bool isNullableEnabled = AreNullableAnnotationsEnabled(questionToken);
-                bool isGeneratedCode = IsGeneratedCode(questionToken);
-                var location = questionToken.GetLocation();
-
                 if (diagnostics.DiagnosticBag is DiagnosticBag diagnosticBag)
                 {
                     // Inside a method body or other executable code, we can question IsValueType without causing cycles.
                     if (typeArgument.HasType && !ShouldCheckConstraints)
                     {
-                        LazyMissingNonNullTypesContextDiagnosticInfo.AddAll(
-                            isNullableEnabled,
-                            isGeneratedCode,
-                            typeArgument,
-                            location,
-                            diagnosticBag);
+                        LazyMissingNonNullTypesContextDiagnosticInfo.AddAll(this, questionToken, typeArgument, diagnosticBag);
                     }
-                    else
+                    else if (LazyMissingNonNullTypesContextDiagnosticInfo.IsNullableReference(typeArgument.Type))
                     {
-                        LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(
-                            isNullableEnabled,
-                            isGeneratedCode,
-                            typeArgument,
-                            location,
-                            diagnosticBag);
+                        LazyMissingNonNullTypesContextDiagnosticInfo.AddAll(this, questionToken, type: null, diagnosticBag);
                     }
                 }
             }
@@ -1173,6 +1159,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                var boundTypeArguments = BindTypeArguments(typeArguments, diagnostics, basesBeingResolved);
+                if (unconstructedType.IsGenericType
+                    && options.IsAttributeTypeLookup())
+                {
+                    foreach (var typeArgument in boundTypeArguments)
+                    {
+                        var type = typeArgument.Type;
+                        if (type.IsUnboundGenericType() || type.ContainsTypeParameter())
+                        {
+                            diagnostics.Add(ErrorCode.ERR_AttrTypeArgCannotBeTypeVar, node.Location, type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+                        }
+                        else
+                        {
+                            CheckDisallowedAttributeDependentType(typeArgument, node.Location, diagnostics);
+                        }
+                    }
+                }
+
                 // It's not an unbound type expression, so we must have type arguments, and we have a
                 // generic type of the correct arity in hand (possibly an error type). Bind the type
                 // arguments and construct the final result.
@@ -1180,19 +1184,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     unconstructedType,
                     node,
                     typeArguments,
-                    BindTypeArguments(typeArguments, diagnostics, basesBeingResolved),
+                    boundTypeArguments,
                     basesBeingResolved,
                     diagnostics);
-            }
-
-            if (options.IsAttributeTypeLookup())
-            {
-                // Generic type cannot be an attribute type.
-                // Parser error has already been reported, just wrap the result type with error type symbol.
-                Debug.Assert(unconstructedType.IsErrorType());
-                Debug.Assert(resultType.IsErrorType());
-                resultType = new ExtendedErrorTypeSymbol(GetContainingNamespaceOrType(resultType), resultType,
-                    LookupResultKind.NotAnAttributeType, errorInfo: null);
             }
 
             return TypeWithAnnotations.Create(AreNullableAnnotationsEnabled(node.TypeArgumentList.GreaterThanToken), resultType);
@@ -1328,7 +1322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Keep check and error in sync with ConstructNamedTypeUnlessTypeArgumentOmitted.
         /// </remarks>
-        private static BoundMethodOrPropertyGroup ConstructBoundMemberGroupAndReportOmittedTypeArguments(
+        private BoundMethodOrPropertyGroup ConstructBoundMemberGroupAndReportOmittedTypeArguments(
             SyntaxNode syntax,
             SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax,
             ImmutableArray<TypeWithAnnotations> typeArguments,
@@ -1361,6 +1355,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         members.SelectAsArray(s_toMethodSymbolFunc),
                         lookupResult,
                         methodGroupFlags,
+                        this,
                         hasErrors);
 
                 case SymbolKind.Property:

@@ -2852,9 +2852,9 @@ class C
 }";
             var comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
-                // (2,7): error CS8860: Types and aliases should not be named 'record'.
+                // (2,7): warning CS8860: Types and aliases should not be named 'record'.
                 // class record { }
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 7),
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(2, 7),
                 // (6,24): error CS1514: { expected
                 //     record M(record r) => r;
                 Diagnostic(ErrorCode.ERR_LbraceExpected, "=>").WithLocation(6, 24),
@@ -2873,6 +2873,13 @@ class C
                 );
 
             comp = CreateCompilation(src, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (2,7): warning CS8981: The type name 'record' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class record { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "record").WithArguments("record").WithLocation(2, 7)
+            );
+
+            comp = CreateCompilation(src, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseDll.WithWarningLevel(6));
             comp.VerifyDiagnostics();
         }
 
@@ -2886,7 +2893,7 @@ struct record { }
             comp.VerifyDiagnostics(
                 // (2,8): warning CS8860: Types and aliases should not be named 'record'.
                 // struct record { }
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 8)
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(2, 8)
                 );
         }
 
@@ -2900,7 +2907,7 @@ interface record { }
             comp.VerifyDiagnostics(
                 // (2,11): warning CS8860: Types and aliases should not be named 'record'.
                 // interface record { }
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 11)
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(2, 11)
                 );
         }
 
@@ -2914,7 +2921,7 @@ enum record { }
             comp.VerifyDiagnostics(
                 // (2,6): warning CS8860: Types and aliases should not be named 'record'.
                 // enum record { }
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 6)
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(2, 6)
                 );
         }
 
@@ -2928,7 +2935,7 @@ delegate void record();
             comp.VerifyDiagnostics(
                 // (2,15): warning CS8860: Types and aliases should not be named 'record'.
                 // delegate void record();
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 15)
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(2, 15)
                 );
         }
 
@@ -2955,7 +2962,7 @@ using record = System.Console;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using record = System.Console;").WithLocation(2, 1),
                 // (2,7): warning CS8860: Types and aliases should not be named 'record'.
                 // using record = System.Console;
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 7)
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(2, 7)
                 );
         }
 
@@ -2999,16 +3006,16 @@ class C3
             comp.VerifyDiagnostics(
                 // (2,9): warning CS8860: Types and aliases should not be named 'record'.
                 // class C<record> { } // 1
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 9),
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(2, 9),
                 // (5,18): warning CS8860: Types and aliases should not be named 'record'.
                 //     class Nested<record> { } // 2
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(5, 18),
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(5, 18),
                 // (9,17): warning CS8860: Types and aliases should not be named 'record'.
                 //     void Method<record>() { } // 3
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(9, 17),
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(9, 17),
                 // (13,20): warning CS8860: Types and aliases should not be named 'record'.
                 //         void local<record>() // 4
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(13, 20)
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(13, 20)
                 );
         }
 
@@ -3078,31 +3085,31 @@ partial class C3
             comp.VerifyDiagnostics(
                 // (3,17): warning CS8860: Types and aliases should not be named 'record'.
                 // partial class C<record> { } // 1
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(3, 17),
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(3, 17),
                 // (5,17): warning CS8860: Types and aliases should not be named 'record'.
                 // partial class D<record> { } // 2
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(5, 17),
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(5, 17),
                 // (8,17): warning CS8860: Types and aliases should not be named 'record'.
                 // partial class D<record> { } // 3
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(8, 17),
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(8, 17),
                 // (9,17): warning CS8860: Types and aliases should not be named 'record'.
                 // partial class D<record> { } // 4
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(9, 17),
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(9, 17),
                 // (16,26): warning CS8860: Types and aliases should not be named 'record'.
                 //     partial class Nested<record> { } // 5
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(16, 26),
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(16, 26),
                 // (22,25): warning CS8860: Types and aliases should not be named 'record'.
                 //     partial void Method<record>() { } // 6
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(22, 25),
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(22, 25),
                 // (25,26): warning CS8860: Types and aliases should not be named 'record'.
                 //     partial void Method2<record>(); // 7
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(25, 26),
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(25, 26),
                 // (27,26): warning CS8860: Types and aliases should not be named 'record'.
                 //     partial void Method3<record>(); // 8
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(27, 26),
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(27, 26),
                 // (30,26): warning CS8860: Types and aliases should not be named 'record'.
                 //     partial void Method4<record>() { } // 9
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(30, 26)
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(30, 26)
                 );
         }
 
@@ -3116,7 +3123,7 @@ record record { }
             comp.VerifyDiagnostics(
                 // (2,8): warning CS8860: Types and aliases should not be named 'record'.
                 // record record { }
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 8)
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(2, 8)
                 );
         }
 
@@ -3131,10 +3138,10 @@ partial class record { }
             comp.VerifyDiagnostics(
                 // (2,15): warning CS8860: Types and aliases should not be named 'record'.
                 // partial class record { }
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 15),
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(2, 15),
                 // (3,15): warning CS8860: Types and aliases should not be named 'record'.
                 // partial class record { }
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(3, 15)
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(3, 15)
                 );
         }
 
@@ -3159,7 +3166,7 @@ partial class record { }
             comp.VerifyDiagnostics(
                 // (3,15): warning CS8860: Types and aliases should not be named 'record'.
                 // partial class record { }
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(3, 15)
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(3, 15)
                 );
         }
 
@@ -3174,7 +3181,7 @@ partial class @record { }
             comp.VerifyDiagnostics(
                 // (2,15): warning CS8860: Types and aliases should not be named 'record'.
                 // partial class record { }
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 15)
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(2, 15)
                 );
         }
 
@@ -3213,7 +3220,7 @@ class C
             comp.VerifyEmitDiagnostics(
                 // (2,7): warning CS8860: Types and aliases should not be named 'record'.
                 // class record { }
-                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithArguments("record").WithLocation(2, 7)
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(2, 7)
                 );
             CompileAndVerify(comp, expectedOutput: "RAN");
         }
@@ -5559,21 +5566,22 @@ record C1
 
             v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
 {
-  // Code size       38 (0x26)
+  // Code size       43 (0x2b)
   .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldstr      ""field = ""
-  IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_000b:  pop
-  IL_000c:  ldarg.1
-  IL_000d:  ldarg.0
-  IL_000e:  ldflda     ""int C1.field""
-  IL_0013:  constrained. ""int""
-  IL_0019:  callvirt   ""string object.ToString()""
-  IL_001e:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0023:  pop
-  IL_0024:  ldc.i4.1
-  IL_0025:  ret
+  IL_0000:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.EnsureSufficientExecutionStack()""
+  IL_0005:  ldarg.1
+  IL_0006:  ldstr      ""field = ""
+  IL_000b:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0010:  pop
+  IL_0011:  ldarg.1
+  IL_0012:  ldarg.0
+  IL_0013:  ldflda     ""int C1.field""
+  IL_0018:  constrained. ""int""
+  IL_001e:  callvirt   ""string object.ToString()""
+  IL_0023:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0028:  pop
+  IL_0029:  ldc.i4.1
+  IL_002a:  ret
 }
 ");
         }
@@ -5597,21 +5605,22 @@ record C1<T> where T : struct
 
             v.VerifyIL("C1<T>." + WellKnownMemberNames.PrintMembersMethodName, @"
 {
-  // Code size       38 (0x26)
+  // Code size       43 (0x2b)
   .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldstr      ""field = ""
-  IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_000b:  pop
-  IL_000c:  ldarg.1
-  IL_000d:  ldarg.0
-  IL_000e:  ldflda     ""T C1<T>.field""
-  IL_0013:  constrained. ""T""
-  IL_0019:  callvirt   ""string object.ToString()""
-  IL_001e:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0023:  pop
-  IL_0024:  ldc.i4.1
-  IL_0025:  ret
+  IL_0000:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.EnsureSufficientExecutionStack()""
+  IL_0005:  ldarg.1
+  IL_0006:  ldstr      ""field = ""
+  IL_000b:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0010:  pop
+  IL_0011:  ldarg.1
+  IL_0012:  ldarg.0
+  IL_0013:  ldflda     ""T C1<T>.field""
+  IL_0018:  constrained. ""T""
+  IL_001e:  callvirt   ""string object.ToString()""
+  IL_0023:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0028:  pop
+  IL_0029:  ldc.i4.1
+  IL_002a:  ret
 }
 ");
         }
@@ -5635,19 +5644,20 @@ record C1
 
             v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
 {
-  // Code size       27 (0x1b)
+  // Code size       32 (0x20)
   .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldstr      ""field = ""
-  IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_000b:  pop
-  IL_000c:  ldarg.1
-  IL_000d:  ldarg.0
-  IL_000e:  ldfld      ""string C1.field""
-  IL_0013:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
-  IL_0018:  pop
-  IL_0019:  ldc.i4.1
-  IL_001a:  ret
+  IL_0000:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.EnsureSufficientExecutionStack()""
+  IL_0005:  ldarg.1
+  IL_0006:  ldstr      ""field = ""
+  IL_000b:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0010:  pop
+  IL_0011:  ldarg.1
+  IL_0012:  ldarg.0
+  IL_0013:  ldfld      ""string C1.field""
+  IL_0018:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
+  IL_001d:  pop
+  IL_001e:  ldc.i4.1
+  IL_001f:  ret
 }
 ");
         }
@@ -5675,20 +5685,21 @@ record C1<T>
 
             v.VerifyIL("C1<T>." + WellKnownMemberNames.PrintMembersMethodName, @"
 {
-  // Code size       32 (0x20)
+  // Code size       37 (0x25)
   .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldstr      ""field = ""
-  IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_000b:  pop
-  IL_000c:  ldarg.1
-  IL_000d:  ldarg.0
-  IL_000e:  ldfld      ""T C1<T>.field""
-  IL_0013:  box        ""T""
-  IL_0018:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
-  IL_001d:  pop
-  IL_001e:  ldc.i4.1
-  IL_001f:  ret
+  IL_0000:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.EnsureSufficientExecutionStack()""
+  IL_0005:  ldarg.1
+  IL_0006:  ldstr      ""field = ""
+  IL_000b:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0010:  pop
+  IL_0011:  ldarg.1
+  IL_0012:  ldarg.0
+  IL_0013:  ldfld      ""T C1<T>.field""
+  IL_0018:  box        ""T""
+  IL_001d:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
+  IL_0022:  pop
+  IL_0023:  ldc.i4.1
+  IL_0024:  ret
 }
 ");
         }
@@ -5756,28 +5767,29 @@ record C1
 
             v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
 {
-  // Code size       52 (0x34)
+  // Code size       57 (0x39)
   .maxstack  2
-  IL_0000:  ldarg.1
-  IL_0001:  ldstr      ""field1 = ""
-  IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_000b:  pop
-  IL_000c:  ldarg.1
-  IL_000d:  ldarg.0
-  IL_000e:  ldfld      ""string C1.field1""
-  IL_0013:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
-  IL_0018:  pop
-  IL_0019:  ldarg.1
-  IL_001a:  ldstr      "", field2 = ""
-  IL_001f:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0024:  pop
-  IL_0025:  ldarg.1
-  IL_0026:  ldarg.0
-  IL_0027:  ldfld      ""string C1.field2""
-  IL_002c:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
-  IL_0031:  pop
-  IL_0032:  ldc.i4.1
-  IL_0033:  ret
+  IL_0000:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.EnsureSufficientExecutionStack()""
+  IL_0005:  ldarg.1
+  IL_0006:  ldstr      ""field1 = ""
+  IL_000b:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0010:  pop
+  IL_0011:  ldarg.1
+  IL_0012:  ldarg.0
+  IL_0013:  ldfld      ""string C1.field1""
+  IL_0018:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
+  IL_001d:  pop
+  IL_001e:  ldarg.1
+  IL_001f:  ldstr      "", field2 = ""
+  IL_0024:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0029:  pop
+  IL_002a:  ldarg.1
+  IL_002b:  ldarg.0
+  IL_002c:  ldfld      ""string C1.field2""
+  IL_0031:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(object)""
+  IL_0036:  pop
+  IL_0037:  ldc.i4.1
+  IL_0038:  ret
 }
 ");
         }
@@ -5809,26 +5821,26 @@ record C1(int Property)
 
             v.VerifyIL("C1." + WellKnownMemberNames.PrintMembersMethodName, @"
 {
-  // Code size       41 (0x29)
+  // Code size       46 (0x2e)
   .maxstack  2
   .locals init (int V_0)
-  IL_0000:  ldarg.1
-  IL_0001:  ldstr      ""Property = ""
-  IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_000b:  pop
-  IL_000c:  ldarg.1
-  IL_000d:  ldarg.0
-  IL_000e:  call       ""int C1.Property.get""
-  IL_0013:  stloc.0
-  IL_0014:  ldloca.s   V_0
-  IL_0016:  constrained. ""int""
-  IL_001c:  callvirt   ""string object.ToString()""
-  IL_0021:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
-  IL_0026:  pop
-  IL_0027:  ldc.i4.1
-  IL_0028:  ret
-}
-");
+  IL_0000:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.EnsureSufficientExecutionStack()""
+  IL_0005:  ldarg.1
+  IL_0006:  ldstr      ""Property = ""
+  IL_000b:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0010:  pop
+  IL_0011:  ldarg.1
+  IL_0012:  ldarg.0
+  IL_0013:  call       ""int C1.Property.get""
+  IL_0018:  stloc.0
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  constrained. ""int""
+  IL_0021:  callvirt   ""string object.ToString()""
+  IL_0026:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_002b:  pop
+  IL_002c:  ldc.i4.1
+  IL_002d:  ret
+}");
         }
 
         [Fact]
@@ -25968,9 +25980,9 @@ record Goo<T>
 
             var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
-                // (2,2): error CS0404: Cannot apply attribute class 'Goo<T>' because it is generic
+                // (2,2): error CS0616: 'Goo<T>' is not an attribute class
                 // [Goo<int>]
-                Diagnostic(ErrorCode.ERR_AttributeCantBeGeneric, "Goo<int>").WithArguments("Goo<T>").WithLocation(2, 2)
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Goo<int>").WithArguments("Goo<T>").WithLocation(2, 2)
                 );
         }
 
@@ -26088,7 +26100,7 @@ public record D : B {}
             var test = @"
 namespace x
 {
-    public record iii
+    public record @iii
     {
         ~iiii(){}
         public static void Main()
@@ -26276,11 +26288,9 @@ class Attr3 : System.Attribute {}
             Assert.Equal(1, analyzer.FireCount7);
             Assert.Equal(1, analyzer.FireCount8);
             Assert.Equal(1, analyzer.FireCount9);
-            Assert.Equal(1, analyzer.FireCount10);
             Assert.Equal(1, analyzer.FireCount11);
             Assert.Equal(1, analyzer.FireCount12);
             Assert.Equal(1, analyzer.FireCount13);
-            Assert.Equal(1, analyzer.FireCount14);
             Assert.Equal(1, analyzer.FireCount15);
             Assert.Equal(1, analyzer.FireCount16);
             Assert.Equal(1, analyzer.FireCount17);
@@ -26312,11 +26322,9 @@ class Attr3 : System.Attribute {}
             public int FireCount7;
             public int FireCount8;
             public int FireCount9;
-            public int FireCount10;
             public int FireCount11;
             public int FireCount12;
             public int FireCount13;
-            public int FireCount14;
             public int FireCount15;
             public int FireCount16;
             public int FireCount17;
@@ -26478,9 +26486,6 @@ class Attr3 : System.Attribute {}
 
                 switch (context.ContainingSymbol.ToTestDisplayString())
                 {
-                    case "B..ctor([System.Int32 Y = 1])":
-                        Interlocked.Increment(ref FireCount10);
-                        break;
                     case "B":
                         Interlocked.Increment(ref FireCount11);
                         break;
@@ -26489,9 +26494,6 @@ class Attr3 : System.Attribute {}
                         break;
                     case "C":
                         Interlocked.Increment(ref FireCount13);
-                        break;
-                    case "A..ctor([System.Int32 X = 0])":
-                        Interlocked.Increment(ref FireCount14);
                         break;
                     default:
                         Assert.True(false);
@@ -27538,11 +27540,9 @@ interface I1 {}
             Assert.Equal(1, analyzer.FireCount7);
             Assert.Equal(0, analyzer.FireCount8);
             Assert.Equal(1, analyzer.FireCount9);
-            Assert.Equal(0, analyzer.FireCount10);
             Assert.Equal(0, analyzer.FireCount11);
             Assert.Equal(0, analyzer.FireCount12);
             Assert.Equal(0, analyzer.FireCount13);
-            Assert.Equal(0, analyzer.FireCount14);
             Assert.Equal(1, analyzer.FireCount15);
             Assert.Equal(1, analyzer.FireCount16);
             Assert.Equal(0, analyzer.FireCount17);
@@ -28090,6 +28090,148 @@ public class Outer
         }
 
         [Fact]
+        public void ToString_Cycle_01()
+        {
+            var src = @"
+using System;
+
+var rec = new Rec();
+rec.Inner = rec;
+try
+{
+    rec.ToString();
+}
+catch (Exception ex)
+{
+    Console.Write(ex.GetType().FullName);
+}
+
+public record Rec
+{
+    public Rec Inner;
+}
+";
+            CompileAndVerify(src, expectedOutput: "System.InsufficientExecutionStackException");
+        }
+
+        [Fact]
+        public void ToString_Cycle_02()
+        {
+            var src = @"
+using System;
+
+var rec = new Rec();
+rec.Inner = rec;
+try
+{
+    rec.ToString();
+}
+catch (Exception ex)
+{
+    Console.Write(ex.GetType().FullName);
+}
+
+public record Base
+{
+    public Rec Inner;
+}
+
+public record Rec : Base { }
+";
+            CompileAndVerify(src, expectedOutput: "System.InsufficientExecutionStackException");
+        }
+
+        [Fact]
+        public void ToString_Cycle_03()
+        {
+            var src = @"
+using System;
+
+var rec = new Rec();
+rec.RecStruct.Rec = rec;
+try
+{
+    rec.ToString();
+}
+catch (Exception ex)
+{
+    Console.Write(ex.GetType().FullName);
+}
+
+public record Rec
+{
+    public RecStruct RecStruct;
+}
+
+public record struct RecStruct
+{
+    public Rec Rec;
+}
+";
+            CompileAndVerify(src, expectedOutput: "System.InsufficientExecutionStackException");
+        }
+
+        [Fact]
+        public void ToString_Cycle_04()
+        {
+            var src = @"
+public record Rec
+{
+    public RecStruct RecStruct;
+}
+
+public record struct RecStruct
+{
+    public Rec Rec;
+}
+";
+            var comp = CreateCompilation(src);
+            var verifier = CompileAndVerify(comp);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Rec.PrintMembers", @"
+{
+  // Code size       43 (0x2b)
+  .maxstack  2
+  IL_0000:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.EnsureSufficientExecutionStack()""
+  IL_0005:  ldarg.1
+  IL_0006:  ldstr      ""RecStruct = ""
+  IL_000b:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0010:  pop
+  IL_0011:  ldarg.1
+  IL_0012:  ldarg.0
+  IL_0013:  ldflda     ""RecStruct Rec.RecStruct""
+  IL_0018:  constrained. ""RecStruct""
+  IL_001e:  callvirt   ""string object.ToString()""
+  IL_0023:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0028:  pop
+  IL_0029:  ldc.i4.1
+  IL_002a:  ret
+}");
+
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__EnsureSufficientExecutionStack);
+            verifier = CompileAndVerify(comp);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Rec.PrintMembers", @"
+{
+  // Code size       38 (0x26)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  ldstr      ""RecStruct = ""
+  IL_0006:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_000b:  pop
+  IL_000c:  ldarg.1
+  IL_000d:  ldarg.0
+  IL_000e:  ldflda     ""RecStruct Rec.RecStruct""
+  IL_0013:  constrained. ""RecStruct""
+  IL_0019:  callvirt   ""string object.ToString()""
+  IL_001e:  callvirt   ""System.Text.StringBuilder System.Text.StringBuilder.Append(string)""
+  IL_0023:  pop
+  IL_0024:  ldc.i4.1
+  IL_0025:  ret
+}");
+        }
+
+        [Fact]
         [WorkItem(50040, "https://github.com/dotnet/roslyn/issues/50040")]
         public void RaceConditionInAddMembers()
         {
@@ -28172,7 +28314,80 @@ namespace System.Runtime.CompilerServices
             Assert.Equal("", constructor.GetParameters()[0].GetDocumentationCommentXml());
 
             var property = cMember.GetMembers("I1").Single();
-            Assert.Equal("", property.GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:C.I1"">
+    <summary>Description for I1</summary>
+</member>
+", property.GetDocumentationCommentXml());
+        }
+
+        [Fact, WorkItem(53912, "https://github.com/dotnet/roslyn/issues/53912")]
+        public void XmlDoc_CrefToPositionalProperty_Test53912()
+        {
+            var source = @"
+namespace NamespaceA
+{
+    /// <summary>
+    /// A sample record type
+    /// </summary>
+    /// <param name=""Prop1"">
+    /// A property
+    /// </param>
+    public record LinkDestinationRecord(string Prop1);
+
+    /// <summary>
+    /// Simple class.
+    /// </summary>
+    public class LinkingClass
+    {
+        /// <inheritdoc cref=""LinkDestinationRecord.Prop1"" />
+        public string Prop1A { get; init; }
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments, assemblyName: "Test");
+
+            var actual = GetDocumentationCommentText(comp);
+            // the cref becomes `P:...`
+            var expected =
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>Test</name>
+    </assembly>
+    <members>
+        <member name=""T:NamespaceA.LinkDestinationRecord"">
+            <summary>
+            A sample record type
+            </summary>
+            <param name=""Prop1"">
+            A property
+            </param>
+        </member>
+        <member name=""M:NamespaceA.LinkDestinationRecord.#ctor(System.String)"">
+            <summary>
+            A sample record type
+            </summary>
+            <param name=""Prop1"">
+            A property
+            </param>
+        </member>
+        <member name=""P:NamespaceA.LinkDestinationRecord.Prop1"">
+            <summary>
+            A property
+            </summary>
+        </member>
+        <member name=""T:NamespaceA.LinkingClass"">
+            <summary>
+            Simple class.
+            </summary>
+        </member>
+        <member name=""P:NamespaceA.LinkingClass.Prop1A"">
+            <inheritdoc cref=""P:NamespaceA.LinkDestinationRecord.Prop1"" />
+        </member>
+    </members>
+</doc>";
+            Assert.Equal(expected, actual);
         }
 
         [Fact]
@@ -28213,7 +28428,11 @@ namespace System.Runtime.CompilerServices
             Assert.Equal("", constructor.GetParameters()[0].GetDocumentationCommentXml());
 
             var property = cMember.GetMembers("I1").Single();
-            Assert.Equal("", property.GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:C.I1"">
+    <summary>Description for I1</summary>
+</member>
+", property.GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -28501,7 +28720,11 @@ namespace System.Runtime.CompilerServices
 ", cConstructor.GetDocumentationCommentXml());
 
             Assert.Equal("", cConstructor.GetParameters()[0].GetDocumentationCommentXml());
-            Assert.Equal("", c.GetMembers("I1").Single().GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:C.I1"">
+    <summary>Description for I1</summary>
+</member>
+", c.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -28544,7 +28767,11 @@ namespace System.Runtime.CompilerServices
 ", dConstructor.GetDocumentationCommentXml());
 
             Assert.Equal("", dConstructor.GetParameters()[0].GetDocumentationCommentXml());
-            Assert.Equal("", d.GetMembers("I1").Single().GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:D.I1"">
+    <summary>Description for I1</summary>
+</member>
+", d.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -28588,7 +28815,11 @@ namespace System.Runtime.CompilerServices
             var eConstructor = e.GetMembers(".ctor").OfType<SynthesizedRecordConstructor>().Single();
             Assert.Equal("", eConstructor.GetDocumentationCommentXml());
             Assert.Equal("", eConstructor.GetParameters()[0].GetDocumentationCommentXml());
-            Assert.Equal("", e.GetMembers("I1").Single().GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:E.I1"">
+    <summary>Description for I1</summary>
+</member>
+", e.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -28632,7 +28863,11 @@ namespace System.Runtime.CompilerServices
             var eConstructor = e.GetMembers(".ctor").OfType<SynthesizedRecordConstructor>().Single();
             Assert.Equal("", eConstructor.GetDocumentationCommentXml());
             Assert.Equal("", eConstructor.GetParameters()[0].GetDocumentationCommentXml());
-            Assert.Equal("", e.GetMembers("I1").Single().GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:E.I1"">
+    <summary>Description for I1</summary>
+</member>
+", e.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -28680,7 +28915,11 @@ namespace System.Runtime.CompilerServices
             Assert.Equal(1, cConstructor.DeclaringSyntaxReferences.Count());
             Assert.Equal("", cConstructor.GetDocumentationCommentXml());
             Assert.Equal("", cConstructor.GetParameters()[0].GetDocumentationCommentXml());
-            Assert.Equal("", c.GetMembers("I1").Single().GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:C.I1"">
+    <summary>Description for I1</summary>
+</member>
+", c.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -28727,7 +28966,11 @@ namespace System.Runtime.CompilerServices
 ", dConstructor.GetDocumentationCommentXml());
 
             Assert.Equal("", dConstructor.GetParameters()[0].GetDocumentationCommentXml());
-            Assert.Equal("", d.GetMembers("I1").Single().GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:D.I1"">
+    <summary>Description for I1</summary>
+</member>
+", d.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -28781,7 +29024,12 @@ namespace System.Runtime.CompilerServices
 </member>
 ", eConstructor.GetDocumentationCommentXml());
             Assert.Equal("", eConstructor.GetParameters()[0].GetDocumentationCommentXml());
-            Assert.Equal("", e.GetMembers("I1").Single().GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:E.I1"">
+    <summary>Description1 for I1</summary>
+    <summary>Description2 for I1</summary>
+</member>
+", e.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -28883,7 +29131,11 @@ namespace System.Runtime.CompilerServices
 </member>
 ", eConstructor.GetDocumentationCommentXml());
             Assert.Equal("", eConstructor.GetParameters()[0].GetDocumentationCommentXml());
-            Assert.Equal("", e.GetMembers("I1").Single().GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:E.I1"">
+    <summary>Description1 for I1</summary>
+</member>
+", e.GetMembers("I1").Single().GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -28930,7 +29182,11 @@ namespace System.Runtime.CompilerServices
             Assert.Equal("", constructor.GetParameters()[0].GetDocumentationCommentXml());
 
             var property = cMember.GetMembers("I1").Single();
-            Assert.Equal("", property.GetDocumentationCommentXml());
+            AssertEx.Equal(
+@"<member name=""P:Outer.C.I1"">
+    <summary>Description for I1</summary>
+</member>
+", property.GetDocumentationCommentXml());
         }
 
         [Fact]
@@ -30119,7 +30375,6 @@ public record C(int I) : B(I);";
                 "void D.Deconstruct(out System.Int32 I)"
             };
             AssertEx.Equal(expectedMembers, actualMembers);
-
         }
     }
 }

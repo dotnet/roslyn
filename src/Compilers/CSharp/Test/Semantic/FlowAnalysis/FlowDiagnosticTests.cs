@@ -7,7 +7,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -925,20 +924,22 @@ public struct A
     }
 }
 ";
-            CreateCompilation(program).VerifyDiagnostics(
-    // (4,7): error CS0573: 'A': cannot have instance property or field initializers in structs
-    //     A a = new A(); // CS8036
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "a").WithArguments("A").WithLocation(4, 7),
-    // (4,7): error CS0523: Struct member 'A.a' of type 'A' causes a cycle in the struct layout
-    //     A a = new A(); // CS8036
-    Diagnostic(ErrorCode.ERR_StructLayoutCycle, "a").WithArguments("A.a", "A").WithLocation(4, 7),
-    // (7,11): warning CS0219: The variable 'a' is assigned but its value is never used
-    //         A a = new A();
-    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a").WithArguments("a").WithLocation(7, 11),
-    // (4,7): warning CS0169: The field 'A.a' is never used
-    //     A a = new A(); // CS8036
-    Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("A.a").WithLocation(4, 7)
-    );
+            CreateCompilation(program, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (4,7): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     A a = new A(); // CS8036
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "a").WithArguments("struct field initializers", "10.0").WithLocation(4, 7),
+                // (2,15): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                // public struct A
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "A").WithLocation(2, 15),
+                // (4,7): error CS0523: Struct member 'A.a' of type 'A' causes a cycle in the struct layout
+                //     A a = new A(); // CS8036
+                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "a").WithArguments("A.a", "A").WithLocation(4, 7),
+                // (7,11): warning CS0219: The variable 'a' is assigned but its value is never used
+                //         A a = new A();
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a").WithArguments("a").WithLocation(7, 11),
+                // (4,7): warning CS0169: The field 'A.a' is never used
+                //     A a = new A(); // CS8036
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("A.a").WithLocation(4, 7));
         }
 
         [WorkItem(542356, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542356")]
@@ -1269,15 +1270,17 @@ struct Program
     public S(int i) {}
 }";
 
-            var comp = CreateCompilation(text);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-    // (3,16): error CS0573: 'S': cannot have instance property or field initializers in structs
-    //     public int P { get; set; } = 1;
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "P").WithArguments("S").WithLocation(3, 16),
-    // (5,20): error CS0573: 'S': cannot have instance property or field initializers in structs
-    //     public decimal R { get; } = 300;
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "R").WithArguments("S").WithLocation(5, 20)
-);
+                // (3,16): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public int P { get; set; } = 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "P").WithArguments("struct field initializers", "10.0").WithLocation(3, 16),
+                // (5,20): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public decimal R { get; } = 300;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "R").WithArguments("struct field initializers", "10.0").WithLocation(5, 20));
+
+            comp = CreateCompilation(text);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1295,12 +1298,14 @@ struct Program
     }
 }";
 
-            var comp = CreateCompilation(text);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular9);
             comp.VerifyDiagnostics(
-    // (5,20): error CS0573: 'S': cannot have instance property or field initializers in structs
-    //     public decimal R { get; } = 300;
-    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "R").WithArguments("S").WithLocation(5, 20)
-    );
+                // (5,20): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
+                //     public decimal R { get; } = 300;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "R").WithArguments("struct field initializers", "10.0").WithLocation(5, 20));
+
+            comp = CreateCompilation(text);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]

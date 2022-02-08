@@ -9,13 +9,14 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Recommendations
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     <ExportCompletionProvider(NameOf(SymbolCompletionProvider), LanguageNames.VisualBasic)>
-    <ExtensionOrder(After:=NameOf(KeywordCompletionProvider))>
+    <ExtensionOrder(After:=NameOf(AwaitCompletionProvider))>
     <[Shared]>
     Partial Friend Class SymbolCompletionProvider
         Inherits AbstractRecommendationServiceBasedCompletionProvider(Of VisualBasicSyntaxContext)
@@ -60,9 +61,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Public Sub New()
         End Sub
 
+        Friend Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
+
         Protected Overrides ReadOnly Property PreselectedItemSelectionBehavior As CompletionItemSelectionBehavior = CompletionItemSelectionBehavior.SoftSelection
 
-        Protected Overrides Function ShouldPreselectInferredTypesAsync(completionContext As CompletionContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of Boolean)
+        Protected Overrides Function ShouldPreselectInferredTypesAsync(completionContext As CompletionContext, position As Integer, options As CompletionOptions, cancellationToken As CancellationToken) As Task(Of Boolean)
             Return SpecializedTasks.True
         End Function
 
@@ -70,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return GetInsertionTextAtInsertionTime(item, ch)
         End Function
 
-        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
             Return IsDefaultTriggerCharacterOrParen(text, characterPosition, options)
         End Function
 

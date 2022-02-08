@@ -86,6 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     !firstParam.IsArgList &&
                                     firstParam.Modifiers.Any(SyntaxKind.ThisKeyword),
                  isPartial: syntax.Modifiers.IndexOf(SyntaxKind.PartialKeyword) < 0,
+                 isReadOnly: false,
                  hasBody: syntax.Body != null || syntax.ExpressionBody != null,
                  isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                  diagnostics)
@@ -471,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             ref var lazyDocComment = ref expandIncludes ? ref this.lazyExpandedDocComment : ref this.lazyDocComment;
-            return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(SourcePartialImplementation ?? this, expandIncludes, ref lazyDocComment);
+            return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref lazyDocComment);
         }
 
         protected override SourceMemberMethodSymbol BoundAttributesSource
@@ -559,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                SourceMemberContainerTypeSymbol.ReportTypeNamedRecord(identifier.Text, this.DeclaringCompilation, diagnostics.DiagnosticBag, location);
+                SourceMemberContainerTypeSymbol.ReportReservedTypeName(identifier.Text, this.DeclaringCompilation, diagnostics.DiagnosticBag, location);
 
                 var tpEnclosing = ContainingType.FindEnclosingTypeParameter(name);
                 if ((object)tpEnclosing != null)

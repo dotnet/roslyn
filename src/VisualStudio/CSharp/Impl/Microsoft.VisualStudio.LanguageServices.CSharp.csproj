@@ -7,7 +7,7 @@
     <UseWpf>true</UseWpf>
     <RootNamespace>Microsoft.VisualStudio.LanguageServices.CSharp</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
+    <ApplyNgenOptimization>full</ApplyNgenOptimization>
 
     <!-- VSIX -->
     <CreateVsixContainer>false</CreateVsixContainer>
@@ -36,8 +36,6 @@
   <ItemGroup>
     <Reference Include="System.Design" />
     <Reference Include="System.Windows.Forms" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.16.9.DesignTime" Version="$(MicrosoftVisualStudioShellInterop169DesignTimeVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" Version="$(MicrosoftVisualStudioSDKEmbedInteropTypesVersion)" PrivateAssets="none" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.CSharp" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />

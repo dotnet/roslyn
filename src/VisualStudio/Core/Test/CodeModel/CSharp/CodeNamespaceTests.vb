@@ -444,6 +444,29 @@ namespace N2
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestSetName_NewName_FileScopedNamespace() As Task
+            Dim code =
+<Code><![CDATA[
+namespace N$$;
+
+class C
+{
+}
+]]></Code>
+
+            Dim expected =
+<Code><![CDATA[
+namespace N2;
+
+class C
+{
+}
+]]></Code>
+
+            Await TestSetName(code, expected, "N2", NoThrow(Of String)())
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
         Public Async Function TestSetName_SimpleNameToDottedName() As Task
             Dim code =
 <Code><![CDATA[
@@ -519,6 +542,26 @@ namespace Goo
             Await TestRemoveChild(code, expected, "C")
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function TestRemove1_FileScopedNamespace() As Task
+            Dim code =
+<Code>
+namespace $$Goo;
+
+class C
+{
+}
+</Code>
+
+            Dim expected =
+<Code>
+namespace Goo;
+
+</Code>
+
+            Await TestRemoveChild(code, expected, "C")
+        End Function
+
 #End Region
 
         <WorkItem(858153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858153")>
@@ -532,6 +575,24 @@ namespace N$$
     class C2 { }
     class C3 { }
 }
+</Code>
+
+            TestChildren(code,
+                IsElement("C1", EnvDTE.vsCMElement.vsCMElementClass),
+                IsElement("C2", EnvDTE.vsCMElement.vsCMElementClass),
+                IsElement("C3", EnvDTE.vsCMElement.vsCMElementClass))
+        End Sub
+
+        <WorkItem(858153, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858153")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Sub TestChildren1_FileScopedNamespace()
+            Dim code =
+<Code>
+namespace N$$;
+
+class C1 { }
+class C2 { }
+class C3 { }
 </Code>
 
             TestChildren(code,

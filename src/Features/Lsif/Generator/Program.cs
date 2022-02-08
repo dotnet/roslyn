@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     await logFile.WriteLineAsync($"Fetch of compilation for {project.FilePath} completed in {compilationCreationStopwatch.Elapsed.ToDisplayString()}.");
 
                     var generationForProjectStopwatch = Stopwatch.StartNew();
-                    lsifGenerator.GenerateForCompilation(compilation, project.FilePath, project.LanguageServices, project.Solution.Options);
+                    await lsifGenerator.GenerateForCompilationAsync(compilation, project.FilePath, project.LanguageServices, project.Solution.Options);
                     generationForProjectStopwatch.Stop();
 
                     totalTimeInGenerationPhase += generationForProjectStopwatch.Elapsed;
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             var generationStopwatch = Stopwatch.StartNew();
             var lsifGenerator = Generator.CreateAndWriteCapabilitiesVertex(lsifWriter);
 
-            lsifGenerator.GenerateForCompilation(compilerInvocation.Compilation, compilerInvocation.ProjectFilePath, compilerInvocation.LanguageServices, compilerInvocation.Options);
+            await lsifGenerator.GenerateForCompilationAsync(compilerInvocation.Compilation, compilerInvocation.ProjectFilePath, compilerInvocation.LanguageServices, compilerInvocation.Options);
             await logFile.WriteLineAsync($"Generation for {compilerInvocation.ProjectFilePath} completed in {generationStopwatch.Elapsed.ToDisplayString()}.");
         }
     }

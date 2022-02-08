@@ -73,7 +73,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 New KeywordRecommenders.EventHandling.RaiseEventKeywordRecommender(),
                 New KeywordRecommenders.EventHandling.RemoveHandlerKeywordRecommender(),
                 New KeywordRecommenders.Expressions.AddressOfKeywordRecommender(),
-                New KeywordRecommenders.Expressions.AwaitKeywordRecommender(),
                 New KeywordRecommenders.Expressions.BinaryOperatorKeywordRecommender(),
                 New KeywordRecommenders.Expressions.CastOperatorsKeywordRecommender(),
                 New KeywordRecommenders.Expressions.FromKeywordRecommender(),
@@ -168,7 +167,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 New KeywordRecommenders.Types.BuiltInTypesKeywordRecommender()))
         End Sub
 
-        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Friend Overrides ReadOnly Property Language As String
+            Get
+                Return LanguageNames.VisualBasic
+            End Get
+        End Property
+
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
             ' We show 'Of' after dim x as new list(
             Return CompletionUtilities.IsDefaultTriggerCharacterOrParen(text, characterPosition, options)
         End Function

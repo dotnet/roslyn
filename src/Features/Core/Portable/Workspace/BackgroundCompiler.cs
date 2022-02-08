@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,10 +20,8 @@ namespace Microsoft.CodeAnalysis.Host
         private readonly IDocumentTrackingService _documentTrackingService;
         private readonly TaskQueue _taskQueue;
 
-#pragma warning disable IDE0052 // Remove unread private members
-        // Used to keep a strong reference to the built compilations so they are not GC'd
-        private Compilation[] _mostRecentCompilations;
-#pragma warning restore IDE0052 // Remove unread private members
+        [SuppressMessage("CodeQuality", "IDE0052:Remove unread private members", Justification = "Used to keep a strong reference to the built compilations so they are not GC'd")]
+        private Compilation?[]? _mostRecentCompilations;
 
         private readonly object _buildGate = new();
         private CancellationTokenSource _cancellationSource;
@@ -54,17 +51,17 @@ namespace Microsoft.CodeAnalysis.Host
                 _workspace.DocumentOpened -= OnDocumentOpened;
                 _workspace.WorkspaceChanged -= OnWorkspaceChanged;
 
-                _workspace = null;
+                _workspace = null!;
             }
         }
 
-        private void OnDocumentOpened(object sender, DocumentEventArgs args)
+        private void OnDocumentOpened(object? sender, DocumentEventArgs args)
             => Rebuild(args.Document.Project.Solution, args.Document.Project.Id);
 
-        private void OnDocumentClosed(object sender, DocumentEventArgs args)
+        private void OnDocumentClosed(object? sender, DocumentEventArgs args)
             => Rebuild(args.Document.Project.Solution, args.Document.Project.Id);
 
-        private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs args)
+        private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs args)
         {
             switch (args.Kind)
             {
@@ -95,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Host
             }
         }
 
-        private void Rebuild(Solution solution, ProjectId initialProject = null)
+        private void Rebuild(Solution solution, ProjectId? initialProject = null)
         {
             lock (_buildGate)
             {
@@ -129,9 +126,9 @@ namespace Microsoft.CodeAnalysis.Host
 
         private Task BuildCompilationsAsync(
             Solution solution,
-            ProjectId initialProject,
+            ProjectId? initialProject,
             ISet<ProjectId> allOpenProjects,
-            ProjectId activeProject)
+            ProjectId? activeProject)
         {
             var cancellationToken = _cancellationSource.Token;
             return _taskQueue.ScheduleTask(
@@ -142,9 +139,9 @@ namespace Microsoft.CodeAnalysis.Host
 
         private Task BuildCompilationsAsync(
             Solution solution,
-            ProjectId initialProject,
+            ProjectId? initialProject,
             ISet<ProjectId> projectsToBuild,
-            ProjectId activeProject,
+            ProjectId? activeProject,
             CancellationToken cancellationToken)
         {
             var allProjectIds = new List<ProjectId>();
@@ -161,21 +158,21 @@ namespace Microsoft.CodeAnalysis.Host
             // set the background analysis scope to only analyze active files.
             var compilationTasks = allProjectIds
                 .Select(solution.GetProject)
-                .Where(p =>
+                .Select(async p =>
                 {
                     if (p is null)
-                        return false;
+                        return null;
 
-                    if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(p) == BackgroundAnalysisScope.ActiveFile)
+                    if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(p) == BackgroundAnalysisScope.ActiveFile
+                        && p.Id != activeProject)
                     {
                         // For open files with Active File analysis scope, only build the compilation if the project is
                         // active.
-                        return p.Id == activeProject;
+                        return null;
                     }
 
-                    return true;
+                    return await p.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 })
-                .Select(p => p.GetCompilationAsync(cancellationToken))
                 .ToArray();
             return Task.WhenAll(compilationTasks).SafeContinueWith(t =>
                 {

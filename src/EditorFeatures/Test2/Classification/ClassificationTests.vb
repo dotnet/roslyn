@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text
@@ -42,8 +43,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
 
                 Dim provider = New SemanticClassificationViewTaggerProvider(
-                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
+                    workspace.GetService(Of IThreadingContext),
                     workspace.GetService(Of ClassificationTypeMap),
+                    workspace.GetService(Of IGlobalOptionService),
                     listenerProvider)
 
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
@@ -108,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 ' make sure we don't crash with wrong document
                 Dim result = New ArrayBuilder(Of ClassifiedSpan)()
                 Await classificationService.AddSyntacticClassificationsAsync(wrongDocument, New TextSpan(0, text.Length), result, CancellationToken.None)
-                Await classificationService.AddSemanticClassificationsAsync(wrongDocument, New TextSpan(0, text.Length), result, CancellationToken.None)
+                Await classificationService.AddSemanticClassificationsAsync(wrongDocument, New TextSpan(0, text.Length), options:=Nothing, result, CancellationToken.None)
             End Using
         End Function
 
@@ -127,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             Public Sub AddSyntacticClassifications(workspace As Workspace, root As SyntaxNode, textSpan As TextSpan, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken) Implements IClassificationService.AddSyntacticClassifications
             End Sub
 
-            Public Function AddSemanticClassificationsAsync(document As Document, textSpan As TextSpan, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken) As Task Implements IClassificationService.AddSemanticClassificationsAsync
+            Public Function AddSemanticClassificationsAsync(document As Document, textSpan As TextSpan, options As ClassificationOptions, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken) As Task Implements IClassificationService.AddSemanticClassificationsAsync
                 Return Task.CompletedTask
             End Function
 

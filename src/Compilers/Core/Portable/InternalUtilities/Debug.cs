@@ -27,7 +27,7 @@ namespace Roslyn.Utilities
 
         /// <summary>
         /// Generally <see cref="Debug.Assert(bool)"/> is a sufficient method for enforcing DEBUG 
-        /// only invariants in our code. When it triggers that providse a nice stack trace for 
+        /// only invariants in our code. When it triggers that provides a nice stack trace for 
         /// investigation. Generally that is enough.
         /// 
         /// <para>There are cases for which a stack is not enough and we need a full heap dump to 

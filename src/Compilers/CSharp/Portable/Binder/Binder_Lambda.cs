@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<string> names = default;
             ImmutableArray<RefKind> refKinds = default;
+            ImmutableArray<bool> nullCheckedOpt = default;
             ImmutableArray<TypeWithAnnotations> types = default;
             RefKind returnRefKind = RefKind.None;
             TypeWithAnnotations returnType = default;
@@ -63,6 +64,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasSignature = true;
                     var simple = (SimpleLambdaExpressionSyntax)syntax;
                     namesBuilder.Add(simple.Parameter.Identifier.ValueText);
+                    if (isNullChecked(simple.Parameter))
+                    {
+                        nullCheckedOpt = ImmutableArray.Create(true);
+                    }
                     break;
                 case SyntaxKind.ParenthesizedLambdaExpression:
                     // (T x, U y) => ...
@@ -98,6 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var typesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
                 var refKindsBuilder = ArrayBuilder<RefKind>.GetInstance();
+                var nullCheckedBuilder = ArrayBuilder<bool>.GetInstance();
                 var attributesBuilder = ArrayBuilder<SyntaxList<AttributeListSyntax>>.GetInstance();
 
                 // In the batch compiler case we probably should have given a syntax error if the
@@ -176,6 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     namesBuilder.Add(p.Identifier.ValueText);
                     typesBuilder.Add(type);
                     refKindsBuilder.Add(refKind);
+                    nullCheckedBuilder.Add(isNullChecked(p));
                     attributesBuilder.Add(syntax.Kind() == SyntaxKind.ParenthesizedLambdaExpression ? p.AttributeLists : default);
                 }
 
@@ -191,6 +198,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     refKinds = refKindsBuilder.ToImmutable();
                 }
 
+                if (nullCheckedBuilder.Contains(true))
+                {
+                    nullCheckedOpt = nullCheckedBuilder.ToImmutable();
+                }
+
                 if (attributesBuilder.Any(a => a.Count > 0))
                 {
                     parameterAttributes = attributesBuilder.ToImmutable();
@@ -198,6 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 typesBuilder.Free();
                 refKindsBuilder.Free();
+                nullCheckedBuilder.Free();
                 attributesBuilder.Free();
             }
 
@@ -208,7 +221,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             namesBuilder.Free();
 
-            return new UnboundLambda(syntax, this, diagnostics.AccumulatesDependencies, returnRefKind, returnType, parameterAttributes, refKinds, types, names, discardsOpt, isAsync, isStatic);
+            return UnboundLambda.Create(syntax, this, diagnostics.AccumulatesDependencies, returnRefKind, returnType, parameterAttributes, refKinds, types, names, discardsOpt, nullCheckedOpt, isAsync, isStatic);
+
+            static bool isNullChecked(ParameterSyntax parameter)
+                => parameter.ExclamationExclamationToken.IsKind(SyntaxKind.ExclamationExclamationToken);
 
             static ImmutableArray<bool> computeDiscards(SeparatedSyntaxList<ParameterSyntax> parameters, int underscoresCount)
             {
@@ -248,6 +264,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             MessageID.IDS_FeatureLambdaReturnType.CheckFeatureAvailability(diagnostics, syntax);
 
             syntax = syntax.SkipRef(out RefKind refKind);
+            if ((syntax as IdentifierNameSyntax)?.Identifier.ContextualKind() == SyntaxKind.VarKeyword)
+            {
+                diagnostics.Add(ErrorCode.ERR_LambdaExplicitReturnTypeVar, syntax.Location);
+            }
+
             var returnType = BindType(syntax, diagnostics);
             var type = returnType.Type;
 

@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingNode(node);
         }
 
-        internal void UsingDeclaration(string text, ParseOptions options, params DiagnosticDescription[] expectedErrors)
+        internal void UsingDeclaration(string text, ParseOptions? options, params DiagnosticDescription[] expectedErrors)
         {
             UsingDeclaration(text, offset: 0, options, consumeFullText: true, expectedErrors: expectedErrors);
         }

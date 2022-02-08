@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -13,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -187,12 +189,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 descriptor.Id,
                 descriptor.Category,
                 diagnostic.Message,
-                descriptor.GetBingHelpMessage(),
                 diagnostic.Severity,
                 descriptor.DefaultSeverity,
                 descriptor.IsEnabledByDefault,
                 diagnostic.WarningLevel,
-                descriptor.CustomTags.ToImmutableArray(),
+                descriptor.ImmutableCustomTags(),
                 diagnostic.Properties,
                 diagnostic.ProjectId,
                 diagnostic.DataLocation,

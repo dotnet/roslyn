@@ -5,6 +5,7 @@
 using System;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Telemetry;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 {
@@ -15,13 +16,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
         public void ShowDetailedErrorInfo(Exception exception)
             => Logger.Log(FunctionId.Extension_Exception, exception.StackTrace);
 
-        public void ShowGlobalErrorInfo(string message, params InfoBarUI[] items)
+        public void ShowGlobalErrorInfo(string message, TelemetryFeatureName featureName, Exception? exception, params InfoBarUI[] items)
             => Logger.Log(FunctionId.Extension_Exception, message);
 
-        public void ShowRemoteHostCrashedErrorInfo(Exception? exception)
-            => Logger.Log(FunctionId.Extension_Exception, exception?.Message);
-
-        public void ShowFeatureNotAvailableErrorInfo(string message, Exception? exception)
+        public void ShowFeatureNotAvailableErrorInfo(string message, TelemetryFeatureName featureName, Exception? exception)
         {
             // telemetry has already been reported
         }

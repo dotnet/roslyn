@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectInfoServ
     {
         public bool GeneratedTypesMustBePublic(Project project)
         {
-            if (!(project.Solution.Workspace is VisualStudioWorkspaceImpl))
+            if (project.Solution.Workspace is not VisualStudioWorkspaceImpl)
             {
                 return false;
             }

@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
-    [Shared, ExportLspRequestHandlerProvider, PartNotDiscoverable]
+    [Shared, ExportRoslynLanguagesLspRequestHandlerProvider, PartNotDiscoverable]
     [ProvidesMethod(NonLSPSolutionRequestHandler.MethodName)]
     internal class NonLSPSolutionRequestHandlerProvider : AbstractRequestHandlerProvider
     {
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         {
         }
 
-        public override ImmutableArray<IRequestHandler> CreateRequestHandlers()
+        public override ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
         {
             return ImmutableArray.Create<IRequestHandler>(new NonLSPSolutionRequestHandler());
         }

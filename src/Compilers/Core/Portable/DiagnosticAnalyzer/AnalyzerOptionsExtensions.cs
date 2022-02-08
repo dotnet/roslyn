@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             //  3. Non-configurable diagnostics
             if (analyzerOptions == null ||
                 !descriptor.IsEnabledByDefault ||
-                descriptor.CustomTags.Contains(tag => tag == WellKnownDiagnosticTags.Compiler || tag == WellKnownDiagnosticTags.NotConfigurable))
+                descriptor.IsCompilerOrNotConfigurable())
             {
                 severity = default;
                 return false;
@@ -66,6 +66,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (analyzerConfigOptions.TryGetValue(categoryBasedKey, out var value) &&
                 AnalyzerConfigSet.TryParseSeverity(value, out severity))
             {
+                // '/warnaserror' should bump Warning bulk configuration to Error.
+                if (severity == ReportDiagnostic.Warn && compilation.Options.GeneralDiagnosticOption == ReportDiagnostic.Error)
+                    severity = ReportDiagnostic.Error;
+
                 return true;
             }
 
@@ -74,6 +78,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (analyzerConfigOptions.TryGetValue(DotnetAnalyzerDiagnosticSeverityKey, out value) &&
                 AnalyzerConfigSet.TryParseSeverity(value, out severity))
             {
+                // '/warnaserror' should bump Warning bulk configuration to Error.
+                if (severity == ReportDiagnostic.Warn && compilation.Options.GeneralDiagnosticOption == ReportDiagnostic.Error)
+                    severity = ReportDiagnostic.Error;
+
                 return true;
             }
 

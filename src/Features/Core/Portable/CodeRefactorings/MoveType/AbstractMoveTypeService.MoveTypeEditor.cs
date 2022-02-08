@@ -132,6 +132,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 foreach (var member in membersToRemove)
                     documentEditor.RemoveNode(member, SyntaxRemoveOptions.KeepNoTrivia);
 
+                // Remove attributes from the root node as well, since those will apply as AttributeTarget.Assembly and
+                // don't need to be specified multiple times
+                documentEditor.RemoveAllAttributes(root);
+
                 var modifiedRoot = documentEditor.GetChangedRoot();
                 modifiedRoot = await AddFinalNewLineIfDesiredAsync(document, modifiedRoot).ConfigureAwait(false);
 
@@ -295,7 +299,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 TTypeDeclarationSyntax currentTypeNode)
             {
                 var syntaxFacts = State.SemanticDocument.Document.GetRequiredLanguageService<ISyntaxFactsService>();
-                var withoutBlankLines = syntaxFacts.GetNodeWithoutLeadingBlankLines(currentTypeNode);
+                var bannerService = State.SemanticDocument.Document.GetRequiredLanguageService<IFileBannerFactsService>();
+
+                var withoutBlankLines = bannerService.GetNodeWithoutLeadingBlankLines(currentTypeNode);
 
                 // Add an elastic marker so the formatter can add any blank lines it thinks are
                 // important to have (i.e. after a block of usings/imports).

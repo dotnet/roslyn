@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../EditorFeaturesWpfResources.resx">
     <body>
@@ -30,51 +30,6 @@
       <trans-unit id="Print_a_list_of_referenced_assemblies">
         <source>Print a list of referenced assemblies.</source>
         <target state="translated">Affichez la liste des assemblys référencés.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regex_Comment">
-        <source>Regex - Comment</source>
-        <target state="translated">Regex - commentaire</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regex_Character_Class">
-        <source>Regex - Character Class</source>
-        <target state="translated">Regex - classe de caractères</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regex_Alternation">
-        <source>Regex - Alternation</source>
-        <target state="translated">Regex - alternance</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regex_Anchor">
-        <source>Regex - Anchor</source>
-        <target state="translated">Regex - ancre</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regex_Quantifier">
-        <source>Regex - Quantifier</source>
-        <target state="translated">Regex - quantificateur</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regex_SelfEscapedCharacter">
-        <source>Regex - Self Escaped Character</source>
-        <target state="translated">Regex - caractère auto-échappé</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regex_Grouping">
-        <source>Regex - Grouping</source>
-        <target state="translated">Regex - regroupement</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regex_Text">
-        <source>Regex - Text</source>
-        <target state="translated">Regex - texte</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regex_OtherEscape">
-        <source>Regex - Other Escape</source>
-        <target state="translated">Regex - autre échappement</target>
         <note />
       </trans-unit>
       <trans-unit id="Reset_the_execution_environment_to_the_initial_state_keep_history">

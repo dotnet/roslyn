@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.UseIsNullCheck;
@@ -14,8 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
     internal class CSharpUseIsNullCheckForCastAndEqualityOperatorDiagnosticAnalyzer
         : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        private static readonly ImmutableDictionary<string, string> s_properties =
-            ImmutableDictionary<string, string>.Empty.Add(UseIsNullConstants.Kind, UseIsNullConstants.CastAndEqualityKey);
+        private static readonly ImmutableDictionary<string, string?> s_properties =
+            ImmutableDictionary<string, string?>.Empty.Add(UseIsNullConstants.Kind, UseIsNullConstants.CastAndEqualityKey);
 
         public CSharpUseIsNullCheckForCastAndEqualityOperatorDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseIsNullCheckDiagnosticId,
@@ -32,10 +33,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(context =>
             {
-                if (((CSharpCompilation)context.Compilation).LanguageVersion < LanguageVersion.CSharp7)
-                {
+                if (context.Compilation.LanguageVersion() < LanguageVersion.CSharp7)
                     return;
-                }
 
                 context.RegisterSyntaxNodeAction(n => AnalyzeSyntax(n), SyntaxKind.EqualsExpression, SyntaxKind.NotEqualsExpression);
             });

@@ -3157,6 +3157,107 @@ class C
                 );
         }
 
+        [Fact]
+        public void EqualsBoolConstant_05()
+        {
+            var source = @"
+#nullable enable
+
+class C
+{
+    void M1(object obj)
+    {
+        _ = (true == obj is string x and string y)
+            ? x.ToString()
+            : y.ToString(); // 1
+    }
+
+    void M2(object obj)
+    {
+        _ = (false == obj is string x and string y)
+            ? x.ToString() // 2
+            : y.ToString();
+    }
+
+    void M3(object obj)
+    {
+        _ = (true != obj is string x and string y)
+            ? x.ToString() // 3
+            : y.ToString();
+    }
+
+    void M4(object obj)
+    {
+        _ = (false != obj is string x and string y)
+            ? x.ToString()
+            : y.ToString(); // 4
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (10,15): error CS0165: Use of unassigned local variable 'y'
+                //             : y.ToString(); // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(10, 15),
+                // (16,15): error CS0165: Use of unassigned local variable 'x'
+                //             ? x.ToString() // 2
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(16, 15),
+                // (23,15): error CS0165: Use of unassigned local variable 'x'
+                //             ? x.ToString() // 3
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(23, 15),
+                // (31,15): error CS0165: Use of unassigned local variable 'y'
+                //             : y.ToString(); // 4
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(31, 15)
+                );
+        }
+
+        [Fact, WorkItem(56298, "https://github.com/dotnet/roslyn/issues/56298")]
+        public void Equals_IsPatternVariables_01()
+        {
+            var source = @"
+#nullable enable
+using System;
+int? c = 4, d = null;
+if ((c is int ci) != (d is int di))
+    Console.WriteLine(di.ToString()); // 1
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,23): error CS0165: Use of unassigned local variable 'di'
+                //     Console.WriteLine(di.ToString()); // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "di").WithArguments("di").WithLocation(6, 23)
+                );
+        }
+
+        [Fact, WorkItem(56298, "https://github.com/dotnet/roslyn/issues/56298")]
+        public void Equals_IsPatternVariables_02()
+        {
+            var source = @"
+#nullable enable
+int? c = 4, d = null;
+
+_ = (c is int c1) != (d is int d1)
+    ? c1.ToString() // 1
+    : d1.ToString(); // 2
+
+_ = (c is int c2) == (d is int d2)
+    ? c2.ToString() // 3
+    : d2.ToString(); // 4
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,7): error CS0165: Use of unassigned local variable 'c1'
+                //     ? c1.ToString() // 1
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "c1").WithArguments("c1").WithLocation(6, 7),
+                // (7,7): error CS0165: Use of unassigned local variable 'd1'
+                //     : d1.ToString(); // 2
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "d1").WithArguments("d1").WithLocation(7, 7),
+                // (10,7): error CS0165: Use of unassigned local variable 'c2'
+                //     ? c2.ToString() // 3
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "c2").WithArguments("c2").WithLocation(10, 7),
+                // (11,7): error CS0165: Use of unassigned local variable 'd2'
+                //     : d2.ToString(); // 4
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "d2").WithArguments("d2").WithLocation(11, 7)
+                );
+        }
+
         [Theory]
         [InlineData("b")]
         [InlineData("true")]

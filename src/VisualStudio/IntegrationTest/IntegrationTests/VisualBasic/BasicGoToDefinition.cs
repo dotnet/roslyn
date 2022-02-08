@@ -56,6 +56,7 @@ End Class");
             Assert.Equal("Object Browser", VisualStudio.Shell.GetActiveWindowCaption());
 
             VisualStudio.Workspace.SetFeatureOption(feature: "VisualStudioNavigationOptions", optionName: "NavigateToObjectBrowser", language: LanguageName, valueString: "False");
+            VisualStudio.Workspace.SetEnableDecompilationOption(false);
 
             VisualStudio.SolutionExplorer.OpenFile(new ProjectUtils.Project(ProjectName), "Class1.vb");
             VisualStudio.Editor.GoToDefinition("Int32 [from metadata]");

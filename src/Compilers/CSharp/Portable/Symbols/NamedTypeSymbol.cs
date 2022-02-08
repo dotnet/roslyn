@@ -157,6 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return GetGuidStringDefaultImplementation(out guidString);
         }
 
+#nullable enable
         /// <summary>
         /// For delegate types, gets the delegate's invoke method.  Returns null on
         /// all other kinds of types.  Note that it is possible to have an ill-formed
@@ -164,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Such a type will be classified as a delegate but its DelegateInvokeMethod
         /// would be null.
         /// </summary>
-        public MethodSymbol DelegateInvokeMethod
+        public MethodSymbol? DelegateInvokeMethod
         {
             get
             {
@@ -193,6 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return method;
             }
         }
+#nullable disable
 
         /// <summary>
         /// Get the operators for this type by their metadata name

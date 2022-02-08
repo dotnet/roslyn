@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -97,12 +98,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_BadVisDelegateReturn, delegateType.Locations[0], delegateType, invoke.ReturnType);
             }
 
-            foreach (var parameter in invoke.Parameters)
+            for (int i = 0; i < invoke.Parameters.Length; i++)
             {
-                if (!parameter.TypeWithAnnotations.IsAtLeastAsVisibleAs(delegateType, ref useSiteInfo))
+                var parameterSymbol = invoke.Parameters[i];
+                if (!parameterSymbol.TypeWithAnnotations.IsAtLeastAsVisibleAs(delegateType, ref useSiteInfo))
                 {
                     // Inconsistent accessibility: parameter type '{1}' is less accessible than delegate '{0}'
-                    diagnostics.Add(ErrorCode.ERR_BadVisDelegateParam, delegateType.Locations[0], delegateType, parameter.Type);
+                    diagnostics.Add(ErrorCode.ERR_BadVisDelegateParam, delegateType.Locations[0], delegateType, parameterSymbol.Type);
+                }
+                var parameterSyntax = syntax.ParameterList.Parameters[i];
+                if (parameterSyntax.ExclamationExclamationToken.Kind() == SyntaxKind.ExclamationExclamationToken)
+                {
+                    diagnostics.Add(ErrorCode.ERR_MustNullCheckInImplementation, parameterSyntax.Identifier.GetLocation(), parameterSyntax.Identifier.ValueText);
                 }
             }
 
@@ -354,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var parameters = ArrayBuilder<ParameterSymbol>.GetInstance();
                 foreach (SourceParameterSymbol p in invoke.Parameters)
                 {
-                    var synthesizedParam = new SourceClonedParameterSymbol(originalParam: p, newOwner: this, newOrdinal: p.Ordinal, suppressOptional: true);
+                    var synthesizedParam = new SourceDelegateClonedParameterSymbolForBeginAndEndInvoke(originalParam: p, newOwner: this, newOrdinal: p.Ordinal);
                     parameters.Add(synthesizedParam);
                 }
 
@@ -403,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (p.RefKind != RefKind.None)
                     {
-                        var synthesizedParam = new SourceClonedParameterSymbol(originalParam: p, newOwner: this, newOrdinal: ordinal++, suppressOptional: true);
+                        var synthesizedParam = new SourceDelegateClonedParameterSymbolForBeginAndEndInvoke(originalParam: p, newOwner: this, newOrdinal: ordinal++);
                         parameters.Add(synthesizedParam);
                     }
                 }

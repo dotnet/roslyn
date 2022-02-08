@@ -151,14 +151,14 @@ namespace Microsoft.CodeAnalysis.Collections
                 throw new ArgumentException(SR.Arg_LongerThanDestArray, nameof(destinationArray));
 
             var copied = 0;
-            foreach (var memory in sourceArray.GetSegments(0, length))
+            foreach (var memory in sourceArray.GetSegments(sourceIndex, length))
             {
                 if (!MemoryMarshal.TryGetArray<T>(memory, out var segment))
                 {
                     throw new NotSupportedException();
                 }
 
-                Array.Copy(segment.Array!, sourceIndex: segment.Offset, destinationArray: destinationArray, destinationIndex: copied, length: segment.Count);
+                Array.Copy(segment.Array!, sourceIndex: segment.Offset, destinationArray: destinationArray, destinationIndex: destinationIndex + copied, length: segment.Count);
                 copied += segment.Count;
             }
         }
@@ -192,15 +192,20 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public static int IndexOf<T>(SegmentedArray<T> array, T value)
         {
-            return IndexOf(array, value, 0, array.Length);
+            return IndexOf(array, value, 0, array.Length, comparer: null);
         }
 
         public static int IndexOf<T>(SegmentedArray<T> array, T value, int startIndex)
         {
-            return IndexOf(array, value, startIndex, array.Length - startIndex);
+            return IndexOf(array, value, startIndex, array.Length - startIndex, comparer: null);
         }
 
         public static int IndexOf<T>(SegmentedArray<T> array, T value, int startIndex, int count)
+        {
+            return IndexOf(array, value, startIndex, count, comparer: null);
+        }
+
+        public static int IndexOf<T>(SegmentedArray<T> array, T value, int startIndex, int count, IEqualityComparer<T>? comparer)
         {
             if ((uint)startIndex > (uint)array.Length)
             {
@@ -220,7 +225,25 @@ namespace Microsoft.CodeAnalysis.Collections
                     throw new NotSupportedException();
                 }
 
-                var index = Array.IndexOf(segment.Array!, value, segment.Offset, segment.Count);
+                int index;
+                if (comparer is null || comparer == EqualityComparer<T>.Default)
+                {
+                    index = Array.IndexOf(segment.Array!, value, segment.Offset, segment.Count);
+                }
+                else
+                {
+                    index = -1;
+                    var endIndex = segment.Offset + segment.Count;
+                    for (var i = segment.Offset; i < endIndex; i++)
+                    {
+                        if (comparer.Equals(array[i], value))
+                        {
+                            index = i;
+                            break;
+                        }
+                    }
+                }
+
                 if (index >= 0)
                 {
                     return index + offset - segment.Offset;
@@ -234,21 +257,26 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public static int LastIndexOf<T>(SegmentedArray<T> array, T value)
         {
-            return LastIndexOf(array, value, array.Length - 1, array.Length);
+            return LastIndexOf(array, value, array.Length - 1, array.Length, comparer: null);
         }
 
         public static int LastIndexOf<T>(SegmentedArray<T> array, T value, int startIndex)
         {
-            return LastIndexOf(array, value, startIndex, array.Length == 0 ? 0 : startIndex + 1);
+            return LastIndexOf(array, value, startIndex, array.Length == 0 ? 0 : startIndex + 1, comparer: null);
         }
 
         public static int LastIndexOf<T>(SegmentedArray<T> array, T value, int startIndex, int count)
+        {
+            return LastIndexOf(array, value, startIndex, count, comparer: null);
+        }
+
+        public static int LastIndexOf<T>(SegmentedArray<T> array, T value, int startIndex, int count, IEqualityComparer<T>? comparer)
         {
             if (array.Length == 0)
             {
                 // Special case for 0 length List
                 // accept -1 and 0 as valid startIndex for compatibility reason.
-                if (startIndex != -1 && startIndex != 0)
+                if (startIndex is not (-1) and not 0)
                 {
                     ThrowHelper.ThrowStartIndexArgumentOutOfRange_ArgumentOutOfRange_Index();
                 }
@@ -274,11 +302,23 @@ namespace Microsoft.CodeAnalysis.Collections
                 ThrowHelper.ThrowCountArgumentOutOfRange_ArgumentOutOfRange_Count();
             }
 
-            var endIndex = startIndex - count + 1;
-            for (var i = startIndex; i >= endIndex; i--)
+            if (comparer is null || comparer == EqualityComparer<T>.Default)
             {
-                if (EqualityComparer<T>.Default.Equals(array[i], value))
-                    return i;
+                var endIndex = startIndex - count + 1;
+                for (var i = startIndex; i >= endIndex; i--)
+                {
+                    if (EqualityComparer<T>.Default.Equals(array[i], value))
+                        return i;
+                }
+            }
+            else
+            {
+                var endIndex = startIndex - count + 1;
+                for (var i = startIndex; i >= endIndex; i--)
+                {
+                    if (comparer.Equals(array[i], value))
+                        return i;
+                }
             }
 
             return -1;

@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -857,6 +858,9 @@ struct S1
                 // (5,12): error CS0843: Auto-implemented property 'S1.Prop' must be fully assigned before control is returned to the caller.
                 //     public S1(string s) // 1
                 Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S1").WithArguments("S1.Prop").WithLocation(5, 12),
+                // (7,9): warning CS8602: Dereference of a possibly null reference.
+                //         Prop.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(7, 9),
                 // (7,9): error CS8079: Use of possibly unassigned auto-implemented property 'Prop'
                 //         Prop.ToString(); // 2
                 Diagnostic(ErrorCode.ERR_UseDefViolationProperty, "Prop").WithArguments("Prop").WithLocation(7, 9),
@@ -872,20 +876,18 @@ struct S1
         public void StructConstructorInitializer_UninitializedField()
         {
             var source = @"
-struct S1
+#nullable enable
+
+public struct S1
 {
-    public string field; // 0
-    public S1(string s) // 1
-    {
-        field.ToString(); // 2
-    }
+    public string field;
 
     public S1(object obj) : this()
     {
-        field.ToString(); // 3
+        field.ToString(); // 1
     }
 
-    public S1(object obj1, object obj2) : this() // 4
+    public S1(object obj1, object obj2) : this() // 2
     {
     }
 
@@ -895,25 +897,167 @@ struct S1
     }
 }
 ";
-
-            var comp = CreateCompilation(source, options: WithNullableEnable());
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,19): warning CS0649: Field 'S1.field' is never assigned to, and will always have its default value null
-                //     public string field; // 0
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("S1.field", "null").WithLocation(4, 19),
-                // (5,12): error CS0171: Field 'S1.field' must be fully assigned before control is returned to the caller
-                //     public S1(string s) // 1
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.field").WithLocation(5, 12),
-                // (7,9): error CS0170: Use of possibly unassigned field 'field'
-                //         field.ToString(); // 2
-                Diagnostic(ErrorCode.ERR_UseDefViolationField, "field").WithArguments("field").WithLocation(7, 9),
-                // (12,9): warning CS8602: Dereference of a possibly null reference.
-                //         field.ToString(); // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "field").WithLocation(12, 9),
-                // (15,12): warning CS8618: Non-nullable field 'field' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
-                //     public S1(object obj1, object obj2) : this() // 4
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S1").WithArguments("field", "field").WithLocation(15, 12)
+                // (10,9): warning CS8602: Dereference of a possibly null reference.
+                //         field.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "field").WithLocation(10, 9),
+                // (13,12): warning CS8618: Non-nullable field 'field' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public S1(object obj1, object obj2) : this() // 2
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S1").WithArguments("field", "field").WithLocation(13, 12));
+        }
+
+        [Fact, WorkItem(48574, "https://github.com/dotnet/roslyn/issues/48574")]
+        public void StructConstructorInitializer_InitializedFieldViaParameterlessConstructor()
+        {
+            var source = @"
+#nullable enable
+
+new S1(new object());
+
+struct S1
+{
+    public string field;
+
+    public S1()
+    {
+        field = ""ok "";
+    }
+
+    public S1(object obj) : this()
+    {
+        System.Console.Write(field);
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "ok");
+
+            verifier.VerifyIL("S1..ctor(object)", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""S1..ctor()""
+  IL_0006:  ldarg.0
+  IL_0007:  ldfld      ""string S1.field""
+  IL_000c:  call       ""void System.Console.Write(string)""
+  IL_0011:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(48574, "https://github.com/dotnet/roslyn/issues/48574")]
+        public void StructConstructorInitializer_UninitializedFieldWithParameterlessConstructor()
+        {
+            var source = @"
+#nullable enable
+
+struct S1
+{
+    public string field;
+
+    public S1()
+    {
+        field = ""ok "";
+    }
+
+    public S1(string s) // 1, 2
+    {
+        System.Console.Write(field); // 3
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (13,12): warning CS8618: Non-nullable field 'field' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public S1(string s) // 1, 2
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S1").WithArguments("field", "field").WithLocation(13, 12),
+                // (13,12): error CS0171: Field 'S1.field' must be fully assigned before control is returned to the caller
+                //     public S1(string s) // 1, 2
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S1").WithArguments("S1.field").WithLocation(13, 12),
+                // (15,30): error CS0170: Use of possibly unassigned field 'field'
+                //         System.Console.Write(field); // 3
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "field").WithArguments("field").WithLocation(15, 30)
                 );
+        }
+
+        [Fact, WorkItem(48574, "https://github.com/dotnet/roslyn/issues/48574")]
+        public void StructConstructorInitializer_InitializedFieldViaInitializer()
+        {
+            var source = @"
+#nullable enable
+
+new S1();
+new S1(new object());
+new S1(new object(), new object());
+
+struct S1
+{
+    public string field = ""ok "";
+
+    public S1()
+    {
+        System.Console.Write(field);
+    }
+
+    public S1(object s)
+    {
+        System.Console.Write(field);
+    }
+
+    public S1(object obj, object obj2) : this()
+    {
+        System.Console.Write(field);
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(comp, expectedOutput: "ok ok ok ok");
+
+            verifier.VerifyIL("S1..ctor()", @"
+{
+  // Code size       23 (0x17)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""ok ""
+  IL_0006:  stfld      ""string S1.field""
+  IL_000b:  ldarg.0
+  IL_000c:  ldfld      ""string S1.field""
+  IL_0011:  call       ""void System.Console.Write(string)""
+  IL_0016:  ret
+}
+");
+
+            verifier.VerifyIL("S1..ctor(object)", @"
+{
+  // Code size       23 (0x17)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""ok ""
+  IL_0006:  stfld      ""string S1.field""
+  IL_000b:  ldarg.0
+  IL_000c:  ldfld      ""string S1.field""
+  IL_0011:  call       ""void System.Console.Write(string)""
+  IL_0016:  ret
+}
+");
+
+            verifier.VerifyIL("S1..ctor(object, object)", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""S1..ctor()""
+  IL_0006:  ldarg.0
+  IL_0007:  ldfld      ""string S1.field""
+  IL_000c:  call       ""void System.Console.Write(string)""
+  IL_0011:  ret
+}
+");
         }
 
         [Fact, WorkItem(43215, "https://github.com/dotnet/roslyn/issues/43215")]
@@ -1525,6 +1669,12 @@ class C5<T, U> where T : A where U : T
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNullableEnable(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
+                // (6,14): warning CS8618: Non-nullable property 'P' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                //     internal S(string s)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("property", "P").WithLocation(6, 14),
+                // (6,14): warning CS8618: Non-nullable field 'F' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     internal S(string s)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "F").WithLocation(6, 14),
                 // (6,14): error CS0843: Auto-implemented property 'S.P' must be fully assigned before control is returned to the caller.
                 //     internal S(string s)
                 Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S").WithArguments("S.P").WithLocation(6, 14),
@@ -2161,6 +2311,13 @@ partial class C
 }
 ";
             var comp = CreateCompilation(new[] { source1, source2 }, options: WithNullableEnable());
+
+            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp.SyntaxTrees[0], filterSpanWithinTree: null, includeEarlierStages: true)
+                .Verify();
+
+            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp.SyntaxTrees[1], filterSpanWithinTree: null, includeEarlierStages: true)
+                .Verify();
+
             comp.VerifyDiagnostics(
                 // (4,28): warning CS0414: The field 'C.s1' is assigned but its value is never used
                 //     static readonly string s1;
@@ -2184,10 +2341,122 @@ partial class C
 }
 ";
             var comp = CreateCompilation(new[] { source1, source2 }, options: WithNullableEnable());
+
+            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp.SyntaxTrees[0], filterSpanWithinTree: null, includeEarlierStages: true)
+                .Verify(
+                    // (4,37): warning CS8602: Dereference of a possibly null reference.
+                    //     static readonly string Field1 = Field2.ToString(); // 1
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Field2").WithLocation(4, 37));
+
+            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp.SyntaxTrees[1], filterSpanWithinTree: null, includeEarlierStages: true)
+                .Verify();
+
             comp.VerifyDiagnostics(
                 // (4,37): warning CS8602: Dereference of a possibly null reference.
                 //     static readonly string Field1 = Field2.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Field2").WithLocation(4, 37));
+        }
+
+        [Fact]
+        public void StaticInitializers_MultipleFiles_03()
+        {
+            var source1 = @"
+public partial class Class1
+{
+    public static readonly string Value1;
+
+    static Class1 ()
+    {
+        Value1 = string.Empty;
+        Value2 = string.Empty;
+    }
+}
+";
+            var source2 = @"
+public partial class Class1
+{
+    public static readonly string Value2;
+}
+";
+            var comp = CreateCompilation(new[] { source1, source2 }, options: WithNullableEnable());
+
+            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp.SyntaxTrees[0], filterSpanWithinTree: null, includeEarlierStages: true)
+                .Verify();
+
+            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp.SyntaxTrees[1], filterSpanWithinTree: null, includeEarlierStages: true)
+                .Verify();
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void StaticInitializers_MultipleFiles_04()
+        {
+            var source1 = @"
+public partial class Class1
+{
+    public static readonly string Value1; // 1
+}
+";
+            var source2 = @"
+public partial class Class1
+{
+    public static readonly string Value2; // 2
+}
+";
+            var comp = CreateCompilation(new[] { source1, source2 }, options: WithNullableEnable());
+
+            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp.SyntaxTrees[0], filterSpanWithinTree: null, includeEarlierStages: true)
+                .Verify(
+                    // (4,35): warning CS8618: Non-nullable field 'Value1' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                    //     public static readonly string Value1; // 1
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Value1").WithArguments("field", "Value1").WithLocation(4, 35));
+
+            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp.SyntaxTrees[1], filterSpanWithinTree: null, includeEarlierStages: true)
+                .Verify(
+                    // (4,35): warning CS8618: Non-nullable field 'Value2' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                    //     public static readonly string Value2; // 2
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Value2").WithArguments("field", "Value2").WithLocation(4, 35));
+
+            comp.VerifyDiagnostics(
+                // (4,35): warning CS8618: Non-nullable field 'Value1' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public static readonly string Value1; // 1
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Value1").WithArguments("field", "Value1").WithLocation(4, 35),
+                // (4,35): warning CS8618: Non-nullable field 'Value2' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public static readonly string Value2; // 2
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Value2").WithArguments("field", "Value2").WithLocation(4, 35));
+        }
+
+        [Fact]
+        public void StaticInitializers_MultipleFiles_05()
+        {
+            var source1 = @"
+public partial class Class1
+{
+    public static readonly string Value1 = ""a"";
+}
+";
+            var source2 = @"
+public partial class Class1
+{
+    public static readonly string Value2; // 1
+}
+";
+            var comp = CreateCompilation(new[] { source1, source2 }, options: WithNullableEnable());
+
+            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp.SyntaxTrees[0], filterSpanWithinTree: null, includeEarlierStages: true)
+                .Verify();
+
+            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, comp.SyntaxTrees[1], filterSpanWithinTree: null, includeEarlierStages: true)
+                .Verify(
+                    // (4,35): warning CS8618: Non-nullable field 'Value2' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                    //     public static readonly string Value2; // 1
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Value2").WithArguments("field", "Value2").WithLocation(4, 35));
+
+            comp.VerifyDiagnostics(
+                // (4,35): warning CS8618: Non-nullable field 'Value2' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                //     public static readonly string Value2; // 1
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Value2").WithArguments("field", "Value2").WithLocation(4, 35));
         }
 
         [Fact]
@@ -2306,6 +2575,50 @@ public class C
                 //     [MaybeNull] public string P { get; set; } = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 49)
                 );
+        }
+
+        [Fact]
+        [WorkItem(58073, "https://github.com/dotnet/roslyn/issues/58073")]
+        public void DiagnosticAdditionalLocations_SquiggleConstructor()
+        {
+            var source =
+@"
+public class C
+{
+    public C() { }
+
+    public string S { get; }
+}";
+            var comp = CreateCompilation(source, options: WithNullableEnable());
+            comp.VerifyDiagnostics(
+                // (4,12): warning CS8618: Non-nullable property 'S' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                //     public C() { }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "S").WithLocation(4, 12));
+
+            var property = comp.GetTypeByMetadataName("C").GetMember("S");
+            var actualAdditionalLocations = comp.GetDiagnostics().Single().AdditionalLocations;
+            Assert.Equal(property.Locations.Single(), actualAdditionalLocations.Single());
+        }
+
+        [Fact]
+        [WorkItem(58073, "https://github.com/dotnet/roslyn/issues/58073")]
+        public void DiagnosticAdditionalLocations_SquiggleProperty()
+        {
+            var source =
+@"
+public class C
+{
+    public string S { get; }
+}";
+            var comp = CreateCompilation(source, options: WithNullableEnable());
+            comp.VerifyDiagnostics(
+                // (4,19): warning CS8618: Non-nullable property 'S' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                //     public string S { get; }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("property", "S").WithLocation(4, 19));
+
+            var property = comp.GetTypeByMetadataName("C").GetMember("S");
+            var actualAdditionalLocations = comp.GetDiagnostics().Single().AdditionalLocations;
+            Assert.Equal(property.Locations.Single(), actualAdditionalLocations.Single());
         }
     }
 }

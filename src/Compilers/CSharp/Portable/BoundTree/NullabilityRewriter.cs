@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 stack.Push(currentBinary);
                 currentBinary = currentBinary.Left as BoundBinaryOperatorBase;
             }
-            while (currentBinary is object);
+            while (currentBinary is not null);
 
             Debug.Assert(stack.Count > 0);
             var leftChild = (BoundExpression)Visit(stack.Peek().Left);
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     BoundBinaryOperator binary => binary.Update(
                         binary.OperatorKind,
-                        BoundBinaryOperator.UncommonData.CreateIfNeeded(binary.ConstantValue, GetUpdatedSymbol(binary, binary.Method), binary.ConstrainedToType, binary.OriginalUserDefinedOperatorsOpt),
+                        binary.Data?.WithUpdatedMethod(GetUpdatedSymbol(binary, binary.Method)),
                         binary.ResultKind,
                         leftChild,
                         right,
@@ -160,6 +160,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _remappedSymbols.Add(local, updatedLocal);
                 return updatedLocal;
             }
+        }
+
+        public override BoundNode? VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node)
+        {
+            BoundExpression receiver = (BoundExpression)this.Visit(node.Receiver);
+            BoundExpression argument = (BoundExpression)this.Visit(node.Argument);
+            BoundExpression lengthOrCountAccess = node.LengthOrCountAccess;
+            BoundExpression indexerAccess = (BoundExpression)this.Visit(node.IndexerOrSliceAccess);
+            BoundImplicitIndexerAccess updatedNode;
+
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
+            {
+                updatedNode = node.Update(receiver, argument, lengthOrCountAccess, node.ReceiverPlaceholder, indexerAccess, node.ArgumentPlaceholders, infoAndType.Type!);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(receiver, argument, lengthOrCountAccess, node.ReceiverPlaceholder, indexerAccess, node.ArgumentPlaceholders, node.Type);
+            }
+            return updatedNode;
         }
 
         private ImmutableArray<T> GetUpdatedArray<T>(BoundNode expr, ImmutableArray<T> symbols) where T : Symbol?

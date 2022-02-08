@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             => this.Update(asyncKeyword, this.ParameterList, this.ArrowToken, this.Block, this.ExpressionBody);
 
         public ParenthesizedLambdaExpressionSyntax Update(SyntaxToken asyncKeyword, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
-            => Update(SyntaxFactory.TokenList(asyncKeyword), parameterList, arrowToken, block, expressionBody);
+            => Update(UpdateAsyncKeyword(asyncKeyword), parameterList, arrowToken, block, expressionBody);
 
         public ParenthesizedLambdaExpressionSyntax Update(SyntaxTokenList modifiers, ParameterListSyntax parameterList, SyntaxToken arrowToken, BlockSyntax? block, ExpressionSyntax? expressionBody)
             => Update(this.AttributeLists, modifiers, parameterList, arrowToken, block, expressionBody);

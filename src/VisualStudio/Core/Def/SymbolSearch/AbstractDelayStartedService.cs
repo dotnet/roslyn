@@ -29,9 +29,10 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         private readonly List<string> _registeredLanguageNames = new();
 
         protected readonly Workspace Workspace;
+        private readonly IGlobalOptionService _globalOptions;
 
         // Option that controls if this service is enabled or not (regardless of language).
-        private readonly Option2<bool> _serviceOnOffOption;
+        private readonly Option2<bool> _globalSwitch;
 
         // Options that control if this service is enabled or not for a particular language.
         private readonly ImmutableArray<PerLanguageOption2<bool>> _perLanguageOptions;
@@ -43,12 +44,14 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         protected AbstractDelayStartedService(
             IThreadingContext threadingContext,
             Workspace workspace,
-            Option2<bool> onOffOption,
+            IGlobalOptionService globalOptions,
+            Option2<bool> globalSwitch,
             params PerLanguageOption2<bool>[] perLanguageOptions)
             : base(threadingContext)
         {
             Workspace = workspace;
-            _serviceOnOffOption = onOffOption;
+            _globalOptions = globalOptions;
+            _globalSwitch = globalSwitch;
             _perLanguageOptions = perLanguageOptions.ToImmutableArray();
             DisposalToken = threadingContext.DisposalToken;
         }
@@ -61,15 +64,14 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         {
             this.AssertIsForeground();
 
-            var options = Workspace.Options;
-            if (!options.GetOption(_serviceOnOffOption))
+            if (!_globalOptions.GetOption(_globalSwitch))
             {
                 // Feature is totally disabled.  Do nothing.
                 return;
             }
 
-            this._registeredLanguageNames.Add(languageName);
-            if (this._registeredLanguageNames.Count == 1)
+            _registeredLanguageNames.Add(languageName);
+            if (_registeredLanguageNames.Count == 1)
             {
                 // Register to hear about option changing.
                 var optionsService = Workspace.Services.GetService<IOptionService>();

@@ -65,14 +65,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             var notExpression = (PrefixUnaryExpressionSyntax)notExpressionLocation.FindNode(getInnermostNodeForTie: true, cancellationToken);
             var parenthesizedExpression = (ParenthesizedExpressionSyntax)notExpression.Operand;
-            var isPattern = (IsPatternExpressionSyntax)parenthesizedExpression.Expression;
+            var oldExpression = parenthesizedExpression.Expression;
 
-            var updatedPattern = isPattern.WithPattern(UnaryPattern(Token(SyntaxKind.NotKeyword), isPattern.Pattern));
+            var updatedPattern = oldExpression switch
+            {
+                IsPatternExpressionSyntax isPattern => isPattern.WithPattern(UnaryPattern(Token(SyntaxKind.NotKeyword), isPattern.Pattern)),
+                BinaryExpressionSyntax { Right: TypeSyntax type } binaryIsExpression
+                    => IsPatternExpression(binaryIsExpression.Left, UnaryPattern(Token(SyntaxKind.NotKeyword), TypePattern(type))),
+                _ => throw ExceptionUtilities.UnexpectedValue(oldExpression)
+            };
+
             editor.ReplaceNode(
                 notExpression,
                 updatedPattern.WithPrependedLeadingTrivia(notExpression.GetLeadingTrivia())
                               .WithAppendedTrailingTrivia(notExpression.GetTrailingTrivia()));
-
         }
 
         private class MyCodeAction : CustomCodeActions.DocumentChangeAction

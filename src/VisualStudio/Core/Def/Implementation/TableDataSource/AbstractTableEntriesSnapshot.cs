@@ -2,15 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         }
 
         public abstract bool TryNavigateTo(int index, bool previewTab, bool activate, CancellationToken cancellationToken);
-        public abstract bool TryGetValue(int index, string columnName, out object content);
+        public abstract bool TryGetValue(int index, string columnName, [NotNullWhen(true)] out object? content);
 
         public int VersionNumber
         {
@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return -1;
             }
 
-            if (!(newerSnapshot is AbstractTableEntriesSnapshot<TItem> ourSnapshot) || ourSnapshot.Count == 0)
+            if (newerSnapshot is not AbstractTableEntriesSnapshot<TItem> ourSnapshot || ourSnapshot.Count == 0)
             {
                 // not ours, we don't know how to track index
                 return -1;
@@ -82,6 +82,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             for (var i = 0; i < ourSnapshot.Count; i++)
             {
                 var newItem = ourSnapshot.GetItem(i);
+
+                // GetItem only returns null for index out of range
+                RoslynDebug.AssertNotNull(newItem);
+
                 if (item.EqualsIgnoringLocation(newItem))
                 {
                     return i;
@@ -101,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         public void Dispose()
             => StopTracking();
 
-        internal TItem GetItem(int index)
+        internal TItem? GetItem(int index)
         {
             if (index < 0 || _items.Length <= index)
             {
@@ -156,16 +160,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return false;
             }
 
-            var options = workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, previewTab)
-                                           .WithChangedOption(NavigationOptions.ActivateTab, activate);
+            var solution = workspace.CurrentSolution;
+            var options = solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, previewTab)
+                                          .WithChangedOption(NavigationOptions.ActivateTab, activate);
             return navigationService.TryNavigateToLineAndOffset(workspace, documentId, position.Line, position.Character, options, cancellationToken);
         }
 
         protected bool TryNavigateToItem(int index, bool previewTab, bool activate, CancellationToken cancellationToken)
         {
             var item = GetItem(index);
-            var documentId = item?.DocumentId;
-            if (documentId == null)
+            if (item is not { DocumentId: { } documentId })
             {
                 return false;
             }
@@ -196,7 +200,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
         // we don't use these
 #pragma warning disable IDE0060 // Remove unused parameter - Implements interface method for sub-type
-        public object Identity(int index)
+        public object? Identity(int index)
 #pragma warning restore IDE0060 // Remove unused parameter
             => null;
 

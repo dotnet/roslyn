@@ -63,7 +63,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 ISwitchOperation (1 cases, Exit Label Id: 0) (OperationKind.Switch, Type: null, IsInvalid) (Syntax: 'Select Case ... End Select')
   Switch expression: 
-    IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Program')
+    IOperation:  (OperationKind.None, Type: Program, IsInvalid) (Syntax: 'Program')
   Sections:
       ISwitchCaseOperation (1 case clauses, 1 statements) (OperationKind.SwitchCase, Type: null) (Syntax: 'Case 1')
           Clauses:
@@ -346,7 +346,7 @@ IForToLoopOperation (LoopKind.ForTo, Continue Label Id: 0, Exit Label Id: 1, Che
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'Program')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'Program')
+        IOperation:  (OperationKind.None, Type: Program, IsInvalid) (Syntax: 'Program')
   StepValue: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'x')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)

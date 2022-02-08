@@ -15,7 +15,7 @@ ref_assignment
 ```
 
 The identifier on the left-hand side of a *ref_assignment* must be a `ref` or
-`ref readonly` local variable, or an `in`, `ref`, or `out` paramater. Ref
+`ref readonly` local variable, or an `in`, `ref`, or `out` parameter. Ref
 assignments allow ref local variables or parameters, which represent
 references to storage locations, to be assigned different references. This does
 not include the `this` reference, even in structs.

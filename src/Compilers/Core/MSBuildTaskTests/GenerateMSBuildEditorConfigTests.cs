@@ -7,10 +7,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -350,6 +352,31 @@ build_property.Property2 = def456
 [c:/file1.cs]
 build_metadata.Compile.ToRetrieve = abc123
 ", result);
+        }
+
+        [Fact]
+        public void ConfigFileCanBeWrittenToDisk()
+        {
+            ITaskItem property1 = MSBuildUtil.CreateTaskItem("Property1", new Dictionary<string, string> { { "Value", "abc123" } });
+            ITaskItem property2 = MSBuildUtil.CreateTaskItem("Property2", new Dictionary<string, string> { { "Value", "def456" } });
+
+            var fileName = Path.Combine(TempRoot.Root, "ConfigFileCanBeWrittenToDisk.GenerateMSBuildEditorConfig.editorconfig");
+
+            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
+            {
+                PropertyItems = new[] { property1, property2 },
+                FileName = new TaskItem(fileName)
+            };
+            configTask.Execute();
+
+            var expectedContents = @"is_global = true
+build_property.Property1 = abc123
+build_property.Property2 = def456
+";
+
+            Assert.True(File.Exists(fileName));
+            Assert.True(configTask.WriteMSBuildEditorConfig());
+            Assert.Equal(expectedContents, File.ReadAllText(fileName));
         }
     }
 }

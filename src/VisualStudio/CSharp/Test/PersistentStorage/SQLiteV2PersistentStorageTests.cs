@@ -23,11 +23,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
     /// </remarks>
     public class SQLiteV2PersistentStorageTests : AbstractPersistentStorageTests
     {
-        internal override AbstractPersistentStorageService GetStorageService(OptionSet options, IMefHostExportProvider exportProvider, IPersistentStorageLocationService locationService, IPersistentStorageFaultInjector? faultInjector, string relativePathBase)
+        internal override AbstractPersistentStorageService GetStorageService(IMefHostExportProvider exportProvider, IPersistentStorageConfiguration configuration, IPersistentStorageFaultInjector? faultInjector, string relativePathBase)
             => new SQLitePersistentStorageService(
-                options,
                 exportProvider.GetExports<SQLiteConnectionPoolService>().Single().Value,
-                locationService,
+                configuration,
                 exportProvider.GetExports<IAsynchronousOperationListenerProvider>().Single().Value.GetListener(FeatureAttribute.PersistentStorage),
                 faultInjector);
 
@@ -46,8 +45,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
                 onFatalError: e => throw e);
 
             // Because instantiating the connection will fail, we will not get back
-            // a working persistent storage.
-            await using (var storage = await GetStorageAsync(solution, faultInjector))
+            // a working persistent storage. We are testing a fault recovery code path.
+            await using (var storage = await GetStorageAsync(solution, faultInjector: faultInjector, throwOnFailure: false))
             using (var memStream = new MemoryStream())
             using (var streamWriter = new StreamWriter(memStream))
             {

@@ -17,11 +17,11 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// Forwards <see cref="IFindUsagesContext"/> notifications to an underlying <see cref="IFindUsagesContext"/>
         /// while also keeping track of the <see cref="DefinitionItem"/> definitions reported.
         /// 
-        /// These can then be used by <see cref="GetThirdPartyDefinitions"/> to report the
+        /// These can then be used by <see cref="GetThirdPartyDefinitionsAsync"/> to report the
         /// definitions found to third parties in case they want to add any additional definitions
         /// to the results we present.
         /// </summary>
-        private class DefinitionTrackingContext : IFindUsagesContext
+        private sealed class DefinitionTrackingContext : IFindUsagesContext
         {
             private readonly IFindUsagesContext _underlyingContext;
             private readonly object _gate = new();
@@ -30,11 +30,17 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             public DefinitionTrackingContext(IFindUsagesContext underlyingContext)
                 => _underlyingContext = underlyingContext;
 
+            public ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
+                => _underlyingContext.GetOptionsAsync(language, cancellationToken);
+
             public IStreamingProgressTracker ProgressTracker
                 => _underlyingContext.ProgressTracker;
 
             public ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken)
                 => _underlyingContext.ReportMessageAsync(message, cancellationToken);
+
+            public ValueTask ReportInformationalMessageAsync(string message, CancellationToken cancellationToken)
+                => _underlyingContext.ReportInformationalMessageAsync(message, cancellationToken);
 
             public ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)
                 => _underlyingContext.SetSearchTitleAsync(title, cancellationToken);

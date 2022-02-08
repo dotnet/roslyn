@@ -103,7 +103,16 @@ namespace Microsoft.CodeAnalysis.Host
                 var streamAccessor = _weakReadAccessor.TryAddReference();
                 if (streamAccessor == null)
                 {
-                    var rawAccessor = RunWithCompactingGCFallback(info => info._memoryMappedFile.Target.CreateViewAccessor(info.Offset, info.Size, MemoryMappedFileAccess.Read), this);
+                    var rawAccessor = RunWithCompactingGCFallback(
+                        static info =>
+                        {
+                            using var memoryMappedFile = info._memoryMappedFile.TryAddReference();
+                            if (memoryMappedFile is null)
+                                throw new ObjectDisposedException(typeof(MemoryMappedInfo).FullName);
+
+                            return memoryMappedFile.Target.CreateViewAccessor(info.Offset, info.Size, MemoryMappedFileAccess.Read);
+                        },
+                        this);
                     streamAccessor = new ReferenceCountedDisposable<MemoryMappedViewAccessor>(rawAccessor);
                     _weakReadAccessor = new ReferenceCountedDisposable<MemoryMappedViewAccessor>.WeakReference(streamAccessor);
                 }
@@ -118,7 +127,16 @@ namespace Microsoft.CodeAnalysis.Host
             /// </summary>
             public Stream CreateWritableStream()
             {
-                return RunWithCompactingGCFallback(info => info._memoryMappedFile.Target.CreateViewStream(info.Offset, info.Size, MemoryMappedFileAccess.Write), this);
+                return RunWithCompactingGCFallback(
+                    static info =>
+                    {
+                        using var memoryMappedFile = info._memoryMappedFile.TryAddReference();
+                        if (memoryMappedFile is null)
+                            throw new ObjectDisposedException(typeof(MemoryMappedInfo).FullName);
+
+                        return memoryMappedFile.Target.CreateViewStream(info.Offset, info.Size, MemoryMappedFileAccess.Write);
+                    },
+                    this);
             }
 
             /// <summary>

@@ -6,41 +6,28 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
     [Export(typeof(IOptionPersisterProvider))]
     internal sealed class LocalUserRegistryOptionPersisterProvider : IOptionPersisterProvider
     {
-        private readonly IThreadingContext _threadingContext;
-        private readonly IServiceProvider _serviceProvider;
-        private LocalUserRegistryOptionPersister? _lazyPersister;
+        private readonly AsyncLazy<LocalUserRegistryOptionPersister> _lazyPersister;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public LocalUserRegistryOptionPersisterProvider(
-            IThreadingContext threadingContext,
-            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+            [Import(typeof(SAsyncServiceProvider))] IAsyncServiceProvider serviceProvider)
         {
-            _threadingContext = threadingContext;
-            _serviceProvider = serviceProvider;
+            _lazyPersister = new(_ => LocalUserRegistryOptionPersister.CreateAsync(serviceProvider), cacheResult: true);
         }
 
         public async ValueTask<IOptionPersister> GetOrCreatePersisterAsync(CancellationToken cancellationToken)
-        {
-            if (_lazyPersister is not null)
-            {
-                return _lazyPersister;
-            }
-
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            _lazyPersister ??= new LocalUserRegistryOptionPersister(_threadingContext, _serviceProvider);
-            return _lazyPersister;
-        }
+            => await _lazyPersister.GetValueAsync(cancellationToken).ConfigureAwait(false);
     }
 }

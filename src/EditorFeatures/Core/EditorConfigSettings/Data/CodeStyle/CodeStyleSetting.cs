@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
         public abstract string GetCurrentValue();
         public abstract DiagnosticSeverity Severity { get; }
         public abstract bool IsDefinedInEditorConfig { get; }
+        public abstract SettingLocation Location { get; protected set; }
 
         public CodeStyleSetting(string description, OptionUpdater updater)
         {
@@ -52,10 +53,11 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                                                 AnalyzerConfigOptions editorConfigOptions,
                                                 OptionSet visualStudioOptions,
                                                 OptionUpdater updater,
+                                                string fileName,
                                                 string? trueValueDescription = null,
                                                 string? falseValueDescription = null)
         {
-            return new BooleanCodeStyleSetting(option, description, trueValueDescription, falseValueDescription, editorConfigOptions, visualStudioOptions, updater);
+            return new BooleanCodeStyleSetting(option, description, trueValueDescription, falseValueDescription, editorConfigOptions, visualStudioOptions, updater, fileName);
         }
 
         internal static CodeStyleSetting Create(PerLanguageOption2<CodeStyleOption2<bool>> option,
@@ -63,10 +65,11 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                                                 AnalyzerConfigOptions editorConfigOptions,
                                                 OptionSet visualStudioOptions,
                                                 OptionUpdater updater,
+                                                string fileName,
                                                 string? trueValueDescription = null,
                                                 string? falseValueDescription = null)
         {
-            return new PerLanguageBooleanCodeStyleSetting(option, description, trueValueDescription, falseValueDescription, editorConfigOptions, visualStudioOptions, updater);
+            return new PerLanguageBooleanCodeStyleSetting(option, description, trueValueDescription, falseValueDescription, editorConfigOptions, visualStudioOptions, updater, fileName);
         }
 
         internal static CodeStyleSetting Create<T>(Option2<CodeStyleOption2<T>> option,
@@ -75,10 +78,11 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                                                    string[] valueDescriptions,
                                                    AnalyzerConfigOptions editorConfigOptions,
                                                    OptionSet visualStudioOptions,
-                                                   OptionUpdater updater)
+                                                   OptionUpdater updater,
+                                                   string fileName)
             where T : Enum
         {
-            return new EnumCodeStyleSetting<T>(option, description, enumValues, valueDescriptions, editorConfigOptions, visualStudioOptions, updater);
+            return new EnumCodeStyleSetting<T>(option, description, enumValues, valueDescriptions, editorConfigOptions, visualStudioOptions, updater, fileName);
         }
 
         internal static CodeStyleSetting Create<T>(PerLanguageOption2<CodeStyleOption2<T>> option,
@@ -87,10 +91,11 @@ namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
                                                    string[] valueDescriptions,
                                                    AnalyzerConfigOptions editorConfigOptions,
                                                    OptionSet visualStudioOptions,
-                                                   OptionUpdater updater)
+                                                   OptionUpdater updater,
+                                                   string fileName)
             where T : Enum
         {
-            return new PerLanguageEnumCodeStyleSetting<T>(option, description, enumValues, valueDescriptions, editorConfigOptions, visualStudioOptions, updater);
+            return new PerLanguageEnumCodeStyleSetting<T>(option, description, enumValues, valueDescriptions, editorConfigOptions, visualStudioOptions, updater, fileName);
         }
     }
 }

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression SetInferredTypeWithAnnotations(TypeWithAnnotations type)
         {
             Debug.Assert(Type is null && type.HasType);
-            return this.Update(type.Type);
+            return this.Update(ValEscape, type.Type);
         }
 
         public BoundDiscardExpression FailInference(Binder binder, BindingDiagnosticBag? diagnosticsOpt)
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Binder.Error(diagnosticsOpt, ErrorCode.ERR_DiscardTypeInferenceFailed, this.Syntax);
             }
-            return this.Update(binder.CreateErrorType("var"));
+            return this.Update(ValEscape, binder.CreateErrorType("var"));
         }
 
         public override Symbol ExpressionSymbol

@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -67,13 +68,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
                 documentIdToDocumentInfoMap.Add((documentId, endDocuments[i]));
             }
 
-            // Store the solution before rename is called
-            var originalSolution = solution;
+            var options = new DocumentRenameOptions();
 
             foreach (var (documentId, endDocument) in documentIdToDocumentInfoMap)
             {
                 var document = solution.GetDocument(documentId);
-                var documentRenameResult = await Rename.Renamer.RenameDocumentAsync(document, endDocument.DocumentName, endDocument.DocumentFolders);
+                var documentRenameResult = await Rename.Renamer.RenameDocumentAsync(document, options, endDocument.DocumentName, endDocument.DocumentFolders);
 
                 foreach (var action in documentRenameResult.ApplicableActions)
                 {
@@ -206,10 +206,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
                 documentIdToDocumentInfoMap.Add((documentId, endDocuments[i]));
             }
 
+            var options = new DocumentRenameOptions();
+
             foreach (var (documentId, endDocument) in documentIdToDocumentInfoMap)
             {
                 var document = solution.GetDocument(documentId);
-                var documentRenameResult = await Rename.Renamer.RenameDocumentAsync(document, endDocument.DocumentName, endDocument.DocumentFolders);
+                var documentRenameResult = await Rename.Renamer.RenameDocumentAsync(document, options, endDocument.DocumentName, endDocument.DocumentFolders);
                 Assert.Empty(documentRenameResult.ApplicableActions);
             }
         }
@@ -240,8 +242,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
 
             solution = solution.AddDocument(documentInfo);
 
+            var options = new DocumentRenameOptions();
             var document = solution.GetDocument(documentId);
-            var documentRenameResult = await Rename.Renamer.RenameDocumentAsync(document, newDocumentName, GetDocumentFolders(s_defaultDocumentPath));
+            var documentRenameResult = await Rename.Renamer.RenameDocumentAsync(document, options, newDocumentName, GetDocumentFolders(s_defaultDocumentPath));
             Assert.Empty(documentRenameResult.ApplicableActions);
         }
     }

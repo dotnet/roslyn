@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
                 ElementAccessExpressionSyntax elementAccessExpression => elementAccessExpression.ArgumentList,
                 BaseObjectCreationExpressionSyntax objectCreationExpression => objectCreationExpression.ArgumentList,
                 ConstructorInitializerSyntax constructorInitializer => constructorInitializer.ArgumentList,
-                _ => (BaseArgumentListSyntax)null,
+                _ => null,
             };
 
         protected override bool PositionIsApplicable(
@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
         {
             var startToken = listSyntax.GetFirstToken();
 
-            if (declaration is InvocationExpressionSyntax ||
-                declaration is ElementAccessExpressionSyntax)
+            if (declaration is InvocationExpressionSyntax or
+                ElementAccessExpressionSyntax)
             {
                 // If we have something like  Foo(...)  or  this.Foo(...)  allow anywhere in the Foo(...)
                 // section.
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
             {
                 for (var current = token.Parent; current != listSyntax; current = current.Parent)
                 {
-                    if (CSharpSyntaxFacts.Instance.IsAnonymousFunction(current))
+                    if (CSharpSyntaxFacts.Instance.IsAnonymousFunctionExpression(current))
                     {
                         return false;
                     }
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
             }
 
             // `this[...]`. Allow up through the 'this' token.
-            if (expr is ThisExpressionSyntax || expr is BaseExpressionSyntax)
+            if (expr is ThisExpressionSyntax or BaseExpressionSyntax)
             {
                 return expr;
             }

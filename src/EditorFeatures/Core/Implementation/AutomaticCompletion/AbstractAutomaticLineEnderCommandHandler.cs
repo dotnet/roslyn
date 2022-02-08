@@ -7,6 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
@@ -22,15 +23,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
     {
         private readonly ITextUndoHistoryRegistry _undoRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+        private readonly IGlobalOptionService _globalOptions;
 
         public string DisplayName => EditorFeaturesResources.Automatic_Line_Ender;
 
         protected AbstractAutomaticLineEnderCommandHandler(
             ITextUndoHistoryRegistry undoRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService)
+            IEditorOperationsFactoryService editorOperationsFactoryService,
+            IGlobalOptionService globalOptions)
         {
             _undoRegistry = undoRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
+            _globalOptions = globalOptions;
         }
 
         /// <summary>
@@ -84,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
             }
 
             // feature off
-            if (!document.Project.Solution.Workspace.Options.GetOption(InternalFeatureOnOffOptions.AutomaticLineEnder))
+            if (!_globalOptions.GetOption(InternalFeatureOnOffOptions.AutomaticLineEnder))
             {
                 NextAction(operations, nextHandler);
                 return;
@@ -157,33 +161,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
             var root = document.GetRequiredSyntaxRootSynchronously(cancellationToken);
             var text = root.SyntaxTree.GetText(cancellationToken);
 
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-
             // find last token on the line
-            var token = syntaxFacts.FindTokenOnLeftOfPosition(root, line.End);
+            var token = root.FindTokenOnLeftOfPosition(line.End);
             if (token.RawKind == 0)
-            {
                 return null;
-            }
 
             // bug # 16770
             // don't do anything if token is multiline token such as verbatim string
             if (line.End < token.Span.End)
-            {
                 return null;
-            }
 
             // if there is only whitespace, token doesn't need to be on same line
             if (string.IsNullOrWhiteSpace(text.ToString(TextSpan.FromBounds(token.Span.End, line.End))))
-            {
                 return line.End;
-            }
 
             // if token is on different line than caret but caret line is empty, we insert ending point at the end of the line
             if (text.Lines.IndexOf(token.Span.End) != text.Lines.IndexOf(line.End))
-            {
-                return string.IsNullOrWhiteSpace(line.GetText()) ? (int?)line.End : null;
-            }
+                return string.IsNullOrWhiteSpace(line.GetText()) ? line.End : null;
 
             return token.Span.End;
         }

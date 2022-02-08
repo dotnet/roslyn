@@ -92,12 +92,12 @@ namespace Microsoft.CodeAnalysis.ValueTracking
 
             private async Task<bool> TryVisitChildrenAsync(IOperation operation, CancellationToken cancellationToken)
             {
-                foreach (var child in operation.Children)
+                foreach (var child in operation.ChildOperations)
                 {
                     await VisitAsync(child, cancellationToken).ConfigureAwait(false);
                 }
 
-                return operation.Children.Any();
+                return operation.ChildOperations.Any();
             }
 
             private Task VisitAssignmentOperationAsync(IAssignmentOperation assignmentOperation, CancellationToken cancellationToken)

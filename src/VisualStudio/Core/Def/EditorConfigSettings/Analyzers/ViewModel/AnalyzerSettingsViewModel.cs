@@ -37,7 +37,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers
                 new ColumnState2(ColumnDefinitions.Analyzer.Title, isVisible: true, width: 0),
                 new ColumnState2(ColumnDefinitions.Analyzer.Description, isVisible: false, width: 0),
                 new ColumnState2(ColumnDefinitions.Analyzer.Category, isVisible: true, width: 0, groupingPriority: 1),
-                new ColumnState2(ColumnDefinitions.Analyzer.Severity, isVisible: true, width: 0)
+                new ColumnState2(ColumnDefinitions.Analyzer.Severity, isVisible: true, width: 0),
+                new ColumnState2(ColumnDefinitions.Analyzer.Location, isVisible: true, width: 0)
             };
 
         protected override string[] GetFixedColumns()
@@ -47,7 +48,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers
                 ColumnDefinitions.Analyzer.Id,
                 ColumnDefinitions.Analyzer.Title,
                 ColumnDefinitions.Analyzer.Description,
-                ColumnDefinitions.Analyzer.Severity
+                ColumnDefinitions.Analyzer.Severity,
+                ColumnDefinitions.Analyzer.Location,
             };
     }
 }

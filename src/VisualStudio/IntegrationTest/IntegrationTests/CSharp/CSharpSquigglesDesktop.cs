@@ -15,18 +15,22 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpSquigglesDesktop : CSharpSquigglesCommon
     {
+        protected override bool SupportsGlobalUsings => false;
+
         public CSharpSquigglesDesktop(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory, WellKnownProjectTemplates.ClassLibrary)
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [ConditionalWpfFact(typeof(DesktopServiceHubHostOnly))]
+        [Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public override void VerifySyntaxErrorSquiggles()
         {
             base.VerifySyntaxErrorSquiggles();
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [ConditionalWpfFact(typeof(DesktopServiceHubHostOnly))]
+        [Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public override void VerifySemanticErrorSquiggles()
         {
             base.VerifySemanticErrorSquiggles();

@@ -60,7 +60,7 @@ File Size: 4 byte integer
 
 MVID: 16 byte integer (GUID)
 
-#### Retriving Metadata References
+#### Retrieving Metadata References
 
 Metadata references are stored in the CustomDebugInformation in a PDB using the GUID `7E4D4708-096E-4C5C-AEDA-CB10BA6A740D` . 
 
@@ -133,7 +133,7 @@ foreach (var handle in metadataReader.GetCustomDebugInformation(EntityHandle.Mod
 
 ### Compiler Options custom debug information
 
-The remaining values will be stored as key value pairs in the pdb. The storage format will be UTF8 encoded key value pairs that are null terminated. Order is not guaranteed. Any values left out can be assumed to be the default for the type. Keys may be different for Visual Basic and CSharp. They are serialized to reflect the command line arguments representing the same values
+The remaining values will be stored as key value pairs in the pdb. The storage format will be UTF8 encoded key value pairs that are null terminated. Order is not guaranteed. Any values left out can be assumed to be the default for the type. Keys may be different for Visual Basic and C#. They are serialized to reflect the command line arguments representing the same values
 
 Example: 
 
@@ -141,7 +141,7 @@ Example:
 
 ## List of Compiler Flags
 
-#### CSharp Flags That Can Be Derived From PDB or Assembly
+#### C# Flags That Can Be Derived From PDB or Assembly
 
 * baseaddress
 * checksumalgorithm
@@ -171,7 +171,7 @@ Example:
 * win32manifest
 * win32res
 
-#### CSharp Flags Not Included
+#### C# Flags Not Included
 
 * bugreport
 * delaysign
@@ -255,11 +255,11 @@ Example:
 * verbose
 * warnaserror
 
-#### Shared Options for CSharp and Visual Basic
+#### Shared Options for C# and Visual Basic
 
 | PDB Key                | Format                                  | Default   | Description  |
 | ---------------------- | --------------------------------------- | --------- | ------------ |
-| language               | `CSharp\|Visual Basic`                   | required  | Language name. |
+| language               | `C#\|Visual Basic`                   | required  | Language name. |
 | compiler-version       | [SemVer2](https://semver.org/spec/v2.0.0.html) string | required | Full version with SHA |
 | runtime-version        | [SemVer2](https://semver.org/spec/v2.0.0.html) string | required | [runtime version](#runtime-version) |
 | source-file-count      | int32                                   | required    | Count of files in the document table that are source files |
@@ -270,7 +270,7 @@ Example:
 | output-kind            | string                                  | require   | The value passed to `/target` |
 | platform               | string                                  | require   | The value passed to `/platform` |
 
-#### Options For CSharp
+#### Options For C\#
 
 See [compiler options](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/listed-alphabetically) documentation
 
@@ -334,7 +334,7 @@ There are three possible values:
 
 The runtime version used that the compiler was running in when generating the PE. This is stored as [informational version](https://docs.microsoft.com/en-us/dotnet/api/system.reflection.assemblyinformationalversionattribute.informationalversion?view=netcore-3.1#System_Reflection_AssemblyInformationalVersionAttribute_InformationalVersion).
 
-Runtime version is stored since it can impact the unicode character interpretation and decimla arithmetics, which both play a role in how code is compiled from source. There may also be future variations where the different versions of the runtime impact compilation. 
+Runtime version is stored since it can impact the unicode character interpretation and decimal arithmetics, which both play a role in how code is compiled from source. There may also be future variations where the different versions of the runtime impact compilation. 
 
 ### Retriving Compiler Flags
 

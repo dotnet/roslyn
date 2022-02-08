@@ -5,27 +5,40 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments
 {
-    internal static class DocumentationCommentOptions
+    internal readonly record struct DocumentationCommentOptions(
+        bool AutoXmlDocCommentGeneration,
+        int TabSize,
+        bool UseTabs,
+        string NewLine)
     {
-        public static readonly PerLanguageOption2<bool> AutoXmlDocCommentGeneration = new(nameof(DocumentationCommentOptions), nameof(AutoXmlDocCommentGeneration), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation(language => language == LanguageNames.VisualBasic ? "TextEditor.%LANGUAGE%.Specific.AutoComment" : "TextEditor.%LANGUAGE%.Specific.Automatic XML Doc Comment Generation"));
-    }
-
-    [ExportOptionProvider, Shared]
-    internal sealed class DocumentationCommentOptionsProvider : IOptionProvider
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DocumentationCommentOptionsProvider()
+        [ExportSolutionOptionProvider, Shared]
+        internal sealed class Metadata : IOptionProvider
         {
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public Metadata()
+            {
+            }
+
+            public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
+                AutoXmlDocCommentGeneration);
+
+            public static readonly PerLanguageOption2<bool> AutoXmlDocCommentGeneration = new(nameof(DocumentationCommentOptions), nameof(AutoXmlDocCommentGeneration), defaultValue: true,
+                storageLocation: new RoamingProfileStorageLocation(language => language == LanguageNames.VisualBasic ? "TextEditor.%LANGUAGE%.Specific.AutoComment" : "TextEditor.%LANGUAGE%.Specific.Automatic XML Doc Comment Generation"));
         }
 
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(DocumentationCommentOptions.AutoXmlDocCommentGeneration);
+        public static DocumentationCommentOptions From(DocumentOptionSet options)
+          => new(
+              AutoXmlDocCommentGeneration: options.GetOption(Metadata.AutoXmlDocCommentGeneration),
+              TabSize: options.GetOption(FormattingOptions.TabSize),
+              UseTabs: options.GetOption(FormattingOptions.UseTabs),
+              NewLine: options.GetOption(FormattingOptions.NewLine));
     }
 }

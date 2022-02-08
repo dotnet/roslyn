@@ -143,11 +143,11 @@ namespace Microsoft.CodeAnalysis.CSharp.NavigationBar
                         types.Add((INamedTypeSymbol)type);
                     }
 
-                    if (node is BaseMethodDeclarationSyntax ||
-                        node is BasePropertyDeclarationSyntax ||
-                        node is BaseFieldDeclarationSyntax ||
-                        node is StatementSyntax ||
-                        node is ExpressionSyntax)
+                    if (node is BaseMethodDeclarationSyntax or
+                        BasePropertyDeclarationSyntax or
+                        BaseFieldDeclarationSyntax or
+                        StatementSyntax or
+                        ExpressionSyntax)
                     {
                         // quick bail out to prevent us from creating every nodes exist in current file
                         continue;
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.NavigationBar
             {
                 var method = (IMethodSymbol)member;
 
-                return method.MethodKind == MethodKind.PropertyGet || method.MethodKind == MethodKind.PropertySet;
+                return method.MethodKind is MethodKind.PropertyGet or MethodKind.PropertySet;
             }
 
             return false;

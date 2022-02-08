@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
+using System;
 
 namespace Microsoft.CodeAnalysis.NavigationBar
 {
     internal abstract partial class RoslynNavigationBarItem
     {
-        public abstract class AbstractGenerateCodeItem : RoslynNavigationBarItem
+        public abstract class AbstractGenerateCodeItem : RoslynNavigationBarItem, IEquatable<AbstractGenerateCodeItem>
         {
             public readonly SymbolKey DestinationTypeSymbolKey;
 
@@ -19,6 +17,13 @@ namespace Microsoft.CodeAnalysis.NavigationBar
             {
                 DestinationTypeSymbolKey = destinationTypeSymbolKey;
             }
+
+            public abstract override bool Equals(object? obj);
+            public abstract override int GetHashCode();
+
+            public bool Equals(AbstractGenerateCodeItem? other)
+                => base.Equals(other) &&
+                   DestinationTypeSymbolKey.Equals(other.DestinationTypeSymbolKey);
         }
     }
 }

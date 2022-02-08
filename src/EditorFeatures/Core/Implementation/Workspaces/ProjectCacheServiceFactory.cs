@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
             // Also clear the cache when the solution is cleared or removed.
             workspaceServices.Workspace.WorkspaceChanged += (s, e) =>
             {
-                if (e.Kind == WorkspaceChangeKind.SolutionCleared || e.Kind == WorkspaceChangeKind.SolutionRemoved)
+                if (e.Kind is WorkspaceChangeKind.SolutionCleared or WorkspaceChangeKind.SolutionRemoved)
                 {
                     service.ClearImplicitCache();
                 }

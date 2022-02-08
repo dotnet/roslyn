@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
@@ -16,5 +18,22 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         /// Computes one or more refactorings for the specified <see cref="CodeRefactoringContext"/>.
         /// </summary>
         public abstract Task ComputeRefactoringsAsync(CodeRefactoringContext context);
+
+        /// <summary>
+        /// What priority this provider should run at.
+        /// </summary>
+        internal CodeActionRequestPriority RequestPriority
+        {
+            get
+            {
+                var priority = ComputeRequestPriority();
+                // Note: CodeActionRequestPriority.Lowest is reserved for IConfigurationFixProvider.
+                Contract.ThrowIfFalse(priority is CodeActionRequestPriority.Low or CodeActionRequestPriority.Normal or CodeActionRequestPriority.High);
+                return priority;
+            }
+        }
+
+        private protected virtual CodeActionRequestPriority ComputeRequestPriority()
+            => CodeActionRequestPriority.Normal;
     }
 }

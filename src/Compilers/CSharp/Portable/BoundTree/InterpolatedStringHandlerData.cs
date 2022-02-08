@@ -23,11 +23,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public readonly ImmutableArray<BoundInterpolatedStringArgumentPlaceholder> ArgumentPlaceholders;
 
-        public readonly ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)> PositionInfo;
+        public readonly ImmutableArray<ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)>> PositionInfo;
 
         public bool HasTrailingHandlerValidityParameter => ArgumentPlaceholders.Length > 0 && ArgumentPlaceholders[^1].ArgumentIndex == BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter;
 
         public readonly BoundInterpolatedStringHandlerPlaceholder ReceiverPlaceholder;
+
+        public bool IsDefault => Construction is null;
 
         public InterpolatedStringHandlerData(
             TypeSymbol builderType,
@@ -35,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool usesBoolReturns,
             uint scopeOfContainingExpression,
             ImmutableArray<BoundInterpolatedStringArgumentPlaceholder> placeholders,
-            ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)> positionInfo,
+            ImmutableArray<ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)>> positionInfo,
             BoundInterpolatedStringHandlerPlaceholder receiverPlaceholder)
         {
             Debug.Assert(construction is BoundObjectCreationExpression or BoundDynamicObjectCreationExpression or BoundBadExpression);

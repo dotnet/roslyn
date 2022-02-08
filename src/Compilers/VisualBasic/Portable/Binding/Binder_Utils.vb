@@ -1529,11 +1529,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         prefix = StringConstants.PropertySetPrefix
                     End If
                 Case MethodKind.EventAdd
-                    prefix = ATTACH_LISTENER_PREFIX
+                    prefix = StringConstants.EventAddPrefix
                 Case MethodKind.EventRemove
-                    prefix = REMOVE_LISTENER_PREFIX
+                    prefix = StringConstants.EventRemovePrefix
                 Case MethodKind.EventRaise
-                    prefix = FIRE_LISTENER_PREFIX
+                    prefix = StringConstants.EventRaisePrefix
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(kind)
             End Select

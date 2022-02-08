@@ -127,10 +127,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
 
                 // Namespace can't be changed if we can't construct a valid qualified identifier from folder names.
                 // In this case, we might still be able to provide refactoring to move file to new location.
-                var namespaceFromFolders = PathMetadataUtilities.TryBuildNamespaceFromFolders(document.Folders, syntaxFacts);
-                var targetNamespace = namespaceFromFolders == null
-                    ? null
-                    : ConcatNamespace(defaultNamespace, namespaceFromFolders);
+                var targetNamespace = PathMetadataUtilities.TryBuildNamespaceFromFolders(document.Folders, syntaxFacts, defaultNamespace);
 
                 // No action required if namespace already matches folders.
                 if (syntaxFacts.StringComparer.Equals(targetNamespace, declaredNamespace))
@@ -185,23 +182,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
                 }
 
                 return defaultNamespaceFromProjects.Single();
-            }
-
-            private static string ConcatNamespace(string rootNamespace, string namespaceSuffix)
-            {
-                Debug.Assert(rootNamespace != null && namespaceSuffix != null);
-                if (namespaceSuffix.Length == 0)
-                {
-                    return rootNamespace;
-                }
-                else if (rootNamespace.Length == 0)
-                {
-                    return namespaceSuffix;
-                }
-                else
-                {
-                    return rootNamespace + "." + namespaceSuffix;
-                }
             }
 
             /// <summary>

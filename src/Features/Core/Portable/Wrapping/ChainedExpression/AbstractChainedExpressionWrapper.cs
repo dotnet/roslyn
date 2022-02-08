@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
 
             if (node != null)
             {
-                return _syntaxFacts.IsAnyMemberAccessExpression(node)
+                return _syntaxFacts.IsMemberAccessExpression(node)
                        || _syntaxFacts.IsInvocationExpression(node)
                        || _syntaxFacts.IsElementAccessExpression(node)
                        || _syntaxFacts.IsPostfixUnaryExpression(node)

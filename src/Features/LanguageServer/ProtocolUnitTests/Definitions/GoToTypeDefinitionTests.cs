@@ -26,10 +26,10 @@ class B
 {
     {|caret:|}A classA;
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var testLspServer = await CreateTestLspServerAsync(markup);
 
-            var results = await RunGotoTypeDefinitionAsync(testLspServer, locations["caret"].Single());
-            AssertLocationsEqual(locations["definition"], results);
+            var results = await RunGotoTypeDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+            AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
         }
 
         [Fact]
@@ -52,10 +52,10 @@ class B
 }"
             };
 
-            using var testLspServer = CreateTestLspServer(markups, out var locations);
+            using var testLspServer = await CreateTestLspServerAsync(markups);
 
-            var results = await RunGotoTypeDefinitionAsync(testLspServer, locations["caret"].Single());
-            AssertLocationsEqual(locations["definition"], results);
+            var results = await RunGotoTypeDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+            AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
         }
 
         [Fact]
@@ -70,9 +70,9 @@ class B
     A classA;
     {|caret:|}
 }";
-            using var testLspServer = CreateTestLspServer(markup, out var locations);
+            using var testLspServer = await CreateTestLspServerAsync(markup);
 
-            var results = await RunGotoTypeDefinitionAsync(testLspServer, locations["caret"].Single());
+            var results = await RunGotoTypeDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             Assert.Empty(results);
         }
 

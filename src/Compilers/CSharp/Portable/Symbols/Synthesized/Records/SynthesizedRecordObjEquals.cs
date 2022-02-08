@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly MethodSymbol _typedRecordEquals;
 
         public SynthesizedRecordObjEquals(SourceMemberContainerTypeSymbol containingType, MethodSymbol typedRecordEquals, int memberOffset, BindingDiagnosticBag diagnostics)
-            : base(containingType, WellKnownMemberNames.ObjectEquals, memberOffset, diagnostics)
+            : base(containingType, WellKnownMemberNames.ObjectEquals, memberOffset, isReadOnly: containingType.IsRecordStruct, diagnostics)
         {
             _typedRecordEquals = typedRecordEquals;
         }

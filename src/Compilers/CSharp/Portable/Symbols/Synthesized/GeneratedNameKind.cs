@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -35,11 +33,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         AnonymousType = 'f',
         TransparentIdentifier = 'h',
         AnonymousTypeField = 'i',
+        AnonymousTypeTypeParameter = 'j',
         AutoPropertyBackingField = 'k',
         IteratorCurrentThreadIdField = 'l',
         IteratorFinallyMethod = 'm',
         BaseMethodWrapper = 'n',
         AsyncBuilderField = 't',
+        DelegateCacheContainerType = 'O',
         DynamicCallSiteContainerType = 'o',
         DynamicCallSiteField = 'p',
         AsyncIteratorPromiseOfValueOrEndBackingField = 'v',
@@ -55,8 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         [Obsolete]
         Deprecated_InitializerLocal = 'g',
         [Obsolete]
-        Deprecated_AnonymousTypeTypeParameter = 'j',
-        [Obsolete]
         Deprecated_DynamicDelegate = 'q',
         [Obsolete]
         Deprecated_ComrefCallLocal = 'r',
@@ -65,17 +63,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal static class GeneratedNameKindExtensions
     {
         internal static bool IsTypeName(this GeneratedNameKind kind)
-        {
-            switch (kind)
-            {
-                case GeneratedNameKind.LambdaDisplayClass:
-                case GeneratedNameKind.StateMachineType:
-                case GeneratedNameKind.DynamicCallSiteContainerType:
-                    return true;
-
-                default:
-                    return false;
-            }
-        }
+            => kind is GeneratedNameKind.LambdaDisplayClass
+                    or GeneratedNameKind.StateMachineType
+                    or GeneratedNameKind.DynamicCallSiteContainerType
+                    or GeneratedNameKind.DelegateCacheContainerType
+                    ;
     }
 }

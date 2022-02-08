@@ -12,12 +12,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
     internal class PropertyDeclarationStructureProvider : AbstractSyntaxNodeStructureProvider<PropertyDeclarationSyntax>
     {
         protected override void CollectBlockSpans(
+            SyntaxToken previousToken,
             PropertyDeclarationSyntax propertyDeclaration,
             ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptionProvider optionProvider,
+            BlockStructureOptions options,
             CancellationToken cancellationToken)
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(propertyDeclaration, ref spans, optionProvider);
+            CSharpStructureHelpers.CollectCommentBlockSpans(propertyDeclaration, ref spans, options);
 
             // fault tolerance
             if (propertyDeclaration.AccessorList == null ||
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
             // Check IsNode to compress blank lines after this node if it is the last child of the parent.
             //
             // Properties are grouped together with indexers in Metadata as Source.
-            var compressEmptyLines = optionProvider.IsMetadataAsSource
+            var compressEmptyLines = options.IsMetadataAsSource
                 && (!nextSibling.IsNode || nextSibling.IsKind(SyntaxKind.PropertyDeclaration) || nextSibling.IsKind(SyntaxKind.IndexerDeclaration));
 
             spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(

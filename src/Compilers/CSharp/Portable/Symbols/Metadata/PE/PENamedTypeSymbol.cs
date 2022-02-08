@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -384,6 +385,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 return _handle;
             }
+        }
+
+        public override int MetadataToken
+        {
+            get { return MetadataTokens.GetToken(_handle); }
         }
 
         internal sealed override bool IsInterpolatedStringHandlerType
@@ -998,7 +1004,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     var method = (MethodSymbol)members[index];
 
-                    // Don't emit the default value type constructor - the runtime handles that
+                    // Don't emit the default value type constructor - the runtime handles that.
                     if (!method.IsDefaultValueTypeConstructor())
                     {
                         yield return method;
@@ -1340,8 +1346,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (IsTupleType)
                 {
                     int originalCount = members.Count;
-                    members = AddOrWrapTupleMembers(members.ToImmutableAndFree());
-                    membersCount += (members.Count - originalCount); // account for added tuple error fields
+                    var peMembers = members.ToImmutableAndFree();
+                    members = MakeSynthesizedTupleMembers(peMembers);
+                    membersCount += members.Count; // account for added tuple error fields
+                    members.AddRange(peMembers);
                     Debug.Assert(members is object);
                 }
 

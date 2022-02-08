@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
@@ -41,8 +42,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int Indent_FlushLabelsLeft
         {
-            get { return GetOption(CSharpFormattingOptions2.LabelPositioning) == LabelPositionOptions.LeftMost ? 1 : 0; }
-            set { SetOption(CSharpFormattingOptions2.LabelPositioning, value == 1 ? LabelPositionOptions.LeftMost : LabelPositionOptions.NoIndent); }
+            get { return (int)GetOption(CSharpFormattingOptions2.LabelPositioning); }
+            set { SetOption(CSharpFormattingOptions2.LabelPositioning, (LabelPositionOptions)value); }
         }
 
         public int Indent_UnindentLabels
@@ -185,8 +186,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int Space_AroundBinaryOperator
         {
-            get { return GetOption(CSharpFormattingOptions2.SpacingAroundBinaryOperator) == BinaryOperatorSpacingOptions.Single ? 1 : 0; }
-            set { SetOption(CSharpFormattingOptions2.SpacingAroundBinaryOperator, value == 1 ? BinaryOperatorSpacingOptions.Single : BinaryOperatorSpacingOptions.Ignore); }
+            get { return (int)GetOption(CSharpFormattingOptions2.SpacingAroundBinaryOperator); }
+            set { SetOption(CSharpFormattingOptions2.SpacingAroundBinaryOperator, (BinaryOperatorSpacingOptions)value); }
         }
 
         public int Space_BeforeBasesColon
@@ -305,20 +306,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int Formatting_TriggerOnPaste
         {
-            get { return GetBooleanOption(FormattingOptions2.FormatOnPaste); }
-            set { SetBooleanOption(FormattingOptions2.FormatOnPaste, value); }
+            get { return GetBooleanOption(FormattingOptionsMetadata.FormatOnPaste); }
+            set { SetBooleanOption(FormattingOptionsMetadata.FormatOnPaste, value); }
         }
 
         public int Formatting_TriggerOnStatementCompletion
         {
-            get { return GetBooleanOption(FormattingOptions2.AutoFormattingOnSemicolon); }
-            set { SetBooleanOption(FormattingOptions2.AutoFormattingOnSemicolon, value); }
+            get { return GetBooleanOption(AutoFormattingOptions.Metadata.AutoFormattingOnSemicolon); }
+            set { SetBooleanOption(AutoFormattingOptions.Metadata.AutoFormattingOnSemicolon, value); }
         }
 
         public int AutoFormattingOnTyping
         {
-            get { return GetBooleanOption(FormattingOptions2.AutoFormattingOnTyping); }
-            set { SetBooleanOption(FormattingOptions2.AutoFormattingOnTyping, value); }
+            get { return GetBooleanOption(AutoFormattingOptions.Metadata.AutoFormattingOnTyping); }
+            set { SetBooleanOption(AutoFormattingOptions.Metadata.AutoFormattingOnTyping, value); }
         }
     }
 }

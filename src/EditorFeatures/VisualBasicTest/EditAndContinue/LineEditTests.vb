@@ -5,10 +5,10 @@
 Imports System.Collections.Immutable
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.EditAndContinue
+Imports Microsoft.CodeAnalysis.EditAndContinue.Contracts
 Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.VisualStudio.Debugger.Contracts.EditAndContinue
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     <UseExportProvider>
@@ -73,7 +73,7 @@ End Class
             edits.VerifyLineEdits(
             {
                 New SourceLineUpdate(2, 6),
-                AbstractEditAndContinueAnalyzer.CreateZeroDeltaSourceLineUpdate(5),
+                New SourceLineUpdate(5, 5),
                 New SourceLineUpdate(6, 2)
             }, {})
         End Sub
@@ -118,9 +118,9 @@ End Class
             edits.VerifyLineEdits(
             {
                 New SourceLineUpdate(2, 6),
-                AbstractEditAndContinueAnalyzer.CreateZeroDeltaSourceLineUpdate(6),
+                New SourceLineUpdate(6, 6),
                 New SourceLineUpdate(7, 2),
-                AbstractEditAndContinueAnalyzer.CreateZeroDeltaSourceLineUpdate(10)
+                New SourceLineUpdate(10, 10)
             }, {})
         End Sub
 
@@ -773,6 +773,28 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub Field_Init_Recompile_Reloadable()
+            Dim src1 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Class C
+    Dim Goo As Integer = 1 + 1
+End Class
+"
+
+            Dim src2 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Class C
+    Dim Goo As Integer = 1 +  1
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                {SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember("C"))})
+        End Sub
+
+        <Fact>
         Public Sub Field_SingleAsNew_Recompile1()
             Dim src1 = "
 Class C
@@ -937,6 +959,28 @@ End Class
             edits.VerifyLineEdits(
                 Array.Empty(Of SequencePointUpdates),
                 diagnostics:={Diagnostic(RudeEditKind.GenericTypeUpdate, "Class C(Of T)")})
+        End Sub
+
+        <Fact>
+        Public Sub Field_Generic_Reloadable()
+            Dim src1 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Class C(Of T)
+    Dim Goo As Integer = 1 + 1
+End Class
+"
+
+            Dim src2 = ReloadableAttributeSrc & "
+<CreateNewOnMetadataUpdate>
+Class C(Of T)
+    Dim Goo As Integer = 1 +  1
+End Class
+"
+
+            Dim edits = GetTopEdits(src1, src2)
+            edits.VerifyLineEdits(
+                Array.Empty(Of SequencePointUpdates),
+                semanticEdits:={SemanticEdit(SemanticEditKind.Replace, Function(c) c.GetMember("C"))})
         End Sub
 #End Region
 
@@ -1251,7 +1295,7 @@ End Class
                 {
                     New SequencePointUpdates("a", ImmutableArray.Create(
                         New SourceLineUpdate(1, 11), ' x, y, F1, F2
-                        AbstractEditAndContinueAnalyzer.CreateZeroDeltaSourceLineUpdate(5),' lines between F2 And D ctor
+                        New SourceLineUpdate(5, 5),' lines between F2 And D ctor
                         New SourceLineUpdate(7, 17)))' D ctor
                 },
                 semanticEdits:=

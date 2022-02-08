@@ -451,14 +451,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var argument = arguments[argumentIndex];
 
-                if (argument is BoundConversion { ConversionKind: ConversionKind.InterpolatedStringHandler, Operand: BoundInterpolatedString operand })
+                if (argument is BoundConversion { ConversionKind: ConversionKind.InterpolatedStringHandler, Operand: BoundInterpolatedString or BoundBinaryOperator } conversion)
                 {
                     // Handler conversions are not supported in expression lambdas.
                     Debug.Assert(!_inExpressionLambda);
-                    var interpolationData = operand.InterpolationData.GetValueOrDefault();
+                    var interpolationData = conversion.Operand.GetInterpolatedStringHandlerData();
                     var creation = (BoundObjectCreationExpression)interpolationData.Construction;
 
-                    if (creation.Arguments.Length > (interpolationData.HasTrailingHandlerValidityParameter ? 3 : 2))
+                    if (interpolationData.ArgumentPlaceholders.Length > (interpolationData.HasTrailingHandlerValidityParameter ? 1 : 0))
                     {
                         Debug.Assert(!((BoundConversion)argument).ExplicitCastInCode);
 
@@ -544,8 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<int> argsToParamsOpt,
             ref ImmutableArray<RefKind> argumentRefKindsOpt,
             [NotNull] ref ArrayBuilder<LocalSymbol>? temps,
-            bool invokedAsExtensionMethod = false,
-            ThreeState enableCallerInfo = ThreeState.Unknown)
+            bool invokedAsExtensionMethod = false)
         {
 
             // We need to do a fancy rewrite under the following circumstances:

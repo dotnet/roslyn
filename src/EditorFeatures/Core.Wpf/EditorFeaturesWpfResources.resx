@@ -117,33 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Regex_Comment" xml:space="preserve">
-    <value>Regex - Comment</value>
-  </data>
-  <data name="Regex_Character_Class" xml:space="preserve">
-    <value>Regex - Character Class</value>
-  </data>
-  <data name="Regex_Alternation" xml:space="preserve">
-    <value>Regex - Alternation</value>
-  </data>
-  <data name="Regex_Anchor" xml:space="preserve">
-    <value>Regex - Anchor</value>
-  </data>
-  <data name="Regex_Quantifier" xml:space="preserve">
-    <value>Regex - Quantifier</value>
-  </data>
-  <data name="Regex_SelfEscapedCharacter" xml:space="preserve">
-    <value>Regex - Self Escaped Character</value>
-  </data>
-  <data name="Regex_Grouping" xml:space="preserve">
-    <value>Regex - Grouping</value>
-  </data>
-  <data name="Regex_Text" xml:space="preserve">
-    <value>Regex - Text</value>
-  </data>
-  <data name="Regex_OtherEscape" xml:space="preserve">
-    <value>Regex - Other Escape</value>
-  </data>
   <data name="Error_performing_rename_0" xml:space="preserve">
     <value>Error performing rename: '{0}'</value>
   </data>

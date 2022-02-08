@@ -428,6 +428,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property IFieldSymbol_FixedSize As Integer Implements IFieldSymbol.FixedSize
+            Get
+                Return 0
+            End Get
+        End Property
+
         Private ReadOnly Property IFieldSymbol_Type As ITypeSymbol Implements IFieldSymbol.Type
             Get
                 Return Me.Type

@@ -23,11 +23,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         private static readonly Func<ITypeSymbol, bool> s_shouldInclude = t => t.TypeKind != TypeKind.Error && t.GetArity() > 0;
 
         public override void AddClassifications(
-            Workspace workspace,
             SyntaxToken lessThanToken,
             SemanticModel semanticModel,
-            ArrayBuilder<ClassifiedSpan> result,
-            CancellationToken cancellationToken)
+            ClassificationOptions options,
+            ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var syntaxTree = semanticModel.SyntaxTree;
             if (syntaxTree.IsInPartiallyWrittenGeneric(lessThanToken.Span.End, cancellationToken, out var identifier))
@@ -57,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             // Look for patterns that indicate that this could never be a partially written 
             // generic *Type* (although it could be a partially written generic method).
 
-            if (!(identifier.Parent is IdentifierNameSyntax identifierName))
+            if (identifier.Parent is not IdentifierNameSyntax identifierName)
             {
                 // Definitely not a generic type if this isn't even an identifier name.
                 return false;

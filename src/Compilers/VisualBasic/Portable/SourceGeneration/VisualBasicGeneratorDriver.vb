@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Friend Sub New(parseOptions As VisualBasicParseOptions, generators As ImmutableArray(Of ISourceGenerator), optionsProvider As AnalyzerConfigOptionsProvider, additionalTexts As ImmutableArray(Of AdditionalText), driverOptions As GeneratorDriverOptions)
-            MyBase.New(parseOptions, generators, optionsProvider, additionalTexts, enableIncremental:=False, driverOptions)
+            MyBase.New(parseOptions, generators, optionsProvider, additionalTexts, driverOptions)
         End Sub
 
         Friend Overrides ReadOnly Property MessageProvider As CommonMessageProvider
@@ -44,9 +44,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Create(generators, additionalTexts, parseOptions, analyzerConfigOptionsProvider, driverOptions:=Nothing)
         End Function
 
-        Friend Overrides Function CreateSourcesCollection() As AdditionalSourcesCollection
-            Return New AdditionalSourcesCollection(".vb")
-        End Function
+        Friend Overrides ReadOnly Property SourceExtension As String
+            Get
+                Return ".vb"
+            End Get
+        End Property
 
     End Class
 

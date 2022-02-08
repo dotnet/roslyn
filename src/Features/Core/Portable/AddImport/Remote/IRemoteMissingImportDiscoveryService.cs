@@ -25,6 +25,10 @@ namespace Microsoft.CodeAnalysis.AddImport
 
         ValueTask<ImmutableArray<AddImportFixData>> GetFixesAsync(
             PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, DocumentId documentId, TextSpan span, string diagnosticId, int maxResults,
-            bool placeSystemNamespaceFirst, bool allowInHiddenRegions, bool searchReferenceAssemblies, ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken);
+            AddImportOptions options, ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken);
+
+        ValueTask<ImmutableArray<AddImportFixData>> GetUniqueFixesAsync(
+            PinnedSolutionInfo solutionInfo, RemoteServiceCallbackId callbackId, DocumentId id, TextSpan span, ImmutableArray<string> diagnosticIds,
+            AddImportOptions options, ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken);
     }
 }
