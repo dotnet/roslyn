@@ -813,7 +813,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var annotations = parameter.FlowAnalysisAnnotations;
             if ((annotations & FlowAnalysisAnnotations.NotNull) == 0
                 && !NullableWalker.GetParameterState(parameter.TypeWithAnnotations, annotations, applyParameterNullCheck: false).IsNotNull
-                && (!parameter.Type.IsTypeParameter() || parameter.TypeWithAnnotations.NullableAnnotation.IsAnnotated() || (annotations & FlowAnalysisAnnotations.AllowNull) != 0))
+                && (!parameter.Type.IsTypeParameter() || parameter.Type.IsNullableTypeOrTypeParameter() || parameter.TypeWithAnnotations.NullableAnnotation.IsAnnotated() || (annotations & FlowAnalysisAnnotations.AllowNull) != 0))
             {
                 diagnostics.Add(ErrorCode.WRN_NullCheckingOnNullableType, location, parameter);
             }
