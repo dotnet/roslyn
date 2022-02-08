@@ -1641,5 +1641,51 @@ class C
 }",
 parseOptions: CSharp8ParseOptions);
         }
+
+        [WorkItem(58911, "https://github.com/dotnet/roslyn/issues/58911")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseSimpleUsingStatement)]
+        public async Task TestUsingWithoutSpace()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class Test
+{
+    public IEnumerable<Test> Collection { get; } = new[]
+    {
+        new Test()
+        {
+            Prop = () =>
+            {
+                [||]using(var x = Get())
+                {
+                    int i = 0;
+                }
+            }
+        }
+    };
+
+    public Action? Prop { get; set; }
+    public static IDisposable Get() => throw new NotImplementedException();
+}
+",
+@"public class Test
+{
+    public IEnumerable<Test> Collection { get; } = new[]
+    {
+        new Test()
+        {
+            Prop = () =>
+            {
+                using var x = Get();
+                    int i = 0;
+            }
+        }
+    };
+
+    public Action? Prop { get; set; }
+    public static IDisposable Get() => throw new NotImplementedException();
+}
+",
+parseOptions: CSharp8ParseOptions);
+        }
     }
 }
