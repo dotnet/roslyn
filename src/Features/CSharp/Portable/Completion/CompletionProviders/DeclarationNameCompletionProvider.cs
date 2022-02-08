@@ -86,6 +86,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 var recommendedNames = result.ToImmutable();
 
+                if (recommendedNames.IsEmpty)
+                    return;
+
                 var sortValue = 0;
                 foreach (var (name, kind) in recommendedNames)
                 {
