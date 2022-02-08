@@ -30,6 +30,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     internal abstract partial class VisualStudioBaseDiagnosticListTable
     {
         /// <summary>
+        /// Used by the editor to signify that errors added to the error list
+        /// should not be copied to the guest.  Instead they will be published via LSP.
+        /// </summary>
+        private const string DoNotPropogateToGuestProperty = "DoNotPropagateToGuests";
+
+        /// <summary>
         /// Error list diagnostic source for "Build + Intellisense" setting.
         /// See <see cref="VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.BuildTableDataSource"/>
         /// for error list diagnostic source for "Build only" setting.
@@ -386,6 +392,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                             return guids.Length > 0;
                         case StandardTableKeyNames.SuppressionState:
                             content = data.IsSuppressed ? SuppressionState.Suppressed : SuppressionState.Active;
+                            return true;
+                        case DoNotPropogateToGuestProperty:
+                            content = true;
                             return true;
                         default:
                             content = null;
