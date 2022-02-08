@@ -22,7 +22,8 @@ namespace Microsoft.CodeAnalysis.Wrapping
         protected abstract string Indent_all_items { get; }
         protected abstract string Wrap_every_item { get; }
 
-        public AbstractSeparatedListWrapper(IIndentationService indentationService) : base(indentationService)
+        public AbstractSeparatedListWrapper(IIndentationService indentationService)
+            : base(indentationService)
         {
         }
     }
