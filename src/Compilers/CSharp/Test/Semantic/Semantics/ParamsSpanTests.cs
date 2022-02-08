@@ -493,30 +493,186 @@ class Program
     static void F<T>(params Span<T> args) { }
     static void Main()
     {
-        /*<bind>*/F(1)/*</bind>*/;
+        /*<bind>*/F(1, 2)/*</bind>*/;
     }
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
             VerifyOperationTreeAndDiagnosticsForTest<SyntaxNode>(
                 comp,
-@"IInvocationOperation (void Program.F<System.Int32>(params System.Span<System.Int32> args)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'F(1)')
+@"    IInvocationOperation (void Program.F<System.Int32>(params System.Span<System.Int32> args)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'F(1, 2)')
   Instance Receiver:
     null
   Arguments(1):
-      IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: args) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'F(1)')
-        IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'F(1)')
-          Dimension Sizes(1):
-              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'F(1)')
-          Initializer:
-            IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: 'F(1)')
-              Element Values(1):
+      IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: args) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'F(1, 2)')
+        IOperation:  (OperationKind.None, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'F(1, 2)')
+          Children(4):
+              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'F(1, 2)')
+                Left:
+                  ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'F(1, 2)')
+                Right:
+                  IObjectCreationOperation (Constructor: System.Span<System.Int32>..ctor(System.Int32[]? array)) (OperationKind.ObjectCreation, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'F(1, 2)')
+                    Arguments(1):
+                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: array) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'F(1, 2)')
+                          IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[], IsImplicit) (Syntax: 'F(1, 2)')
+                            Dimension Sizes(1):
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'F(1, 2)')
+                            Initializer:
+                              null
+                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Initializer:
+                      null
+              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'F(1, 2)')
+                Left:
+                  IInvocationOperation ( ref System.Int32 System.Span<System.Int32>.this[System.Int32 index].get) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'F(1, 2)')
+                    Instance Receiver:
+                      ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'F(1, 2)')
+                    Arguments(1):
+                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'F(1, 2)')
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'F(1, 2)')
+                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Right:
                   ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+              ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'F(1, 2)')
+                Left:
+                  IInvocationOperation ( ref System.Int32 System.Span<System.Int32>.this[System.Int32 index].get) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'F(1, 2)')
+                    Instance Receiver:
+                      ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'F(1, 2)')
+                    Arguments(1):
+                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'F(1, 2)')
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'F(1, 2)')
+                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Right:
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+              ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'F(1, 2)')
         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ",
                 DiagnosticDescription.None);
+        }
 
-            Assert.False(true); // PROTOTYPE: Add similar test for ReadOnlySpan<T>.
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void IArgumentOperation_02()
+        {
+            var source =
+@"using System;
+class A
+{
+    public object this[params ReadOnlySpan<int> args] => null;
+}
+class B
+{
+    public object this[params ReadOnlySpan<int> args] { set { } }
+}
+class Program
+{
+    static void Main()
+    {
+        var a = new A();
+        var b = new B();
+        /*<bind>*/b[2] = a[1]/*</bind>*/;
+    }
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            VerifyOperationTreeAndDiagnosticsForTest<SyntaxNode>(
+                comp,
+@"  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object) (Syntax: 'b[2] = a[1]')
+  Left:
+    IPropertyReferenceOperation: System.Object B.this[params System.ReadOnlySpan<System.Int32> args] { set; } (OperationKind.PropertyReference, Type: System.Object) (Syntax: 'b[2]')
+      Instance Receiver:
+        ILocalReferenceOperation: b (OperationKind.LocalReference, Type: B) (Syntax: 'b')
+      Arguments(1):
+          IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: args) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'b[2]')
+            IOperation:  (OperationKind.None, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'b[2]')
+              Children(3):
+                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'b[2]')
+                    Left:
+                      ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'b[2]')
+                    Right:
+                      IObjectCreationOperation (Constructor: System.Span<System.Int32>..ctor(System.Int32[]? array)) (OperationKind.ObjectCreation, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'b[2]')
+                        Arguments(1):
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: array) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'b[2]')
+                              IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[], IsImplicit) (Syntax: 'b[2]')
+                                Dimension Sizes(1):
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'b[2]')
+                                Initializer:
+                                  null
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Initializer:
+                          null
+                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'b[2]')
+                    Left:
+                      IInvocationOperation ( ref System.Int32 System.Span<System.Int32>.this[System.Int32 index].get) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'b[2]')
+                        Instance Receiver:
+                          ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'b[2]')
+                        Arguments(1):
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'b[2]')
+                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'b[2]')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Right:
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                  IInvocationOperation (System.ReadOnlySpan<System.Int32> System.Span<System.Int32>.op_Implicit(System.Span<System.Int32> span)) (OperationKind.Invocation, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'b[2]')
+                    Instance Receiver:
+                      null
+                    Arguments(1):
+                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: span) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'b[2]')
+                          ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'b[2]')
+                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Right:
+    IPropertyReferenceOperation: System.Object A.this[params System.ReadOnlySpan<System.Int32> args] { get; } (OperationKind.PropertyReference, Type: System.Object) (Syntax: 'a[1]')
+      Instance Receiver:
+        ILocalReferenceOperation: a (OperationKind.LocalReference, Type: A) (Syntax: 'a')
+      Arguments(1):
+          IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: args) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'a[1]')
+            IOperation:  (OperationKind.None, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'a[1]')
+              Children(3):
+                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'a[1]')
+                    Left:
+                      ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'a[1]')
+                    Right:
+                      IObjectCreationOperation (Constructor: System.Span<System.Int32>..ctor(System.Int32[]? array)) (OperationKind.ObjectCreation, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'a[1]')
+                        Arguments(1):
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: array) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'a[1]')
+                              IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[], IsImplicit) (Syntax: 'a[1]')
+                                Dimension Sizes(1):
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'a[1]')
+                                Initializer:
+                                  null
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Initializer:
+                          null
+                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'a[1]')
+                    Left:
+                      IInvocationOperation ( ref System.Int32 System.Span<System.Int32>.this[System.Int32 index].get) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a[1]')
+                        Instance Receiver:
+                          ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'a[1]')
+                        Arguments(1):
+                            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'a[1]')
+                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsImplicit) (Syntax: 'a[1]')
+                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    Right:
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                  IInvocationOperation (System.ReadOnlySpan<System.Int32> System.Span<System.Int32>.op_Implicit(System.Span<System.Int32> span)) (OperationKind.Invocation, Type: System.ReadOnlySpan<System.Int32>, IsImplicit) (Syntax: 'a[1]')
+                    Instance Receiver:
+                      null
+                    Arguments(1):
+                        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: span) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'a[1]')
+                          ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'a[1]')
+                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+",
+                DiagnosticDescription.None);
         }
 
         [Fact]
@@ -685,6 +841,46 @@ class Program
                 // (9,9): error CS0656: Missing compiler required member 'System.Span`1.op_Implicit'
                 //         F2();
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "F2()").WithArguments("System.Span`1", "op_Implicit").WithLocation(9, 9));
+        }
+
+        [Fact]
+        public void UnexpectedSpanType_01()
+        {
+            var sourceA =
+@"namespace System
+{
+    public class Span<T>
+    {
+        private readonly T[] _array;
+        public Span(T[] array) { _array = array; }
+        public ref T this[int index] => throw null;
+        public static implicit operator ReadOnlySpan<T>(Span<T> s) => new ReadOnlySpan<T>(s._array);
+    }
+    public class ReadOnlySpan<T>
+    {
+        private readonly T[] _array;
+        public ReadOnlySpan(T[] array) { _array = array; }
+        public ref T this[int index] => throw null;
+    }
+}";
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            var sourceB =
+@"using System;
+class Program
+{
+    static void F1<T>(params Span<T> args) { }
+    static void F2<T>(params ReadOnlySpan<T> args) { }
+    static void Main()
+    {
+        F1(1, 2);
+        F2(string.Empty);
+    }
+}";
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe);
+            // PROTOTYPE: Should report errors: expecting 'ref struct'.
+            comp.VerifyEmitDiagnostics();
         }
 
         /// <summary>

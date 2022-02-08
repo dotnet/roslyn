@@ -1029,7 +1029,7 @@ outerDefault:
         public bool IsValidParamsParameter(ParameterSymbol final)
         {
             Debug.Assert((object)final == final.ContainingSymbol.GetParameters().Last());
-            return final.IsParams && final.Type.IsParamsType(Compilation);
+            return final.IsParams && ((ParameterSymbol)final.OriginalDefinition).Type.IsParamsType(Compilation);
         }
 
         /// <summary>
@@ -1634,11 +1634,13 @@ outerDefault:
         /// <summary>
         /// Returns the parameter type (considering params).
         /// </summary>
-        private TypeSymbol GetParameterType(ParameterSymbol parameter, MemberAnalysisResult result)
+        private TypeSymbol GetParameterType(ParameterSymbol parameter, MemberAnalysisResult result, int parameterCount)
         {
             var type = parameter.Type;
             if (result.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
-                parameter.IsParams && type.IsParamsType(Compilation))
+                parameter.IsParams &&
+                parameter.Ordinal == parameterCount - 1 &&
+                type.IsParamsType(Compilation))
             {
                 return type.GetParamsElementType().Type;
             }
@@ -1732,6 +1734,9 @@ outerDefault:
             var m1LeastOverriddenParameters = m1.LeastOverriddenMember.GetParameters();
             var m2LeastOverriddenParameters = m2.LeastOverriddenMember.GetParameters();
 
+            int m1ParameterCount = m1.Member.GetParameterCount();
+            int m2ParameterCount = m2.Member.GetParameterCount();
+
             bool allSame = true; // Are all parameter types equivalent by identify conversions, ignoring Task-like differences?
             int i;
             for (i = 0; i < arguments.Count; ++i)
@@ -1748,10 +1753,10 @@ outerDefault:
                 }
 
                 var parameter1 = GetParameter(i, m1.Result, m1LeastOverriddenParameters);
-                var type1 = GetParameterType(parameter1, m1.Result);
+                var type1 = GetParameterType(parameter1, m1.Result, m1ParameterCount);
 
                 var parameter2 = GetParameter(i, m2.Result, m2LeastOverriddenParameters);
-                var type2 = GetParameterType(parameter2, m2.Result);
+                var type2 = GetParameterType(parameter2, m2.Result, m2ParameterCount);
 
                 bool okToDowngradeToNeither;
                 BetterResult r;
@@ -1863,13 +1868,11 @@ outerDefault:
             // following tie-breaking rules are applied, in order, to determine the better function
             // member. 
 
-            int m1ParameterCount;
-            int m2ParameterCount;
             int m1ParametersUsedIncludingExpansionAndOptional;
             int m2ParametersUsedIncludingExpansionAndOptional;
 
-            GetParameterCounts(m1, arguments, out m1ParameterCount, out m1ParametersUsedIncludingExpansionAndOptional);
-            GetParameterCounts(m2, arguments, out m2ParameterCount, out m2ParametersUsedIncludingExpansionAndOptional);
+            GetParameterCounts(m1, arguments, m1ParameterCount, out m1ParametersUsedIncludingExpansionAndOptional);
+            GetParameterCounts(m2, arguments, m2ParameterCount, out m2ParametersUsedIncludingExpansionAndOptional);
 
             // We might have got out of the loop above early and allSame isn't completely calculated.
             // We need to ensure that we are not going to skip over the next 'if' because of that.
@@ -1892,10 +1895,10 @@ outerDefault:
                     }
 
                     var parameter1 = GetParameter(i, m1.Result, m1LeastOverriddenParameters);
-                    var type1 = GetParameterType(parameter1, m1.Result);
+                    var type1 = GetParameterType(parameter1, m1.Result, m1ParameterCount);
 
                     var parameter2 = GetParameter(i, m2.Result, m2LeastOverriddenParameters);
-                    var type2 = GetParameterType(parameter2, m2.Result);
+                    var type2 = GetParameterType(parameter2, m2.Result, m2ParameterCount);
 
                     var type1Normalized = type1;
                     var type2Normalized = type2;
@@ -2071,10 +2074,10 @@ outerDefault:
                 }
 
                 var parameter1 = GetParameter(i, m1.Result, m1Original);
-                uninst1.Add(GetParameterType(parameter1, m1.Result));
+                uninst1.Add(GetParameterType(parameter1, m1.Result, m1ParameterCount));
 
                 var parameter2 = GetParameter(i, m2.Result, m2Original);
-                uninst2.Add(GetParameterType(parameter2, m2.Result));
+                uninst2.Add(GetParameterType(parameter2, m2.Result, m2ParameterCount));
             }
 
             result = MoreSpecificType(uninst1, uninst2, ref useSiteInfo);
@@ -2209,10 +2212,8 @@ outerDefault:
         }
 #nullable disable
 
-        private static void GetParameterCounts<TMember>(MemberResolutionResult<TMember> m, ArrayBuilder<BoundExpression> arguments, out int declaredParameterCount, out int parametersUsedIncludingExpansionAndOptional) where TMember : Symbol
+        private static void GetParameterCounts<TMember>(MemberResolutionResult<TMember> m, ArrayBuilder<BoundExpression> arguments, int declaredParameterCount, out int parametersUsedIncludingExpansionAndOptional) where TMember : Symbol
         {
-            declaredParameterCount = m.Member.GetParameterCount();
-
             if (m.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm)
             {
                 if (arguments.Count < declaredParameterCount)

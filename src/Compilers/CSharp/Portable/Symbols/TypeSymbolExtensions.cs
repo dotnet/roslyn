@@ -1685,9 +1685,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             if (type is NamedTypeSymbol { Arity: 1 } namedType)
             {
-                var constructedFrom = namedType.ConstructedFrom;
-                return (object)constructedFrom == compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T) ||
-                    (object)constructedFrom == compilation.GetWellKnownType(WellKnownType.System_Span_T);
+                var definition = namedType.OriginalDefinition;
+                return (object)definition == compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T) ||
+                    (object)definition == compilation.GetWellKnownType(WellKnownType.System_Span_T);
             }
             return false;
         }
@@ -1700,6 +1700,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             if (type is NamedTypeSymbol { Arity: 1 } namedType)
             {
+                Debug.Assert(IsNamespaceName(namedType.ContainingSymbol, new[] { "System" }));
+                Debug.Assert(namedType.Name is "Span" or "ReadOnlySpan");
                 return namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
             }
             throw ExceptionUtilities.UnexpectedValue(type);
@@ -1729,7 +1731,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return false;
             }
-            if ((object)namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T))
+            if ((object)namedType.OriginalDefinition == compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T))
             {
                 return true;
             }
@@ -1743,7 +1745,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            return (object)namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T);
+            return (object)namedType.OriginalDefinition == compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerable_T);
         }
 
         internal static bool IsIAsyncEnumeratorType(this TypeSymbol type, CSharpCompilation compilation)
@@ -1753,7 +1755,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            return (object)namedType.ConstructedFrom == compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T);
+            return (object)namedType.OriginalDefinition == compilation.GetWellKnownType(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T);
         }
 
         /// <summary>

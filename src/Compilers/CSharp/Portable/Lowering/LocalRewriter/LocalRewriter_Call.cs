@@ -969,7 +969,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Set loop variable so the value for next iteration will be the index of the first non param-array argument after param-array argument(s).
                     a = firstNonParamArrayArgumentIndex - 1;
 
-                    argument = CreateParamArrayArgument(syntax, parameter.Type, paramArray.ToImmutableAndFree(), compilation, localRewriter: null);
+                    argument = createParamArrayArgument(syntax, methodOrIndexer, parameter.Type, paramArray.ToImmutableAndFree(), compilation);
                 }
 
                 argumentsInEvaluationBuilder.Add(operationFactory.CreateArgumentOperation(kind, parameter.GetPublicSymbol(), argument));
@@ -982,7 +982,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(lastParam.IsParams);
 
                 // Create an empty array for omitted param array argument.
-                BoundExpression argument = CreateParamArrayArgument(syntax, lastParam.Type, ImmutableArray<BoundExpression>.Empty, compilation, localRewriter: null);
+                BoundExpression argument = createParamArrayArgument(syntax, methodOrIndexer, lastParam.Type, ImmutableArray<BoundExpression>.Empty, compilation);
                 ArgumentKind kind = ArgumentKind.ParamArray;
 
                 argumentsInEvaluationBuilder.Add(operationFactory.CreateArgumentOperation(kind, lastParam.GetPublicSymbol(), argument));
@@ -990,6 +990,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(argumentsInEvaluationBuilder.All(static arg => arg is not null));
             return argumentsInEvaluationBuilder.ToImmutableAndFree();
+
+            static BoundExpression createParamArrayArgument(
+                SyntaxNode syntax,
+                Symbol methodOrIndexer,
+                TypeSymbol parameterType,
+                ImmutableArray<BoundExpression> arrayArgs,
+                CSharpCompilation compilation)
+            {
+                var method = methodOrIndexer switch
+                {
+                    MethodSymbol m => m,
+                    PropertySymbol p => p.GetOwnOrInheritedGetMethod() ?? p.GetOwnOrInheritedSetMethod(),
+                    _ => throw ExceptionUtilities.UnexpectedValue(methodOrIndexer),
+                };
+                return CreateParamArrayArgument(syntax, parameterType, arrayArgs, compilation, method, BindingDiagnosticBag.Discarded);
+            }
         }
 
         /// <summary>
@@ -1091,23 +1107,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (paramArrayType.IsSZArray())
-            {
-                return CreateParamArrayArgument(syntax, paramArrayType, arrayArgs, _compilation, this);
-            }
-
-            return CreateParamsSpan(syntax, paramArrayType, arrayArgs);
+            return CreateParamArrayArgument(syntax, paramArrayType, arrayArgs, _compilation, _factory.CurrentFunction, _diagnostics);
         }
 
+        // PROTOTYPE: Consider moving this to initial binding, similar to the handling of default values.
         private static BoundExpression CreateParamArrayArgument(SyntaxNode syntax,
             TypeSymbol paramArrayType,
             ImmutableArray<BoundExpression> arrayArgs,
             CSharpCompilation compilation,
-            LocalRewriter? localRewriter)
+            MethodSymbol? containingMethod,
+            BindingDiagnosticBag diagnostics)
         {
-            TypeSymbol int32Type = compilation.GetSpecialType(SpecialType.System_Int32);
-            BoundExpression arraySize = MakeLiteral(syntax, ConstantValue.Create(arrayArgs.Length), int32Type, localRewriter);
+            if (!paramArrayType.IsSZArray())
+            {
+                return CreateParamsSpan(syntax, paramArrayType, arrayArgs, compilation, containingMethod, diagnostics);
+            }
 
+            TypeSymbol int32Type = compilation.GetSpecialType(SpecialType.System_Int32);
+            BoundExpression arraySize = new BoundLiteral(syntax, ConstantValue.Create(arrayArgs.Length), int32Type, hasErrors: false);
             return new BoundArrayCreation(
                 syntax,
                 ImmutableArray.Create(arraySize),
@@ -1116,10 +1133,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
         }
 
-        private BoundExpression CreateParamsSpan(
+        private static BoundExpression CreateParamsSpan(
             SyntaxNode syntax,
             TypeSymbol paramArrayType,
-            ImmutableArray<BoundExpression> arrayArgs)
+            ImmutableArray<BoundExpression> arrayArgs,
+            CSharpCompilation compilation,
+            MethodSymbol? containingMethod,
+            BindingDiagnosticBag diagnostics)
         {
             var elementType = paramArrayType.GetParamsElementType().Type;
             int length = arrayArgs.Length;
@@ -1129,21 +1149,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             // for 'stackalloc' in LocalRewriter.VisitStackAllocArrayCreationBase().)
 
             // For now, simply allocate the array on the heap: new Span<T>(new T[length])
-            var intType = _compilation.GetSpecialType(SpecialType.System_Int32);
+            var intType = compilation.GetSpecialType(SpecialType.System_Int32);
             var array = new BoundArrayCreation(
                 syntax,
-                ImmutableArray.Create(MakeLiteral(syntax, ConstantValue.Create(length), intType, this)),
+                ImmutableArray.Create<BoundExpression>(new BoundLiteral(syntax, ConstantValue.Create(length), intType, hasErrors: false) { WasCompilerGenerated = true }),
                 initializerOpt: null,
-                ArrayTypeSymbol.CreateSZArray(_compilation.SourceAssembly, TypeWithAnnotations.Create(elementType)))
+                ArrayTypeSymbol.CreateSZArray(compilation.SourceAssembly, TypeWithAnnotations.Create(elementType)))
             { WasCompilerGenerated = true };
 
-            MethodSymbol spanConstructor;
-            MethodSymbol spanGetItem;
+            var location = syntax.Location;
+            MethodSymbol spanConstructor = (MethodSymbol)Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Span_T__ctorArray, diagnostics, location);
+            MethodSymbol spanGetItem = (MethodSymbol)Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Span_T__get_Item, diagnostics, location);
             MethodSymbol? spanToReadOnlySpanOperator = null;
-            if (!TryGetWellKnownTypeMember(syntax, WellKnownMember.System_Span_T__ctorArray, out spanConstructor) ||
-                !TryGetWellKnownTypeMember(syntax, WellKnownMember.System_Span_T__get_Item, out spanGetItem) ||
-                (paramArrayType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions) &&
-                !TryGetWellKnownTypeMember<MethodSymbol>(syntax, WellKnownMember.System_Span_T__op_Implicit_SpanReadOnlySpan, out spanToReadOnlySpanOperator)))
+            if (spanConstructor is null ||
+                spanGetItem is null ||
+                (paramArrayType.OriginalDefinition.Equals(compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions) &&
+                (spanToReadOnlySpanOperator = (MethodSymbol)Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Span_T__op_Implicit_SpanReadOnlySpan, diagnostics, location)) is null))
             {
                 return BadExpression(syntax, paramArrayType, ImmutableArray<BoundExpression>.Empty);
             }
@@ -1154,20 +1175,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             spanToReadOnlySpanOperator = spanToReadOnlySpanOperator?.AsMember(spanType);
 
             // PROTOTYPE: Test use-site diagnostics.
-            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(_diagnostics, _compilation.Assembly);
-            var conversion = _compilation.Conversions.ClassifyImplicitConversionFromType(spanType, paramArrayType, ref useSiteInfo);
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, compilation.Assembly);
+            var conversion = compilation.Conversions.ClassifyImplicitConversionFromType(spanType, paramArrayType, ref useSiteInfo);
             conversion.MarkUnderlyingConversionsCheckedRecursive();
-            _diagnostics.Add(syntax, useSiteInfo);
+            diagnostics.Add(syntax, useSiteInfo);
 
             if (!conversion.IsValid)
             {
-                _diagnostics.Add(ErrorCode.ERR_NoImplicitConv, syntax.Location, spanType, paramArrayType);
+                diagnostics.Add(ErrorCode.ERR_NoImplicitConv, syntax.Location, spanType, paramArrayType);
                 return BadExpression(syntax, paramArrayType, ImmutableArray<BoundExpression>.Empty);
             }
 
             var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
-            var span = _factory.New(spanConstructor, array);
-            var temp = _factory.StoreToTemp(span, out var assignment);
+            var span = new BoundObjectCreationExpression(syntax, spanConstructor, ImmutableArray.Create<BoundExpression>(array)) { WasCompilerGenerated = true };
+            var temp = new BoundLocal(
+                syntax,
+                new SynthesizedLocal(
+                    containingMethod,
+                    TypeWithAnnotations.Create(spanType),
+                    SynthesizedLocalKind.LoweringTemp,
+                    syntaxOpt: null,
+                    isPinned: false,
+                    refKind: RefKind.None),
+                null,
+                spanType)
+            { WasCompilerGenerated = true };
+            var assignment = new BoundAssignmentOperator(
+                syntax,
+                temp,
+                span,
+                isRef: false,
+                spanType)
+            { WasCompilerGenerated = true };
+
+
             sideEffects.Add(assignment);
 
             // temp[0] = arrayArgs[0];
@@ -1176,9 +1217,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             // temp
             for (int i = 0; i < arrayArgs.Length; i++)
             {
-                assignment = _factory.AssignmentExpression(
-                    _factory.Call(temp, spanGetItem, MakeLiteral(syntax, ConstantValue.Create(i), intType, this)),
-                    _factory.Convert(elementType, arrayArgs[i]));
+                var arrayArg = arrayArgs[i];
+                Debug.Assert(elementType.Equals(arrayArg.Type, TypeCompareKind.AllIgnoreOptions));
+
+                var call = new BoundCall(
+                    syntax, temp, spanGetItem,
+                    ImmutableArray.Create<BoundExpression>(new BoundLiteral(syntax, ConstantValue.Create(i), intType, hasErrors: false) { WasCompilerGenerated = true }),
+                    argumentNamesOpt: default,
+                    argumentRefKindsOpt: default,
+                    isDelegateCall: false,
+                    expanded: false,
+                    invokedAsExtensionMethod: false,
+                    argsToParamsOpt: default,
+                    defaultArguments: default,
+                    resultKind: LookupResultKind.Viable,
+                    type: spanGetItem.ReturnType)
+                { WasCompilerGenerated = true };
+                assignment = new BoundAssignmentOperator(syntax, call, arrayArg, call.Type, isRef: false) { WasCompilerGenerated = true };
                 sideEffects.Add(assignment);
             }
 
@@ -1199,7 +1254,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argsToParamsOpt: default,
                     defaultArguments: default,
                     resultKind: LookupResultKind.Viable,
-                    type: spanToReadOnlySpanOperator.ReturnType);
+                    type: spanToReadOnlySpanOperator.ReturnType)
+                { WasCompilerGenerated = true };
             }
 
             Debug.Assert(expr.Type is { });
@@ -1209,7 +1265,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 locals: ImmutableArray.Create(temp.LocalSymbol),
                 sideEffects.ToImmutableAndFree(),
                 expr,
-                expr.Type);
+                expr.Type)
+            { WasCompilerGenerated = true };
         }
 
         /// <summary>
