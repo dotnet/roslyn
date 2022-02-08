@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Wrapping
 {
@@ -32,15 +33,13 @@ namespace Microsoft.CodeAnalysis.Wrapping
         {
             var (document, span, cancellationToken) = context;
             if (!span.IsEmpty)
-            {
                 return;
-            }
 
             var position = span.Start;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(position);
 
-            foreach (var node in token.Parent.AncestorsAndSelf())
+            foreach (var node in token.GetRequiredParent().AncestorsAndSelf())
             {
                 var containsSyntaxError = node.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error);
 
