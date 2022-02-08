@@ -4,6 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature
 Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ChangeSignature
@@ -33,7 +34,7 @@ class C
                                 </Project>
                             </Workspace>
 
-            Dim permutation = {1, 0}
+            Dim permutation = {New AddedParameterOrExistingIndex(1), New AddedParameterOrExistingIndex(0)}
 
             Dim expectedVBCode = <Text><![CDATA[
 Public Class Test
@@ -52,9 +53,8 @@ class C
 
             Using testState = ChangeSignatureTestState.Create(workspace)
                 Dim history = testState.Workspace.GetService(Of ITextUndoHistoryRegistry)().RegisterHistory(testState.Workspace.Documents.First().GetTextBuffer())
-                testState.TestChangeSignatureOptionsService.IsCancelled = False
                 testState.TestChangeSignatureOptionsService.UpdatedSignature = permutation
-                Dim result = testState.ChangeSignature()
+                Dim result = Await testState.ChangeSignatureAsync().ConfigureAwait(False)
 
                 Dim vbdoc = result.UpdatedSolution.Projects.Single(Function(p) p.AssemblyName = "VBAssembly").Documents.Single()
                 Dim csdoc = result.UpdatedSolution.Projects.Single(Function(p) p.AssemblyName = "CSAssembly").Documents.Single()
@@ -87,7 +87,7 @@ class C
                                 </Project>
                             </Workspace>
 
-            Dim permutation = {1, 0}
+            Dim permutation = {New AddedParameterOrExistingIndex(1), New AddedParameterOrExistingIndex(0)}
 
             Dim expectedVBCode = <Text><![CDATA[
 Public Class Test
@@ -106,9 +106,8 @@ class C
 
             Using testState = ChangeSignatureTestState.Create(workspace)
                 Dim history = testState.Workspace.GetService(Of ITextUndoHistoryRegistry)().RegisterHistory(testState.Workspace.Documents.First().GetTextBuffer())
-                testState.TestChangeSignatureOptionsService.IsCancelled = False
                 testState.TestChangeSignatureOptionsService.UpdatedSignature = permutation
-                Dim result = testState.ChangeSignature()
+                Dim result = Await testState.ChangeSignatureAsync().ConfigureAwait(False)
 
                 Dim vbdoc = result.UpdatedSolution.Projects.Single(Function(p) p.AssemblyName = "VBAssembly").Documents.Single()
                 Dim csdoc = result.UpdatedSolution.Projects.Single(Function(p) p.AssemblyName = "CSAssembly").Documents.Single()

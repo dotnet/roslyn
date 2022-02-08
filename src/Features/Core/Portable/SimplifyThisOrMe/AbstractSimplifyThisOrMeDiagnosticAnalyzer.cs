@@ -27,18 +27,20 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
     {
         private readonly ImmutableArray<TLanguageKindEnum> _kindsOfInterest;
 
-        protected AbstractSimplifyThisOrMeDiagnosticAnalyzer(
-            ImmutableArray<TLanguageKindEnum> kindsOfInterest)
+        protected AbstractSimplifyThisOrMeDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveQualificationDiagnosticId,
-                   ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions.QualifyFieldAccess, CodeStyleOptions.QualifyPropertyAccess, CodeStyleOptions.QualifyMethodAccess, CodeStyleOptions.QualifyEventAccess),
+                   EnforceOnBuildValues.RemoveQualification,
+                   ImmutableHashSet.Create<IPerLanguageOption>(CodeStyleOptions2.QualifyFieldAccess, CodeStyleOptions2.QualifyPropertyAccess, CodeStyleOptions2.QualifyMethodAccess, CodeStyleOptions2.QualifyEventAccess),
                    new LocalizableResourceString(nameof(FeaturesResources.Remove_qualification), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   new LocalizableResourceString(nameof(WorkspacesResources.Name_can_be_simplified), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)))
+                   new LocalizableResourceString(nameof(WorkspacesResources.Name_can_be_simplified), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)),
+                   isUnnecessary: true)
         {
-            _kindsOfInterest = kindsOfInterest;
+            var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
+            _kindsOfInterest = ImmutableArray.Create(
+                syntaxKinds.Convert<TLanguageKindEnum>(syntaxKinds.ThisExpression));
         }
 
-        protected abstract string GetLanguageName();
-        protected abstract ISyntaxFactsService GetSyntaxFactsService();
+        protected abstract ISyntaxFacts GetSyntaxFacts();
 
         protected abstract bool CanSimplifyTypeNameExpression(
             SemanticModel model, TMemberAccessExpressionSyntax memberAccess, OptionSet optionSet, out TextSpan issueSpan, CancellationToken cancellationToken);
@@ -52,27 +54,20 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
         private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
             var cancellationToken = context.CancellationToken;
-            var node = (TMemberAccessExpressionSyntax)context.Node;
+            var node = (TThisExpressionSyntax)context.Node;
 
-            var syntaxFacts = GetSyntaxFactsService();
-            var expr = syntaxFacts.GetExpressionOfMemberAccessExpression(node);
-            if (!(expr is TThisExpressionSyntax))
+            if (node.Parent is not TMemberAccessExpressionSyntax expr)
             {
                 return;
             }
 
             var analyzerOptions = context.Options;
-
             var syntaxTree = node.SyntaxTree;
-            var optionSet = analyzerOptions.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
+            var optionSet = analyzerOptions.GetAnalyzerOptionSet(syntaxTree, cancellationToken);
 
             var model = context.SemanticModel;
             if (!CanSimplifyTypeNameExpression(
-                    model, node, optionSet, out var issueSpan, cancellationToken))
+                    model, expr, optionSet, out var issueSpan, cancellationToken))
             {
                 return;
             }
@@ -82,33 +77,30 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
                 return;
             }
 
-            var symbolInfo = model.GetSymbolInfo(node, cancellationToken);
+            var symbolInfo = model.GetSymbolInfo(expr, cancellationToken);
             if (symbolInfo.Symbol == null)
             {
                 return;
             }
 
             var applicableOption = QualifyMembersHelpers.GetApplicableOptionFromSymbolKind(symbolInfo.Symbol.Kind);
-            var optionValue = optionSet.GetOption(applicableOption, GetLanguageName());
-            var severity = optionValue.Notification.Severity;
-
-            var descriptor = CreateUnnecessaryDescriptor(DescriptorId);
-            if (descriptor == null)
+            var optionValue = optionSet.GetOption(applicableOption, model.Language);
+            if (optionValue == null)
             {
                 return;
             }
 
-            var tree = model.SyntaxTree;
-            var builder = ImmutableDictionary.CreateBuilder<string, string>();
+            var severity = optionValue.Notification.Severity;
+            var builder = ImmutableDictionary.CreateBuilder<string, string?>();
 
             // used so we can provide a link in the preview to the options page. This value is
             // hard-coded there to be the one that will go to the code-style page.
-            builder["OptionName"] = nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration);
+            builder["OptionName"] = nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration);
             builder["OptionLanguage"] = model.Language;
 
             var diagnostic = DiagnosticHelper.Create(
-                descriptor, tree.GetLocation(issueSpan), severity,
-                ImmutableArray.Create(node.GetLocation()), builder.ToImmutable());
+                Descriptor, syntaxTree.GetLocation(issueSpan), severity,
+                ImmutableArray.Create(expr.GetLocation()), builder.ToImmutable());
 
             context.ReportDiagnostic(diagnostic);
         }

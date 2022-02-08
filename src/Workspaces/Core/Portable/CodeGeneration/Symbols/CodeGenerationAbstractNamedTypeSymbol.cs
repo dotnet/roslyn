@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -18,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         internal readonly ImmutableArray<CodeGenerationAbstractNamedTypeSymbol> TypeMembers;
 
         protected CodeGenerationAbstractNamedTypeSymbol(
+            IAssemblySymbol containingAssembly,
             INamedTypeSymbol containingType,
             ImmutableArray<AttributeData> attributes,
             Accessibility declaredAccessibility,
@@ -26,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             SpecialType specialType,
             NullableAnnotation nullableAnnotation,
             ImmutableArray<CodeGenerationAbstractNamedTypeSymbol> typeMembers)
-            : base(containingType, attributes, declaredAccessibility, modifiers, name, specialType, nullableAnnotation)
+            : base(containingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, specialType, nullableAnnotation)
         {
             this.TypeMembers = typeMembers;
 
@@ -39,14 +42,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override SymbolKind Kind => SymbolKind.NamedType;
 
         public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitNamedType(this);
-        }
+            => visitor.VisitNamedType(this);
 
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitNamedType(this);
-        }
+            => visitor.VisitNamedType(this);
 
         public INamedTypeSymbol Construct(params ITypeSymbol[] typeArguments)
         {
@@ -113,5 +112,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public bool IsUnmanagedType => throw new NotImplementedException();
 
         public bool IsRefLikeType => Modifiers.IsRef;
+
+        public INamedTypeSymbol NativeIntegerUnderlyingType => null;
+
+        public INamedTypeSymbol TupleUnderlyingType => null;
+
+        public bool IsSerializable => false;
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -143,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collection: out collection);
             }
 
-            if (method.IsVoidReturningAsync())
+            if (method.IsAsyncReturningVoid())
             {
                 var builderType = F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncVoidMethodBuilder);
                 Debug.Assert((object)builderType != null);
@@ -157,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     out createBuilderMethod);
                 if ((object)createBuilderMethod == null)
                 {
-                    collection = default(AsyncMethodBuilderMemberCollection);
+                    collection = default;
                     return false;
                 }
                 return TryCreate(
@@ -176,18 +178,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collection: out collection);
             }
 
-            if (method.IsTaskReturningAsync(F.Compilation))
+            object methodLevelBuilder = null;
+            if (method.IsAsyncEffectivelyReturningTask(F.Compilation))
             {
                 var returnType = (NamedTypeSymbol)method.ReturnType;
                 NamedTypeSymbol builderType;
                 MethodSymbol createBuilderMethod = null;
                 PropertySymbol taskProperty = null;
-
+                bool useMethodLevelBuilder = method.HasAsyncMethodBuilderAttribute(out methodLevelBuilder);
+                bool customBuilder;
                 object builderArgument;
-                bool customBuilder = returnType.IsCustomTaskType(out builderArgument);
+
+                if (useMethodLevelBuilder)
+                {
+                    customBuilder = true;
+                    builderArgument = methodLevelBuilder;
+                }
+                else
+                {
+                    customBuilder = returnType.IsCustomTaskType(out builderArgument);
+                }
+
                 if (customBuilder)
                 {
-                    builderType = ValidateBuilderType(F, builderArgument, returnType.DeclaredAccessibility, isGeneric: false);
+                    builderType = ValidateBuilderType(F, builderArgument, returnType.DeclaredAccessibility, isGeneric: false, useMethodLevelBuilder);
                     if ((object)builderType != null)
                     {
                         taskProperty = GetCustomTaskProperty(F, builderType, returnType);
@@ -211,13 +225,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         customBuilder,
                         out taskProperty);
                 }
+
                 if ((object)builderType == null ||
                     (object)createBuilderMethod == null ||
                     (object)taskProperty == null)
                 {
-                    collection = default(AsyncMethodBuilderMemberCollection);
+                    collection = default;
                     return false;
                 }
+
                 return TryCreate(
                     F,
                     customBuilder: customBuilder,
@@ -234,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     collection: out collection);
             }
 
-            if (method.IsGenericTaskReturningAsync(F.Compilation))
+            if (method.IsAsyncEffectivelyReturningGenericTask(F.Compilation))
             {
                 var returnType = (NamedTypeSymbol)method.ReturnType;
                 var resultType = returnType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single().Type;
@@ -250,12 +266,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NamedTypeSymbol builderType;
                 MethodSymbol createBuilderMethod = null;
                 PropertySymbol taskProperty = null;
-
+                bool useMethodLevelBuilder = method.HasAsyncMethodBuilderAttribute(out methodLevelBuilder);
+                bool customBuilder;
                 object builderArgument;
-                bool customBuilder = returnType.IsCustomTaskType(out builderArgument);
+
+                if (useMethodLevelBuilder)
+                {
+                    customBuilder = true;
+                    builderArgument = methodLevelBuilder;
+                }
+                else
+                {
+                    customBuilder = returnType.IsCustomTaskType(out builderArgument);
+                }
+
                 if (customBuilder)
                 {
-                    builderType = ValidateBuilderType(F, builderArgument, returnType.DeclaredAccessibility, isGeneric: true);
+                    builderType = ValidateBuilderType(F, builderArgument, returnType.DeclaredAccessibility, isGeneric: true, useMethodLevelBuilder);
                     if ((object)builderType != null)
                     {
                         builderType = builderType.ConstructedFrom.Construct(resultType);
@@ -281,13 +308,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         customBuilder,
                         out taskProperty);
                 }
+
                 if ((object)builderType == null ||
                     (object)taskProperty == null ||
                     (object)createBuilderMethod == null)
                 {
-                    collection = default(AsyncMethodBuilderMemberCollection);
+                    collection = default;
                     return false;
                 }
+
                 return TryCreate(
                     F,
                     customBuilder: customBuilder,
@@ -307,19 +336,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.UnexpectedValue(method);
         }
 
-        private static NamedTypeSymbol ValidateBuilderType(SyntheticBoundNodeFactory F, object builderAttributeArgument, Accessibility desiredAccessibility, bool isGeneric)
+        private static NamedTypeSymbol ValidateBuilderType(SyntheticBoundNodeFactory F, object builderAttributeArgument, Accessibility desiredAccessibility, bool isGeneric, bool forMethodLevelBuilder = false)
         {
             var builderType = builderAttributeArgument as NamedTypeSymbol;
 
             if ((object)builderType != null &&
                  !builderType.IsErrorType() &&
                  !builderType.IsVoidType() &&
-                 builderType.DeclaredAccessibility == desiredAccessibility)
+                 (forMethodLevelBuilder || builderType.DeclaredAccessibility == desiredAccessibility))
             {
-                bool isArityOk = isGeneric
-                                 ? builderType.IsUnboundGenericType && builderType.ContainingType?.IsGenericType != true && builderType.Arity == 1
-                                 : !builderType.IsGenericType;
-                if (isArityOk)
+                if (isGeneric)
+                {
+                    if (builderType.IsUnboundGenericType && builderType.ContainingType?.IsGenericType != true && builderType.Arity == 1)
+                    {
+                        return builderType;
+                    }
+                    else
+                    {
+                        F.Diagnostics.Add(ErrorCode.ERR_WrongArityAsyncReturn, F.Syntax.Location, builderType);
+                        return null;
+                    }
+                }
+
+                if (!builderType.IsGenericType)
                 {
                     return builderType;
                 }
@@ -374,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            collection = default(AsyncMethodBuilderMemberCollection);
+            collection = default;
             return false;
         }
 
@@ -446,6 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     method.IsStatic &&
                     method.ParameterCount == 0 &&
                     !method.IsGenericMethod &&
+                    method.RefKind == RefKind.None &&
                     method.ReturnType.Equals(builderType, TypeCompareKind.AllIgnoreOptions))
                 {
                     return method;

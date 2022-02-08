@@ -5,13 +5,9 @@
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 Imports Microsoft.CodeAnalysis.VisualBasic.SimplifyThisOrMe
-Imports Microsoft.CodeAnalysis.VisualBasic.SimplifyTypeNames
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SimplifyThisOrMe
     Partial Public Class SimplifyThisOrMeTests
@@ -37,12 +33,11 @@ End Module
 </Code>
 
             Dim parameters3 As New TestParameters()
-            Using workspace = CreateWorkspaceFromFile(source.ToString(), parameters3)
+            Using workspace = CreateWorkspaceFromOptions(source.ToString(), parameters3)
                 Dim diagnostics = (Await GetDiagnosticsAsync(workspace, parameters3)).Where(Function(d) d.Id = IDEDiagnosticIds.RemoveQualificationDiagnosticId)
                 Assert.Equal(1, diagnostics.Count)
             End Using
         End Function
-
 
         <WorkItem(6682, "https://github.com/dotnet/roslyn/issues/6682")>
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyThisOrMe)>
@@ -66,7 +61,7 @@ End Class")
         Public Async Function TestAppropriateDiagnosticOnMissingQualifier() As Task
             Await TestDiagnosticInfoAsync(
                 "Class C : Property SomeProperty As Integer : Sub M() : [|Me|].SomeProperty = 1 : End Sub : End Class",
-                options:=OptionsSet(SingleOption(CodeStyleOptions.QualifyPropertyAccess, False, NotificationOption.Error)),
+                options:=New OptionsCollection(GetLanguage()) From {{CodeStyleOptions2.QualifyPropertyAccess, False, NotificationOption2.Error}},
                 diagnosticId:=IDEDiagnosticIds.RemoveQualificationDiagnosticId,
                 diagnosticSeverity:=DiagnosticSeverity.Error)
         End Function
@@ -344,9 +339,10 @@ End Class]]>
     </Project>
 </Workspace>.ToString()
 
-            Dim options = OptionsSet(
-                SingleOption(CodeStyleOptions.QualifyPropertyAccess, False, NotificationOption.Suggestion),
-                SingleOption(CodeStyleOptions.QualifyFieldAccess, True, NotificationOption.Suggestion))
+            Dim options = New OptionsCollection(GetLanguage()) From {
+                {CodeStyleOptions2.QualifyPropertyAccess, False, NotificationOption2.Suggestion},
+                {CodeStyleOptions2.QualifyFieldAccess, True, NotificationOption2.Suggestion}
+                }
             Await TestInRegularAndScriptAsync(
                 initialMarkup:=input,
                 expectedMarkup:=expected,

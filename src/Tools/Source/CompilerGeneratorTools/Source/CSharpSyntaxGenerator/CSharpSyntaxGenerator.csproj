@@ -2,25 +2,30 @@
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Platform Condition="'$(Platform)' == ''">x64</Platform>
-    <PlatformTarget>x64</PlatformTarget>
-    <Platforms>x64</Platforms>
-    <OutputType>Exe</OutputType>
-    <RootNamespace>Roslyn.Compilers.CSharp.Internal.CSharpSyntaxGenerator</RootNamespace>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Platforms>AnyCPU</Platforms>
+    <RootNamespace>CSharpSyntaxGenerator</RootNamespace>
     <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <!-- We build this against net6.0 to build the console app version, and against netstandard2.0 for
+         the Source Generator version. -->
+    <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
+    <OutputType Condition="'$(TargetFramework)' != 'netstandard2.0'">Exe</OutputType>
     <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
     <IsShipping>false</IsShipping>
+    <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\Symbols\WellKnownMemberNames.cs" Link="Grammar\WellKnownMemberNames.cs" />
-    <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Declarations\DeclarationModifiers.cs" Link="Grammar\DeclarationModifiers.cs" />
-    <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Syntax\SyntaxKind.cs" Link="Grammar\SyntaxKind.cs" />
-    <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Syntax\SyntaxKindFacts.cs" Link="Grammar\SyntaxKindFacts.cs" />
+    <!-- Make sure to reference the same version of Microsoft.CodeAnalysis.Analyzers as the rest of the build -->
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="$(MicrosoftCodeAnalysisAnalyzersVersion)" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\..\..\..\Compilers\CSharp\Portable\Syntax\Syntax.xml">
-      <Link>Syntax.xml</Link>
-    </Content>
+    <!-- If we're building the command line tool, we have to include some dependencies used for grammar generation -->
+    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\Symbols\WellKnownMemberNames.cs" Link="Grammar\WellKnownMemberNames.cs" Condition="'$(TargetFramework)' != 'netstandard2.0'" />
+    <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Declarations\DeclarationModifiers.cs" Link="Grammar\DeclarationModifiers.cs" Condition="'$(TargetFramework)' != 'netstandard2.0'" />
+    <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Syntax\SyntaxKind.cs" Link="Grammar\SyntaxKind.cs" Condition="'$(TargetFramework)' != 'netstandard2.0'" />
+    <Compile Include="..\..\..\..\..\Compilers\CSharp\Portable\Syntax\SyntaxKindFacts.cs" Link="Grammar\SyntaxKindFacts.cs" Condition="'$(TargetFramework)' != 'netstandard2.0'" />
+
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="$(SourceGeneratorMicrosoftCodeAnalysisVersion)" PrivateAssets="all" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
   </ItemGroup>
 </Project>

@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Test.Utilities
 {
@@ -57,20 +60,16 @@ namespace Roslyn.Test.Utilities
         }
 
         public void BlockOperations()
-        {
-            this.IsBlockingOperations = true;
-        }
+            => this.IsBlockingOperations = true;
 
         public void UnblockOperations()
-        {
-            this.IsBlockingOperations = false;
-        }
+            => this.IsBlockingOperations = false;
 
         public bool WaitIfBlocked(TimeSpan timeout)
         {
             if (_disposed)
             {
-                Environment.FailFast("Badness");
+                FailFast.Fail("Badness");
             }
 
             return _waitHandle.WaitOne(timeout);

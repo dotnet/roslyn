@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -58,6 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         internal AbstractOleCommandTarget AttachToVsTextView()
         {
             var vsTextView = EditorAdaptersFactory.GetViewAdapter(WpfTextView);
+            Contract.ThrowIfNull(vsTextView);
 
             // Add command filter to IVsTextView. If something goes wrong, throw.
             var returnValue = vsTextView.AddCommandFilter(this, out var nextCommandTarget);
@@ -69,14 +68,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return this;
         }
 
-        protected virtual ITextBuffer GetSubjectBufferContainingCaret()
-        {
-            return WpfTextView.GetBufferContainingCaret();
-        }
+        protected virtual ITextBuffer? GetSubjectBufferContainingCaret()
+            => WpfTextView.GetBufferContainingCaret();
 
         protected virtual ITextView ConvertTextView()
-        {
-            return WpfTextView;
-        }
+            => WpfTextView;
     }
 }

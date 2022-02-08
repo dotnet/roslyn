@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -30,13 +32,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 new CSharpNullableAnnotationReducer(),
                 new CSharpCastReducer(),
                 new CSharpExtensionMethodReducer(),
-                new CSharpParenthesesReducer(),
+                new CSharpParenthesizedExpressionReducer(),
+                new CSharpParenthesizedPatternReducer(),
                 new CSharpEscapingReducer(),
                 new CSharpMiscellaneousReducer(),
                 new CSharpInferredMemberNameReducer(),
                 new CSharpDefaultExpressionReducer());
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpSimplificationService() : base(s_reducers)
         {
         }
@@ -45,16 +49,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         {
             using (Logger.LogBlock(FunctionId.Simplifier_ExpandNode, cancellationToken))
             {
-                if (node is AttributeSyntax ||
-                    node is AttributeArgumentSyntax ||
-                    node is ConstructorInitializerSyntax ||
-                    node is ExpressionSyntax ||
-                    node is FieldDeclarationSyntax ||
-                    node is StatementSyntax ||
-                    node is CrefSyntax ||
-                    node is XmlNameAttributeSyntax ||
-                    node is TypeConstraintSyntax ||
-                    node is BaseTypeSyntax)
+                if (node is AttributeSyntax or
+                    AttributeArgumentSyntax or
+                    ConstructorInitializerSyntax or
+                    ExpressionSyntax or
+                    FieldDeclarationSyntax or
+                    StatementSyntax or
+                    CrefSyntax or
+                    XmlNameAttributeSyntax or
+                    TypeConstraintSyntax or
+                    BaseTypeSyntax)
                 {
                     var rewriter = new Expander(semanticModel, expandInsideNode, expandParameter, cancellationToken, annotationForReplacedAliasIdentifier);
                     return rewriter.Visit(node);
@@ -72,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             {
                 var rewriter = new Expander(semanticModel, expandInsideNode, false, cancellationToken);
 
-                var rewrittenToken = TryEscapeIdentifierToken(rewriter.VisitToken(token), token.Parent, semanticModel).WithAdditionalAnnotations(Simplifier.Annotation);
+                var rewrittenToken = TryEscapeIdentifierToken(rewriter.VisitToken(token), token.Parent).WithAdditionalAnnotations(Simplifier.Annotation);
                 if (TryAddLeadingElasticTriviaIfNecessary(rewrittenToken, token, out var rewrittenTokenWithElasticTrivia))
                 {
                     return rewrittenTokenWithElasticTrivia;
@@ -82,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             }
         }
 
-        public static SyntaxToken TryEscapeIdentifierToken(SyntaxToken syntaxToken, SyntaxNode parentOfToken, SemanticModel semanticModel)
+        public static SyntaxToken TryEscapeIdentifierToken(SyntaxToken syntaxToken, SyntaxNode parentOfToken)
         {
             // do not escape an already escaped identifier
             if (syntaxToken.IsVerbatimIdentifier())
@@ -165,27 +169,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         }
 
         protected override ImmutableArray<NodeOrTokenToReduce> GetNodesAndTokensToReduce(SyntaxNode root, Func<SyntaxNodeOrToken, bool> isNodeOrTokenOutsideSimplifySpans)
-        {
-            return NodesAndTokensToReduceComputer.Compute(root, isNodeOrTokenOutsideSimplifySpans);
-        }
+            => NodesAndTokensToReduceComputer.Compute(root, isNodeOrTokenOutsideSimplifySpans);
 
-        protected override bool CanNodeBeSimplifiedWithoutSpeculation(SyntaxNode node)
-        {
-            return false;
-        }
+        protected override bool NodeRequiresNonSpeculativeSemanticModel(SyntaxNode node)
+            => false;
 
         private const string s_CS8019_UnusedUsingDirective = "CS8019";
 
         protected override void GetUnusedNamespaceImports(SemanticModel model, HashSet<SyntaxNode> namespaceImports, CancellationToken cancellationToken)
         {
-            var root = model.SyntaxTree.GetRoot();
+            var root = model.SyntaxTree.GetRoot(cancellationToken);
             var diagnostics = model.GetDiagnostics(cancellationToken: cancellationToken);
 
             foreach (var diagnostic in diagnostics)
             {
                 if (diagnostic.Id == s_CS8019_UnusedUsingDirective)
                 {
-
                     if (root.FindNode(diagnostic.Location.SourceSpan) is UsingDirectiveSyntax node)
                     {
                         namespaceImports.Add(node);

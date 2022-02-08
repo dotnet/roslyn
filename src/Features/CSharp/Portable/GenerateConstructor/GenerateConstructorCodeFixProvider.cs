@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -27,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
         public const string CS7036 = nameof(CS7036); // CS7036: There is no argument given that corresponds to the required formal parameter 'v' of 'C.C(int)'
 
         public static readonly ImmutableArray<string> AllDiagnosticIds =
-            ImmutableArray.Create(CS0122, CS1729, CS1739, CS1503, CS1660, CS7036, IDEDiagnosticIds.UnboundConstructorId);
+            ImmutableArray.Create(CS0122, CS1729, CS1739, CS1503, CS1660, CS7036);
 
         public static readonly ImmutableArray<string> TooManyArgumentsDiagnosticIds =
             ImmutableArray.Create(CS1729);
@@ -53,6 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
     internal class GenerateConstructorCodeFixProvider : AbstractGenerateMemberCodeFixProvider
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public GenerateConstructorCodeFixProvider()
         {
         }
@@ -68,9 +72,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
 
         protected override bool IsCandidate(SyntaxNode node, SyntaxToken token, Diagnostic diagnostic)
         {
-            return node is ObjectCreationExpressionSyntax ||
-                   node is ConstructorInitializerSyntax ||
-                   node is AttributeSyntax;
+            return node is BaseObjectCreationExpressionSyntax or
+                   ConstructorInitializerSyntax or
+                   AttributeSyntax;
         }
 
         protected override SyntaxNode GetTargetNode(SyntaxNode node)

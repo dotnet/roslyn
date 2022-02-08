@@ -2,9 +2,19 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../CSharpEditorResources.resx">
     <body>
+      <trans-unit id="Add_Missing_Usings_on_Paste">
+        <source>Add Missing Usings on Paste</source>
+        <target state="translated">粘贴时添加缺少的 Usings</target>
+        <note>"usings" is a language specific term and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Adding_missing_usings">
+        <source>Adding missing usings...</source>
+        <target state="translated">正在添加缺少的 usings…</target>
+        <note>Shown in a thread await dialog. "usings" is a language specific term and should not be localized</note>
+      </trans-unit>
       <trans-unit id="Chosen_version_0">
         <source>Chosen version: '{0}'</source>
-        <target state="new">Chosen version: '{0}'</target>
+        <target state="translated">所选版本: "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Complete_statement_on_semicolon">
@@ -14,12 +24,12 @@
       </trans-unit>
       <trans-unit id="Could_not_find_by_name_0">
         <source>Could not find by name: '{0}'</source>
-        <target state="new">Could not find by name: '{0}'</target>
+        <target state="translated">无法按名称“{0}”查找 </target>
         <note />
       </trans-unit>
       <trans-unit id="Decompilation_log">
         <source>Decompilation log</source>
-        <target state="new">Decompilation log</target>
+        <target state="translated">反编译日志</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_interpolated_verbatim_string">
@@ -29,32 +39,47 @@
       </trans-unit>
       <trans-unit id="Found_0_assemblies_for_1">
         <source>Found '{0}' assemblies for '{1}':</source>
-        <target state="new">Found '{0}' assemblies for '{1}':</target>
+        <target state="translated">找到 “{1}”的“{0}”个程序集:</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_exact_match_0">
         <source>Found exact match: '{0}'</source>
-        <target state="new">Found exact match: '{0}'</target>
+        <target state="translated">找到完全匹配: "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_higher_version_match_0">
         <source>Found higher version match: '{0}'</source>
-        <target state="new">Found higher version match: '{0}'</target>
+        <target state="translated">找到较高版本匹配: "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_single_assembly_0">
         <source>Found single assembly: '{0}'</source>
-        <target state="new">Found single assembly: '{0}'</target>
+        <target state="translated">找到单个程序集: "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_Event_Subscription">
+        <source>Generate Event Subscription</source>
+        <target state="translated">生成事件订阅</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Grow_raw_string">
+        <source>Grow raw string</source>
+        <target state="new">Grow raw string</target>
         <note />
       </trans-unit>
       <trans-unit id="Load_from_0">
         <source>Load from: '{0}'</source>
-        <target state="new">Load from: '{0}'</target>
+        <target state="translated">从以下位置加载: "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Module_not_found">
         <source>Module not found!</source>
-        <target state="new">Module not found!</target>
+        <target state="translated">找不到模块!</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Outside_namespace">
+        <source>Outside namespace</source>
+        <target state="translated">命名空间外</target>
         <note />
       </trans-unit>
       <trans-unit id="Press_TAB_to_insert">
@@ -64,17 +89,22 @@
       </trans-unit>
       <trans-unit id="Resolve_0">
         <source>Resolve: '{0}'</source>
-        <target state="new">Resolve: '{0}'</target>
+        <target state="translated">解析: "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Resolve_module_0_of_1">
         <source>Resolve module: '{0}' of '{1}'</source>
-        <target state="new">Resolve module: '{0}' of '{1}'</target>
+        <target state="translated">解析模块: "{0}" 个(共 "{1}" 个)</target>
         <note />
       </trans-unit>
       <trans-unit id="Smart_Indenting">
         <source>Smart Indenting</source>
         <target state="translated">智能缩进</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Split_raw_string">
+        <source>Split raw string</source>
+        <target state="new">Split raw string</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_string">
@@ -84,12 +114,12 @@
       </trans-unit>
       <trans-unit id="WARN_Version_mismatch_Expected_0_Got_1">
         <source>WARN: Version mismatch. Expected: '{0}', Got: '{1}'</source>
-        <target state="new">WARN: Version mismatch. Expected: '{0}', Got: '{1}'</target>
+        <target state="translated">警告: 版本不匹配。应为: "{0}"，实际为: "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_items_in_cache">
         <source>'{0}' items in cache</source>
-        <target state="new">'{0}' items in cache</target>
+        <target state="translated">缓存中的 {0} 项</target>
         <note />
       </trans-unit>
     </body>

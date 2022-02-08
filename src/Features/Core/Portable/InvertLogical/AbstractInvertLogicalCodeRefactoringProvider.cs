@@ -29,18 +29,17 @@ namespace Microsoft.CodeAnalysis.InvertLogical
         /// <summary>
         /// See comment in <see cref="InvertLogicalAsync"/> to understand the need for this annotation.
         /// </summary>
-        private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
+        private static readonly SyntaxAnnotation s_annotation = new();
 
-        protected abstract TSyntaxKind GetKind(int rawKind);
-        protected abstract TSyntaxKind InvertedKind(TSyntaxKind binaryExprKind);
         protected abstract string GetOperatorText(TSyntaxKind binaryExprKind);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var (document, span, cancellationToken) = context;
 
-            var expression = await context.TryGetRelevantNodeAsync<TBinaryExpressionSyntax>().ConfigureAwait(false) as SyntaxNode;
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var expression = (SyntaxNode?)await context.TryGetRelevantNodeAsync<TBinaryExpressionSyntax>().ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var syntaxKinds = document.GetRequiredLanguageService<ISyntaxKindsService>();
 
             if (expression == null ||
                 (!syntaxFacts.IsLogicalAndExpression(expression) &&
@@ -74,12 +73,12 @@ namespace Microsoft.CodeAnalysis.InvertLogical
 
             context.RegisterRefactoring(
                 new MyCodeAction(
-                    GetTitle(GetKind(expression.RawKind)),
+                    GetTitle(syntaxKinds, expression.RawKind),
                     c => InvertLogicalAsync(document, expression, c)),
                 expression.Span);
         }
 
-        private async Task<Document> InvertLogicalAsync(
+        private static async Task<Document> InvertLogicalAsync(
             Document document1, SyntaxNode binaryExpression, CancellationToken cancellationToken)
         {
             // We invert in two steps.  To invert `a op b` we are effectively generating two negations:
@@ -96,28 +95,28 @@ namespace Microsoft.CodeAnalysis.InvertLogical
             return document3;
         }
 
-        private async Task<Document> InvertInnerExpressionAsync(
+        private static async Task<Document> InvertInnerExpressionAsync(
             Document document, SyntaxNode binaryExpression, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var generator = SyntaxGenerator.GetGenerator(document);
-            var newBinary = generator.Negate(binaryExpression, semanticModel, cancellationToken);
+            var newBinary = generator.Negate(generator.SyntaxGeneratorInternal, binaryExpression, semanticModel, cancellationToken);
 
             return document.WithSyntaxRoot(root.ReplaceNode(
                 binaryExpression,
                 newBinary.WithAdditionalAnnotations(s_annotation)));
         }
 
-        private async Task<Document> InvertOuterExpressionAsync(
+        private static async Task<Document> InvertOuterExpressionAsync(
             Document document, CancellationToken cancellationToken)
         {
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-            var expression = root.GetAnnotatedNodes(s_annotation).Single();
+            var expression = root.GetAnnotatedNodes(s_annotation).Single()!;
 
             // Walk up parens and !'s.  That way we don't end up with something like !!.
             // It also ensures that this refactoring reverses itself when invoked twice.
@@ -133,17 +132,23 @@ namespace Microsoft.CodeAnalysis.InvertLogical
             // just negate the work we're actually doing right now.
             return document.WithSyntaxRoot(root.ReplaceNode(
                 expression,
-                generator.Negate(expression, semanticModel, negateBinary: false, cancellationToken)));
+                generator.Negate(generator.SyntaxGeneratorInternal, expression, semanticModel, negateBinary: false, cancellationToken)));
         }
 
-        private string GetTitle(TSyntaxKind binaryExprKind)
+        private string GetTitle(ISyntaxKindsService syntaxKinds, int binaryExprKind)
             => string.Format(FeaturesResources.Replace_0_with_1,
-                    GetOperatorText(binaryExprKind), GetOperatorText(InvertedKind(binaryExprKind)));
+                    GetOperatorText(syntaxKinds.Convert<TSyntaxKind>(binaryExprKind)),
+                    GetOperatorText(syntaxKinds.Convert<TSyntaxKind>(InvertedKind(syntaxKinds, binaryExprKind))));
+
+        private static int InvertedKind(ISyntaxKindsService syntaxKinds, int binaryExprKind)
+            => binaryExprKind == syntaxKinds.LogicalAndExpression
+                ? syntaxKinds.LogicalOrExpression
+                : syntaxKinds.LogicalAndExpression;
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+                : base(title, createChangedDocument, title)
             {
             }
         }

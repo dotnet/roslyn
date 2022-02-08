@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis
 #pragma warning disable CA1200 // Avoid using cref tags with a prefix
     /// <summary>
     /// Represents a non-terminal node in the syntax tree. This is the language agnostic equivalent of <see
-    /// cref="T:Microsoft.CodeAnalysis.CSharp.SyntaxNode"/> and <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxNode"/>.
+    /// cref="T:Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode"/> and <see cref="T:Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode"/>.
     /// </summary>
 #pragma warning restore CA1200 // Avoid using cref tags with a prefix
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
@@ -312,7 +311,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets the full text of this node as an new <see cref="SourceText"/> instance.
+        /// Gets the full text of this node as a new <see cref="SourceText"/> instance.
         /// </summary>
         /// <param name="encoding">
         /// Encoding of the file that the text was read from or is going to be saved to.
@@ -334,7 +333,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Determine whether this node is structurally equivalent to another.
         /// </summary>
-        public bool IsEquivalentTo(SyntaxNode other)
+        public bool IsEquivalentTo([NotNullWhen(true)] SyntaxNode? other)
         {
             if (this == other)
             {
@@ -348,6 +347,23 @@ namespace Microsoft.CodeAnalysis
 
             return this.Green.IsEquivalentTo(other.Green);
         }
+
+        /// <summary>
+        /// Returns true if these two nodes are considered "incrementally identical".  An incrementally identical node
+        /// occurs when a <see cref="SyntaxTree"/> is incrementally parsed using <see cref="SyntaxTree.WithChangedText"/>
+        /// and the incremental parser is able to take the node from the original tree and use it in its entirety in the
+        /// new tree.  In this case, the <see cref="SyntaxNode.ToFullString()"/> of each node will be the same, though 
+        /// they could have different parents, and may occur at different positions in their respective trees.  If two nodes are
+        /// incrementally identical, all children of each node will be incrementally identical as well.
+        /// </summary>
+        /// <remarks>
+        /// Incrementally identical nodes can also appear within the same syntax tree, or syntax trees that did not arise
+        /// from <see cref="SyntaxTree.WithChangedText"/>.  This can happen as the parser is allowed to construct parse
+        /// trees from shared nodes for efficiency.  In all these cases though, it will still remain true that the incrementally
+        /// identical nodes could have different parents and may occur at different positions in their respective trees.
+        /// </remarks>
+        public bool IsIncrementallyIdenticalTo([NotNullWhen(true)] SyntaxNode? other)
+            => this.Green != null && this.Green == other?.Green;
 
         /// <summary>
         /// Determines whether the node represents a language construct that was actually parsed
@@ -721,7 +737,25 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return default(TNode);
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the first node of type TNode that matches the predicate.
+        /// </summary>
+        [SuppressMessage("ApiDesign", "RS0026:Do not add multiple public overloads with optional parameters", Justification = "Required for consistent API usage patterns.")]
+        public TNode? FirstAncestorOrSelf<TNode, TArg>(Func<TNode, TArg, bool> predicate, TArg argument, bool ascendOutOfTrivia = true)
+            where TNode : SyntaxNode
+        {
+            for (var node = this; node != null; node = GetParent(node, ascendOutOfTrivia))
+            {
+                if (node is TNode tnode && predicate(tnode, argument))
+                {
+                    return tnode;
+                }
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -814,9 +848,9 @@ namespace Microsoft.CodeAnalysis
         /// If <paramref name="getInnermostNodeForTie"/> is true, then it returns lowest descending node encompassing the given <paramref name="span"/>.
         /// Otherwise, it returns the outermost node encompassing the given <paramref name="span"/>.
         /// </summary>
-        /// <remarks>
+        /// <devdoc>
         /// TODO: This should probably be reimplemented with <see cref="ChildThatContainsPosition"/>
-        /// </remarks>
+        /// </devdoc>
         /// <exception cref="ArgumentOutOfRangeException">This exception is thrown if <see cref="FullSpan"/> doesn't contain the given span.</exception>
         public SyntaxNode FindNode(TextSpan span, bool findInsideTrivia = false, bool getInnermostNodeForTie = false)
         {
@@ -827,7 +861,7 @@ namespace Microsoft.CodeAnalysis
 
             var node = FindToken(span.Start, findInsideTrivia)
                 .Parent
-                !.FirstAncestorOrSelf<SyntaxNode>(a => a.FullSpan.Contains(span));
+                !.FirstAncestorOrSelf<SyntaxNode, TextSpan>((a, span) => a.FullSpan.Contains(span), span);
 
             RoslynDebug.Assert(node is object);
             SyntaxNode? cuRoot = node.SyntaxTree?.GetRoot();
@@ -993,7 +1027,7 @@ recurse:
                                     {
                                         if (trivia.HasStructure && stepInto != null && stepInto(trivia))
                                         {
-                                            node = trivia.GetStructure();
+                                            node = trivia.GetStructure()!;
                                             goto recurse;
                                         }
 
@@ -1012,7 +1046,7 @@ recurse:
                                     {
                                         if (trivia.HasStructure && stepInto != null && stepInto(trivia))
                                         {
-                                            node = trivia.GetStructure();
+                                            node = trivia.GetStructure()!;
                                             goto recurse;
                                         }
 
@@ -1081,7 +1115,7 @@ recurse:
         /// <summary>
         /// Determines whether this node has the specific annotation.
         /// </summary>
-        public bool HasAnnotation(SyntaxAnnotation annotation)
+        public bool HasAnnotation([NotNullWhen(true)] SyntaxAnnotation? annotation)
         {
             return this.Green.HasAnnotation(annotation);
         }
@@ -1217,11 +1251,12 @@ recurse:
         /// modification, even if the type of a node changes.
         /// </para>
         /// </remarks>
+        [return: NotNullIfNotNull("node")]
         public T? CopyAnnotationsTo<T>(T? node) where T : SyntaxNode
         {
             if (node == null)
             {
-                return default(T);
+                return null;
             }
 
             var annotations = this.Green.GetAnnotations();
@@ -1377,7 +1412,7 @@ recurse:
 
                 if (trivia.HasStructure && stepInto(trivia))
                 {
-                    token = trivia.GetStructure().FindTokenInternal(position);
+                    token = trivia.GetStructure()!.FindTokenInternal(position);
                 }
             }
 
@@ -1450,7 +1485,7 @@ recurse:
         /// <summary>
         /// Creates a new tree of nodes with the specified node removed.
         /// </summary>
-        protected internal abstract SyntaxNode RemoveNodesCore(
+        protected internal abstract SyntaxNode? RemoveNodesCore(
             IEnumerable<SyntaxNode> nodes,
             SyntaxRemoveOptions options);
 

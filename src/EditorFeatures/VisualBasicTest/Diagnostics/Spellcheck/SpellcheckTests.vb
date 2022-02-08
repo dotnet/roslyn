@@ -380,7 +380,7 @@ End Module</File>
             Await TestAsync(text, expected)
         End Function
 
-        <ConditionalFact(GetType(x86))>
+        <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
         <WorkItem(5391, "https://github.com/dotnet/roslyn/issues/5391")>
         Public Async Function TestSuggestEscapedPredefinedTypes() As Task

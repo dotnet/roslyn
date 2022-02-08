@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -15,6 +17,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         {
             await VerifyAbsenceAsync(
 @"using Goo = $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInGlobalUsingAlias()
+        {
+            await VerifyAbsenceAsync(
+@"global using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -64,9 +73,7 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterNamespaceKeyword()
-        {
-            await VerifyAbsenceAsync(@"namespace $$");
-        }
+            => await VerifyAbsenceAsync(@"namespace $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterPreviousNamespace()
@@ -74,6 +81,34 @@ $$");
             await VerifyKeywordAsync(SourceCodeKind.Regular,
 @"namespace N {}
 $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterPreviousFileScopedNamespace()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+@"namespace N;
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterUsingInFileScopedNamespace()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+@"namespace N;
+using U;
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterUsingInNamespace()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
+@"namespace N
+{
+    using U;
+    $$
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -101,6 +136,26 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterExternInFileScopedNamespace()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+@"namespace N;
+extern alias A;
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterExternInNamespace()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
+@"namespace N
+{
+    extern alias A;
+    $$
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterUsing()
         {
             await VerifyKeywordAsync(SourceCodeKind.Regular,
@@ -109,10 +164,26 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterGlobalUsing()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
+@"global using Goo;
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterUsing_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"using Goo;
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterGlobalUsing_Interactive()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Script,
+@"global using Goo;
 $$");
         }
 
@@ -129,6 +200,22 @@ $$");
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"using Goo = Bar;
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterGlobalUsingAlias()
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular,
+@"global using Goo = Bar;
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterGlobalUsingAlias_Interactive()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Script,
+@"global using Goo = Bar;
 $$");
         }
 
@@ -272,12 +359,37 @@ using Goo;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotBeforeGlobalUsing()
+        {
+            await VerifyAbsenceAsync(@"$$
+global using Goo;");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotBetweenUsings()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            await VerifyAbsenceAsync(
 @"using Goo;
 $$
-using Bar;"));
+using Bar;");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotBetweenGlobalUsings_01()
+        {
+            await VerifyAbsenceAsync(
+@"global using Goo;
+$$
+using Bar;");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotBetweenGlobalUsings_02()
+        {
+            await VerifyAbsenceAsync(
+@"global using Goo;
+$$
+global using Bar;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

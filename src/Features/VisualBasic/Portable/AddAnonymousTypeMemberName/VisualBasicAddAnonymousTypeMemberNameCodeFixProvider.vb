@@ -4,12 +4,13 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.AddAnonymousTypeMemberName
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddAnonymousTypeMemberName
-    <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AddAnonymousTypeMemberName), [Shared]>
     Friend Class VisualBasicAddAnonymousTypeMemberNameCodeFixProvider
         Inherits AbstractAddAnonymousTypeMemberNameCodeFixProvider(Of
             ExpressionSyntax,
@@ -19,6 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAnonymousTypeMemberName
         Private Const BC36556 As String = NameOf(BC36556) ' Anonymous type member name can be inferred only from a simple or qualified name with no arguments.
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -60,7 +62,7 @@ class Class : CppCli.CppInterface1
             AssertNoParameterHasModOpts(classMethod2);
 
             // bridge method for implicit implementation has custom modifiers
-            var method2ExplicitImpl = @class.GetSynthesizedExplicitImplementations(CancellationToken.None).Single();
+            var method2ExplicitImpl = @class.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods.Single();
             Assert.Same(classMethod2, method2ExplicitImpl.ImplementingMethod);
             AssertAllParametersHaveConstModOpt(method2ExplicitImpl);
         }
@@ -107,7 +109,7 @@ class Class : CppCli.CppInterface1, CppCli.CppInterface2
             AssertNoParameterHasModOpts(classMethod2);
 
             // bridge methods for implicit implementation have custom modifiers
-            var method2ExplicitImpls = @class.GetSynthesizedExplicitImplementations(CancellationToken.None);
+            var method2ExplicitImpls = @class.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods;
             Assert.Equal(2, method2ExplicitImpls.Length);
             foreach (var explicitImpl in method2ExplicitImpls)
             {
@@ -154,7 +156,7 @@ class Class : CppCli.CppBase1
             AssertNoParameterHasModOpts(classNonVirtualMethod);
 
             // no bridge methods
-            Assert.Equal(0, @class.GetSynthesizedExplicitImplementations(CancellationToken.None).Length);
+            Assert.Equal(0, @class.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods.Length);
         }
 
         /// <summary>
@@ -203,7 +205,7 @@ class Derived : Base
             AssertNoParameterHasModOpts(baseClassNonVirtualMethod);
 
             // no bridge methods
-            Assert.Equal(0, baseClass.GetSynthesizedExplicitImplementations(CancellationToken.None).Length);
+            Assert.Equal(0, baseClass.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods.Length);
 
             var derivedClass = global.GetMember<SourceNamedTypeSymbol>("Derived");
 
@@ -216,7 +218,7 @@ class Derived : Base
             AssertNoParameterHasModOpts(derivedClassNonVirtualMethod);
 
             // no bridge methods
-            Assert.Equal(0, derivedClass.GetSynthesizedExplicitImplementations(CancellationToken.None).Length);
+            Assert.Equal(0, derivedClass.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods.Length);
         }
 
         /// <summary>
@@ -404,7 +406,7 @@ class Class3 : CppCli.CppBase2, CppCli.CppInterface1
             var class1 = global.GetMember<SourceNamedTypeSymbol>("Class1");
 
             //both implementations are from the base class
-            var class1SynthesizedExplicitImpls = class1.GetSynthesizedExplicitImplementations(CancellationToken.None);
+            var class1SynthesizedExplicitImpls = class1.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods;
             Assert.Equal(1, class1SynthesizedExplicitImpls.Length); //Don't need a bridge method for the virtual base method.
             foreach (var explicitImpl in class1SynthesizedExplicitImpls)
             {
@@ -419,7 +421,7 @@ class Class3 : CppCli.CppBase2, CppCli.CppInterface1
             AssertAllParametersHaveConstModOpt(class2Method1);
 
             //Method2 is implemented in the base class
-            var class2Method2SynthesizedExplicitImpl = class2.GetSynthesizedExplicitImplementations(CancellationToken.None).Single();
+            var class2Method2SynthesizedExplicitImpl = class2.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods.Single();
             Assert.Equal("Method2", class2Method2SynthesizedExplicitImpl.ExplicitInterfaceImplementations.Single().Name);
             Assert.Same(baseClass, class2Method2SynthesizedExplicitImpl.ImplementingMethod.ContainingType);
             AssertAllParametersHaveConstModOpt(class2Method2SynthesizedExplicitImpl);
@@ -432,7 +434,7 @@ class Class3 : CppCli.CppBase2, CppCli.CppInterface1
 
             // GetSynthesizedExplicitImplementations doesn't guarantee order, so sort to make the asserts easier to write.
 
-            var class3SynthesizedExplicitImpls = (from m in class3.GetSynthesizedExplicitImplementations(CancellationToken.None) orderby m.Name select m).ToArray();
+            var class3SynthesizedExplicitImpls = (from m in class3.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods orderby m.Name select m).ToArray();
             Assert.Equal(2, class3SynthesizedExplicitImpls.Length);
 
             var class3Method1SynthesizedExplicitImpl = class3SynthesizedExplicitImpls[0];
@@ -480,7 +482,7 @@ class Class : I2
             }
 
             //no bridge methods
-            Assert.False(@class.GetSynthesizedExplicitImplementations(CancellationToken.None).Any());
+            Assert.False(@class.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods.Any());
         }
 
         /// <summary>
@@ -565,7 +567,7 @@ class Explicit : CppCli.CppIndexerInterface
             var classIndexer = (PropertySymbol)@class.GetMembers().Where(s => s.Kind == SymbolKind.Property).Single();
             AssertAllParametersHaveConstModOpt(classIndexer);
 
-            Assert.Equal(0, @class.GetSynthesizedExplicitImplementations(CancellationToken.None).Length);
+            Assert.Equal(0, @class.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods.Length);
         }
 
         /// <summary>
@@ -599,7 +601,7 @@ class Implicit : CppCli.CppIndexerInterface
             AssertNoParameterHasModOpts(classIndexer);
 
             // bridge methods for implicit implementations have custom modifiers
-            var explicitImpls = @class.GetSynthesizedExplicitImplementations(CancellationToken.None);
+            var explicitImpls = @class.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods;
             Assert.Equal(2, explicitImpls.Length);
 
             var explicitGetterImpl = explicitImpls.Where(impl => impl.ImplementingMethod.MethodKind == MethodKind.PropertyGet).Single();
@@ -639,7 +641,7 @@ class Override : CppCli.CppIndexerBase
             var classIndexer = (PropertySymbol)@class.GetMembers().Where(s => s.Kind == SymbolKind.Property).Single();
             AssertAllParametersHaveConstModOpt(classIndexer);
 
-            Assert.Equal(0, @class.GetSynthesizedExplicitImplementations(CancellationToken.None).Length);
+            Assert.Equal(0, @class.GetSynthesizedExplicitImplementations(CancellationToken.None).ForwardingMethods.Length);
         }
 
         /// <summary>
@@ -1771,6 +1773,8 @@ class Derived : Base
 
             Assert.Equal(int16Type, baseIndexer.Parameters.Single().TypeWithAnnotations.CustomModifiers.Single().Modifier());
             Assert.Equal(int16Type, derivedIndexer.Parameters.Single().TypeWithAnnotations.CustomModifiers.Single().Modifier());
+
+            CompileAndVerify(comp);
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -1968,6 +1972,8 @@ class Implementation : I
 
             Assert.Equal(int16Type, interfaceIndexer.Parameters.Single().TypeWithAnnotations.CustomModifiers.Single().Modifier());
             Assert.Equal(int16Type, implementationIndexer.Parameters.Single().TypeWithAnnotations.CustomModifiers.Single().Modifier());
+
+            CompileAndVerify(comp);
         }
 
         private static Func<Symbol, bool> IsPropertyWithSingleParameter(SpecialType paramSpecialType, bool isArrayType = false)

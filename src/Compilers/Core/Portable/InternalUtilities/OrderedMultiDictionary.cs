@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections;
 using System.Collections.Generic;
 
@@ -25,7 +23,7 @@ namespace Roslyn.Utilities
         {
             get
             {
-                SetWithInsertionOrder<V> set;
+                SetWithInsertionOrder<V>? set;
                 return _dictionary.TryGetValue(k, out set)
                     ? set : new SetWithInsertionOrder<V>();
             }
@@ -39,7 +37,7 @@ namespace Roslyn.Utilities
 
         public void Add(K k, V v)
         {
-            SetWithInsertionOrder<V> set;
+            SetWithInsertionOrder<V>? set;
             if (!_dictionary.TryGetValue(k, out set))
             {
                 _keys.Add(k);

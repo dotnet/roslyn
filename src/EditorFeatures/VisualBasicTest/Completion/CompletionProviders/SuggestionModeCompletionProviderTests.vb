@@ -2,22 +2,17 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
+Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
     Public Class SuggestionModeCompletionProviderTests
         Inherits AbstractVisualBasicCompletionProviderTests
-
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestFieldDeclaration1() As Task
@@ -377,28 +372,33 @@ End Class</a>
             MarkupTestFile.GetPosition(markup.NormalizedValue, code, position)
 
             Using workspaceFixture = New VisualBasicTestWorkspaceFixture()
-                Dim options = If(useDebuggerOptions,
-                                 (workspaceFixture.GetWorkspace()).Options.WithDebuggerCompletionOptions(),
-                                 (workspaceFixture.GetWorkspace()).Options)
-
+                workspaceFixture.GetWorkspace(ExportProvider)
                 Dim document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular)
+
+                Dim options As CompletionOptions
+
+                If useDebuggerOptions Then
+                    options = New CompletionOptions(FilterOutOfScopeLocals:=False, ShowXmlDocCommentCompletion:=False)
+                Else
+                    options = CompletionOptions.Default
+                End If
+
                 Await CheckResultsAsync(document1, position, isBuilder, triggerInfo, options)
 
                 If Await CanUseSpeculativeSemanticModelAsync(document1, position) Then
                     Dim document2 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular, cleanBeforeUpdate:=False)
                     Await CheckResultsAsync(document2, position, isBuilder, triggerInfo, options)
                 End If
-
-                workspaceFixture.DisposeAfterTest()
             End Using
         End Function
 
-        Private Overloads Async Function CheckResultsAsync(document As Document, position As Integer, isBuilder As Boolean, triggerInfo As CompletionTrigger?, options As OptionSet) As Task
+        Private Overloads Async Function CheckResultsAsync(document As Document, position As Integer, isBuilder As Boolean, triggerInfo As CompletionTrigger?, options As CompletionOptions) As Task
             triggerInfo = If(triggerInfo, CompletionTrigger.CreateInsertionTrigger("a"c))
 
-            Dim service = GetCompletionService(document.Project.Solution.Workspace)
+            Dim service = GetCompletionService(document.Project)
+            Dim provider = Assert.Single(service.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty))
             Dim context = Await service.GetTestAccessor().GetContextAsync(
-                service.GetTestAccessor().ExclusiveProviders?(0), document, position, triggerInfo.Value, options, CancellationToken.None)
+                provider, document, position, triggerInfo.Value, options, CancellationToken.None)
 
             If isBuilder Then
                 Assert.NotNull(context)
@@ -410,8 +410,8 @@ End Class</a>
             End If
         End Function
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
-            Return New VisualBasicSuggestionModeCompletionProvider()
+        Friend Overrides Function GetCompletionProviderType() As Type
+            Return GetType(VisualBasicSuggestionModeCompletionProvider)
         End Function
     End Class
 End Namespace

@@ -5,28 +5,32 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.BuildTasks.UnitTests</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>net6.0;net472</TargetFrameworks>
 
     <!-- Multiple test failures -->
     <SkipTests Condition="'$(TestRuntime)' == 'Mono'">true</SkipTests>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
-    <ProjectReference Include="..\..\..\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />
+    <ProjectReference Include="..\..\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="..\..\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
     <ProjectReference Include="..\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.csproj" />
     <ProjectReference Include="..\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
     <Reference Include="Microsoft.Build.Engine" />
     <Reference Include="System" />
     <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
     <PackageReference Include="Moq" Version="$(MoqVersion)" />
-    <PackageReference Include="Microsoft.Build.Framework" Version="$(MicrosoftBuildFrameworkVersion)" />
-    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(MicrosoftBuildTasksCoreVersion)" />
+    <PackageReference Include="Microsoft.Build" Version="$(RefOnlyMicrosoftBuildVersion)" />
+    <PackageReference Include="Microsoft.Build.Framework" Version="$(RefOnlyMicrosoftBuildFrameworkVersion)" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(RefOnlyMicrosoftBuildTasksCoreVersion)" />
+    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
@@ -36,12 +40,16 @@
     <EmbeddedResource Include="TestResources\**\*.*" />
   </ItemGroup>
   <PropertyGroup>
-    <_DotNetSdkVersionFile>$(IntermediateOutputPath)\DotNetSdkVersion.g.cs</_DotNetSdkVersionFile>
+    <_DotNetSdkVersionFile>$(IntermediateOutputPath)\DotNetVersions.g.cs</_DotNetSdkVersionFile>
   </PropertyGroup>
   <Target Name="_GenerateSdkVersionAttribute" BeforeTargets="CoreCompile" Outputs="$(_DotNetSdkVersionFile)">
     <ItemGroup>
       <_Attribute Include="Microsoft.CodeAnalysis.BuildTasks.UnitTests.DotNetSdkVersionAttribute">
         <_Parameter1>$(NETCoreSdkVersion)</_Parameter1>
+      </_Attribute>
+      <_Attribute Include="System.Reflection.AssemblyMetadataAttribute">
+        <_Parameter1>CurrentCompilerApiVersion</_Parameter1>
+        <_Parameter2>$([System.Version]::Parse($(VersionPrefix)).Major).$([System.Version]::Parse($(VersionPrefix)).Minor)</_Parameter2>
       </_Attribute>
     </ItemGroup>
     <WriteCodeFragment AssemblyAttributes="@(_Attribute)" Language="$(Language)" OutputFile="$(_DotNetSdkVersionFile)">

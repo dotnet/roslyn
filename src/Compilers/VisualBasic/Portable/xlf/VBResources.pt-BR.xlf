@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pt-BR" original="../VBResources.resx">
     <body>
+      <trans-unit id="ERR_AssignmentInitOnly">
+        <source>Init-only property '{0}' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.</source>
+        <target state="translated">A propriedade apenas para inicialização '{0}' só pode ser atribuída por um inicializador de membro de objeto ou em 'Me', 'MyClass` ou 'MyBase' em um construtor de instância.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadAbstractStaticMemberAccess">
+        <source>A shared abstract interface member cannot be accessed.</source>
+        <target state="translated">Não é possível acessar um membro da interface abstrata compartilhada.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">Erro de sintaxe de linha de comando: '{0}' não é um valor válido para a opção '{1}'. O valor precisa estar no formato '{2}'.</target>
@@ -22,6 +32,16 @@
         <target state="translated">Não é possível que haja vários arquivos de configuração do analisador no mesmo diretório ('{0}').</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OverridingInitOnlyProperty">
+        <source>'{0}' cannot override init-only '{1}'.</source>
+        <target state="translated">A propriedade '{0}' não pode substituir a propriedade '{1}' apenas para inicialização.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PropertyDoesntImplementInitOnly">
+        <source>Init-only '{0}' cannot be implemented.</source>
+        <target state="translated">A propriedade '{0}' apenas para inicialização não pode ser implementada.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
         <target state="translated">O tipo '{0}' não pode ser inserido porque tem uma nova abstração de um membro da interface base. Considere a configuração da propriedade 'Embed Interop Types' como false.</target>
@@ -37,9 +57,34 @@
         <target state="translated">O tempo de execução de destino não dá suporte à acessibilidade 'Protected', 'Protected Friend' ou 'Private Protected' para um membro de uma interface.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SharedEventNeedsHandlerInTheSameType">
+        <source>Events of shared WithEvents variables cannot be handled by methods in a different type.</source>
+        <target state="translated">Os eventos das variáveis WithEvents compartilhadas não podem ser manipulados por métodos em um tipo diferente.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnimplementedSharedMember">
+        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</source>
+        <target state="translated">{0} '{1}' não é possível implementar a interface '{3}' porque contém um resumo compartilhado '{2}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
+        <source>'UnmanagedCallersOnly' attribute is not supported.</source>
+        <target state="translated">Não há suporte para o atributo 'UnmanagedCallersOnly'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_CallerArgumentExpression">
+        <source>caller argument expression</source>
+        <target state="translated">expressão do argumento do chamador</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
         <target state="translated">comentários após a continuação da linha</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_InitOnlySettersUsage">
+        <source>assigning to or passing 'ByRef' properties with init-only setters</source>
+        <target state="translated">atribuindo ou passando as propriedades 'ByRef' com setters apenas para inicialização</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
@@ -127,6 +172,7 @@
                                   both mean SARIF version 2.1.0.
 -reportanalyzer                   Report additional analyzer information, such as
                                   execution time.
+-skipanalyzers[+|-]               Skip execution of diagnostic analyzers.
 
                                   - LANGUAGE -
 -define:&lt;symbol_list&gt;             Declare global conditional compilation
@@ -213,37 +259,37 @@
 </source>
         <target state="translated">                  Opções do Compilador do Visual Basic
 
-                                  - ARQUIVO DE SAÍDA -
+                                  – ARQUIVO DE SAÍDA –
 -out:&lt;file&gt;                       Especifica o nome do arquivo de saída.
--target:exe                       Criar um aplicativo de console (padrão).
+-target:exe                       Cria um aplicativo de console (padrão).
                                   (Forma abreviada: -t)
--target:winexe                    Criar um aplicativo do Windows.
--target:library                   Criar um assembly de biblioteca.
--target:module                    Criar um módulo que possa ser adicionado a um
+-target:winexe                    Cria um aplicativo do Windows.
+-target:library                   Cria um assembly de biblioteca.
+-target:module                    Cria um módulo que pode ser adicionado a um
                                   assembly.
--target:appcontainerexe           Criar um aplicativo do Windows que seja executado no
+-target:appcontainerexe           Cria um aplicativo do Windows que é executado no
                                   AppContainer.
--target:winmdobj                  Criar um arquivo intermediário de Metadados do Windows
+-target:winmdobj                  Cria um arquivo intermediário de Metadados do Windows
 -doc[+|-]                         Gera um arquivo de documentação XML.
 -doc:&lt;file&gt;                       Gera um arquivo de documentação XML para &lt;file&gt;.
 -refout:&lt;file&gt;                    Saída do assembly de referência a ser gerado
 
-                                  - ARQUIVOS DE ENTRADA -
+                                  – ARQUIVOS DE ENTRADA –
 -addmodule:&lt;file_list&gt;            Metadados de referência dos módulos especificados
--link:&lt;file_list&gt;                 Inserir metadados do assembly de interoperalidade
+-link:&lt;file_list&gt;                 Insere metadados do assembly de interoperabilidade
                                   especificado. (Forma abreviada: -l)
--recurse:&lt;wildcard&gt;               Incluir todos os arquivos no diretório e subdiretórios
+-recurse:&lt;wildcard&gt;               Inclui todos os arquivos no diretório e nos subdiretórios
                                   atuais de acordo com as
                                   especificações de curinga.
 -reference:&lt;file_list&gt;            Metadados de referência do assembly
                                   especificado. (Forma abreviada: -r)
--analyzer:&lt;file_list&gt;             Executar os analisadores deste assembly
+-analyzer:&lt;file_list&gt;             Executa os analisadores deste assembly
                                   (Forma abreviada: -a)
 -additionalfile:&lt;file list&gt;       Arquivos adicionais que não afetam diretamente a geração de
                                   código, mas que podem ser usados por analisadores para produzir
                                   erros ou avisos.
 
-                                  - RECURSOS -
+                                  – RECURSOS –
 -linkresource:&lt;resinfo&gt;           Vincula o arquivo especificado como um recurso de
                                   assembly externo.
                                   resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
@@ -260,89 +306,90 @@
                                   do PE de saída.
 -win32resource:&lt;file&gt;             Especifica um arquivo de recurso Win32 (.res).
 
-                                  - GERAÇÃO DE CÓDIGO -
--optimize[+|-]                    Habilitar otimizações.
--removeintchecks[+|-]             Remover verificações de números inteiros. O padrão é desligado.
--debug[+|-]                       Emitir informações de depuração.
--debug:full                       Emitir informações de depuração completas (padrão).
--debug:pdbonly                    Emitir informações de depuração completas.
--debug:portable                   Emitir informações de depuração de plataforma cruzada.
--debug:embedded                   Emitir informações de depuração de plataforma cruzada
+                                  – GERAÇÃO DE CÓDIGO –
+-optimize[+|-]                    Habilita otimizações.
+-removeintchecks[+|-]             Remove verificações de inteiros. O padrão é desligado.
+-debug[+|-]                       Emite informações de depuração.
+-debug:full                       Emite informações de depuração completas (padrão).
+-debug:pdbonly                    Emite informações de depuração completas.
+-debug:portable                   Emite informações de depuração de multiplataforma.
+-debug:embedded                   Emite informações de depuração de multiplataforma
                                   no .dll ou no .exe de destino.
--deterministic                    Produzir um assembly determinístico
-                                  (incluindo carimbo de data/hora e GUID da versão do módulo)
--refonly          Produzir um assembly de referência no lugar da saída principal
--instrument:TestCoverage         Produzir um assembly instrumentado para coletar
+-deterministic                    Produz um assembly determinístico
+                                  (incluindo o carimbo de data/hora e o GUID da versão do módulo)
+-refonly                          Produz um assembly de referência no lugar da saída principal
+-instrument:TestCoverage          Produz um assembly instrumentado para coletar
                                   informações de cobertura
 -sourcelink:&lt;file&gt;                Informações do link de origem para inserir no PDB.
 
-                                  - ERROS E AVISOS -
--nowarn                           Desabilitar todos os avisos.
--nowarn:&lt;number_list&gt;             Desabilitar uma lista de avisos individuais.
--warnaserror[+|-]                 Tratar todos os avisos como erros.
--warnaserror[+|-]:&lt;number_list&gt;   Tratar uma lista de avisos como erros.
--ruleset:&lt;file&gt;                   Especificar um arquivo de conjunto de regras que desabilita um diagnóstico
+                                  – ERROS E AVISOS –
+-nowarn                            Desabilita todos os avisos.
+-nowarn:&lt;number_list&gt;             Desabilita uma lista de avisos individuais.
+-warnaserror[+|-]                 Trata todos os avisos como erros.
+-warnaserror[+|-]:&lt;number_list&gt;   Trata uma lista de avisos como erros.
+-ruleset:&lt;file&gt;                   Especifica um arquivo de conjunto de regras que desabilita um diagnóstico
                                   específico.
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
-                                  Especificar um arquivo para registrar todos os diagnósticos do compilador e do
+                                  Especifica um arquivo para registrar todos os diagnósticos do compilador e do
                                   analisador em formato SARIF.
-                                  sarif_version:{1|2|2.1} O padrão é 1. 2 e 2.1
+                                  sarif_version:{1|2|2.1} O padrão é 1.2 e 2.1,
                                   ambos significam a versão SARIF 2.1.0.
--reportanalyzer                   Relatar informações adicionais do analisador, como o
+-reportanalyzer                   Relata informações adicionais do analisador, como o
                                   tempo de execução.
+-skipanalyzers[+|-]               Ignora a execução de analisadores de diagnóstico.
 
                                   – LINGUAGEM –
--define:&lt;symbol_list&gt;             Declarar os símbolos globais de
+-define:&lt;symbol_list&gt;             Declara os símbolos globais de
                                   compilação condicional. symbol_list:name=value,...
                                   (Forma abreviada: -d)
--imports:&lt;import_list&gt;            Declarar as Importações globais dos namespaces nos
+-imports:&lt;import_list&gt;            Declara as Importações globais dos namespaces nos
                                   arquivos de metadados referenciados.
                                   import_list:namespace,...
--langversion:?                                  Exibir os valores permitidos para a versão da linguagem
--langversion:&lt;string&gt;              Especificar a versão da linguagem como
-                               `padrão` (versão principal mais recente) ou
-                               `mais recente` (versão mais recente, incluindo versões secundárias),
-                               ou versões específicas, como `14` ou `15.3`
--optionexplicit[+|-]              Exigir declaração explícita de variáveis.
--optioninfer[+|-]                 Permitir inferência de tipos de variáveis.
+-langversion:?                    Exibe os valores permitidos para a versão da linguagem
+-langversion:&lt;string&gt;              Especifica a versão da linguagem como
+                                  `padrão` (versão principal mais recente) ou
+                                  `mais recente` (versão mais recente, incluindo versões secundárias),
+                                  ou versões específicas, como `14` ou `15.3`
+-optionexplicit[+|-]              Exige a declaração explícita de variáveis.
+-optioninfer[+|-]                 Permite a inferência de tipos de variáveis.
 -rootnamespace:&lt;string&gt;           Especifica o Namespace raiz para todos os tipos de
                                   declarações.
--optionstrict[+|-]                Impor semântica de linguagem estrita.
--optionstrict:custom              Avisar quando a semântica de linguagem estrita não for
+-optionstrict[+|-]                Impõe a semântica de linguagem estrita.
+-optionstrict:custom              Avisa quando a semântica de linguagem estrita não é
                                   respeitada.
 -optioncompare:binary             Especifica comparações de cadeia de caracteres de estilo binário.
                                   Esse é o padrão.
 -optioncompare:text               Especifica comparações de cadeia de caracteres de estilo de texto.
 
-                                  - DIVERSOS -
--help                             Exibir essa mensagem de uso. (Forma abreviada: -?)
--noconfig                         Não incluir o arquivo VBC.RSP automaticamente.
--nologo                           Não exibir o banner de direitos autorais do compilador.
+                                  – DIVERSOS –
+-help                             Exibe esta mensagem de uso. (Forma abreviada: -?)
+-noconfig                         Não inclui o arquivo VBC.RSP automaticamente.
+-nologo                           Não exibe o banner de direitos autorais do compilador.
 -quiet                            Modo de saída silencioso.
--verbose                          Exibir mensagens detalhadas.
+-verbose                          Exibe mensagens detalhadas.
 -parallel[+|-]                    Build simultâneo.
--version                          Exibir o número da versão do compilador e sair.
+-version                          Exibe o número de versão do compilador e a saída.
 
-                                  - AVANÇADO -
--baseaddress:&lt;number&gt;             O endereço base de uma biblioteca ou um módulo
+                                  – AVANÇADO –
+-baseaddress:&lt;number&gt;             O endereço básico de uma biblioteca ou um módulo
                                   (hexadecimal).
--checksumalgorithm:&lt;alg&gt;          Especificar o algoritmo para calcular a soma de verificação do
+-checksumalgorithm:&lt;alg&gt;          Especifica o algoritmo para calcular a soma de verificação do
                                   arquivo de origem armazenado no PDB. Os valores com suporte são:
                                   SHA1 ou SHA256 (padrão).
 -codepage:&lt;number&gt;                Especifica a página de código a ser usada ao abrir os
                                   arquivos de origem.
--delaysign[+|-]                   Sinalizar o assembly com atraso usando somente a parte pública
+-delaysign[+|-]                   Sinaliza o assembly com atraso usando somente a parte pública
                                   da chave de nome forte.
--publicsign[+|-]                  Sinalizar o assembly como público usando somente a parte pública
-                                  da chave do nome forte.
+-publicsign[+|-]                  Sinaliza o assembly como público usando somente a parte pública
+                                  da chave de nome forte.
 -errorreport:&lt;string&gt;             Especifica como lidar com os erros internos do
                                   compilador; precisa ser prompt, send, none ou queue
                                   (padrão).
--filealign:&lt;number&gt;               Especificar o alinhamento usado nas seções do arquivo de
+-filealign:&lt;number&gt;               Especifica o alinhamento usado nas seções do arquivo de
                                   saída.
--highentropyva[+|-]               Habilitar ASLR de alta entropia.
+-highentropyva[+|-]               Habilita a ASLR de alta entropia.
 -keycontainer:&lt;string&gt;            Especifica um contêiner de chave de nome forte.
--keyfile:&lt;file&gt;                   Especifica um arquivo da chave de nome forte.
+-keyfile:&lt;file&gt;                   Especifica um arquivo de chave de nome forte.
 -libpath:&lt;path_list&gt;              Lista de diretórios nos quais pesquisar as referências de
                                   metadados. (Delimitados por ponto e vírgula.)
 -main:&lt;class&gt;                     Especifica a Classe ou o Módulo que contém
@@ -351,29 +398,39 @@
                                   (Forma abreviada: -m)
 -moduleassemblyname:&lt;string&gt;      Nome do assembly do qual o módulo
                                   fará parte.
--netcf                            Direcionar ao .NET Compact Framework.
--nostdlib                         Não referenciar bibliotecas padrão
+-netcf                            Direciona ao .NET Compact Framework.
+-nostdlib                         Não referencia bibliotecas padrão
                                   (arquivo system.dll e VBC.RSP).
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                                  Especificar um mapeamento para nomes de caminhos de origem produzidos pelo
+                                  Especifica um mapeamento para nomes de caminhos de origem produzidos pelo
                                   compilador.
--platform:&lt;string&gt;                Limitar em quais plataformas o código pode ser executado;
+-platform:&lt;string&gt;                Limita em quais plataformas o código pode ser executado;
                                   precisa ser x86, x64, Itanium, arm, arm64,
                                   AnyCPU32BitPreferred ou anycpu (padrão).
--preferreduilang                  Especificar o nome da linguagem de saída preferencial.
--nosdkpath                        Desabilitar a pesquisa no caminho de SDK padrão para assemblies de biblioteca padrão.
+-preferreduilang                  Especifica o nome da linguagem de saída preferencial.
+-nosdkpath                        Desabilita a pesquisa no caminho de SDK padrão para assemblies de biblioteca padrão.
 -sdkpath:&lt;path&gt;                   Localização do diretório do SDK do .NET Framework
                                   (mscorlib.dll).
--subsystemversion:&lt;version&gt;       Especificar a versão do subsistema do PE de saída.
+-subsystemversion:&lt;version&gt;       Especifica a versão do subsistema do PE de saída.
                                   version:&lt;number&gt;[.&lt;number&gt;]
--utf8output[+|-]                  Emitir a saída do compilador em codificação de caracteres
+-utf8output[+|-]                  Emite a saída do compilador em codificação de caracteres
                                   UTF8.
-@&lt;file&gt;                           Inserir configurações de linha de comando de um arquivo de texto
--vbruntime[+|-|*]                 Compilar com/sem o runtime padrão do
+@&lt;file&gt;                           Insere configurações de linha de comando de um arquivo de texto
+-vbruntime[+|-|*]                 Compila com/sem o runtime padrão do
                                   Visual Basic.
--vbruntime:&lt;file&gt;                 Compilar com o runtime alternativo do
+-vbruntime:&lt;file&gt;                 Compila com o runtime alternativo do
                                   Visual Basic em &lt;file&gt;.
 </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ThereAreNoFunctionPointerTypesInVB">
+        <source>There are no function pointer types in VB.</source>
+        <target state="translated">Não há nenhum tipo de ponteiro de função no VB.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ThereAreNoNativeIntegerTypesInVB">
+        <source>There are no native integer types in VB.</source>
+        <target state="translated">Não há tipos de inteiro nativo no VB.</target>
         <note />
       </trans-unit>
       <trans-unit id="Trees0">
@@ -449,6 +506,70 @@
       <trans-unit id="TypeArgumentCannotBeNothing">
         <source>Type argument cannot be Nothing</source>
         <target state="translated">Argumento de tipo não pode ser Nothing</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework">
+        <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
+        <target state="translated">O assembly '{0}' contendo o tipo '{1}' referencia o .NET Framework, mas não há suporte para isso.</target>
+        <note>{1} is the type that was loaded, {0} is the containing assembly.</note>
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
+        <source>The loaded assembly references .NET Framework, which is not supported.</source>
+        <target state="translated">O assembly carregado referencia o .NET Framework, mas não há suporte para isso.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="translated">O CallerArgumentExpressionAttribute aplicado ao parâmetro '{0}' não terá efeito. Ele é aplicado com um nome de parâmetro inválido.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="translated">O CallerArgumentExpressionAttribute aplicado ao parâmetro não terá efeito. Ele é aplicado com um nome de parâmetro inválido.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.</source>
+        <target state="translated">O CallerArgumentExpressionAttribute aplicado ao parâmetro '{0}' não terá efeito porque é de autorreferência.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</source>
+        <target state="translated">O CallerArgumentExpressionAttribute aplicado ao parâmetro não terá efeito porque é de autorreferência.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration">
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
+        <target state="translated">O gerador '{0}' não pôde gerar a origem. Ele não contribuirá com a saída e poderão ocorrer erros de compilação como resultado. A exceção foi do tipo '{1}', com a mensagem '{2}'</target>
+        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
+        <source>Generator threw the following exception:
+'{0}'.</source>
+        <target state="translated">O gerador gerou a seguinte exceção:
+'{0}'.</target>
+        <note>{0} is the string representation of the exception that was thrown.</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
+        <source>Generator failed to generate source.</source>
+        <target state="translated">O gerador não pôde gerar a origem.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization">
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
+        <target state="translated">Falha na inicialização do gerador '{0}'. Ele não contribuirá com a saída e poderão ocorrer erros de compilação como resultado. A exceção foi do tipo '{1}', com a mensagem '{2}'</target>
+        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
+        <source>Generator threw the following exception:
+'{0}'.</source>
+        <target state="translated">O gerador gerou a seguinte exceção:
+'{0}'.</target>
+        <note>{0} is the string representation of the exception that was thrown.</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
+        <source>Generator failed to initialize.</source>
+        <target state="translated">Falha na inicialização do gerador.</target>
         <note />
       </trans-unit>
       <trans-unit id="WrongNumberOfTypeArguments">
@@ -603,7 +724,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidAssemblyName">
         <source>'{0}' is not a valid value for /moduleassemblyname</source>
-        <target state="translated">'"{0}" não é um valor válido para /moduleassemblyname</target>
+        <target state="translated">"{0}" não é um valor válido para /moduleassemblyname</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConflictingManifestSwitches">
@@ -693,7 +814,7 @@
       </trans-unit>
       <trans-unit id="ERR_TypeOfRequiresReferenceType1">
         <source>'TypeOf ... Is' requires its left operand to have a reference type, but this operand has the value type '{0}'.</source>
-        <target state="translated">'"TypeOf ... Is" requer que seu operando esquerdo tenha um tipo de referência, mas este operando tem o tipo de valor "{0}".</target>
+        <target state="translated">"TypeOf ... Is" requer que seu operando esquerdo tenha um tipo de referência, mas este operando tem o tipo de valor "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReadOnlyHasSet">
@@ -776,6 +897,11 @@
         <target state="translated">Caractere inválido.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
+        <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
+        <target state="translated">O argumento stdin '-' foi especificado, mas a entrada não foi redirecionada do fluxo de entrada padrão.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StrictDisallowsObjectOperand1">
         <source>Option Strict On prohibits operands of type Object for operator '{0}'.</source>
         <target state="translated">Opção Strict On proíbe operandos do tipo Object para o operador "{0}".</target>
@@ -798,12 +924,12 @@
       </trans-unit>
       <trans-unit id="ERR_UseOfKeywordNotInInstanceMethod1">
         <source>'{0}' is valid only within an instance method.</source>
-        <target state="translated">'"{0}" é válido somente em um método de instância.</target>
+        <target state="translated">"{0}" é válido somente em um método de instância.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseOfKeywordFromStructure1">
         <source>'{0}' is not valid within a structure.</source>
-        <target state="translated">'"{0}" não é válido dentro de uma estrutura.</target>
+        <target state="translated">"{0}" não é válido dentro de uma estrutura.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAttributeConstructor1">
@@ -818,7 +944,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedArray1">
         <source>'{0}' statement requires an array.</source>
-        <target state="translated">'"{0}" instrução requer uma matriz.</target>
+        <target state="translated">"{0}" instrução requer uma matriz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ParamArrayNotArray">
@@ -1023,7 +1149,7 @@
       </trans-unit>
       <trans-unit id="ERR_QualNotObjectRecord1">
         <source>'!' requires its left operand to have a type parameter, class or interface type, but this operand has the type '{0}'.</source>
-        <target state="translated">'"!" requer que seu operando esquerdo tenha um parâmetro de tipo, classe ou tipo de interface, mas este operando tem o tipo "{0}".</target>
+        <target state="translated">"!" requer que seu operando esquerdo tenha um parâmetro de tipo, classe ou tipo de interface, mas este operando tem o tipo "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TooFewIndices">
@@ -1038,42 +1164,42 @@
       </trans-unit>
       <trans-unit id="ERR_EnumNotExpression1">
         <source>'{0}' is an Enum type and cannot be used as an expression.</source>
-        <target state="translated">'"{0}" é um tipo Enum e não pode ser usado como uma expressão.</target>
+        <target state="translated">"{0}" é um tipo Enum e não pode ser usado como uma expressão.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeNotExpression1">
         <source>'{0}' is a type and cannot be used as an expression.</source>
-        <target state="translated">'"{0}" é um tipo e não pode ser usado como uma expressão.</target>
+        <target state="translated">"{0}" é um tipo e não pode ser usado como uma expressão.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClassNotExpression1">
         <source>'{0}' is a class type and cannot be used as an expression.</source>
-        <target state="translated">'"{0}" é um tipo de classe e não pode ser usado como uma expressão.</target>
+        <target state="translated">"{0}" é um tipo de classe e não pode ser usado como uma expressão.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructureNotExpression1">
         <source>'{0}' is a structure type and cannot be used as an expression.</source>
-        <target state="translated">'"{0}" é um tipo de estrutura e não pode ser usado como uma expressão.</target>
+        <target state="translated">"{0}" é um tipo de estrutura e não pode ser usado como uma expressão.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceNotExpression1">
         <source>'{0}' is an interface type and cannot be used as an expression.</source>
-        <target state="translated">'"{0}" é um tipo de interface e não pode ser usado como uma expressão.</target>
+        <target state="translated">"{0}" é um tipo de interface e não pode ser usado como uma expressão.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamespaceNotExpression1">
         <source>'{0}' is a namespace and cannot be used as an expression.</source>
-        <target state="translated">'"{0}" é um namespace e não pode ser usado como uma expressão.</target>
+        <target state="translated">"{0}" é um namespace e não pode ser usado como uma expressão.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNamespaceName1">
         <source>'{0}' is not a valid name and cannot be used as the root namespace name.</source>
-        <target state="translated">'"{0}" não é um nome válido e não pode ser usado como o nome do namespace raiz.</target>
+        <target state="translated">"{0}" não é um nome válido e não pode ser usado como o nome do namespace raiz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_XmlPrefixNotExpression">
         <source>'{0}' is an XML prefix and cannot be used as an expression.  Use the GetXmlNamespace operator to create a namespace object.</source>
-        <target state="translated">'"{0}" é um prefixo XML e não pode ser usado como uma expressão. Use o operador GetXmlNamespace para criar um objeto namespace.</target>
+        <target state="translated">"{0}" é um prefixo XML e não pode ser usado como uma expressão. Use o operador GetXmlNamespace para criar um objeto namespace.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleExtends">
@@ -1333,17 +1459,17 @@
       </trans-unit>
       <trans-unit id="ERR_BadConstFlags1">
         <source>'{0}' is not valid on a constant declaration.</source>
-        <target state="translated">'"{0}" não é válido em uma declaração de constante.</target>
+        <target state="translated">"{0}" não é válido em uma declaração de constante.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadWithEventsFlags1">
         <source>'{0}' is not valid on a WithEvents declaration.</source>
-        <target state="translated">'"{0}" não é válido em uma declaração WithEvents.</target>
+        <target state="translated">"{0}" não é válido em uma declaração WithEvents.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDimFlags1">
         <source>'{0}' is not valid on a member variable declaration.</source>
-        <target state="translated">'"{0}" não é válido em uma declaração de variável de membro.</target>
+        <target state="translated">"{0}" não é válido em uma declaração de variável de membro.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateParamName1">
@@ -1383,27 +1509,27 @@
       </trans-unit>
       <trans-unit id="ERR_BadMethodFlags1">
         <source>'{0}' is not valid on a method declaration.</source>
-        <target state="translated">'"{0}" não é válido em uma declaração de método.</target>
+        <target state="translated">"{0}" não é válido em uma declaração de método.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadEventFlags1">
         <source>'{0}' is not valid on an event declaration.</source>
-        <target state="translated">'"{0}" não é válido em uma declaração de evento.</target>
+        <target state="translated">"{0}" não é válido em uma declaração de evento.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadDeclareFlags1">
         <source>'{0}' is not valid on a Declare.</source>
-        <target state="translated">'"{0}" não é válido em Declare.</target>
+        <target state="translated">"{0}" não é válido em Declare.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadLocalConstFlags1">
         <source>'{0}' is not valid on a local constant declaration.</source>
-        <target state="translated">'"{0}" não é válido em uma declaração de constante local.</target>
+        <target state="translated">"{0}" não é válido em uma declaração de constante local.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadLocalDimFlags1">
         <source>'{0}' is not valid on a local variable declaration.</source>
-        <target state="translated">'"{0}" não é válido em uma declaração de variável local.</target>
+        <target state="translated">"{0}" não é válido em uma declaração de variável local.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedConditionalDirective">
@@ -1457,22 +1583,22 @@
       </trans-unit>
       <trans-unit id="ERR_MultiplyDefinedType3">
         <source>'{0}' is already declared as '{1}' in this {2}.</source>
-        <target state="translated">'"{0}" já está declarado neste como "{1}" neste {2}.</target>
+        <target state="translated">"{0}" já está declarado neste como "{1}" neste {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadOverrideAccess2">
         <source>'{0}' cannot override '{1}' because they have different access levels.</source>
-        <target state="translated">'"{0}" não pode substituir "{1}" porque têm níveis de acesso diferentes.</target>
+        <target state="translated">"{0}" não pode substituir "{1}" porque têm níveis de acesso diferentes.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantOverrideNotOverridable2">
         <source>'{0}' cannot override '{1}' because it is declared 'NotOverridable'.</source>
-        <target state="translated">'"{0}" não pode substituir "{1}" porque está declarado como "NotOverridable".</target>
+        <target state="translated">"{0}" não pode substituir "{1}" porque está declarado como "NotOverridable".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateProcDef1">
         <source>'{0}' has multiple definitions with identical signatures.</source>
-        <target state="translated">'"{0}" tem várias definições com assinaturas idênticas.</target>
+        <target state="translated">"{0}" tem várias definições com assinaturas idênticas.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateProcDefWithDifferentTupleNames2">
@@ -1482,17 +1608,17 @@
       </trans-unit>
       <trans-unit id="ERR_BadInterfaceMethodFlags1">
         <source>'{0}' is not valid on an interface method declaration.</source>
-        <target state="translated">'"{0}" não é válido em uma declaração de método de interface.</target>
+        <target state="translated">"{0}" não é válido em uma declaração de método de interface.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamedParamNotFound2">
         <source>'{0}' is not a parameter of '{1}'.</source>
-        <target state="translated">'"{0}" não é um parâmetro de "{1}".</target>
+        <target state="translated">"{0}" não é um parâmetro de "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadInterfacePropertyFlags1">
         <source>'{0}' is not valid on an interface property declaration.</source>
-        <target state="translated">'"{0}" não é válido em uma declaração de propriedade de interface.</target>
+        <target state="translated">"{0}" não é válido em uma declaração de propriedade de interface.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamedArgUsedTwice2">
@@ -1502,7 +1628,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterfaceCantUseEventSpecifier1">
         <source>'{0}' is not valid on an interface event declaration.</source>
-        <target state="translated">'"{0}" não é válido em uma declaração de evento de interface.</target>
+        <target state="translated">"{0}" não é válido em uma declaração de evento de interface.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypecharNoMatch2">
@@ -1532,7 +1658,7 @@
       </trans-unit>
       <trans-unit id="ERR_ConstructorCannotBeDeclaredPartial">
         <source>'Sub New' cannot be declared 'Partial'.</source>
-        <target state="translated">'"Sub New" não pode ser declarado como "Partial".</target>
+        <target state="translated">"Sub New" não pode ser declarado como "Partial".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModuleEmitFailure">
@@ -1601,17 +1727,17 @@
       </trans-unit>
       <trans-unit id="ERR_InheritsFromCantInherit3">
         <source>'{0}' cannot inherit from {2} '{1}' because '{1}' is declared 'NotInheritable'.</source>
-        <target state="translated">'"{0}" não pode herdar de {2} "{1}" porque "{1}" é declarado "NotInheritable".</target>
+        <target state="translated">"{0}" não pode herdar de {2} "{1}" porque "{1}" é declarado "NotInheritable".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverloadWithOptional2">
         <source>'{0}' and '{1}' cannot overload each other because they differ only by optional parameters.</source>
-        <target state="translated">'"{0}" e "{1}" não podem sobrecarregar um ao outro porque diferem somente por parâmetros opcionais.</target>
+        <target state="translated">"{0}" e "{1}" não podem sobrecarregar um ao outro porque diferem somente por parâmetros opcionais.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverloadWithReturnType2">
         <source>'{0}' and '{1}' cannot overload each other because they differ only by return types.</source>
-        <target state="translated">'"{0}" e "{1}" não podem sobrecarregar um ao outro porque diferem somente por tipos de retorno.</target>
+        <target state="translated">"{0}" e "{1}" não podem sobrecarregar um ao outro porque diferem somente por tipos de retorno.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeCharWithType1">
@@ -1626,7 +1752,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverloadWithDefault2">
         <source>'{0}' and '{1}' cannot overload each other because they differ only by the default values of optional parameters.</source>
-        <target state="translated">'"{0}" e "{1}" não podem sobrecarregar um ao outro porque diferem somente pelos valores padrões de parâmetros opcionais.</target>
+        <target state="translated">"{0}" e "{1}" não podem sobrecarregar um ao outro porque diferem somente pelos valores padrões de parâmetros opcionais.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingSubscript">
@@ -1636,12 +1762,12 @@
       </trans-unit>
       <trans-unit id="ERR_OverrideWithDefault2">
         <source>'{0}' cannot override '{1}' because they differ by the default values of optional parameters.</source>
-        <target state="translated">'"{0}" não pode substituir "{1}" porque diferem pelos valores padrões de parâmetros opcionais.</target>
+        <target state="translated">"{0}" não pode substituir "{1}" porque diferem pelos valores padrões de parâmetros opcionais.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideWithOptional2">
         <source>'{0}' cannot override '{1}' because they differ by optional parameters.</source>
-        <target state="translated">'"{0}" não pode substituir "{1}" porque diferem por parâmetros opcionais.</target>
+        <target state="translated">"{0}" não pode substituir "{1}" porque diferem por parâmetros opcionais.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldOfValueFieldOfMarshalByRef3">
@@ -1676,7 +1802,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverloadWithByref2">
         <source>'{0}' and '{1}' cannot overload each other because they differ only by parameters declared 'ByRef' or 'ByVal'.</source>
-        <target state="translated">'"{0}" e "{1}" não podem sobrecarregar um ao outro porque diferem somente por parâmetros declarados "ByRef" ou "ByVal".</target>
+        <target state="translated">"{0}" e "{1}" não podem sobrecarregar um ao outro porque diferem somente por parâmetros declarados "ByRef" ou "ByVal".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritsFromNonInterface">
@@ -1691,17 +1817,17 @@
       </trans-unit>
       <trans-unit id="ERR_DuplicateDefaultProps1">
         <source>'Default' can be applied to only one property name in a {0}.</source>
-        <target state="translated">'"Default" pode ser aplicado a somente um nome de propriedade em um {0}.</target>
+        <target state="translated">"Default" pode ser aplicado a somente um nome de propriedade em um {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultMissingFromProperty2">
         <source>'{0}' and '{1}' cannot overload each other because only one is declared 'Default'.</source>
-        <target state="translated">'"{0}" e "{1}" não podem sobrecarregar um ao outro porque somente um está declarado como "Default".</target>
+        <target state="translated">"{0}" e "{1}" não podem sobrecarregar um ao outro porque somente um está declarado como "Default".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverridingPropertyKind2">
         <source>'{0}' cannot override '{1}' because they differ by 'ReadOnly' or 'WriteOnly'.</source>
-        <target state="translated">'"{0}" não pode substituir "{1}" porque diferem por "ReadOnly" ou "WriteOnly".</target>
+        <target state="translated">"{0}" não pode substituir "{1}" porque diferem por "ReadOnly" ou "WriteOnly".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewInInterface">
@@ -1711,12 +1837,12 @@
       </trans-unit>
       <trans-unit id="ERR_BadFlagsOnNew1">
         <source>'Sub New' cannot be declared '{0}'.</source>
-        <target state="translated">'"Sub New" não pode ser declarados "{0}".</target>
+        <target state="translated">"Sub New" não pode ser declarados "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverloadingPropertyKind2">
         <source>'{0}' and '{1}' cannot overload each other because they differ only by 'ReadOnly' or 'WriteOnly'.</source>
-        <target state="translated">'"{0}" e "{1}" não pode sobrecarregar um ao outro porque diferem apenas por "ReadOnly" ou "WriteOnly".</target>
+        <target state="translated">"{0}" e "{1}" não pode sobrecarregar um ao outro porque diferem apenas por "ReadOnly" ou "WriteOnly".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoDefaultNotExtend1">
@@ -1726,7 +1852,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverloadWithArrayVsParamArray2">
         <source>'{0}' and '{1}' cannot overload each other because they differ only by parameters declared 'ParamArray'.</source>
-        <target state="translated">'"{0}" e "{1}" não podem sobrecarregar um ao outro porque diferem somente por parâmetros declarados "ParamArray".</target>
+        <target state="translated">"{0}" e "{1}" não podem sobrecarregar um ao outro porque diferem somente por parâmetros declarados "ParamArray".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadInstanceMemberAccess">
@@ -1781,7 +1907,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadDelegateFlags1">
         <source>'{0}' is not valid on a Delegate declaration.</source>
-        <target state="translated">'"{0}" não é válido em uma declaração Delegate.</target>
+        <target state="translated">"{0}" não é válido em uma declaração Delegate.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConstructorOnBase2">
@@ -1791,17 +1917,17 @@
       </trans-unit>
       <trans-unit id="ERR_InaccessibleSymbol2">
         <source>'{0}' is not accessible in this context because it is '{1}'.</source>
-        <target state="translated">'"{0}" não está acessível neste contexto porque é "{1}".</target>
+        <target state="translated">"{0}" não está acessível neste contexto porque é "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InaccessibleMember3">
         <source>'{0}.{1}' is not accessible in this context because it is '{2}'.</source>
-        <target state="translated">'"{0}.{1}" não é acessível neste contexto porque é "{2}".</target>
+        <target state="translated">"{0}.{1}" não é acessível neste contexto porque é "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CatchNotException1">
         <source>'Catch' cannot catch type '{0}' because it is not 'System.Exception' or a class that inherits from 'System.Exception'.</source>
-        <target state="translated">'"Catch" não pode capturar o tipo "{0}" porque não é "System.Exception" ou uma classe que herda de "System.Exception".</target>
+        <target state="translated">"Catch" não pode capturar o tipo "{0}" porque não é "System.Exception" ou uma classe que herda de "System.Exception".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExitTryNotWithinTry">
@@ -1811,32 +1937,32 @@
       </trans-unit>
       <trans-unit id="ERR_BadRecordFlags1">
         <source>'{0}' is not valid on a Structure declaration.</source>
-        <target state="translated">'"{0}" não é válido em uma declaração Structure.</target>
+        <target state="translated">"{0}" não é válido em uma declaração Structure.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadEnumFlags1">
         <source>'{0}' is not valid on an Enum declaration.</source>
-        <target state="translated">'"{0}" não é válido em uma declaração Enum.</target>
+        <target state="translated">"{0}" não é válido em uma declaração Enum.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadInterfaceFlags1">
         <source>'{0}' is not valid on an Interface declaration.</source>
-        <target state="translated">'"{0}" não é válido em uma declaração Interface.</target>
+        <target state="translated">"{0}" não é válido em uma declaração Interface.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideWithByref2">
         <source>'{0}' cannot override '{1}' because they differ by a parameter that is marked as 'ByRef' versus 'ByVal'.</source>
-        <target state="translated">'"{0}" não pode substituir "{1}" porque diferem por um parâmetros que é marcado como "ByRef" versus "ByVal".</target>
+        <target state="translated">"{0}" não pode substituir "{1}" porque diferem por um parâmetros que é marcado como "ByRef" versus "ByVal".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MyBaseAbstractCall1">
         <source>'MyBase' cannot be used with method '{0}' because it is declared 'MustOverride'.</source>
-        <target state="translated">'"MyBase" não pode ser usado com o método "{0}" porque está declarado como "MustOverride".</target>
+        <target state="translated">"MyBase" não pode ser usado com o método "{0}" porque está declarado como "MustOverride".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IdentNotMemberOfInterface4">
         <source>'{0}' cannot implement '{1}' because there is no matching {2} on interface '{3}'.</source>
-        <target state="translated">'"{0}" não pode implementar "{1}" porque não há correspondência {2} na interface "{3}".</target>
+        <target state="translated">"{0}" não pode implementar "{1}" porque não há correspondência {2} na interface "{3}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplementingInterfaceWithDifferentTupleNames5">
@@ -1866,7 +1992,7 @@
       </trans-unit>
       <trans-unit id="ERR_StartupCodeNotFound1">
         <source>'Sub Main' was not found in '{0}'.</source>
-        <target state="translated">'"Sub Main" não foi encontrado em "{0}".</target>
+        <target state="translated">"Sub Main" não foi encontrado em "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstAsNonConstant">
@@ -1906,7 +2032,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidOverrideDueToReturn2">
         <source>'{0}' cannot override '{1}' because they differ by their return types.</source>
-        <target state="translated">'"{0}" não pode substituir "{1}" porque diferem por seus tipos de retorno.</target>
+        <target state="translated">"{0}" não pode substituir "{1}" porque diferem por seus tipos de retorno.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidOverrideDueToTupleNames2">
@@ -1941,7 +2067,7 @@
       </trans-unit>
       <trans-unit id="ERR_NameNotDeclared1">
         <source>'{0}' is not declared. It may be inaccessible due to its protection level.</source>
-        <target state="translated">'"{0}" não está declarado. Ele pode estar inacessível devido ao seu nível de proteção.</target>
+        <target state="translated">"{0}" não está declarado. Ele pode estar inacessível devido ao seu nível de proteção.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BinaryOperands3">
@@ -1961,7 +2087,7 @@
       </trans-unit>
       <trans-unit id="ERR_NameNotMember2">
         <source>'{0}' is not a member of '{1}'.</source>
-        <target state="translated">'"{0}" não é um membro de "{1}".</target>
+        <target state="translated">"{0}" não é um membro de "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EndClassNoClass">
@@ -1981,7 +2107,7 @@
       </trans-unit>
       <trans-unit id="ERR_NonNamespaceOrClassOnImport2">
         <source>'{1}' for the Imports '{0}' does not refer to a Namespace, Class, Structure, Enum or Module.</source>
-        <target state="translated">'"{1}" para Imports "{0}" não se refere a um Namespace, Classe, Estrutura, Enum ou Módulo.</target>
+        <target state="translated">"{1}" para Imports "{0}" não se refere a um Namespace, Classe, Estrutura, Enum ou Módulo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypecharNotallowed">
@@ -2031,7 +2157,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadFlagsWithDefault1">
         <source>'Default' cannot be combined with '{0}'.</source>
-        <target state="translated">'"Default" não pode ser combinado com "{0}".</target>
+        <target state="translated">"Default" não pode ser combinado com "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VoidValue">
@@ -2061,12 +2187,12 @@
       </trans-unit>
       <trans-unit id="ERR_BadFlagsOnSharedMeth1">
         <source>'Shared' cannot be combined with '{0}' on a method declaration.</source>
-        <target state="translated">'"Shared" não pode ser combinado com "{0}" em uma declaração de método.</target>
+        <target state="translated">"Shared" não pode ser combinado com "{0}" em uma declaração de método.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadFlagsOnSharedProperty1">
         <source>'Shared' cannot be combined with '{0}' on a property declaration.</source>
-        <target state="translated">'"Shared" não pode ser combinado com "{0}" em uma declaração de propriedade.</target>
+        <target state="translated">"Shared" não pode ser combinado com "{0}" em uma declaração de propriedade.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadFlagsOnStdModuleProperty1">
@@ -2086,7 +2212,7 @@
       </trans-unit>
       <trans-unit id="ERR_InheritanceAccessMismatch5">
         <source>'{0}' cannot inherit from {1} '{2}' because it expands the access of the base {1} to {3} '{4}'.</source>
-        <target state="translated">'"{0}" não pode herdar de {1} "{2}" porque ele expande o acesso da base {1} para {3} "{4}".</target>
+        <target state="translated">"{0}" não pode herdar de {1} "{2}" porque ele expande o acesso da base {1} para {3} "{4}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NarrowingConversionDisallowed2">
@@ -2188,7 +2314,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterfaceNoDefault1">
         <source>'{0}' cannot be indexed because it has no default property.</source>
-        <target state="translated">'"{0}" não pode ser indexado porque não tem nenhuma propriedade padrão.</target>
+        <target state="translated">"{0}" não pode ser indexado porque não tem nenhuma propriedade padrão.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidAssemblyAttribute1">
@@ -2203,7 +2329,7 @@
       </trans-unit>
       <trans-unit id="ERR_AmbiguousInUnnamedNamespace1">
         <source>'{0}' is ambiguous.</source>
-        <target state="translated">'"{0}" é ambíguo.</target>
+        <target state="translated">"{0}" é ambíguo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultMemberNotProperty1">
@@ -2213,22 +2339,22 @@
       </trans-unit>
       <trans-unit id="ERR_AmbiguousInNamespace2">
         <source>'{0}' is ambiguous in the namespace '{1}'.</source>
-        <target state="translated">'"{0}" é ambíguo no namespace "{1}".</target>
+        <target state="translated">"{0}" é ambíguo no namespace "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbiguousInImports2">
         <source>'{0}' is ambiguous, imported from the namespaces or types '{1}'.</source>
-        <target state="translated">'"{0}" é ambíguo, importado dos namespaces ou tipos "{1}".</target>
+        <target state="translated">"{0}" é ambíguo, importado dos namespaces ou tipos "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbiguousInModules2">
         <source>'{0}' is ambiguous between declarations in Modules '{1}'.</source>
-        <target state="translated">'"{0}" é ambíguo entre declarações em Módulos "{1}".</target>
+        <target state="translated">"{0}" é ambíguo entre declarações em Módulos "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AmbiguousInNamespaces2">
         <source>'{0}' is ambiguous between declarations in namespaces '{1}'.</source>
-        <target state="translated">'"{0}" é ambíguo entre declarações e namespace "{1}".</target>
+        <target state="translated">"{0}" é ambíguo entre declarações e namespace "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ArrayInitializerTooFewDimensions">
@@ -2303,12 +2429,12 @@
       </trans-unit>
       <trans-unit id="ERR_MethodAlreadyImplemented2">
         <source>'{0}.{1}' cannot be implemented more than once.</source>
-        <target state="translated">'"{0}.{1}" não pode ser implementado mais de uma vez.</target>
+        <target state="translated">"{0}.{1}" não pode ser implementado mais de uma vez.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DuplicateInInherits1">
         <source>'{0}' cannot be inherited more than once.</source>
-        <target state="translated">'"{0}" não pode ser herdado mais de uma vez.</target>
+        <target state="translated">"{0}" não pode ser herdado mais de uma vez.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NamedParamArrayArgument">
@@ -2553,7 +2679,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedType1">
         <source>'{0}' is an unsupported type.</source>
-        <target state="translated">'"{0}" é um tipo sem suporte.</target>
+        <target state="translated">"{0}" é um tipo sem suporte.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidEnumBase">
@@ -2588,7 +2714,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedMethod1">
         <source>'{0}' has a return type that is not supported or parameter types that are not supported.</source>
-        <target state="translated">'"{0}" tem um tipo de retorno que não é suportado ou tipos de parâmetro que não são suportados.</target>
+        <target state="translated">"{0}" tem um tipo de retorno que não é suportado ou tipos de parâmetro que não são suportados.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoNonIndexProperty1">
@@ -2670,7 +2796,7 @@
       </trans-unit>
       <trans-unit id="ERR_UseOfObsoleteSymbol2">
         <source>'{0}' is obsolete: '{1}'.</source>
-        <target state="translated">'"{0}" está obsoleto: "{1}".</target>
+        <target state="translated">"{0}" está obsoleto: "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RedimNoSizes">
@@ -2700,7 +2826,7 @@
       </trans-unit>
       <trans-unit id="ERR_NameNotEvent2">
         <source>'{0}' is not an event of '{1}'.</source>
-        <target state="translated">'"{0}" não é um evento de "{1}".</target>
+        <target state="translated">"{0}" não é um evento de "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AddOrRemoveHandlerEvent">
@@ -2735,7 +2861,7 @@
       </trans-unit>
       <trans-unit id="ERR_AmbiguousAcrossInterfaces3">
         <source>'{0}' is ambiguous across the inherited interfaces '{1}' and '{2}'.</source>
-        <target state="translated">'"{0}" é ambíguo nas interfaces herdadas "{1}" e "{2}".</target>
+        <target state="translated">"{0}" é ambíguo nas interfaces herdadas "{1}" e "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultPropertyAmbiguousAcrossInterfaces4">
@@ -2765,7 +2891,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverrideWithOptionalTypes2">
         <source>'{0}' cannot override '{1}' because they differ by the types of optional parameters.</source>
-        <target state="translated">'"{0}" não pode substituir "{1}" porque diferem pelos tipos de parâmetros opcionais.</target>
+        <target state="translated">"{0}" não pode substituir "{1}" porque diferem pelos tipos de parâmetros opcionais.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedEndOfExpression">
@@ -2785,7 +2911,7 @@
       </trans-unit>
       <trans-unit id="ERR_LocalNamedSameAsParam1">
         <source>'{0}' is already declared as a parameter of this method.</source>
-        <target state="translated">'"{0}" já está declarado como um parâmetro deste método.</target>
+        <target state="translated">"{0}" já está declarado como um parâmetro deste método.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LocalNamedSameAsParamInLambda1">
@@ -2805,7 +2931,7 @@
       </trans-unit>
       <trans-unit id="ERR_MoreThanOneValidMainWasFound2">
         <source>'Sub Main' is declared more than once in '{0}': {1}</source>
-        <target state="translated">'"Sub Main" está declarado mais de uma vez em "{0}": {1}</target>
+        <target state="translated">"Sub Main" está declarado mais de uma vez em "{0}": {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotConvertValue2">
@@ -2825,22 +2951,22 @@
       </trans-unit>
       <trans-unit id="ERR_GotoIntoTryHandler">
         <source>'GoTo {0}' is not valid because '{0}' is inside a 'Try', 'Catch' or 'Finally' statement that does not contain this statement.</source>
-        <target state="translated">'"GoTo {0}" não é válido porque "{0}" está dentro de uma instrução "Try", "Catch" ou "Finally" que não contém essa instrução.</target>
+        <target state="translated">"GoTo {0}" não é válido porque "{0}" está dentro de uma instrução "Try", "Catch" ou "Finally" que não contém essa instrução.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GotoIntoSyncLock">
         <source>'GoTo {0}' is not valid because '{0}' is inside a 'SyncLock' statement that does not contain this statement.</source>
-        <target state="translated">'"GoTo {0}" não é válido porque "{0}" está dentro de uma instrução "SyncLock" que não contém essa instrução.</target>
+        <target state="translated">"GoTo {0}" não é válido porque "{0}" está dentro de uma instrução "SyncLock" que não contém essa instrução.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GotoIntoWith">
         <source>'GoTo {0}' is not valid because '{0}' is inside a 'With' statement that does not contain this statement.</source>
-        <target state="translated">'"GoTo {0}" não é válido porque "{0}" está dentro de uma instrução "With" que não contém essa instrução.</target>
+        <target state="translated">"GoTo {0}" não é válido porque "{0}" está dentro de uma instrução "With" que não contém essa instrução.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GotoIntoFor">
         <source>'GoTo {0}' is not valid because '{0}' is inside a 'For' or 'For Each' statement that does not contain this statement.</source>
-        <target state="translated">'"GoTo {0}" não é válido porque "{0}" está dentro de uma instrução "For" ou "For Each" que não contém essa instrução.</target>
+        <target state="translated">"GoTo {0}" não é válido porque "{0}" está dentro de uma instrução "For" ou "For Each" que não contém essa instrução.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAttributeNonPublicConstructor">
@@ -2925,7 +3051,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidTypeForAliasesImport2">
         <source>'{1}' for the Imports alias to '{0}' does not refer to a Namespace, Class, Structure, Interface, Enum or Module.</source>
-        <target state="translated">'"{1}" para o alias Imports para "{0}" não se refere a um Namespace, Classe, Estrutura, Interface, Enum ou Módulo.</target>
+        <target state="translated">"{1}" para o alias Imports para "{0}" não se refere a um Namespace, Classe, Estrutura, Interface, Enum ou Módulo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedConstant2">
@@ -3010,7 +3136,7 @@
       </trans-unit>
       <trans-unit id="ERR_OverrideWithArrayVsParamArray2">
         <source>'{0}' cannot override '{1}' because they differ by parameters declared 'ParamArray'.</source>
-        <target state="translated">'"{0}" não pode substituir "{1}" porque diferem por parâmetros declarados "ParamArray".</target>
+        <target state="translated">"{0}" não pode substituir "{1}" porque diferem por parâmetros declarados "ParamArray".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CircularBaseDependencies4">
@@ -3025,32 +3151,32 @@
       </trans-unit>
       <trans-unit id="ERR_AccessMismatchOutsideAssembly4">
         <source>'{0}' cannot expose type '{1}' outside the project through {2} '{3}'.</source>
-        <target state="translated">'"{0}" não pode expor o tipo "{1}" fora do projeto através de {2} "{3}".</target>
+        <target state="translated">"{0}" não pode expor o tipo "{1}" fora do projeto através de {2} "{3}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritanceAccessMismatchOutside3">
         <source>'{0}' cannot inherit from {1} '{2}' because it expands the access of the base {1} outside the assembly.</source>
-        <target state="translated">'"{0}" não pode herdar de {1} "{2}" porque ele expande o acesso da base {1} fora do assembly.</target>
+        <target state="translated">"{0}" não pode herdar de {1} "{2}" porque ele expande o acesso da base {1} fora do assembly.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseOfObsoletePropertyAccessor3">
         <source>'{0}' accessor of '{1}' is obsolete: '{2}'.</source>
-        <target state="translated">'"{0}" acessador de "{1}" está obsoleto: "{2}".</target>
+        <target state="translated">"{0}" acessador de "{1}" está obsoleto: "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UseOfObsoletePropertyAccessor2">
         <source>'{0}' accessor of '{1}' is obsolete.</source>
-        <target state="translated">'"{0}" acessador de "{1}" está obsoleto.</target>
+        <target state="translated">"{0}" acessador de "{1}" está obsoleto.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AccessMismatchImplementedEvent6">
         <source>'{0}' cannot expose the underlying delegate type '{1}' of the event it is implementing to {2} '{3}' through {4} '{5}'.</source>
-        <target state="translated">'"{0}" não pode expor o tipo delegado subjacente "{1}" do evento que está implementando para {2} "{3}" através de {4} "{5}".</target>
+        <target state="translated">"{0}" não pode expor o tipo delegado subjacente "{1}" do evento que está implementando para {2} "{3}" através de {4} "{5}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AccessMismatchImplementedEvent4">
         <source>'{0}' cannot expose the underlying delegate type '{1}' of the event it is implementing outside the project through {2} '{3}'.</source>
-        <target state="translated">'"{0}" não pode expor o tipo delegado subjacente "{1}" do evento que está implementando fora do projeto por meio de {2} "{3}".</target>
+        <target state="translated">"{0}" não pode expor o tipo delegado subjacente "{1}" do evento que está implementando fora do projeto por meio de {2} "{3}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritanceCycleInImportedType1">
@@ -3080,12 +3206,12 @@
       </trans-unit>
       <trans-unit id="ERR_InheritsTypeArgAccessMismatch7">
         <source>'{0}' cannot inherit from {1} '{2}' because it expands the access of type '{3}' to {4} '{5}'.</source>
-        <target state="translated">'"{0}" não pode herdar de {1} "{2}" porque ele expande o acesso de tipo "{3}" para {4} "{5}".</target>
+        <target state="translated">"{0}" não pode herdar de {1} "{2}" porque ele expande o acesso de tipo "{3}" para {4} "{5}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritsTypeArgAccessMismatchOutside5">
         <source>'{0}' cannot inherit from {1} '{2}' because it expands the access of type '{3}' outside the assembly.</source>
-        <target state="translated">'"{0}" não pode herdar de {1} "{2}" porque ele expande o acesso de tipo "{3}" fora do assembly.</target>
+        <target state="translated">"{0}" não pode herdar de {1} "{2}" porque ele expande o acesso de tipo "{3}" fora do assembly.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialTypeAccessMismatch3">
@@ -3095,12 +3221,12 @@
       </trans-unit>
       <trans-unit id="ERR_PartialTypeBadMustInherit1">
         <source>'MustInherit' cannot be specified for partial type '{0}' because it cannot be combined with 'NotInheritable' specified for one of its other partial types.</source>
-        <target state="translated">'"MustInherit" não pode ser especificado para o tipo parcial "{0}" porque não pode ser combinado com "NotInheritable" especificado para um dos seus outros tipos parciais.</target>
+        <target state="translated">"MustInherit" não pode ser especificado para o tipo parcial "{0}" porque não pode ser combinado com "NotInheritable" especificado para um dos seus outros tipos parciais.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MustOverOnNotInheritPartClsMem1">
         <source>'MustOverride' cannot be specified on this member because it is in a partial type that is declared 'NotInheritable' in another partial definition.</source>
-        <target state="translated">'"MustOverride" não pode ser especificado neste membro porque está em um tipo parcial declarado "NotInheritable" em outra definição parcial.</target>
+        <target state="translated">"MustOverride" não pode ser especificado neste membro porque está em um tipo parcial declarado "NotInheritable" em outra definição parcial.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BaseMismatchForPartialClass3">
@@ -3196,7 +3322,7 @@
       </trans-unit>
       <trans-unit id="ERR_InAccessibleOverridingMethod5">
         <source>'{0}' in class '{1}' cannot override '{2}' in class '{3}' because an intermediate class '{4}' overrides '{2}' in class '{3}' but is not accessible.</source>
-        <target state="translated">'"{0}" na classe "{1}" não pode substituir "{2}" na classe "{3}" porque uma classe intermediária "{4}" substitui "{2}" na classe "{3}", mas não está acessível.</target>
+        <target state="translated">"{0}" na classe "{1}" não pode substituir "{2}" na classe "{3}" porque uma classe intermediária "{4}" substitui "{2}" na classe "{3}", mas não está acessível.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuitableWidestType1">
@@ -3491,17 +3617,17 @@
       </trans-unit>
       <trans-unit id="ERR_UseOfObsoleteSymbolNoMessage1">
         <source>'{0}' is obsolete.</source>
-        <target state="translated">'"{0}" está obsoleto.</target>
+        <target state="translated">"{0}" está obsoleto.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MetaDataIsNotAssembly">
         <source>'{0}' is a module and cannot be referenced as an assembly.</source>
-        <target state="translated">'"{0}" é um módulo e não pode ser referenciado como um assembly.</target>
+        <target state="translated">"{0}" é um módulo e não pode ser referenciado como um assembly.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MetaDataIsNotModule">
         <source>'{0}' is an assembly and cannot be referenced as a module.</source>
-        <target state="translated">'"{0}" é um assembly e não pode ser referenciado como um módulo.</target>
+        <target state="translated">"{0}" é um assembly e não pode ser referenciado como um módulo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReferenceComparison3">
@@ -3511,7 +3637,7 @@
       </trans-unit>
       <trans-unit id="ERR_CatchVariableNotLocal1">
         <source>'{0}' is not a local variable or parameter, and so cannot be used as a 'Catch' variable.</source>
-        <target state="translated">'"{0}" não é uma variável local ou parâmetro e, portanto, não pode ser usado como uma variável "Catch".</target>
+        <target state="translated">"{0}" não é uma variável local ou parâmetro e, portanto, não pode ser usado como uma variável "Catch".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ModuleMemberCantImplement">
@@ -3531,7 +3657,7 @@
       </trans-unit>
       <trans-unit id="ERR_CantOverride4">
         <source>'{0}' cannot override '{1}' because it is not declared 'Overridable'.</source>
-        <target state="translated">'"{0}" não pode substituir "{1}" porque não está declarado como "Overridable".</target>
+        <target state="translated">"{0}" não pode substituir "{1}" porque não está declarado como "Overridable".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantSpecifyArraysOnBoth">
@@ -3771,7 +3897,7 @@
       </trans-unit>
       <trans-unit id="ERR_CantReferToMyGroupInsideGroupType1">
         <source>'{0}' cannot refer to itself through its default instance; use 'Me' instead.</source>
-        <target state="translated">'"{0}" não pode referir-se a si mesmo por meio de sua instância padrão; ao invés disso, use "Me".</target>
+        <target state="translated">"{0}" não pode referir-se a si mesmo por meio de sua instância padrão; ao invés disso, use "Me".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidUseOfCustomModifier">
@@ -3786,7 +3912,7 @@
       </trans-unit>
       <trans-unit id="ERR_ObsoleteInvalidOnEventMember">
         <source>'{0}' cannot be applied to the 'AddHandler', 'RemoveHandler', or 'RaiseEvent' definitions. If required, apply the attribute directly to the event.</source>
-        <target state="translated">'"{0}" não pode ser aplicado às definições "AddHandler", "RemoveHandler" ou "RaiseEvent". Se necessário, aplique o atributo diretamente ao evento.</target>
+        <target state="translated">"{0}" não pode ser aplicado às definições "AddHandler", "RemoveHandler" ou "RaiseEvent". Se necessário, aplique o atributo diretamente ao evento.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DelegateBindingIncompatible2">
@@ -3866,7 +3992,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedXmlEndCData">
         <source>Expected closing ']]&gt;' for XML CDATA section.</source>
-        <target state="translated">]]&gt;' de fechamento esperado para seção XML CDATA.</target>
+        <target state="translated">']]&gt;' de fechamento esperado para seção XML CDATA.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedSQuote">
@@ -4066,7 +4192,7 @@
       </trans-unit>
       <trans-unit id="ERR_RestrictedType1">
         <source>'{0}' cannot be made nullable, and cannot be used as the data type of an array element, field, anonymous type member, type argument, 'ByRef' parameter, or return statement.</source>
-        <target state="translated">'"{0}" não pode ser anulável e não pode ser usado como o tipo de dados de um elemento de matriz, campo, membro de tipo anônimo, argumento de tipo, parâmetro "ByRef" ou instrução return.</target>
+        <target state="translated">"{0}" não pode ser anulável e não pode ser usado como o tipo de dados de um elemento de matriz, campo, membro de tipo anônimo, argumento de tipo, parâmetro "ByRef" ou instrução return.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoTypecharInAlias">
@@ -4096,7 +4222,7 @@
       </trans-unit>
       <trans-unit id="ERR_CantShadowAMustOverride1">
         <source>'{0}' cannot shadow a method declared 'MustOverride'.</source>
-        <target state="translated">'"{0}" não pode sombrear um método declarado como "MustOverride".</target>
+        <target state="translated">"{0}" não pode sombrear um método declarado como "MustOverride".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleEventImplMismatch3">
@@ -4106,7 +4232,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadSpecifierCombo2">
         <source>'{0}' and '{1}' cannot be combined.</source>
-        <target state="translated">'"{0}" e "{1}" não podem ser combinados.</target>
+        <target state="translated">"{0}" e "{1}" não podem ser combinados.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MustBeOverloads2">
@@ -4116,7 +4242,7 @@
       </trans-unit>
       <trans-unit id="ERR_MustOverridesInClass1">
         <source>'{0}' must be declared 'MustInherit' because it contains methods declared 'MustOverride'.</source>
-        <target state="translated">'"{0}" deve ser declarado "MustInherit" porque contém métodos declarados "MustOverride".</target>
+        <target state="translated">"{0}" deve ser declarado "MustInherit" porque contém métodos declarados "MustOverride".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_HandlesSyntaxInClass">
@@ -4126,12 +4252,12 @@
       </trans-unit>
       <trans-unit id="ERR_SynthMemberShadowsMustOverride5">
         <source>'{0}', implicitly declared for {1} '{2}', cannot shadow a 'MustOverride' method in the base {3} '{4}'.</source>
-        <target state="translated">'"{0}", implicitamente declarado para {1} "{2}", não pode sombrear um método "MustOverride" na base {3} "{4}".</target>
+        <target state="translated">"{0}", implicitamente declarado para {1} "{2}", não pode sombrear um método "MustOverride" na base {3} "{4}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotOverrideInAccessibleMember">
         <source>'{0}' cannot override '{1}' because it is not accessible in this context.</source>
-        <target state="translated">'"{0}" não pode substituir "{1}" porque não está acessível neste contexto.</target>
+        <target state="translated">"{0}" não pode substituir "{1}" porque não está acessível neste contexto.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_HandlesSyntaxInModule">
@@ -4141,17 +4267,17 @@
       </trans-unit>
       <trans-unit id="ERR_IsNotOpRequiresReferenceTypes1">
         <source>'IsNot' requires operands that have reference types, but this operand has the value type '{0}'.</source>
-        <target state="translated">'"IsNot" requer operandos que tenham tipos de referência, mas este operando tem o tipo de valor "{0}".</target>
+        <target state="translated">"IsNot" requer operandos que tenham tipos de referência, mas este operando tem o tipo de valor "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClashWithReservedEnumMember1">
         <source>'{0}' conflicts with the reserved member by this name that is implicitly declared in all enums.</source>
-        <target state="translated">'"{0}" está em conflito com o membro reservado por este nome que é declarado implicitamente em todos os enums.</target>
+        <target state="translated">"{0}" está em conflito com o membro reservado por este nome que é declarado implicitamente em todos os enums.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultiplyDefinedEnumMember2">
         <source>'{0}' is already declared in this {1}.</source>
-        <target state="translated">'"{0}" já está declarado neste {1}.</target>
+        <target state="translated">"{0}" já está declarado neste {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadUseOfVoid">
@@ -4171,7 +4297,7 @@
       </trans-unit>
       <trans-unit id="ERR_TypeFwdCycle2">
         <source>'{0}' in assembly '{1}' has been forwarded to itself and so is an unsupported type.</source>
-        <target state="translated">'"{0}" no assembly "{1}" foi encaminhado para si mesmo e, portanto, é um tipo sem suporte.</target>
+        <target state="translated">"{0}" no assembly "{1}" foi encaminhado para si mesmo e, portanto, é um tipo sem suporte.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadTypeInCCExpression">
@@ -4191,7 +4317,7 @@
       </trans-unit>
       <trans-unit id="ERR_MetadataMembersAmbiguous3">
         <source>'{0}' is ambiguous because multiple kinds of members with this name exist in {1} '{2}'.</source>
-        <target state="translated">'"{0}" é ambíguo porque vários tipos de membros com este nome existem em {1} "{2}".</target>
+        <target state="translated">"{0}" é ambíguo porque vários tipos de membros com este nome existem em {1} "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeOfExprAlwaysFalse2">
@@ -4226,7 +4352,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMethodsMustBeSub1">
         <source>'{0}' cannot be declared 'Partial' because partial methods must be Subs.</source>
-        <target state="translated">'"{0}" não pode ser declarado como "Partial" porque métodos parciais devem ser Subs.</target>
+        <target state="translated">"{0}" não pode ser declarado como "Partial" porque métodos parciais devem ser Subs.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodGenericConstraints2">
@@ -4241,7 +4367,7 @@
       </trans-unit>
       <trans-unit id="ERR_NoPartialMethodInAddressOf1">
         <source>'AddressOf' cannot be applied to '{0}' because '{0}' is a partial method without an implementation.</source>
-        <target state="translated">'"AddressOf" não pode ser aplicado a "{0}" porque "{0}" é um método parcial sem uma implementação.</target>
+        <target state="translated">"AddressOf" não pode ser aplicado a "{0}" porque "{0}" é um método parcial sem uma implementação.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplementationMustBePrivate2">
@@ -4281,17 +4407,17 @@
       </trans-unit>
       <trans-unit id="ERR_AttributeMustBeClassNotStruct1">
         <source>'{0}' cannot be used as an attribute because it is not a class.</source>
-        <target state="translated">'"{0}" não pode ser usado como um atributo porque não é uma classe.</target>
+        <target state="translated">"{0}" não pode ser usado como um atributo porque não é uma classe.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeMustInheritSysAttr">
         <source>'{0}' cannot be used as an attribute because it does not inherit from 'System.Attribute'.</source>
-        <target state="translated">'"{0}" não pode ser usado como um atributo porque não herda de "System.Attribute".</target>
+        <target state="translated">"{0}" não pode ser usado como um atributo porque não herda de "System.Attribute".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeCannotBeAbstract">
         <source>'{0}' cannot be used as an attribute because it is declared 'MustInherit'.</source>
-        <target state="translated">'"{0}" não pode ser usado como um atributo porque é declarado como "MustInherit".</target>
+        <target state="translated">"{0}" não pode ser usado como um atributo porque é declarado como "MustInherit".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnableToOpenResourceFile1">
@@ -4391,7 +4517,7 @@
       </trans-unit>
       <trans-unit id="ERR_UseOfKeywordFromModule1">
         <source>'{0}' is not valid within a Module.</source>
-        <target state="translated">'"{0}" não é válido dentro de um Módulo.</target>
+        <target state="translated">"{0}" não é válido dentro de um Módulo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BogusWithinLineIf">
@@ -4406,7 +4532,7 @@
       </trans-unit>
       <trans-unit id="ERR_IntegralToCharTypeMismatch1">
         <source>'{0}' values cannot be converted to 'Char'. Use 'Microsoft.VisualBasic.ChrW' to interpret a numeric value as a Unicode character or first convert it to 'String' to produce a digit.</source>
-        <target state="translated">'"{0}" valores não podem ser convertidos em "Char". Use "Microsoft.VisualBasic.ChrW" para interpretar um valor numérico como um caractere Unicode ou converta-o primeiro em "String" para produzir um dígito.</target>
+        <target state="translated">"{0}" valores não podem ser convertidos em "Char". Use "Microsoft.VisualBasic.ChrW" para interpretar um valor numérico como um caractere Unicode ou converta-o primeiro em "String" para produzir um dígito.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoDirectDelegateConstruction1">
@@ -4421,7 +4547,7 @@
       </trans-unit>
       <trans-unit id="ERR_AttrAssignmentNotFieldOrProp1">
         <source>'{0}' cannot be named as a parameter in an attribute specifier because it is not a field or property.</source>
-        <target state="translated">'"{0}" não pode ser nomeado como um parâmetro em um especificador de atributo porque não é um campo ou propriedade.</target>
+        <target state="translated">"{0}" não pode ser nomeado como um parâmetro em um especificador de atributo porque não é um campo ou propriedade.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StrictDisallowsObjectComparison1">
@@ -4441,7 +4567,7 @@
       </trans-unit>
       <trans-unit id="ERR_FunctionResultCannotBeIndexed1">
         <source>'{0}' has no parameters and its return type cannot be indexed.</source>
-        <target state="translated">'"{0}" não tem parâmetros e seu tipo de retorno não pode ser indexado.</target>
+        <target state="translated">"{0}" não tem parâmetros e seu tipo de retorno não pode ser indexado.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ArgumentSyntax">
@@ -4466,7 +4592,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotCallEvent1">
         <source>'{0}' is an event, and cannot be called directly. Use a 'RaiseEvent' statement to raise an event.</source>
-        <target state="translated">'"{0}" é um evento e não pode ser chamado diretamente. Use uma instrução "RaiseEvent" para acionar um evento.</target>
+        <target state="translated">"{0}" é um evento e não pode ser chamado diretamente. Use uma instrução "RaiseEvent" para acionar um evento.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachCollectionDesignPattern1">
@@ -4551,7 +4677,7 @@
       </trans-unit>
       <trans-unit id="ERR_TypeOrMemberNotGeneric1">
         <source>'{0}' has no type parameters and so cannot have type arguments.</source>
-        <target state="translated">'"{0}" não tem parâmetros de tipo e, portanto, não pode ter argumentos de tipo.</target>
+        <target state="translated">"{0}" não tem parâmetros de tipo e, portanto, não pode ter argumentos de tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewIfNullOnGenericParam">
@@ -4591,7 +4717,7 @@
       </trans-unit>
       <trans-unit id="ERR_ShadowingGenericParamWithMember1">
         <source>'{0}' has the same name as a type parameter.</source>
-        <target state="translated">'"{0}" tem o mesmo nome de um parâmetro de tipo.</target>
+        <target state="translated">"{0}" tem o mesmo nome de um parâmetro de tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericParamBase2">
@@ -4616,7 +4742,7 @@
       </trans-unit>
       <trans-unit id="ERR_ConstraintIsRestrictedType1">
         <source>'{0}' cannot be used as a type constraint.</source>
-        <target state="translated">'"{0}" não pode ser usado como uma restrição de tipo.</target>
+        <target state="translated">"{0}" não pode ser usado como uma restrição de tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_GenericParamsOnInvalidMember">
@@ -4671,12 +4797,12 @@
       </trans-unit>
       <trans-unit id="ERR_OverrideWithConstraintMismatch2">
         <source>'{0}' cannot override '{1}' because they differ by type parameter constraints.</source>
-        <target state="translated">'"{0}" não pode substituir "{1}" porque diferem por restrições de parâmetros de tipo.</target>
+        <target state="translated">"{0}" não pode substituir "{1}" porque diferem por restrições de parâmetros de tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplementsWithConstraintMismatch3">
         <source>'{0}' cannot implement '{1}.{2}' because they differ by type parameter constraints.</source>
-        <target state="translated">'"{0}" não pode implementar "{1}.{2}" porque diferem por restrições de parâmetro de tipo.</target>
+        <target state="translated">"{0}" não pode implementar "{1}.{2}" porque diferem por restrições de parâmetro de tipo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OpenTypeDisallowed">
@@ -4731,7 +4857,7 @@
       </trans-unit>
       <trans-unit id="ERR_NameSameAsMethodTypeParam1">
         <source>'{0}' is already declared as a type parameter of this method.</source>
-        <target state="translated">'"{0}" já está declarado como um parâmetro de tipo deste método.</target>
+        <target state="translated">"{0}" já está declarado como um parâmetro de tipo deste método.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TypeParamNameFunctionNameCollision">
@@ -4756,7 +4882,7 @@
       </trans-unit>
       <trans-unit id="ERR_ForEachAmbiguousIEnumerable1">
         <source>'For Each' on type '{0}' is ambiguous because the type implements multiple instantiations of 'System.Collections.Generic.IEnumerable(Of T)'.</source>
-        <target state="translated">'"For Each" no tipo "{0}" é ambíguo porque o tipo implementa várias instanciações de "System.Collections.Generic.IEnumerable (Of T)".</target>
+        <target state="translated">"For Each" no tipo "{0}" é ambíguo porque o tipo implementa várias instanciações de "System.Collections.Generic.IEnumerable (Of T)".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IsNotOperatorGenericParam1">
@@ -4853,7 +4979,7 @@
       </trans-unit>
       <trans-unit id="ERR_NullableDisallowedForStructConstr1">
         <source>'System.Nullable' does not satisfy the 'Structure' constraint for type parameter '{0}'. Only non-nullable 'Structure' types are allowed.</source>
-        <target state="translated">'"System. Nullable" não satisfaz a restrição "Structure" para parâmetro de tipo "{0}". Somente tipos "Structure" não anuláveis são permitidos.</target>
+        <target state="translated">"System. Nullable" não satisfaz a restrição "Structure" para parâmetro de tipo "{0}". Somente tipos "Structure" não anuláveis são permitidos.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConflictingDirectConstraints3">
@@ -4918,7 +5044,7 @@
       </trans-unit>
       <trans-unit id="ERR_ShadowingTypeOutsideClass1">
         <source>'{0}' cannot be declared 'Shadows' outside of a class, structure, or interface.</source>
-        <target state="translated">'"{0}" não pode ser declarado como "Shadows" fora de uma classe, estrutura ou interface.</target>
+        <target state="translated">"{0}" não pode ser declarado como "Shadows" fora de uma classe, estrutura ou interface.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PropertySetParamCollisionWithValue">
@@ -4953,27 +5079,27 @@
       </trans-unit>
       <trans-unit id="ERR_BadAttributeUuid2">
         <source>'{0}' cannot be applied because the format of the GUID '{1}' is not correct.</source>
-        <target state="translated">'"{0}" não pode ser aplicado porque o formato do GUID "{1}" não está correto.</target>
+        <target state="translated">"{0}" não pode ser aplicado porque o formato do GUID "{1}" não está correto.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ComClassAndReservedAttribute1">
         <source>'Microsoft.VisualBasic.ComClassAttribute' and '{0}' cannot both be applied to the same class.</source>
-        <target state="translated">'"Microsoft.VisualBasic.ComClassAttribute" e "{0}" não podem ser aplicados à mesma classe.</target>
+        <target state="translated">"Microsoft.VisualBasic.ComClassAttribute" e "{0}" não podem ser aplicados à mesma classe.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ComClassRequiresPublicClass2">
         <source>'Microsoft.VisualBasic.ComClassAttribute' cannot be applied to '{0}' because its container '{1}' is not declared 'Public'.</source>
-        <target state="translated">'"Microsoft.VisualBasic.ComClassAttribute" não pode ser aplicado a "{0}" porque seu contêiner "{1}" não está declarado como "Public".</target>
+        <target state="translated">"Microsoft.VisualBasic.ComClassAttribute" não pode ser aplicado a "{0}" porque seu contêiner "{1}" não está declarado como "Public".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ComClassReservedDispIdZero1">
         <source>'System.Runtime.InteropServices.DispIdAttribute' cannot be applied to '{0}' because 'Microsoft.VisualBasic.ComClassAttribute' reserves zero for the default property.</source>
-        <target state="translated">'"System.Runtime.InteropServices.DispIdAttribute" não pode ser aplicado a "{0}" porque "Microsoft.VisualBasic.ComClassAttribute" reserva para a propriedade padrão.</target>
+        <target state="translated">"System.Runtime.InteropServices.DispIdAttribute" não pode ser aplicado a "{0}" porque "Microsoft.VisualBasic.ComClassAttribute" reserva para a propriedade padrão.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ComClassReservedDispId1">
         <source>'System.Runtime.InteropServices.DispIdAttribute' cannot be applied to '{0}' because 'Microsoft.VisualBasic.ComClassAttribute' reserves values less than zero.</source>
-        <target state="translated">'"System.Runtime.InteropServices.DispIdAttribute" não pode ser aplicado a "{0}" porque "Microsoft.VisualBasic.ComClassAttribute" reserva valores menores que zero.</target>
+        <target state="translated">"System.Runtime.InteropServices.DispIdAttribute" não pode ser aplicado a "{0}" porque "Microsoft.VisualBasic.ComClassAttribute" reserva valores menores que zero.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ComClassDuplicateGuids1">
@@ -4988,7 +5114,7 @@
       </trans-unit>
       <trans-unit id="ERR_ComClassRequiresPublicClass1">
         <source>'Microsoft.VisualBasic.ComClassAttribute' cannot be applied to '{0}' because it is not declared 'Public'.</source>
-        <target state="translated">'"Microsoft.VisualBasic.ComClassAttribute" não pode ser aplicado a "{0}" porque não está declarado como "Public".</target>
+        <target state="translated">"Microsoft.VisualBasic.ComClassAttribute" não pode ser aplicado a "{0}" porque não está declarado como "Public".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnknownOperator">
@@ -5038,12 +5164,12 @@
       </trans-unit>
       <trans-unit id="ERR_ParamArrayIllegal1">
         <source>'{0}' parameters cannot be declared 'ParamArray'.</source>
-        <target state="translated">'"{0}" parâmetros não podem ser declarados "ParamArray".</target>
+        <target state="translated">"{0}" parâmetros não podem ser declarados "ParamArray".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OptionalIllegal1">
         <source>'{0}' parameters cannot be declared 'Optional'.</source>
-        <target state="translated">'"{0}" parâmetros não podem ser declarados "Optional".</target>
+        <target state="translated">"{0}" parâmetros não podem ser declarados "Optional".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OperatorMustBePublic">
@@ -5298,7 +5424,7 @@
       </trans-unit>
       <trans-unit id="ERR_GotoIntoUsing">
         <source>'GoTo {0}' is not valid because '{0}' is inside a 'Using' statement that does not contain this statement.</source>
-        <target state="translated">'"GoTo {0}" não é válido porque "{0}" está dentro de uma instrução "Using" que não contém essa instrução.</target>
+        <target state="translated">"GoTo {0}" não é válido porque "{0}" está dentro de uma instrução "Using" que não contém essa instrução.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UsingRequiresDisposePattern">
@@ -5323,7 +5449,7 @@
       </trans-unit>
       <trans-unit id="ERR_PropertyNameConflictInMyCollection">
         <source>'{0}' has the same name as a member used for type '{1}' exposed in a 'My' group. Rename the type or its enclosing namespace.</source>
-        <target state="translated">'"{0}" tem o mesmo nome de um membro usado para o tipo "{1}" exposto em um grupo "My". Renomeie o tipo ou seu namespace delimitador.</target>
+        <target state="translated">"{0}" tem o mesmo nome de um membro usado para o tipo "{1}" exposto em um grupo "My". Renomeie o tipo ou seu namespace delimitador.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidImplicitVar">
@@ -5338,7 +5464,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedFrom">
         <source>'From' expected.</source>
-        <target state="translated">'"From" esperado.</target>
+        <target state="translated">"From" esperado.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LambdaBindingMismatch1">
@@ -5423,7 +5549,7 @@
       </trans-unit>
       <trans-unit id="ERR_NameNotMemberOfAnonymousType2">
         <source>'{0}' is not a member of '{1}'; it does not exist in the current context.</source>
-        <target state="translated">'"{0}" não é um membro de "{1}"; ele não existe no contexto atual.</target>
+        <target state="translated">"{0}" não é um membro de "{1}"; ele não existe no contexto atual.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExtensionAttributeInvalid">
@@ -5495,7 +5621,7 @@
       </trans-unit>
       <trans-unit id="ERR_NamedParamNotFound1">
         <source>'{0}' is not a method parameter.</source>
-        <target state="translated">'"{0}" não é um parâmetro de método.</target>
+        <target state="translated">"{0}" não é um parâmetro de método.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OmittedArgument1">
@@ -5547,7 +5673,7 @@
       </trans-unit>
       <trans-unit id="ERR_NamedParamNotFound3">
         <source>'{0}' is not a parameter of extension method '{1}' defined in '{2}'.</source>
-        <target state="translated">'"{0}" não é um parâmetro do método de extensão "{1}" definido em "{2}".</target>
+        <target state="translated">"{0}" não é um parâmetro do método de extensão "{1}" definido em "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OmittedArgument3">
@@ -5572,7 +5698,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedInOrEq">
         <source>'In' or '=' expected.</source>
-        <target state="translated">'"In" ou "=" esperado.</target>
+        <target state="translated">"In" ou "=" esperado.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedQueryableSource">
@@ -5592,7 +5718,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotGotoNonScopeBlocksWithClosure">
         <source>'{0}{1}' is not valid because '{2}' is inside a scope that defines a variable that is used in a lambda or query expression.</source>
-        <target state="translated">'"{0}{1}" não é válido porque "{2}" está dentro de um escopo que define uma variável que é usada em uma expressão lambda ou de consulta.</target>
+        <target state="translated">"{0}{1}" não é válido porque "{2}" está dentro de um escopo que define uma variável que é usada em uma expressão lambda ou de consulta.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotLiftRestrictedTypeQuery">
@@ -5692,7 +5818,7 @@
       </trans-unit>
       <trans-unit id="ERR_EqualsTypeMismatch">
         <source>'Equals' cannot compare a value of type '{0}' with a value of type '{1}'.</source>
-        <target state="translated">'"Equals" não pode comparar um valor do tipo "{0}" com um valor do tipo "{1}".</target>
+        <target state="translated">"Equals" não pode comparar um valor do tipo "{0}" com um valor do tipo "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EqualsOperandIsBad">
@@ -5882,7 +6008,7 @@
       </trans-unit>
       <trans-unit id="ERR_InaccessibleReturnTypeOfMember2">
         <source>'{0}' is not accessible in this context because the return type is not accessible.</source>
-        <target state="translated">'"{0}" não está acessível neste contexto porque o tipo de retorno não está acessível.</target>
+        <target state="translated">"{0}" não está acessível neste contexto porque o tipo de retorno não está acessível.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpectedIdentifierOrGroup">
@@ -5969,7 +6095,7 @@
       </trans-unit>
       <trans-unit id="WRN_UseOfObsoleteSymbol2">
         <source>'{0}' is obsolete: '{1}'.</source>
-        <target state="translated">'"{0}" está obsoleto: "{1}".</target>
+        <target state="translated">"{0}" está obsoleto: "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseOfObsoleteSymbol2_Title">
@@ -6019,7 +6145,7 @@
       </trans-unit>
       <trans-unit id="WRN_UseOfObsoleteSymbolNoMessage1">
         <source>'{0}' is obsolete.</source>
-        <target state="translated">'"{0}" está obsoleto.</target>
+        <target state="translated">"{0}" está obsoleto.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseOfObsoleteSymbolNoMessage1_Title">
@@ -6049,7 +6175,7 @@
       </trans-unit>
       <trans-unit id="WRN_ComClassNoMembers1">
         <source>'Microsoft.VisualBasic.ComClassAttribute' is specified for class '{0}' but '{0}' has no public members that can be exposed to COM; therefore, no COM interfaces are generated.</source>
-        <target state="translated">'"Microsoft.VisualBasic.ComClassAttribute" está especificado para a classe "{0}", mas "{0}" não tem membros públicos que podem ser expostos ao COM; portanto, nenhuma interfaces COM é gerada.</target>
+        <target state="translated">"Microsoft.VisualBasic.ComClassAttribute" está especificado para a classe "{0}", mas "{0}" não tem membros públicos que podem ser expostos ao COM; portanto, nenhuma interfaces COM é gerada.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ComClassNoMembers1_Title">
@@ -6089,7 +6215,7 @@
       </trans-unit>
       <trans-unit id="WRN_UseOfObsoletePropertyAccessor3">
         <source>'{0}' accessor of '{1}' is obsolete: '{2}'.</source>
-        <target state="translated">'"{0}" acessador de "{1}" está obsoleto: "{2}".</target>
+        <target state="translated">"{0}" acessador de "{1}" está obsoleto: "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseOfObsoletePropertyAccessor3_Title">
@@ -6099,7 +6225,7 @@
       </trans-unit>
       <trans-unit id="WRN_UseOfObsoletePropertyAccessor2">
         <source>'{0}' accessor of '{1}' is obsolete.</source>
-        <target state="translated">'"{0}" acessador de "{1}" está obsoleto.</target>
+        <target state="translated">"{0}" acessador de "{1}" está obsoleto.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseOfObsoletePropertyAccessor2_Title">
@@ -6119,7 +6245,7 @@
       </trans-unit>
       <trans-unit id="WRN_BaseClassNotCLSCompliant2">
         <source>'{0}' is not CLS-compliant because it derives from '{1}', which is not CLS-compliant.</source>
-        <target state="translated">'"{0}" não tem conformidade com CLS porque deriva de "{1}", o qual não tem conformidade com CLS.</target>
+        <target state="translated">"{0}" não tem conformidade com CLS porque deriva de "{1}", o qual não tem conformidade com CLS.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BaseClassNotCLSCompliant2_Title">
@@ -6149,7 +6275,7 @@
       </trans-unit>
       <trans-unit id="WRN_InheritedInterfaceNotCLSCompliant2">
         <source>'{0}' is not CLS-compliant because the interface '{1}' it inherits from is not CLS-compliant.</source>
-        <target state="translated">'"{0}" não tem conformidade com CLS porque a interface "{1}" da qual ele herda não tem conformidade com CLS.</target>
+        <target state="translated">"{0}" não tem conformidade com CLS porque a interface "{1}" da qual ele herda não tem conformidade com CLS.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InheritedInterfaceNotCLSCompliant2_Title">
@@ -6209,7 +6335,7 @@
       </trans-unit>
       <trans-unit id="WRN_ArrayOverloadsNonCLS2">
         <source>'{0}' is not CLS-compliant because it overloads '{1}' which differs from it only by array of array parameter types or by the rank of the array parameter types.</source>
-        <target state="translated">'"{0}" não tem conformidade com CLS porque sobrecarrega "{1}" que difere dele apenas pela matriz de tipos de parâmetro de matriz ou pela classificação dos tipos de parâmetro de matriz.</target>
+        <target state="translated">"{0}" não tem conformidade com CLS porque sobrecarrega "{1}" que difere dele apenas pela matriz de tipos de parâmetro de matriz ou pela classificação dos tipos de parâmetro de matriz.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArrayOverloadsNonCLS2_Title">
@@ -6339,7 +6465,7 @@
       </trans-unit>
       <trans-unit id="WRN_CLSEventMethodInNonCLSType3">
         <source>'{0}' method for event '{1}' cannot be marked CLS compliant because its containing type '{2}' is not CLS compliant.</source>
-        <target state="translated">'"{0}" método para o evento "{1}" não pode ser marcado como em conformidade com CLS porque seu tipo recipiente "{2}" não tem conformidade com CLS.</target>
+        <target state="translated">"{0}" método para o evento "{1}" não pode ser marcado como em conformidade com CLS porque seu tipo recipiente "{2}" não tem conformidade com CLS.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLSEventMethodInNonCLSType3_Title">
@@ -6349,7 +6475,7 @@
       </trans-unit>
       <trans-unit id="WRN_ExpectedInitComponentCall2">
         <source>'{0}' in designer-generated type '{1}' should call InitializeComponent method.</source>
-        <target state="translated">'"{0}" no tipo gerado por designer "{1}" deve chamar o método InitializeComponent.</target>
+        <target state="translated">"{0}" no tipo gerado por designer "{1}" deve chamar o método InitializeComponent.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ExpectedInitComponentCall2_Title">
@@ -6684,7 +6810,7 @@
       </trans-unit>
       <trans-unit id="WRN_OverlappingCatch_Title">
         <source>'Catch' block never reached; exception type's base type handled above in the same Try statement</source>
-        <target state="translated">'O bloco 'Catch' nunca é alcançado. O tipo base do tipo de exceção foi identificado acima na mesma instrução Try</target>
+        <target state="translated">'O bloco 'Catch' nunca foi alcançado. O tipo base do tipo de exceção foi identificado acima na mesma instrução Try</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefAsgUseNullRefByRef">
@@ -6789,7 +6915,7 @@
       </trans-unit>
       <trans-unit id="WRN_ComClassInterfaceShadows5">
         <source>'Microsoft.VisualBasic.ComClassAttribute' on class '{0}' implicitly declares {1} '{2}', which conflicts with a member of the same name in {3} '{4}'. Use 'Microsoft.VisualBasic.ComClassAttribute(InterfaceShadows:=True)' if you want to hide the name on the base {4}.</source>
-        <target state="translated">'"Microsoft.VisualBasic.ComClassAttribute" na classe "{0}" declara implicitamente {1} "{2}", que está em conflito com um membro do mesmo nome em {3} "{4}". Use "Microsoft.VisualBasic.ComClassAttribute(InterfaceShadows:=True)" se você deseja ocultar o nome da base {4}.</target>
+        <target state="translated">"Microsoft.VisualBasic.ComClassAttribute" na classe "{0}" declara implicitamente {1} "{2}", que está em conflito com um membro do mesmo nome em {3} "{4}". Use "Microsoft.VisualBasic.ComClassAttribute(InterfaceShadows:=True)" se você deseja ocultar o nome da base {4}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ComClassInterfaceShadows5_Title">
@@ -6799,7 +6925,7 @@
       </trans-unit>
       <trans-unit id="WRN_ComClassPropertySetObject1">
         <source>'{0}' cannot be exposed to COM as a property 'Let'. You will not be able to assign non-object values (such as numbers or strings) to this property from Visual Basic 6.0 using a 'Let' statement.</source>
-        <target state="translated">'"{0}" não pode ser exposto a COM como uma propriedade "Let". Você não poderá atribuir valores não-objeto (como números ou cadeias de caracteres) para essa propriedade do Visual Basic 6.0 usando uma instrução "Let".</target>
+        <target state="translated">"{0}" não pode ser exposto a COM como uma propriedade "Let". Você não poderá atribuir valores não-objeto (como números ou cadeias de caracteres) para essa propriedade do Visual Basic 6.0 usando uma instrução "Let".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ComClassPropertySetObject1_Title">
@@ -7344,17 +7470,17 @@
       </trans-unit>
       <trans-unit id="ERR_AccessMismatch6">
         <source>'{0}' cannot expose type '{1}' in {2} '{3}' through {4} '{5}'.</source>
-        <target state="translated">'"{0}" não pode expor o tipo "{1}" em {2} "{3}" através de {4} "{5}".</target>
+        <target state="translated">"{0}" não pode expor o tipo "{1}" em {2} "{3}" através de {4} "{5}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadMetaDataReference1">
         <source>'{0}' cannot be referenced because it is not a valid assembly.</source>
-        <target state="translated">'"{0}" não pode ser referenciado porque não é um assembly válido.</target>
+        <target state="translated">"{0}" não pode ser referenciado porque não é um assembly válido.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PropertyDoesntImplementAllAccessors">
         <source>'{0}' cannot be implemented by a {1} property.</source>
-        <target state="translated">'"{0}" não pode ser implementado por uma {1} propriedade.</target>
+        <target state="translated">"{0}" não pode ser implementado por uma {1} propriedade.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedMustOverride">
@@ -7646,12 +7772,12 @@
       </trans-unit>
       <trans-unit id="ERR_VarianceIEnumerableSuggestion3">
         <source>'{0}' cannot be converted to '{1}'. Consider using '{2}' instead.</source>
-        <target state="translated">'"{0}" não pode ser convertido em "{1}". Ao invés disso, considere o uso de "{2}".</target>
+        <target state="translated">"{0}" não pode ser convertido em "{1}". Ao invés disso, considere o uso de "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_VarianceIEnumerableSuggestion3">
         <source>'{0}' cannot be converted to '{1}'. Consider using '{2}' instead.</source>
-        <target state="translated">'"{0}" não pode ser convertido em "{1}". Ao invés disso, considere o uso de "{2}".</target>
+        <target state="translated">"{0}" não pode ser convertido em "{1}". Ao invés disso, considere o uso de "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_VarianceIEnumerableSuggestion3_Title">
@@ -7661,12 +7787,12 @@
       </trans-unit>
       <trans-unit id="ERR_VarianceConversionFailedIn6">
         <source>'{4}' cannot be converted to '{5}' because '{0}' is not derived from '{1}', as required for the 'In' generic parameter '{2}' in '{3}'.</source>
-        <target state="translated">'"{4}" não pode ser convertido em "{5}" porque "{0}" não é derivado de "{1}", conforme necessário para o parâmetro genérico "In" "{2}" em "{3}".</target>
+        <target state="translated">"{4}" não pode ser convertido em "{5}" porque "{0}" não é derivado de "{1}", conforme necessário para o parâmetro genérico "In" "{2}" em "{3}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarianceConversionFailedOut6">
         <source>'{4}' cannot be converted to '{5}' because '{0}' is not derived from '{1}', as required for the 'Out' generic parameter '{2}' in '{3}'.</source>
-        <target state="translated">'"{4}" não pode ser convertido em "{5}" porque "{0}" não é derivado de "{1}", conforme necessário para o parâmetro genérico "Out" "{2}" em "{3}".</target>
+        <target state="translated">"{4}" não pode ser convertido em "{5}" porque "{0}" não é derivado de "{1}", conforme necessário para o parâmetro genérico "Out" "{2}" em "{3}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_VarianceConversionFailedIn6">
@@ -7691,17 +7817,17 @@
       </trans-unit>
       <trans-unit id="ERR_VarianceConversionFailedTryIn4">
         <source>'{0}' cannot be converted to '{1}'. Consider changing the '{2}' in the definition of '{3}' to an In type parameter, 'In {2}'.</source>
-        <target state="translated">'"{0}" não pode ser convertido em "{1}". Considere alterar o "{2}" na definição de "{3}" para um parâmetro de tipo In, "In {2}".</target>
+        <target state="translated">"{0}" não pode ser convertido em "{1}". Considere alterar o "{2}" na definição de "{3}" para um parâmetro de tipo In, "In {2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarianceConversionFailedTryOut4">
         <source>'{0}' cannot be converted to '{1}'. Consider changing the '{2}' in the definition of '{3}' to an Out type parameter, 'Out {2}'.</source>
-        <target state="translated">'"{0}" não pode ser convertido em "{1}". Considere alterar o "{2}" na definição de "{3}" para um parâmetro de tipo Out, "Out {2}".</target>
+        <target state="translated">"{0}" não pode ser convertido em "{1}". Considere alterar o "{2}" na definição de "{3}" para um parâmetro de tipo Out, "Out {2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_VarianceConversionFailedTryIn4">
         <source>'{0}' cannot be converted to '{1}'. Consider changing the '{2}' in the definition of '{3}' to an In type parameter, 'In {2}'.</source>
-        <target state="translated">'"{0}" não pode ser convertido em "{1}". Considere alterar o "{2}" na definição de "{3}" para um parâmetro de tipo In, "In {2}".</target>
+        <target state="translated">"{0}" não pode ser convertido em "{1}". Considere alterar o "{2}" na definição de "{3}" para um parâmetro de tipo In, "In {2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_VarianceConversionFailedTryIn4_Title">
@@ -7711,7 +7837,7 @@
       </trans-unit>
       <trans-unit id="WRN_VarianceConversionFailedTryOut4">
         <source>'{0}' cannot be converted to '{1}'. Consider changing the '{2}' in the definition of '{3}' to an Out type parameter, 'Out {2}'.</source>
-        <target state="translated">'"{0}" não pode ser convertido em "{1}". Considere alterar o "{2}" na definição de "{3}" para um parâmetro de tipo Out, "Out {2}".</target>
+        <target state="translated">"{0}" não pode ser convertido em "{1}". Considere alterar o "{2}" na definição de "{3}" para um parâmetro de tipo Out, "Out {2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_VarianceConversionFailedTryOut4_Title">
@@ -7971,17 +8097,17 @@
       </trans-unit>
       <trans-unit id="ERR_BadGetAwaiterMethod1">
         <source>'Await' requires that the type '{0}' have a suitable GetAwaiter method.</source>
-        <target state="translated">'"Await" requer que o tipo "{0}" tenha um método GetAwaiter adequado.</target>
+        <target state="translated">"Await" requer que o tipo "{0}" tenha um método GetAwaiter adequado.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIsCompletedOnCompletedGetResult2">
         <source>'Await' requires that the return type '{0}' of '{1}.GetAwaiter()' have suitable IsCompleted, OnCompleted and GetResult members, and implement INotifyCompletion or ICriticalNotifyCompletion.</source>
-        <target state="translated">'"Await" requer que o tipo de retorno "{0}" de "{1}.GetAwaiter()" tenha membros IsCompleted, OnCompleted e GetResult adequados e implemente INotifyCompletion ou ICriticalNotifyCompletion.</target>
+        <target state="translated">"Await" requer que o tipo de retorno "{0}" de "{1}.GetAwaiter()" tenha membros IsCompleted, OnCompleted e GetResult adequados e implemente INotifyCompletion ou ICriticalNotifyCompletion.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DoesntImplementAwaitInterface2">
         <source>'{0}' does not implement '{1}'.</source>
-        <target state="translated">'"{0}" não implementa "{1}".</target>
+        <target state="translated">"{0}" não implementa "{1}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitNothing">
@@ -8021,7 +8147,7 @@
       </trans-unit>
       <trans-unit id="ERR_CantAwaitAsyncSub1">
         <source>'{0}' does not return a Task and cannot be awaited. Consider changing it to an Async Function.</source>
-        <target state="translated">'"{0}" não retornar uma Tarefa e não podem ser colocada em espera. Considere alterá-la para uma Função Assíncrona.</target>
+        <target state="translated">"{0}" não retornar uma Tarefa e não podem ser colocada em espera. Considere alterá-la para uma Função Assíncrona.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidLambdaModifier">
@@ -8031,7 +8157,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadAwaitInNonAsyncMethod">
         <source>'Await' can only be used within an Async method. Consider marking this method with the 'Async' modifier and changing its return type to 'Task(Of {0})'.</source>
-        <target state="translated">'"Await" pode somente ser usado dentro de um método Assíncrono. Considere marcar este método com o modificador "Async" e alterar seu tipo de retorno para "Task(Of {0})".</target>
+        <target state="translated">"Await" pode somente ser usado dentro de um método Assíncrono. Considere marcar este método com o modificador "Async" e alterar seu tipo de retorno para "Task(Of {0})".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitInNonAsyncVoidMethod">
@@ -8076,7 +8202,7 @@
       </trans-unit>
       <trans-unit id="ERR_RestrictedResumableType1">
         <source>'{0}' cannot be used as a parameter type for an Iterator or Async method.</source>
-        <target state="translated">'"{0}" não pode ser usado como um tipo de parâmetro para um método Iterador ou Assíncrono.</target>
+        <target state="translated">"{0}" não pode ser usado como um tipo de parâmetro para um método Iterador ou Assíncrono.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConstructorAsync">
@@ -8086,7 +8212,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMethodsMustNotBeAsync1">
         <source>'{0}' cannot be declared 'Partial' because it has the 'Async' modifier.</source>
-        <target state="translated">'"{0}" não pode ser declarado como "Parcial" porque ele tem o modificador "Async".</target>
+        <target state="translated">"{0}" não pode ser declarado como "Parcial" porque ele tem o modificador "Async".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ResumablesCannotContainOnError">
@@ -8431,12 +8557,12 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedModule1">
         <source>'{0}' is an unsupported .NET module.</source>
-        <target state="translated">'"{0}" é um módulo .NET sem suporte.</target>
+        <target state="translated">"{0}" é um módulo .NET sem suporte.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedEvent1">
         <source>'{0}' is an unsupported event.</source>
-        <target state="translated">'"{0}" é um evento sem suporte.</target>
+        <target state="translated">"{0}" é um evento sem suporte.</target>
         <note />
       </trans-unit>
       <trans-unit id="PropertiesCanNotHaveTypeArguments">
@@ -8701,7 +8827,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidFormatSpecifier">
         <source>'{0}' is not a valid format specifier</source>
-        <target state="translated">'"{0}" não é um especificador de formato válido</target>
+        <target state="translated">"{0}" não é um especificador de formato válido</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidPreprocessorConstantType">
@@ -8711,7 +8837,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpectedWarningKeyword">
         <source>'Warning' expected.</source>
-        <target state="translated">'"Aviso" esperado.</target>
+        <target state="translated">"Aviso" esperado.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotBeMadeNullable1">

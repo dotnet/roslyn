@@ -10,12 +10,13 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.Editor;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess.ReflectionExtensions;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Roslyn.Utilities;
 using IObjectWithSite = Microsoft.VisualStudio.OLE.Interop.IObjectWithSite;
 using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
@@ -23,7 +24,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
     internal partial class Editor_InProc
     {
-        public string GetSelectedNavBarItem(int comboBoxIndex)
+        public string? GetSelectedNavBarItem(int comboBoxIndex)
             => ExecuteOnActiveView(v => GetNavigationBarComboBoxes(v)[comboBoxIndex].SelectedItem?.ToString());
 
         public string[] GetNavBarItems(int comboBoxIndex)
@@ -38,7 +39,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             int FindItem(ComboBox comboBox)
             {
-                for (int i = 0; i < comboBox.Items.Count; i++)
+                for (var i = 0; i < comboBox.Items.Count; i++)
                 {
                     if (comboBox.Items[i].ToString() == itemText)
                     {
@@ -72,7 +73,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             ExpandNavigationBar(comboboxIndex);
             _sendKeys.Send(VirtualKey.Home);
-            for (int i = 0; i < itemIndex; i++)
+            for (var i = 0; i < itemIndex; i++)
             {
                 _sendKeys.Send(VirtualKey.Down);
             }
@@ -86,27 +87,32 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         private List<ComboBox> GetNavigationBarComboBoxes(IWpfTextView textView)
         {
             var margin = GetNavbar(textView);
-            List<ComboBox> combos = margin.GetFieldValue<List<ComboBox>>("_combos");
+            var combos = margin.GetFieldValue<List<ComboBox>>("_combos");
             return combos;
         }
 
-        private static UIElement GetNavbar(IWpfTextView textView)
+        private static UIElement? GetNavbar(IWpfTextView textView)
         {
             // Visual Studio 2019
             var editorAdaptersFactoryService = GetComponentModelService<IVsEditorAdaptersFactoryService>();
             var viewAdapter = editorAdaptersFactoryService.GetViewAdapter(textView);
+            Contract.ThrowIfNull(viewAdapter);
 
             // Make sure we have the top pane
             //
             // The docs are wrong. When a secondary view exists, it is the secondary view which is on top. The primary
             // view is only on top when there is no secondary view.
             var codeWindow = TryGetCodeWindow(viewAdapter);
+            Contract.ThrowIfNull(codeWindow);
+
             if (ErrorHandler.Succeeded(codeWindow.GetSecondaryView(out var secondaryViewAdapter)))
             {
                 viewAdapter = secondaryViewAdapter;
             }
 
             var textViewHost = editorAdaptersFactoryService.GetWpfTextViewHost(viewAdapter);
+            Contract.ThrowIfNull(textViewHost);
+
             var dropDownMargin = textViewHost.GetTextViewMargin("DropDownMargin");
             if (dropDownMargin != null)
             {
@@ -130,14 +136,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return vsDropDownBarAdapterMargin;
         }
 
-        private static IVsCodeWindow TryGetCodeWindow(IVsTextView textView)
+        private static IVsCodeWindow? TryGetCodeWindow(IVsTextView textView)
         {
             if (textView == null)
             {
                 throw new ArgumentNullException(nameof(textView));
             }
 
-            if (!(textView is IObjectWithSite objectWithSite))
+            if (textView is not IObjectWithSite objectWithSite)
             {
                 return null;
             }
@@ -149,7 +155,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return null;
             }
 
-            IOleServiceProvider oleServiceProvider = null;
+            IOleServiceProvider? oleServiceProvider = null;
             try
             {
                 oleServiceProvider = Marshal.GetObjectForIUnknown(ppvSite) as IOleServiceProvider;
@@ -171,10 +177,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 return null;
             }
 
-            IVsWindowFrame frame = null;
+            IVsWindowFrame? frame = null;
             try
             {
-                frame = Marshal.GetObjectForIUnknown(ppvObject) as IVsWindowFrame;
+                frame = (IVsWindowFrame)Marshal.GetObjectForIUnknown(ppvObject);
             }
             finally
             {

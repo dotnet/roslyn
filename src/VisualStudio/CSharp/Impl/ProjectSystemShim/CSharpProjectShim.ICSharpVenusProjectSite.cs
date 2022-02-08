@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -13,9 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
     internal partial class CSharpProjectShim : ICSharpVenusProjectSite
     {
         public void AddReferenceToCodeDirectory(string assemblyFileName, ICSharpProjectRoot project)
-        {
-            AddReferenceToCodeDirectoryEx(assemblyFileName, project, CompilerOptions.OPTID_IMPORTS);
-        }
+            => AddReferenceToCodeDirectoryEx(assemblyFileName, project, CompilerOptions.OPTID_IMPORTS);
 
         public void RemoveReferenceToCodeDirectory(string assemblyFileName, ICSharpProjectRoot project)
         {
@@ -35,9 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         }
 
         public void OnDiskFileUpdated(string filename, ref System.Runtime.InteropServices.ComTypes.FILETIME pFT)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public void OnCodeDirectoryAliasesChanged(ICSharpProjectRoot project, int previousAliasesCount, string[] previousAliases, int currentAliasesCount, string[] currentAliases)
         {
@@ -71,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             // We should have gotten a ProjectSite back. If we didn't, that means we're being given
             // a project site that we didn't get BindToProject called on first which is a no-no by
             // the project system.
-            if (!(project.GetProjectSite(ref projectSiteGuid) is CSharpProjectShim projectSite))
+            if (project.GetProjectSite(ref projectSiteGuid) is not CSharpProjectShim projectSite)
             {
                 throw new ArgumentException($"{project} was not properly sited with the language service.", nameof(project));
             }

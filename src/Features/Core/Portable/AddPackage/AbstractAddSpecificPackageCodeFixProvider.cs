@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -33,7 +35,6 @@ namespace Microsoft.CodeAnalysis.AddPackage
 
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var cancellationToken = context.CancellationToken;
             var assemblyName = GetAssemblyName(context.Diagnostics[0].Id);
 
             if (assemblyName != null)

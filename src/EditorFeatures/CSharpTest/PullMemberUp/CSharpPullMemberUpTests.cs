@@ -2,10 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.PullMemberUp;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -15,6 +19,8 @@ using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Test.Utilities.PullMemberUp;
 using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PullMemberUp
 {
@@ -31,6 +37,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PullMemberUp
             string initialMarkup,
             TestParameters parameters = default)
         {
+            var service = new TestPullMemberUpService(null, null);
+            parameters = parameters.WithFixProviderData(service);
+
             using var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters);
             var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
             if (actions.Length == 1)
@@ -46,6 +55,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PullMemberUp
             {
                 Assert.True(true);
             }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task TestNoRefactoringProvidedWhenNoOptionsService()
+        {
+            var testText = @"
+using System;
+namespace PushUpTest
+{
+    interface IInterface
+    {
+    }
+
+    public class TestClass : IInterface
+    {
+        public void TestM[||]ethod()
+        {
+            System.Console.WriteLine(""Hello World"");
+        }
+    }
+}";
+            await TestActionCountAsync(testText, 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -128,7 +159,6 @@ namespace PushUpTest
             await TestQuickActionNotProvidedAsync(eventTest);
         }
 
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task TestNoRefactoringProvidedInNestedTypesViaQuickAction()
         {
@@ -187,7 +217,7 @@ namespace PushUpTest
         }
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -219,9 +249,8 @@ namespace PushUpTest
         public abstract void TestMethod();
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task TestPullGenericsUpToInterfaceViaQuickAction()
@@ -258,7 +287,7 @@ namespace PushUpTest
         }
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -312,7 +341,7 @@ namespace PushUpTest
         }
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -346,7 +375,7 @@ namespace PushUpTest
         public event EventHandler Event1, Event2, Event3;
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -400,7 +429,7 @@ namespace PushUpTest
         }
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -434,7 +463,7 @@ namespace PushUpTest
         public int TestProperty { get; private set; }
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -468,7 +497,7 @@ namespace PushUpTest
         public int TestProperty{ private get; set; }
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -501,7 +530,7 @@ namespace PushUpTest
     {
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -542,7 +571,7 @@ namespace PushUpTest
         }
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -583,7 +612,2406 @@ namespace PushUpTest
         }
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullPropertyToInterfaceWithAddUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+public interface IBase
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : IBase
+{
+    public Uri En[||]dpoint { get; set; }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+
+public interface IBase
+{
+    Uri Endpoint { get; set; }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : IBase
+{
+    public Uri Endpoint { get; set; }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToInterfaceWithoutAddUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+public interface IBase
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : IBase
+{
+    public bool Test[||]Method()
+    {
+        var endpoint1 = new Uri(""http://localhost"");
+        var endpoint2 = new Uri(""http://localhost"");
+        return endpoint1.Equals(endpoint2);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+public interface IBase
+{
+    bool TestMethod();
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : IBase
+{
+    public bool Test[||]Method()
+    {
+        var endpoint1 = new Uri(""http://localhost"");
+        var endpoint2 = new Uri(""http://localhost"");
+        return endpoint1.Equals(endpoint2);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodWithNewReturnTypeToInterfaceWithAddUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+public interface IBase
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : IBase
+{
+    public Uri Test[||]Method()
+    {
+        return new Uri(""http://localhost"");
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+
+public interface IBase
+{
+    Uri TestMethod();
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : IBase
+{
+    public Uri TestMethod()
+    {
+        return new Uri(""http://localhost"");
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodWithNewParamTypeToInterfaceWithAddUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+public interface IBase
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : IBase
+{
+    public bool Test[||]Method(Uri endpoint)
+    {
+        var localHost = new Uri(""http://localhost"");
+        return endpoint.Equals(localhost);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+
+public interface IBase
+{
+    bool TestMethod(Uri endpoint);
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : IBase
+{
+    public bool TestMethod(Uri endpoint)
+    {
+        var localHost = new Uri(""http://localhost"");
+        return endpoint.Equals(localhost);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullEventToInterfaceWithAddUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+public interface IBase
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : IBase
+{
+    public event EventHandler Test[||]Event
+    {
+        add
+        {
+            Console.WriteLine(""adding event..."");
+        }
+        remove
+        {
+            Console.WriteLine(""removing event..."");
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+
+public interface IBase
+{
+    event EventHandler TestEvent;
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : IBase
+{
+    public event EventHandler TestEvent
+    {
+        add
+        {
+            Console.WriteLine(""adding event..."");
+        }
+        remove
+        {
+            Console.WriteLine(""removing event..."");
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullPropertyToClassWithAddUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+public class Base
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+    public Uri En[||]dpoint { get; set; }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">using System;
+
+public class Base
+{
+    public Uri Endpoint { get; set; }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullPropertyToClassWithAddUsingsViaQuickAction2()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">public class Base
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+    public Uri En[||]dpoint { get; set; }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">using System;
+public class Base
+{
+    public Uri Endpoint { get; set; }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullPropertyToClassWithoutDuplicatingUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+
+public class Base
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+    public Uri En[||]dpoint { get; set; }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+
+public class Base
+{
+    public Uri Endpoint { get; set; }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullPropertyWithNewBodyTypeToClassWithAddUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+public class Base
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+    public bool Test[||]Property
+    {
+        get
+        {
+            var endpoint1 = new Uri(""http://localhost"");
+            var endpoint2 = new Uri(""http://localhost"");
+            return endpoint1.Equals(endpoint2);
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">using System;
+
+public class Base
+{
+    public bool TestProperty
+    {
+        get
+        {
+            var endpoint1 = new Uri(""http://localhost"");
+            var endpoint2 = new Uri(""http://localhost"");
+            return endpoint1.Equals(endpoint2);
+        }
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodWithNewNonDeclaredBodyTypeToClassWithAddUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+public class Base
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
+
+public class Derived : Base
+{
+    public int Test[||]Method()
+    {
+        return Enumerable.Range(0, 5).Sum();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">using System.Linq;
+
+public class Base
+{
+    public int Test[||]Method()
+    {
+        return Enumerable.Range(0, 5).Sum();
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithOverlappingUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+using System.Threading.Tasks;
+
+public class Base
+{
+    public Uri Endpoint{ get; set; }
+
+    public async Task&lt;int&gt; Get5Async()
+    {
+        return 5;
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
+using System.Threading.Tasks;
+
+public class Derived : Base
+{
+    public async Task&lt;int&gt; Test[||]Method()
+    {
+        return Enumerable.Range(0, 5).Sum();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+
+public class Base
+{
+    public Uri Endpoint{ get; set; }
+
+    public async Task&lt;int&gt; Get5Async()
+    {
+        return 5;
+    }
+    public async Task&lt;int&gt; Test[||]Method()
+    {
+        return Enumerable.Range(0, 5).Sum();
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
+using System.Threading.Tasks;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithUnnecessaryFirstUsingViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+
+using System.Threading.Tasks;
+
+public class Base
+{
+    public async Task&lt;int&gt; Get5Async()
+    {
+        return 5;
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+
+public class Derived : Base
+{
+    public async Task&lt;int&gt; Test[||]Method()
+    {
+        return Enumerable.Range(0, 5).Sum();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">using System.Linq;
+using System.Threading.Tasks;
+
+public class Base
+{
+    public async Task&lt;int&gt; Get5Async()
+    {
+        return 5;
+    }
+    public async Task&lt;int&gt; Test[||]Method()
+    {
+        return Enumerable.Range(0, 5).Sum();
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithUnusedBaseUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+using System.Threading.Tasks;
+
+public class Base
+{
+    public Uri Endpoint{ get; set; }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
+
+public class Derived : Base
+{
+    public int Test[||]Method()
+    {
+        return Enumerable.Range(0, 5).Sum();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+
+public class Base
+{
+    public Uri Endpoint{ get; set; }
+    public int TestMethod()
+    {
+        return Enumerable.Range(0, 5).Sum();
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithRetainCommentsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+// blah blah
+
+public class Base
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
+
+public class Derived : Base
+{
+    public int Test[||]Method()
+    {
+        return 5;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+// blah blah
+
+public class Base
+{
+    public int TestMethod()
+    {
+        return 5;
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithRetainPreImportCommentsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+// blah blah
+using System.Linq;
+
+public class Base
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+    public Uri End[||]point { get; set; }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+// blah blah
+using System;
+using System.Linq;
+
+public class Base
+{
+    public Uri Endpoint { get; set; }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithRetainPostImportCommentsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System.Linq;
+
+// blah blah
+public class Base
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+    public Uri End[||]point { get; set; }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+using System.Linq;
+
+// blah blah
+public class Base
+{
+    public Uri Endpoint { get; set; }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithLambdaUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+public class Base
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+using System.Linq;
+
+public class Derived : Base
+{
+    public int Test[||]Method()
+    {
+        return Enumerable.Range(0, 5).
+            Select((n) => new Uri(""http://"" + n)).
+            Count((uri) => uri != null);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">using System;
+using System.Linq;
+
+public class Base
+{
+    public int TestMethod()
+    {
+        return Enumerable.Range(0, 5).
+            Select((n) => new Uri(""http://"" + n)).
+            Count((uri) => uri != null);
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+using System.Linq;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithUnusedUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+
+public class Base
+{
+    public Uri Endpoint{ get; set; }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
+using System.Threading.Tasks;
+
+public class Derived : Base
+{
+    public int Test[||]Method()
+    {
+        return Enumerable.Range(0, 5).Sum();
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+using System.Linq;
+
+public class Base
+{
+    public Uri Endpoint{ get; set; }
+    public int TestMethod()
+    {
+        return Enumerable.Range(0, 5).Sum();
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
+using System.Threading.Tasks;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassKeepSystemFirstViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace TestNs1
+{
+    using System;
+
+    public class Base
+    {
+        public Uri Endpoint{ get; set; }
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+namespace A_TestNs2
+{
+    using TestNs1;
+
+    public class Derived : Base
+    {
+        public Foo Test[||]Method()
+        {
+            return null;
+        }
+    }
+
+    public class Foo
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace TestNs1
+{
+    using System;
+    using A_TestNs2;
+
+    public class Base
+    {
+        public Uri Endpoint{ get; set; }
+        public Foo TestMethod()
+        {
+            return null;
+        }
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+namespace A_TestNs2
+{
+    using TestNs1;
+
+    public class Derived : Base
+    {
+    }
+
+    public class Foo
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassKeepSystemFirstViaQuickAction2()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace TestNs1
+{
+    public class Base
+    {
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+namespace A_TestNs2
+{
+    using System;
+    using TestNs1;
+
+    public class Derived : Base
+    {
+        public Foo Test[||]Method()
+        {
+            var uri = new Uri(""http://localhost"");
+            return null;
+        }
+    }
+
+    public class Foo
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">using System;
+using A_TestNs2;
+
+namespace TestNs1
+{
+    public class Base
+    {
+        public Foo TestMethod()
+        {
+            var uri = new Uri(""http://localhost"");
+            return null;
+        }
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+namespace A_TestNs2
+{
+    using System;
+    using TestNs1;
+
+    public class Derived : Base
+    {
+    }
+
+    public class Foo
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithExtensionViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace TestNs1
+{
+    public class Base
+    {
+    }
+
+    public class Foo
+    {
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+namespace TestNs2
+{
+    using TestNs1;
+
+    public class Derived : Base
+    {
+        public int Test[||]Method()
+        {
+            var foo = new Foo();
+            return foo.FooBar();
+        }
+    }
+
+    public static class FooExtensions
+    {
+        public static int FooBar(this Foo foo) 
+        {
+            return 5;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">using TestNs2;
+
+namespace TestNs1
+{
+    public class Base
+    {
+        public int TestMethod()
+        {
+            var foo = new Foo();
+            return foo.FooBar();
+        }
+    }
+
+    public class Foo
+    {
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+namespace TestNs2
+{
+    using TestNs1;
+
+    public class Derived : Base
+    {
+    }
+
+    public static class FooExtensions
+    {
+        public static int FooBar(this Foo foo) 
+        {
+            return 5;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithExtensionViaQuickAction2()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace TestNs1
+{
+    public class Base
+    {
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using TestNs1;
+using TestNs3;
+using TestNs4;
+
+namespace TestNs2
+{
+    public class Derived : Base
+    {
+        public int Test[||]Method()
+        {
+            var foo = new Foo();
+            return foo.FooBar();
+        }
+    }
+}
+        </Document>
+        <Document FilePath = ""File3.cs"">
+namespace TestNs3
+{
+    public class Foo
+    {
+    }
+}
+        </Document>
+        <Document FilePath = ""File4.cs"">
+using TestNs3;
+
+namespace TestNs4
+{
+    public static class FooExtensions
+    {
+        public static int FooBar(this Foo foo) 
+        {
+            return 5;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">using TestNs3;
+using TestNs4;
+
+namespace TestNs1
+{
+    public class Base
+    {
+        public int TestMethod()
+        {
+            var foo = new Foo();
+            return foo.FooBar();
+        }
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using TestNs1;
+using TestNs3;
+using TestNs4;
+
+namespace TestNs2
+{
+    public class Derived : Base
+    {
+    }
+}
+        </Document>
+        <Document FilePath = ""File3.cs"">
+namespace TestNs3
+{
+    public class Foo
+    {
+    }
+}
+        </Document>
+        <Document FilePath = ""File4.cs"">
+using TestNs3;
+
+namespace TestNs4
+{
+    public static class FooExtensions
+    {
+        public static int FooBar(this Foo foo) 
+        {
+            return 5;
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithAliasUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+
+public class Base
+{
+    public Uri Endpoint{ get; set; }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using Enumer = System.Linq.Enumerable;
+using Sys = System;
+
+public class Derived : Base
+{
+    public void Test[||]Method()
+    {
+        Sys.Console.WriteLine(Enumer.Range(0, 5).Sum());
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+using Enumer = System.Linq.Enumerable;
+using Sys = System;
+
+public class Base
+{
+    public Uri Endpoint{ get; set; }
+    public void TestMethod()
+    {
+        Sys.Console.WriteLine(Enumer.Range(0, 5).Sum());
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using Enumer = System.Linq.Enumerable;
+using Sys = System;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullPropertyToClassWithBaseAliasUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using Enumer = System.Linq.Enumerable;
+
+public class Base
+{
+    public void TestMethod()
+    {
+        System.Console.WriteLine(Enumer.Range(0, 5).Sum());
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+    public Uri End[||]point{ get; set; }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+using System;
+using Enumer = System.Linq.Enumerable;
+
+public class Base
+{
+    public Uri Endpoint{ get; set; }
+    public void TestMethod()
+    {
+        System.Console.WriteLine(Enumer.Range(0, 5).Sum());
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithMultipleNamespacedUsingsViaQuickAction()
+        {
+            var testText = @"
+namespace TestNs1
+{
+    using System;
+
+    public class Base
+    {
+        public Uri Endpoint{ get; set; }
+    }
+}
+namespace TestNs2
+{
+    using System.Linq;
+    using TestNs1;
+
+    public class Derived : Base
+    {
+        public int Test[||]Method()
+        {
+            return Enumerable.Range(0, 5).Sum();
+        }
+    }
+}
+";
+            var expected = @"
+namespace TestNs1
+{
+    using System;
+    using System.Linq;
+
+    public class Base
+    {
+        public Uri Endpoint{ get; set; }
+        public int TestMethod()
+        {
+            return Enumerable.Range(0, 5).Sum();
+        }
+    }
+}
+namespace TestNs2
+{
+    using System.Linq;
+    using TestNs1;
+
+    public class Derived : Base
+    {
+    }
+}
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithNestedNamespacedUsingsViaQuickAction()
+        {
+            var testText = @"
+namespace TestNs1
+{
+    namespace InnerNs1
+    {
+        using System;
+
+        public class Base
+        {
+            public Uri Endpoint { get; set; }
+        }
+    }
+}
+namespace TestNs2
+{
+    namespace InnerNs2
+    {
+        using System.Linq;
+        using TestNs1.InnerNs1;
+
+        public class Derived : Base
+        {
+            public int Test[||]Method()
+            {
+                return Foo.Bar(Enumerable.Range(0, 5).Sum());
+            }
+        }
+
+        public class Foo
+        {
+            public static int Bar(int num)
+            {
+                return num + 1;
+            }
+        }
+    }
+}
+";
+            var expected = @"
+namespace TestNs1
+{
+    namespace InnerNs1
+    {
+        using System;
+        using System.Linq;
+        using TestNs2.InnerNs2;
+
+        public class Base
+        {
+            public Uri Endpoint { get; set; }
+            public int TestMethod()
+            {
+                return Foo.Bar(Enumerable.Range(0, 5).Sum());
+            }
+        }
+    }
+}
+namespace TestNs2
+{
+    namespace InnerNs2
+    {
+        using System.Linq;
+        using TestNs1.InnerNs1;
+
+        public class Derived : Base
+        {
+        }
+
+        public class Foo
+        {
+            public static int Bar(int num)
+            {
+                return num + 1;
+            }
+        }
+    }
+}
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithNewNamespaceUsingViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace A.B
+{
+    class Base
+    {
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+namespace X.Y
+{
+    class Derived : A.B.Base
+    {
+        public Other Get[||]Other() => null;
+    }
+
+    class Other
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">using X.Y;
+
+namespace A.B
+{
+    class Base
+    {
+        public Other GetOther() => null;
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+namespace X.Y
+{
+    class Derived : A.B.Base
+    {
+    }
+
+    class Other
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithFileNamespaceUsingViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace A.B;
+
+class Base
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+namespace X.Y;
+class Derived : A.B.Base
+{
+    public Other Get[||]Other() => null;
+}
+
+class Other
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">using X.Y;
+
+namespace A.B;
+
+class Base
+{
+    public Other GetOther() => null;
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+namespace X.Y;
+class Derived : A.B.Base
+{
+}
+
+class Other
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithUnusedNamespaceUsingViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace A.B
+{
+    class Base
+    {
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+namespace X.Y
+{
+    class Derived : A.B.Base
+    {
+        public int Get[||]Five() => 5;
+    }
+
+    class Other
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace A.B
+{
+    class Base
+    {
+        public int GetFive() => 5;
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+namespace X.Y
+{
+    class Derived : A.B.Base
+    {
+    }
+
+    class Other
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithMultipleNamespacesAndCommentsViaQuickAction()
+        {
+            var testText = @"
+// comment 1
+
+namespace TestNs1
+{
+    // comment 2
+
+    // comment 3 
+    public class Base
+    {
+    }
+}
+namespace TestNs2
+{
+    // comment 4
+    using System.Linq;
+    using TestNs1;
+
+    public class Derived : Base
+    {
+        public int Test[||]Method()
+        {
+            return 5;
+        }
+    }
+}
+";
+            var expected = @"
+// comment 1
+
+namespace TestNs1
+{
+    // comment 2
+
+    // comment 3 
+    public class Base
+    {
+        public int TestMethod()
+        {
+            return 5;
+        }
+    }
+}
+namespace TestNs2
+{
+    // comment 4
+    using System.Linq;
+    using TestNs1;
+
+    public class Derived : Base
+    {
+    }
+}
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithMultipleNamespacedUsingsAndCommentsViaQuickAction()
+        {
+            var testText = @"
+// comment 1
+
+namespace TestNs1
+{
+    // comment 2
+    using System;
+
+    // comment 3 
+    public class Base
+    {
+    }
+}
+namespace TestNs2
+{
+    // comment 4
+    using System.Linq;
+    using TestNs1;
+
+    public class Derived : Base
+    {
+        public int Test[||]Method()
+        {
+            return Enumerable.Range(0, 5).Sum();
+        }
+    }
+}
+";
+            var expected = @"
+// comment 1
+
+namespace TestNs1
+{
+    // comment 2
+    using System;
+    using System.Linq;
+
+    // comment 3 
+    public class Base
+    {
+        public int TestMethod()
+        {
+            return Enumerable.Range(0, 5).Sum();
+        }
+    }
+}
+namespace TestNs2
+{
+    // comment 4
+    using System.Linq;
+    using TestNs1;
+
+    public class Derived : Base
+    {
+    }
+}
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithNamespacedUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace ClassLibrary1
+{
+    using System;
+
+    public class Base
+    {
+        public Uri Endpoint{ get; set; }
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+namespace ClassLibrary1
+{
+    using System.Linq;
+
+    public class Derived : Base
+    {
+        public int Test[||]Method()
+        {
+            return Enumerable.Range(0, 5).Sum();
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace ClassLibrary1
+{
+    using System;
+    using System.Linq;
+
+    public class Base
+    {
+        public Uri Endpoint{ get; set; }
+        public int Test[||]Method()
+        {
+            return Enumerable.Range(0, 5).Sum();
+        }
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+namespace ClassLibrary1
+{
+    using System.Linq;
+
+    public class Derived : Base
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodToClassWithDuplicateNamespacedUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace ClassLibrary1
+{
+    using System;
+
+    public class Base
+    {
+        public Uri Endpoint{ get; set; }
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
+namespace ClassLibrary1
+{
+    using System.Linq;
+
+    public class Derived : Base
+    {
+        public int Test[||]Method()
+        {
+            return Enumerable.Range(0, 5).Sum();
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace ClassLibrary1
+{
+    using System;
+    using System.Linq;
+
+    public class Base
+    {
+        public Uri Endpoint{ get; set; }
+        public int Test[||]Method()
+        {
+            return Enumerable.Range(0, 5).Sum();
+        }
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
+namespace ClassLibrary1
+{
+    using System.Linq;
+
+    public class Derived : Base
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodWithNewReturnTypeToClassWithAddUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+public class Base
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+    public Uri En[||]dpoint()
+    {
+        return new Uri(""http://localhost"");
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">using System;
+
+public class Base
+{
+    public Uri Endpoint()
+    {
+        return new Uri(""http://localhost"");
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodWithNewParamTypeToClassWithAddUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+public class Base
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+    public bool Test[||]Method(Uri endpoint)
+    {
+        var localHost = new Uri(""http://localhost"");
+        return endpoint.Equals(localhost);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">using System;
+
+public class Base
+{
+    public bool TestMethod(Uri endpoint)
+    {
+        var localHost = new Uri(""http://localhost"");
+        return endpoint.Equals(localhost);
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullMethodWithNewBodyTypeToClassWithAddUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+public class Base
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+    public bool Test[||]Method()
+    {
+        var endpoint1 = new Uri(""http://localhost"");
+        var endpoint2 = new Uri(""http://localhost"");
+        return endpoint1.Equals(endpoint2);
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">using System;
+
+public class Base
+{
+    public bool TestMethod()
+    {
+        var endpoint1 = new Uri(""http://localhost"");
+        var endpoint2 = new Uri(""http://localhost"");
+        return endpoint1.Equals(endpoint2);
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullEventToClassWithAddUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+public class Base
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+    public event EventHandler Test[||]Event
+    {
+        add
+        {
+            Console.WriteLine(""adding event..."");
+        }
+        remove
+        {
+            Console.WriteLine(""removing event..."");
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">using System;
+
+public class Base
+{
+    public event EventHandler Test[||]Event
+    {
+        add
+        {
+            Console.WriteLine(""adding event..."");
+        }
+        remove
+        {
+            Console.WriteLine(""removing event..."");
+        }
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullFieldToClassWithAddUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+public class Base
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+    public var en[||]dpoint = new Uri(""http://localhost"");
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">using System;
+
+public class Base
+{
+    public var endpoint = new Uri(""http://localhost"");
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(46010, "https://github.com/dotnet/roslyn/issues/46010")]
+        public async Task TestPullFieldToClassNoConstructorWithAddUsingsViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+public class Base
+{
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
+
+public class Derived : Base
+{
+    public var ran[||]ge = Enumerable.Range(0, 5);
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">using System.Linq;
+
+public class Base
+{
+    public var range = Enumerable.Range(0, 5);
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System.Linq;
+
+public class Derived : Base
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -725,7 +3153,7 @@ namespace PushUpTest
     {
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -756,7 +3184,7 @@ namespace PushUpTest
     {
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -793,7 +3221,7 @@ namespace PushUpTest
     {
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -825,7 +3253,7 @@ namespace PushUpTest
         public int you, someone = 10086;
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -856,7 +3284,7 @@ namespace PushUpTest
         public int you, someone = 10086;
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -891,7 +3319,7 @@ namespace PushUpTest
         private static event EventHandler Event1, Event4;
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -925,7 +3353,7 @@ namespace PushUpTest
     {
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -979,7 +3407,7 @@ namespace PushUpTest
     {
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -1012,7 +3440,7 @@ namespace PushUpTest
     {
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -1053,7 +3481,7 @@ namespace PushUpTest
         private int j;
     }
 }";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -1113,7 +3541,7 @@ namespace Destination
         </Document>
   </Project>
 </Workspace>";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -1175,7 +3603,7 @@ namespace Destination
         </Document>
   </Project>
 </Workspace>";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -1229,13 +3657,13 @@ namespace Destination
         </Document>
   </Project>
 </Workspace>";
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         public async Task TestPullMethodUpToVBClassViaQuickAction()
         {
-            // Moving member from C# to Visual Basic is not supported currently since the FindMostRelevantDeclarationAsync method in 
+            // Moving member from C# to Visual Basic is not supported currently since the FindMostRelevantDeclarationAsync method in
             // AbstractCodeGenerationService will return null.
             var input = @"
 <Workspace>
@@ -1423,6 +3851,417 @@ public class TestClass : VBInterface
             await TestQuickActionNotProvidedAsync(input);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        public async Task TestPullMethodWithToClassWithAddUsingsInsideNamespaceViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace N
+{
+    public class Base
+    {
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+namespace N
+{
+    public class Derived : Base
+    {
+        public Uri En[||]dpoint()
+        {
+            return new Uri(""http://localhost"");
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace N
+{
+    using System;
+
+    public class Base
+    {
+        public Uri Endpoint()
+        {
+            return new Uri(""http://localhost"");
+        }
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+
+namespace N
+{
+    public class Derived : Base
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(
+                testText,
+                expected,
+                options: Option(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, AddImportPlacement.InsideNamespace, CodeStyle.NotificationOption2.Silent));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/55746")]
+        public async Task TestPullMethodWithToClassWithAddUsingsSystemUsingsLastViaQuickAction()
+        {
+            var testText = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">
+namespace N1
+{
+    public class Base
+    {
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+using N2;
+
+namespace N1
+{
+    public class Derived : Base
+    {
+        public Goo Ge[||]tGoo()
+        {
+            return new Goo(String.Empty);
+        }
+    }
+}
+
+namespace N2
+{
+    public class Goo
+    {
+        public Goo(String s)
+        {
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            var expected = @"
+<Workspace>
+    <Project Language = ""C#""  LanguageVersion=""preview"" CommonReferences=""true"">
+        <Document FilePath = ""File1.cs"">using N2;
+using System;
+
+namespace N1
+{
+    public class Base
+    {
+        public Goo GetGoo()
+        {
+            return new Goo(String.Empty);
+        }
+    }
+}
+        </Document>
+        <Document FilePath = ""File2.cs"">
+using System;
+using N2;
+
+namespace N1
+{
+    public class Derived : Base
+    {
+    }
+}
+
+namespace N2
+{
+    public class Goo
+    {
+        public Goo(String s)
+        {
+        }
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+";
+            await TestWithPullMemberDialogAsync(
+                testText,
+                expected,
+                options: new(GetLanguage())
+                {
+                    { GenerationOptions.PlaceSystemNamespaceFirst, false },
+                });
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        public Task TestPullMethodToClassWithDirective()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    #region Hello
+    public void G[||]oo() { }
+    #endregion
+}";
+            var expected = @"
+public class BaseClass
+{
+    public void Goo() { }
+}
+
+public class Bar : BaseClass
+{
+
+    #region Hello
+    #endregion
+}";
+            return TestWithPullMemberDialogAsync(text, expected);
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        public Task TestPullMethodToClassBeforeDirective()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    public void H[||]ello() { }
+    #region Hello
+    public void Goo() { }
+    #endregion
+}";
+            var expected = @"
+public class BaseClass
+{
+    public void Hello() { }
+}
+
+public class Bar : BaseClass
+{
+    #region Hello
+    public void Goo() { }
+    #endregion
+}";
+            return TestWithPullMemberDialogAsync(text, expected);
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        public Task TestPullMethodToClassBeforeDirective2()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    public void Hello() { }
+
+    #region Hello
+    public void G[||]oo() { }
+    #endregion
+}";
+            var expected = @"
+public class BaseClass
+{
+
+    public void Goo() { }
+}
+
+public class Bar : BaseClass
+{
+    public void Hello() { }
+
+    #region Hello
+    #endregion
+}";
+            return TestWithPullMemberDialogAsync(text, expected);
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        public Task TestPullFieldToClassBeforeDirective1()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    public int ba[||]r = 10;
+    #region Hello
+    public int Goo = 10;
+    #endregion
+}";
+            var expected = @"
+public class BaseClass
+{
+    public int bar = 10;
+}
+
+public class Bar : BaseClass
+{
+    #region Hello
+    public int Goo = 10;
+    #endregion
+}";
+            return TestWithPullMemberDialogAsync(text, expected);
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        public Task TestPullFieldToClassBeforeDirective2()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    public int bar = 10;
+    #region Hello
+    public int Go[||]o = 10;
+    #endregion
+}";
+            var expected = @"
+public class BaseClass
+{
+    public int Goo = 10;
+}
+
+public class Bar : BaseClass
+{
+    public int bar = 10;
+
+    #region Hello
+    #endregion
+}";
+            return TestWithPullMemberDialogAsync(text, expected);
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        public Task TestPullFieldToClassBeforeDirective()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    #region Hello
+    public int G[||]oo = 100, Hoo;
+    #endregion
+}";
+            var expected = @"
+public class BaseClass
+{
+    public int Goo = 100;
+}
+
+public class Bar : BaseClass
+{
+    #region Hello
+    public int Hoo;
+    #endregion
+}";
+            return TestWithPullMemberDialogAsync(text, expected);
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        public Task TestPullEventToClassBeforeDirective()
+        {
+            var text = @"
+using System;
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    #region Hello
+    public event EventHandler e[||]1;
+    #endregion
+}";
+            var expected = @"
+using System;
+public class BaseClass
+{
+    public event EventHandler e1;
+}
+
+public class Bar : BaseClass
+{
+
+    #region Hello
+    #endregion
+}";
+            return TestWithPullMemberDialogAsync(text, expected);
+        }
+
+        [Fact]
+        [WorkItem(55746, "https://github.com/dotnet/roslyn/issues/51531")]
+        public Task TestPullPropertyToClassBeforeDirective()
+        {
+            var text = @"
+public class BaseClass
+{
+}
+
+public class Bar : BaseClass
+{
+    #region Hello
+    public int Go[||]o => 1;
+    #endregion
+}";
+            var expected = @"
+public class BaseClass
+{
+    public int Goo => 1;
+}
+
+public class Bar : BaseClass
+{
+
+    #region Hello
+    #endregion
+}";
+            return TestWithPullMemberDialogAsync(text, expected);
+        }
+
         #endregion Quick Action
 
         #region Dialog
@@ -1433,15 +4272,15 @@ public class TestClass : VBInterface
             IEnumerable<(string name, bool makeAbstract)> selection = null,
             string destinationName = null,
             int index = 0,
-            CodeActionPriority? priority = null,
-            TestParameters parameters = default)
+            TestParameters parameters = default,
+            OptionsCollection options = null)
         {
             var service = new TestPullMemberUpService(selection, destinationName);
 
             return TestInRegularAndScript1Async(
                 initialMarkUp, expectedResult,
-                index, priority,
-                parameters.WithFixProviderData(service));
+                index,
+                parameters.WithFixProviderData(service).WithOptions(options));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -1487,6 +4326,60 @@ namespace PushUpTest
     public partial class TestClass
     {
         partial void BarBar()
+        {}
+    }
+
+    partial interface IInterface
+    {
+    }
+}";
+
+            await TestWithPullMemberDialogAsync(testText, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task PullExtendedPartialMethodUpToInterfaceViaDialog()
+        {
+            var testText = @"
+using System;
+namespace PushUpTest
+{
+    partial interface IInterface
+    {
+    }
+
+    public partial class TestClass : IInterface
+    {
+        public partial void Bar[||]Bar()
+    }
+
+    public partial class TestClass
+    {
+        public partial void BarBar()
+        {}
+    }
+
+    partial interface IInterface
+    {
+    }
+}";
+            var expected = @"
+using System;
+namespace PushUpTest
+{
+    partial interface IInterface
+    {
+        void BarBar();
+    }
+
+    public partial class TestClass : IInterface
+    {
+        public partial void BarBar()
+    }
+
+    public partial class TestClass
+    {
+        public partial void BarBar()
         {}
     }
 
@@ -1701,6 +4594,39 @@ namespace PushUpTest
     }
 }";
             await TestWithPullMemberDialogAsync(testText, expected, index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
+        public async Task TestPullAsyncMethod()
+        {
+            var testText = @"
+using System.Threading.Tasks;
+
+internal interface IPullUp { }
+
+internal class PullUp : IPullUp
+{
+    internal async Task PullU[||]pAsync()
+    {
+        await Task.Delay(1000);
+    }
+}";
+            var expectedText = @"
+using System.Threading.Tasks;
+
+internal interface IPullUp
+{
+    Task PullUpAsync();
+}
+
+internal class PullUp : IPullUp
+{
+    public async Task PullUpAsync()
+    {
+        await Task.Delay(1000);
+    }
+}";
+            await TestWithPullMemberDialogAsync(testText, expectedText);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -2313,7 +5239,7 @@ namespace PushUpTest
     }
 }";
 
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -2361,7 +5287,7 @@ namespace PushUpTest
     }
 }";
 
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -2432,7 +5358,7 @@ namespace PushUpTest
     }
 }";
 
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -2476,7 +5402,7 @@ namespace PushUpTest
     }
 }";
 
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -2521,7 +5447,7 @@ namespace PushUpTest
     }
 }";
 
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -2723,7 +5649,7 @@ namespace PushUpTest
     }
 }";
 
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -2775,7 +5701,7 @@ namespace PushUpTest
     }
 }";
 
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -2811,7 +5737,7 @@ namespace PushUpTest
     }
 }";
 
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -2847,7 +5773,7 @@ namespace PushUpTest
     }
 }";
 
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -2885,9 +5811,8 @@ namespace PushUpTest
     }
 }";
 
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
-
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
         [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
@@ -2928,7 +5853,7 @@ namespace PushUpTest
     }
 }";
 
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsPullMemberUp)]
@@ -2970,7 +5895,7 @@ namespace PushUpTest
     }
 }";
 
-            await TestInRegularAndScriptAsync(testText, expected);
+            await TestWithPullMemberDialogAsync(testText, expected);
         }
 
         #endregion

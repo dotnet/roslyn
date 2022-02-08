@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -14,9 +16,12 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+
+#if DEBUG
+using Microsoft.CodeAnalysis.Shared.Extensions;
+#endif
 
 namespace Microsoft.CodeAnalysis.Simplification
 {
@@ -28,18 +33,14 @@ namespace Microsoft.CodeAnalysis.Simplification
         private ImmutableArray<AbstractReducer> _reducers;
 
         protected AbstractSimplificationService(ImmutableArray<AbstractReducer> reducers)
-        {
-            _reducers = reducers;
-        }
+            => _reducers = reducers;
 
         protected abstract ImmutableArray<NodeOrTokenToReduce> GetNodesAndTokensToReduce(SyntaxNode root, Func<SyntaxNodeOrToken, bool> isNodeOrTokenOutsideSimplifySpans);
         protected abstract SemanticModel GetSpeculativeSemanticModel(ref SyntaxNode nodeToSpeculate, SemanticModel originalSemanticModel, SyntaxNode originalNode);
-        protected abstract bool CanNodeBeSimplifiedWithoutSpeculation(SyntaxNode node);
+        protected abstract bool NodeRequiresNonSpeculativeSemanticModel(SyntaxNode node);
 
         protected virtual SyntaxNode TransformReducedNode(SyntaxNode reducedNode, SyntaxNode originalNode)
-        {
-            return reducedNode;
-        }
+            => reducedNode;
 
         public abstract SyntaxNode Expand(SyntaxNode node, SemanticModel semanticModel, SyntaxAnnotation annotationForReplacedAliasIdentifier, Func<SyntaxNode, bool> expandInsideNode, bool expandParameter, CancellationToken cancellationToken);
         public abstract SyntaxToken Expand(SyntaxToken token, SemanticModel semanticModel, Func<SyntaxNode, bool> expandInsideNode, CancellationToken cancellationToken);
@@ -75,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Simplification
                 var originalDocHasErrors = await document.HasAnyErrorsAsync(cancellationToken).ConfigureAwait(false);
 #endif
 
-                var reduced = await this.ReduceAsyncInternal(document, spanList, optionSet, reducers, cancellationToken).ConfigureAwait(false);
+                var reduced = await this.ReduceCoreAsync(document, spanList, optionSet, reducers, cancellationToken).ConfigureAwait(false);
 
                 if (reduced != document)
                 {
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             }
         }
 
-        private async Task<Document> ReduceAsyncInternal(
+        private async Task<Document> ReduceCoreAsync(
             Document document,
             ImmutableArray<TextSpan> spans,
             OptionSet optionSet,
@@ -99,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             CancellationToken cancellationToken)
         {
             // Create a simple interval tree for simplification spans.
-            var spansTree = new SimpleIntervalTree<TextSpan>(TextSpanIntervalIntrospector.Instance, spans);
+            var spansTree = new SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>(new TextSpanIntervalIntrospector(), spans);
 
             bool isNodeOrTokenOutsideSimplifySpans(SyntaxNodeOrToken nodeOrToken) =>
                 !spansTree.HasIntervalThatOverlapsWith(nodeOrToken.FullSpan.Start, nodeOrToken.FullSpan.Length);
@@ -110,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             // prep namespace imports marked for simplification 
             var removeIfUnusedAnnotation = new SyntaxAnnotation();
             var originalRoot = root;
-            root = this.PrepareNamespaceImportsForRemovalIfUnused(document, root, removeIfUnusedAnnotation, isNodeOrTokenOutsideSimplifySpans);
+            root = PrepareNamespaceImportsForRemovalIfUnused(document, root, removeIfUnusedAnnotation, isNodeOrTokenOutsideSimplifySpans);
             var hasImportsToSimplify = root != originalRoot;
 
             if (hasImportsToSimplify)
@@ -167,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             return document;
         }
 
-        private Task ReduceAsync(
+        private async Task ReduceAsync(
             Document document,
             SyntaxNode root,
             ImmutableArray<NodeOrTokenToReduce> nodesAndTokensToReduce,
@@ -178,6 +179,9 @@ namespace Microsoft.CodeAnalysis.Simplification
             ConcurrentDictionary<SyntaxToken, SyntaxToken> reducedTokensMap,
             CancellationToken cancellationToken)
         {
+            // Debug flag to help processing things serially instead of parallel.
+            var executeSerially = Debugger.IsAttached;
+
             Contract.ThrowIfFalse(nodesAndTokensToReduce.Any());
 
             // Reduce each node or token in the given list by running it through each reducer.
@@ -232,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Simplification
                                 if (isNode)
                                 {
                                     var currentNode = currentNodeOrToken.AsNode();
-                                    if (this.CanNodeBeSimplifiedWithoutSpeculation(nodeOrToken.AsNode()))
+                                    if (this.NodeRequiresNonSpeculativeSemanticModel(nodeOrToken.AsNode()))
                                     {
                                         // Since this node cannot be speculated, we are replacing the Document with the changes and get a new SemanticModel
                                         var marker = new SyntaxAnnotation();
@@ -270,14 +274,17 @@ namespace Microsoft.CodeAnalysis.Simplification
                         }
                     }
                 }, cancellationToken);
+
+                if (executeSerially)
+                    await simplifyTasks[i].ConfigureAwait(false);
             }
 
-            return Task.WhenAll(simplifyTasks);
+            await Task.WhenAll(simplifyTasks).ConfigureAwait(false);
         }
 
         // find any namespace imports / using directives marked for simplification in the specified spans
         // and add removeIfUnused annotation
-        private SyntaxNode PrepareNamespaceImportsForRemovalIfUnused(
+        private static SyntaxNode PrepareNamespaceImportsForRemovalIfUnused(
             Document document,
             SyntaxNode root,
             SyntaxAnnotation removeIfUnusedAnnotation,

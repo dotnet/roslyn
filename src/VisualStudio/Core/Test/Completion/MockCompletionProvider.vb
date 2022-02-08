@@ -3,15 +3,13 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
-Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
-    Friend Class MockCompletionProvider
+    Friend MustInherit Class MockCompletionProvider
         Inherits CommonCompletionProvider
 
         Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
@@ -21,7 +19,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
             Return Task.CompletedTask
         End Function
 
-        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Public Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As CompletionOptions) As Boolean
             Return True
         End Function
 

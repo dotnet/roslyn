@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -29,9 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
             {
                 InvocationExpressionSyntax invocationExpression => invocationExpression.ArgumentList,
                 ElementAccessExpressionSyntax elementAccessExpression => elementAccessExpression.ArgumentList,
-                ObjectCreationExpressionSyntax objectCreationExpression => objectCreationExpression.ArgumentList,
+                BaseObjectCreationExpressionSyntax objectCreationExpression => objectCreationExpression.ArgumentList,
                 ConstructorInitializerSyntax constructorInitializer => constructorInitializer.ArgumentList,
-                _ => (BaseArgumentListSyntax)null,
+                _ => null,
             };
 
         protected override bool PositionIsApplicable(
@@ -40,8 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
         {
             var startToken = listSyntax.GetFirstToken();
 
-            if (declaration is InvocationExpressionSyntax ||
-                declaration is ElementAccessExpressionSyntax)
+            if (declaration is InvocationExpressionSyntax or
+                ElementAccessExpressionSyntax)
             {
                 // If we have something like  Foo(...)  or  this.Foo(...)  allow anywhere in the Foo(...)
                 // section.
@@ -51,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
 
                 startToken = name == null ? listSyntax.GetFirstToken() : name.GetFirstToken();
             }
-            else if (declaration is ObjectCreationExpressionSyntax)
+            else if (declaration is BaseObjectCreationExpressionSyntax)
             {
                 // allow anywhere in `new Foo(...)`
                 startToken = declaration.GetFirstToken();
@@ -76,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
             {
                 for (var current = token.Parent; current != listSyntax; current = current.Parent)
                 {
-                    if (CSharpSyntaxFactsService.Instance.IsAnonymousFunction(current))
+                    if (CSharpSyntaxFacts.Instance.IsAnonymousFunctionExpression(current))
                     {
                         return false;
                     }
@@ -86,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
             return true;
         }
 
-        private ExpressionSyntax TryGetInvokedName(ExpressionSyntax expr)
+        private static ExpressionSyntax TryGetInvokedName(ExpressionSyntax expr)
         {
             // `Foo(...)`.  Allow up through the 'Foo' portion
             if (expr is NameSyntax name)
@@ -95,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
             }
 
             // `this[...]`. Allow up through the 'this' token.
-            if (expr is ThisExpressionSyntax || expr is BaseExpressionSyntax)
+            if (expr is ThisExpressionSyntax or BaseExpressionSyntax)
             {
                 return expr;
             }

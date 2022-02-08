@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.VisualStudio.Text.Operations;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
@@ -21,8 +23,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             public void Do() { }
             public void Undo() { }
 
-            public bool CanMerge(ITextUndoPrimitive older) { return true; }
-            public ITextUndoPrimitive Merge(ITextUndoPrimitive older) { return older; }
+            public bool CanMerge(ITextUndoPrimitive older) => true;
+            public ITextUndoPrimitive Merge(ITextUndoPrimitive older) => older;
         }
     }
 }

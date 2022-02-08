@@ -2,31 +2,41 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindUsages
 {
     internal abstract class FindUsagesContext : IFindUsagesContext
     {
-        public virtual CancellationToken CancellationToken { get; }
+        private readonly IGlobalOptionService _globalOptions;
 
-        protected FindUsagesContext()
+        public IStreamingProgressTracker ProgressTracker { get; }
+
+        protected FindUsagesContext(IGlobalOptionService globalOptions)
         {
+            ProgressTracker = new StreamingProgressTracker(ReportProgressAsync);
+            _globalOptions = globalOptions;
         }
 
-        public virtual Task ReportMessageAsync(string message) => Task.CompletedTask;
+        public ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
+            => ValueTaskFactory.FromResult(_globalOptions.GetFindUsagesOptions(language));
 
-        public virtual Task SetSearchTitleAsync(string title) => Task.CompletedTask;
+        public virtual ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken) => default;
 
-        public virtual Task OnCompletedAsync() => Task.CompletedTask;
+        public virtual ValueTask ReportInformationalMessageAsync(string message, CancellationToken cancellationToken) => default;
 
-        public virtual Task OnDefinitionFoundAsync(DefinitionItem definition) => Task.CompletedTask;
+        public virtual ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken) => default;
 
-        public virtual Task OnReferenceFoundAsync(SourceReferenceItem reference) => Task.CompletedTask;
+        public virtual ValueTask OnCompletedAsync(CancellationToken cancellationToken) => default;
 
-        public virtual Task ReportProgressAsync(int current, int maximum) => Task.CompletedTask;
+        public virtual ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken) => default;
+
+        public virtual ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken) => default;
+
+        protected virtual ValueTask ReportProgressAsync(int current, int maximum, CancellationToken cancellationToken) => default;
     }
 }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -19,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// <summary>
         /// Return CompilationWithAnalyzer for given project with given stateSets
         /// </summary>
-        private async Task<CompilationWithAnalyzers?> GetOrCreateCompilationWithAnalyzers(Project project, IEnumerable<StateSet> stateSets, CancellationToken cancellationToken)
+        private async Task<CompilationWithAnalyzers?> GetOrCreateCompilationWithAnalyzersAsync(Project project, IEnumerable<StateSet> stateSets, CancellationToken cancellationToken)
         {
             if (!project.SupportsCompilation)
             {
@@ -49,11 +47,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return compilationWithAnalyzers;
         }
 
-        private Task<CompilationWithAnalyzers?> CreateCompilationWithAnalyzersAsync(Project project, IEnumerable<StateSet> stateSets, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
-            => CreateCompilationWithAnalyzersAsync(project, stateSets.Select(s => s.Analyzer), includeSuppressedDiagnostics, cancellationToken);
+        private static Task<CompilationWithAnalyzers?> CreateCompilationWithAnalyzersAsync(Project project, IEnumerable<StateSet> stateSets, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
+            => AnalyzerHelper.CreateCompilationWithAnalyzersAsync(project, stateSets.Select(s => s.Analyzer), includeSuppressedDiagnostics, cancellationToken);
 
-        private Task<CompilationWithAnalyzers?> CreateCompilationWithAnalyzersAsync(Project project, IEnumerable<DiagnosticAnalyzer> analyzers, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
-            => AnalyzerService.CreateCompilationWithAnalyzers(project, analyzers, includeSuppressedDiagnostics, DiagnosticLogAggregator, cancellationToken);
+        private void ClearCompilationsWithAnalyzersCache(Project project)
+            => _projectCompilationsWithAnalyzers.Remove(project);
 
         private void ClearCompilationsWithAnalyzersCache()
         {
@@ -67,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         }
 
         [Conditional("DEBUG")]
-        private void AssertAnalyzers(CompilationWithAnalyzers? compilation, IEnumerable<StateSet> stateSets)
+        private static void AssertAnalyzers(CompilationWithAnalyzers? compilation, IEnumerable<StateSet> stateSets)
         {
             if (compilation == null)
             {

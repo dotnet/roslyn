@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private const string Syntactic = nameof(Syntactic);
         private const string Declaration = nameof(Declaration);
 
-        private static readonly ImmutableDictionary<string, string> s_syntactic = ImmutableDictionary<string, string>.Empty.Add(Origin, Syntactic);
-        private static readonly ImmutableDictionary<string, string> s_declaration = ImmutableDictionary<string, string>.Empty.Add(Origin, Declaration);
+        private static readonly ImmutableDictionary<string, string?> s_syntactic = ImmutableDictionary<string, string?>.Empty.Add(Origin, Syntactic);
+        private static readonly ImmutableDictionary<string, string?> s_declaration = ImmutableDictionary<string, string?>.Empty.Add(Origin, Declaration);
 
         /// <summary>
         /// Per-compilation DiagnosticAnalyzer for compiler's syntax/semantic/compilation diagnostics.
@@ -38,10 +38,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public static void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
             {
-                var declDiagnostics = context.SemanticModel.GetDeclarationDiagnostics(cancellationToken: context.CancellationToken);
-                ReportDiagnostics(declDiagnostics, context.ReportDiagnostic, IsSourceLocation, s_declaration);
+                var declDiagnostics = context.SemanticModel.GetDeclarationDiagnostics(context.FilterSpan, context.CancellationToken);
+                var bodyDiagnostics = context.SemanticModel.GetMethodBodyDiagnostics(context.FilterSpan, context.CancellationToken);
 
-                var bodyDiagnostics = context.SemanticModel.GetMethodBodyDiagnostics(cancellationToken: context.CancellationToken);
+                ReportDiagnostics(declDiagnostics, context.ReportDiagnostic, IsSourceLocation, s_declaration);
                 ReportDiagnostics(bodyDiagnostics, context.ReportDiagnostic, IsSourceLocation);
             }
 
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 ImmutableArray<Diagnostic> diagnostics,
                 Action<Diagnostic> reportDiagnostic,
                 Func<Location, bool> locationFilter,
-                ImmutableDictionary<string, string> properties = null)
+                ImmutableDictionary<string, string?>? properties = null)
             {
                 foreach (var diagnostic in diagnostics)
                 {
@@ -76,9 +76,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private class CompilerDiagnostic : Diagnostic
             {
                 private readonly Diagnostic _original;
-                private readonly ImmutableDictionary<string, string> _properties;
+                private readonly ImmutableDictionary<string, string?> _properties;
 
-                public CompilerDiagnostic(Diagnostic original, ImmutableDictionary<string, string> properties)
+                public CompilerDiagnostic(Diagnostic original, ImmutableDictionary<string, string?> properties)
                 {
                     _original = original;
                     _properties = properties;
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 #pragma warning restore RS0013 
 
                 internal override int Code => _original.Code;
-                internal override IReadOnlyList<object> Arguments => _original.Arguments;
+                internal override IReadOnlyList<object?> Arguments => _original.Arguments;
 
                 public override string Id => _original.Id;
                 public override DiagnosticSeverity Severity => _original.Severity;
@@ -97,16 +97,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 public override Location Location => _original.Location;
                 public override IReadOnlyList<Location> AdditionalLocations => _original.AdditionalLocations;
                 public override bool IsSuppressed => _original.IsSuppressed;
-                public override ImmutableDictionary<string, string> Properties => _properties;
+                public override ImmutableDictionary<string, string?> Properties => _properties;
 
-                public override string GetMessage(IFormatProvider formatProvider = null)
+                public override string GetMessage(IFormatProvider? formatProvider = null)
                 {
                     return _original.GetMessage(formatProvider);
-                }
-
-                public override bool Equals(object obj)
-                {
-                    return _original.Equals(obj);
                 }
 
                 public override int GetHashCode()
@@ -114,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return _original.GetHashCode();
                 }
 
-                public override bool Equals(Diagnostic obj)
+                public override bool Equals(Diagnostic? obj)
                 {
                     return _original.Equals(obj);
                 }

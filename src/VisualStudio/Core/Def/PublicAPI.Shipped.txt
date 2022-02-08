@@ -3,6 +3,7 @@ abstract Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace.GetFileCo
 abstract Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace.GetHierarchy(Microsoft.CodeAnalysis.ProjectId projectId) -> Microsoft.VisualStudio.Shell.Interop.IVsHierarchy
 abstract Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace.TryFindAllReferences(Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.Project project, System.Threading.CancellationToken cancellationToken) -> bool
 abstract Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace.TryGoToDefinition(Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.Project project, System.Threading.CancellationToken cancellationToken) -> bool
+abstract Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace.TryGoToDefinitionAsync(Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.Project project, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<bool>
 Microsoft.VisualStudio.LanguageServices.Progression.GraphNodeCreation
 Microsoft.VisualStudio.LanguageServices.RQName
 Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace
@@ -11,5 +12,3 @@ static Microsoft.VisualStudio.LanguageServices.Progression.GraphNodeCreation.Cre
 static Microsoft.VisualStudio.LanguageServices.Progression.GraphNodeCreation.CreateNodeIdAsync(Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.Solution solution, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.VisualStudio.GraphModel.GraphNodeId>
 static Microsoft.VisualStudio.LanguageServices.RQName.From(Microsoft.CodeAnalysis.ISymbol symbol) -> string
 virtual Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace.GetFilePath(Microsoft.CodeAnalysis.DocumentId documentId) -> string
-XamlGeneratedNamespace.GeneratedInternalTypeHelper
-XamlGeneratedNamespace.GeneratedInternalTypeHelper.GeneratedInternalTypeHelper() -> void

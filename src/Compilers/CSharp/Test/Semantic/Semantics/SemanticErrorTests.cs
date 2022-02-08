@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -13,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -29,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = @"
 namespace x
 {
-    public class b
+    public class @b
     {
         public static void Main()
         {
@@ -120,8 +123,8 @@ class Program
         {
             var text =
 @"using System;
-delegate void boo();
-public class abc
+delegate void @boo();
+public class @abc
 {
     public void bar() { System.Console.WriteLine(""bar""); }
     static public void far() { System.Console.WriteLine(""far""); }
@@ -196,7 +199,7 @@ class C
         public void CS0019ERR_BadBinaryOps06()
         {
             var text =
-@"delegate void boo(int x);
+@"delegate void @boo(int x);
 class C
 {
     static void Main(string[] args)
@@ -229,7 +232,7 @@ class C
         public void CS0019ERR_BadBinaryOps07()
         {
             var text =
-@"delegate void boo(int x);
+@"delegate void @boo(int x);
 class C
 {
     static void Main(string[] args)
@@ -263,7 +266,7 @@ class C
         {
             var text =
 @"using System;
-delegate void boo(int x);
+delegate void @boo(int x);
 class C
 {
     public void bar(int x) { Console.WriteLine("""", x); }
@@ -285,9 +288,15 @@ class C
                 // (12,16): error CS0019: Operator '+' cannot be applied to operands of type 'lambda expression' and 'method group'
                 //         goo += (x) => { System.Console.WriteLine("Lambda:{0}", x); } + far;// Invalid
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, @"(x) => { System.Console.WriteLine(""Lambda:{0}"", x); } + far").WithArguments("+", "lambda expression", "method group").WithLocation(12, 16),
+                // (12,70): warning CS8848: Operator '+' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //         goo += (x) => { System.Console.WriteLine("Lambda:{0}", x); } + far;// Invalid
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "+").WithArguments("+").WithLocation(12, 70),
                 // (13,16): error CS0019: Operator '+' cannot be applied to operands of type 'anonymous method' and 'method group'
                 //         goo += delegate (int x) { System.Console.WriteLine("Anonymous:{0}", x); } + far;// Invalid
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, @"delegate (int x) { System.Console.WriteLine(""Anonymous:{0}"", x); } + far").WithArguments("+", "anonymous method", "method group").WithLocation(13, 16)
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, @"delegate (int x) { System.Console.WriteLine(""Anonymous:{0}"", x); } + far").WithArguments("+", "anonymous method", "method group").WithLocation(13, 16),
+                // (13,83): warning CS8848: Operator '+' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //         goo += delegate (int x) { System.Console.WriteLine("Anonymous:{0}", x); } + far;// Invalid
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "+").WithArguments("+").WithLocation(13, 83)
                 );
         }
 
@@ -346,7 +355,7 @@ class C
         public void CS0019ERR_BadBinaryOps10()
         {
             var text =
-@"delegate void boo<T>(T x);
+@"delegate void @boo<T>(T x);
 class C
 {
     public void bar(int x) { System.Console.WriteLine(""bar:{0}"", x); }
@@ -421,7 +430,7 @@ class C
         public void CS0019ERR_BadBinaryOps11()
         {
             var text =
-@"delegate void boo<T>(T x);
+@"delegate void @boo<T>(T x);
 class C
 {
     static void far<T>(T x) { }
@@ -447,7 +456,7 @@ class C
         public void CS0019ERR_BadBinaryOps12()
         {
             var text =
-@"delegate void boo<T>(T x);
+@"delegate void @boo<T>(T x);
 class C
 {
     static void far<T>(T x) { }
@@ -875,7 +884,7 @@ class B : A<S>
             var text = @"
 namespace x
 {
-    public class b
+    public class @b
     {
         public static int Main()
         {
@@ -894,7 +903,7 @@ namespace x
             var text = @"
 namespace x
 {
-    public class b
+    public class @b
     {
         public static void Main()
         {
@@ -948,7 +957,7 @@ class C
             var text = @"
 namespace x
 {
-    public class b
+    public class @b
     {
         public static void Main()
         {
@@ -1068,13 +1077,13 @@ namespace X
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "!q").WithArguments("!", "object").WithLocation(9, 17),
                 // (12,26): error CS8310: Operator '-' cannot be applied to operand '<null>'
                 //             object obj = -null; // CS0023
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "-null").WithArguments("-", "<null>").WithLocation(12, 26),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "-null").WithArguments("-", "<null>").WithLocation(12, 26),
                 // (13,19): error CS8310: Operator '!' cannot be applied to operand '<null>'
                 //             obj = !null; // CS0023
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "!null").WithArguments("!", "<null>").WithLocation(13, 19),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "!null").WithArguments("!", "<null>").WithLocation(13, 19),
                 // (14,19): error CS8310: Operator '~' cannot be applied to operand '<null>'
                 //             obj = ~null; // CS0023
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "~null").WithArguments("~", "<null>").WithLocation(14, 19),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "~null").WithArguments("~", "<null>").WithLocation(14, 19),
                 // (16,13): error CS0023: Operator '++' cannot be applied to operand of type 'object'
                 //             obj++; // CS0023
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "obj++").WithArguments("++", "object").WithLocation(16, 13),
@@ -1083,7 +1092,7 @@ namespace X
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "--obj").WithArguments("--", "object").WithLocation(17, 13),
                 // (18,20): error CS8310: Operator '+' cannot be applied to operand '<null>'
                 //             return +null; // CS0023
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "+null").WithArguments("+", "<null>").WithLocation(18, 20)
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "+null").WithArguments("+", "<null>").WithLocation(18, 20)
                 );
         }
 
@@ -1111,16 +1120,16 @@ public class Test
             CreateCompilation(text).VerifyDiagnostics(
                 // (6,19): error CS8310: Operator '!' cannot be applied to operand '<null>'
                 //         bool? b = !null;   // CS0023
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "!null").WithArguments("!", "<null>").WithLocation(6, 19),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "!null").WithArguments("!", "<null>").WithLocation(6, 19),
                 // (7,18): error CS8310: Operator '~' cannot be applied to operand '<null>'
                 //         int? n = ~null;    // CS0023
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "~null").WithArguments("~", "<null>").WithLocation(7, 18),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "~null").WithArguments("~", "<null>").WithLocation(7, 18),
                 // (8,20): error CS8310: Operator '+' cannot be applied to operand '<null>'
                 //         float? f = +null;  // CS0023
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "+null").WithArguments("+", "<null>").WithLocation(8, 20),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "+null").WithArguments("+", "<null>").WithLocation(8, 20),
                 // (9,19): error CS8310: Operator '-' cannot be applied to operand '<null>'
                 //         long? u = -null;   // CS0023
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "-null").WithArguments("-", "<null>").WithLocation(9, 19)
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, "-null").WithArguments("-", "<null>").WithLocation(9, 19)
                 );
         }
 
@@ -1536,16 +1545,17 @@ class C
 {
     void M1()
     {
-        object obj = true ? 0 : M2();
+        var obj = true ? 0 : M2();
     }
 
     void M2() { }
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,22): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'int' and 'void'
-                //         object obj = true ? 0 : M2();
-                Diagnostic(ErrorCode.ERR_InvalidQM, "true ? 0 : M2()").WithArguments("int", "void").WithLocation(6, 22));
+                // (6,19): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'int' and 'void'
+                //         var obj = true ? 0 : M2();
+                Diagnostic(ErrorCode.ERR_InvalidQM, "true ? 0 : M2()").WithArguments("int", "void").WithLocation(6, 19)
+                );
         }
 
         [Fact, WorkItem(40405, "https://github.com/dotnet/roslyn/issues/40405")]
@@ -1654,7 +1664,7 @@ class C
             var text = @"
 namespace x
 {
-    public class iii
+    public class @iii
     {
         public static iii operator ++(iii aa)
         {
@@ -1725,7 +1735,7 @@ public class Test
         public void CS0031ERR_ConstOutOfRange01()
         {
             var text =
-@"public class a
+@"public class @a
 {
     int num = (int)2147483648M; //CS0031
 }
@@ -2204,7 +2214,7 @@ interface I
     event System.Action E3 { add; remove; }
 }
 ";
-            CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetStandardLatest).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
                 // (4,30): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     event System.Action E1 { add; }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "8.0").WithLocation(4, 30),
@@ -2506,7 +2516,7 @@ class Program
         }
     }
 }
-enum color
+enum @color
 {
     blue,
     green
@@ -2719,7 +2729,11 @@ enum F { W, X = Z, Y, Z }
             var test = @"
 int x;
 ";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(test, new ErrorDescription { Code = (int)ErrorCode.ERR_NamespaceUnexpected, Line = 2, Column = 5 });
+            CreateCompilation(test, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (2,5): warning CS0168: The variable 'x' is declared but never used
+                // int x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(2, 5)
+                );
         }
 
         [Fact]
@@ -2779,9 +2793,14 @@ namespace ns1
 delegate int D();
 D d = null;
 ";
-            CreateCompilation(test).VerifyDiagnostics(
-                // (3,3): error CS0116: A namespace does not directly contain members such as fields or methods
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "d"));
+            CreateCompilation(test, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                    // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                    // D d = null;
+                    Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "D d = null;").WithLocation(3, 1),
+                    // (3,3): warning CS0219: The variable 'd' is assigned but its value is never used
+                    // D d = null;
+                    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "d").WithArguments("d").WithLocation(3, 3)
+                );
         }
 
         [WorkItem(540091, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540091")]
@@ -2794,7 +2813,10 @@ D d = {;}
 ";
             // In this case, CS0116 is suppressed because of the syntax errors
 
-            CreateCompilation(test).VerifyDiagnostics(
+            CreateCompilation(test, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+                // (3,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                // D d = {;}
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "D d = {;").WithLocation(3, 1),
                 // (3,8): error CS1513: } expected
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ";"),
                 // (3,9): error CS1022: Type or namespace definition, or end-of-file expected
@@ -2872,7 +2894,7 @@ class C
 class Program
 {
     private readonly int v = 5;
-    delegate int del(int i);
+    delegate int @del(int i);
     static void Main(string[] args)
     {
         del myDelegate = (int x) => x * v;
@@ -2888,12 +2910,12 @@ class Program
         public void CS0120ERR_ObjectRequired03()
         {
             var source =
-@"delegate int boo();
+@"delegate int @boo();
 interface I
 {
     int bar();
 }
-public struct abc : I
+public struct @abc : I
 {
     public int bar() { System.Console.WriteLine(""bar""); return 0x01; }
 }
@@ -3205,9 +3227,6 @@ class Test : Base
                 // (11,21): error CS0122: 'Base.P' is inaccessible due to its protection level
                 //         object o = (P p) => 0;
                 Diagnostic(ErrorCode.ERR_BadAccess, "P").WithArguments("Base.P"),
-                // (11,20): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
-                //         object o = (P p) => 0;
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(P p) => 0").WithArguments("lambda expression", "object"),
                 // (12,17): error CS0122: 'Base.P' is inaccessible due to its protection level
                 //         int x = P.X;
                 Diagnostic(ErrorCode.ERR_BadAccess, "P").WithArguments("Base.P"),
@@ -3416,7 +3435,7 @@ public class C
         public void CS0123ERR_MethDelegateMismatch_01()
         {
             var text = @"
-delegate void boo(short x);
+delegate void @boo(short x);
 class C
 {
     static void far<T>(T x) { }
@@ -3439,7 +3458,7 @@ class C
         public void CS0123ERR_MethDelegateMismatch_02()
         {
             var text = @"
-delegate void boo(short x);
+delegate void @boo(short x);
 class C<T>
 {
     public static void far(T x) { }
@@ -3678,12 +3697,12 @@ namespace MyNamespace
 }";
             CreateCompilation(text).
                 VerifyDiagnostics(
-                    // (9,14): error CS0128: A local variable named 'i' is already defined in this scope
+                    // (9,14): error CS0128: A local variable or function named 'i' is already defined in this scope
                     //          int i = 2;   // CS0128
-                    Diagnostic(ErrorCode.ERR_LocalDuplicate, "i").WithArguments("i"),
+                    Diagnostic(ErrorCode.ERR_LocalDuplicate, "i").WithArguments("i").WithLocation(9, 14),
                     // (9,14): warning CS0219: The variable 'i' is assigned but its value is never used
                     //          int i = 2;   // CS0128
-                    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i")
+                    Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(9, 14)
                 );
         }
 
@@ -4086,7 +4105,7 @@ class Test
             var text = @"
 namespace x
 {
-    public class a
+    public class @a
     {
         public static void Main(bool b)
         {
@@ -4139,12 +4158,12 @@ using System;
 
 namespace A
 {
-    class var { }
+    class @var { }
     class XAttribute : Attribute { }
 }
 namespace B
 {
-    class var { }
+    class @var { }
     class XAttribute : Attribute { }
     class X : Attribute { }
 }
@@ -4170,11 +4189,11 @@ using B;
 
 namespace A
 {
-    class var { }
+    class @var { }
 }
 namespace B
 {
-    class var { }
+    class @var { }
 }
 class Xyzzy
 {
@@ -4196,15 +4215,15 @@ class Xyzzy
         public void CS0144ERR_NoNewAbstract()
         {
             var text = @"
-interface ii
+interface @ii
 {
 }
 
-abstract class aa
+abstract class @aa
 {
 }
 
-public class a
+public class @a
 {
    public static void Main()
    {
@@ -4251,7 +4270,7 @@ class C
         public void CS0151ERR_IntegralTypeValueExpected()
         {
             var text = @"
-public class iii
+public class @iii
 {
    public static implicit operator int (iii aa)
    {
@@ -4291,7 +4310,7 @@ public class iii
             var text = @"
 namespace x
 {
-   public class a
+   public class @a
    {
       public static void Main()
       {
@@ -4322,7 +4341,7 @@ namespace x
         public void CS0153ERR_InvalidGotoCase()
         {
             var text = @"
-public class a
+public class @a
 {
    public static void Main()
    {
@@ -4783,11 +4802,11 @@ using System;
 
 namespace x
 {
-   public class b : Exception
+   public class @b : Exception
    {
    }
 
-   public class a
+   public class @a
    {
       public static void Main()
       {
@@ -5165,7 +5184,7 @@ namespace MyNamespace
         public void CS0158ERR_LabelShadow_02()
         {
             var text = @"
-delegate int del(int i);
+delegate int @del(int i);
 class C
 {
     static void Main(string[] args)
@@ -5395,7 +5414,7 @@ class Program
         public void CS0159ERR_LabelNotFound_8()
         {
             var text = @"
-delegate int del(int i);
+delegate int @del(int i);
 class C
 {
     static void Main(string[] args)
@@ -6405,7 +6424,7 @@ class Test
         public void CS0170ERR_UseDefViolationField()
         {
             var text = @"
-public struct error
+public struct @error
 {
    public int i;
 }
@@ -6501,11 +6520,18 @@ public class Square
    {
       Circle aa = new Circle();
       Square ii = new Square();
-      object o = (1 == 1) ? aa : ii;   // CS0172
+      var o1 = (1 == 1) ? aa : ii;   // CS0172
+      object o2 = (1 == 1) ? aa : ii;   // CS8652
    }
 }";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_AmbigQM, Line = 21, Column = 18 } });
+            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
+                // (21,16): error CS0172: Type of conditional expression cannot be determined because 'Square.Circle' and 'Square' implicitly convert to one another
+                //       var o1 = (1 == 1) ? aa : ii;   // CS0172
+                Diagnostic(ErrorCode.ERR_AmbigQM, "(1 == 1) ? aa : ii").WithArguments("Square.Circle", "Square").WithLocation(21, 16),
+                // (22,19): error CS8957: Conditional expression is not valid in language version 8.0 because a common type was not found between 'Square.Circle' and 'Square'. To use a target-typed conversion, upgrade to language version 9.0 or greater.
+                //       object o2 = (1 == 1) ? aa : ii;   // CS8652
+                Diagnostic(ErrorCode.ERR_NoImplicitConvTargetTypedConditional, "(1 == 1) ? aa : ii").WithArguments("8.0", "Square.Circle", "Square", "9.0").WithLocation(22, 19)
+                );
         }
 
         [Fact]
@@ -6521,7 +6547,7 @@ public class MyClass
    {
       A a = new A();
       C c = new C();
-      object o = b ? a : c;  // CS0173
+      var o = b ? a : c;  // CS0173
    }
 
    public static void Main()
@@ -6529,8 +6555,11 @@ public class MyClass
        F(true);
    }
 }";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_InvalidQM, Line = 11, Column = 18 } });
+            CreateCompilation(text).VerifyDiagnostics(
+                // (11,15): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'A' and 'C'
+                //       var o = b ? a : c;  // CS0173
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? a : c").WithArguments("A", "C").WithLocation(11, 15)
+                );
         }
 
         [WorkItem(528331, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528331")]
@@ -6559,14 +6588,17 @@ class Program
     {
         A<string> a = new A<string>();
         A<int> b = new A<int>();
-        System.Console.WriteLine(1 > 2 ? a : b);	// Invalid, Can't implicit convert 
+        var o = 1 > 2 ? a : b; // Invalid, Can't implicit convert
     }
 }
 class A<T>
 {
 }";
-            CreateCompilation(text).
-                VerifyDiagnostics(Diagnostic(ErrorCode.ERR_InvalidQM, "1 > 2 ? a : b").WithArguments("A<string>", "A<int>").WithLocation(8, 34));
+            CreateCompilation(text).VerifyDiagnostics(
+                // (8,17): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'A<string>' and 'A<int>'
+                //         var o = 1 > 2 ? a : b; // Invalid, Can't implicit convert
+                Diagnostic(ErrorCode.ERR_InvalidQM, "1 > 2 ? a : b").WithArguments("A<string>", "A<int>").WithLocation(8, 17)
+                );
         }
 
         [WorkItem(540902, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540902")]
@@ -7323,7 +7355,7 @@ unsafe public class MyClass
 
             compilation.VerifyOperationTree(node, expectedOperationTree:
 @"
-IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'i[1,2]')
+IOperation:  (OperationKind.None, Type: System.Int32, IsInvalid) (Syntax: 'i[1,2]')
   Children(2):
       ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32*, IsInvalid) (Syntax: 'i')
       IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'i[1,2]')
@@ -8863,7 +8895,7 @@ class C : B
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (10,7): error CS0250: Do not directly call your base class Finalize method. It is called automatically from your destructor.
+                // (10,7): error CS0250: Do not directly call your base type Finalize method. It is called automatically from your destructor.
                 Diagnostic(ErrorCode.ERR_CallingBaseFinalizeDeprecated, "base.Finalize()"));
         }
 
@@ -9207,6 +9239,49 @@ class C1
                     // (13,30): error CS0266: Cannot implicitly convert type 'decimal' to 'int'. An explicit conversion exists (are you missing a cast?)
                     //         int[] arr6 = new int[z];// Invalid
                     Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "z").WithArguments("decimal", "int").WithLocation(13, 30));
+        }
+
+        [Fact]
+        public void CS0266ERR_NoImplicitConvCast14()
+        {
+            string source = @"
+class C
+{
+    public unsafe void M(int* p, object o)
+    {
+        _ = p[o]; // error with span on 'o'
+        _ = p[0]; // ok
+    }
+}
+";
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (6,15): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         _ = p[o]; // error with span on 'o'
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "o").WithArguments("object", "int").WithLocation(6, 15));
+        }
+
+        [Fact]
+        public void CS0266ERR_NoImplicitConvCast15()
+        {
+            string source = @"
+class C
+{
+    public void M(object o)
+    {
+        int[o] x;
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,12): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         int[o];
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[o]").WithLocation(6, 12),
+                // (6,13): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         int[o];
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "o").WithArguments("object", "int").WithLocation(6, 13),
+                // (6,16): warning CS0168: The variable 'x' is declared but never used
+                //         int[o] x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(6, 16));
         }
 
         [Fact]
@@ -9715,7 +9790,7 @@ struct S
             // Note that none of these errors except the first one are reported by the native compiler, because
             // it does not report additional errors after an error is found in a formal parameter of a method.
 
-            CreateCompilationWithMscorlib40(text, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(text, references: new[] { Net40.SystemCore }).VerifyDiagnostics(
                 // (9,36): error CS0310: 'U' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'D<T>'
                 //     internal static void E<U>(D<U> d) { } // Error: missing constraint on E<U> to satisfy constraint on D<U>
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "d").WithArguments("D<T>", "T", "U").WithLocation(9, 36),
@@ -9825,7 +9900,7 @@ static class S
 {
     internal static void E<T>(this T t) where T : new() { }
 }";
-            CreateCompilationWithMscorlib40(text, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(text, references: new[] { Net40.SystemCore }).VerifyDiagnostics(
                 // (15,9): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'V' in the generic type or method 'C<T, U>.M<V>(V)'
                 //         M(b);
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "M").WithArguments("C<T, U>.M<V>(V)", "V", "B").WithLocation(15, 9),
@@ -10834,7 +10909,7 @@ class Test
             var text = @"
 namespace x
 {
-   public class clx
+   public class @clx
    {
       public clx() : this()   // CS0516
       {
@@ -10918,7 +10993,7 @@ public class A
         public void CS0522ERR_StructWithBaseConstructorCall()
         {
             var text = @"
-public class clx
+public class @clx
 {
    public clx(int i)
    {
@@ -10929,7 +11004,7 @@ public class clx
    }
 }
 
-public struct cly
+public struct @cly
 {
    public cly(int i):base(0)   // CS0522
    // try the following line instead
@@ -11277,7 +11352,7 @@ class D : C
             var test = @"
 namespace x
 {
-    public class iii
+    public class @iii
     {
         ~iiii(){}
         public static void Main()
@@ -11288,7 +11363,7 @@ namespace x
 ";
 
             CreateCompilation(test).VerifyDiagnostics(
-                // (6,10): error CS0574: Name of destructor must match name of class
+                // (6,10): error CS0574: Name of destructor must match name of type
                 //         ~iiii(){}
                 Diagnostic(ErrorCode.ERR_BadDestructorName, "iiii").WithLocation(6, 10));
         }
@@ -11801,7 +11876,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq.Expressions;
 
-public delegate void dele();
+public delegate void @dele();
 
 public class ConClass
 {
@@ -11847,36 +11922,24 @@ class Test
 {
     public static void Main()
     {
-        var m = Main; // CS0815
-        var d = s => -1; // CS0815
-        var e = (string s) => 0; // CS0815
+        var m = Main;
+        var d = s => -1; // CS8917
+        var e = (string s) => 0;
         var p = null;//CS0815
-        var del = delegate(string a) { return -1; };// CS0815
+        var del = delegate(string a) { return -1; };
         var v = M(); // CS0815
     }
     static void M() {}
 }").VerifyDiagnostics(
-                // (6,13): error CS0815: Cannot assign method group to an implicitly-typed variable
-                //         var m = Main; // CS0815
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "m = Main").WithArguments("method group"),
-                // (7,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
-                //         var d = s => -1; // CS0815
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "d = s => -1").WithArguments("lambda expression"),
-                // (8,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
-                //         var e = (string s) => 0; // CS0815
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "e = (string s) => 0").WithArguments("lambda expression"),
+                // (7,17): error CS8917: The delegate type could not be inferred.
+                //         var d = s => -1; // CS8917
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "s => -1").WithLocation(7, 17),
                 // (9,13): error CS0815: Cannot assign <null> to an implicitly-typed variable
                 //         var p = null;//CS0815
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "p = null").WithArguments("<null>"),
-                // (10,13): error CS0815: Cannot assign anonymous method to an implicitly-typed variable
-                //         var del = delegate(string a) { return -1; };// CS0815
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "del = delegate(string a) { return -1; }").WithArguments("anonymous method"),
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "p = null").WithArguments("<null>").WithLocation(9, 13),
                 // (11,13): error CS0815: Cannot assign void to an implicitly-typed variable
                 //         var v = M(); // CS0815
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "v = M()").WithArguments("void"),
-                // (9,13): warning CS0219: The variable 'p' is assigned but its value is never used
-                //         var p = null;//CS0815
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "p").WithArguments("p"));
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "v = M()").WithArguments("void").WithLocation(11, 13));
         }
 
         [Fact]
@@ -11892,18 +11955,15 @@ var p = null;
 var del = delegate(string a) { return -1; };
 var v = M();     
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
-                // (4,5): error CS0815: Cannot assign method group to an implicitly-typed variable
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "m = M").WithArguments("method group"),
-                // (5,5): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "d = s => -1").WithArguments("lambda expression"),
-                // (6,5): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "e = (string s) => 0").WithArguments("lambda expression"),
+                // (5,9): error CS8917: The delegate type could not be inferred.
+                // var d = s => -1; 
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "s => -1").WithLocation(5, 9),
                 // (7,5): error CS0815: Cannot assign <null> to an implicitly-typed variable
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "p = null").WithArguments("<null>"),
-                // (8,5): error CS0815: Cannot assign anonymous method to an implicitly-typed variable
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "del = delegate(string a) { return -1; }").WithArguments("anonymous method"),
+                // var p = null;    
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "p = null").WithArguments("<null>").WithLocation(7, 5),
                 // (9,1): error CS0670: Field cannot have void type
-                Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "var"));
+                // var v = M();     
+                Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "var").WithLocation(9, 1));
         }
 
         [Fact]
@@ -12539,12 +12599,44 @@ namespace TestNamespace
                 // (11,23): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //             bool b2 = delegate() { } is Del;// CS0837
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate() { } is Del").WithLocation(11, 23),
+                // (11,38): warning CS8848: Operator 'is' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //             bool b2 = delegate() { } is Del;// CS0837
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "is").WithArguments("is").WithLocation(11, 38),
                 // (12,22): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //             Del d1 = () => { } as Del;      // CS0837
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "() => { } as Del").WithLocation(12, 22),
+                // (12,32): warning CS8848: Operator 'as' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //             Del d1 = () => { } as Del;      // CS0837
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "as").WithArguments("as").WithLocation(12, 32),
                 // (13,22): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //             Del d2 = delegate() { } as Del; // CS0837
-                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate() { } as Del").WithLocation(13, 22)
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate() { } as Del").WithLocation(13, 22),
+                // (13,37): warning CS8848: Operator 'as' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //             Del d2 = delegate() { } as Del; // CS0837
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "as").WithArguments("as").WithLocation(13, 37)
+                );
+            CreateCompilation(text, options: TestOptions.ReleaseDll.WithWarningLevel(5)).VerifyDiagnostics(
+                // (10,23): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //             bool b1 = (() => { }) is Del;   // CS0837
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "(() => { }) is Del").WithLocation(10, 23),
+                // (11,23): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //             bool b2 = delegate() { } is Del;// CS0837
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate() { } is Del").WithLocation(11, 23),
+                // (11,38): warning CS8848: Operator 'is' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //             bool b2 = delegate() { } is Del;// CS0837
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "is").WithArguments("is").WithLocation(11, 38),
+                // (12,22): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //             Del d1 = () => { } as Del;      // CS0837
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "() => { } as Del").WithLocation(12, 22),
+                // (12,32): warning CS8848: Operator 'as' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //             Del d1 = () => { } as Del;      // CS0837
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "as").WithArguments("as").WithLocation(12, 32),
+                // (13,22): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
+                //             Del d2 = delegate() { } as Del; // CS0837
+                Diagnostic(ErrorCode.ERR_LambdaInIsAs, "delegate() { } as Del").WithLocation(13, 22),
+                // (13,37): warning CS8848: Operator 'as' cannot be used here due to precedence. Use parentheses to disambiguate.
+                //             Del d2 = delegate() { } as Del; // CS0837
+                Diagnostic(ErrorCode.WRN_PrecedenceInversion, "as").WithArguments("as").WithLocation(13, 37)
                 );
         }
 
@@ -12615,7 +12707,7 @@ namespace TestNamespace
         [Fact]
         public void CS0841ERR_VariableUsedBeforeDeclaration04()
         {
-            var systemRef = TestReferences.NetFx.v4_0_30319.System;
+            var systemRef = Net451.System;
             CreateCompilationWithMscorlib40AndSystemCore(
 @"using System.Collections.Generic;
 class Base
@@ -12792,7 +12884,7 @@ namespace ConsoleApplication3
 {
     class Program
     {
-        delegate string dg(int x);
+        delegate string @dg(int x);
         static void Main(string[] args)
         {
             Expression<dg> myET = x => Index(minSessions:5);
@@ -12844,7 +12936,7 @@ namespace ConsoleApplication3
 {
     class Program
     {
-        delegate string dg(int x);
+        delegate string @dg(int x);
         static void Main(string[] args)
         {
             Expression<dg> myET = x => Index();
@@ -12904,6 +12996,36 @@ class C
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "b[3]").WithLocation(25, 20),
                 // (26,20): error CS0832: An expression tree may not contain an assignment operator
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsAssignment, "b[4, 5] = null").WithLocation(26, 20));
+        }
+
+        [Fact]
+        public void CS0854ERR_ExpressionTreeContainsOptionalArgument03()
+        {
+            var text =
+@"using System;
+using System.Collections;
+using System.Linq.Expressions;
+
+public class Collection : IEnumerable
+{
+    public void Add(int i, int j = 0) { }
+
+    public IEnumerator GetEnumerator()
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public class C {
+    public void M() {
+        Expression<Func<Collection>> expr =
+            () => new Collection { 1 }; // 1
+    }
+}";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (18,36): error CS0854: An expression tree may not contain a call or invocation that uses optional arguments
+                //             () => new Collection { 1 }; // 1
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, "1").WithLocation(18, 36));
         }
 
         [Fact]
@@ -13400,7 +13522,7 @@ static class SC
     static void M4(this S s) { }
     static void M5(this double d) { }
 }";
-            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, references: new[] { Net40.SystemCore }).VerifyDiagnostics(
                 // (24,29): error CS1113: Extension methods 'SC.M3(E)' defined on value type 'E' cannot be used to create delegates
                 Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "e.M3").WithArguments("SC.M3(E)", "E").WithLocation(24, 29),
                 // (26,29): error CS1113: Extension methods 'SC.M4(S)' defined on value type 'S' cannot be used to create delegates
@@ -13446,7 +13568,7 @@ static class E
     internal static void M1<T>(this T t) { }
     internal static void M2<T, U>(this T t) { }
 }";
-            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, references: new[] { Net40.SystemCore }).VerifyDiagnostics(
                 // (13,13): error CS1113: Extension methods 'E.M1<int>(int)' defined on value type 'int' cannot be used to create delegates
                 Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "i.M1").WithArguments("E.M1<int>(int)", "int").WithLocation(13, 13),
                 // (14,13): error CS1113: Extension methods 'E.M2<int, object>(int)' defined on value type 'int' cannot be used to create delegates
@@ -13507,7 +13629,7 @@ static class E
     internal static void M1<T>(this T t) { }
     internal static void M2<T, U>(this T t) { }
 }";
-            CreateCompilation(source, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilation(source, references: new[] { Net40.SystemCore }).VerifyDiagnostics(
                 // (12,11): error CS1113: Extension methods 'E.M1<int>(int)' defined on value type 'int' cannot be used to create delegates
                 Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "i.M1").WithArguments("E.M1<int>(int)", "int").WithLocation(12, 11),
                 // (13,11): error CS1113: Extension methods 'E.M2<int, object>(int)' defined on value type 'int' cannot be used to create delegates
@@ -13566,7 +13688,7 @@ namespace ConsoleApplication1
             var text = @"
 namespace x
 {
-    public class a
+    public class @a
     {
         public a(char i)
         {
@@ -13591,7 +13713,7 @@ namespace x
             var text = @"
 namespace x
 {
-    public class a
+    public class @a
     {
         public a() : this(""string"") //CS1502, CS1503
         {
@@ -14391,9 +14513,9 @@ public class MyCollection
     }
 }";
             CreateCompilation(text).VerifyDiagnostics(
-                // (45,27): warning CS0279: 'MyCollection' does not implement the 'collection' pattern. 'MyCollection.GetEnumerator()' is either static or not public.
+                // (45,27): warning CS0279: 'MyCollection' does not implement the 'collection' pattern. 'MyCollection.GetEnumerator()' is not a public instance or extension method.
                 //         foreach (int i in col)   // CS1579
-                Diagnostic(ErrorCode.WRN_PatternStaticOrInaccessible, "col").WithArguments("MyCollection", "collection", "MyCollection.GetEnumerator()"),
+                Diagnostic(ErrorCode.WRN_PatternNotPublicOrNotInstance, "col").WithArguments("MyCollection", "collection", "MyCollection.GetEnumerator()"),
                 // (45,27): error CS1579: foreach statement cannot operate on variables of type 'MyCollection' because 'MyCollection' does not contain a public definition for 'GetEnumerator'
                 //         foreach (int i in col)   // CS1579
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "col").WithArguments("MyCollection", "GetEnumerator"));
@@ -14421,9 +14543,9 @@ public class Test
         {
             var text = @"
 using System;
-delegate string func(int i);   // declare delegate
+delegate string @func(int i);   // declare delegate
 
-class a
+class @a
 {
     public static void Main()
     {
@@ -14494,9 +14616,9 @@ class Program
         {
             var text = @"
 using System;
-delegate string func(int i);   // declare delegate
+delegate string @func(int i);   // declare delegate
 
-class a
+class @a
 {
     public static void Main()
     {
@@ -14671,7 +14793,7 @@ class C
             var text = @"
 using System.Diagnostics;
 
-delegate void del();
+delegate void @del();
 
 class MakeAnError
 {
@@ -14698,7 +14820,7 @@ class MakeAnError
 using System;
 using System.Diagnostics;
 
-delegate void del();
+delegate void @del();
 
 class MakeAnError
 {
@@ -16189,7 +16311,7 @@ public unsafe class C
                 // (19,9): error CS1650: Fields of static readonly field 'C._s1' cannot be assigned to (except in a static constructor or a variable initializer)
                 //         C._s1.name[3] = 'a';  // CS1648
                 Diagnostic(ErrorCode.ERR_AssgReadonlyStatic2, "C._s1.name[3]").WithArguments("C._s1").WithLocation(19, 9),
-                // (20,9): error CS1648: Members of readonly field 'C._s2' cannot be modified (except in a constructor or a variable initializer)
+                // (20,9): error CS1648: Members of readonly field 'C._s2' cannot be modified (except in a constructor, an init-only member or a variable initializer)
                 //         myC._s2.name[3] = 'a';  // CS1648
                 Diagnostic(ErrorCode.ERR_AssgReadonly2, "myC._s2.name[3]").WithArguments("C._s2").WithLocation(20, 9)
                 );
@@ -16607,7 +16729,7 @@ static class S
 {
     internal static void F(this double d) { }
 }";
-            var compilation = CreateCompilationWithMscorlib40(text, references: new[] { SystemCoreRef });
+            var compilation = CreateCompilationWithMscorlib40(text, references: new[] { Net40.SystemCore });
             // Previously ERR_BadExtensionArgTypes.
             compilation.VerifyDiagnostics(
                 // (5,9): error CS1929: 'float' does not contain a definition for 'F' and the best extension method overload 'S.F(double)' requires a receiver of type 'double'
@@ -16630,7 +16752,7 @@ static class S
 {
     internal static void E(this B b) { }
 }";
-            var compilation = CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef });
+            var compilation = CreateCompilationWithMscorlib40(source, references: new[] { Net40.SystemCore });
             compilation.VerifyDiagnostics(
                 // (6,9): error CS1929: 'A' does not contain a definition for 'E' and the best extension method overload 'S.E(B)' requires a receiver of type 'B'
                 //         a.E();
@@ -16834,7 +16956,7 @@ class Test
     }
 }
 ").VerifyDiagnostics(
-             // (8,40): error CS1935: Could not find an implementation of the query pattern for source type 'int[]'.  'Where' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?
+             // (8,40): error CS1935: Could not find an implementation of the query pattern for source type 'int[]'.  'Where' not found.  Are you missing required assembly references or a using directive for 'System.Linq'?
              // nums
              Diagnostic(ErrorCode.ERR_QueryNoProviderStandard, "nums").WithArguments("int[]", "Where"));
         }
@@ -17368,10 +17490,7 @@ class Program
             comp.VerifyDiagnostics(
                 // (6,25): error CS1959: 'x' is of type 'T'. The type specified in a constant declaration must be sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double, decimal, bool, string, an enum-type, or a reference-type.
                 //             const T x = null; // CS1959
-                Diagnostic(ErrorCode.ERR_InvalidConstantDeclarationType, "null").WithArguments("x", "T"),
-                // (6,21): warning CS0219: The variable 'x' is assigned but its value is never used
-                //             const T x = null; // CS1959
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x")
+                Diagnostic(ErrorCode.ERR_InvalidConstantDeclarationType, "null").WithArguments("x", "T")
                 );
         }
 
@@ -18008,6 +18127,29 @@ public class C
             CreateCompilation(text).VerifyDiagnostics(
                 // (6,25): error CS1962: The typeof operator cannot be used on the dynamic type
                 Diagnostic(ErrorCode.ERR_BadDynamicTypeof, "typeof(dynamic)"));
+        }
+
+        [Fact]
+        [WorkItem(54804, "https://github.com/dotnet/roslyn/issues/54804")]
+        public void BadNestedTypeof()
+        {
+            var source = @"
+#nullable enable
+
+using System;
+using System.Collections.Generic;
+
+var x = typeof(List<dynamic>); // 1
+x = typeof(nint); // 2
+x = typeof(List<nint>); // 3
+x = typeof(List<string?>); // 4
+x = typeof((int a, int b)); // 5
+x = typeof((int a, string? b)); // 6
+x = typeof(ValueTuple<int, int>); // ok
+";
+            CreateCompilation(source).VerifyDiagnostics();
+
+            CreateCompilation(source, options: TestOptions.DebugExe.WithWarningLevel(5)).VerifyDiagnostics();
         }
 
         // CS1963ERR_ExpressionTreeContainsDynamicOperation --> SyntaxBinderTests
@@ -18703,7 +18845,7 @@ class Program
         public void CS0164WRN_UnreferencedLabel()
         {
             var text = @"
-public class a
+public class @a
 {
    public int i = 0;
 
@@ -18721,12 +18863,12 @@ public class a
         public void CS0168WRN_UnreferencedVar01()
         {
             var text = @"
-public class clx
+public class @clx
 {
     public int i;
 }
 
-public class clz
+public class @clz
 {
     public static void Main()
     {
@@ -19042,7 +19184,7 @@ class Derived : ByRef
         public void CS0219WRN_UnreferencedVarAssg02()
         {
             var text = @"
-public class clx
+public class @clx
 {
     static void Main(string[] args)
     {
@@ -19057,7 +19199,7 @@ public class clx
         public void CS0219WRN_UnreferencedVarAssg03()
         {
             var text = @"
-public class clx
+public class @clx
 {
     static void Main(string[] args)
     {
@@ -19073,7 +19215,7 @@ public class clx
         public void CS0219WRN_UnreferencedVarAssg_StructString()
         {
             var text = @"
-class program
+class @program
 {
     static void Main(string[] args)
     {
@@ -19081,7 +19223,7 @@ class program
         string s = """";
     }
 }
-struct s1 { }
+struct @s1 { }
 ";
             CreateCompilation(text).VerifyDiagnostics(
                 // (6,12): warning CS0219: The variable 'y' is assigned but its value is never used
@@ -19476,8 +19618,8 @@ public class myTest : IEnumerable
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (18,27): warning CS0279: 'myTest' does not implement the 'collection' pattern. 'myTest.GetEnumerator()' is either static or not public.
-                Diagnostic(ErrorCode.WRN_PatternStaticOrInaccessible, "new myTest()").WithArguments("myTest", "collection", "myTest.GetEnumerator()"));
+                // (18,27): warning CS0279: 'myTest' does not implement the 'collection' pattern. 'myTest.GetEnumerator()' is not a public instance or extension method.
+                Diagnostic(ErrorCode.WRN_PatternNotPublicOrNotInstance, "new myTest()").WithArguments("myTest", "collection", "myTest.GetEnumerator()"));
         }
 
         [Fact]
@@ -20384,7 +20526,7 @@ class Test
             // Due to a long-standing bug, the native compiler does not produce warnings for "guid == null",
             // but does for "int == null". Roslyn corrects this lapse and produces warnings for both built-in
             // and user-defined lifted equality operators, but the new warnings for user-defined types are
-            // only given in "strict" more.
+            // only given with /warn:n where n >= 5.
 
             var text = @"
 using System;
@@ -20589,8 +20731,8 @@ ftftftft";
                 Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "(E?)null != 0").WithArguments("true", "MyClass.E", "MyClass.E?").WithLocation(96, 11)
             };
             var compatibleExpected = fullExpected.Where(d => !d.Code.Equals((int)ErrorCode.WRN_NubExprIsConstBool2)).ToArray();
-            this.CompileAndVerify(source: text, expectedOutput: expected).VerifyDiagnostics(compatibleExpected);
-            this.CompileAndVerify(source: text, expectedOutput: expected, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(fullExpected);
+            this.CompileAndVerify(source: text, expectedOutput: expected, options: TestOptions.ReleaseExe.WithWarningLevel(4)).VerifyDiagnostics(compatibleExpected);
+            this.CompileAndVerify(source: text, expectedOutput: expected).VerifyDiagnostics(fullExpected);
         }
 
         [Fact]
@@ -20900,7 +21042,7 @@ class B
         public void CS0675WRN_BitwiseOrSignExtend()
         {
             var text = @"
-public class sign
+public class @sign
 {
    public static void Main()
    {
@@ -22077,7 +22219,7 @@ static class C
     }
     static void E(this object o) { }
 }";
-            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, references: new[] { Net40.SystemCore }, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
                 // (20,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'object' is null
                 //         default(object).GetHashCode();
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(object).GetHashCode").WithArguments("object").WithLocation(20, 9),
@@ -22090,7 +22232,7 @@ static class C
                 // (28,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T6' is null
                 //         default(T6).P = null;
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T6).P").WithArguments("T6").WithLocation(28, 9));
-            CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef }, options: TestOptions.ReleaseDll.WithNullableContextOptions(NullableContextOptions.Disable)).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, references: new[] { Net40.SystemCore }, options: TestOptions.ReleaseDll.WithNullableContextOptions(NullableContextOptions.Disable)).VerifyDiagnostics(
                 );
         }
 
@@ -22184,13 +22326,13 @@ class C
     }
 }
 ";
-            CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { SystemCoreRef }, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+            CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { Net40.SystemCore }, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
                 // Do not report the following warning:
                 // (5,34): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'string' is null
                 //         System.Console.WriteLine(default(string).IsNull());
                 // Diagnostic(ErrorCode.WRN_DotOnDefault, "default(string).IsNull").WithArguments("string").WithLocation(5, 34)
                 );
-            CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { SystemCoreRef }).VerifyDiagnostics();
+            CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { Net40.SystemCore }).VerifyDiagnostics();
         }
 
         [Fact]
@@ -22532,6 +22674,7 @@ public class Program
         var z8 = new Func<string, string>(ref Program.BarP); 
         var z9 = new Func<string, string>(ref Program.Goo<string>(x => x));
         var z10 = new Func<string, string>(ref Id); // compat
+        var z11 = new Func<string, string>(ref new(x => x));
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
@@ -22552,7 +22695,11 @@ public class Program
                 Diagnostic(ErrorCode.ERR_RefProperty, "ref Program.BarP").WithArguments("Program.BarP").WithLocation(20, 43),
                 // (21,47): error CS1510: A ref or out argument must be an assignable variable
                 //         var z9 = new Func<string, string>(ref Program.Goo<string>(x => x));
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Program.Goo<string>(x => x)").WithLocation(21, 47));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Program.Goo<string>(x => x)").WithLocation(21, 47),
+                // (23,48): error CS1510: A ref or out value must be an assignable variable
+                //         var z11 = new Func<string, string>(ref new(x => x));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new(x => x)").WithLocation(23, 48)
+                );
 
             CreateCompilation(source, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(
                 // (13,47): error CS0149: Method name expected
@@ -22584,7 +22731,11 @@ public class Program
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "Program.Goo<string>(x => x)").WithLocation(21, 47),
                 // (22,48): error CS1657: Cannot pass 'Id' as a ref or out argument because it is a 'method group'
                 //         var z10 = new Func<string, string>(ref Id); // compat
-                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "Id").WithArguments("Id", "method group").WithLocation(22, 48));
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "Id").WithArguments("Id", "method group").WithLocation(22, 48),
+                // (23,48): error CS1510: A ref or out value must be an assignable variable
+                //         var z11 = new Func<string, string>(ref new(x => x));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new(x => x)").WithLocation(23, 48)
+                );
         }
 
         [Fact, WorkItem(7359, "https://github.com/dotnet/roslyn/issues/7359")]
@@ -22792,76 +22943,123 @@ class Program
 ";
             CreateCompilation(text).VerifyDiagnostics(
                 // (16,14): error CS0307: The variable 'l' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "l<>").WithArguments("l", "variable"),
+                //         Test(l<>);
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "l<>").WithArguments("l", "variable").WithLocation(16, 14),
                 // (17,14): error CS0307: The variable 'object' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "p<>").WithArguments("object", "variable"),
+                //         Test(p<>);
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "p<>").WithArguments("object", "variable").WithLocation(17, 14),
                 // (19,14): error CS0307: The field 'Program.f' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "f<>").WithArguments("Program.f", "field"),
+                //         Test(f<>);
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "f<>").WithArguments("Program.f", "field").WithLocation(19, 14),
                 // (20,14): error CS0307: The property 'Program.P' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "P<>").WithArguments("Program.P", "property"),
+                //         Test(P<>);
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "P<>").WithArguments("Program.P", "property").WithLocation(20, 14),
                 // (21,14): error CS0308: The non-generic method 'Program.M()' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "M<>").WithArguments("Program.M()", "method"),
+                //         Test(M<>());
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "M<>").WithArguments("Program.M()", "method").WithLocation(21, 14),
+                // (23,14): error CS8389: Omitting the type argument is not allowed in the current context
+                //         Test(this.f<>);
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "this.f<>").WithLocation(23, 14),
                 // (23,19): error CS0307: The field 'Program.f' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "f<>").WithArguments("Program.f", "field"),
+                //         Test(this.f<>);
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "f<>").WithArguments("Program.f", "field").WithLocation(23, 19),
+                // (24,14): error CS8389: Omitting the type argument is not allowed in the current context
+                //         Test(this.P<>);
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "this.P<>").WithLocation(24, 14),
                 // (24,19): error CS0307: The property 'Program.P' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "P<>").WithArguments("Program.P", "property"),
+                //         Test(this.P<>);
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "P<>").WithArguments("Program.P", "property").WithLocation(24, 19),
+                // (25,14): error CS8389: Omitting the type argument is not allowed in the current context
+                //         Test(this.M<>());
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "this.M<>").WithLocation(25, 14),
                 // (25,19): error CS0308: The non-generic method 'Program.M()' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "M<>").WithArguments("Program.M()", "method"),
+                //         Test(this.M<>());
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "M<>").WithArguments("Program.M()", "method").WithLocation(25, 19),
                 // (29,13): error CS0308: The non-generic method 'Program.M()' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "M<>").WithArguments("Program.M()", "method"),
+                //         m = M<>;
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "M<>").WithArguments("Program.M()", "method").WithLocation(29, 13),
+                // (30,13): error CS8389: Omitting the type argument is not allowed in the current context
+                //         m = this.M<>;
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "this.M<>").WithLocation(30, 13),
                 // (30,18): error CS0308: The non-generic method 'Program.M()' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "M<>").WithArguments("Program.M()", "method"),
+                //         m = this.M<>;
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "M<>").WithArguments("Program.M()", "method").WithLocation(30, 18),
                 // (32,9): error CS0308: The non-generic type 'Program.I' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "I<>").WithArguments("Program.I", "type"),
+                //         I<> i1 = null;
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "I<>").WithArguments("Program.I", "type").WithLocation(32, 9),
                 // (33,9): error CS0308: The non-generic type 'Program.C' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("Program.C", "type"),
+                //         C<> c1 = new C();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("Program.C", "type").WithLocation(33, 9),
                 // (34,20): error CS0308: The non-generic type 'Program.C' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("Program.C", "type"),
+                //         C c2 = new C<>();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("Program.C", "type").WithLocation(34, 20),
                 // (35,9): error CS0308: The non-generic type 'Program.S' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "S<>").WithArguments("Program.S", "type"),
+                //         S<> s1 = new S();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "S<>").WithArguments("Program.S", "type").WithLocation(35, 9),
                 // (36,20): error CS0308: The non-generic type 'Program.S' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "S<>").WithArguments("Program.S", "type"),
+                //         S s2 = new S<>();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "S<>").WithArguments("Program.S", "type").WithLocation(36, 20),
                 // (37,9): error CS0308: The non-generic type 'Program.D' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "D<>").WithArguments("Program.D", "type"),
+                //         D<> d1 = null;
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "D<>").WithArguments("Program.D", "type").WithLocation(37, 9),
                 // (39,17): error CS0308: The non-generic type 'Program.I' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "I<>").WithArguments("Program.I", "type"),
+                //         Program.I<> i2 = null;
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "I<>").WithArguments("Program.I", "type").WithLocation(39, 17),
                 // (40,17): error CS0308: The non-generic type 'Program.C' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("Program.C", "type"),
+                //         Program.C<> c3 = new Program.C();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("Program.C", "type").WithLocation(40, 17),
                 // (41,36): error CS0308: The non-generic type 'Program.C' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("Program.C", "type"),
+                //         Program.C c4 = new Program.C<>();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("Program.C", "type").WithLocation(41, 36),
                 // (42,17): error CS0308: The non-generic type 'Program.S' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "S<>").WithArguments("Program.S", "type"),
+                //         Program.S<> s3 = new Program.S();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "S<>").WithArguments("Program.S", "type").WithLocation(42, 17),
                 // (43,36): error CS0308: The non-generic type 'Program.S' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "S<>").WithArguments("Program.S", "type"),
+                //         Program.S s4 = new Program.S<>();
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "S<>").WithArguments("Program.S", "type").WithLocation(43, 36),
                 // (44,17): error CS0308: The non-generic type 'Program.D' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "D<>").WithArguments("Program.D", "type"),
+                //         Program.D<> d2 = null;
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "D<>").WithArguments("Program.D", "type").WithLocation(44, 17),
                 // (46,22): error CS0308: The non-generic type 'Program.I' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "I<>").WithArguments("Program.I", "type"),
+                //         Test(default(I<>));
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "I<>").WithArguments("Program.I", "type").WithLocation(46, 22),
                 // (47,22): error CS0308: The non-generic type 'Program.C' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("Program.C", "type"),
+                //         Test(default(C<>));
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("Program.C", "type").WithLocation(47, 22),
                 // (48,22): error CS0308: The non-generic type 'Program.S' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "S<>").WithArguments("Program.S", "type"),
+                //         Test(default(S<>));
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "S<>").WithArguments("Program.S", "type").WithLocation(48, 22),
                 // (50,30): error CS0308: The non-generic type 'Program.I' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "I<>").WithArguments("Program.I", "type"),
+                //         Test(default(Program.I<>));
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "I<>").WithArguments("Program.I", "type").WithLocation(50, 30),
                 // (51,30): error CS0308: The non-generic type 'Program.C' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("Program.C", "type"),
+                //         Test(default(Program.C<>));
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("Program.C", "type").WithLocation(51, 30),
                 // (52,30): error CS0308: The non-generic type 'Program.S' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "S<>").WithArguments("Program.S", "type"),
+                //         Test(default(Program.S<>));
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "S<>").WithArguments("Program.S", "type").WithLocation(52, 30),
                 // (56,20): error CS0308: The non-generic type 'Program.I' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "I<>").WithArguments("Program.I", "type"),
+                //         s = typeof(I<>).Name;
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "I<>").WithArguments("Program.I", "type").WithLocation(56, 20),
                 // (57,20): error CS0308: The non-generic type 'Program.C' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("Program.C", "type"),
+                //         s = typeof(C<>).Name;
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("Program.C", "type").WithLocation(57, 20),
                 // (58,20): error CS0308: The non-generic type 'Program.S' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "S<>").WithArguments("Program.S", "type"),
+                //         s = typeof(S<>).Name;
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "S<>").WithArguments("Program.S", "type").WithLocation(58, 20),
                 // (60,28): error CS0308: The non-generic type 'Program.I' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "I<>").WithArguments("Program.I", "type"),
+                //         s = typeof(Program.I<>).Name;
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "I<>").WithArguments("Program.I", "type").WithLocation(60, 28),
                 // (61,28): error CS0308: The non-generic type 'Program.C' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("Program.C", "type"),
+                //         s = typeof(Program.C<>).Name;
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "C<>").WithArguments("Program.C", "type").WithLocation(61, 28),
                 // (62,28): error CS0308: The non-generic type 'Program.S' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "S<>").WithArguments("Program.S", "type"),
+                //         s = typeof(Program.S<>).Name;
+                Diagnostic(ErrorCode.ERR_HasNoTypeVars, "S<>").WithArguments("Program.S", "type").WithLocation(62, 28),
                 // (4,9): warning CS0649: Field 'Program.f' is never assigned to, and will always have its default value 0
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "f").WithArguments("Program.f", "0")
-                );
+                //     int f;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "f").WithArguments("Program.f", "0").WithLocation(4, 9)
+            );
         }
 
         [WorkItem(542419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542419")]
@@ -22891,32 +23089,47 @@ class Program
                 // Parser
 
                 // (12,11): error CS1525: Invalid expression term '>'
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">"),
+                //         E<> += null; //parse error
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(12, 11),
                 // (12,13): error CS1525: Invalid expression term '+='
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "+=").WithArguments("+="),
+                //         E<> += null; //parse error
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "+=").WithArguments("+=").WithLocation(12, 13),
                 // (13,11): error CS1525: Invalid expression term '>'
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">"),
+                //         F<> += null; //parse error
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(13, 11),
                 // (13,13): error CS1525: Invalid expression term '+='
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "+=").WithArguments("+="),
+                //         F<> += null; //parse error
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "+=").WithArguments("+=").WithLocation(13, 13),
                 // (15,16): error CS1525: Invalid expression term '>'
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">"),
+                //         this.E<> += null; //parse error
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(15, 16),
                 // (15,18): error CS1525: Invalid expression term '+='
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "+=").WithArguments("+="),
+                //         this.E<> += null; //parse error
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "+=").WithArguments("+=").WithLocation(15, 18),
                 // (16,16): error CS1525: Invalid expression term '>'
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">"),
+                //         this.F<> += null; //parse error
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ">").WithArguments(">").WithLocation(16, 16),
+                // (16,18): error CS1525: Invalid expression term '+='
+                //         this.F<> += null; //parse error
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "+=").WithArguments("+=").WithLocation(16, 18),
 
                 // Binder
 
-                // (16,18): error CS1525: Invalid expression term '+='
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "+=").WithArguments("+="),
                 // (9,14): error CS0307: The event 'Program.E' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "E<>").WithArguments("Program.E", "event"),
+                //         Test(E<>);
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "E<>").WithArguments("Program.E", "event").WithLocation(9, 14),
+                // (10,14): error CS8389: Omitting the type argument is not allowed in the current context
+                //         Test(this.E<>);
+                Diagnostic(ErrorCode.ERR_OmittedTypeArgument, "this.E<>").WithLocation(10, 14),
                 // (10,19): error CS0307: The event 'Program.E' cannot be used with type arguments
-                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "E<>").WithArguments("Program.E", "event"),
+                //         Test(this.E<>);
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "E<>").WithArguments("Program.E", "event").WithLocation(10, 19),
                 // (13,9): error CS0079: The event 'Program.F' can only appear on the left hand side of += or -=
-                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "F").WithArguments("Program.F"),
+                //         F<> += null; //parse error
+                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "F").WithArguments("Program.F").WithLocation(13, 9),
                 // (16,14): error CS0079: The event 'Program.F' can only appear on the left hand side of += or -=
-                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "F").WithArguments("Program.F"));
+                //         this.F<> += null; //parse error
+                Diagnostic(ErrorCode.ERR_BadEventUsageNoField, "F").WithArguments("Program.F").WithLocation(16, 14));
         }
 
         [WorkItem(542419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542419")]
@@ -23192,9 +23405,9 @@ class Program
 }";
 
             CreateCompilation(text).VerifyDiagnostics(
-                // (5,13): error CS0815: Cannot assign lambda expression to an implicitly-typed variable
+                // (5,26): error CS8917: The delegate type could not be inferred.
                 //         var a1 = checked((a) => a);
-                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "a1 = checked((a) => a)").WithArguments("lambda expression"));
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "(a) => a").WithLocation(5, 26));
         }
 
         [Fact, WorkItem(543665, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543665")]
@@ -23548,9 +23761,9 @@ class Program
                 // (14,18): error CS8026: Feature 'null propagation operator' is not available in C# 5. Please use language version 6 or greater.
                 //         var x1 = p.P1 ?.ToString;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "p.P1 ?.ToString").WithArguments("null propagating operator", "6").WithLocation(14, 18),
-                // (14,23): error CS0023: Operator '?' cannot be applied to operand of type 'method group'
+                // (14,24): error CS8977: 'method group' cannot be made nullable.
                 //         var x1 = p.P1 ?.ToString;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "method group").WithLocation(14, 23)
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".ToString").WithArguments("method group").WithLocation(14, 24)
                 );
         }
 
@@ -23575,10 +23788,10 @@ class Program
 }
 ";
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
-    // (14,23): error CS0023: Operator '?' cannot be applied to operand of type 'method group'
-    //         var x1 = p.P1 ?.ToString;
-    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "method group").WithLocation(14, 23)
-               );
+                // (14,24): error CS8977: 'method group' cannot be made nullable.
+                //         var x1 = p.P1 ?.ToString;
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".ToString").WithArguments("method group").WithLocation(14, 24)
+                );
         }
 
 
@@ -23673,10 +23886,10 @@ class Program
 
 ";
             CreateCompilationWithMscorlib45(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-    // (9,23): error CS0023: Operator '?' cannot be applied to operand of type 'void*'
-    //         var p = intPtr?.ToPointer();
-    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "void*").WithLocation(9, 23)
-               );
+                // (9,24): error CS8977: 'void*' cannot be made nullable.
+                //         var p = intPtr?.ToPointer();
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".ToPointer()").WithArguments("void*").WithLocation(9, 24)
+                );
         }
 
         [Fact]
@@ -23704,7 +23917,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib45(text, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text, new[] { Net451.System, Net451.SystemCore, Net451.MicrosoftCSharp }, options: TestOptions.ReleaseDll).VerifyDiagnostics(
     // (9,44): error CS8072: An expression tree lambda may not contain a null propagating operator.
     //         Expression<Func<string>> s = () => x?.ToString();
     Diagnostic(ErrorCode.ERR_NullPropagatingOpInExpressionTree, "x?.ToString()").WithLocation(9, 44),
@@ -23745,7 +23958,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib45(text, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text, new[] { Net451.System, Net451.SystemCore, Net451.MicrosoftCSharp }).VerifyDiagnostics(
     // (10,87): error CS8073: An expression tree lambda may not contain a dictionary initializer.
     //         Expression<Func<Dictionary<int, int>>> s = () => new Dictionary<int, int> () {[1] = 2};
     Diagnostic(ErrorCode.ERR_DictionaryInitializerInExpressionTree, "[1]").WithLocation(10, 87)
@@ -23785,7 +23998,7 @@ namespace ConsoleApplication31
 }
 
 ";
-            CreateCompilationWithMscorlib45(text, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text, new[] { Net451.System, Net451.SystemCore, Net451.MicrosoftCSharp }).VerifyDiagnostics(
     // (25,72): error CS8075: An expression tree lambda may not contain an extension collection element initializer.
     //         public Expression<Func<Stack<int>>> E = () => new Stack<int> { 42 };
     Diagnostic(ErrorCode.ERR_ExtensionCollectionElementInitializerInExpressionTree, "42").WithLocation(25, 72)
@@ -23813,7 +24026,7 @@ class C
 }
 
 ";
-            CreateCompilationWithMscorlib45(text, new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text, new[] { Net451.System, Net451.SystemCore, Net451.MicrosoftCSharp }).VerifyDiagnostics(
     // (9,53): error CS8073: An expression tree lambda may not contain a dictionary initializer.
     //         Expression<Func<C>> e = () => new C { H = { ["Key"] = "Value" } };
     Diagnostic(ErrorCode.ERR_DictionaryInitializerInExpressionTree, @"[""Key""]").WithLocation(9, 53)
@@ -24074,15 +24287,15 @@ public ref struct S2
 }
 ";
             CreateCompilationWithMscorlib45(text, options: TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (10,18): error CS0023: Operator '?' cannot be applied to operand of type 'S2'
+                // (10,19): error CS8977: 'S2' cannot be made nullable.
                 //         var x = o?.F();
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "S2").WithLocation(10, 18),
-                // (12,18): error CS0023: Operator '?' cannot be applied to operand of type 'S2'
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".F()").WithArguments("S2").WithLocation(10, 19),
+                // (12,19): error CS8977: 'S2' cannot be made nullable.
                 //         var y = o?.F() ?? default;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "S2").WithLocation(12, 18),
-                // (14,18): error CS0023: Operator '?' cannot be applied to operand of type 'S1'
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".F()").WithArguments("S2").WithLocation(12, 19),
+                // (14,19): error CS8977: 'S1' cannot be made nullable.
                 //         var z = o?.F().field ?? default;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "S1").WithLocation(14, 18)
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".F().field").WithArguments("S1").WithLocation(14, 19)
                );
         }
 
@@ -24190,12 +24403,12 @@ class B : System.Attribute {
 }
 ";
             CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
-                // (7,2): error CS8355: Cannot use attribute constructor 'B.B(in int)' because it is has 'in' parameters.
-                // [B()]
-                Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "B()").WithArguments("B.B(in int)").WithLocation(7, 2),
-                // (2,2): error CS8355: Cannot use attribute constructor 'A.A(in int)' because it is has 'in' parameters.
+                // (2,2): error CS8358: Cannot use attribute constructor 'A.A(in int)' because it has 'in' parameters.
                 // [A(1)]
-                Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "A(1)").WithArguments("A.A(in int)").WithLocation(2, 2)
+                Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "A(1)").WithArguments("A.A(in int)").WithLocation(2, 2),
+                // (7,2): error CS8358: Cannot use attribute constructor 'B.B(in int)' because it has 'in' parameters.
+                // [B()]
+                Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "B()").WithArguments("B.B(in int)").WithLocation(7, 2)
                 );
         }
 

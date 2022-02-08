@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using Roslyn.Utilities;
 
@@ -17,7 +15,7 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-        public bool Equals(Diagnostic x, Diagnostic y)
+        public bool Equals(Diagnostic? x, Diagnostic? y)
         {
             if (object.ReferenceEquals(x, y))
             {

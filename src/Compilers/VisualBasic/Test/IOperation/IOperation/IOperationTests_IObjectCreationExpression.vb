@@ -1805,14 +1805,14 @@ Block[B0] - Entry
 .locals {R1}
 {
     Locals: [c As C]
-    CaptureIds: [1]
+    CaptureIds: [0]
     .locals {R2}
     {
-        CaptureIds: [0]
+        CaptureIds: [1]
         Block[B1] - Block
             Predecessors: [B0]
             Statements (2)
-                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'New C With {.A = 1}')
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'New C With {.A = 1}')
                   Value: 
                     IObjectCreationOperation (Constructor: Sub C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'New C With {.A = 1}')
                       Arguments(0)
@@ -1823,7 +1823,7 @@ Block[B0] - Entry
                   Left: 
                     IPropertyReferenceOperation: Property C.A As System.Object (OperationKind.PropertyReference, Type: System.Object) (Syntax: 'A')
                       Instance Receiver: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'New C With {.A = 1}')
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'New C With {.A = 1}')
                   Right: 
                     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '1')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1834,18 +1834,18 @@ Block[B0] - Entry
             Jump if True (Regular) to Block[B3]
                 IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'New C With {.A = 1}')
                   Operand: 
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'New C With {.A = 1}')
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'New C With {.A = 1}')
                 Leaving: {R2}
 
             Next (Regular) Block[B2]
         Block[B2] - Block
             Predecessors: [B1]
             Statements (1)
-                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.A')
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.A')
                   Value: 
                     IPropertyReferenceOperation: Property C.A As System.Object (OperationKind.PropertyReference, Type: System.Object) (Syntax: '.A')
                       Instance Receiver: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'New C With {.A = 1}')
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'New C With {.A = 1}')
 
             Next (Regular) Block[B4]
                 Leaving: {R2}
@@ -1854,7 +1854,7 @@ Block[B0] - Entry
     Block[B3] - Block
         Predecessors: [B1]
         Statements (1)
-            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'New C With {.A = 1}')
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'New C With {.A = 1}')
               Value: 
                 IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'New C With {.A = 1}')
 
@@ -1870,7 +1870,7 @@ Block[B0] - Entry
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                     (NarrowingReference)
                   Operand: 
-                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'New C With {.A = 1}?.A')
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'New C With {.A = 1}?.A')
 
         Next (Regular) Block[B5]
             Leaving: {R1}

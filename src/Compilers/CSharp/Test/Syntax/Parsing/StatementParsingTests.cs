@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -2233,7 +2235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotEqual(default, ss.SwitchKeyword);
             Assert.Equal(SyntaxKind.SwitchKeyword, ss.SwitchKeyword.Kind());
             Assert.NotEqual(default, ss.OpenParenToken);
-            Assert.NotEqual(default, ss.Expression);
+            Assert.NotNull(ss.Expression);
             Assert.Equal("a", ss.Expression.ToString());
             Assert.NotEqual(default, ss.CloseParenToken);
             Assert.NotEqual(default, ss.OpenBraceToken);
@@ -2752,25 +2754,25 @@ class C
         [Fact]
         public void TestAwaitUsingVarWithVarAndNoUsingDeclarationTree()
         {
-            UsingStatement(@"await var a = b;", TestOptions.Regular8, expectedErrors:
-                // (1,11): error CS1003: Syntax error, ',' expected
+            UsingStatement(@"await var a = b;", TestOptions.Regular8,
+                // (1,1): error CS1073: Unexpected token 'a'
                 // await var a = b;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "a").WithArguments(",", "").WithLocation(1, 11)
-            );
-            N(SyntaxKind.LocalDeclarationStatement);
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "await var ").WithArguments("a").WithLocation(1, 1),
+                // (1,11): error CS1002: ; expected
+                // await var a = b;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "a").WithLocation(1, 11));
+
+            N(SyntaxKind.ExpressionStatement);
             {
-                N(SyntaxKind.VariableDeclaration);
+                N(SyntaxKind.AwaitExpression);
                 {
+                    N(SyntaxKind.AwaitKeyword);
                     N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "await");
-                    }
-                    N(SyntaxKind.VariableDeclarator);
                     {
                         N(SyntaxKind.IdentifierToken, "var");
                     }
                 }
-                N(SyntaxKind.SemicolonToken);
+                M(SyntaxKind.SemicolonToken);
             }
             EOF();
         }

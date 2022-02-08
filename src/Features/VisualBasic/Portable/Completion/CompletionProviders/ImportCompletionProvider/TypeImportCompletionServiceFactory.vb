@@ -13,6 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Implements ILanguageServiceFactory
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -36,6 +37,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Protected Overrides ReadOnly Property IsCaseSensitive As Boolean
                 Get
                     Return False
+                End Get
+            End Property
+
+            Protected Overrides ReadOnly Property Language As String
+                Get
+                    Return LanguageNames.VisualBasic
                 End Get
             End Property
         End Class

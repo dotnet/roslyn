@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -850,7 +852,8 @@ class C
         #endregion
 
         #region Error cases
-        [Fact]
+        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // The test hook is blocked by https://github.com/dotnet/roslyn/issues/39979
+        [WorkItem(39979, "https://github.com/dotnet/roslyn/issues/39979")]
         public void VoidEvent()
         {
             var text =
@@ -1442,10 +1445,15 @@ class C
     }
 }
 ";
-            CreateCompilation(text).VerifyDiagnostics(
+            var expected = new[] {
                 // (4,25): error CS0065: 'C.E': event property must have both add and remove accessors
                 //     event System.Action E { remove { } }
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E").WithArguments("C.E"));
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E").WithArguments("C.E")
+                };
+
+            CreateCompilation(text).VerifyDiagnostics(expected).VerifyEmitDiagnostics(expected);
+
+            CreateCompilation(text).VerifyEmitDiagnostics(expected);
         }
 
         [WorkItem(542570, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542570")]
@@ -2464,13 +2472,14 @@ delegate void D();
 class Test
 {
 #pragma warning disable 414 // The field '{0}' is assigned but its value is never used
+#pragma warning disable 626 // Method, operator, or accessor '{0}' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
     public extern event D e = null; // 1
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (7,27): error CS8760: 'Test.e': extern event cannot have initializer
+                // (8,27): error CS8760: 'Test.e': extern event cannot have initializer
                 //     public extern event D e = null; // 1
-                Diagnostic(ErrorCode.ERR_ExternEventInitializer, "e").WithArguments("Test.e").WithLocation(7, 27));
+                Diagnostic(ErrorCode.ERR_ExternEventInitializer, "e").WithArguments("Test.e").WithLocation(8, 27));
         }
 
         #endregion

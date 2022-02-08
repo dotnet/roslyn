@@ -13,11 +13,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         Implements ILanguageServiceFactory
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
         Public Function CreateLanguageService(provider As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New VisualBasicSyntaxTriviaService(provider)
+            Return VisualBasicSyntaxTriviaService.Instance
         End Function
     End Class
 End Namespace

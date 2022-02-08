@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using System.Diagnostics;
 
@@ -12,14 +14,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal sealed class LocalFunctionState : AbstractLocalFunctionState
         {
             public BitVector ReadVars = BitVector.Empty;
-            public ref LocalState WrittenVars => ref StateFromTop;
 
-            public LocalFunctionState(LocalState unreachableState)
-                : base(unreachableState)
+            public BitVector CapturedMask = BitVector.Null;
+            public BitVector InvertedCapturedMask = BitVector.Null;
+
+            public LocalFunctionState(LocalState stateFromBottom, LocalState stateFromTop)
+                : base(stateFromBottom, stateFromTop)
             { }
         }
 
-        protected override LocalFunctionState CreateLocalFunctionState() => new LocalFunctionState(UnreachableState());
+        protected override LocalFunctionState CreateLocalFunctionState(LocalFunctionSymbol symbol)
+            => CreateLocalFunctionState();
+
+        private LocalFunctionState CreateLocalFunctionState()
+            => new LocalFunctionState(
+                // The bottom state should assume all variables, even new ones, are assigned
+                new LocalState(BitVector.AllSet(variableBySlot.Count), normalizeToBottom: true),
+                UnreachableState());
 
         protected override void VisitLocalFunctionUse(
             LocalFunctionSymbol localFunc,
@@ -112,20 +123,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BitVector GetCapturedBitmask(ref BitVector state)
+        private BitVector GetCapturedBitmask()
         {
-            BitVector mask = BitVector.Empty;
-            for (int slot = 1; slot < state.Capacity; slot++)
+            int n = variableBySlot.Count;
+            BitVector mask = BitVector.AllSet(n);
+            for (int slot = 1; slot < n; slot++)
             {
-                if (IsCapturedInLocalFunction(slot))
-                {
-                    mask[slot] = true;
-                }
+                mask[slot] = IsCapturedInLocalFunction(slot);
             }
 
             return mask;
         }
 
+#nullable enable
         private bool IsCapturedInLocalFunction(int slot)
         {
             if (slot <= 0) return false;
@@ -143,6 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return !(nearestLocalFunc is null) && Symbol.IsCaptured(rootSymbol, nearestLocalFunc);
         }
+#nullable disable
 
         private static LocalFunctionSymbol GetNearestLocalFunctionOpt(Symbol symbol)
         {
@@ -166,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // assignment errors if any of the captured variables is not assigned
             // on a particular branch.
 
-            var savedState = new LocalFunctionState(UnreachableState());
+            var savedState = CreateLocalFunctionState();
             savedState.ReadVars = startState.ReadVars.Clone();
             startState.ReadVars.Clear();
             return savedState;
@@ -181,10 +192,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             LocalFunctionState currentState,
             ref LocalState stateAtReturn)
         {
+            if (currentState.CapturedMask.IsNull)
+            {
+                currentState.CapturedMask = GetCapturedBitmask();
+                currentState.InvertedCapturedMask = currentState.CapturedMask.Clone();
+                currentState.InvertedCapturedMask.Invert();
+            }
+            // Filter the modified state variables to only captured variables
+            stateAtReturn.Assigned.IntersectWith(currentState.CapturedMask);
+            if (NonMonotonicState.HasValue)
+            {
+                var state = NonMonotonicState.Value;
+                state.Assigned.UnionWith(currentState.InvertedCapturedMask);
+                NonMonotonicState = state;
+            }
+
             // Build a list of variables that are both captured and read before assignment
-            var capturedMask = GetCapturedBitmask(ref currentState.ReadVars);
             var capturedAndRead = currentState.ReadVars;
-            capturedAndRead.IntersectWith(capturedMask);
+            capturedAndRead.IntersectWith(currentState.CapturedMask);
 
             // Union and check to see if there are any changes
             return savedState.ReadVars.UnionWith(capturedAndRead);

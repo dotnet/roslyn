@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.InitializerExpression
         protected override SeparatedSyntaxList<ExpressionSyntax> GetListItems(InitializerExpressionSyntax listSyntax)
             => listSyntax.Expressions;
 
-        protected override InitializerExpressionSyntax TryGetApplicableList(SyntaxNode node)
+        protected override InitializerExpressionSyntax? TryGetApplicableList(SyntaxNode node)
             => node as InitializerExpressionSyntax;
 
         protected override bool TryGetNewLinesForBracesInObjectCollectionArrayInitializersOption(DocumentOptionSet options)

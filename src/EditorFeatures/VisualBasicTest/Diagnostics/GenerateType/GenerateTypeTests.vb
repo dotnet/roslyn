@@ -7,14 +7,23 @@ Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateType
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateType
     Public Class GenerateTypeTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+
+        ' TODO Requires Wpf due to IInlineRenameService dependency (https: //github.com/dotnet/roslyn/issues/46153)
+        Protected Overrides Function GetComposition() As TestComposition
+            Return EditorTestCompositions.EditorFeaturesWpf _
+                .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
+                .AddParts(GetType(MockDiagnosticUpdateSourceRegistrationService))
+        End Function
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (Nothing, New GenerateTypeCodeFixProvider())
@@ -1459,7 +1468,7 @@ Friend Class T
 End Class
 </text>.NormalizedValue,
 index:=1,
-options:=[Option](CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption.Error))
+options:=[Option](CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, False, NotificationOption2.Error))
         End Function
 
         <WorkItem(869506, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/869506")>
@@ -1868,6 +1877,34 @@ End Class",
     End Class
 End Class",
 index:=2)
+        End Function
+
+        <WorkItem(49924, "https://github.com/dotnet/roslyn/issues/49924")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Async Function GenerateCorrectFieldNaming() As Task
+            Dim options = New NamingStylesTestOptionSets(LanguageNames.VisualBasic)
+
+            Await TestInRegularAndScriptAsync(
+"Public Class A
+    Public Sub M(i As Integer)
+        Dim d = New [|D|](i)
+    End Sub
+End Class",
+"Public Class A
+    Public Sub M(i As Integer)
+        Dim d = New [|D|](i)
+    End Sub
+End Class
+
+Friend Class D
+    Private _i As Integer
+
+    Public Sub New(i As Integer)
+        _i = i
+    End Sub
+End Class
+",
+    index:=1, options:=options.FieldNamesAreCamelCaseWithUnderscorePrefix)
         End Function
 
         Public Class AddImportTestsWithAddImportDiagnosticProvider

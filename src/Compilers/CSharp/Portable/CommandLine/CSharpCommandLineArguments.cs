@@ -38,6 +38,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal CSharpCommandLineArguments()
         {
+            // Always initialized by CSharpCommandLineParser.Parse
+            CompilationOptions = null!;
+            ParseOptions = null!;
         }
     }
 }

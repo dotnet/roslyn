@@ -82,10 +82,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                return Symbol.OriginalDefinition.Equals(other.Symbol.OriginalDefinition, SymbolEqualityComparer.ConsiderEverything.CompareKind);
+                return Symbol.Equals(other.Symbol, TypeCompareKind.AllIgnoreOptions);
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 throw ExceptionUtilities.Unreachable;
             }

@@ -3,25 +3,82 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.GenerateDefaultConstructors;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.GenerateDefaultConstructors;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateDefaultConstructors
 {
-    public class GenerateDefaultConstructorsTests : AbstractCSharpCodeActionTest
+    using VerifyCodeFix = CSharpCodeFixVerifier<
+        EmptyDiagnosticAnalyzer,
+        CSharpGenerateDefaultConstructorsCodeFixProvider>;
+
+    using VerifyRefactoring = CSharpCodeRefactoringVerifier<
+        GenerateDefaultConstructorsCodeRefactoringProvider>;
+
+    public class GenerateDefaultConstructorsTests
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new GenerateDefaultConstructorsCodeRefactoringProvider();
+        private static async Task TestRefactoringAsync(string source, string fixedSource, int index = 0)
+        {
+            await TestRefactoringOnlyAsync(source, fixedSource, index);
+            await TestCodeFixMissingAsync(source);
+        }
+
+        private static async Task TestRefactoringOnlyAsync(string source, string fixedSource, int index = 0)
+        {
+            await new VerifyRefactoring.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                CodeActionIndex = index,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        private static async Task TestCodeFixAsync(string source, string fixedSource, int index = 0)
+        {
+            await new VerifyCodeFix.Test
+            {
+                TestCode = source.Replace("[||]", ""),
+                FixedCode = fixedSource,
+                CodeActionIndex = index,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+
+            await TestRefactoringMissingAsync(source);
+        }
+
+        private static async Task TestRefactoringMissingAsync(string source)
+        {
+            await new VerifyRefactoring.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
+
+        private static async Task TestCodeFixMissingAsync(string source)
+        {
+            source = source.Replace("[||]", "");
+            await new VerifyCodeFix.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                LanguageVersion = LanguageVersion.CSharp10,
+            }.RunAsync();
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestProtectedBase()
         {
-            await TestInRegularAndScriptAsync(
-@"class C : [||]B
+            await TestCodeFixAsync(
+@"class {|CS7036:C|} : [||]B
 {
 }
 
@@ -49,8 +106,8 @@ class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestPublicBase()
         {
-            await TestInRegularAndScriptAsync(
-@"class C : [||]B
+            await TestCodeFixAsync(
+@"class {|CS7036:C|} : [||]B
 {
 }
 
@@ -78,8 +135,8 @@ class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestInternalBase()
         {
-            await TestInRegularAndScriptAsync(
-@"class C : [||]B
+            await TestCodeFixAsync(
+@"class {|CS7036:C|} : [||]B
 {
 }
 
@@ -107,8 +164,8 @@ class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestPrivateBase()
         {
-            await TestMissingInRegularAndScriptAsync(
-@"class C : [||]B
+            await TestRefactoringMissingAsync(
+@"class {|CS1729:C|} : [||]B
 {
 }
 
@@ -123,8 +180,8 @@ class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestRefOutParams()
         {
-            await TestInRegularAndScriptAsync(
-@"class C : [||]B
+            await TestCodeFixAsync(
+@"class {|CS7036:C|} : [||]B
 {
 }
 
@@ -132,6 +189,7 @@ class B
 {
     internal B(ref int x, out string s, params bool[] b)
     {
+        s = null;
     }
 }",
 @"class C : B
@@ -145,6 +203,7 @@ class B
 {
     internal B(ref int x, out string s, params bool[] b)
     {
+        s = null;
     }
 }");
         }
@@ -152,8 +211,8 @@ class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestFix1()
         {
-            await TestInRegularAndScriptAsync(
-@"class C : [||]B
+            await TestCodeFixAsync(
+@"class {|CS1729:C|} : [||]B
 {
 }
 
@@ -197,8 +256,8 @@ class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestFix2()
         {
-            await TestInRegularAndScriptAsync(
-@"class C : [||]B
+            await TestCodeFixAsync(
+@"class {|CS1729:C|} : [||]B
 {
 }
 
@@ -243,8 +302,8 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestRefactoring1()
         {
-            await TestInRegularAndScriptAsync(
-@"class C : [||]B
+            await TestCodeFixAsync(
+@"class {|CS1729:C|} : [||]B
 {
 }
 
@@ -289,8 +348,8 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestFixAll1()
         {
-            await TestInRegularAndScriptAsync(
-@"class C : [||]B
+            await TestCodeFixAsync(
+@"class {|CS1729:C|} : [||]B
 {
 }
 
@@ -343,10 +402,10 @@ index: 3);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestFixAll2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestRefactoringAsync(
 @"class C : [||]B
 {
-    public C(bool x)
+    public {|CS1729:C|}(bool x)
     {
     }
 }
@@ -367,7 +426,7 @@ class B
 }",
 @"class C : B
 {
-    public C(bool x)
+    public {|CS1729:C|}(bool x)
     {
     }
 
@@ -400,10 +459,10 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestFixAll_WithTuples()
         {
-            await TestInRegularAndScriptAsync(
+            await TestRefactoringAsync(
 @"class C : [||]B
 {
-    public C((bool, bool) x)
+    public {|CS1729:C|}((bool, bool) x)
     {
     }
 }
@@ -424,7 +483,7 @@ class B
 }",
 @"class C : B
 {
-    public C((bool, bool) x)
+    public {|CS1729:C|}((bool, bool) x)
     {
     }
 
@@ -457,10 +516,10 @@ index: 2);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestMissing1()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestRefactoringMissingAsync(
 @"class C : [||]B
 {
-    public C(int x)
+    public {|CS7036:C|}(int x)
     {
     }
 }
@@ -477,10 +536,10 @@ class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestDefaultConstructorGeneration_1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestRefactoringAsync(
 @"class C : [||]B
 {
-    public C(int y)
+    public {|CS7036:C|}(int y)
     {
     }
 }
@@ -493,11 +552,11 @@ class B
 }",
 @"class C : B
 {
-    public C(int y)
+    public {|CS7036:C|}(int y)
     {
     }
 
-    internal C(int x) : base(x)
+    internal {|CS0111:C|}(int x) : base(x)
     {
     }
 }
@@ -514,10 +573,10 @@ class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestDefaultConstructorGeneration_2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestRefactoringAsync(
 @"class C : [||]B
 {
-    private C(int y)
+    private {|CS7036:C|}(int y)
     {
     }
 }
@@ -534,7 +593,7 @@ class B
     {
     }
 
-    private C(int y)
+    private {|CS0111:{|CS7036:C|}|}(int y)
     {
     }
 }
@@ -548,27 +607,10 @@ class B
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        public async Task TestFixCount1()
-        {
-            await TestActionCountAsync(
-@"class C : [||]B
-{
-}
-
-class B
-{
-    public B(int x)
-    {
-    }
-}",
-count: 1);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         [WorkItem(544070, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544070")]
         public async Task TestException1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestRefactoringAsync(
 @"using System;
 class Program : Excep[||]tion
 {
@@ -600,7 +642,7 @@ index: 4);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestException2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestRefactoringAsync(
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -648,7 +690,7 @@ index: 3);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestException3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestRefactoringAsync(
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -702,7 +744,7 @@ class Program : Exception
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestException4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestRefactoringAsync(
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -750,11 +792,11 @@ class Program : Exception
 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors), CompilerTrait(CompilerFeature.Tuples)]
         public async Task Tuple()
         {
-            await TestInRegularAndScriptAsync(
-@"class C : [||]B
+            await TestCodeFixAsync(
+@"class {|CS7036:C|} : [||]B
 {
 }
 
@@ -779,11 +821,11 @@ class B
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors), CompilerTrait(CompilerFeature.Tuples)]
         public async Task TupleWithNames()
         {
-            await TestInRegularAndScriptAsync(
-@"class C : [||]B
+            await TestCodeFixAsync(
+@"class {|CS7036:C|} : [||]B
 {
 }
 
@@ -812,7 +854,7 @@ class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestGenerateFromDerivedClass()
         {
-            await TestInRegularAndScriptAsync(
+            await TestCodeFixAsync(
 @"class Base
 {
     public Base(string value)
@@ -820,7 +862,7 @@ class B
     }
 }
 
-class [||]Derived : Base
+class [||]{|CS7036:Derived|} : Base
 {
 }",
 @"class Base
@@ -842,7 +884,7 @@ class Derived : Base
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestGenerateFromDerivedClass2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestCodeFixAsync(
 @"class Base
 {
     public Base(int a, string value = null)
@@ -850,7 +892,7 @@ class Derived : Base
     }
 }
 
-class [||]Derived : Base
+class [||]{|CS7036:Derived|} : Base
 {
 }",
 @"class Base
@@ -872,7 +914,7 @@ class Derived : Base
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestNotOnEnum()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestRefactoringMissingAsync(
 @"enum [||]E
 {
 }");
@@ -882,8 +924,8 @@ class Derived : Base
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestGenerateConstructorFromProtectedConstructor()
         {
-            await TestInRegularAndScriptAsync(
-@"abstract class C : [||]B
+            await TestCodeFixAsync(
+@"abstract class {|CS7036:C|} : [||]B
 {
 }
 
@@ -912,8 +954,8 @@ abstract class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestGenerateConstructorFromProtectedConstructor2()
         {
-            await TestInRegularAndScriptAsync(
-@"class C : [||]B
+            await TestCodeFixAsync(
+@"class {|CS7036:C|} : [||]B
 {
 }
 
@@ -938,12 +980,83 @@ abstract class B
 }");
         }
 
+        [WorkItem(48318, "https://github.com/dotnet/roslyn/issues/48318")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestGenerateConstructorFromProtectedConstructorCursorAtTypeOpening()
+        {
+            await TestRefactoringOnlyAsync(
+@"class {|CS7036:C|} : B
+{
+
+[||]
+
+}
+
+abstract class B
+{
+    protected B(int x)
+    {
+    }
+}",
+@"class C : B
+{
+    public C(int x) : base(x)
+    {
+    }
+}
+
+abstract class B
+{
+    protected B(int x)
+    {
+    }
+}");
+        }
+
+        [WorkItem(48318, "https://github.com/dotnet/roslyn/issues/48318")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestGenerateConstructorFromProtectedConstructorCursorBetweenTypeMembers()
+        {
+            await TestRefactoringOnlyAsync(
+@"class {|CS7036:C|} : B
+{
+    int X;
+[||]
+    int Y;
+}
+
+abstract class B
+{
+    protected B(int x)
+    {
+    }
+}",
+@"class C : B
+{
+    int X;
+
+    int Y;
+
+    public C(int x) : base(x)
+    {
+    }
+}
+
+abstract class B
+{
+    protected B(int x)
+    {
+    }
+}");
+        }
+
+        [WorkItem(35208, "https://github.com/dotnet/roslyn/issues/35208")]
         [WorkItem(25238, "https://github.com/dotnet/roslyn/issues/25238")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
-        public async Task TestGenerateConstructorFromPublicConstructor()
+        public async Task TestGenerateConstructorInAbstractClassFromPublicConstructor()
         {
-            await TestInRegularAndScriptAsync(
-@"abstract class C : [||]B
+            await TestCodeFixAsync(
+@"abstract class {|CS7036:C|} : [||]B
 {
 }
 
@@ -955,7 +1068,7 @@ abstract class B
 }",
 @"abstract class C : B
 {
-    public C(int x) : base(x)
+    protected C(int x) : base(x)
     {
     }
 }
@@ -972,8 +1085,8 @@ abstract class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestGenerateConstructorFromPublicConstructor2()
         {
-            await TestInRegularAndScriptAsync(
-@"class C : [||]B
+            await TestCodeFixAsync(
+@"class {|CS7036:C|} : [||]B
 {
 }
 
@@ -1002,8 +1115,8 @@ abstract class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestGenerateConstructorFromInternalConstructor()
         {
-            await TestInRegularAndScriptAsync(
-@"abstract class C : [||]B
+            await TestCodeFixAsync(
+@"abstract class {|CS7036:C|} : [||]B
 {
 }
 
@@ -1032,8 +1145,8 @@ abstract class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestGenerateConstructorFromInternalConstructor2()
         {
-            await TestInRegularAndScriptAsync(
-@"class C : [||]B
+            await TestCodeFixAsync(
+@"class {|CS7036:C|} : [||]B
 {
 }
 
@@ -1062,8 +1175,8 @@ abstract class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestGenerateConstructorFromProtectedInternalConstructor()
         {
-            await TestInRegularAndScriptAsync(
-@"abstract class C : [||]B
+            await TestCodeFixAsync(
+@"abstract class {|CS7036:C|} : [||]B
 {
 }
 
@@ -1092,8 +1205,8 @@ abstract class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestGenerateConstructorFromProtectedInternalConstructor2()
         {
-            await TestInRegularAndScriptAsync(
-@"class C : [||]B
+            await TestCodeFixAsync(
+@"class {|CS7036:C|} : [||]B
 {
 }
 
@@ -1122,8 +1235,8 @@ abstract class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestGenerateConstructorFromPrivateProtectedConstructor()
         {
-            await TestInRegularAndScriptAsync(
-@"abstract class C : [||]B
+            await TestCodeFixAsync(
+@"abstract class {|CS7036:C|} : [||]B
 {
 }
 
@@ -1152,14 +1265,14 @@ abstract class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
         public async Task TestGenerateConstructorFromPrivateProtectedConstructor2()
         {
-            await TestInRegularAndScriptAsync(
-@"class C : [||]B
+            await TestCodeFixAsync(
+@"class {|CS7036:C|} : [||]B
 {
 }
 
 abstract class B
 {
-    private protected internal B(int x)
+    private protected internal {|CS0107:B|}(int x)
     {
     }
 }",
@@ -1172,10 +1285,175 @@ abstract class B
 
 abstract class B
 {
-    private protected internal B(int x)
+    private protected internal {|CS0107:B|}(int x)
     {
     }
 }");
+        }
+
+        [WorkItem(40586, "https://github.com/dotnet/roslyn/issues/40586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestGeneratePublicConstructorInSealedClassForProtectedBase()
+        {
+            await TestRefactoringAsync(
+@"class Base
+{
+    protected Base()
+    {
+    }
+}
+
+sealed class Program : [||]Base
+{
+}",
+@"class Base
+{
+    protected Base()
+    {
+    }
+}
+
+sealed class Program : Base
+{
+    public Program()
+    {
+    }
+}");
+        }
+
+        [WorkItem(40586, "https://github.com/dotnet/roslyn/issues/40586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestGenerateInternalConstructorInSealedClassForProtectedOrInternalBase()
+        {
+            await TestRefactoringAsync(
+@"class Base
+{
+    protected internal Base()
+    {
+    }
+}
+
+sealed class Program : [||]Base
+{
+}",
+@"class Base
+{
+    protected internal Base()
+    {
+    }
+}
+
+sealed class Program : Base
+{
+    internal Program()
+    {
+    }
+}");
+        }
+
+        [WorkItem(40586, "https://github.com/dotnet/roslyn/issues/40586")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestGenerateInternalConstructorInSealedClassForProtectedAndInternalBase()
+        {
+            await TestRefactoringAsync(
+@"class Base
+{
+    private protected Base()
+    {
+    }
+}
+
+sealed class Program : [||]Base
+{
+}",
+@"class Base
+{
+    private protected Base()
+    {
+    }
+}
+
+sealed class Program : Base
+{
+    internal Program()
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestRecord()
+        {
+            await TestCodeFixAsync(
+@"record {|CS1729:C|} : [||]B
+{
+}
+
+record B
+{
+    public B(int x)
+    {
+    }
+}",
+@"record C : B
+{
+    public C(int x) : base(x)
+    {
+    }
+}
+
+record B
+{
+    public B(int x)
+    {
+    }
+}", index: 1);
+        }
+
+        [WorkItem(58593, "https://github.com/dotnet/roslyn/issues/58593")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestStructWithFieldInitializer()
+        {
+            var source = @"
+struct [||]{|CS8983:S|}
+{
+    object X = 1;
+}
+";
+            var fixedSource = @"
+struct S
+{
+    object X = 1;
+
+    public S()
+    {
+    }
+}
+";
+
+            await new VerifyCodeFix.Test
+            {
+                TestCode = source.Replace("[||]", ""),
+                FixedCode = fixedSource,
+                LanguageVersion = LanguageVersion.Preview,
+            }.RunAsync();
+
+            await TestRefactoringMissingAsync(source);
+        }
+
+        [WorkItem(58593, "https://github.com/dotnet/roslyn/issues/58593")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestMissingInStructWithoutFieldInitializer()
+        {
+            var source = @"
+struct [||]S
+{
+    object X;
+}
+";
+
+            await TestCodeFixMissingAsync(source);
+            await TestRefactoringMissingAsync(source);
         }
     }
 }

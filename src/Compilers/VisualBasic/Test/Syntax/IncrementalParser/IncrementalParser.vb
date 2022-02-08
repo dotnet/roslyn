@@ -2590,7 +2590,7 @@ End Class
         Assert.Equal(diagnosticsA.Count, diagnosticsB.Count)
 
         For i = 0 To diagnosticsA.Count - 1
-            Assert.Equal(diagnosticsA(i).Stringize(), diagnosticsB(i).Stringize())
+            Assert.Equal(diagnosticsA(i).Inspect(), diagnosticsB(i).Inspect())
         Next
     End Sub
 

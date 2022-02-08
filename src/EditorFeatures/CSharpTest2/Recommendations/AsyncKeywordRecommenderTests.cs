@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -98,6 +100,125 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBeforeStaticLambda()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var z =  $$ static () => 2;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterStaticInLambda()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var z =  static $$ () => 2;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterStaticInExpression()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var z = static $$
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterDuplicateStaticInExpression()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var z = static static $$
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterStaticAsyncInExpression()
+        {
+            await VerifyAbsenceAsync(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var z = static async $$
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterAsyncStaticInExpression()
+        {
+            await VerifyAbsenceAsync(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var z = async static $$
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInAttribute()
+        {
+            await VerifyAbsenceAsync(@"
+class C
+{
+    [$$
+    void M()
+    {
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInAttributeArgument()
+        {
+            await VerifyAbsenceAsync(@"
+class C
+{
+    [Attr($$
+    void M()
+    {
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestBeforeStaticInExpression()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var z = $$ static
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotIfAlreadyAsync2()
         {
             await VerifyAbsenceAsync(@"
@@ -143,72 +264,63 @@ class Goo
 }");
         }
 
-        [Fact]
-        [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
-        public async Task TestLocalFunction()
+        [WorkItem(578750, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578750")]
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterAttribute()
         {
             await VerifyKeywordAsync(@"
 class Goo
 {
-    public void M()
-    {
-        $$
-    }
+    [Attr] $$
 }");
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
+        public async Task TestLocalFunction(bool topLevelStatement)
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"$$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
+        }
+
+        [Theory]
+        [CombinatorialData]
         [WorkItem(14525, "https://github.com/dotnet/roslyn/issues/14525")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestLocalFunction2()
+        public async Task TestLocalFunction2(bool topLevelStatement)
         {
-            await VerifyKeywordAsync(@"
-class Goo
-{
-    public void M()
-    {
-        unsafe $$
-    }
-}");
+            await VerifyKeywordAsync(AddInsideMethod(
+@"unsafe $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(14525, "https://github.com/dotnet/roslyn/issues/14525")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestLocalFunction3()
+        public async Task TestLocalFunction3(bool topLevelStatement)
         {
-            await VerifyKeywordAsync(@"
-class Goo
-{
-    public void M()
-    {
-        unsafe $$ void L() { }
-    }
-}");
+            await VerifyKeywordAsync(AddInsideMethod(
+@"unsafe $$ void L() { }", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
+        [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestLocalFunction4(bool topLevelStatement)
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"$$ void L() { }", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [Fact]
         [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
-        [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestLocalFunction4()
-        {
-            await VerifyKeywordAsync(@"
-class Goo
-{
-    public void M()
-    {
-        $$ void L() { }
-    }
-}");
-        }
-
-        [Fact]
-        [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestLocalFunction5()
         {
@@ -225,36 +337,26 @@ class Goo
 }");
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestLocalFunction6()
+        public async Task TestLocalFunction6(bool topLevelStatement)
         {
-            await VerifyAbsenceAsync(@"
-class Goo
-{
-    public void M()
-    {
-        int $$
-    }
-}");
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"int $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Fact]
+        [Theory]
+        [CombinatorialData]
         [WorkItem(8616, "https://github.com/dotnet/roslyn/issues/8616")]
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.LocalFunctions)]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         [Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestLocalFunction7()
+        public async Task TestLocalFunction7(bool topLevelStatement)
         {
-            await VerifyAbsenceAsync(@"
-class Goo
-{
-    public void M()
-    {
-        static $$
-    }
-}");
+            await VerifyKeywordAsync(AddInsideMethod(
+@"static $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
     }
 }

@@ -2,11 +2,14 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Threading
+Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Xunit
@@ -780,98 +783,139 @@ End Class</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function LineContinuation1() As Task
-            Dim code = <Code>Class C
+        <Theory, Trait(Traits.Feature, Traits.Features.Formatting)>
+        <InlineData("_")>
+        <InlineData("_ ' Comment")>
+        Public Async Function LineContinuation1(continuation As String) As Task
+            Dim code = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
-                    Dim a = 1 + _
-                            2 + _
+                    Dim a = 1 + {continuation}
+                            2 + {continuation}
                             3
     End Sub
-End Class</Code>
+End Class"
 
-            Dim expected = <Code>Class C
+            Dim expected = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
-        Dim a = 1 + _
-                2 + _
+        Dim a = 1 + {continuation}
+                2 + {continuation}
                 3
     End Sub
-End Class</Code>
+End Class"
 
-            Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
+            Await AssertFormatAsync(code, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function LineContinuation2() As Task
-            Dim code = <Code>Class C
+        <Theory, Trait(Traits.Feature, Traits.Features.Formatting)>
+        <InlineData("_")>
+        <InlineData("_ ' Comment")>
+        Public Async Function LineContinuation2(continuation As String) As Task
+            Dim code = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
-                    Dim aa = 1 + _
-                             2 + _
+                    Dim aa = 1 + {continuation}
+                             2 + {continuation}
                              3
     End Sub
-End Class</Code>
+End Class"
 
-            Dim expected = <Code>Class C
+            Dim expected = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
-        Dim aa = 1 + _
-                 2 + _
+        Dim aa = 1 + {continuation}
+                 2 + {continuation}
                  3
     End Sub
-End Class</Code>
+End Class"
 
-            Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
+            Await AssertFormatAsync(code, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function LineContinuation3() As Task
-            Dim code = <Code>Class C
+        <Theory, Trait(Traits.Feature, Traits.Features.Formatting)>
+        <InlineData("_")>
+        <InlineData("_ ' Comment")>
+        Public Async Function LineContinuation3(continuation As String) As Task
+            Dim code = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
-                    Dim aa = 1 + _
-    2 + _
+                    Dim aa = 1 + {continuation}
+    2 + {continuation}
     3
     End Sub
-End Class</Code>
+End Class"
 
-            Dim expected = <Code>Class C
+            Dim expected = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
-        Dim aa = 1 + _
-2 + _
+        Dim aa = 1 + {continuation}
+2 + {continuation}
 3
     End Sub
-End Class</Code>
+End Class"
 
-            Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
+            Await AssertFormatAsync(code, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function LineContinuation4() As Task
-            Dim code = <Code>Class C
+        <Theory, Trait(Traits.Feature, Traits.Features.Formatting)>
+        <InlineData("_")>
+        <InlineData("_ ' Comment")>
+        Public Async Function LineContinuation4(continuation As String) As Task
+            Dim code = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
-                    Dim aa = 1 + _
-            _
-                                          _
-                                     _
-    _
-            _
-    2 + _
+                    Dim aa = 1 + {continuation}
+            {continuation}
+                                          {continuation}
+                                     {continuation}
+    {continuation}
+            {continuation}
+    2 + {continuation}
     3
     End Sub
-End Class</Code>
+End Class"
 
-            Dim expected = <Code>Class C
+            Dim expected = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
-        Dim aa = 1 + _
- _
- _
- _
- _
- _
-2 + _
+        Dim aa = 1 + {continuation}
+                     {continuation}
+                     {continuation}
+                     {continuation}
+                     {continuation}
+                     {continuation}
+2 + {continuation}
 3
     End Sub
-End Class</Code>
+End Class"
 
-            Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
+            Await AssertFormatAsync(code, expected)
+        End Function
+
+        <Theory, Trait(Traits.Feature, Traits.Features.Formatting)>
+        <InlineData("_")>
+        <InlineData("_ ' Comment")>
+        Public Async Function LineContinuation5(continuation As String) As Task
+            Dim code = $"Class C
+    Sub Method(Optional ByVal i As Integer = 1)
+        Dim aa = 1 + {continuation}
+            {continuation}
+                                          {continuation}
+                                     {continuation}
+    {continuation}
+            {continuation}
+    2 + {continuation}
+    3
+    End Sub
+End Class"
+
+            Dim expected = $"Class C
+    Sub Method(Optional ByVal i As Integer = 1)
+        Dim aa = 1 + {continuation}
+                     {continuation}
+                     {continuation}
+                     {continuation}
+                     {continuation}
+                     {continuation}
+    2 + {continuation}
+    3
+    End Sub
+End Class"
+
+            Await AssertFormatAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
@@ -1029,27 +1073,29 @@ End Class</Code>
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
-        Public Async Function Trivia3() As Task
-            Dim code = <Code>Class C
+        <Theory, Trait(Traits.Feature, Traits.Features.Formatting)>
+        <InlineData("_")>
+        <InlineData("_ ' Comment")>
+        Public Async Function Trivia3(continuation As String) As Task
+            Dim code = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
-Dim a =             _
-                _
-                        _
+Dim a =             {continuation}
+                {continuation}
+                        {continuation}
         1
     End Sub
-End Class</Code>
+End Class"
 
-            Dim expected = <Code>Class C
+            Dim expected = $"Class C
     Sub Method(Optional ByVal i As Integer = 1)
-        Dim a = _
- _
- _
+        Dim a = {continuation}
+                {continuation}
+                {continuation}
                 1
     End Sub
-End Class</Code>
+End Class"
 
-            Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
+            Await AssertFormatAsync(code, expected)
         End Function
 
         <WorkItem(538354, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538354")>
@@ -1286,24 +1332,80 @@ Imports System.
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function XmlLiterals26() As Task
-            Dim code = My.Resources.XmlLiterals.Test1_Input
-            Dim expected = My.Resources.XmlLiterals.Test1_Output
+            Dim code = "
+Class C
+    Sub Method(Optional ByVal i As Integer = 1)
+        Dim q = <xml>
+    <hello>
+    </hello>
+</xml>
+    End Sub
+End Class"
+            Dim expected = "
+Class C
+    Sub Method(Optional ByVal i As Integer = 1)
+        Dim q = <xml>
+                    <hello>
+                    </hello>
+                </xml>
+    End Sub
+End Class"
 
             Await AssertFormatAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function XmlLiterals27() As Task
-            Dim code = My.Resources.XmlLiterals.Test2_Input
-            Dim expected = My.Resources.XmlLiterals.Test2_Output
+            Dim code = "
+Class C
+    Sub Method(Optional ByVal i As Integer = 1)
+        Dim q = <xml>
+                    <!-- Test -->
+                    <hello>
+        Test
+        <![CDATA[          ????             ]]>
+                    </hello>
+                    <!-- Test -->               </xml>
+    End Sub
+End Class"
+            Dim expected = "
+Class C
+    Sub Method(Optional ByVal i As Integer = 1)
+        Dim q = <xml>
+                    <!-- Test -->
+                    <hello>
+        Test
+        <![CDATA[          ????             ]]>
+                    </hello>
+                    <!-- Test --></xml>
+    End Sub
+End Class"
 
             Await AssertFormatAsync(code, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function XmlLiterals28() As Task
-            Dim code = My.Resources.XmlLiterals.Test3_Input
-            Dim expected = My.Resources.XmlLiterals.Test3_Output
+            Dim code = "
+Class C
+    Sub Method(Optional ByVal i As Integer = 1)
+        Dim q = <xml>           <!-- Test -->               <hello>
+        Test
+        <![CDATA[          ????             ]]>
+    </hello>
+    <!-- Test --></xml>
+    End Sub
+End Class"
+            Dim expected = "
+Class C
+    Sub Method(Optional ByVal i As Integer = 1)
+        Dim q = <xml><!-- Test --><hello>
+        Test
+        <![CDATA[          ????             ]]>
+                    </hello>
+                    <!-- Test --></xml>
+    End Sub
+End Class"
 
             Await AssertFormatAsync(code, expected)
         End Function
@@ -1650,11 +1752,11 @@ End Class</Code>
                 vbTab + "End Sub" + vbCrLf +
                 "End Class"
 
-            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            Dim optionSet = New OptionsCollection(LanguageNames.VisualBasic) From
             {
-                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), True},
-                {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 4},
-                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 4}
+                {FormattingOptions2.UseTabs, True},
+                {FormattingOptions2.TabSize, 4},
+                {FormattingOptions2.IndentationSize, 4}
             }
 
             Await AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
@@ -1678,11 +1780,11 @@ End Class</Code>
                 vbTab + "End Sub" + vbCrLf +
                 "End Class"
 
-            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            Dim optionSet = New OptionsCollection(LanguageNames.VisualBasic) From
             {
-                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), True},
-                {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 4},
-                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 4}
+                {FormattingOptions2.UseTabs, True},
+                {FormattingOptions2.TabSize, 4},
+                {FormattingOptions2.IndentationSize, 4}
             }
 
             Await AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
@@ -1706,11 +1808,11 @@ End Class</Code>
                 vbTab + "End Sub" + vbCrLf +
                 "End Class"
 
-            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            Dim optionSet = New OptionsCollection(LanguageNames.VisualBasic) From
             {
-                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), True},
-                {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 4},
-                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 4}
+                {FormattingOptions2.UseTabs, True},
+                {FormattingOptions2.TabSize, 4},
+                {FormattingOptions2.IndentationSize, 4}
             }
 
             Await AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
@@ -1736,11 +1838,11 @@ End Class</Code>
                 vbTab + "End Sub" + vbCrLf +
                 "End Class"
 
-            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            Dim optionSet = New OptionsCollection(LanguageNames.VisualBasic) From
             {
-                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), True},
-                {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 4},
-                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 4}
+                {FormattingOptions2.UseTabs, True},
+                {FormattingOptions2.TabSize, 4},
+                {FormattingOptions2.IndentationSize, 4}
             }
 
             Await AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
@@ -1766,11 +1868,11 @@ End Class</Code>
                 vbTab + "End Sub" + vbCrLf +
                 "End Class"
 
-            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            Dim optionSet = New OptionsCollection(LanguageNames.VisualBasic) From
             {
-                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), True},
-                {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 4},
-                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 4}
+                {FormattingOptions2.UseTabs, True},
+                {FormattingOptions2.TabSize, 4},
+                {FormattingOptions2.IndentationSize, 4}
             }
 
             Await AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
@@ -1793,11 +1895,11 @@ End Class</Code>
                 vbTab + "End Sub" + vbCrLf +
                 "End Class"
 
-            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            Dim optionSet = New OptionsCollection(LanguageNames.VisualBasic) From
             {
-                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), True},
-                {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 4},
-                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 4}
+                {FormattingOptions2.UseTabs, True},
+                {FormattingOptions2.TabSize, 4},
+                {FormattingOptions2.IndentationSize, 4}
             }
 
             Await AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
@@ -1819,11 +1921,11 @@ End Class</Code>
                 "    End Sub" + vbCrLf +
                 "End Class"
 
-            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            Dim optionSet = New OptionsCollection(LanguageNames.VisualBasic) From
             {
-                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), False},
-                {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 4},
-                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 4}
+                {FormattingOptions2.UseTabs, False},
+                {FormattingOptions2.TabSize, 4},
+                {FormattingOptions2.IndentationSize, 4}
             }
 
             Await AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
@@ -1845,11 +1947,11 @@ End Class</Code>
                 "  End Sub" + vbCrLf +
                 "End Class"
 
-            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            Dim optionSet = New OptionsCollection(LanguageNames.VisualBasic) From
             {
-                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), False},
-                {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 4},
-                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 2}
+                {FormattingOptions2.UseTabs, False},
+                {FormattingOptions2.TabSize, 4},
+                {FormattingOptions2.IndentationSize, 2}
             }
 
             Await AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
@@ -1871,11 +1973,11 @@ End Class</Code>
                 "      End Sub" + vbCrLf +
                 "End Class"
 
-            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            Dim optionSet = New OptionsCollection(LanguageNames.VisualBasic) From
             {
-                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), False},
-                {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 4},
-                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 6}
+                {FormattingOptions2.UseTabs, False},
+                {FormattingOptions2.TabSize, 4},
+                {FormattingOptions2.IndentationSize, 6}
             }
 
             Await AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
@@ -1897,11 +1999,11 @@ End Class</Code>
                 "  End Sub" + vbCrLf +
                 "End Class"
 
-            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            Dim optionSet = New OptionsCollection(LanguageNames.VisualBasic) From
             {
-                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), True},
-                {New OptionKey(FormattingOptions.TabSize, LanguageNames.VisualBasic), 3},
-                {New OptionKey(FormattingOptions.IndentationSize, LanguageNames.VisualBasic), 2}
+                {FormattingOptions2.UseTabs, True},
+                {FormattingOptions2.TabSize, 3},
+                {FormattingOptions2.IndentationSize, 2}
             }
 
             Await AssertFormatAsync(code, expected, changedOptionSet:=optionSet)
@@ -1969,9 +2071,9 @@ End Class</Code>
 	End Sub
 End Class</Code>
 
-            Dim optionSet = New Dictionary(Of OptionKey, Object) From
+            Dim optionSet = New OptionsCollection(LanguageNames.VisualBasic) From
             {
-                {New OptionKey(FormattingOptions.UseTabs, LanguageNames.VisualBasic), True}
+                {FormattingOptions2.UseTabs, True}
             }
 
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value, optionSet)
@@ -1999,8 +2101,24 @@ End Class</Code>
         <WorkItem(538533, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538533")>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function BugFix4173_3() As Task
-            Dim code = My.Resources.XmlLiterals.Test4_Input
-            Dim expected = My.Resources.XmlLiterals.Test4_Output
+            Dim code = "
+Class C
+    Sub Goo()
+        Dim xml = <xml><code><node></node></code></xml>
+
+        Dim j = From node In xml.<code>
+                Select node.@att
+    End Sub
+End Class"
+            Dim expected = "
+Class C
+    Sub Goo()
+        Dim xml = <xml><code><node></node></code></xml>
+
+        Dim j = From node In xml.<code>
+                Select node.@att
+    End Sub
+End Class"
 
             Await AssertFormatAsync(code, expected)
         End Function
@@ -2186,7 +2304,21 @@ End Module</Code>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function BugFix4394() As Task
-            Await AssertFormatAsync(My.Resources.XmlLiterals.Test5_Input, My.Resources.XmlLiterals.Test5_Output)
+            Await AssertFormatAsync("
+''' <summary>
+'''
+                          ''' </summary>
+Module Program
+  Sub Main(args As String())
+  End Sub
+End Module", "
+''' <summary>
+'''
+''' </summary>
+Module Program
+    Sub Main(args As String())
+    End Sub
+End Module")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
@@ -2232,8 +2364,22 @@ End Module</Code>
         <WorkItem(538703, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538703")>
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function BugFix4394_1() As Task
-            Dim code = My.Resources.XmlLiterals.Test6_Input
-            Dim expected = My.Resources.XmlLiterals.Test6_Output
+            Dim code = "
+Class C
+    '''<summary>
+        '''     Test Method
+'''</summary>
+    Sub Method()
+    End Sub
+End Class"
+            Dim expected = "
+Class C
+    '''<summary>
+    '''     Test Method
+    '''</summary>
+    Sub Method()
+    End Sub
+End Class"
 
             Await AssertFormatAsync(code, expected)
         End Function
@@ -2278,7 +2424,7 @@ End Module</Code>
             Dim code = <Code>_      
     </Code>
 
-            Dim expected = <Code> _
+            Dim expected = <Code>_
 </Code>
 
             Await AssertFormatLf2CrLfAsync(code.Value, expected.Value)
@@ -2770,13 +2916,61 @@ End Class</Code>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function XmlTest() As Task
-            Await AssertFormatAsync(My.Resources.XmlLiterals.XmlTest1_Input, My.Resources.XmlLiterals.XmlTest1_Output)
+            Await AssertFormatAsync("
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main()
+        Dim book =                   </book     >
+        GetXml(          </book         >)
+    End Sub
+End Module", "
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main()
+        Dim book =                   </book>
+        GetXml(          </book>)
+    End Sub
+End Module")
         End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function XmlDocument() As Task
-            Await AssertFormatAsync(My.Resources.XmlLiterals.XmlTest2_Input, My.Resources.XmlLiterals.XmlTest2_Output)
+            Await AssertFormatAsync("
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main()
+        Dim book = <?xml version=""1.0""?>
+                             <?fff fff?>
+    <!-- ffff -->
+                 <book/>
+      <!-- last comment! yeah :) -->
+
+    End Sub
+End Module", "
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main()
+        Dim book = <?xml version=""1.0""?>
+                   <?fff fff?>
+                   <!-- ffff -->
+                   <book/>
+                   <!-- last comment! yeah :) -->
+
+    End Sub
+End Module")
         End Function
 
         <Fact>
@@ -2784,7 +2978,21 @@ End Class</Code>
         <WorkItem(539459, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539459")>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function XmlProcessingInstruction() As Task
-            Await AssertFormatAsync(My.Resources.XmlLiterals.XmlTest3_Input, My.Resources.XmlLiterals.XmlTest3_Output)
+            Await AssertFormatAsync("
+Module Program
+    Sub Main()
+        Dim x = <?xml version=""1.0""?>
+                                         <?blah?>
+    <xml></xml>
+    End Sub
+End Module", "
+Module Program
+    Sub Main()
+        Dim x = <?xml version=""1.0""?>
+                <?blah?>
+                <xml></xml>
+    End Sub
+End Module")
         End Function
 
         <WorkItem(539463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539463")>
@@ -2794,20 +3002,46 @@ End Class</Code>
         Public Async Function XmlTest5442() As Task
             Using workspace = New AdhocWorkspace()
 
+                Dim inputOutput = "
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        Dim goo = _
+                     <LongBook>
+                         <%= _
+                             From i In <were><a><b><c></c></b></a></were> _
+                             Where i IsNot Nothing _
+                             Select _
+                                 <f>
+                                     <g>
+                                         <f>
+                                         </f>
+                                     </g>
+                                 </f> _
+                         %>
+                     </LongBook>
+
+    End Sub
+End Module"
+
                 Dim project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.VisualBasic)
-                Dim document = project.AddDocument("Document", SourceText.From(My.Resources.XmlLiterals.XmlTest4_Input_Output))
+                Dim document = project.AddDocument("Document", SourceText.From(inputOutput))
                 Dim root = Await document.GetSyntaxRootAsync()
+                Dim options = VisualBasicSyntaxFormattingOptions.Default
 
                 ' format first time
-                Dim result = Formatter.GetFormattedTextChanges(root, workspace)
-                AssertResult(My.Resources.XmlLiterals.XmlTest4_Input_Output, Await document.GetTextAsync(), result)
+                Dim result = Formatter.GetFormattedTextChanges(root, workspace.Services, options, CancellationToken.None)
+                AssertResult(inputOutput, Await document.GetTextAsync(), result)
 
                 Dim document2 = document.WithText((Await document.GetTextAsync()).WithChanges(result))
                 Dim root2 = Await document2.GetSyntaxRootAsync()
 
                 ' format second time
-                Dim result2 = Formatter.GetFormattedTextChanges(root, workspace)
-                AssertResult(My.Resources.XmlLiterals.XmlTest4_Input_Output, Await document2.GetTextAsync(), result2)
+                Dim result2 = Formatter.GetFormattedTextChanges(root, workspace.Services, options, CancellationToken.None)
+                AssertResult(inputOutput, Await document2.GetTextAsync(), result2)
             End Using
         End Function
 
@@ -2879,7 +3113,21 @@ End Module</Code>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function BugFix5430() As Task
-            Dim code = My.Resources.XmlLiterals.IndentationTest1
+            Dim code = "
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        Dim abc = <xml>
+                      <video>video1</video>
+                  </xml>
+
+        Dim r = From q In abc...<video> _
+
+    End Sub
+End Module"
 
             Await AssertFormatAsync(code, code)
         End Function
@@ -2959,25 +3207,107 @@ End Module
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function XmlTextWithEmbededExpression1() As Task
-            Await AssertFormatAsync(My.Resources.XmlLiterals.XmlTest5_Input, My.Resources.XmlLiterals.XmlTest5_Output)
+            Await AssertFormatAsync("
+Class C
+    Sub Method()
+        Dim q = <xml>
+                    test <xml2><%= <xml3><xml4>
+                                                          </xml4></xml3>
+                    %></xml2>
+                </xml>
+    End Sub
+End Class", "
+Class C
+    Sub Method()
+        Dim q = <xml>
+                    test <xml2><%= <xml3><xml4>
+                                       </xml4></xml3>
+                               %></xml2>
+                </xml>
+    End Sub
+End Class")
         End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function XmlTextWithEmbededExpression2() As Task
-            Await AssertFormatAsync(My.Resources.XmlLiterals.XmlTest6_Input, My.Resources.XmlLiterals.XmlTest6_Output)
+            Await AssertFormatAsync("
+Class C2
+    Sub Method()
+        Dim q = <xml>
+                   tst  <%= <xml2><xml3><xml4>
+                                                   </xml4></xml3>
+                                                   </xml2>
+                    %>
+                </xml>
+    End Sub
+End Class", "
+Class C2
+    Sub Method()
+        Dim q = <xml>
+                   tst  <%= <xml2><xml3><xml4>
+                                </xml4></xml3>
+                            </xml2>
+                        %>
+                </xml>
+    End Sub
+End Class")
         End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function XmlText() As Task
-            Await AssertFormatAsync(My.Resources.XmlLiterals.XmlTest7_Input, My.Resources.XmlLiterals.XmlTest7_Output)
+            Await AssertFormatAsync("
+Class C22
+    Sub Method()
+        Dim q = <xml>
+                   tst   
+<xml2><xml3><xml4>
+                    </xml4></xml3>
+                    </xml2>
+                </xml>
+    End Sub
+End Class", "
+Class C22
+    Sub Method()
+        Dim q = <xml>
+                   tst   
+<xml2><xml3><xml4>
+                        </xml4></xml3>
+                    </xml2>
+                </xml>
+    End Sub
+End Class")
         End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function XmlTextWithComment() As Task
-            Await AssertFormatAsync(My.Resources.XmlLiterals.XmlTest8_Input, My.Resources.XmlLiterals.XmlTest8_Output)
+            Await AssertFormatAsync("
+Class C223
+    Sub Method()
+        Dim q = <xml>
+                    <!-- -->
+                   t
+        st   
+<xml2><xml3><xml4>
+                    </xml4></xml3>
+                    </xml2>
+                </xml>
+    End Sub
+End Class", "
+Class C223
+    Sub Method()
+        Dim q = <xml>
+                    <!-- -->
+                   t
+        st   
+<xml2><xml3><xml4>
+                        </xml4></xml3>
+                    </xml2>
+                </xml>
+    End Sub
+End Class")
         End Function
 
         <WorkItem(541628, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541628")>
@@ -3450,7 +3780,23 @@ End Module</Code>
         <WorkItem(542976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542976")>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Async Function XmlElementStartTag1() As Task
-            Await AssertFormatAsync(My.Resources.XmlLiterals.XmlElementStartTag1_Input, My.Resources.XmlLiterals.XmlElementStartTag1_Output)
+            Await AssertFormatAsync("
+Class C
+	Sub Method()
+		Dim book = <book
+                   version=""goo""
+                   >
+                   </book>
+	End Sub
+End Class", "
+Class C
+    Sub Method()
+        Dim book = <book
+                       version=""goo""
+                       >
+                   </book>
+    End Sub
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
@@ -3512,7 +3858,7 @@ End Class</text>.Value.Replace(vbLf, vbCrLf)
             root = root.ReplaceNode(method, method.NormalizeWhitespace(elasticTrivia:=True).WithAdditionalAnnotations(goo))
 
             Using workspace = New AdhocWorkspace()
-                Dim result = Formatter.Format(root, goo, workspace).ToString()
+                Dim result = Formatter.Format(root, goo, workspace.Services, VisualBasicSyntaxFormattingOptions.Default, CancellationToken.None).ToString()
                 Assert.Equal(expected, result)
             End Using
         End Sub
@@ -4330,17 +4676,24 @@ End Class
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub NewLineOption_LineFeedOnly()
-            Dim tree = SyntaxFactory.ParseCompilationUnit("Class C" & vbCrLf & "End Class")
+            Using workspace = New AdhocWorkspace()
+                Dim tree = SyntaxFactory.ParseCompilationUnit("Class C" & vbCrLf & "End Class")
 
-            ' replace all EOL trivia with elastic markers to force the formatter to add EOL back
-            tree = tree.ReplaceTrivia(tree.DescendantTrivia().Where(Function(tr) tr.IsKind(SyntaxKind.EndOfLineTrivia)), Function(o, r) SyntaxFactory.ElasticMarker)
+                ' replace all EOL trivia with elastic markers to force the formatter to add EOL back
+                tree = tree.ReplaceTrivia(tree.DescendantTrivia().Where(Function(tr) tr.IsKind(SyntaxKind.EndOfLineTrivia)), Function(o, r) SyntaxFactory.ElasticMarker)
 
-            Dim formatted = Formatter.Format(tree, DefaultWorkspace, DefaultWorkspace.Options.WithChangedOption(FormattingOptions.NewLine, LanguageNames.VisualBasic, vbLf))
-            Dim actual = formatted.ToFullString()
+                Dim options = SyntaxFormattingOptions.Create(
+                    workspace.Options.WithChangedOption(FormattingOptions.NewLine, LanguageNames.VisualBasic, vbLf),
+                    workspace.Services,
+                    tree.Language)
 
-            Dim expected = "Class C" & vbLf & "End Class"
+                Dim formatted = Formatter.Format(tree, workspace.Services, options, CancellationToken.None)
+                Dim actual = formatted.ToFullString()
 
-            Assert.Equal(expected, actual)
+                Dim expected = "Class C" & vbLf & "End Class"
+
+                Assert.Equal(expected, actual)
+            End Using
         End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>

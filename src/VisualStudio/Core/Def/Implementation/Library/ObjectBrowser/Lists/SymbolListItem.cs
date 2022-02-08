@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -68,8 +70,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         }
 
         public ISymbol ResolveSymbol(Compilation compilation)
-        {
-            return _symbolKey.Resolve(compilation, ignoreAssemblyKey: false).Symbol;
-        }
+            => _symbolKey.Resolve(compilation, ignoreAssemblyKey: false).Symbol;
     }
 }

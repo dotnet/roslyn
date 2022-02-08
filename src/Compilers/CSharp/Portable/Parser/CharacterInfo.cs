@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using Roslyn.Utilities;
 
@@ -182,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Check that the name is a valid identifier.
         /// </summary>
-        public static bool IsValidIdentifier(string name)
+        public static bool IsValidIdentifier([NotNullWhen(true)] string? name)
         {
             return UnicodeCharacterUtilities.IsValidIdentifier(name);
         }
@@ -196,9 +197,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// characters will have been dropped from the search string).
         /// See DevDiv #14432 for more.
         /// </summary>
-        internal static bool ContainsDroppedIdentifierCharacters(string name)
+        internal static bool ContainsDroppedIdentifierCharacters(string? name)
         {
-            if (string.IsNullOrEmpty(name))
+            if (RoslynString.IsNullOrEmpty(name))
             {
                 return false;
             }

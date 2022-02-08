@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -12,12 +14,12 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Resources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
@@ -114,15 +116,15 @@ class C
             CompileTimeAndRuntimeAssemblies(
                 ImmutableArray.Create(
                     MscorlibRef,
-                    AssemblyMetadata.CreateFromImage(ToVersion1_3(Resources.Windows)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(ToVersion1_3(Resources.LibraryA)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(Resources.LibraryB).GetReference()),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_3(TestResources.ExpressionCompiler.Windows)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_3(TestResources.ExpressionCompiler.LibraryA)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(TestResources.ExpressionCompiler.LibraryB).GetReference()),
                 ImmutableArray.Create(
                     MscorlibRef,
-                    AssemblyMetadata.CreateFromImage(ToVersion1_3(Resources.Windows_Data)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(ToVersion1_3(Resources.Windows_Storage)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(ToVersion1_3(Resources.LibraryA)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(Resources.LibraryB).GetReference()),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_3(TestResources.ExpressionCompiler.WindowsData)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_3(TestResources.ExpressionCompiler.WindowsStorage)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_3(TestResources.ExpressionCompiler.LibraryA)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(TestResources.ExpressionCompiler.LibraryB).GetReference()),
                 "Windows.Storage");
         }
 
@@ -132,15 +134,15 @@ class C
             CompileTimeAndRuntimeAssemblies(
                 ImmutableArray.Create(
                     MscorlibRef,
-                    AssemblyMetadata.CreateFromImage(ToVersion1_3(Resources.Windows)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(ToVersion1_3(Resources.LibraryA)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(Resources.LibraryB).GetReference()),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_3(TestResources.ExpressionCompiler.Windows)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_3(TestResources.ExpressionCompiler.LibraryA)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(TestResources.ExpressionCompiler.LibraryB).GetReference()),
                 ImmutableArray.Create(
                     MscorlibRef,
-                    AssemblyMetadata.CreateFromImage(ToVersion1_4(Resources.Windows_Data)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(ToVersion1_4(Resources.Windows_Storage)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(ToVersion1_3(Resources.LibraryA)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(Resources.LibraryB).GetReference()),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_4(TestResources.ExpressionCompiler.WindowsData)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_4(TestResources.ExpressionCompiler.WindowsStorage)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_3(TestResources.ExpressionCompiler.LibraryA)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(TestResources.ExpressionCompiler.LibraryB).GetReference()),
                 "Windows.Storage");
         }
 
@@ -151,15 +153,15 @@ class C
             CompileTimeAndRuntimeAssemblies(
                 ImmutableArray.Create(
                     MscorlibRef,
-                    AssemblyMetadata.CreateFromImage(ToVersion1_4(Resources.Windows_Data)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(ToVersion1_4(Resources.Windows_Storage)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(ToVersion1_4(Resources.LibraryA)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(Resources.LibraryB).GetReference()),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_4(TestResources.ExpressionCompiler.WindowsData)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_4(TestResources.ExpressionCompiler.WindowsStorage)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_4(TestResources.ExpressionCompiler.LibraryA)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(TestResources.ExpressionCompiler.LibraryB).GetReference()),
                 ImmutableArray.Create(
                     MscorlibRef,
-                    AssemblyMetadata.CreateFromImage(ToVersion1_4(Resources.Windows)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(ToVersion1_4(Resources.LibraryA)).GetReference(),
-                    AssemblyMetadata.CreateFromImage(Resources.LibraryB).GetReference()),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_4(TestResources.ExpressionCompiler.Windows)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(ToVersion1_4(TestResources.ExpressionCompiler.LibraryA)).GetReference(),
+                    AssemblyMetadata.CreateFromImage(TestResources.ExpressionCompiler.LibraryB).GetReference()),
                 "Windows");
         }
 

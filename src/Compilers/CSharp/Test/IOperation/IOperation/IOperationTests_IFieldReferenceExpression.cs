@@ -2,15 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public partial class IOperationTests : SemanticModelTestBase
+    public class IOperationTests_IFieldReferenceExpression : SemanticModelTestBase
     {
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")]
@@ -30,7 +34,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null) (Syntax: 'Conditional(field)')
+IOperation:  (OperationKind.None, Type: System.Diagnostics.ConditionalAttribute) (Syntax: 'Conditional(field)')
   Children(1):
       IFieldReferenceOperation: System.String C.field (Static) (OperationKind.FieldReference, Type: System.String, Constant: ""field"") (Syntax: 'field')
         Instance Receiver: 
@@ -271,7 +275,7 @@ unsafe class C
             string expectedOperationTree = @"
 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 's.field[3] = 1')
   Left: 
-    IOperation:  (OperationKind.None, Type: null) (Syntax: 's.field[3]')
+    IOperation:  (OperationKind.None, Type: System.Int32) (Syntax: 's.field[3]')
       Children(2):
           IFieldReferenceOperation: System.Int32* S1.field (OperationKind.FieldReference, Type: System.Int32*) (Syntax: 's.field')
             Instance Receiver: 
@@ -309,7 +313,7 @@ unsafe class C
             string expectedOperationTree = @"
 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 's.field[3] = 1')
   Left: 
-    IOperation:  (OperationKind.None, Type: null) (Syntax: 's.field[3]')
+    IOperation:  (OperationKind.None, Type: System.Int32) (Syntax: 's.field[3]')
       Children(2):
           IFieldReferenceOperation: System.Int32* S1.field (OperationKind.FieldReference, Type: System.Int32*) (Syntax: 's.field')
             Instance Receiver: 
@@ -666,6 +670,44 @@ Block[B2] - Exit
             };
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [Fact]
+        [WorkItem(38195, "https://github.com/dotnet/roslyn/issues/38195")]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.NullableReferenceTypes)]
+        public void NullableFieldReference()
+        {
+            var program = @"
+class C<T>
+{
+    private C<T> _field;
+    public static void M(C<T> p)
+    {
+        _ = p._field;
+    }
+}";
+
+            var compWithoutNullable = CreateCompilation(program);
+            var compWithNullable = CreateCompilation(program, options: WithNullableEnable());
+
+            testCore(compWithoutNullable);
+            testCore(compWithNullable);
+
+            static void testCore(CSharpCompilation comp)
+            {
+                var syntaxTree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(syntaxTree);
+                var root = syntaxTree.GetRoot();
+                var classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
+                var classSym = (INamedTypeSymbol)model.GetDeclaredSymbol(classDecl);
+                var fieldSym = classSym.GetMembers("_field").Single();
+
+                var methodDecl = root.DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+                var methodBlockOperation = model.GetOperation(methodDecl);
+                var fieldReferenceOperation = methodBlockOperation.Descendants().OfType<IFieldReferenceOperation>().Single();
+                Assert.True(fieldSym.Equals(fieldReferenceOperation.Field));
+                Assert.Equal(fieldSym.GetHashCode(), fieldReferenceOperation.Field.GetHashCode());
+            }
         }
     }
 }

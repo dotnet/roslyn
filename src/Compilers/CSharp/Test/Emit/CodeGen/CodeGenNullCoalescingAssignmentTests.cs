@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -701,7 +703,7 @@ public class C
     }
     static void TestMethod() => Console.WriteLine(""In TestMethod"");
 }
-", expectedOutput: @"
+", parseOptions: TestOptions.Regular10, expectedOutput: @"
 In TestMethod
 In TestMethod
 ").VerifyIL("C.Main()", @"
@@ -2595,9 +2597,6 @@ class C
 }";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (4,10): error CS0177: The out parameter 'o2' must be assigned to before control leaves the current method
-                //     void M(in object o1, out object o2)
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "M").WithArguments("o2").WithLocation(4, 10),
                 // (6,9): error CS8331: Cannot assign to variable 'in object' because it is a readonly variable
                 //         o1 ??= null;
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "o1").WithArguments("variable", "in object").WithLocation(6, 9),

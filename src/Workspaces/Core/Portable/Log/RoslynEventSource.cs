@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.Linq;
@@ -25,13 +26,11 @@ namespace Microsoft.CodeAnalysis.Internal.Log
     internal sealed partial class RoslynEventSource : EventSource
     {
         // might not "enabled" but we always have this singleton alive
-        public static readonly RoslynEventSource Instance = new RoslynEventSource();
+        public static readonly RoslynEventSource Instance = new();
 
         private readonly bool _initialized;
         private RoslynEventSource()
-        {
-            _initialized = true;
-        }
+            => _initialized = true;
 
         // Do not change the parameter order for this method: it must match the parameter order
         // for WriteEvent() that's being invoked inside it. This is necessary because the ETW schema
@@ -45,33 +44,23 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         // There's also a params object[] overload that is much slower and should be avoided
         [Event(1)]
         public void Log(string message, FunctionId functionId)
-        {
-            WriteEvent(1, message ?? string.Empty, (int)functionId);
-        }
+            => WriteEvent(1, message ?? string.Empty, (int)functionId);
 
         [Event(2)]
         public void BlockStart(string message, FunctionId functionId, int blockId)
-        {
-            WriteEvent(2, message ?? string.Empty, (int)functionId, blockId);
-        }
+            => WriteEvent(2, message ?? string.Empty, (int)functionId, blockId);
 
         [Event(3)]
         public void BlockStop(FunctionId functionId, int tick, int blockId)
-        {
-            WriteEvent(3, (int)functionId, tick, blockId);
-        }
+            => WriteEvent(3, (int)functionId, tick, blockId);
 
         [Event(4)]
         public void SendFunctionDefinitions(string definitions)
-        {
-            WriteEvent(4, definitions);
-        }
+            => WriteEvent(4, definitions);
 
         [Event(5)]
         public void BlockCanceled(FunctionId functionId, int tick, int blockId)
-        {
-            WriteEvent(5, (int)functionId, tick, blockId);
-        }
+            => WriteEvent(5, (int)functionId, tick, blockId);
 
         [NonEvent]
         protected override void OnEventCommand(EventCommandEventArgs command)
@@ -85,32 +74,31 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 if (!_initialized)
                 {
                     // We're still in the constructor, need to defer sending until we've finished initializing
-                    Task.Yield().GetAwaiter().OnCompleted(SendFunctionDefinitionsAsync);
+                    Task.Yield().GetAwaiter().OnCompleted(FireAndForgetSendFunctionDefinitions);
                     return;
                 }
 
                 SendFunctionDefinitions();
             }
+
+            // Cannot inline this local function as a lambda because we need NonEventAttribute applied.
+            [NonEvent]
+            void FireAndForgetSendFunctionDefinitions()
+            {
+                _ = Task.Run(SendFunctionDefinitions);
+            }
         }
 
         [NonEvent]
-        private bool FunctionDefinitionRequested(EventCommandEventArgs command)
+        private static bool FunctionDefinitionRequested(EventCommandEventArgs command)
         {
             return command.Arguments != null &&
                    command.Arguments.Keys.FirstOrDefault() == "SendFunctionDefinitions";
         }
 
         [NonEvent]
-        private void SendFunctionDefinitionsAsync()
-        {
-            Task.Run((Action)SendFunctionDefinitions);
-        }
-
-        [NonEvent]
         private void SendFunctionDefinitions()
-        {
-            SendFunctionDefinitions(GenerateFunctionDefinitions());
-        }
+            => SendFunctionDefinitions(GenerateFunctionDefinitions());
 
         [NonEvent]
         public static string GenerateFunctionDefinitions()

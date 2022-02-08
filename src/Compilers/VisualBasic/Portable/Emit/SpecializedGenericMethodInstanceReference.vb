@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
 
             Return From arg In m_UnderlyingMethod.TypeArguments
-                   Select moduleBeingBuilt.Translate(arg, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
+                   Select moduleBeingBuilt.Translate(arg, syntaxNodeOpt:=DirectCast(context.SyntaxNode, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
         Public Overrides ReadOnly Property AsGenericMethodInstanceReference As Cci.IGenericMethodInstanceReference

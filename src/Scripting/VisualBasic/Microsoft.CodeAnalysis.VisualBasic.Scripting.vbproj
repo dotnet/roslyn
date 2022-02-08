@@ -3,7 +3,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netcoreapp3.1;netstandard2.0</TargetFrameworks>
+    <VBRuntime>None</VBRuntime>
     <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -12,18 +13,7 @@
     <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.Scripting.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="VBScriptingResources.Designer.vb">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>VBScriptingResources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="VBScriptingResources.resx">
-      <CustomToolNamespace>Microsoft.CodeAnalysis.VisualBasic.Scripting</CustomToolNamespace>
-      <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
-      <LastGenOutput>VBScriptingResources.Designer.vb</LastGenOutput>
-    </EmbeddedResource>
+    <EmbeddedResource Update="VBScriptingResources.resx" GenerateSource="true" Namespace="Microsoft.CodeAnalysis.VisualBasic.Scripting"/>
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="vbi" />

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     internal sealed class XmlFragmentParser
     {
         private XmlReader _xmlReader;
-        private readonly Reader _textReader = new Reader();
+        private readonly Reader _textReader = new();
 
         private static readonly ObjectPool<XmlFragmentParser> s_pool = SharedPools.Default<XmlFragmentParser>();
 
@@ -47,17 +49,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
         }
 
-        private static readonly XmlReaderSettings s_xmlSettings = new XmlReaderSettings()
+        private static readonly XmlReaderSettings s_xmlSettings = new()
         {
             DtdProcessing = DtdProcessing.Prohibit,
         };
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.FxCop.Rules.Security.Xml.SecurityXmlRules", "CA3053:UseXmlSecureResolver",
-            MessageId = "System.Xml.XmlReader.Create",
-            Justification = @"For the call to XmlReader.Create() below, CA3053 recommends setting the
-XmlReaderSettings.XmlResolver property to either null or an instance of XmlSecureResolver.
-However, the said XmlResolver property no longer exists in .NET portable framework (i.e. core framework) which means there is no way to set it.
-So we suppress this error until the reporting for CA3053 has been updated to account for .NET portable framework.")]
         private void ParseInternal<TArg>(string text, Action<XmlReader, TArg> callback, TArg arg)
         {
             _textReader.SetText(text);

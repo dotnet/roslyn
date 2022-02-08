@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,6 +16,10 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using System.Reflection.PortableExecutable;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
+using Microsoft.CodeAnalysis.PooledObjects;
+using System.Security.Cryptography;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
@@ -203,6 +209,12 @@ namespace N
         [MemberData(nameof(PdbFormats))]
         public void CompareAllBytesEmitted_Release(DebugInformationFormat pdbFormat)
         {
+            // Disable for PDB due to flakiness https://github.com/dotnet/roslyn/issues/41626
+            if (pdbFormat == DebugInformationFormat.Pdb)
+            {
+                return;
+            }
+
             var result1 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: true);
             var result2 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: true);
             AssertEx.Equal(result1.pe, result2.pe);
@@ -224,6 +236,12 @@ namespace N
         [MemberData(nameof(PdbFormats))]
         public void CompareAllBytesEmitted_Debug(DebugInformationFormat pdbFormat)
         {
+            // Disable for PDB due to flakiness https://github.com/dotnet/roslyn/issues/41626
+            if (pdbFormat == DebugInformationFormat.Pdb)
+            {
+                return;
+            }
+
             var result1 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: false);
             var result2 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: false);
             AssertEx.Equal(result1.pe, result2.pe);
@@ -247,7 +265,7 @@ namespace N
             var compilation = CSharpCompilation.Create("Program",
                                                        new[] { tree },
                                                        new[] { MetadataReference.CreateFromAssemblyInternal(typeof(object).Assembly) },
-                                                       new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithDeterministic(true));
+                                                       TestOptions.DebugExe.WithDeterministic(true));
             var output = new WriteOnlyStream();
             compilation.Emit(output);
         }
@@ -278,8 +296,8 @@ namespace Namespace3 {
     public class GenericType<T, U> {}
 }
 ";
-            var forwardedToCompilation = CreateEmptyCompilation(forwardedToCode);
-            var forwardedToReference = new CSharpCompilationReference(forwardedToCompilation);
+            var forwardedToCompilation1 = CreateCompilation(forwardedToCode, assemblyName: "ForwardedTo");
+            var forwardedToReference1 = new CSharpCompilationReference(forwardedToCompilation1);
 
             var forwardingCode = @"
 using System.Runtime.CompilerServices;
@@ -296,7 +314,8 @@ using System.Runtime.CompilerServices;
 [assembly: TypeForwardedTo(typeof(Namespace3.GenericType<int, int>))]
 ";
 
-            var forwardingCompilation = CreateCompilation(forwardingCode, new MetadataReference[] { forwardedToReference });
+            var forwardingCompilation = CreateCompilation(forwardingCode, new MetadataReference[] { forwardedToReference1 });
+            var forwardingReference = new CSharpCompilationReference(forwardingCompilation);
 
             var sortedFullNames = new string[]
             {
@@ -313,6 +332,14 @@ using System.Runtime.CompilerServices;
                 "Namespace4.Embedded.Type2"
             };
 
+            Action<ModuleSymbol> metadataValidator = module =>
+            {
+                var assembly = module.ContainingAssembly;
+                Assert.Equal(sortedFullNames, getNamesOfForwardedTypes(assembly));
+            };
+
+            CompileAndVerify(forwardingCompilation, symbolValidator: metadataValidator, sourceSymbolValidator: metadataValidator, verify: Verification.Skipped);
+
             using (var stream = forwardingCompilation.EmitToStream())
             {
                 using (var block = ModuleMetadata.CreateFromStream(stream))
@@ -320,6 +347,29 @@ using System.Runtime.CompilerServices;
                     var metadataFullNames = MetadataValidation.GetExportedTypesFullNames(block.MetadataReader);
                     Assert.Equal(sortedFullNames, metadataFullNames);
                 }
+            }
+
+            var forwardedToCompilation2 = CreateCompilation(forwardedToCode, assemblyName: "ForwardedTo");
+            var forwardedToReference2 = new CSharpCompilationReference(forwardedToCompilation2);
+
+            var withRetargeting = CreateCompilation("", new MetadataReference[] { forwardedToReference2, forwardingReference });
+
+            var retargeting = (RetargetingAssemblySymbol)withRetargeting.GetReferencedAssemblySymbol(forwardingReference);
+            Assert.Equal(sortedFullNames, getNamesOfForwardedTypes(retargeting));
+
+            foreach (var type in getForwardedTypes(retargeting))
+            {
+                Assert.Same(forwardedToCompilation2.Assembly.GetPublicSymbol(), type.ContainingAssembly);
+            }
+
+            static IEnumerable<string> getNamesOfForwardedTypes(AssemblySymbol assembly)
+            {
+                return getForwardedTypes(assembly).Select(t => t.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat));
+            }
+
+            static ImmutableArray<INamedTypeSymbol> getForwardedTypes(AssemblySymbol assembly)
+            {
+                return assembly.GetPublicSymbol().GetForwardedTypes();
             }
         }
 
@@ -389,6 +439,71 @@ Partial.c = 3";
                 var comp2 = cv.Compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(trees[1], trees[0], trees[2]);
                 CompileAndVerify(comp2, expectedOutput: expectedOutput2);
                 CompileAndVerify(source: new string[] { x2, x1, x3 }, expectedOutput: expectedOutput2);
+            }
+        }
+
+        [Fact, WorkItem(53865, "https://github.com/dotnet/roslyn/issues/53865")]
+        public void DeterminismWithFixedFields()
+        {
+            string source = @"
+public unsafe struct UnsafeStructNUMBER1
+{
+    public fixed ushort FixedField1[10];
+    public fixed ushort FixedField2[10];
+    public UnsafeStructNUMBER2* pStruct;
+
+    public void AccessMethod()
+    {
+        pStruct->FixedField2[0] = 0;
+    }
+}
+";
+            byte[] result = null;
+
+            var sourceBuilder = ArrayBuilder<string>.GetInstance();
+            const int max = 20;
+            for (int i = 0; i < max; i++)
+            {
+                int j = (i + 7) % max;
+                sourceBuilder.Add(source.Replace("NUMBER1", i.ToString()).Replace("NUMBER2", j.ToString()));
+            }
+            string[] source1 = sourceBuilder.ToArrayAndFree();
+
+            var opt = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+            const string assemblyName = "TestAssembly";
+            opt = opt.WithConcurrentBuild(true)
+                .WithOptimizationLevel(OptimizationLevel.Debug)
+                .WithDeterministic(true)
+                .WithPlatform(Platform.AnyCpu)
+                .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
+                .WithAllowUnsafe(true)
+                .WithOverflowChecks(false)
+                .WithModuleName(assemblyName);
+
+            for (int j = 0; j < 10; j++)
+            {
+                var comp = CreateCompilation(source1, options: opt, assemblyName: assemblyName);
+                comp.VerifyDiagnostics();
+
+                var optEmit = new EmitOptions()
+                    .WithDebugInformationFormat(DebugInformationFormat.PortablePdb)
+                    .WithPdbChecksumAlgorithm(HashAlgorithmName.SHA256);
+
+                using var streamDll = new MemoryStream();
+                using var streamXml = new MemoryStream();
+                using var streamPdb = new MemoryStream();
+                var emitResult = comp.Emit(streamDll, xmlDocumentationStream: streamXml,
+                    pdbStream: optEmit.DebugInformationFormat != DebugInformationFormat.Embedded ? streamPdb : null,
+                    options: optEmit);
+                var newResult = streamDll.ToArray();
+                if (result is null)
+                {
+                    result = newResult;
+                }
+                else
+                {
+                    Assert.Equal(result, newResult);
+                }
             }
         }
 

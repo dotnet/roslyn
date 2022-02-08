@@ -4,74 +4,76 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
     Public Class WithKeywordRecommenderTests
-        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneInClassDeclarationTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>|</ClassDeclaration>, "With")
-        End Function
+        Inherits RecommenderTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneAfterFromTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Dim x = New Goo From |</ClassDeclaration>, "With")
-        End Function
+        Public Sub NoneInClassDeclarationTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "With")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneAfterWith1Test() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Dim x = New With |</ClassDeclaration>, "With")
-        End Function
+        Public Sub NoneAfterFromTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>Dim x = New Goo From |</ClassDeclaration>, "With")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneAfterWith2Test() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>Dim x = New Goo With |</ClassDeclaration>, "With")
-        End Function
+        Public Sub NoneAfterWith1Test()
+            VerifyRecommendationsMissing(<ClassDeclaration>Dim x = New With |</ClassDeclaration>, "With")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function WithAfterDimEqualsNewTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = New |</MethodBody>, "With")
-        End Function
+        Public Sub NoneAfterWith2Test()
+            VerifyRecommendationsMissing(<ClassDeclaration>Dim x = New Goo With |</ClassDeclaration>, "With")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function WithAfterDimEqualsNewTypeNameTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = New Goo |</MethodBody>, "With")
-        End Function
+        Public Sub WithAfterDimEqualsNewTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x = New |</MethodBody>, "With")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function WithAfterDimEqualsNewTypeNameAndParensTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = New Goo() |</MethodBody>, "With")
-        End Function
+        Public Sub WithAfterDimEqualsNewTypeNameTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x = New Goo |</MethodBody>, "With")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function WithAfterDimAsNewTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x As New |</MethodBody>, "With")
-        End Function
+        Public Sub WithAfterDimEqualsNewTypeNameAndParensTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x = New Goo() |</MethodBody>, "With")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function WithAfterDimAsNewTypeNameTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x As New Goo |</MethodBody>, "With")
-        End Function
+        Public Sub WithAfterDimAsNewTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x As New |</MethodBody>, "With")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function WithAfterDimAsNewTypeNameAndParensTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x As New Goo() |</MethodBody>, "With")
-        End Function
+        Public Sub WithAfterDimAsNewTypeNameTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x As New Goo |</MethodBody>, "With")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function WithAfterAssignmentNewTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>x = New |</MethodBody>, "With")
-        End Function
+        Public Sub WithAfterDimAsNewTypeNameAndParensTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x As New Goo() |</MethodBody>, "With")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function WithAfterAssignmentNewTypeNameTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>x = New Goo |</MethodBody>, "With")
-        End Function
+        Public Sub WithAfterAssignmentNewTest()
+            VerifyRecommendationsContain(<MethodBody>x = New |</MethodBody>, "With")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function WithAfterAssignmentNewTypeNameAndParensTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>x = New Goo() |</MethodBody>, "With")
-        End Function
+        Public Sub WithAfterAssignmentNewTypeNameTest()
+            VerifyRecommendationsContain(<MethodBody>x = New Goo |</MethodBody>, "With")
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
+        Public Sub WithAfterAssignmentNewTypeNameAndParensTest()
+            VerifyRecommendationsContain(<MethodBody>x = New Goo() |</MethodBody>, "With")
+        End Sub
 
         <WorkItem(543291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543291")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoWithAfterDotTest() As Task
+        Public Sub NoWithAfterDotTest()
             Dim code = <File>
 Class C
     Sub M()
@@ -80,30 +82,30 @@ Class C
 End Class
                        </File>
 
-            Await VerifyRecommendationsMissingAsync(code, "With")
-        End Function
+            VerifyRecommendationsMissing(code, "With")
+        End Sub
 
         <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NotAfterEolTest() As Task
-            Await VerifyRecommendationsMissingAsync(
+        Public Sub NotAfterEolTest()
+            VerifyRecommendationsMissing(
 <ClassDeclaration>Dim x = New Goo 
 |</ClassDeclaration>, "With")
-        End Function
+        End Sub
 
         <WorkItem(530953, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530953")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterExplicitLineContinuationTest() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub AfterExplicitLineContinuationTest()
+            VerifyRecommendationsContain(
 <ClassDeclaration>Dim x = New Goo _
 |</ClassDeclaration>, "With")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function AfterExplicitLineContinuationTestCommentsAfterLineContinuation() As Task
-            Await VerifyRecommendationsContainAsync(
+        Public Sub AfterExplicitLineContinuationTestCommentsAfterLineContinuation()
+            VerifyRecommendationsContain(
 <ClassDeclaration>Dim x = New Goo _ ' Test
 |</ClassDeclaration>, "With")
-        End Function
+        End Sub
     End Class
 End Namespace

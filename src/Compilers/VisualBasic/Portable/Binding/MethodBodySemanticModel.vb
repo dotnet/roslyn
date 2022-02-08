@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         ''' <summary>
-        ''' Creates an MethodBodySemanticModel that allows asking semantic questions about an attribute node.
+        ''' Creates a MethodBodySemanticModel that allows asking semantic questions about an attribute node.
         ''' </summary>
         Friend Shared Function Create(containingSemanticModel As SyntaxTreeSemanticModel, binder As SubOrFunctionBodyBinder, Optional ignoreAccessibility As Boolean = False) As MethodBodySemanticModel
             Debug.Assert(containingSemanticModel IsNot Nothing)

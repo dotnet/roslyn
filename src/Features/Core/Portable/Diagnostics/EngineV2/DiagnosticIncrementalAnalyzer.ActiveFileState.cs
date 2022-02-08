@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
@@ -24,9 +22,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private DocumentAnalysisData _semantic = DocumentAnalysisData.Empty;
 
             public ActiveFileState(DocumentId documentId)
-            {
-                DocumentId = documentId;
-            }
+                => DocumentId = documentId;
 
             public bool IsEmpty => _syntax.Items.IsEmpty && _semantic.Items.IsEmpty;
 

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -44,9 +46,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
             public override string Title => FeaturesResources.Install_with_package_manager;
 
             public override void Apply(Workspace workspace, CancellationToken cancellationToken)
-            {
-                _codeAction._installerService.ShowManagePackagesDialog(_codeAction._packageName);
-            }
+                => _codeAction._installerService.ShowManagePackagesDialog(_codeAction._packageName);
         }
     }
 }

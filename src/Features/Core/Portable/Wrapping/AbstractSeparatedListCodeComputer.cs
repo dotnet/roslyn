@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
-#nullable enable
 
 using System.Collections.Immutable;
 using System.Threading;
@@ -93,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
 
             protected abstract string GetNestedCodeActionTitle(WrappingStyle wrappingStyle);
 
-            protected async Task AddWrappingGroups(ArrayBuilder<WrappingGroup> result)
+            protected async Task AddWrappingGroupsAsync(ArrayBuilder<WrappingGroup> result)
             {
                 result.Add(await GetWrapEveryGroupAsync().ConfigureAwait(false));
                 result.Add(await GetUnwrapGroupAsync().ConfigureAwait(false));
@@ -109,9 +108,9 @@ namespace Microsoft.CodeAnalysis.Wrapping
             protected abstract ImmutableArray<Edit> GetUnwrapAllEdits(WrappingStyle wrappingStyle);
 
             // This computes edits for the content of the list excluding the opening token
-            protected ArrayBuilder<Edit> GetSeparatedListEdits(WrappingStyle wrappingStyle)
+            protected ImmutableArray<Edit> GetSeparatedListEdits(WrappingStyle wrappingStyle)
             {
-                var result = ArrayBuilder<Edit>.GetInstance();
+                using var _ = ArrayBuilder<Edit>.GetInstance(out var result);
 
                 AddTextChangeBetweenOpenAndFirstItem(wrappingStyle, result);
 
@@ -122,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 }
 
                 result.Add(Edit.DeleteBetween(_listItems.Last(), _listSyntax.GetLastToken()));
-                return result;
+                return result.ToImmutableAndClear();
             }
 
             #endregion

@@ -10,6 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -32,17 +34,26 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
                 return;
             }
 
-            var position = span.Start;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
+            if (document.Project.AnalyzerOptions.TryGetEditorConfigOption<string>(CodeStyleOptions2.FileHeaderTemplate, tree, out var fileHeaderTemplate)
+                && !string.IsNullOrEmpty(fileHeaderTemplate))
+            {
+                // If we have a defined file header template, allow the analyzer and code fix to handle it
+                return;
+            }
+
+            var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+
+            var position = span.Start;
             var firstToken = root.GetFirstToken();
             if (!firstToken.FullSpan.IntersectsWith(position))
             {
                 return;
             }
 
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var banner = syntaxFacts.GetFileBanner(root);
+            var bannerService = document.GetRequiredLanguageService<IFileBannerFactsService>();
+            var banner = bannerService.GetFileBanner(root);
 
             if (banner.Length > 0)
             {
@@ -102,26 +113,27 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
                 return banner;
             }
 
-            var result = ArrayBuilder<SyntaxTrivia>.GetInstance();
+            using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var result);
             foreach (var trivia in banner)
             {
                 var updated = CreateTrivia(trivia, trivia.ToFullString().Replace(sourceName, destinationName));
                 result.Add(updated);
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutable();
         }
 
         private async Task<ImmutableArray<SyntaxTrivia>> TryGetBannerAsync(
-            Document document, SyntaxNode root, CancellationToken cancellationToken)
+            Document document, SyntaxNode? root, CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var bannerService = document.GetRequiredLanguageService<IFileBannerFactsService>();
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
             // If we have a tree already for this document, then just check to see
             // if it has a banner.
             if (root != null)
             {
-                return syntaxFacts.GetFileBanner(root);
+                return bannerService.GetFileBanner(root);
             }
 
             // Didn't have a tree.  Don't want to parse the file if we can avoid it.
@@ -134,13 +146,13 @@ namespace Microsoft.CodeAnalysis.AddFileBanner
             }
 
             var token = syntaxFacts.ParseToken(text.ToString());
-            return syntaxFacts.GetFileBanner(token);
+            return bannerService.GetFileBanner(token);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Add_file_banner, createChangedDocument)
+                : base(CodeFixesResources.Add_file_header, createChangedDocument, nameof(CodeFixesResources.Add_file_header))
             {
             }
         }

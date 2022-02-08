@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract class XmlDocumentationProvider : DocumentationProvider
     {
-        private readonly NonReentrantLock _gate = new NonReentrantLock();
+        private readonly NonReentrantLock _gate = new();
         private Dictionary<string, string> _docComments;
 
         /// <summary>
@@ -35,9 +37,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="xmlDocCommentBytes">The XML document bytes.</param>
         /// <returns>An <see cref="XmlDocumentationProvider"/>.</returns>
         public static XmlDocumentationProvider CreateFromBytes(byte[] xmlDocCommentBytes)
-        {
-            return new ContentBasedXmlDocumentationProvider(xmlDocCommentBytes);
-        }
+            => new ContentBasedXmlDocumentationProvider(xmlDocCommentBytes);
 
         private static XmlDocumentationProvider DefaultXmlDocumentationProvider { get; } = new NullXmlDocumentationProvider();
 
@@ -56,12 +56,6 @@ namespace Microsoft.CodeAnalysis
             return new FileBasedXmlDocumentationProvider(xmlDocCommentFilePath);
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.FxCop.Rules.Security.Xml.SecurityXmlRules", "CA3053:UseXmlSecureResolver",
-            MessageId = "System.Xml.XmlReader.Create",
-            Justification = @"For the call to XmlReader.Create() below, CA3053 recommends setting the
-XmlReaderSettings.XmlResolver property to either null or an instance of XmlSecureResolver.
-However, the said XmlResolver property no longer exists in .NET portable framework (i.e. core framework) which means there is no way to set it.
-So we suppress this error until the reporting for CA3053 has been updated to account for .NET portable framework.")]
         private XDocument GetXDocument(CancellationToken cancellationToken)
         {
             using var stream = GetSourceStream(cancellationToken);
@@ -77,7 +71,7 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
                 {
                     try
                     {
-                        _docComments = new Dictionary<string, string>();
+                        var comments = new Dictionary<string, string>();
 
                         var doc = GetXDocument(cancellationToken);
                         foreach (var e in doc.Descendants("member"))
@@ -86,12 +80,15 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
                             {
                                 using var reader = e.CreateReader();
                                 reader.MoveToContent();
-                                _docComments[e.Attribute("name").Value] = reader.ReadInnerXml();
+                                comments[e.Attribute("name").Value] = reader.ReadInnerXml();
                             }
                         }
+
+                        _docComments = comments;
                     }
                     catch (Exception)
                     {
+                        _docComments = new Dictionary<string, string>();
                     }
                 }
             }
@@ -99,7 +96,7 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
             return _docComments.TryGetValue(documentationMemberID, out var docComment) ? docComment : "";
         }
 
-        private static readonly XmlReaderSettings s_xmlSettings = new XmlReaderSettings()
+        private static readonly XmlReaderSettings s_xmlSettings = new()
         {
             DtdProcessing = DtdProcessing.Prohibit,
         };
@@ -116,9 +113,7 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
             }
 
             protected override Stream GetSourceStream(CancellationToken cancellationToken)
-            {
-                return SerializableBytes.CreateReadableStream(_xmlDocCommentBytes);
-            }
+                => SerializableBytes.CreateReadableStream(_xmlDocCommentBytes);
 
             public override bool Equals(object obj)
             {
@@ -152,9 +147,7 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
             }
 
             public override int GetHashCode()
-            {
-                return Hash.CombineValues(_xmlDocCommentBytes);
-            }
+                => Hash.CombineValues(_xmlDocCommentBytes);
         }
 
         private sealed class FileBasedXmlDocumentationProvider : XmlDocumentationProvider
@@ -170,9 +163,7 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
             }
 
             protected override Stream GetSourceStream(CancellationToken cancellationToken)
-            {
-                return new FileStream(_filePath, FileMode.Open, FileAccess.Read);
-            }
+                => new FileStream(_filePath, FileMode.Open, FileAccess.Read);
 
             public override bool Equals(object obj)
             {
@@ -181,9 +172,7 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
             }
 
             public override int GetHashCode()
-            {
-                return _filePath.GetHashCode();
-            }
+                => _filePath.GetHashCode();
         }
 
         /// <summary>
@@ -192,25 +181,19 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
         private sealed class NullXmlDocumentationProvider : XmlDocumentationProvider
         {
             protected override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default)
-            {
-                return "";
-            }
+                => "";
 
             protected override Stream GetSourceStream(CancellationToken cancellationToken)
-            {
-                return new MemoryStream();
-            }
+                => new MemoryStream();
 
             public override bool Equals(object obj)
             {
                 // Only one instance is expected to exist, so reference equality is fine.
-                return (object)this == obj;
+                return ReferenceEquals(this, obj);
             }
 
             public override int GetHashCode()
-            {
-                return 0;
-            }
+                => 0;
         }
     }
 }

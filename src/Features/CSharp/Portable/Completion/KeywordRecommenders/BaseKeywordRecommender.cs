@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             if (context.ContainingTypeDeclaration != null)
             {
                 return
-                    IsConstructorInitializerContext(position, context) ||
+                    IsConstructorInitializerContext(context) ||
                     IsInstanceExpressionOrStatement(context);
             }
 
@@ -41,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             return false;
         }
 
-        private bool IsConstructorInitializerContext(int position, CSharpSyntaxContext context)
+        private static bool IsConstructorInitializerContext(CSharpSyntaxContext context)
         {
             // cases:
             //   Goo() : |
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             if (token.Kind() == SyntaxKind.ColonToken &&
                 token.Parent is ConstructorInitializerSyntax &&
                 token.Parent.IsParentKind(SyntaxKind.ConstructorDeclaration) &&
-                token.Parent.Parent.IsParentKind(SyntaxKind.ClassDeclaration))
+                token.Parent.Parent.IsParentKind(SyntaxKind.ClassDeclaration, SyntaxKind.RecordDeclaration))
             {
                 var constructor = token.GetAncestor<ConstructorDeclarationSyntax>();
                 if (constructor.Modifiers.Any(SyntaxKind.StaticKeyword))

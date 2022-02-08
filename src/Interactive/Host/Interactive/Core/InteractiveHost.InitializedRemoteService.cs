@@ -6,14 +6,14 @@ namespace Microsoft.CodeAnalysis.Interactive
 {
     internal partial class InteractiveHost
     {
-        private struct InitializedRemoteService
+        private readonly struct InitializedRemoteService
         {
-            public readonly RemoteService ServiceOpt;
+            public readonly RemoteService? Service;
             public readonly RemoteExecutionResult InitializationResult;
 
             public InitializedRemoteService(RemoteService service, RemoteExecutionResult initializationResult)
             {
-                ServiceOpt = service;
+                Service = service;
                 InitializationResult = initializationResult;
             }
         }

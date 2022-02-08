@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using Microsoft.VisualStudio.Debugger.Clr;
@@ -211,11 +213,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             bool visitAll,
             ref int index)
         {
-            if ((inspectionContext.EvaluationFlags & DkmEvaluationFlags.NoSideEffects) == DkmEvaluationFlags.NoSideEffects)
-            {
-                return;
-            }
-
             if (InRange(startIndex, count, index))
             {
                 rows.Add(CreateResultsViewRow(inspectionContext, parent, resultProvider.FullNameProvider));
@@ -253,7 +250,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 childFullNamePrefixOpt: childFullNamePrefix,
                 formatSpecifiers: Formatter.AddFormatSpecifier(parent.FormatSpecifiers, ResultsFormatSpecifier),
                 category: DkmEvaluationResultCategory.Method,
-                flags: DkmEvaluationResultFlags.ReadOnly,
+                flags: DkmEvaluationResultFlags.ReadOnly | DkmEvaluationResultFlags.ExpansionHasSideEffects,
                 editableValue: null,
                 inspectionContext: inspectionContext);
         }

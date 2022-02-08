@@ -3,12 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Debugging
-    Friend Partial Class VisualBasicProximityExpressionsService
+    Partial Friend Class VisualBasicProximityExpressionsService
         Public Class RelevantExpressionsCollector
             Inherits VisualBasicSyntaxWalker
 
@@ -33,7 +31,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Debugging
                 If node.Parent.IsKind(SyntaxKind.NameColonEquals) Then
                     Return
                 End If
-
 
                 _expressions.Add(node)
             End Sub

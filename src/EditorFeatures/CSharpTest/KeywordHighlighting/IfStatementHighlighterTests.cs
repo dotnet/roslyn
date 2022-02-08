@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.CSharp.KeywordHighlighting;
+using Microsoft.CodeAnalysis.CSharp.KeywordHighlighting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -11,8 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 {
     public class IfStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
     {
-        internal override IHighlighter CreateHighlighter()
-            => new IfStatementHighlighter();
+        internal override Type GetHighlighterType()
+            => typeof(IfStatementHighlighter);
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public async Task TestIfStatementWithIfAndSingleElse1()
@@ -131,28 +134,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
 }");
         }
 
-        private const string Code3 = @"
-public class C
-{
-    public void Goo()
-    {
-        int a = 10;
-        if (a < 5)
-        {
-            // blah
-        }
-        else 
-        if (a == 10)
-        {
-            // blah
-        }
-        else
-        {
-            // blah
-        }
-    }
-}";
-
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public async Task TestIfStatementWithElseIfOnDifferentLines1()
         {
@@ -256,24 +237,6 @@ public class C
     }
 }");
         }
-
-        private const string Code4 = @"
-public class C
-{
-    public void Goo()
-    {
-        int a = 10;
-        if(a < 5) {
-            // blah
-        }
-        else if(a == 10) {
-            // blah
-        }
-        else{
-            // blah
-        }
-    }
-}";
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public async Task TestIfStatementWithIfAndElseIfAndElseTouching1()
@@ -422,27 +385,6 @@ public class C
 }");
         }
 
-        private const string Code6 = @"
-public class C
-{
-    public void Goo()
-    {
-        int a = 10;
-        if (a < 5)
-        {
-            // blah
-        }
-        else /* test */ if (a == 10)
-        {
-            // blah
-        }
-        else
-        {
-            // blah
-        }
-    }
-}";
-
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public async Task TestCommentBetweenElseIf1()
         {
@@ -542,29 +484,6 @@ public class C
     }
 }");
         }
-
-        private const string Code7 = @"
-public class C
-{
-    public void Goo()
-    {
-        int a = 10;
-        int b = 15;
-        if (a < 5) {
-            // blah
-            if (b < 15)
-                b = 15;
-            else
-                b = 14;
-        }
-        else if (a == 10) {
-            // blah
-        }
-        else {
-            // blah
-        }
-    }
-}";
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
         public async Task TestNestedIfDoesNotHighlight1()

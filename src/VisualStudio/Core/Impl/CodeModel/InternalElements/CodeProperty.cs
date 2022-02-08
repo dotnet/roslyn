@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
@@ -63,29 +65,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         EnvDTE.CodeElements ICodeElementContainer<CodeParameter>.GetCollection()
-        {
-            return this.Parameters;
-        }
+            => this.Parameters;
 
         EnvDTE.CodeElements ICodeElementContainer<CodeAttribute>.GetCollection()
-        {
-            return this.Attributes;
-        }
+            => this.Attributes;
 
         internal override ImmutableArray<SyntaxNode> GetParameters()
-        {
-            return ImmutableArray.CreateRange(CodeModelService.GetParameterNodes(LookupNode()));
-        }
+            => ImmutableArray.CreateRange(CodeModelService.GetParameterNodes(LookupNode()));
 
         protected override object GetExtenderNames()
-        {
-            return CodeModelService.GetPropertyExtenderNames();
-        }
+            => CodeModelService.GetPropertyExtenderNames();
 
         protected override object GetExtender(string name)
-        {
-            return CodeModelService.GetPropertyExtender(name, LookupNode(), LookupSymbol());
-        }
+            => CodeModelService.GetPropertyExtender(name, LookupNode(), LookupSymbol());
 
         public override EnvDTE.vsCMElement Kind
         {
@@ -145,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         private bool HasAccessorNode(MethodKind methodKind)
-            => CodeModelService.TryGetAccessorNode(LookupNode(), methodKind, out var accessorNode);
+            => CodeModelService.TryGetAccessorNode(LookupNode(), methodKind, out _);
 
         private bool IsExpressionBodiedProperty()
             => CodeModelService.IsExpressionBodiedProperty(LookupNode());

@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ko" original="../CSharpCodeFixesResources.resx">
+    <body>
+      <trans-unit id="Add_this">
+        <source>Add 'this.'</source>
+        <target state="translated">this'를 추가합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_typeof_to_nameof">
+        <source>Convert 'typeof' to 'nameof'</source>
+        <target state="translated">'typeof'를 'nameof'로 변환</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pass_in_captured_variables_as_arguments">
+        <source>Pass in captured variables as arguments</source>
+        <target state="translated">캡처된 변수를 인수로 전달</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_colon_on_following_line">
+        <source>Place colon on following line</source>
+        <target state="translated">다음 줄에 콜론 배치</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_statement_on_following_line">
+        <source>Place statement on following line</source>
+        <target state="translated">다음 줄에 문 배치</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_Unnecessary_Usings">
+        <source>Remove Unnecessary Usings</source>
+        <target state="translated">불필요한 Using 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_blank_lines_between_braces">
+        <source>Remove blank line between braces</source>
+        <target state="translated">중괄호 사이의 빈 줄 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unreachable_code">
+        <source>Remove unreachable code</source>
+        <target state="translated">접근할 수 없는 코드 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_Adding_parameters_to_local_function_declaration_may_produce_invalid_code">
+        <source>Warning: Adding parameters to local function declaration may produce invalid code.</source>
+        <target state="translated">경고: 로컬 함수 선언에 매개 변수를 추가할 경우 잘못된 코드가 생성될 수 있습니다.</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

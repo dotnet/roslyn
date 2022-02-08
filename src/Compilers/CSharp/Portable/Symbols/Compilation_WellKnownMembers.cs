@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -115,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This method handles duplicate types in a few different ways:
         /// - for types before C# 7, the first candidate is returned with a warning
         /// - for types after C# 7, the type is considered missing
-        /// - in both cases, when BinderFlags.IgnoreCorLibraryDuplicatedTypes is set, any duplicate coming from corlib will be ignored (ie not count as a duplicate)
+        /// - in both cases, when BinderFlags.IgnoreCorLibraryDuplicatedTypes is set, type from corlib will not count as a duplicate
         /// </summary>
         internal NamedTypeSymbol GetWellKnownType(WellKnownType type)
         {
@@ -166,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             errorInfo = new CSDiagnosticInfo(ErrorCode.ERR_PredefinedValueTupleTypeAmbiguous3, emittedName.FullName, conflicts.Item1, conflicts.Item2);
                         }
 
-                        result = new MissingMetadataTypeSymbol.TopLevelWithCustomErrorInfo(this.Assembly.Modules[0], ref emittedName, errorInfo, type);
+                        result = new MissingMetadataTypeSymbol.TopLevel(this.Assembly.Modules[0], ref emittedName, type, errorInfo);
                     }
                     else
                     {
@@ -193,8 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool IsAttributeType(TypeSymbol type)
         {
-            HashSet<DiagnosticInfo>? useSiteDiagnostics = null;
-            return IsEqualOrDerivedFromWellKnownClass(type, WellKnownType.System_Attribute, ref useSiteDiagnostics);
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            return IsEqualOrDerivedFromWellKnownClass(type, WellKnownType.System_Attribute, ref discardedUseSiteInfo);
         }
 
         internal override bool IsAttributeType(ITypeSymbol type)
@@ -202,9 +200,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return IsAttributeType(type.EnsureCSharpSymbolOrNull(nameof(type)));
         }
 
-        internal bool IsExceptionType(TypeSymbol type, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
+        internal bool IsExceptionType(TypeSymbol type, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            return IsEqualOrDerivedFromWellKnownClass(type, WellKnownType.System_Exception, ref useSiteDiagnostics);
+            return IsEqualOrDerivedFromWellKnownClass(type, WellKnownType.System_Exception, ref useSiteInfo);
         }
 
         internal bool IsReadOnlySpanType(TypeSymbol type)
@@ -212,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return TypeSymbol.Equals(type.OriginalDefinition, GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.ConsiderEverything2);
         }
 
-        internal bool IsEqualOrDerivedFromWellKnownClass(TypeSymbol type, WellKnownType wellKnownType, ref HashSet<DiagnosticInfo>? useSiteDiagnostics)
+        internal bool IsEqualOrDerivedFromWellKnownClass(TypeSymbol type, WellKnownType wellKnownType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(wellKnownType == WellKnownType.System_Attribute ||
                          wellKnownType == WellKnownType.System_Exception);
@@ -223,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var wkType = GetWellKnownType(wellKnownType);
-            return type.Equals(wkType, TypeCompareKind.ConsiderEverything) || type.IsDerivedFrom(wkType, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref useSiteDiagnostics);
+            return type.Equals(wkType, TypeCompareKind.ConsiderEverything) || type.IsDerivedFrom(wkType, TypeCompareKind.ConsiderEverything, useSiteInfo: ref useSiteInfo);
         }
 
         internal override bool IsSystemTypeReference(ITypeSymbolInternal type)
@@ -241,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetWellKnownType(wellknownType);
         }
 
-        internal static Symbol? GetRuntimeMember(NamedTypeSymbol declaringType, in MemberDescriptor descriptor, SignatureComparer<MethodSymbol, FieldSymbol, PropertySymbol, TypeSymbol, ParameterSymbol> comparer, AssemblySymbol accessWithinOpt)
+        internal static Symbol? GetRuntimeMember(NamedTypeSymbol declaringType, in MemberDescriptor descriptor, SignatureComparer<MethodSymbol, FieldSymbol, PropertySymbol, TypeSymbol, ParameterSymbol> comparer, AssemblySymbol? accessWithinOpt)
         {
             var members = declaringType.GetMembers(descriptor.Name);
             return GetRuntimeMember(members, descriptor, comparer, accessWithinOpt);
@@ -390,8 +388,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<KeyValuePair<WellKnownMember, TypedConstant>> namedArguments = default,
             bool isOptionalUse = false)
         {
-            DiagnosticInfo diagnosticInfo;
-            var ctorSymbol = (MethodSymbol)Binder.GetWellKnownTypeMember(this, constructor, out diagnosticInfo, isOptional: true);
+            UseSiteInfo<AssemblySymbol> info;
+            var ctorSymbol = (MethodSymbol)Binder.GetWellKnownTypeMember(this, constructor, out info, isOptional: true);
 
             if ((object)ctorSymbol == null)
             {
@@ -415,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var builder = new ArrayBuilder<KeyValuePair<string, TypedConstant>>(namedArguments.Length);
                 foreach (var arg in namedArguments)
                 {
-                    var wellKnownMember = Binder.GetWellKnownTypeMember(this, arg.Key, out diagnosticInfo, isOptional: true);
+                    var wellKnownMember = Binder.GetWellKnownTypeMember(this, arg.Key, out info, isOptional: true);
                     if (wellKnownMember == null || wellKnownMember is ErrorTypeSymbol)
                     {
                         // if this assert fails, UseSiteErrors for "member" have not been checked before emitting ...
@@ -432,6 +430,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new SynthesizedAttributeData(ctorSymbol, arguments, namedStringArguments);
+        }
+
+        internal SynthesizedAttributeData? TrySynthesizeAttribute(
+            SpecialMember constructor,
+            bool isOptionalUse = false)
+        {
+            var ctorSymbol = (MethodSymbol)this.GetSpecialTypeMember(constructor);
+
+            if ((object)ctorSymbol == null)
+            {
+                Debug.Assert(isOptionalUse);
+                return null;
+            }
+
+            return new SynthesizedAttributeData(
+                ctorSymbol,
+                arguments: ImmutableArray<TypedConstant>.Empty,
+                namedArguments: ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
         }
 
         internal SynthesizedAttributeData? SynthesizeDecimalConstantAttribute(decimal value)
@@ -481,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerStepThroughAttribute__ctor);
         }
 
-        private void EnsureEmbeddableAttributeExists(EmbeddableAttributes attribute, DiagnosticBag? diagnostics, Location location, bool modifyCompilation)
+        private void EnsureEmbeddableAttributeExists(EmbeddableAttributes attribute, BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
         {
             Debug.Assert(!modifyCompilation || !_needsGeneratedAttributes_IsFrozen);
 
@@ -497,32 +513,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal void EnsureIsReadOnlyAttributeExists(DiagnosticBag? diagnostics, Location location, bool modifyCompilation)
+        internal void EnsureIsReadOnlyAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
         {
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.IsReadOnlyAttribute, diagnostics, location, modifyCompilation);
         }
 
-        internal void EnsureIsByRefLikeAttributeExists(DiagnosticBag? diagnostics, Location location, bool modifyCompilation)
+        internal void EnsureIsByRefLikeAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
         {
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.IsByRefLikeAttribute, diagnostics, location, modifyCompilation);
         }
 
-        internal void EnsureIsUnmanagedAttributeExists(DiagnosticBag? diagnostics, Location location, bool modifyCompilation)
+        internal void EnsureIsUnmanagedAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
         {
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.IsUnmanagedAttribute, diagnostics, location, modifyCompilation);
         }
 
-        internal void EnsureNullableAttributeExists(DiagnosticBag? diagnostics, Location location, bool modifyCompilation)
+        internal void EnsureNullableAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
         {
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.NullableAttribute, diagnostics, location, modifyCompilation);
         }
 
-        internal void EnsureNullableContextAttributeExists(DiagnosticBag? diagnostics, Location location, bool modifyCompilation)
+        internal void EnsureNullableContextAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
         {
             EnsureEmbeddableAttributeExists(EmbeddableAttributes.NullableContextAttribute, diagnostics, location, modifyCompilation);
         }
 
-        internal bool CheckIfAttributeShouldBeEmbedded(EmbeddableAttributes attribute, DiagnosticBag? diagnosticsOpt, Location locationOpt)
+        internal void EnsureNativeIntegerAttributeExists(BindingDiagnosticBag? diagnostics, Location location, bool modifyCompilation)
+        {
+            EnsureEmbeddableAttributeExists(EmbeddableAttributes.NativeIntegerAttribute, diagnostics, location, modifyCompilation);
+        }
+
+        internal bool CheckIfAttributeShouldBeEmbedded(EmbeddableAttributes attribute, BindingDiagnosticBag? diagnosticsOpt, Location locationOpt)
         {
             switch (attribute)
             {
@@ -548,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor);
 
                 case EmbeddableAttributes.NullableAttribute:
-                    // Note: if the type exists, we'll check both constructors, regardless of which one(s) we'll eventually need
+                    // If the type exists, we'll check both constructors, regardless of which one(s) we'll eventually need.
                     return CheckIfAttributeShouldBeEmbedded(
                         diagnosticsOpt,
                         locationOpt,
@@ -570,12 +591,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         WellKnownType.System_Runtime_CompilerServices_NullablePublicOnlyAttribute,
                         WellKnownMember.System_Runtime_CompilerServices_NullablePublicOnlyAttribute__ctor);
 
+                case EmbeddableAttributes.NativeIntegerAttribute:
+                    // If the type exists, we'll check both constructors, regardless of which one(s) we'll eventually need.
+                    return CheckIfAttributeShouldBeEmbedded(
+                        diagnosticsOpt,
+                        locationOpt,
+                        WellKnownType.System_Runtime_CompilerServices_NativeIntegerAttribute,
+                        WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctor,
+                        WellKnownMember.System_Runtime_CompilerServices_NativeIntegerAttribute__ctorTransformFlags);
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(attribute);
             }
         }
 
-        private bool CheckIfAttributeShouldBeEmbedded(DiagnosticBag? diagnosticsOpt, Location? locationOpt, WellKnownType attributeType, WellKnownMember attributeCtor, WellKnownMember? secondAttributeCtor = null)
+        private bool CheckIfAttributeShouldBeEmbedded(BindingDiagnosticBag? diagnosticsOpt, Location? locationOpt, WellKnownType attributeType, WellKnownMember attributeCtor, WellKnownMember? secondAttributeCtor = null)
         {
             var userDefinedAttribute = GetWellKnownType(attributeType);
 
@@ -585,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (diagnosticsOpt != null)
                     {
-                        var errorReported = Binder.ReportUseSiteDiagnostics(userDefinedAttribute, diagnosticsOpt, locationOpt);
+                        var errorReported = Binder.ReportUseSite(userDefinedAttribute, diagnosticsOpt, locationOpt);
                         Debug.Assert(errorReported);
                     }
                 }
@@ -597,7 +627,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (diagnosticsOpt != null)
             {
                 // This should produce diagnostics if the member is missing or bad
-                var member = Binder.GetWellKnownTypeMember(this, attributeCtor, diagnosticsOpt, locationOpt);
+                var member = Binder.GetWellKnownTypeMember(this, attributeCtor,
+                                                           diagnosticsOpt, locationOpt);
                 if (member != null && secondAttributeCtor != null)
                 {
                     Binder.GetWellKnownTypeMember(this, secondAttributeCtor.Value, diagnosticsOpt, locationOpt);
@@ -699,7 +730,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RoslynDebug.Assert((object)booleanType != null);
                 var transformFlags = DynamicTransformsEncoder.Encode(type, refKindOpt, customModifiersCount, booleanType);
                 var boolArray = ArrayTypeSymbol.CreateSZArray(booleanType.ContainingAssembly, TypeWithAnnotations.Create(booleanType));
-                var arguments = ImmutableArray.Create<TypedConstant>(new TypedConstant(boolArray, transformFlags));
+                var arguments = ImmutableArray.Create(new TypedConstant(boolArray, transformFlags));
                 return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags, arguments);
             }
         }
@@ -848,7 +879,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private static bool AddFlags(TypeSymbol type, ArrayBuilder<bool> transformFlagsBuilder, bool isNestedNamedType, bool addCustomModifierFlags)
             {
-                // Encode transforms flag for this type and it's custom modifiers (if any).
+                // Encode transforms flag for this type and its custom modifiers (if any).
                 switch (type.TypeKind)
                 {
                     case TypeKind.Dynamic:
@@ -873,6 +904,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         transformFlagsBuilder.Add(false);
                         break;
 
+                    case TypeKind.FunctionPointer:
+                        Debug.Assert(!isNestedNamedType);
+                        handleFunctionPointerType((FunctionPointerTypeSymbol)type, transformFlagsBuilder, addCustomModifierFlags);
+
+                        // Function pointer types have nested custom modifiers and refkinds in line with types, and visit all their nested types
+                        // as part of this call.
+                        // We need a different way to indicate that we should not recurse for this type, but should continue walking for other
+                        // types. https://github.com/dotnet/roslyn/issues/44160
+                        return true;
+
                     default:
                         // Encode transforms flag for this type.
                         // For nested named types, a single flag (false) is encoded for the entire type name, followed by flags for all of the type arguments.
@@ -892,15 +933,70 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Continue walking types
                 return false;
+
+                static void handleFunctionPointerType(FunctionPointerTypeSymbol funcPtr, ArrayBuilder<bool> transformFlagsBuilder, bool addCustomModifierFlags)
+                {
+                    Func<TypeSymbol, (ArrayBuilder<bool>, bool), bool, bool> visitor =
+                        (TypeSymbol type, (ArrayBuilder<bool> builder, bool addCustomModifierFlags) param, bool isNestedNamedType) => AddFlags(type, param.builder, isNestedNamedType, param.addCustomModifierFlags);
+
+                    // The function pointer type itself gets a false
+                    transformFlagsBuilder.Add(false);
+
+                    var sig = funcPtr.Signature;
+                    handle(sig.RefKind, sig.RefCustomModifiers, sig.ReturnTypeWithAnnotations);
+
+                    foreach (var param in sig.Parameters)
+                    {
+                        handle(param.RefKind, param.RefCustomModifiers, param.TypeWithAnnotations);
+                    }
+
+                    void handle(RefKind refKind, ImmutableArray<CustomModifier> customModifiers, TypeWithAnnotations twa)
+                    {
+                        if (addCustomModifierFlags)
+                        {
+                            HandleCustomModifiers(customModifiers.Length, transformFlagsBuilder);
+                        }
+
+                        if (refKind != RefKind.None)
+                        {
+                            transformFlagsBuilder.Add(false);
+                        }
+
+                        if (addCustomModifierFlags)
+                        {
+                            HandleCustomModifiers(twa.CustomModifiers.Length, transformFlagsBuilder);
+                        }
+
+                        twa.Type.VisitType(visitor, (transformFlagsBuilder, addCustomModifierFlags));
+                    }
+                }
             }
 
             private static void HandleCustomModifiers(int customModifiersCount, ArrayBuilder<bool> transformFlagsBuilder)
             {
-                for (int i = 0; i < customModifiersCount; i++)
+                // Native compiler encodes an extra transforms flag, always false, for each custom modifier.
+                transformFlagsBuilder.AddMany(false, customModifiersCount);
+            }
+        }
+
+        internal static class NativeIntegerTransformsEncoder
+        {
+            internal static void Encode(ArrayBuilder<bool> builder, TypeSymbol type)
+            {
+                type.VisitType((typeSymbol, builder, isNested) => AddFlags(typeSymbol, builder), builder);
+            }
+
+            private static bool AddFlags(TypeSymbol type, ArrayBuilder<bool> builder)
+            {
+                switch (type.SpecialType)
                 {
-                    // Native compiler encodes an extra transforms flag, always false, for each custom modifier.
-                    transformFlagsBuilder.Add(false);
+                    case SpecialType.System_IntPtr:
+                    case SpecialType.System_UIntPtr:
+                        builder.Add(type.IsNativeIntegerType);
+                        break;
                 }
+                // Continue walking types
+                return false;
             }
         }
 

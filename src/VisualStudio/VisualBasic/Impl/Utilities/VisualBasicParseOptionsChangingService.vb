@@ -13,6 +13,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Utilities
         Implements IParseOptionsChangingService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

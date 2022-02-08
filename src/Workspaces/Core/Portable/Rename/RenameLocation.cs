@@ -46,20 +46,16 @@ namespace Microsoft.CodeAnalysis.Rename
         }
 
         public bool Equals(RenameLocation other)
-        {
-            return Location == other.Location;
-        }
+            => Location == other.Location;
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is RenameLocation loc &&
                    Equals(loc);
         }
 
         public override int GetHashCode()
-        {
-            return Location.GetHashCode();
-        }
+            => Location.GetHashCode();
 
         internal static bool ShouldRename(RenameLocation location)
             => ShouldRename(location.CandidateReason);

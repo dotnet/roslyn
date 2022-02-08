@@ -2,7 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
+using System.Threading.Tasks;
+using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -24,9 +28,21 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
         private InlineRenameDialog_OutOfProc InlineRenameDialog => VisualStudio.InlineRenameDialog;
 
-        public CSharpRename(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(CSharpRename))
+        public CSharpRename(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(CSharpRename))
         {
+        }
+
+        public override async Task InitializeAsync()
+        {
+            await base.InitializeAsync();
+
+            // reset relevant global options to default values:
+            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_RenameInComments, language: null, value: false);
+            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_RenameInStrings, language: null, value: false);
+            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_RenameOverloads, language: null, value: false);
+            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_RenameFile, language: null, value: true);
+            VisualStudio.Workspace.SetGlobalOption(WellKnownGlobalOption.InlineRenameSessionOptions_PreviewChanges, language: null, value: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
@@ -158,8 +174,8 @@ class stomAttribute : Attribute
             SetUpEditor(markup);
             InlineRenameDialog.Invoke();
 
-            MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            MarkupTestFile.GetSpans(markup, out _, out ImmutableArray<TextSpan> _);
+            _ = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
 
             VisualStudio.Editor.SendKeys("Custom");
             VisualStudio.Editor.Verify.TextContains(@"
@@ -195,8 +211,8 @@ class [|$$stom|]Attribute : Attribute
             SetUpEditor(markup);
             InlineRenameDialog.Invoke();
 
-            MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
-            var tags = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
+            MarkupTestFile.GetSpans(markup, out _, out ImmutableArray<TextSpan> _);
+            _ = VisualStudio.Editor.GetTagSpans(InlineRenameDialog.ValidRenameTag);
 
             VisualStudio.Editor.SendKeys("Custom");
             VisualStudio.Editor.Verify.TextContains(@"
@@ -504,7 +520,6 @@ $$class RenameRocks
             VisualStudio.SolutionExplorer.AddFile(project2, "Class2.cs", @"");
             VisualStudio.SolutionExplorer.OpenFile(project2, "Class2.cs");
 
-
             VisualStudio.Editor.SetText(@"
 public class Class2 { static void Main(string [] args) { } }");
 
@@ -524,7 +539,7 @@ class RenameRocks
     }
 }");
 
-            VisualStudio.SolutionExplorer.OpenFile(project2, "Class2.cs");
+            VisualStudio.SolutionExplorer.OpenFile(project2, "y.cs");
             VisualStudio.Editor.Verify.TextContains(@"
 public class y { static void Main(string [] args) { } }");
         }
@@ -578,6 +593,37 @@ class Program
     {
         var y = 1;
         y = 2;
+    }
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Rename)]
+        [WorkItem(39617, "https://github.com/dotnet/roslyn/issues/39617")]
+        public void VerifyRenameCaseChange()
+        {
+            var project = new ProjectUtils.Project(ProjectName);
+            VisualStudio.SolutionExplorer.AddFile(project, "Program.cs",
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+    }
+}");
+
+            VisualStudio.SolutionExplorer.OpenFile(project, "Program.cs");
+            VisualStudio.Editor.PlaceCaret("Program");
+
+            InlineRenameDialog.Invoke();
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Home, VirtualKey.Delete, VirtualKey.P, VirtualKey.Enter);
+
+            VisualStudio.SolutionExplorer.Verify.FileContents(project, "program.cs",
+@"
+class program
+{
+    static void Main(string[] args)
+    {
     }
 }");
         }

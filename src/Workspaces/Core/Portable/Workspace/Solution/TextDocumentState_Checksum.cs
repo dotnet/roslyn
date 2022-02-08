@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -18,19 +16,18 @@ namespace Microsoft.CodeAnalysis
     internal partial class TextDocumentState
     {
         public bool TryGetStateChecksums([NotNullWhen(returnValue: true)] out DocumentStateChecksums? stateChecksums)
-        {
-            return _lazyChecksums.TryGetValue(out stateChecksums);
-        }
+            => _lazyChecksums.TryGetValue(out stateChecksums);
 
         public Task<DocumentStateChecksums> GetStateChecksumsAsync(CancellationToken cancellationToken)
-        {
-            return _lazyChecksums.GetValueAsync(cancellationToken);
-        }
+            => _lazyChecksums.GetValueAsync(cancellationToken);
 
-        public async Task<Checksum> GetChecksumAsync(CancellationToken cancellationToken)
+        public Task<Checksum> GetChecksumAsync(CancellationToken cancellationToken)
         {
-            var collection = await _lazyChecksums.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            return collection.Checksum;
+            return SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
+                static (lazyChecksums, cancellationToken) => new ValueTask<DocumentStateChecksums>(lazyChecksums.GetValueAsync(cancellationToken)),
+                static (documentStateChecksums, _) => documentStateChecksums.Checksum,
+                _lazyChecksums,
+                cancellationToken).AsTask();
         }
 
         private async Task<DocumentStateChecksums> ComputeChecksumsAsync(CancellationToken cancellationToken)
@@ -39,17 +36,16 @@ namespace Microsoft.CodeAnalysis
             {
                 using (Logger.LogBlock(FunctionId.DocumentState_ComputeChecksumsAsync, FilePath, cancellationToken))
                 {
-                    var textAndVersionTask = GetTextAndVersionAsync(cancellationToken);
-
                     var serializer = solutionServices.Workspace.Services.GetRequiredService<ISerializerService>();
 
                     var infoChecksum = serializer.CreateChecksum(Attributes, cancellationToken);
-                    var textChecksum = serializer.CreateChecksum((await textAndVersionTask.ConfigureAwait(false)).Text, cancellationToken);
+                    var serializableText = await SerializableSourceText.FromTextDocumentStateAsync(this, cancellationToken).ConfigureAwait(false);
+                    var textChecksum = serializer.CreateChecksum(serializableText, cancellationToken);
 
                     return new DocumentStateChecksums(infoChecksum, textChecksum);
                 }
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceledAndPropagate(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }

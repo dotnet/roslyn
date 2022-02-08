@@ -14,12 +14,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         Inherits AbstractExtractMethodService(Of VisualBasicSelectionValidator, VisualBasicMethodExtractor, VisualBasicSelectionResult)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
         Protected Overrides Function CreateSelectionValidator(document As SemanticDocument,
                                                               textSpan As TextSpan,
-                                                              options As OptionSet) As VisualBasicSelectionValidator
+                                                              localFunction As Boolean,
+                                                              options As ExtractMethodOptions) As VisualBasicSelectionValidator
             Return New VisualBasicSelectionValidator(document, textSpan, options)
         End Function
 

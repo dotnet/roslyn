@@ -9,8 +9,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
     Public Class CSharpCompletionCommandHandlerTests_Projections
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestSimpleWithJustSubjectBuffer() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSimpleWithJustSubjectBuffer(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System;
@@ -26,7 +26,7 @@ public override void Execute() {
 #line default
 #line hidden
 }
-}]]></Document>)
+}]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars(".Curr")
                 Await state.AssertSelectedCompletionItem(displayText:="CurrentDomain")
@@ -35,8 +35,8 @@ public override void Execute() {
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestAfterDot() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestAfterDot(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 {|S2:
@@ -47,7 +47,7 @@ class C
         System$$
     }
 }
-|}]]></Document>)
+|}]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
                 Dim subjectDocument = state.Workspace.Documents.First()
                 Dim firstProjection = state.Workspace.CreateProjectionBufferDocument(
                     <Document>
@@ -72,8 +72,8 @@ class C
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestInObjectCreationExpression() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestInObjectCreationExpression(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 {|S2:
@@ -84,7 +84,7 @@ class C
         string s = new$$
     }
 }
-|}]]></Document>)
+|}]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
                 Dim subjectDocument = state.Workspace.Documents.First()
                 Dim firstProjection = state.Workspace.CreateProjectionBufferDocument(
                     <Document>
@@ -107,8 +107,8 @@ class C
         End Function
 
         <WorkItem(771761, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771761")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestRegionCompletionCommitFormatting() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestRegionCompletionCommitFormatting(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 {|S2:
@@ -119,7 +119,7 @@ class C
         $$
     }
 }
-|}]]></Document>)
+|}]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
                 Dim subjectDocument = state.Workspace.Documents.First()
                 Dim firstProjection = state.Workspace.CreateProjectionBufferDocument(
                     <Document>

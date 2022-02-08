@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -11,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -41,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
             /// Annotation used so that we can track the top-most node we want to format after
             /// performing all our edits.
             /// </summary>
-            private static readonly SyntaxAnnotation s_toFormatAnnotation = new SyntaxAnnotation();
+            private static readonly SyntaxAnnotation s_toFormatAnnotation = new();
 
             protected readonly TWrapper Wrapper;
 
@@ -62,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
             /// The contents of the documents we've created code-actions for.  This is used so that
             /// we can prevent creating multiple code actions that produce the same results.
             /// </summary>
-            private readonly List<SyntaxNode> _seenDocumentRoots = new List<SyntaxNode>();
+            private readonly List<SyntaxNode> _seenDocumentRoots = new();
 
             public AbstractCodeActionComputer(
                 TWrapper service,
@@ -76,13 +78,14 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 OriginalSourceText = originalSourceText;
                 CancellationToken = cancellationToken;
 
-                UseTabs = options.GetOption(FormattingOptions.UseTabs);
-                TabSize = options.GetOption(FormattingOptions.TabSize);
-                NewLine = options.GetOption(FormattingOptions.NewLine);
-                WrappingColumn = options.GetOption(FormattingOptions.PreferredWrappingColumn);
+                UseTabs = options.GetOption(FormattingOptions2.UseTabs);
+                TabSize = options.GetOption(FormattingOptions2.TabSize);
+                NewLine = options.GetOption(FormattingOptions2.NewLine);
+                WrappingColumn = options.GetOption(FormattingOptions2.PreferredWrappingColumn);
 
                 var generator = SyntaxGenerator.GetGenerator(document);
-                NewLineTrivia = new SyntaxTriviaList(generator.EndOfLine(NewLine));
+                var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
+                NewLineTrivia = new SyntaxTriviaList(generatorInternal.EndOfLine(NewLine));
                 SingleWhitespaceTrivia = new SyntaxTriviaList(generator.Whitespace(" "));
             }
 
@@ -107,13 +110,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                     indentStyle,
                     CancellationToken);
 
-                var baseLine = newSourceText.Lines.GetLineFromPosition(desiredIndentation.BasePosition);
-                var baseOffsetInLine = desiredIndentation.BasePosition - baseLine.Start;
-
-                var indent = baseOffsetInLine + desiredIndentation.Offset;
-
-                var indentString = indent.CreateIndentationString(UseTabs, TabSize);
-                return indentString;
+                return desiredIndentation.GetIndentationString(newSourceText, UseTabs, TabSize);
             }
 
             /// <summary>
@@ -177,44 +174,36 @@ namespace Microsoft.CodeAnalysis.Wrapping
 
             private async Task<(SyntaxNode root, SyntaxNode rewrittenRoot, TextSpan spanToFormat)> RewriteTreeAsync(ImmutableArray<Edit> edits)
             {
-                var leftTokenToTrailingTrivia = PooledDictionary<SyntaxToken, SyntaxTriviaList>.GetInstance();
-                var rightTokenToLeadingTrivia = PooledDictionary<SyntaxToken, SyntaxTriviaList>.GetInstance();
+                using var _1 = PooledDictionary<SyntaxToken, SyntaxTriviaList>.GetInstance(out var leftTokenToTrailingTrivia);
+                using var _2 = PooledDictionary<SyntaxToken, SyntaxTriviaList>.GetInstance(out var rightTokenToLeadingTrivia);
 
-                try
+                foreach (var edit in edits)
                 {
-                    foreach (var edit in edits)
+                    var span = TextSpan.FromBounds(edit.Left.Span.End, edit.Right.Span.Start);
+                    var text = OriginalSourceText.ToString(span);
+                    if (!IsSafeToRemove(text))
                     {
-                        var span = TextSpan.FromBounds(edit.Left.Span.End, edit.Right.Span.Start);
-                        var text = OriginalSourceText.ToString(span);
-                        if (!IsSafeToRemove(text))
-                        {
-                            // editing some piece of non-whitespace trivia.  We don't support this.
-                            return default;
-                        }
-
-                        // Make sure we're not about to make an edit that just changes the code to what
-                        // is already there.
-                        if (text != edit.GetNewTrivia())
-                        {
-                            leftTokenToTrailingTrivia.Add(edit.Left, edit.NewLeftTrailingTrivia);
-                            rightTokenToLeadingTrivia.Add(edit.Right, edit.NewRightLeadingTrivia);
-                        }
-                    }
-
-                    if (leftTokenToTrailingTrivia.Count == 0)
-                    {
-                        // No actual edits that would change anything.  Nothing to do.
+                        // editing some piece of non-whitespace trivia.  We don't support this.
                         return default;
                     }
 
-                    return await RewriteTreeAsync(
-                        leftTokenToTrailingTrivia, rightTokenToLeadingTrivia).ConfigureAwait(false);
+                    // Make sure we're not about to make an edit that just changes the code to what
+                    // is already there.
+                    if (text != edit.GetNewTrivia())
+                    {
+                        leftTokenToTrailingTrivia.Add(edit.Left, edit.NewLeftTrailingTrivia);
+                        rightTokenToLeadingTrivia.Add(edit.Right, edit.NewRightLeadingTrivia);
+                    }
                 }
-                finally
+
+                if (leftTokenToTrailingTrivia.Count == 0)
                 {
-                    leftTokenToTrailingTrivia.Free();
-                    rightTokenToLeadingTrivia.Free();
+                    // No actual edits that would change anything.  Nothing to do.
+                    return default;
                 }
+
+                return await RewriteTreeAsync(
+                    leftTokenToTrailingTrivia, rightTokenToLeadingTrivia).ConfigureAwait(false);
             }
 
             private static bool IsSafeToRemove(string text)

@@ -2,17 +2,18 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Snippets
 Imports Microsoft.CodeAnalysis.Tags
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Text.Projection
 Imports Roslyn.Utilities
 
@@ -394,9 +395,6 @@ End Class
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestBackspaceBeforeCompletedComputation() As Task
             ' Simulate a very slow completionImplementation provider.
-            Dim e = New ManualResetEvent(False)
-            Dim provider = CreateTriggeredCompletionProvider(e)
-
             Using state = TestStateFactory.CreateVisualBasicTestState(
                               <document>
                                 Class Program
@@ -404,12 +402,16 @@ End Class
                                         Program$$
                                     End Sub
                                 End Class
-                              </document>, extraCompletionProviders:={provider})
+                              </document>,
+                              extraExportedTypes:={GetType(TriggeredCompletionProvider)}.ToList())
+
+                Dim completionService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
+                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of TriggeredCompletionProvider)().Single()
 
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars(".M")
 
-                ' We should not have a session now.  Note: do not block as this will just hang things
+                ' We should not have a session now.  Note: do not block as this will just deadlock things
                 ' since the provider will not return.
                 state.AssertNoCompletionSessionWithNoBlock()
 
@@ -417,7 +419,7 @@ End Class
                 state.SendBackspace()
 
                 ' allow the provider to continue
-                e.Set()
+                provider.e.Set()
 
                 ' At this point, completionImplementation will be available since the caret is still within the model's span.
                 Await state.AssertCompletionSession()
@@ -431,9 +433,6 @@ End Class
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNavigationBeforeCompletedComputation() As Task
             ' Simulate a very slow completionImplementation provider.
-            Dim e = New ManualResetEvent(False)
-            Dim provider = CreateTriggeredCompletionProvider(e)
-
             Using state = TestStateFactory.CreateVisualBasicTestState(
                               <document>
                                 Class Program
@@ -441,12 +440,16 @@ End Class
                                         Program$$
                                     End Sub
                                 End Class
-                              </document>, extraCompletionProviders:={provider})
+                              </document>,
+                              extraExportedTypes:={GetType(TriggeredCompletionProvider)}.ToList())
+
+                Dim completionService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
+                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of TriggeredCompletionProvider)().Single()
 
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars(".Ma")
 
-                ' We should not have a session now.  Note: do not block as this will just hang things
+                ' We should not have a session now.  Note: do not block as this will just deadlock things
                 ' since the provider will not return.
                 state.AssertNoCompletionSessionWithNoBlock()
 
@@ -454,7 +457,7 @@ End Class
                 state.SendMoveToPreviousCharacter()
 
                 ' allow the provider to continue
-                e.Set()
+                provider.e.Set()
 
                 ' Async provider can handle keys pressed while waiting for providers.
                 Await state.AssertCompletionSession()
@@ -464,9 +467,6 @@ End Class
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNavigationOutBeforeCompletedComputation() As Task
             ' Simulate a very slow completionImplementation provider.
-            Dim e = New ManualResetEvent(False)
-            Dim provider = CreateTriggeredCompletionProvider(e)
-
             Using state = TestStateFactory.CreateVisualBasicTestState(
                               <document>
                                 Class Program
@@ -474,12 +474,16 @@ End Class
                                         Program$$
                                     End Sub
                                 End Class
-                              </document>, extraCompletionProviders:={provider})
+                              </document>,
+                              extraExportedTypes:={GetType(TriggeredCompletionProvider)}.ToList())
+
+                Dim completionService = DirectCast(state.Workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
+                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of TriggeredCompletionProvider)().Single()
 
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars(".Ma")
 
-                ' We should not have a session now.  Note: do not block as this will just hang things
+                ' We should not have a session now.  Note: do not block as this will just deadlock things
                 ' since the provider will not return.
                 state.AssertNoCompletionSessionWithNoBlock()
 
@@ -487,7 +491,7 @@ End Class
                 state.SendDownKey()
 
                 ' allow the provider to continue
-                e.Set()
+                provider.e.Set()
 
                 ' Caret was intended to be moved out of the span. 
                 ' Therefore, we should cancel the completion And move the caret.
@@ -972,13 +976,34 @@ End Class
             End Using
         End Function
 
-        Private Function CreateTriggeredCompletionProvider(e As ManualResetEvent) As CompletionProvider
-            Return New MockCompletionProvider(getItems:=Function(t, p, c)
-                                                            e.WaitOne()
-                                                            Return Nothing
-                                                        End Function,
-                                              isTriggerCharacter:=Function(t, p) True)
-        End Function
+        <ExportCompletionProvider(NameOf(TriggeredCompletionProvider), LanguageNames.VisualBasic)>
+        <[Shared]>
+        <PartNotDiscoverable>
+        Friend Class TriggeredCompletionProvider
+            Inherits MockCompletionProvider
+
+            Public ReadOnly e As ManualResetEvent = New ManualResetEvent(False)
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+                MyBase.New(getItems:=Function(t, p, c)
+                                         Return Nothing
+                                     End Function,
+                       isTriggerCharacter:=Function(t, p) True)
+            End Sub
+
+            Friend Overrides ReadOnly Property Language As String
+                Get
+                    Return LanguageNames.VisualBasic
+                End Get
+            End Property
+
+            Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
+                e.WaitOne()
+                Return MyBase.ProvideCompletionsAsync(context)
+            End Function
+        End Class
 
         <WorkItem(544297, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544297")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -1006,7 +1031,7 @@ End Class
         Public Async Function TestExclusiveNamedParameterCompletion() As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                       <Workspace>
-                          <Project Language="Visual Basic" CommonReferences="true" LanguageVersion="VisualBasic15">
+                          <Project Language="Visual Basic" CommonReferences="true" LanguageVersion="15">
                               <Document>
 Class Class1
     Private Sub Test()
@@ -1035,7 +1060,7 @@ End Class
         Public Async Function TestExclusiveNamedParameterCompletion2() As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                       <Workspace>
-                          <Project Language="Visual Basic" CommonReferences="true" LanguageVersion="VisualBasic15">
+                          <Project Language="Visual Basic" CommonReferences="true" LanguageVersion="15">
                               <Document>
 Class Goo
     Private Sub Test()
@@ -1808,9 +1833,9 @@ Class Class1
 End Class
 </Document>)
 
-                Dim workspace = state.Workspace
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.EnterKeyBehavior, LanguageNames.VisualBasic, EnterKeyRule.AfterFullyTypedWord)))
+                state.Workspace.GlobalOptions.SetGlobalOption(
+                    New OptionKey(CompletionOptionsStorage.EnterKeyBehavior, LanguageNames.VisualBasic), EnterKeyRule.AfterFullyTypedWord)
+
                 state.SendTypeChars("System.TimeSpan.FromMin")
                 state.SendReturn()
                 Assert.Equal(<text>
@@ -1834,9 +1859,8 @@ Class Class1
 End Class
 </Document>)
 
-                Dim workspace = state.Workspace
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.EnterKeyBehavior, LanguageNames.VisualBasic, EnterKeyRule.AfterFullyTypedWord)))
+                state.Workspace.GlobalOptions.SetGlobalOption(
+                    New OptionKey(CompletionOptionsStorage.EnterKeyBehavior, LanguageNames.VisualBasic), EnterKeyRule.AfterFullyTypedWord)
 
                 state.SendTypeChars("System.TimeSpan.FromMinutes")
                 state.SendReturn()
@@ -2140,9 +2164,9 @@ Class G
 End Class
             ]]></Document>)
 
-                Dim workspace = state.Workspace
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.TriggerOnTyping, LanguageNames.VisualBasic, False)))
+                state.Workspace.GlobalOptions.SetGlobalOption(
+                    New OptionKey(CompletionOptionsStorage.TriggerOnTyping, LanguageNames.VisualBasic), False)
+
                 state.SendBackspace()
                 Await state.AssertNoCompletionSession()
             End Using
@@ -2479,7 +2503,7 @@ End Class
                 Await state.AssertSelectedCompletionItem(description:=
 $"<{ VBFeaturesResources.Extension }> Function IEnumerable(Of 'a).ToArray() As 'a()
 
-{ FeaturesResources.Anonymous_Types_colon }
+{ FeaturesResources.Types_colon }
     'a { FeaturesResources.is_ } New With {{ .x As Integer }}")
             End Using
         End Function
@@ -2501,7 +2525,7 @@ End Class
                 Await state.AssertSelectedCompletionItem(description:=
 $"<{ VBFeaturesResources.Extension }> Function IEnumerable(Of 'a).ToArray() As 'a()
 
-{ FeaturesResources.Anonymous_Types_colon }
+{ FeaturesResources.Types_colon }
     'a { FeaturesResources.is_ } New With {{ Key .x As Integer }}")
             End Using
         End Function
@@ -2533,7 +2557,7 @@ $"<{ VBFeaturesResources.Extension }> Function IEnumerable(Of 'a).ToArray() As '
         Public Async Function TestNonTrailingNamedArgumentInVB15_3() As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                  <Workspace>
-                     <Project Language="Visual Basic" LanguageVersion="VisualBasic15_3" CommonReferences="true" AssemblyName="VBProj">
+                     <Project Language="Visual Basic" LanguageVersion="15.3" CommonReferences="true" AssemblyName="VBProj">
                          <Document FilePath="C.vb">
 Class C
     Sub M()
@@ -2558,7 +2582,7 @@ End Class
         Public Async Function TestNonTrailingNamedArgumentInVB15_5() As Task
             Using state = TestStateFactory.CreateTestStateFromWorkspace(
                  <Workspace>
-                     <Project Language="Visual Basic" LanguageVersion="VisualBasic15_5" CommonReferences="true" AssemblyName="VBProj">
+                     <Project Language="Visual Basic" LanguageVersion="15.5" CommonReferences="true" AssemblyName="VBProj">
                          <Document FilePath="C.vb">
 Class C
     Sub M()
@@ -2631,9 +2655,8 @@ End Class
 }]]></Document>,
                   extraExportedTypes:={GetType(MockSnippetInfoService), GetType(SnippetCompletionProvider), GetType(StubVsEditorAdaptersFactoryService)}.ToList())
 
-                Dim workspace = state.Workspace
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.SnippetsBehavior, LanguageNames.VisualBasic, SnippetsRule.AlwaysInclude)))
+                state.Workspace.GlobalOptions.SetGlobalOption(
+                    New OptionKey(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)
 
                 state.SendTypeChars("Shortcu")
                 Await state.AssertSelectedCompletionItem(displayText:="Shortcut", isHardSelected:=True)
@@ -2654,9 +2677,8 @@ End Class
 }]]></Document>,
                   extraExportedTypes:={GetType(MockSnippetInfoService), GetType(SnippetCompletionProvider), GetType(StubVsEditorAdaptersFactoryService)}.ToList())
 
-                Dim workspace = state.Workspace
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.SnippetsBehavior, LanguageNames.VisualBasic, SnippetsRule.AlwaysInclude)))
+                state.Workspace.GlobalOptions.SetGlobalOption(
+                    New OptionKey(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)
 
                 state.SendTypeChars("Shortcu")
                 Await state.AssertSelectedCompletionItem(displayText:="Shortcut", isHardSelected:=True)
@@ -2678,9 +2700,8 @@ End Class
 }]]></Document>,
                   extraExportedTypes:={GetType(MockSnippetInfoService), GetType(SnippetCompletionProvider), GetType(StubVsEditorAdaptersFactoryService)}.ToList())
 
-                Dim workspace = state.Workspace
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(CompletionOptions.SnippetsBehavior, LanguageNames.VisualBasic, SnippetsRule.AlwaysInclude)))
+                state.Workspace.GlobalOptions.SetGlobalOption(
+                    New OptionKey(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionItemsContainAll("x", "Shortcut")
@@ -3241,14 +3262,233 @@ Class C
                     Await state.AssertSelectedCompletionItem("If")
                 End Using
             End Using
-
         End Function
 
-        <ExportLanguageService(GetType(ISnippetInfoService), LanguageNames.VisualBasic), System.Composition.Shared>
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionInPreprocessorIf(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true" PreprocessorSymbols="Goo=1,Bar=2,Baz=3">
+                            <Document>
+#if $$
+                            </Document>
+                        </Project>
+                    </Workspace>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll({"Goo", "Bar", "Baz", "True", "False"})
+                state.SendTypeChars("Go")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("#if Goo", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionInPreprocessorElseIf(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true" PreprocessorSymbols="Goo=1,Bar=2,Baz=3">
+                            <Document>
+#if false
+#elseif $$
+                            </Document>
+                        </Project>
+                    </Workspace>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll({"Goo", "Bar", "Baz", "True", "False"})
+                state.SendTypeChars("Go")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("#elseif Goo", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionNotInPreprocessorElse(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true" PreprocessorSymbols="Goo=1,Bar=2,Baz=3">
+                            <Document>
+#if false
+#elseif false
+#else $$
+                            </Document>
+                        </Project>
+                    </Workspace>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionInPreprocessorParenthesized(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true" PreprocessorSymbols="Goo=1,Bar=2,Baz=3">
+                            <Document>
+#if ($$
+                            </Document>
+                        </Project>
+                    </Workspace>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll({"Goo", "Bar", "Baz", "True", "False"})
+                state.SendTypeChars("Go")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("#if (Goo", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionInPreprocessorNot(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true" PreprocessorSymbols="Goo=1,Bar=2,Baz=3">
+                            <Document>
+#if not $$
+                            </Document>
+                        </Project>
+                    </Workspace>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll({"Goo", "Bar", "Baz", "True", "False"})
+                state.SendTypeChars("Go")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("#if not Goo", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionInPreprocessorAnd(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true" PreprocessorSymbols="Goo=1,Bar=2,Baz=3">
+                            <Document>
+#if true and $$
+                            </Document>
+                        </Project>
+                    </Workspace>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll({"Goo", "Bar", "Baz", "True", "False"})
+                state.SendTypeChars("Go")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("#if true and Goo", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionInPreprocessorAndAlso(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true" PreprocessorSymbols="Goo=1,Bar=2,Baz=3">
+                            <Document>
+#if true andalso $$
+                            </Document>
+                        </Project>
+                    </Workspace>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll({"Goo", "Bar", "Baz", "True", "False"})
+                state.SendTypeChars("Go")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("#if true andalso Goo", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionInPreprocessorOr(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true" PreprocessorSymbols="Goo=1,Bar=2,Baz=3">
+                            <Document>
+#if true or $$
+                            </Document>
+                        </Project>
+                    </Workspace>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll({"Goo", "Bar", "Baz", "True", "False"})
+                state.SendTypeChars("Go")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("#if true or Goo", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionInPreprocessorOrElse(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true" PreprocessorSymbols="Goo=1,Bar=2,Baz=3">
+                            <Document>
+#if true orelse $$
+                            </Document>
+                        </Project>
+                    </Workspace>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll({"Goo", "Bar", "Baz", "True", "False"})
+                state.SendTypeChars("Go")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("#if true orelse Goo", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CompletionInPreprocessorCasingDifference(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true" PreprocessorSymbols="Goo=1,Bar=2,BAR=2,Baz=3">
+                            <Document>
+#if $$
+                            </Document>
+                        </Project>
+                    </Workspace>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll({"Goo", "Bar", "Baz", "True", "False"})
+                state.SendTypeChars("Go")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("#if Goo", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
+        <ExportLanguageService(GetType(ISnippetInfoService), LanguageNames.VisualBasic, ServiceLayer.Test), [Shared], PartNotDiscoverable>
         Friend Class MockSnippetInfoService
             Implements ISnippetInfoService
 
             <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
             Public Sub New()
             End Sub
 

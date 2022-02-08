@@ -14,27 +14,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
 #Region "Helpers"
 
-        Private Sub TestSpan(markup As String)
+        Private Shared Sub TestSpan(markup As String)
             Test(markup, isMissing:=False, isLine:=False)
         End Sub
 
-        Private Sub TestSpan(markup As XElement)
+        Private Shared Sub TestSpan(markup As XElement)
             Test(markup.NormalizedValue, isMissing:=False, isLine:=False)
         End Sub
 
-        Private Sub TestMissing(markup As XElement)
+        Private Shared Sub TestMissing(markup As XElement)
             Test(markup.NormalizedValue, isMissing:=True, isLine:=False)
         End Sub
 
-        Private Sub TestLine(markup As XElement)
+        Private Shared Sub TestLine(markup As XElement)
             Test(markup.NormalizedValue, isMissing:=False, isLine:=True)
         End Sub
 
-        Private Sub TestAll(markup As XElement)
+        Private Shared Sub TestAll(markup As XElement)
             TestAll(markup.NormalizedValue)
         End Sub
 
-        Private Sub Test(markup As String, isMissing As Boolean, isLine As Boolean)
+        Private Shared Sub Test(markup As String, isMissing As Boolean, isLine As Boolean)
             Dim position As Integer? = Nothing
             Dim expectedSpan As TextSpan? = Nothing
             Dim source As String = Nothing
@@ -64,8 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
             End If
         End Sub
 
-
-        Private Sub TestAll(markup As String)
+        Private Shared Sub TestAll(markup As String)
             Dim position As Integer = Nothing
             Dim expectedSpans As ImmutableArray(Of TextSpan) = Nothing
             Dim source As String = Nothing

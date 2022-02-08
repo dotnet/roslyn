@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -34,10 +36,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
             {
                 return CSharpStructureHelpers.CreateCommentBlockSpan(token.TrailingTrivia);
             }
-            else
-            {
-                return Contract.FailWithReturn<ImmutableArray<BlockSpan>>();
-            }
+
+            throw Roslyn.Utilities.ExceptionUtilities.Unreachable;
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]

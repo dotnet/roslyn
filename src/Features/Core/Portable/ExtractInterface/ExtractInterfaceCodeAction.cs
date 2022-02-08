@@ -14,7 +14,6 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
     {
         private readonly ExtractInterfaceTypeAnalysisResult _typeAnalysisResult;
         private readonly AbstractExtractInterfaceService _extractInterfaceService;
-        private readonly Task<IEnumerable<CodeActionOperation>> _taskReturningNoCodeActionOperations = SpecializedTasks.EmptyEnumerable<CodeActionOperation>();
 
         public ExtractInterfaceCodeAction(AbstractExtractInterfaceService extractInterfaceService, ExtractInterfaceTypeAnalysisResult typeAnalysisResult)
         {
@@ -28,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 ? string.Empty
                 : _typeAnalysisResult.TypeToExtractFrom.ContainingNamespace.ToDisplayString();
 
-            return _extractInterfaceService.GetExtractInterfaceOptionsAsync(
+            return AbstractExtractInterfaceService.GetExtractInterfaceOptionsAsync(
                 _typeAnalysisResult.DocumentToExtractFrom,
                 _typeAnalysisResult.TypeToExtractFrom,
                 _typeAnalysisResult.ExtractableMembers,
@@ -38,7 +37,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
         {
-            IEnumerable<CodeActionOperation> operations = null;
+            var operations = SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
 
             if (options is ExtractInterfaceOptionsResult extractInterfaceOptions && !extractInterfaceOptions.IsCancelled)
             {

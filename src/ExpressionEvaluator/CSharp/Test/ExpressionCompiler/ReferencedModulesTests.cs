@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -25,7 +27,6 @@ using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using CommonResources = Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests.Resources;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
@@ -1001,7 +1002,7 @@ class C
 
             // Include an empty assembly to verify that not all assemblies
             // with no references are treated as mscorlib.
-            var referenceC = AssemblyMetadata.CreateFromImage(CommonResources.Empty).GetReference();
+            var referenceC = AssemblyMetadata.CreateFromImage(TestResources.ExpressionCompiler.Empty).GetReference();
 
             // At runtime System.Runtime.dll contract assembly is replaced
             // by mscorlib.dll and System.Runtime.dll facade assemblies.
@@ -1290,7 +1291,7 @@ namespace System
             ExpressionCompilerTestHelpers.EmitCorLibWithAssemblyReferences(
                 compCorLib,
                 null,
-                (moduleBuilder, emitOptions) => new PEAssemblyBuilderWithAdditionalReferences(moduleBuilder, emitOptions, objectType),
+                (moduleBuilder, emitOptions) => new PEAssemblyBuilderWithAdditionalReferences(moduleBuilder, emitOptions, objectType.GetCciAdapter()),
                 out peBytes,
                 out pdbBytes);
 
@@ -1410,7 +1411,7 @@ namespace System
             ExpressionCompilerTestHelpers.EmitCorLibWithAssemblyReferences(
                 compCorLib,
                 pdbPath,
-                (moduleBuilder, emitOptions) => new PEAssemblyBuilderWithAdditionalReferences(moduleBuilder, emitOptions, objectType),
+                (moduleBuilder, emitOptions) => new PEAssemblyBuilderWithAdditionalReferences(moduleBuilder, emitOptions, objectType.GetCciAdapter()),
                 out peBytes,
                 out pdbBytes);
             var symReader = SymReaderFactory.CreateReader(pdbBytes);
@@ -1545,7 +1546,8 @@ namespace System
                 }
             }
 
-            public override int CurrentGenerationOrdinal => _builder.CurrentGenerationOrdinal;
+            public override SymbolChanges EncSymbolChanges => _builder.EncSymbolChanges;
+            public override EmitBaseline PreviousGeneration => _builder.PreviousGeneration;
 
             public override ISourceAssemblySymbolInternal SourceAssemblyOpt => _builder.SourceAssemblyOpt;
 

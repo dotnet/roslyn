@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     [Guid("E113A674-3F6C-4514-B7AD-1E59226A1C50")]
     public interface ICscHostObject5 : ICscHostObject4
     {
-        bool SetErrorLog(string errorLogFile);
+        bool SetErrorLog(string? errorLogFile);
         bool SetReportAnalyzer(bool reportAnalyzerInDiagnosticOutput);
     }
 }

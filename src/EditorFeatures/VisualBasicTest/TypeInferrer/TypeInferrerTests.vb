@@ -15,24 +15,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TypeInferrer
     Partial Public Class TypeInferrerTests
         Inherits TypeInferrerTestBase(Of VisualBasicTestWorkspaceFixture)
 
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
-
         Protected Overrides Async Function TestWorkerAsync(document As Document, textSpan As TextSpan, expectedType As String, testMode As TestMode) As Task
             Dim root = Await document.GetSyntaxRootAsync()
             Dim node = FindExpressionSyntaxFromSpan(root, textSpan)
             Dim typeInference = document.GetLanguageService(Of ITypeInferenceService)()
 
-            Dim inferredType As ITypeSymbol
-
-            If testMode = TestMode.Position Then
-                inferredType = typeInference.InferType(Await document.GetSemanticModelForSpanAsync(New TextSpan(node.SpanStart, 0), CancellationToken.None), node.SpanStart, objectAsDefault:=True, cancellationToken:=CancellationToken.None)
-            Else
-                inferredType = typeInference.InferType(Await document.GetSemanticModelForSpanAsync(node.Span, CancellationToken.None), node, objectAsDefault:=True, cancellationToken:=CancellationToken.None)
-            End If
+            Dim inferredType = If(testMode = TestMode.Position,
+                typeInference.InferType(Await document.ReuseExistingSpeculativeModelAsync(node.SpanStart, CancellationToken.None), node.SpanStart, objectAsDefault:=True, cancellationToken:=CancellationToken.None),
+                typeInference.InferType(Await document.ReuseExistingSpeculativeModelAsync(node.Span, CancellationToken.None), node, objectAsDefault:=True, cancellationToken:=CancellationToken.None))
 
             Dim typeSyntax = inferredType.GenerateTypeSyntax().NormalizeWhitespace()
+            Assert.Equal(expectedType, typeSyntax.ToString())
         End Function
 
         Private Async Function TestInClassAsync(text As String, expectedType As String, mode As TestMode) As Tasks.Task
@@ -51,7 +44,7 @@ End Class</text>.Value.Replace("$", text)
             Await TestAsync(text, expectedType, mode)
         End Function
 
-        Private Function FindExpressionSyntaxFromSpan(root As SyntaxNode, textSpan As TextSpan) As ExpressionSyntax
+        Private Shared Function FindExpressionSyntaxFromSpan(root As SyntaxNode, textSpan As TextSpan) As ExpressionSyntax
             Dim token = root.FindToken(textSpan.Start)
             Dim currentNode = token.Parent
             While currentNode IsNot Nothing
@@ -700,6 +693,20 @@ End Class
             Await TestInMethodAsync(text, "System.Int32", mode)
         End Function
 
+        <WorkItem(14277, "https://github.com/dotnet/roslyn/issues/14277")>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        Public Async Function TestValueInNestedTuple1(mode As TestMode) As Task
+            Await TestInMethodAsync(
+"dim x as (integer, (string, boolean)) = ([|Goo()|], ("""", true));", "System.Int32", mode)
+        End Function
+
+        <WorkItem(14277, "https://github.com/dotnet/roslyn/issues/14277")>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        Public Async Function TestValueInNestedTuple2(mode As TestMode) As Task
+            Await TestInMethodAsync(
+"dim x as (integer, (string, boolean)) = (1, ("""", [|Goo()|]))", "System.Boolean", mode)
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
         <WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")>
         Public Async Function TestAwaitExpressionWithChainingMethod() As Task
@@ -804,7 +811,22 @@ Class C
         Return Await [||]
     End Function
 End Class"
-            Await TestAsync(text, "Task.FromResult(False)", TestMode.Position)
+            Await TestAsync(text, "Global.System.Threading.Tasks.Task(Of System.Boolean)", TestMode.Position)
+        End Function
+
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        Public Async Function TestInferringInEnumHasFlags(mode As TestMode) As Task
+            Dim text =
+"Imports System.IO
+
+Module Program
+    Sub Main(args As String())
+        Dim f As FileInfo
+        f.Attributes.HasFlag([|flag|])
+    End Sub
+End Module"
+
+            Await TestAsync(text, "Global.System.IO.FileAttributes", mode)
         End Function
     End Class
 End Namespace

@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ko" original="../VisualBasicAnalyzersResources.resx">
+    <body>
+      <trans-unit id="GetType_can_be_converted_to_NameOf">
+        <source>'GetType' can be converted to 'NameOf'</source>
+        <target state="translated">'GetType'을 'NameOf'로 변환할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="If_statement_can_be_simplified">
+        <source>'If' statement can be simplified</source>
+        <target state="translated">'if' 문을 단순화할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Imports_statement_is_unnecessary">
+        <source>Imports statement is unnecessary.</source>
+        <target state="translated">Imports 문은 필요하지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Object_creation_can_be_simplified">
+        <source>Object creation can be simplified</source>
+        <target state="translated">개체 만들기를 단순화할 수 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_ByVal">
+        <source>'ByVal' keyword is unnecessary and can be removed.</source>
+        <target state="translated">'ByVal' 키워드는 불필요하며 제거할 수 있습니다.</target>
+        <note>{locked: ByVal}This is a Visual Basic keyword and should not be localized or have its casing changed</note>
+      </trans-unit>
+      <trans-unit id="Use_IsNot_Nothing_check">
+        <source>Use 'IsNot Nothing' check</source>
+        <target state="translated">IsNot Nothing' 검사 사용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_IsNot_expression">
+        <source>Use 'IsNot' expression</source>
+        <target state="translated">'IsNot' 식 사용</target>
+        <note>{locked: IsNot}This is a Visual Basic keyword and should not be localized or have its casing changed</note>
+      </trans-unit>
+      <trans-unit id="Use_Is_Nothing_check">
+        <source>Use 'Is Nothing' check</source>
+        <target state="translated">Is Nothing' 검사 사용</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

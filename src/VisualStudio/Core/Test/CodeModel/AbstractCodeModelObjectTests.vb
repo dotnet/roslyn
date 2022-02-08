@@ -12,10 +12,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
         Protected MustOverride ReadOnly Property LanguageName As String
 
-        Protected Function GetWorkspaceDefinition(code As XElement) As XElement
+        Protected Function GetWorkspaceDefinition(code As XElement, Optional editorConfig As String = "") As XElement
             Return <Workspace>
                        <Project Language=<%= LanguageName %> CommonReferences="true">
                            <Document><%= code.Value.Trim() %></Document>
+                           <AnalyzerConfigDocument FilePath="z:\\.editorconfig">
+                               <%= editorConfig %>
+                           </AnalyzerConfigDocument>
                        </Project>
                    </Workspace>
         End Function
@@ -64,8 +67,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             Throw New NotImplementedException
         End Function
 
-        Protected Overridable Function TestAddProperty(code As XElement, expectedCode As XElement, data As PropertyData,
-                                                       Optional options As IDictionary(Of OptionKey, Object) = Nothing) As Task
+        Private Protected Overridable Function TestAddProperty(
+                code As XElement, expectedCode As XElement, data As PropertyData,
+                Optional options As IDictionary(Of OptionKey2, Object) = Nothing,
+                Optional editorConfig As String = "") As Task
             Throw New NotImplementedException
         End Function
 

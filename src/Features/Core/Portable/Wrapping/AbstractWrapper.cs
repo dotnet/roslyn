@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,9 +30,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
         protected IIndentationService IndentationService { get; }
 
         protected AbstractSyntaxWrapper(IIndentationService indentationService)
-        {
-            this.IndentationService = indentationService;
-        }
+            => IndentationService = indentationService;
 
         public abstract Task<ICodeActionComputer> TryCreateComputerAsync(Document document, int position, SyntaxNode node, CancellationToken cancellationToken);
 

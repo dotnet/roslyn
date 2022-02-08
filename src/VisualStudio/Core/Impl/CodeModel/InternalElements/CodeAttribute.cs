@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
@@ -40,14 +42,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         EnvDTE.CodeElements ICodeElementContainer<CodeAttributeArgument>.GetCollection()
-        {
-            return this.Arguments;
-        }
+            => this.Arguments;
 
         protected override EnvDTE.CodeElements GetCollection()
-        {
-            return GetCollection<CodeAttribute>(Parent);
-        }
+            => GetCollection<CodeAttribute>(Parent);
 
         internal override bool TryLookupNode(out SyntaxNode node)
         {
@@ -148,8 +146,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         public new void Delete()
-        {
-            base.Delete();
-        }
+            => base.Delete();
     }
 }

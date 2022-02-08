@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
@@ -511,6 +513,64 @@ class C : System.Attribute
 {
     public C(int @default, int @params) {}
 }");
+        }
+
+        [Fact, WorkItem(39852, "https://github.com/dotnet/roslyn/issues/39852")]
+        public async Task TestMissingForImplicitRangeIndexer()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                @"class C { string M(string arg1) => arg1[[||]1..^1]; }" + TestSources.Range + TestSources.Index);
+        }
+
+        [Fact, WorkItem(39852, "https://github.com/dotnet/roslyn/issues/39852")]
+        public async Task TestMissingForImplicitIndexIndexer()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                @"class C { string M(string arg1) => arg1[[||]^1]; }" + TestSources.Index);
+        }
+
+        [Fact, WorkItem(39852, "https://github.com/dotnet/roslyn/issues/39852")]
+        public async Task TestForRealRangeIndexer()
+        {
+            await TestInRegularAndScriptAsync(
+                @"using System; 
+class C { 
+    int this[Range range] => default; 
+    int M(C arg1) => arg1[[||]1..^1]; 
+}" + TestSources.Range + TestSources.Index,
+                @"using System; 
+class C { 
+    int this[Range range] => default; 
+    int M(C arg1) => arg1[range: 1..^1]; 
+}" + TestSources.Range + TestSources.Index);
+        }
+
+        [Fact, WorkItem(39852, "https://github.com/dotnet/roslyn/issues/39852")]
+        public async Task TestForRealIndexIndexer()
+        {
+            await TestInRegularAndScriptAsync(
+                @"using System; 
+class C { 
+    int this[Index index] => default; 
+    int M(C arg1) => arg1[[||]^1]; 
+}" + TestSources.Index,
+                @"using System; 
+class C { 
+    int this[Index index] => default; 
+    int M(C arg1) => arg1[index: ^1]; 
+}" + TestSources.Index);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        public async Task TestNoTrailingArgumentsToName()
+        {
+            // Because we're on the last argument that doesn't have a name, we should only offer one refactoring to the user.
+            var initialMarkup = @"class C { void M(int arg1, int arg2, int arg3) => M(1, [||]2, arg3: 3); }";
+            await TestActionCountAsync(initialMarkup, count: 1);
+
+            await TestInRegularAndScriptAsync(
+                initialMarkup,
+                @"class C { void M(int arg1, int arg2, int arg3) => M(1, arg2: 2, arg3: 3); }");
         }
     }
 }

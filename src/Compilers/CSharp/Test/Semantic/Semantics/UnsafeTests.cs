@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -215,14 +217,31 @@ class C
 {
     void Goo()
     {
-        unsafe { }
+        /*<bind>*/unsafe
+        {
+            _ = 0;
+        }/*</bind>*/
     }
 }
 ";
 
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll.WithAllowUnsafe(false)).VerifyDiagnostics(
-                // (6,9): error CS0227: Unsafe code may only appear if compiling with /unsafe
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe"));
+            string expectedOperationTree = @"
+IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '_ = 0;')
+    Expression: 
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '_ = 0')
+        Left: 
+          IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: '_')
+        Right: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+";
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(text, expectedOperationTree,
+                compilationOptions: TestOptions.UnsafeReleaseDll.WithAllowUnsafe(false),
+                expectedDiagnostics: new DiagnosticDescription[] {
+                    // file.cs(6,19): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                    //         /*<bind>*/unsafe
+                    Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(6, 19)
+                });
 
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
@@ -2437,7 +2456,7 @@ class C
             var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
-            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType));
+            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedTypeNoUseSiteDiagnostics));
         }
 
         [Fact]
@@ -2454,7 +2473,7 @@ unsafe class C
             var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
-            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => !field.Type.IsManagedType));
+            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => !field.Type.IsManagedTypeNoUseSiteDiagnostics));
         }
 
         [Fact]
@@ -2469,7 +2488,7 @@ class C
             var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
-            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType));
+            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedTypeNoUseSiteDiagnostics));
         }
 
         [Fact]
@@ -2486,7 +2505,7 @@ class C<T>
             var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
-            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType));
+            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedTypeNoUseSiteDiagnostics));
         }
 
         [Fact]
@@ -2502,7 +2521,7 @@ class C<T, U> where U : struct
             var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
-            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType));
+            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedTypeNoUseSiteDiagnostics));
         }
 
         [Fact]
@@ -2523,7 +2542,7 @@ class C
             var model = compilation.GetSemanticModel(tree);
 
             Assert.True(tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousObjectCreationExpressionSyntax>().
-                Select(syntax => model.GetTypeInfo(syntax).Type).All(type => type.GetSymbol().IsManagedType));
+                Select(syntax => model.GetTypeInfo(syntax).Type).All(type => type.GetSymbol().IsManagedTypeNoUseSiteDiagnostics));
         }
 
         [Fact]
@@ -2542,7 +2561,7 @@ class Outer
             var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Outer");
 
-            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType));
+            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedTypeNoUseSiteDiagnostics));
         }
 
         [Fact]
@@ -2562,7 +2581,7 @@ class Outer<T>
             var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Outer");
 
-            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedType));
+            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => field.Type.IsManagedTypeNoUseSiteDiagnostics));
         }
 
         [Fact]
@@ -2581,7 +2600,7 @@ class C
 
             foreach (var field in type.GetMembers().OfType<FieldSymbol>())
             {
-                Assert.True(field.Type.IsManagedType, field.ToString());
+                Assert.True(field.Type.IsManagedTypeNoUseSiteDiagnostics, field.ToString());
             }
         }
 
@@ -2612,8 +2631,8 @@ class C
             var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
-            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => !field.Type.IsManagedType));
-            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetField("f16").Type.ManagedKind);
+            Assert.True(type.GetMembers().OfType<FieldSymbol>().All(field => !field.Type.IsManagedTypeNoUseSiteDiagnostics));
+            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetField("f16").Type.ManagedKindNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -2629,7 +2648,7 @@ class C
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var method = type.GetMember<MethodSymbol>("M");
 
-            Assert.False(method.ReturnType.IsManagedType);
+            Assert.False(method.ReturnType.IsManagedTypeNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -2660,11 +2679,11 @@ struct R<T>
 ";
             var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("E").IsManagedType);
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<NamedTypeSymbol>("E").IsManagedType);
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<NamedTypeSymbol>("E").IsManagedType);
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S").GetMember<NamedTypeSymbol>("E").IsManagedType);
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("R").GetMember<NamedTypeSymbol>("E").IsManagedType);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("E").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<NamedTypeSymbol>("E").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<NamedTypeSymbol>("E").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S").GetMember<NamedTypeSymbol>("E").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("R").GetMember<NamedTypeSymbol>("E").IsManagedTypeNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -2697,14 +2716,14 @@ struct R<T>
 ";
             var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S").IsManagedType);
-            Assert.Equal(ManagedKind.Unmanaged, globalNamespace.GetMember<NamedTypeSymbol>("S").ManagedKind);
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("P").IsManagedType);
-            Assert.Equal(ManagedKind.UnmanagedWithGenerics, globalNamespace.GetMember<NamedTypeSymbol>("P").ManagedKind);
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<NamedTypeSymbol>("S").IsManagedType);
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<NamedTypeSymbol>("S").IsManagedType);
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("Q").GetMember<NamedTypeSymbol>("S").IsManagedType);
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("R").GetMember<NamedTypeSymbol>("S").IsManagedType);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.Equal(ManagedKind.Unmanaged, globalNamespace.GetMember<NamedTypeSymbol>("S").ManagedKindNoUseSiteDiagnostics);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("P").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.Equal(ManagedKind.UnmanagedWithGenerics, globalNamespace.GetMember<NamedTypeSymbol>("P").ManagedKindNoUseSiteDiagnostics);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<NamedTypeSymbol>("S").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("D").GetMember<NamedTypeSymbol>("S").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("Q").GetMember<NamedTypeSymbol>("S").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("R").GetMember<NamedTypeSymbol>("S").IsManagedTypeNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -2729,21 +2748,21 @@ struct S<T>
 ";
             var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            Assert.False(type.GetMember<FieldSymbol>("f1").Type.IsManagedType);
-            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetMember<FieldSymbol>("f1").Type.ManagedKind);
-            Assert.False(type.GetMember<FieldSymbol>("f2").Type.IsManagedType);
-            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetMember<FieldSymbol>("f2").Type.ManagedKind);
+            Assert.False(type.GetMember<FieldSymbol>("f1").Type.IsManagedTypeNoUseSiteDiagnostics);
+            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetMember<FieldSymbol>("f1").Type.ManagedKindNoUseSiteDiagnostics);
+            Assert.False(type.GetMember<FieldSymbol>("f2").Type.IsManagedTypeNoUseSiteDiagnostics);
+            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetMember<FieldSymbol>("f2").Type.ManagedKindNoUseSiteDiagnostics);
 
             // these are managed due to S`1.R being ErrorType due to protection level (CS0169)
-            Assert.True(type.GetMember<FieldSymbol>("f3").Type.IsManagedType);
-            Assert.Equal(ManagedKind.Managed, type.GetMember<FieldSymbol>("f3").Type.ManagedKind);
-            Assert.True(type.GetMember<FieldSymbol>("f4").Type.IsManagedType);
-            Assert.Equal(ManagedKind.Managed, type.GetMember<FieldSymbol>("f4").Type.ManagedKind);
+            Assert.True(type.GetMember<FieldSymbol>("f3").Type.IsManagedTypeNoUseSiteDiagnostics);
+            Assert.Equal(ManagedKind.Managed, type.GetMember<FieldSymbol>("f3").Type.ManagedKindNoUseSiteDiagnostics);
+            Assert.True(type.GetMember<FieldSymbol>("f4").Type.IsManagedTypeNoUseSiteDiagnostics);
+            Assert.Equal(ManagedKind.Managed, type.GetMember<FieldSymbol>("f4").Type.ManagedKindNoUseSiteDiagnostics);
 
-            Assert.False(type.GetMember<FieldSymbol>("f5").Type.IsManagedType);
-            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetMember<FieldSymbol>("f5").Type.ManagedKind);
-            Assert.False(type.GetMember<FieldSymbol>("f6").Type.IsManagedType);
-            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetMember<FieldSymbol>("f6").Type.ManagedKind);
+            Assert.False(type.GetMember<FieldSymbol>("f5").Type.IsManagedTypeNoUseSiteDiagnostics);
+            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetMember<FieldSymbol>("f5").Type.ManagedKindNoUseSiteDiagnostics);
+            Assert.False(type.GetMember<FieldSymbol>("f6").Type.IsManagedTypeNoUseSiteDiagnostics);
+            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetMember<FieldSymbol>("f6").Type.ManagedKindNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -2763,10 +2782,10 @@ struct S<T>
 ";
             var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            Assert.True(type.GetMember<FieldSymbol>("f1").Type.IsManagedType);
-            Assert.Equal(ManagedKind.Managed, type.GetMember<FieldSymbol>("f1").Type.ManagedKind);
-            Assert.False(type.GetMember<FieldSymbol>("f2").Type.IsManagedType);
-            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetMember<FieldSymbol>("f2").Type.ManagedKind);
+            Assert.True(type.GetMember<FieldSymbol>("f1").Type.IsManagedTypeNoUseSiteDiagnostics);
+            Assert.Equal(ManagedKind.Managed, type.GetMember<FieldSymbol>("f1").Type.ManagedKindNoUseSiteDiagnostics);
+            Assert.False(type.GetMember<FieldSymbol>("f2").Type.IsManagedTypeNoUseSiteDiagnostics);
+            Assert.Equal(ManagedKind.UnmanagedWithGenerics, type.GetMember<FieldSymbol>("f2").Type.ManagedKindNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -2785,7 +2804,7 @@ struct S<T>
 ";
             var compilation = CreateCompilation(text);
             var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            Assert.True(type.GetMember<FieldSymbol>("f1").Type.IsManagedType);
+            Assert.True(type.GetMember<FieldSymbol>("f1").Type.IsManagedTypeNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -2820,11 +2839,11 @@ struct S5
 ";
             var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S1").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S2").IsManagedType);
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S3").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S4").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S5").IsManagedType);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S1").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S2").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S3").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S4").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S5").IsManagedTypeNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -2864,11 +2883,11 @@ struct S5
 ";
             var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S1").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S2").IsManagedType);
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S3").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S4").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S5").IsManagedType);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S1").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S2").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S3").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S4").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S5").IsManagedTypeNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -2903,11 +2922,11 @@ struct S5
 ";
             var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S1").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S2").IsManagedType);
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S3").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S4").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S5").IsManagedType);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S1").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S2").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S3").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S4").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S5").IsManagedTypeNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -2947,11 +2966,11 @@ struct S5
 ";
             var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S1").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S2").IsManagedType);
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S3").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S4").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S5").IsManagedType);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S1").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S2").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S3").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S4").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S5").IsManagedTypeNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -2970,8 +2989,8 @@ struct S2
 ";
             var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S1").IsManagedType);
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S2").IsManagedType);
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("S1").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S2").IsManagedTypeNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -2983,9 +3002,9 @@ struct W<T> { X<W<W<T>>> x; }
 ";
             var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("X").IsManagedType); // because of X.t
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("W").IsManagedType);
-            Assert.Equal(ManagedKind.UnmanagedWithGenerics, globalNamespace.GetMember<NamedTypeSymbol>("W").ManagedKind);
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("X").IsManagedTypeNoUseSiteDiagnostics); // because of X.t
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("W").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.Equal(ManagedKind.UnmanagedWithGenerics, globalNamespace.GetMember<NamedTypeSymbol>("W").ManagedKindNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -3005,8 +3024,8 @@ struct R
 ";
             var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("R").IsManagedType);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("R").IsManagedTypeNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -3025,9 +3044,9 @@ struct D { A a; }
 ";
             var compilation = CreateCompilation(text);
             var globalNamespace = compilation.GlobalNamespace;
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("Q").IsManagedType);
-            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("R").IsManagedType);
-            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S").IsManagedType);
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("Q").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.True(globalNamespace.GetMember<NamedTypeSymbol>("R").IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(globalNamespace.GetMember<NamedTypeSymbol>("S").IsManagedTypeNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -3037,9 +3056,9 @@ struct D { A a; }
 class C { }
 ";
             var compilation = CreateCompilation(text);
-            Assert.False(compilation.GetSpecialType(SpecialType.System_ArgIterator).IsManagedType);
-            Assert.False(compilation.GetSpecialType(SpecialType.System_RuntimeArgumentHandle).IsManagedType);
-            Assert.False(compilation.GetSpecialType(SpecialType.System_TypedReference).IsManagedType);
+            Assert.False(compilation.GetSpecialType(SpecialType.System_ArgIterator).IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(compilation.GetSpecialType(SpecialType.System_RuntimeArgumentHandle).IsManagedTypeNoUseSiteDiagnostics);
+            Assert.False(compilation.GetSpecialType(SpecialType.System_TypedReference).IsManagedTypeNoUseSiteDiagnostics);
         }
 
         [Fact]
@@ -3597,9 +3616,9 @@ enum Color
                 // (40,15): error CS0211: Cannot take the address of the given expression
                 //         p = &(() => 1); //CS0211
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "() => 1").WithLocation(40, 15),
-                // (41,14): error CS0211: Cannot take the address of the given expression
+                // (41,13): error CS8812: Cannot convert &method group 'M' to non-function pointer type 'int*'.
                 //         p = &M; //CS0211
-                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "M").WithArguments("M", "method group").WithLocation(41, 14),
+                Diagnostic(ErrorCode.ERR_AddressOfToNonFunctionPointer, "&M").WithArguments("M", "int*").WithLocation(41, 13),
                 // (42,15): error CS0211: Cannot take the address of the given expression
                 //         p = &(new System.Int32()); //CS0211
                 Diagnostic(ErrorCode.ERR_InvalidAddrOp, "new System.Int32()").WithLocation(42, 15),
@@ -4292,6 +4311,11 @@ unsafe class C
 }
 ";
             var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            compilation.VerifyDiagnostics(
+                // (6,13): error CS0815: Cannot assign &method group to an implicitly-typed variable
+                //         var i1 = &M;
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "i1 = &M").WithArguments("&method group").WithLocation(6, 13)
+            );
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
@@ -4300,19 +4324,15 @@ unsafe class C
 
             var symbolInfo = model.GetSymbolInfo(syntax);
             Assert.Null(symbolInfo.Symbol);
-            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
-            Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+            Assert.Equal("void C.M()", symbolInfo.CandidateSymbols.Single().ToTestDisplayString());
 
             var typeInfo = model.GetTypeInfo(syntax);
             var type = typeInfo.Type;
             var conv = model.GetConversion(syntax);
-            Assert.NotNull(type);
+            Assert.Null(type);
             Assert.Equal(type, typeInfo.ConvertedType);
             Assert.Equal(Conversion.Identity, conv);
-
-            Assert.Equal("?*", typeInfo.Type.ToTestDisplayString());
-            Assert.Equal(TypeKind.Pointer, typeInfo.Type.TypeKind);
-            Assert.Equal(TypeKind.Error, ((IPointerTypeSymbol)typeInfo.Type).PointedAtType.TypeKind);
         }
 
 
@@ -5248,7 +5268,7 @@ unsafe struct S
                 var conv = model.GetConversion(node);
                 Assert.Null(typeInfo.Type);
                 Assert.Equal(TypeKind.Pointer, typeInfo.ConvertedType.TypeKind);
-                Assert.Equal(ConversionKind.NullToPointer, conv.Kind);
+                Assert.Equal(ConversionKind.ImplicitNullToPointer, conv.Kind);
             }
         }
 
@@ -5291,7 +5311,7 @@ unsafe struct S
                 Assert.Equal(SpecialType.System_Void, ((IPointerTypeSymbol)convertedType).PointedAtType.SpecialType);
 
                 var conv = model.GetConversion(value);
-                Assert.Equal(ConversionKind.PointerToVoid, conv.Kind);
+                Assert.Equal(ConversionKind.ImplicitPointerToVoid, conv.Kind);
             }
         }
 
@@ -6454,7 +6474,7 @@ unsafe class C
     }
 }
 
-class var
+class @var
 {
 }
 ";
@@ -7431,18 +7451,18 @@ class Program
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-            // (4,21): error CS1031: Type expected
-            //     int F1 = sizeof(null);
-            Diagnostic(ErrorCode.ERR_TypeExpected, "null"),
-            // (4,21): error CS1026: ) expected
-            //     int F1 = sizeof(null);
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "null"),
-            // (4,21): error CS1003: Syntax error, ',' expected
-            //     int F1 = sizeof(null);
-            Diagnostic(ErrorCode.ERR_SyntaxError, "null").WithArguments(",", "null"),
-            // (4,14): error CS0233: '?' does not have a predefined size, therefore sizeof can only be used in an unsafe context (consider using System.Runtime.InteropServices.Marshal.SizeOf)
-            //     int F1 = sizeof(null);
-            Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(").WithArguments("?"));
+                // (4,21): error CS1031: Type expected
+                //     int F1 = sizeof(null);
+                Diagnostic(ErrorCode.ERR_TypeExpected, "null"),
+                // (4,21): error CS1026: ) expected
+                //     int F1 = sizeof(null);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "null"),
+                // (4,21): error CS1003: Syntax error, ',' expected
+                //     int F1 = sizeof(null);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "null").WithArguments(",", "null"),
+                // (4,14): error CS0233: '?' does not have a predefined size, therefore sizeof can only be used in an unsafe context (consider using System.Runtime.InteropServices.Marshal.SizeOf)
+                //     int F1 = sizeof(null);
+                Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(").WithArguments("?"));
         }
 
         #endregion sizeof diagnostic tests
@@ -8915,6 +8935,8 @@ unsafe struct S
                 if (field != null)
                 {
                     Assert.Equal(0, field.FixedSize);
+                    Assert.True(field.Type.IsPointerType());
+                    Assert.True(field.HasPointerType);
                 }
             }
         }

@@ -2,17 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Symbols;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -23,20 +17,22 @@ namespace Microsoft.CodeAnalysis
     public struct TypedConstant : IEquatable<TypedConstant>
     {
         private readonly TypedConstantKind _kind;
-        private readonly ITypeSymbolInternal _type;
+        private readonly ITypeSymbolInternal? _type;
         private readonly object? _value;
 
-        internal TypedConstant(ITypeSymbolInternal type, TypedConstantKind kind, object? value)
+        internal TypedConstant(ITypeSymbolInternal? type, TypedConstantKind kind, object? value)
         {
             Debug.Assert(kind == TypedConstantKind.Array || !(value is ImmutableArray<TypedConstant>));
             Debug.Assert(!(value is ISymbol) || value is ISymbolInternal);
+            Debug.Assert(type is object || kind == TypedConstantKind.Error);
+
             _kind = kind;
             _type = type;
             _value = value;
         }
 
         internal TypedConstant(ITypeSymbolInternal type, ImmutableArray<TypedConstant> array)
-            : this(type, TypedConstantKind.Array, array.IsDefault ? null : (object)array)
+            : this(type, TypedConstantKind.Array, value: array.IsDefault ? null : (object)array)
         {
         }
 
@@ -52,12 +48,12 @@ namespace Microsoft.CodeAnalysis
         /// Returns the <see cref="ITypeSymbol"/> of the constant, 
         /// or null if the type can't be determined (error).
         /// </summary>
-        public ITypeSymbol Type
+        public ITypeSymbol? Type
         {
-            get { return _type.GetITypeSymbol(); }
+            get { return _type?.GetITypeSymbol(); }
         }
 
-        internal ITypeSymbolInternal TypeInternal
+        internal ITypeSymbolInternal? TypeInternal
         {
             get { return _type; }
         }
@@ -121,38 +117,35 @@ namespace Microsoft.CodeAnalysis
 
                 if (this.IsNull)
                 {
-                    return default(ImmutableArray<TypedConstant>);
+                    return default;
                 }
 
                 return (ImmutableArray<TypedConstant>)_value!;
             }
         }
 
-        [return: MaybeNull]
-        internal T DecodeValue<T>(SpecialType specialType)
+        internal T? DecodeValue<T>(SpecialType specialType)
         {
-#pragma warning disable CS8717 // A member returning a [MaybeNull] value introduces a null value when 'T' is a non-nullable reference type.
-            TryDecodeValue(specialType, out T value);
-#pragma warning restore CS8717 // A member returning a [MaybeNull] value introduces a null value when 'T' is a non-nullable reference type.
+            TryDecodeValue(specialType, out T? value);
             return value;
         }
 
-        internal bool TryDecodeValue<T>(SpecialType specialType, [MaybeNullWhen(returnValue: false)] out T value)
+        internal bool TryDecodeValue<T>(SpecialType specialType, [MaybeNullWhen(false)] out T value)
         {
             if (_kind == TypedConstantKind.Error)
             {
-                value = default(T)!;
+                value = default;
                 return false;
             }
 
-            if (_type.SpecialType == specialType || (_type.TypeKind == TypeKind.Enum && specialType == SpecialType.System_Enum))
+            if (_type!.SpecialType == specialType || (_type.TypeKind == TypeKind.Enum && specialType == SpecialType.System_Enum))
             {
                 value = (T)_value!;
                 return true;
             }
 
             // the actual argument type doesn't match the type of the parameter - an error has already been reported by the binder
-            value = default(T)!;
+            value = default;
             return false;
         }
 

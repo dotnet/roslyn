@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using EnvDTE;
 using Roslyn.Utilities;
@@ -52,12 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.E
             return currentItems.AddFolder(folderName);
         }
 
-        public static ProjectItem FindItem(this EnvDTE.Project project, string itemName, StringComparer comparer)
-        {
-            return project.ProjectItems.FindItem(itemName, comparer);
-        }
-
-        public static ProjectItem FindItemByPath(this EnvDTE.Project project, string itemFilePath, StringComparer comparer)
+        public static ProjectItem? FindItemByPath(this EnvDTE.Project project, string itemFilePath, StringComparer comparer)
         {
             var stack = new Stack<ProjectItems>();
             stack.Push(project.ProjectItems);
@@ -83,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.E
             return null;
         }
 
-        public static bool TryGetFullPath(this EnvDTE.Project project, out string fullPath)
+        public static bool TryGetFullPath(this EnvDTE.Project project, [NotNullWhen(returnValue: true)] out string? fullPath)
         {
             fullPath = project.Properties.Item("FullPath").Value as string;
             return fullPath != null;

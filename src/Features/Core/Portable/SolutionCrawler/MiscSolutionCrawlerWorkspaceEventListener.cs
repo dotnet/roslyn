@@ -5,12 +5,19 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.MiscellaneousFiles), Shared]
     internal class MiscSolutionCrawlerWorkspaceEventListener : IEventListener<object>, IEventListenerStoppable
     {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public MiscSolutionCrawlerWorkspaceEventListener()
+        {
+        }
+
         public void StartListening(Workspace workspace, object serviceOpt)
         {
             // misc workspace will enable syntax errors and semantic errors for script files for
@@ -19,8 +26,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         }
 
         public void StopListening(Workspace workspace)
-        {
-            DiagnosticProvider.Disable(workspace);
-        }
+            => DiagnosticProvider.Disable(workspace);
     }
 }

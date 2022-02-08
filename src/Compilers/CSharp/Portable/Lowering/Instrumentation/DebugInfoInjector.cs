@@ -59,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.BaseConstructorInitializer:
                     case SyntaxKind.ThisConstructorInitializer:
                         var init = (ConstructorInitializerSyntax)original.Syntax;
+                        Debug.Assert(init.Parent is object);
                         return new BoundSequencePointWithSpan(init, rewritten, CreateSpanForConstructorInitializer((ConstructorDeclarationSyntax)init.Parent));
                 }
             }
@@ -82,18 +83,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static BoundStatement InstrumentFieldOrPropertyInitializer(BoundStatement rewritten, SyntaxNode syntax)
         {
-            switch (syntax.Parent.Parent.Kind())
+            if (syntax.IsKind(SyntaxKind.Parameter))
+            {
+                // This is an initialization of a generated property based on record parameter.
+                return AddSequencePoint(rewritten);
+            }
+
+            Debug.Assert(syntax is { Parent: { Parent: { } } });
+            var grandparent = syntax.Parent.Parent;
+            switch (grandparent.Kind())
             {
                 case SyntaxKind.VariableDeclarator:
-                    var declaratorSyntax = (VariableDeclaratorSyntax)syntax.Parent.Parent;
+                    var declaratorSyntax = (VariableDeclaratorSyntax)grandparent;
                     return AddSequencePoint(declaratorSyntax, rewritten);
 
                 case SyntaxKind.PropertyDeclaration:
-                    var declaration = (PropertyDeclarationSyntax)syntax.Parent.Parent;
+                    var declaration = (PropertyDeclarationSyntax)grandparent;
                     return AddSequencePoint(declaration, rewritten);
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(syntax.Parent.Parent.Kind());
+                    throw ExceptionUtilities.UnexpectedValue(grandparent.Kind());
             }
         }
 
@@ -125,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddSequencePoint(base.InstrumentYieldReturnStatement(original, rewritten));
         }
 
-        public override BoundStatement CreateBlockPrologue(BoundBlock original, out Symbols.LocalSymbol synthesizedLocal)
+        public override BoundStatement? CreateBlockPrologue(BoundBlock original, out Symbols.LocalSymbol? synthesizedLocal)
         {
             var previous = base.CreateBlockPrologue(original, out synthesizedLocal);
             if (original.Syntax.Kind() == SyntaxKind.Block && !original.WasCompilerGenerated)
@@ -141,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundStatement CreateBlockEpilogue(BoundBlock original)
+        public override BoundStatement? CreateBlockEpilogue(BoundBlock original)
         {
             var previous = base.CreateBlockEpilogue(original);
 
@@ -149,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // no need to mark "}" on the outermost block
                 // as it cannot leave it normally. The block will have "return" at the end.
-                SyntaxNode parent = original.Syntax.Parent;
+                SyntaxNode? parent = original.Syntax.Parent;
                 if (parent == null || !(parent.IsAnonymousFunction() || parent is BaseMethodDeclarationSyntax))
                 {
                     var cBspan = ((BlockSyntax)original.Syntax).CloseBraceToken.Span;
@@ -207,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Hit once, before looping begins.
         /// </remarks>
-        public override BoundStatement InstrumentForEachStatementCollectionVarDeclaration(BoundForEachStatement original, BoundStatement collectionVarDecl)
+        public override BoundStatement InstrumentForEachStatementCollectionVarDeclaration(BoundForEachStatement original, BoundStatement? collectionVarDecl)
         {
             var forEachSyntax = (CommonForEachStatementSyntax)original.Syntax;
             return new BoundSequencePoint(forEachSyntax.Expression,
@@ -277,8 +286,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundStatement InstrumentForStatementConditionalGotoStartOrBreak(BoundForStatement original, BoundStatement branchBack)
         {
             // hidden sequence point if there is no condition
-            return new BoundSequencePoint(original.Condition?.Syntax,
-                                          base.InstrumentForStatementConditionalGotoStartOrBreak(original, branchBack));
+            return BoundSequencePoint.Create(original.Condition?.Syntax,
+                                            base.InstrumentForStatementConditionalGotoStartOrBreak(original, branchBack));
         }
 
         public override BoundStatement InstrumentForEachStatementConditionalGotoStart(BoundForEachStatement original, BoundStatement branchBack)
@@ -369,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundStatement InstrumentSwitchWhenClauseConditionalGotoBody(BoundExpression original, BoundStatement ifConditionGotoBody)
         {
-            WhenClauseSyntax whenClause = original.Syntax.FirstAncestorOrSelf<WhenClauseSyntax>();
+            WhenClauseSyntax? whenClause = original.Syntax.FirstAncestorOrSelf<WhenClauseSyntax>();
             Debug.Assert(whenClause != null);
 
             return new BoundSequencePointWithSpan(
@@ -390,7 +399,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // EnC: We need to insert a hidden sequence point to handle function remapping in case 
             // the containing method is edited while methods invoked in the condition are being executed.
-            CatchFilterClauseSyntax filterClause = ((CatchClauseSyntax)original.Syntax).Filter;
+            CatchFilterClauseSyntax? filterClause = ((CatchClauseSyntax)original.Syntax).Filter;
+            Debug.Assert(filterClause is { });
             return AddConditionSequencePoint(new BoundSequencePointExpression(filterClause, rewrittenFilter, rewrittenFilter.Type), filterClause, factory);
         }
 
@@ -401,11 +411,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddConditionSequencePoint(base.InstrumentSwitchStatementExpression(original, rewrittenExpression, factory), original.Syntax, factory);
         }
 
+        public override BoundExpression InstrumentSwitchExpressionArmExpression(BoundExpression original, BoundExpression rewrittenExpression, SyntheticBoundNodeFactory factory)
+        {
+            return new BoundSequencePointExpression(original.Syntax, base.InstrumentSwitchExpressionArmExpression(original, rewrittenExpression, factory), rewrittenExpression.Type);
+        }
+
         public override BoundStatement InstrumentSwitchBindCasePatternVariables(BoundStatement bindings)
         {
             // Mark the code that binds pattern variables to their values as hidden.
             // We do it to tell that this is not a part of previous statement.
-            return new BoundSequencePoint(null, base.InstrumentSwitchBindCasePatternVariables(bindings));
+            return BoundSequencePoint.CreateHidden(base.InstrumentSwitchBindCasePatternVariables(bindings));
         }
     }
 }

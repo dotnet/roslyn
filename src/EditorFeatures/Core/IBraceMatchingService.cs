@@ -10,19 +10,8 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal interface IBraceMatchingService
     {
-        Task<BraceMatchingResult?> GetMatchingBracesAsync(Document document, int position, CancellationToken cancellationToken = default);
+        Task<BraceMatchingResult?> GetMatchingBracesAsync(Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken);
     }
 
-    internal struct BraceMatchingResult
-    {
-        public TextSpan LeftSpan { get; }
-        public TextSpan RightSpan { get; }
-
-        public BraceMatchingResult(TextSpan leftSpan, TextSpan rightSpan)
-            : this()
-        {
-            this.LeftSpan = leftSpan;
-            this.RightSpan = rightSpan;
-        }
-    }
+    internal readonly record struct BraceMatchingResult(TextSpan LeftSpan, TextSpan RightSpan);
 }

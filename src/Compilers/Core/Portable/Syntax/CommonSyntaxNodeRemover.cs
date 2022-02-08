@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
+
 namespace Microsoft.CodeAnalysis.Syntax
 {
     internal static class CommonSyntaxNodeRemover
@@ -31,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Syntax
             // in the list that needs to be fixed up.
 
             var node = nodesAndSeparators[nodeIndex].AsNode();
+            Debug.Assert(node is object);
 
             nextTokenIsSeparator =
                 nodeIndex + 1 < nodesAndSeparators.Count &&

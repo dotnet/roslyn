@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -34,9 +36,7 @@ namespace Roslyn.Test.Utilities
         public WpfTestSharedData SharedData { get; }
 
         static WpfTestRunner()
-        {
-            _passedTests = TestInfo.GetPassedTestsInfo();
-        }
+            => _passedTests = TestInfo.GetPassedTestsInfo();
 
         public WpfTestRunner(
             WpfTestSharedData sharedData,
@@ -100,7 +100,7 @@ namespace Roslyn.Test.Utilities
         /// </summary>
         internal static void RequireWpfFact(string reason)
         {
-            if (!(TestExportJoinableTaskContext.GetEffectiveSynchronizationContext() is DispatcherSynchronizationContext))
+            if (TestExportJoinableTaskContext.GetEffectiveSynchronizationContext() is not DispatcherSynchronizationContext)
             {
                 throw new InvalidOperationException($"This test requires {nameof(WpfFactAttribute)} because '{reason}' but is missing {nameof(WpfFactAttribute)}. Either the attribute should be changed, or the reason it needs an STA thread audited.");
             }

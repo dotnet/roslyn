@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 OperationStatus status,
                 TextSpan originalSpan,
                 TextSpan finalSpan,
-                OptionSet options,
+                ExtractMethodOptions options,
                 bool selectionInExpression,
                 SemanticDocument document,
                 SyntaxAnnotation firstTokenAnnotation,
@@ -34,28 +34,30 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             public override bool ContainingScopeHasAsyncKeyword()
-            {
-                return false;
-            }
+                => false;
 
             public override SyntaxNode? GetContainingScope()
             {
-                Contract.ThrowIfNull(this.SemanticDocument);
-                Contract.ThrowIfFalse(this.SelectionInExpression);
+                Contract.ThrowIfNull(SemanticDocument);
+                Contract.ThrowIfFalse(SelectionInExpression);
 
-                var firstToken = this.GetFirstTokenInSelection();
-                var lastToken = this.GetLastTokenInSelection();
-                return firstToken.GetCommonRoot(lastToken).GetAncestorOrThis<ExpressionSyntax>();
+                var firstToken = GetFirstTokenInSelection();
+                var lastToken = GetLastTokenInSelection();
+                var scope = firstToken.GetCommonRoot(lastToken).GetAncestorOrThis<ExpressionSyntax>();
+                if (scope == null)
+                    return null;
+
+                return CSharpSyntaxFacts.Instance.GetRootStandaloneExpression(scope);
             }
 
             public override ITypeSymbol? GetContainingScopeType()
             {
-                if (!(GetContainingScope() is ExpressionSyntax node))
+                if (GetContainingScope() is not ExpressionSyntax node)
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
 
-                var model = this.SemanticDocument.SemanticModel;
+                var model = SemanticDocument.SemanticModel;
 
                 // special case for array initializer and explicit cast
                 if (node.IsArrayInitializer())
@@ -118,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
                 // use FormattableString if conversion between String and FormattableString
                 if (info.Type?.SpecialType == SpecialType.System_String &&
-                    info.ConvertedType?.IsFormattableString() == true)
+                    info.ConvertedType?.IsFormattableStringOrIFormattable() == true)
                 {
                     return info.GetConvertedTypeWithAnnotatedNullability();
                 }
@@ -138,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             // let's see whether this interface has coclass attribute
-            return info.ConvertedType.GetAttributes().Any(c => c.AttributeClass.Equals(coclassSymbol));
+            return info.ConvertedType.GetAttributes().Any(c => c.AttributeClass?.Equals(coclassSymbol) == true);
         }
     }
 }

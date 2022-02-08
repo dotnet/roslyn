@@ -2,9 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -12,70 +16,96 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public static SourceUserDefinedOperatorSymbol CreateUserDefinedOperatorSymbol(
             SourceMemberContainerTypeSymbol containingType,
+            Binder bodyBinder,
             OperatorDeclarationSyntax syntax,
-            DiagnosticBag diagnostics)
+            bool isNullableAnalysisEnabled,
+            BindingDiagnosticBag diagnostics)
         {
             var location = syntax.OperatorToken.GetLocation();
 
             string name = OperatorFacts.OperatorNameFromDeclaration(syntax);
 
+            var interfaceSpecifier = syntax.ExplicitInterfaceSpecifier;
+
+            TypeSymbol explicitInterfaceType;
+            name = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(bodyBinder, interfaceSpecifier, name, diagnostics, out explicitInterfaceType, aliasQualifierOpt: out _);
+
+            var methodKind = interfaceSpecifier == null
+                ? MethodKind.UserDefinedOperator
+                : MethodKind.ExplicitInterfaceImplementation;
+
             return new SourceUserDefinedOperatorSymbol(
-                containingType, name, location, syntax, diagnostics,
-                syntax.Body == null && syntax.ExpressionBody != null);
+                methodKind, containingType, explicitInterfaceType, name, location, syntax, isNullableAnalysisEnabled, diagnostics);
         }
 
         // NOTE: no need to call WithUnsafeRegionIfNecessary, since the signature
         // is bound lazily using binders from a BinderFactory (which will already include an
         // UnsafeBinder, if necessary).
         private SourceUserDefinedOperatorSymbol(
+            MethodKind methodKind,
             SourceMemberContainerTypeSymbol containingType,
+            TypeSymbol explicitInterfaceType,
             string name,
             Location location,
             OperatorDeclarationSyntax syntax,
-            DiagnosticBag diagnostics,
-            bool isExpressionBodied) :
+            bool isNullableAnalysisEnabled,
+            BindingDiagnosticBag diagnostics) :
             base(
-                MethodKind.UserDefinedOperator,
+                methodKind,
+                explicitInterfaceType,
                 name,
                 containingType,
                 location,
                 syntax,
+                MakeDeclarationModifiers(methodKind, containingType.IsInterface, syntax, location, diagnostics),
+                hasBody: syntax.HasAnyBody(),
+                isExpressionBodied: syntax.Body == null && syntax.ExpressionBody != null,
+                isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
+                isNullableAnalysisEnabled: isNullableAnalysisEnabled,
                 diagnostics)
         {
             CheckForBlockAndExpressionBody(
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
 
-            if (name != WellKnownMemberNames.EqualityOperatorName && name != WellKnownMemberNames.InequalityOperatorName)
+            if (IsAbstract || (name != WellKnownMemberNames.EqualityOperatorName && name != WellKnownMemberNames.InequalityOperatorName))
             {
                 CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: syntax.Body != null || syntax.ExpressionBody != null, diagnostics: diagnostics);
             }
         }
 
-        internal new OperatorDeclarationSyntax GetSyntax()
+        internal OperatorDeclarationSyntax GetSyntax()
         {
             Debug.Assert(syntaxReferenceOpt != null);
             return (OperatorDeclarationSyntax)syntaxReferenceOpt.GetSyntax();
         }
 
-        protected override ParameterListSyntax ParameterListSyntax
+        protected override int GetParameterCountFromSyntax()
         {
-            get
-            {
-                return GetSyntax().ParameterList;
-            }
+            return GetSyntax().ParameterList.ParameterCount;
         }
 
-        protected override TypeSyntax ReturnTypeSyntax
+        protected override Location ReturnTypeLocation
         {
             get
             {
-                return GetSyntax().ReturnType;
+                return GetSyntax().ReturnType.Location;
             }
         }
 
         internal override bool GenerateDebugInfo
         {
             get { return true; }
+        }
+
+        internal sealed override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
+        {
+            return OneOrMany.Create(this.GetSyntax().AttributeLists);
+        }
+
+        protected override (TypeWithAnnotations ReturnType, ImmutableArray<ParameterSymbol> Parameters) MakeParametersAndBindReturnType(BindingDiagnosticBag diagnostics)
+        {
+            OperatorDeclarationSyntax declarationSyntax = GetSyntax();
+            return MakeParametersAndBindReturnType(declarationSyntax, declarationSyntax.ReturnType, diagnostics);
         }
     }
 }

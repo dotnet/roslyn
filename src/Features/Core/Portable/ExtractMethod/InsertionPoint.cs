@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
     internal class InsertionPoint
     {
         private readonly SyntaxAnnotation _annotation;
-        private readonly Lazy<SyntaxNode> _context;
+        private readonly Lazy<SyntaxNode?> _context;
 
         public static async Task<InsertionPoint> CreateAsync(SemanticDocument document, SyntaxNode node, CancellationToken cancellationToken)
         {
@@ -37,29 +37,21 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         public SemanticDocument SemanticDocument { get; }
 
         public SyntaxNode GetRoot()
-        {
-            return SemanticDocument.Root;
-        }
+            => SemanticDocument.Root;
 
-        public SyntaxNode GetContext()
-        {
-            return _context.Value;
-        }
+        public SyntaxNode? GetContext()
+            => _context.Value;
 
         public InsertionPoint With(SemanticDocument document)
-        {
-            return new InsertionPoint(document, _annotation);
-        }
+            => new(document, _annotation);
 
-        private Lazy<SyntaxNode> CreateLazyContextNode()
-        {
-            return new Lazy<SyntaxNode>(ComputeContextNode, isThreadSafe: true);
-        }
+        private Lazy<SyntaxNode?> CreateLazyContextNode()
+            => new(ComputeContextNode, isThreadSafe: true);
 
-        private SyntaxNode ComputeContextNode()
+        private SyntaxNode? ComputeContextNode()
         {
             var root = SemanticDocument.Root;
-            return root.GetAnnotatedNodesAndTokens(_annotation).Single().AsNode();
+            return root.GetAnnotatedNodesAndTokens(_annotation).SingleOrDefault().AsNode();
         }
     }
 }

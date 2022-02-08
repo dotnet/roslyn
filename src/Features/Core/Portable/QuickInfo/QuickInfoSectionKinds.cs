@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 namespace Microsoft.CodeAnalysis.QuickInfo
 {
     /// <summary>
@@ -14,6 +12,9 @@ namespace Microsoft.CodeAnalysis.QuickInfo
     {
         public const string Description = nameof(Description);
         public const string DocumentationComments = nameof(DocumentationComments);
+        public const string RemarksDocumentationComments = nameof(RemarksDocumentationComments);
+        public const string ReturnsDocumentationComments = nameof(ReturnsDocumentationComments);
+        public const string ValueDocumentationComments = nameof(ValueDocumentationComments);
         public const string TypeParameters = nameof(TypeParameters);
         public const string AnonymousTypes = nameof(AnonymousTypes);
         public const string Usage = nameof(Usage);

@@ -21,14 +21,14 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
     internal abstract partial class AbstractGenerateEqualsAndGetHashCodeService : IGenerateEqualsAndGetHashCodeService
     {
         private const string GetHashCodeName = nameof(object.GetHashCode);
-        private static readonly SyntaxAnnotation s_specializedFormattingAnnotation = new SyntaxAnnotation();
+        private static readonly SyntaxAnnotation s_specializedFormattingAnnotation = new();
 
         protected abstract bool TryWrapWithUnchecked(
             ImmutableArray<SyntaxNode> statements, out ImmutableArray<SyntaxNode> wrappedStatements);
 
         public async Task<Document> FormatDocumentAsync(Document document, CancellationToken cancellationToken)
         {
-            var rules = new List<AbstractFormattingRule> { new FormatLargeBinaryExpressionRule(document.GetLanguageService<ISyntaxFactsService>()) };
+            var rules = new List<AbstractFormattingRule> { new FormatLargeBinaryExpressionRule(document.GetRequiredLanguageService<ISyntaxFactsService>()) };
             rules.AddRange(Formatter.GetDefaultFormattingRules(document));
 
             var formattedDocument = await Formatter.FormatAsync(
@@ -39,12 +39,14 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
         public async Task<IMethodSymbol> GenerateEqualsMethodAsync(
             Document document, INamedTypeSymbol namedType, ImmutableArray<ISymbol> members,
-            string localNameOpt, CancellationToken cancellationToken)
+            string? localNameOpt, CancellationToken cancellationToken)
         {
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            return document.GetLanguageService<SyntaxGenerator>().CreateEqualsMethod(
-                compilation, tree.Options, namedType, members, localNameOpt, s_specializedFormattingAnnotation);
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var generator = document.GetLanguageService<SyntaxGenerator>();
+            var generatorInternal = document.GetLanguageService<SyntaxGeneratorInternal>();
+            return generator.CreateEqualsMethod(
+                generatorInternal, compilation, tree.Options, namedType, members, localNameOpt, s_specializedFormattingAnnotation);
         }
 
         public async Task<IMethodSymbol> GenerateIEquatableEqualsMethodAsync(
@@ -52,29 +54,31 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             ImmutableArray<ISymbol> members, INamedTypeSymbol constructedEquatableType, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return document.GetLanguageService<SyntaxGenerator>().CreateIEquatableEqualsMethod(
-                semanticModel, namedType, members, constructedEquatableType, s_specializedFormattingAnnotation);
+            var generator = document.GetLanguageService<SyntaxGenerator>();
+            var generatorInternal = document.GetLanguageService<SyntaxGeneratorInternal>();
+            return generator.CreateIEquatableEqualsMethod(
+                generatorInternal, semanticModel, namedType, members, constructedEquatableType, s_specializedFormattingAnnotation);
         }
 
         public async Task<IMethodSymbol> GenerateEqualsMethodThroughIEquatableEqualsAsync(
             Document document, INamedTypeSymbol containingType, CancellationToken cancellationToken)
         {
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var generator = document.GetLanguageService<SyntaxGenerator>();
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
 
-            var expressions = ArrayBuilder<SyntaxNode>.GetInstance();
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var expressions);
             var objName = generator.IdentifierName("obj");
             if (containingType.IsValueType)
             {
-                if (generator.SupportsPatterns(tree.Options))
+                if (generator.SyntaxGeneratorInternal.SupportsPatterns(tree.Options))
                 {
                     // return obj is T t && this.Equals(t);
                     var localName = containingType.GetLocalName();
 
                     expressions.Add(
-                        generator.IsPatternExpression(objName,
-                            generator.DeclarationPattern(containingType, localName)));
+                        generator.SyntaxGeneratorInternal.IsPatternExpression(objName,
+                            generator.SyntaxGeneratorInternal.DeclarationPattern(containingType, localName)));
                     expressions.Add(
                         generator.InvocationExpression(
                             generator.MemberAccessExpression(
@@ -108,7 +112,6 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             var statement = generator.ReturnStatement(
                 expressions.Aggregate(generator.LogicalAndExpression));
 
-            expressions.Free();
             return compilation.CreateEqualsMethod(
                 ImmutableArray.Create(statement));
         }
@@ -117,17 +120,18 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             Document document, INamedTypeSymbol namedType,
             ImmutableArray<ISymbol> members, CancellationToken cancellationToken)
         {
-            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var factory = document.GetLanguageService<SyntaxGenerator>();
-            return CreateGetHashCodeMethod(factory, compilation, namedType, members);
+            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var factory = document.GetRequiredLanguageService<SyntaxGenerator>();
+            var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
+            return CreateGetHashCodeMethod(factory, generatorInternal, compilation, namedType, members);
         }
 
         private IMethodSymbol CreateGetHashCodeMethod(
-            SyntaxGenerator factory, Compilation compilation,
+            SyntaxGenerator factory, SyntaxGeneratorInternal generatorInternal, Compilation compilation,
             INamedTypeSymbol namedType, ImmutableArray<ISymbol> members)
         {
             var statements = CreateGetHashCodeStatements(
-                factory, compilation, namedType, members);
+                factory, generatorInternal, compilation, namedType, members);
 
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
                 attributes: default,
@@ -143,23 +147,26 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
         }
 
         private ImmutableArray<SyntaxNode> CreateGetHashCodeStatements(
-            SyntaxGenerator factory, Compilation compilation,
+            SyntaxGenerator factory, SyntaxGeneratorInternal generatorInternal, Compilation compilation,
             INamedTypeSymbol namedType, ImmutableArray<ISymbol> members)
         {
-            // If we have access to System.HashCode, then just use that.
+            // See if there's an accessible System.HashCode we can call into to do all the work.
             var hashCodeType = compilation.GetTypeByMetadataName("System.HashCode");
+            if (hashCodeType != null && !hashCodeType.IsAccessibleWithin(namedType))
+                hashCodeType = null;
 
             var components = factory.GetGetHashCodeComponents(
-                compilation, namedType, members, justMemberReference: true);
+                generatorInternal, compilation, namedType, members, justMemberReference: true);
 
             if (components.Length > 0 && hashCodeType != null)
             {
-                return factory.CreateGetHashCodeStatementsUsingSystemHashCode(hashCodeType, components);
+                return factory.CreateGetHashCodeStatementsUsingSystemHashCode(
+                    factory.SyntaxGeneratorInternal, hashCodeType, components);
             }
 
             // Otherwise, try to just spit out a reasonable hash code for these members.
             var statements = factory.CreateGetHashCodeMethodStatements(
-                compilation, namedType, members, useInt64: false);
+                factory.SyntaxGeneratorInternal, compilation, namedType, members, useInt64: false);
 
             // Unfortunately, our 'reasonable' hash code may overflow in checked contexts.
             // C# can handle this by adding 'checked{}' around the code, VB has to jump
@@ -175,7 +182,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             }
 
             // If tuples are available, use (a, b, c).GetHashCode to simply generate the tuple.
-            var valueTupleType = compilation.GetTypeByMetadataName(typeof(ValueTuple).FullName);
+            var valueTupleType = compilation.GetTypeByMetadataName(typeof(ValueTuple).FullName!);
             if (components.Length >= 2 && valueTupleType != null)
             {
                 return ImmutableArray.Create(factory.ReturnStatement(
@@ -193,7 +200,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             //
             // This does mean all hashcodes will be positive.  But it will avoid the overflow problem.
             return factory.CreateGetHashCodeMethodStatements(
-                compilation, namedType, members, useInt64: true);
+                factory.SyntaxGeneratorInternal, compilation, namedType, members, useInt64: true);
         }
     }
 }

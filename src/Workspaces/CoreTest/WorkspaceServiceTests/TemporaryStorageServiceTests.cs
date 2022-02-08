@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,17 +15,18 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
+    [UseExportProvider]
     public class TemporaryStorageServiceTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestTemporaryStorageText()
         {
-            var textFactory = new TextFactoryService();
+            using var workspace = new AdhocWorkspace();
+            var textFactory = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
             var service = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
 
             // test normal string
@@ -43,7 +46,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestTemporaryStorageStream()
         {
-            var textFactory = new TextFactoryService();
+            using var workspace = new AdhocWorkspace();
+            var textFactory = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
             var service = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
             var temporaryStorage = service.CreateTemporaryStreamStorage(System.Threading.CancellationToken.None);
 
@@ -64,7 +68,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private void TestTemporaryStorage(ITemporaryStorageService temporaryStorageService, SourceText text)
+        private static void TestTemporaryStorage(ITemporaryStorageService temporaryStorageService, SourceText text)
         {
             // create a temporary storage location
             var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None);
@@ -85,7 +89,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestTemporaryTextStorageExceptions()
         {
-            var textFactory = new TextFactoryService();
+            using var workspace = new AdhocWorkspace();
+            var textFactory = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
             var service = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
             var storage = service.CreateTemporaryTextStorage(CancellationToken.None);
 
@@ -105,7 +110,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestTemporaryStreamStorageExceptions()
         {
-            var textFactory = new TextFactoryService();
+            using var workspace = new AdhocWorkspace();
+            var textFactory = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
             var service = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
             var storage = service.CreateTemporaryStreamStorage(CancellationToken.None);
 
@@ -113,12 +119,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => storage.ReadStream());
             Assert.Throws<AggregateException>(() => storage.ReadStreamAsync().Result);
 
-            // 0 length streams are not allowed
-            var stream = new MemoryStream();
-            Assert.Throws<ArgumentOutOfRangeException>(() => storage.WriteStream(stream));
-            Assert.Throws<AggregateException>(() => storage.WriteStreamAsync(stream).Wait());
-
             // write a normal stream
+            var stream = new MemoryStream();
             stream.Write(new byte[] { 42 }, 0, 1);
             stream.Position = 0;
             storage.WriteStreamAsync(stream).Wait();
@@ -128,10 +130,31 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<AggregateException>(() => storage.WriteStreamAsync(null).Wait());
         }
 
+        [Fact]
+        public void TestZeroLengthStreams()
+        {
+            using var workspace = new AdhocWorkspace();
+            var textFactory = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
+            var service = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
+            var storage = service.CreateTemporaryStreamStorage(CancellationToken.None);
+
+            // 0 length streams are allowed
+            using (var stream1 = new MemoryStream())
+            {
+                storage.WriteStream(stream1);
+            }
+
+            using (var stream2 = storage.ReadStream())
+            {
+                Assert.Equal(0, stream2.Length);
+            }
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestTemporaryStorageMemoryMappedFileManagement()
         {
-            var textFactory = new TextFactoryService();
+            using var workspace = new AdhocWorkspace();
+            var textFactory = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
             var service = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
             var buffer = new MemoryStream(257 * 1024 + 1);
             for (var i = 0; i < buffer.Length; i++)
@@ -169,15 +192,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
             GC.Collect(2);
         }
 
-        // We want to keep this test around, but not have it disabled/associated with a bug
-        // [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
-        private void TestTemporaryStorageScaling()
+        [Fact(Skip = "This test exists so it can be locally executed for scale testing, when required. Do not remove this test or unskip it in CI.")]
+        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestTemporaryStorageScaling()
         {
             // This will churn through 4GB of memory.  It validates that we don't
             // use up our address space in a 32 bit process.
             if (Environment.Is64BitOperatingSystem && !Environment.Is64BitProcess)
             {
-                var textFactory = new TextFactoryService();
+                using var workspace = new AdhocWorkspace();
+                var textFactory = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
                 var service = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
 
                 using var data = SerializableBytes.CreateWritableStream();
@@ -209,7 +233,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void StreamTest1()
         {
-            var textFactory = new TextFactoryService();
+            using var workspace = new AdhocWorkspace();
+            var textFactory = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
             var service = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
             var storage = service.CreateTemporaryStreamStorage(CancellationToken.None);
 
@@ -235,7 +260,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void StreamTest2()
         {
-            var textFactory = new TextFactoryService();
+            using var workspace = new AdhocWorkspace();
+            var textFactory = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
             var service = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
             var storage = service.CreateTemporaryStreamStorage(CancellationToken.None);
 
@@ -271,7 +297,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void StreamTest3()
         {
-            var textFactory = new TextFactoryService();
+            using var workspace = new AdhocWorkspace();
+            var textFactory = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
             var service = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
             var storage = service.CreateTemporaryStreamStorage(CancellationToken.None);
 
@@ -307,7 +334,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestTemporaryStorageTextEncoding()
         {
-            var textFactory = new TextFactoryService();
+            using var workspace = new AdhocWorkspace();
+            var textFactory = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
             var service = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
 
             // test normal string

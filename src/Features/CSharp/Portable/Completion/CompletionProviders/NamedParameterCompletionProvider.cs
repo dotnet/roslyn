@@ -2,28 +2,34 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Completion.Providers;
-using System;
-using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal partial class NamedParameterCompletionProvider : CommonCompletionProvider, IEqualityComparer<IParameterSymbol>
+    [ExportCompletionProvider(nameof(NamedParameterCompletionProvider), LanguageNames.CSharp)]
+    [ExtensionOrder(After = nameof(AttributeNamedParameterCompletionProvider))]
+    [Shared]
+    internal partial class NamedParameterCompletionProvider : LSPCompletionProvider, IEqualityComparer<IParameterSymbol>
     {
         private const string ColonString = ":";
 
@@ -32,10 +38,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static readonly CompletionItemRules s_rules = CompletionItemRules.Default
             .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, ':'));
 
-        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public NamedParameterCompletionProvider()
         {
-            return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
+
+        internal override string Language => LanguageNames.CSharp;
+
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
+            => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
+
+        public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -45,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var position = context.Position;
                 var cancellationToken = context.CancellationToken;
 
-                var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 if (syntaxTree.IsInNonUserCode(position, cancellationToken))
                 {
                     return;
@@ -60,13 +74,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return;
                 }
 
-                if (!(token.Parent is BaseArgumentListSyntax argumentList))
+                if (token.Parent is not BaseArgumentListSyntax argumentList)
                 {
                     return;
                 }
 
-                var semanticModel = await document.GetSemanticModelForNodeAsync(argumentList, cancellationToken).ConfigureAwait(false);
-                var parameterLists = GetParameterLists(semanticModel, position, argumentList.Parent, cancellationToken);
+                var semanticModel = await document.ReuseExistingSpeculativeModelAsync(argumentList, cancellationToken).ConfigureAwait(false);
+                var parameterLists = GetParameterLists(semanticModel, position, argumentList.Parent!, cancellationToken);
                 if (parameterLists == null)
                 {
                     return;
@@ -86,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 // Consider refining this logic to mandate completion with an argument name, if preceded by an out-of-position name
                 // See https://github.com/dotnet/roslyn/issues/20657
-                var languageVersion = ((CSharpParseOptions)document.Project.ParseOptions).LanguageVersion;
+                var languageVersion = document.Project.ParseOptions!.LanguageVersion();
                 if (languageVersion < LanguageVersion.CSharp7_2 && token.IsMandatoryNamedParameterPosition())
                 {
                     context.IsExclusive = true;
@@ -112,50 +126,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         filterText: escapedName));
                 }
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))
             {
                 // nop
             }
         }
 
-        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
+        internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, displayOptions, cancellationToken);
 
-        private bool IsValid(ImmutableArray<IParameterSymbol> parameterList, ISet<string> existingNamedParameters)
+        private static bool IsValid(ImmutableArray<IParameterSymbol> parameterList, ISet<string> existingNamedParameters)
         {
             // A parameter list is valid if it has parameters that match in name all the existing
             // named parameters that have been provided.
             return existingNamedParameters.Except(parameterList.Select(p => p.Name)).IsEmpty();
         }
 
-        private ISet<string> GetExistingNamedParameters(BaseArgumentListSyntax argumentList, int position)
+        private static ISet<string> GetExistingNamedParameters(BaseArgumentListSyntax argumentList, int position)
         {
             var existingArguments = argumentList.Arguments.Where(a => a.Span.End <= position && a.NameColon != null)
-                                                          .Select(a => a.NameColon.Name.Identifier.ValueText);
+                                                          .Select(a => a.NameColon!.Name.Identifier.ValueText);
 
             return existingArguments.ToSet();
         }
 
-        private IEnumerable<ImmutableArray<IParameterSymbol>> GetParameterLists(
+        private static IEnumerable<ImmutableArray<IParameterSymbol>>? GetParameterLists(
             SemanticModel semanticModel,
             int position,
             SyntaxNode invocableNode,
             CancellationToken cancellationToken)
         {
-            switch (invocableNode)
+            return invocableNode switch
             {
-                case InvocationExpressionSyntax invocationExpression: return GetInvocationExpressionParameterLists(semanticModel, position, invocationExpression, cancellationToken);
-                case ConstructorInitializerSyntax constructorInitializer: return GetConstructorInitializerParameterLists(semanticModel, position, constructorInitializer, cancellationToken);
-                case ElementAccessExpressionSyntax elementAccessExpression: return GetElementAccessExpressionParameterLists(semanticModel, position, elementAccessExpression, cancellationToken);
-                case ObjectCreationExpressionSyntax objectCreationExpression: return GetObjectCreationExpressionParameterLists(semanticModel, position, objectCreationExpression, cancellationToken);
-                default: return null;
-            }
+                InvocationExpressionSyntax invocationExpression => GetInvocationExpressionParameterLists(semanticModel, position, invocationExpression, cancellationToken),
+                ConstructorInitializerSyntax constructorInitializer => GetConstructorInitializerParameterLists(semanticModel, position, constructorInitializer, cancellationToken),
+                ElementAccessExpressionSyntax elementAccessExpression => GetElementAccessExpressionParameterLists(semanticModel, position, elementAccessExpression, cancellationToken),
+                BaseObjectCreationExpressionSyntax objectCreationExpression => GetObjectCreationExpressionParameterLists(semanticModel, position, objectCreationExpression, cancellationToken),
+                PrimaryConstructorBaseTypeSyntax recordBaseType => GetRecordBaseTypeParameterLists(semanticModel, position, recordBaseType, cancellationToken),
+                _ => null,
+            };
         }
 
-        private IEnumerable<ImmutableArray<IParameterSymbol>> GetObjectCreationExpressionParameterLists(
+        private static IEnumerable<ImmutableArray<IParameterSymbol>>? GetObjectCreationExpressionParameterLists(
             SemanticModel semanticModel,
             int position,
-            ObjectCreationExpressionSyntax objectCreationExpression,
+            BaseObjectCreationExpressionSyntax objectCreationExpression,
             CancellationToken cancellationToken)
         {
             var within = semanticModel.GetEnclosingNamedType(position, cancellationToken);
@@ -168,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return null;
         }
 
-        private IEnumerable<ImmutableArray<IParameterSymbol>> GetElementAccessExpressionParameterLists(
+        private static IEnumerable<ImmutableArray<IParameterSymbol>>? GetElementAccessExpressionParameterLists(
             SemanticModel semanticModel,
             int position,
             ElementAccessExpressionSyntax elementAccessExpression,
@@ -191,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return null;
         }
 
-        private IEnumerable<ImmutableArray<IParameterSymbol>> GetConstructorInitializerParameterLists(
+        private static IEnumerable<ImmutableArray<IParameterSymbol>>? GetConstructorInitializerParameterLists(
             SemanticModel semanticModel,
             int position,
             ConstructorInitializerSyntax constructorInitializer,
@@ -215,7 +230,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return null;
         }
 
-        private IEnumerable<ImmutableArray<IParameterSymbol>> GetInvocationExpressionParameterLists(
+        private static IEnumerable<ImmutableArray<IParameterSymbol>>? GetRecordBaseTypeParameterLists(
+            SemanticModel semanticModel,
+            int position,
+            PrimaryConstructorBaseTypeSyntax recordBaseType,
+            CancellationToken cancellationToken)
+        {
+            var within = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
+            if (within != null)
+            {
+                var type = semanticModel.GetTypeInfo(recordBaseType.Type, cancellationToken).Type as INamedTypeSymbol;
+
+                return type?.InstanceConstructors
+                    .Where(m => m.IsAccessibleWithin(within))
+                    .Select(m => m.Parameters);
+            }
+
+            return null;
+        }
+
+        private static IEnumerable<ImmutableArray<IParameterSymbol>>? GetInvocationExpressionParameterLists(
             SemanticModel semanticModel,
             int position,
             InvocationExpressionSyntax invocationExpression,
@@ -235,22 +269,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 else if (expressionType.IsDelegateType())
                 {
                     var delegateType = expressionType;
-                    return SpecializedCollections.SingletonEnumerable(delegateType.DelegateInvokeMethod.Parameters);
+                    return SpecializedCollections.SingletonEnumerable(delegateType.DelegateInvokeMethod!.Parameters);
                 }
             }
 
             return null;
         }
 
-        bool IEqualityComparer<IParameterSymbol>.Equals(IParameterSymbol x, IParameterSymbol y)
-        {
-            return x.Name.Equals(y.Name);
-        }
+        bool IEqualityComparer<IParameterSymbol>.Equals(IParameterSymbol? x, IParameterSymbol? y)
+            => x == y || x != null && y != null && x.Name.Equals(y.Name);
 
         int IEqualityComparer<IParameterSymbol>.GetHashCode(IParameterSymbol obj)
-        {
-            return obj.Name.GetHashCode();
-        }
+            => obj.Name.GetHashCode();
 
         protected override Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
         {

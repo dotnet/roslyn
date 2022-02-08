@@ -52,21 +52,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 MyBase.New(simpleAssemblyName, identityComparer, observedMetadata)
             End Sub
 
-            Protected Overrides Function GetActualBoundReferencesUsedBy(assemblySymbol As AssemblySymbol) As AssemblySymbol()
-                Dim refs As New List(Of AssemblySymbol)
-
+            Protected Overrides Sub GetActualBoundReferencesUsedBy(assemblySymbol As AssemblySymbol, referencedAssemblySymbols As List(Of AssemblySymbol))
+                Debug.Assert(referencedAssemblySymbols.IsEmpty())
                 For Each [module] In assemblySymbol.Modules
-                    refs.AddRange([module].GetReferencedAssemblySymbols())
+                    referencedAssemblySymbols.AddRange([module].GetReferencedAssemblySymbols())
                 Next
 
-                For i As Integer = 0 To refs.Count - 1 Step 1
-                    If refs(i).IsMissing Then
-                        refs(i) = Nothing ' Do not expose missing assembly symbols to ReferenceManager.Binder
+                For i As Integer = 0 To referencedAssemblySymbols.Count - 1 Step 1
+                    If referencedAssemblySymbols(i).IsMissing Then
+                        referencedAssemblySymbols(i) = Nothing ' Do not expose missing assembly symbols to ReferenceManager.Binder
                     End If
                 Next
-
-                Return refs.ToArray()
-            End Function
+            End Sub
 
             Protected Overrides Function GetNoPiaResolutionAssemblies(candidateAssembly As AssemblySymbol) As ImmutableArray(Of AssemblySymbol)
                 If TypeOf candidateAssembly Is SourceAssemblySymbol Then
@@ -227,7 +224,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim assemblySymbol = New PEAssemblySymbol(assembly, DocumentationProvider.Default, isLinked:=False, importOptions:=importOptions)
 
-                Dim unifiedAssemblies = Me.UnifiedAssemblies.WhereAsArray(Function(unified) referencedAssembliesByIdentity.Contains(unified.OriginalReference, allowHigherVersion:=False))
+                Dim unifiedAssemblies = Me.UnifiedAssemblies.WhereAsArray(
+                    Function(unified, refAsmByIdentity) refAsmByIdentity.Contains(unified.OriginalReference, allowHigherVersion:=False), referencedAssembliesByIdentity)
+
                 InitializeAssemblyReuseData(assemblySymbol, peReferences, unifiedAssemblies)
 
                 If assembly.ContainsNoPiaLocalTypes() Then
@@ -353,6 +352,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim referencedAssembliesMap As Dictionary(Of MetadataReference, Integer) = Nothing
                     Dim referencedModulesMap As Dictionary(Of MetadataReference, Integer) = Nothing
                     Dim aliasesOfReferencedAssemblies As ImmutableArray(Of ImmutableArray(Of String)) = Nothing
+                    Dim mergedAssemblyReferencesMapOpt As Dictionary(Of MetadataReference, ImmutableArray(Of MetadataReference)) = Nothing
 
                     BuildReferencedAssembliesAndModulesMaps(
                         bindingResult,
@@ -364,7 +364,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         supersedeLowerVersions,
                         referencedAssembliesMap,
                         referencedModulesMap,
-                        aliasesOfReferencedAssemblies)
+                        aliasesOfReferencedAssemblies,
+                        mergedAssemblyReferencesMapOpt)
 
                     ' Create AssemblySymbols for assemblies that can't use any existing symbols.
                     Dim newSymbols As New List(Of Integer)
@@ -445,7 +446,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     moduleReferences,
                                     assemblySymbol.SourceModule.GetReferencedAssemblySymbols(),
                                     aliasesOfReferencedAssemblies,
-                                    assemblySymbol.SourceModule.GetUnifiedAssemblies())
+                                    assemblySymbol.SourceModule.GetUnifiedAssemblies(),
+                                    mergedAssemblyReferencesMapOpt)
 
                                 ' Make sure that the given compilation holds on this instance of reference manager.
                                 Debug.Assert(compilation._referenceManager Is Me OrElse hasCircularReference)

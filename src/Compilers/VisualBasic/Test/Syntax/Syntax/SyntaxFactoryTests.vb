@@ -84,7 +84,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             ' float
             CheckLiteralToString(0.0F, "0F")
             CheckLiteralToString(0.012345F, "0.012345F")
+#If NET472 Then
             CheckLiteralToString(Single.MaxValue, "3.40282347E+38F")
+#Else
+            CheckLiteralToString(Single.MaxValue, "3.4028235E+38F")
+#End If
+
 
             ' double
             CheckLiteralToString(0.0, "0")
@@ -103,6 +108,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim literalMethod = literalMethods.Single(Function(m) m.GetParameters().Single().ParameterType = value.GetType())
 
             Assert.Equal(expected, literalMethod.Invoke(Nothing, {value}).ToString())
+        End Sub
+
+        <Fact>
+        Public Shared Sub TestParseTypeNameOptions()
+            Dim options As VisualBasicParseOptions = TestOptions.Regular
+            Dim code = "
+#If Variable
+String
+#Else
+Integer
+#End If"
+
+            Dim type1 = SyntaxFactory.ParseTypeName(code, options:=options.WithPreprocessorSymbols(New KeyValuePair(Of String, Object)("Variable", "True")))
+            Assert.Equal("String", type1.ToString())
+
+            Dim type2 = SyntaxFactory.ParseTypeName(code, options:=options)
+            Assert.Equal("Integer", type2.ToString())
         End Sub
     End Class
 End Namespace

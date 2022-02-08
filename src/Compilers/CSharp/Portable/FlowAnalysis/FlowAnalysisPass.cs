@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -38,10 +40,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             var compilation = method.DeclaringCompilation;
 
-            if (method.ReturnsVoid || method.IsIterator || method.IsTaskReturningAsync(compilation))
+            if (method.ReturnsVoid || method.IsIterator || method.IsAsyncEffectivelyReturningTask(compilation))
             {
                 // we don't analyze synthesized void methods.
-                if ((method.IsImplicitlyDeclared && !method.IsScriptInitializer) || Analyze(compilation, method, block, diagnostics))
+                if ((method.IsImplicitlyDeclared && !method.IsScriptInitializer && !(method.ContainingType.IsStructType() && method.IsParameterlessConstructor() && !method.IsDefaultValueTypeConstructor())) ||
+                    Analyze(compilation, method, block, diagnostics))
                 {
                     block = AppendImplicitReturn(block, method, originalBodyNested);
                 }
@@ -65,11 +68,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
                     // It should not be necessary to repeat analysis after adding this node, because adding a trailing
                     // return in cases where one was missing should never produce different Diagnostics.
-                    IEnumerable<Diagnostic> GetErrorsOnly(IEnumerable<Diagnostic> diags) => diags.Where(d => d.Severity == DiagnosticSeverity.Error);
+                    IEnumerable<Diagnostic> getErrorsOnly(IEnumerable<Diagnostic> diags) => diags.Where(d => d.Severity == DiagnosticSeverity.Error);
                     var flowAnalysisDiagnostics = DiagnosticBag.GetInstance();
                     Debug.Assert(!Analyze(compilation, method, block, flowAnalysisDiagnostics));
                     // Ignore warnings since flow analysis reports nullability mismatches.
-                    Debug.Assert(GetErrorsOnly(flowAnalysisDiagnostics.ToReadOnly()).SequenceEqual(GetErrorsOnly(diagnostics.ToReadOnly().Skip(initialDiagnosticCount))));
+                    Debug.Assert(getErrorsOnly(flowAnalysisDiagnostics.ToReadOnly()).SequenceEqual(getErrorsOnly(diagnostics.ToReadOnly().Skip(initialDiagnosticCount))));
                     flowAnalysisDiagnostics.Free();
 #endif
                 }
@@ -116,7 +119,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(body.WasCompilerGenerated ||
                          syntax.IsKind(SyntaxKind.Block) ||
                          syntax.IsKind(SyntaxKind.ArrowExpressionClause) ||
-                         syntax.IsKind(SyntaxKind.ConstructorDeclaration));
+                         syntax.IsKind(SyntaxKind.ConstructorDeclaration) ||
+                         syntax.IsKind(SyntaxKind.CompilationUnit));
 
             BoundStatement ret = (method.IsIterator && !method.IsAsync)
                 ? (BoundStatement)BoundYieldBreakStatement.Synthesized(syntax)

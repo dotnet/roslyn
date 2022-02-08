@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                Debug.Assert((object)this.Type != null, $"Unexpected null type in {this.GetType().Name}");
+                Debug.Assert(this.Type is { }, $"Unexpected null type in {this.GetType().Name}");
                 return this.Type;
             }
         }
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override object Display
         {
-            get { return ConstantValue.IsNull ? MessageID.IDS_NULL.Localize() : base.Display; }
+            get { return ConstantValue?.IsNull == true ? MessageID.IDS_NULL.Localize() : base.Display; }
         }
     }
 
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override object Display
         {
-            get { return (object)this.Type ?? "_"; }
+            get { return (object?)this.Type ?? "_"; }
         }
     }
 
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override object Display
         {
-            get { return (object)this.Type ?? "default"; }
+            get { return (object?)this.Type ?? "default"; }
         }
     }
 
@@ -161,8 +161,54 @@ namespace Microsoft.CodeAnalysis.CSharp
             => (Type is null) ? MessageID.IDS_FeatureSwitchExpression.Localize() : base.Display;
     }
 
+    internal partial class BoundUnconvertedConditionalOperator
+    {
+        public override object Display
+            => (Type is null) ? MessageID.IDS_FeatureTargetTypedConditional.Localize() : base.Display;
+    }
+
     internal partial class BoundPassByCopy
     {
         public override object Display => Expression.Display;
+    }
+
+    internal partial class BoundUnconvertedAddressOfOperator
+    {
+        public override object Display => FormattableStringFactory.Create("&{0}", Operand.Display);
+    }
+
+    internal partial class BoundUnconvertedObjectCreationExpression
+    {
+        public override object Display
+        {
+            get
+            {
+                var arguments = this.Arguments;
+                if (arguments.Length == 0)
+                {
+                    return "new()";
+                }
+
+                var pooledBuilder = PooledStringBuilder.GetInstance();
+                var builder = pooledBuilder.Builder;
+                var argumentDisplays = new object[arguments.Length];
+
+                builder.Append("new");
+                builder.Append('(');
+                builder.Append("{0}");
+                argumentDisplays[0] = arguments[0].Display;
+
+                for (int i = 1; i < arguments.Length; i++)
+                {
+                    builder.Append($", {{{i.ToString()}}}");
+                    argumentDisplays[i] = arguments[i].Display;
+                }
+
+                builder.Append(')');
+
+                var format = pooledBuilder.ToStringAndFree();
+                return FormattableStringFactory.Create(format, argumentDisplays);
+            }
+        }
     }
 }

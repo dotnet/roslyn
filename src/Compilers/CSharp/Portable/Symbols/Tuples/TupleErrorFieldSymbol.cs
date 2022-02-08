@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -85,6 +87,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool IsExplicitlyNamedTupleElement
+        {
+            get
+            {
+                return _tupleElementIndex >= 0 && !_isImplicitlyDeclared;
+            }
+        }
+
         public override FieldSymbol TupleUnderlyingField
         {
             get
@@ -149,12 +159,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _type;
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            return _useSiteDiagnosticInfo;
+            return new UseSiteInfo<AssemblySymbol>(_useSiteDiagnosticInfo);
         }
 
-        public override sealed int GetHashCode()
+        public sealed override int GetHashCode()
         {
             return Hash.Combine(ContainingType.GetHashCode(), _tupleElementIndex.GetHashCode());
         }
@@ -174,6 +184,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (object)other != null &&
                 _tupleElementIndex == other._tupleElementIndex &&
                 TypeSymbol.Equals(ContainingType, other.ContainingType, compareKind);
+        }
+
+        internal override FieldSymbol AsMember(NamedTypeSymbol newOwner)
+        {
+            Debug.Assert(newOwner.IsTupleType && newOwner.TupleElementTypesWithAnnotations.Length > TupleElementIndex);
+            if (ReferenceEquals(newOwner, ContainingType))
+            {
+                return this;
+            }
+
+            TupleErrorFieldSymbol newCorrespondingField = null;
+            if (!ReferenceEquals(_correspondingDefaultField, this))
+            {
+                newCorrespondingField = (TupleErrorFieldSymbol)_correspondingDefaultField.AsMember(newOwner);
+            }
+
+            return new TupleErrorFieldSymbol(
+                newOwner,
+                Name,
+                TupleElementIndex,
+                _locations.IsEmpty ? null : Locations[0],
+                newOwner.TupleElementTypesWithAnnotations[TupleElementIndex],
+                _useSiteDiagnosticInfo,
+                _isImplicitlyDeclared,
+                newCorrespondingField);
         }
     }
 }

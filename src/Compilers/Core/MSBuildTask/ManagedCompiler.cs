@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -14,6 +15,7 @@ using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CommandLine;
+using Microsoft.Build.Tasks;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -23,15 +25,39 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// </summary>
     public abstract class ManagedCompiler : ManagedToolTask
     {
-        private CancellationTokenSource _sharedCompileCts;
+        private enum CompilationKind
+        {
+            /// <summary>
+            /// Compilation occurred using the command line tool by normal processes, typically because 
+            /// the customer opted out of the compiler server
+            /// </summary>
+            Tool,
+
+            /// <summary>
+            /// Compilation occurred using the command line tool because the server was unable to complete
+            /// the request
+            /// </summary>
+            ToolFallback,
+
+            /// <summary>
+            /// Compilation occurred in the compiler server process
+            /// </summary>
+            Server,
+
+            /// <summary>
+            /// Fatal error caused compilation to not even occur.
+            /// </summary>
+            FatalError,
+        }
+
+        private CancellationTokenSource? _sharedCompileCts;
         internal readonly PropertyDictionary _store = new PropertyDictionary();
 
         internal abstract RequestLanguage Language { get; }
 
         public ManagedCompiler()
+            : base(ErrorString.ResourceManager)
         {
-            TaskResources = ErrorString.ResourceManager;
-
             // If there is a crash, the runtime error is output to stderr and
             // we want MSBuild to print it out regardless of verbosity.
             LogStandardErrorAsError = true;
@@ -40,28 +66,28 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         #region Properties
 
         // Please keep these alphabetized.
-        public string[] AdditionalLibPaths
+        public string[]? AdditionalLibPaths
         {
             set { _store[nameof(AdditionalLibPaths)] = value; }
-            get { return (string[])_store[nameof(AdditionalLibPaths)]; }
+            get { return (string[]?)_store[nameof(AdditionalLibPaths)]; }
         }
 
-        public string[] AddModules
+        public string[]? AddModules
         {
             set { _store[nameof(AddModules)] = value; }
-            get { return (string[])_store[nameof(AddModules)]; }
+            get { return (string[]?)_store[nameof(AddModules)]; }
         }
 
-        public ITaskItem[] AdditionalFiles
+        public ITaskItem[]? AdditionalFiles
         {
             set { _store[nameof(AdditionalFiles)] = value; }
-            get { return (ITaskItem[])_store[nameof(AdditionalFiles)]; }
+            get { return (ITaskItem[]?)_store[nameof(AdditionalFiles)]; }
         }
 
-        public ITaskItem[] EmbeddedFiles
+        public ITaskItem[]? EmbeddedFiles
         {
             set { _store[nameof(EmbeddedFiles)] = value; }
-            get { return (ITaskItem[])_store[nameof(EmbeddedFiles)]; }
+            get { return (ITaskItem[]?)_store[nameof(EmbeddedFiles)]; }
         }
 
         public bool EmbedAllSources
@@ -70,25 +96,25 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(EmbedAllSources), false); }
         }
 
-        public ITaskItem[] Analyzers
+        public ITaskItem[]? Analyzers
         {
             set { _store[nameof(Analyzers)] = value; }
-            get { return (ITaskItem[])_store[nameof(Analyzers)]; }
+            get { return (ITaskItem[]?)_store[nameof(Analyzers)]; }
         }
 
         // We do not support BugReport because it always requires user interaction,
         // which will cause a hang.
 
-        public string ChecksumAlgorithm
+        public string? ChecksumAlgorithm
         {
             set { _store[nameof(ChecksumAlgorithm)] = value; }
-            get { return (string)_store[nameof(ChecksumAlgorithm)]; }
+            get { return (string?)_store[nameof(ChecksumAlgorithm)]; }
         }
 
-        public string CodeAnalysisRuleSet
+        public string? CodeAnalysisRuleSet
         {
             set { _store[nameof(CodeAnalysisRuleSet)] = value; }
-            get { return (string)_store[nameof(CodeAnalysisRuleSet)]; }
+            get { return (string?)_store[nameof(CodeAnalysisRuleSet)]; }
         }
 
         public int CodePage
@@ -98,28 +124,28 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         [Output]
-        public ITaskItem[] CommandLineArgs
+        public ITaskItem[]? CommandLineArgs
         {
             set { _store[nameof(CommandLineArgs)] = value; }
-            get { return (ITaskItem[])_store[nameof(CommandLineArgs)]; }
+            get { return (ITaskItem[]?)_store[nameof(CommandLineArgs)]; }
         }
 
-        public string DebugType
+        public string? DebugType
         {
             set { _store[nameof(DebugType)] = value; }
-            get { return (string)_store[nameof(DebugType)]; }
+            get { return (string?)_store[nameof(DebugType)]; }
         }
 
-        public string SourceLink
+        public string? SourceLink
         {
             set { _store[nameof(SourceLink)] = value; }
-            get { return (string)_store[nameof(SourceLink)]; }
+            get { return (string?)_store[nameof(SourceLink)]; }
         }
 
-        public string DefineConstants
+        public string? DefineConstants
         {
             set { _store[nameof(DefineConstants)] = value; }
-            get { return (string)_store[nameof(DefineConstants)]; }
+            get { return (string?)_store[nameof(DefineConstants)]; }
         }
 
         public bool DelaySign
@@ -140,10 +166,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(PublicSign), false); }
         }
 
-        public ITaskItem[] AnalyzerConfigFiles
+        public ITaskItem[]? AnalyzerConfigFiles
         {
             set { _store[nameof(AnalyzerConfigFiles)] = value; }
-            get { return (ITaskItem[])_store[nameof(AnalyzerConfigFiles)]; }
+            get { return (ITaskItem[]?)_store[nameof(AnalyzerConfigFiles)]; }
         }
 
         public bool EmitDebugInformation
@@ -152,16 +178,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(EmitDebugInformation), false); }
         }
 
-        public string ErrorLog
+        public string? ErrorLog
         {
             set { _store[nameof(ErrorLog)] = value; }
-            get { return (string)_store[nameof(ErrorLog)]; }
+            get { return (string?)_store[nameof(ErrorLog)]; }
         }
 
-        public string Features
+        public string? Features
         {
             set { _store[nameof(Features)] = value; }
-            get { return (string)_store[nameof(Features)]; }
+            get { return (string?)_store[nameof(Features)]; }
         }
 
         public int FileAlignment
@@ -179,34 +205,34 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Specifies the list of instrumentation kinds to be used during compilation.
         /// </summary>
-        public string Instrument
+        public string? Instrument
         {
             set { _store[nameof(Instrument)] = value; }
-            get { return (string)_store[nameof(Instrument)]; }
+            get { return (string?)_store[nameof(Instrument)]; }
         }
 
-        public string KeyContainer
+        public string? KeyContainer
         {
             set { _store[nameof(KeyContainer)] = value; }
-            get { return (string)_store[nameof(KeyContainer)]; }
+            get { return (string?)_store[nameof(KeyContainer)]; }
         }
 
-        public string KeyFile
+        public string? KeyFile
         {
             set { _store[nameof(KeyFile)] = value; }
-            get { return (string)_store[nameof(KeyFile)]; }
+            get { return (string?)_store[nameof(KeyFile)]; }
         }
 
-        public ITaskItem[] LinkResources
+        public ITaskItem[]? LinkResources
         {
             set { _store[nameof(LinkResources)] = value; }
-            get { return (ITaskItem[])_store[nameof(LinkResources)]; }
+            get { return (ITaskItem[]?)_store[nameof(LinkResources)]; }
         }
 
-        public string MainEntryPoint
+        public string? MainEntryPoint
         {
             set { _store[nameof(MainEntryPoint)] = value; }
-            get { return (string)_store[nameof(MainEntryPoint)]; }
+            get { return (string?)_store[nameof(MainEntryPoint)]; }
         }
 
         public bool NoConfig
@@ -234,29 +260,29 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         }
 
         [Output]
-        public ITaskItem OutputAssembly
+        public ITaskItem? OutputAssembly
         {
             set { _store[nameof(OutputAssembly)] = value; }
-            get { return (ITaskItem)_store[nameof(OutputAssembly)]; }
+            get { return (ITaskItem?)_store[nameof(OutputAssembly)]; }
         }
 
         [Output]
-        public ITaskItem OutputRefAssembly
+        public ITaskItem? OutputRefAssembly
         {
             set { _store[nameof(OutputRefAssembly)] = value; }
-            get { return (ITaskItem)_store[nameof(OutputRefAssembly)]; }
+            get { return (ITaskItem?)_store[nameof(OutputRefAssembly)]; }
         }
 
-        public string Platform
+        public string? Platform
         {
             set { _store[nameof(Platform)] = value; }
-            get { return (string)_store[nameof(Platform)]; }
+            get { return (string?)_store[nameof(Platform)]; }
         }
 
-        public ITaskItem[] PotentialAnalyzerConfigFiles
+        public ITaskItem[]? PotentialAnalyzerConfigFiles
         {
             set { _store[nameof(PotentialAnalyzerConfigFiles)] = value; }
-            get { return (ITaskItem[])_store[nameof(PotentialAnalyzerConfigFiles)]; }
+            get { return (ITaskItem[]?)_store[nameof(PotentialAnalyzerConfigFiles)]; }
         }
 
         public bool Prefer32Bit
@@ -271,10 +297,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(ProvideCommandLineArgs), false); }
         }
 
-        public ITaskItem[] References
+        public ITaskItem[]? References
         {
             set { _store[nameof(References)] = value; }
-            get { return (ITaskItem[])_store[nameof(References)]; }
+            get { return (ITaskItem[]?)_store[nameof(References)]; }
         }
 
         public bool RefOnly
@@ -289,28 +315,34 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(ReportAnalyzer), false); }
         }
 
-        public ITaskItem[] Resources
+        public ITaskItem[]? Resources
         {
             set { _store[nameof(Resources)] = value; }
-            get { return (ITaskItem[])_store[nameof(Resources)]; }
+            get { return (ITaskItem[]?)_store[nameof(Resources)]; }
         }
 
-        public string RuntimeMetadataVersion
+        public string? RuntimeMetadataVersion
         {
             set { _store[nameof(RuntimeMetadataVersion)] = value; }
-            get { return (string)_store[nameof(RuntimeMetadataVersion)]; }
+            get { return (string?)_store[nameof(RuntimeMetadataVersion)]; }
         }
 
-        public ITaskItem[] ResponseFiles
+        public ITaskItem[]? ResponseFiles
         {
             set { _store[nameof(ResponseFiles)] = value; }
-            get { return (ITaskItem[])_store[nameof(ResponseFiles)]; }
+            get { return (ITaskItem[]?)_store[nameof(ResponseFiles)]; }
         }
 
-        public string SharedCompilationId
+        public string? SharedCompilationId
         {
             set { _store[nameof(SharedCompilationId)] = value; }
-            get { return (string)_store[nameof(SharedCompilationId)]; }
+            get { return (string?)_store[nameof(SharedCompilationId)]; }
+        }
+
+        public bool SkipAnalyzers
+        {
+            set { _store[nameof(SkipAnalyzers)] = value; }
+            get { return _store.GetOrDefault(nameof(SkipAnalyzers), false); }
         }
 
         public bool SkipCompilerExecution
@@ -319,7 +351,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(SkipCompilerExecution), false); }
         }
 
-        public ITaskItem[] Sources
+        public ITaskItem[]? Sources
         {
             set
             {
@@ -330,19 +362,24 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
                 _store[nameof(Sources)] = value;
             }
-            get { return (ITaskItem[])_store[nameof(Sources)]; }
+            get { return (ITaskItem[]?)_store[nameof(Sources)]; }
         }
 
-        public string SubsystemVersion
+        public string? SubsystemVersion
         {
             set { _store[nameof(SubsystemVersion)] = value; }
-            get { return (string)_store[nameof(SubsystemVersion)]; }
+            get { return (string?)_store[nameof(SubsystemVersion)]; }
         }
 
-        public string TargetType
+        public string? TargetType
         {
-            set { _store[nameof(TargetType)] = CultureInfo.InvariantCulture.TextInfo.ToLower(value); }
-            get { return (string)_store[nameof(TargetType)]; }
+            set
+            {
+                _store[nameof(TargetType)] = value != null
+                    ? CultureInfo.InvariantCulture.TextInfo.ToLower(value)
+                    : null;
+            }
+            get { return (string?)_store[nameof(TargetType)]; }
         }
 
         public bool TreatWarningsAsErrors
@@ -357,28 +394,28 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(Utf8Output), false); }
         }
 
-        public string Win32Icon
+        public string? Win32Icon
         {
             set { _store[nameof(Win32Icon)] = value; }
-            get { return (string)_store[nameof(Win32Icon)]; }
+            get { return (string?)_store[nameof(Win32Icon)]; }
         }
 
-        public string Win32Manifest
+        public string? Win32Manifest
         {
             set { _store[nameof(Win32Manifest)] = value; }
-            get { return (string)_store[nameof(Win32Manifest)]; }
+            get { return (string?)_store[nameof(Win32Manifest)]; }
         }
 
-        public string Win32Resource
+        public string? Win32Resource
         {
             set { _store[nameof(Win32Resource)] = value; }
-            get { return (string)_store[nameof(Win32Resource)]; }
+            get { return (string?)_store[nameof(Win32Resource)]; }
         }
 
-        public string PathMap
+        public string? PathMap
         {
             set { _store[nameof(PathMap)] = value; }
-            get { return (string)_store[nameof(PathMap)]; }
+            get { return (string?)_store[nameof(PathMap)]; }
         }
 
         /// <summary>
@@ -396,12 +433,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         // Map explicit platform of "AnyCPU" or the default platform (null or ""), since it is commonly understood in the
         // managed build process to be equivalent to "AnyCPU", to platform "AnyCPU32BitPreferred" if the Prefer32Bit
         // property is set.
-        internal string PlatformWith32BitPreference
+        internal string? PlatformWith32BitPreference
         {
             get
             {
-                string platform = Platform;
-                if ((string.IsNullOrEmpty(platform) || platform.Equals("anycpu", StringComparison.OrdinalIgnoreCase)) && Prefer32Bit)
+                string? platform = Platform;
+                if ((RoslynString.IsNullOrEmpty(platform) || platform.Equals("anycpu", StringComparison.OrdinalIgnoreCase)) && Prefer32Bit)
                 {
                     platform = "anycpu32bitpreferred";
                 }
@@ -420,10 +457,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
         }
 
-        public string LangVersion
+        public string? LangVersion
         {
             set { _store[nameof(LangVersion)] = value; }
-            get { return (string)_store[nameof(LangVersion)]; }
+            get { return (string?)_store[nameof(LangVersion)]; }
         }
 
         #endregion
@@ -451,6 +488,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         protected override int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands)
         {
+            using var logger = new CompilerServerLogger($"MSBuild {Process.GetCurrentProcess().Id}");
+            return ExecuteTool(pathToTool, responseFileCommands, commandLineCommands, logger);
+        }
+
+        internal int ExecuteTool(string pathToTool, string responseFileCommands, string commandLineCommands, ICompilerServerLogger logger)
+        {
             if (ProvideCommandLineArgs)
             {
                 CommandLineArgs = GetArguments(commandLineCommands, responseFileCommands)
@@ -464,62 +507,57 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             try
             {
-                var workingDir = CurrentDirectoryToUse();
-                string tempDir = BuildServerConnection.GetTempPath(workingDir);
+                var requestId = Guid.NewGuid();
+                logger.Log($"Compilation request {requestId}, PathToTool={pathToTool}");
+
+                string workingDirectory = CurrentDirectoryToUse();
+                string? tempDirectory = BuildServerConnection.GetTempPath(workingDirectory);
 
                 if (!UseSharedCompilation ||
                     HasToolBeenOverridden ||
-                    !BuildServerConnection.IsCompilerServerSupported(tempDir))
+                    !BuildServerConnection.IsCompilerServerSupported)
                 {
+                    LogCompilationMessage(logger, requestId, CompilationKind.Tool, $"using command line tool by design '{pathToTool}'");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
                 }
 
-                using (_sharedCompileCts = new CancellationTokenSource())
+                _sharedCompileCts = new CancellationTokenSource();
+                logger.Log($"CommandLine = '{commandLineCommands}'");
+                logger.Log($"BuildResponseFile = '{responseFileCommands}'");
+
+                var clientDirectory = Path.GetDirectoryName(PathToManagedTool);
+                if (clientDirectory is null || tempDirectory is null)
                 {
-
-                    CompilerServerLogger.Log($"CommandLine = '{commandLineCommands}'");
-                    CompilerServerLogger.Log($"BuildResponseFile = '{responseFileCommands}'");
-
-                    var clientDir = Path.GetDirectoryName(PathToManagedTool);
-
-                    // Note: we can't change the "tool path" printed to the console when we run
-                    // the Csc/Vbc task since MSBuild logs it for us before we get here. Instead,
-                    // we'll just print our own message that contains the real client location
-                    Log.LogMessage(ErrorString.UsingSharedCompilation, clientDir);
-
-                    var buildPaths = new BuildPathsAlt(
-                        clientDir: clientDir,
-                        // MSBuild doesn't need the .NET SDK directory
-                        sdkDir: null,
-                        workingDir: workingDir,
-                        tempDir: tempDir);
-
-                    // Note: using ToolArguments here (the property) since
-                    // commandLineCommands (the parameter) may have been mucked with
-                    // (to support using the dotnet cli)
-                    var responseTask = BuildServerConnection.RunServerCompilation(
-                        Language,
-                        string.IsNullOrEmpty(SharedCompilationId) ? null : SharedCompilationId,
-                        GetArguments(ToolArguments, responseFileCommands).ToList(),
-                        buildPaths,
-                        keepAlive: null,
-                        libEnvVariable: LibDirectoryToUse(),
-                        cancellationToken: _sharedCompileCts.Token);
-
-                    responseTask.Wait(_sharedCompileCts.Token);
-
-                    var response = responseTask.Result;
-                    if (response != null)
-                    {
-                        ExitCode = HandleResponse(response, pathToTool, responseFileCommands, commandLineCommands);
-                    }
-                    else
-                    {
-                        Log.LogMessage(ErrorString.SharedCompilationFallback, pathToTool);
-
-                        ExitCode = base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
-                    }
+                    LogCompilationMessage(logger, requestId, CompilationKind.Tool, $"using command line tool because we could not find client or temp directory '{PathToManagedTool}'");
+                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
                 }
+
+                // Note: using ToolArguments here (the property) since
+                // commandLineCommands (the parameter) may have been mucked with
+                // (to support using the dotnet cli)
+                var buildRequest = BuildServerConnection.CreateBuildRequest(
+                    requestId,
+                    Language,
+                    GetArguments(ToolArguments, responseFileCommands).ToList(),
+                    workingDirectory: workingDirectory,
+                    tempDirectory: tempDirectory,
+                    keepAlive: null,
+                    libDirectory: LibDirectoryToUse());
+
+                var pipeName = !string.IsNullOrEmpty(SharedCompilationId)
+                    ? SharedCompilationId
+                    : BuildServerConnection.GetPipeName(clientDirectory);
+
+                var responseTask = BuildServerConnection.RunServerBuildRequestAsync(
+                    buildRequest,
+                    pipeName,
+                    clientDirectory,
+                    logger: logger,
+                    cancellationToken: _sharedCompileCts.Token);
+
+                responseTask.Wait(_sharedCompileCts.Token);
+
+                ExitCode = HandleResponse(requestId, responseTask.Result, pathToTool, responseFileCommands, commandLineCommands, logger);
             }
             catch (OperationCanceledException)
             {
@@ -528,8 +566,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             catch (Exception e)
             {
                 Log.LogErrorWithCodeFromResources("Compiler_UnexpectedException");
-                LogErrorOutput(e.ToString());
+                Log.LogErrorFromException(e);
                 ExitCode = -1;
+            }
+            finally
+            {
+                _sharedCompileCts?.Dispose();
+                _sharedCompileCts = null;
             }
 
             return ExitCode;
@@ -565,10 +608,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Get the "LIB" environment variable, or NULL if none.
         /// </summary>
-        private string LibDirectoryToUse()
+        private string? LibDirectoryToUse()
         {
             // First check the real environment.
-            string libDirectory = Environment.GetEnvironmentVariable("LIB");
+            string? libDirectory = Environment.GetEnvironmentVariable("LIB");
 
             // Now go through additional environment variables.
             string[] additionalVariables = EnvironmentVariables;
@@ -597,74 +640,91 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// Handle a response from the server, reporting messages and returning
         /// the appropriate exit code.
         /// </summary>
-        private int HandleResponse(BuildResponse response, string pathToTool, string responseFileCommands, string commandLineCommands)
+        private int HandleResponse(Guid requestId, BuildResponse? response, string pathToTool, string responseFileCommands, string commandLineCommands, ICompilerServerLogger logger)
         {
+            if (response is null)
+            {
+                LogCompilationMessage(logger, requestId, CompilationKind.ToolFallback, "could not launch server");
+                return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+            }
+
             if (response.Type != BuildResponse.ResponseType.Completed)
             {
-                ValidateBootstrapUtil.AddFailedServerConnection();
+                ValidateBootstrapUtil.AddFailedServerConnection(response.Type, OutputAssembly?.ItemSpec);
             }
 
             switch (response.Type)
             {
                 case BuildResponse.ResponseType.Completed:
                     var completedResponse = (CompletedBuildResponse)response;
-                    LogMessages(completedResponse.Output, StandardOutputImportanceToUse);
-
-                    if (LogStandardErrorAsError)
-                    {
-                        LogErrorOutput(completedResponse.ErrorOutput);
-                    }
-                    else
-                    {
-                        LogMessages(completedResponse.ErrorOutput, StandardErrorImportanceToUse);
-                    }
-
+                    LogCompilerOutput(completedResponse.Output, StandardOutputImportanceToUse);
+                    LogCompilationMessage(logger, requestId, CompilationKind.Server, "server processed compilation");
                     return completedResponse.ReturnCode;
 
                 case BuildResponse.ResponseType.MismatchedVersion:
-                    LogErrorOutput("Roslyn compiler server reports different protocol version than build task.");
+                    LogCompilationMessage(logger, requestId, CompilationKind.FatalError, "server reports different protocol version than build task");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
                 case BuildResponse.ResponseType.IncorrectHash:
-                    LogErrorOutput("Roslyn compiler server reports different hash version than build task.");
+                    LogCompilationMessage(logger, requestId, CompilationKind.FatalError, "server reports different hash version than build task");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
                 case BuildResponse.ResponseType.Rejected:
+                    var rejectedResponse = (RejectedBuildResponse)response;
+                    LogCompilationMessage(logger, requestId, CompilationKind.ToolFallback, $"server rejected the request '{rejectedResponse.Reason}'");
+                    return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
+
                 case BuildResponse.ResponseType.AnalyzerInconsistency:
+                    var analyzerResponse = (AnalyzerInconsistencyBuildResponse)response;
+                    var combinedMessage = string.Join(", ", analyzerResponse.ErrorMessages.ToArray());
+                    LogCompilationMessage(logger, requestId, CompilationKind.ToolFallback, $"server rejected the request due to analyzer / generator issues '{combinedMessage}'");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
 
                 default:
-                    LogErrorOutput($"Received an unrecognized response from the server: {response.Type}");
+                    LogCompilationMessage(logger, requestId, CompilationKind.ToolFallback, $"server gave an unrecognized response");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
-            }
-        }
-
-        private void LogErrorOutput(string output)
-        {
-            LogErrorOutput(output, Log);
-        }
-
-        internal static void LogErrorOutput(string output, TaskLoggingHelper log)
-        {
-            string[] lines = output.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-            foreach (string line in lines)
-            {
-                string trimmedMessage = line.Trim();
-                if (trimmedMessage != "")
-                {
-                    log.LogError(trimmedMessage);
-                }
             }
         }
 
         /// <summary>
-        /// Log each of the messages in the given output with the given importance.
-        /// We assume each line is a message to log.
+        /// Log the compiler output to MSBuild. Each language will override this to parse their output and log it
+        /// in the language specific manner. This often involves parsing the raw output and formatting it as 
+        /// individual messages for MSBuild.
         /// </summary>
         /// <remarks>
-        /// Should be "private protected" visibility once it is introduced into C#.
+        /// Internal for testing only.
         /// </remarks>
-        internal abstract void LogMessages(string output, MessageImportance messageImportance);
+        internal abstract void LogCompilerOutput(string output, MessageImportance messageImportance);
+
+        /// <summary>
+        /// Used to log a message that should go into both the compiler server log as well as the MSBuild logs
+        ///
+        /// These are intended to be processed by automation in the binlog hence do not change the structure of
+        /// the messages here.
+        /// </summary>
+        private void LogCompilationMessage(ICompilerServerLogger logger, Guid requestId, CompilationKind kind, string diagnostic)
+        {
+            var category = kind switch
+            {
+                CompilationKind.Server => "server",
+                CompilationKind.Tool => "tool",
+                CompilationKind.ToolFallback => "server failed",
+                CompilationKind.FatalError => "fatal error",
+                _ => throw new Exception($"Unexpected value {kind}"),
+            };
+
+            var message = $"CompilerServer: {category} - {diagnostic} - {requestId}";
+            if (kind == CompilationKind.FatalError)
+            {
+                logger.LogError(message);
+                Log.LogError(message);
+            }
+            else
+            {
+                logger.Log(message);
+                Log.LogMessage(message);
+            }
+        }
 
         public string GenerateResponseFileContents()
         {
@@ -814,6 +874,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendSwitchWithSplitting("/instrument:", Instrument, ",", ';', ',');
             commandLine.AppendSwitchIfNotNull("/sourcelink:", SourceLink);
             commandLine.AppendSwitchIfNotNull("/langversion:", LangVersion);
+            commandLine.AppendPlusOrMinusSwitch("/skipanalyzers", _store, nameof(SkipAnalyzers));
 
             AddFeatures(commandLine, Features);
             AddEmbeddedFilesToCommandLine(commandLine);
@@ -823,9 +884,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Adds a "/features:" switch to the command line for each provided feature.
         /// </summary>
-        internal static void AddFeatures(CommandLineBuilderExtension commandLine, string features)
+        internal static void AddFeatures(CommandLineBuilderExtension commandLine, string? features)
         {
-            if (string.IsNullOrEmpty(features))
+            if (RoslynString.IsNullOrEmpty(features))
             {
                 return;
             }
@@ -839,7 +900,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Adds a "/analyzer:" switch to the command line for each provided analyzer.
         /// </summary>
-        internal static void AddAnalyzersToCommandLine(CommandLineBuilderExtension commandLine, ITaskItem[] analyzers)
+        internal static void AddAnalyzersToCommandLine(CommandLineBuilderExtension commandLine, ITaskItem[]? analyzers)
         {
             // If there were no analyzers passed in, don't add any /analyzer: switches
             // on the command-line.
@@ -932,83 +993,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             if (_store[nameof(DebugType)] != null)
             {
                 // If debugtype is none then only show debug- else use the debug type and the debugsymbols as is.
-                if (string.Compare((string)_store[nameof(DebugType)], "none", StringComparison.OrdinalIgnoreCase) == 0)
+                if (string.Compare((string?)_store[nameof(DebugType)], "none", StringComparison.OrdinalIgnoreCase) == 0)
                 {
                     _store[nameof(DebugType)] = null;
                     _store[nameof(EmitDebugInformation)] = false;
                 }
             }
-        }
-
-        /// <summary>
-        /// Validate parameters, log errors and warnings and return true if
-        /// Execute should proceed.
-        /// </summary>
-        protected override bool ValidateParameters()
-        {
-            return ListHasNoDuplicateItems(Resources, nameof(Resources), "LogicalName", Log) && ListHasNoDuplicateItems(Sources, nameof(Sources), Log);
-        }
-
-        /// <summary>
-        /// Returns true if the provided item list contains duplicate items, false otherwise.
-        /// </summary>
-        internal static bool ListHasNoDuplicateItems(ITaskItem[] itemList, string parameterName, TaskLoggingHelper log)
-        {
-            return ListHasNoDuplicateItems(itemList, parameterName, null, log);
-        }
-
-        /// <summary>
-        /// Returns true if the provided item list contains duplicate items, false otherwise.
-        /// </summary>
-        /// <param name="itemList"></param>
-        /// <param name="disambiguatingMetadataName">Optional name of metadata that may legitimately disambiguate items. May be null.</param>
-        /// <param name="parameterName"></param>
-        /// <param name="log"></param>
-        private static bool ListHasNoDuplicateItems(ITaskItem[] itemList, string parameterName, string disambiguatingMetadataName, TaskLoggingHelper log)
-        {
-            if (itemList == null || itemList.Length == 0)
-            {
-                return true;
-            }
-
-            var alreadySeen = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach (ITaskItem item in itemList)
-            {
-                string key;
-                string disambiguatingMetadataValue = null;
-                if (disambiguatingMetadataName != null)
-                {
-                    disambiguatingMetadataValue = item.GetMetadata(disambiguatingMetadataName);
-                }
-
-                if (disambiguatingMetadataName == null || string.IsNullOrEmpty(disambiguatingMetadataValue))
-                {
-                    key = item.ItemSpec;
-                }
-                else
-                {
-                    key = item.ItemSpec + ":" + disambiguatingMetadataValue;
-                }
-
-                if (alreadySeen.ContainsKey(key))
-                {
-                    if (disambiguatingMetadataName == null || string.IsNullOrEmpty(disambiguatingMetadataValue))
-                    {
-                        log.LogErrorWithCodeFromResources("General_DuplicateItemsNotSupported", item.ItemSpec, parameterName);
-                    }
-                    else
-                    {
-                        log.LogErrorWithCodeFromResources("General_DuplicateItemsNotSupportedWithMetadata", item.ItemSpec, parameterName, disambiguatingMetadataValue, disambiguatingMetadataName);
-                    }
-                    return false;
-                }
-                else
-                {
-                    alreadySeen[key] = string.Empty;
-                }
-            }
-
-            return true;
         }
 
         /// <summary>
@@ -1037,8 +1027,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// Takes a list of files and returns the normalized locations of these files
         /// </summary>
-        private void NormalizePaths(ITaskItem[] taskItems)
+        private void NormalizePaths(ITaskItem[]? taskItems)
         {
+            if (taskItems is null)
+                return;
+
             foreach (var item in taskItems)
             {
                 item.ItemSpec = Utilities.GetFullPathNoThrow(item.ItemSpec);
@@ -1139,10 +1132,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// which is only used during IDE builds.
         /// </summary>
         /// <returns>the path to the win32 manifest to provide to the host object</returns>
-        internal string GetWin32ManifestSwitch
+        internal string? GetWin32ManifestSwitch
         (
             bool noDefaultWin32Manifest,
-            string win32Manifest
+            string? win32Manifest
         )
         {
             if (!noDefaultWin32Manifest)

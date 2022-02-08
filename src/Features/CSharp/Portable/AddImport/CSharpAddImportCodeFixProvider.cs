@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -125,6 +128,26 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         /// </summary>
         public const string CS4036 = nameof(CS4036);
 
+        /// <summary>
+        /// foreach statement cannot operate on variables of type 'X' because 'X' does not contain a public instance or extension definition for 'GetEnumerator'
+        /// </summary>
+        public const string CS1579 = nameof(CS1579);
+
+        /// <summary>
+        /// foreach statement cannot operate on variables of type 'X' because 'X' does not contain a public instance or extension definition for 'GetEnumerator'. Did you mean 'await foreach' rather than 'foreach'?
+        /// </summary>
+        public const string CS8414 = nameof(CS8414);
+
+        /// <summary>
+        /// Asynchronous foreach statement cannot operate on variables of type 'X' because 'X' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'
+        /// </summary>
+        public const string CS8411 = nameof(CS8411);
+
+        /// <summary>
+        /// Asynchronous foreach statement cannot operate on variables of type 'X' because 'X' does not contain a suitable public instance or extension definition for 'GetAsyncEnumerator'. Did you mean 'foreach' rather than 'await foreach'?
+        /// </summary>
+        public const string CS8415 = nameof(CS8415);
+
         public static ImmutableArray<string> FixableTypeIds =
             ImmutableArray.Create(
                 CS0103,
@@ -152,7 +175,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                     CS0428,
                     CS7036,
                     CS0281,
-                    CS4036));
+                    CS4036,
+                    CS1579,
+                    CS8414,
+                    CS8411,
+                    CS8415));
     }
 
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddImport), Shared]
@@ -161,11 +188,13 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         public override ImmutableArray<string> FixableDiagnosticIds => AddImportDiagnosticIds.FixableDiagnosticIds;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpAddImportCodeFixProvider()
         {
         }
 
         /// <summary>For testing purposes only (so that tests can pass in mock values)</summary> 
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
         internal CSharpAddImportCodeFixProvider(
             IPackageInstallerService installerService,
             ISymbolSearchService symbolSearchService)

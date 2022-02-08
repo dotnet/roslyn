@@ -3,8 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.[Shared].Collections
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -13,11 +12,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
     Friend Class CompilationUnitStructureProvider
         Inherits AbstractSyntaxNodeStructureProvider(Of CompilationUnitSyntax)
 
-        Protected Overrides Sub CollectBlockSpans(compilationUnit As CompilationUnitSyntax,
-                                                  spans As ArrayBuilder(Of BlockSpan),
-                                                  options As OptionSet,
+        Protected Overrides Sub CollectBlockSpans(previousToken As SyntaxToken,
+                                                  compilationUnit As CompilationUnitSyntax,
+                                                  ByRef spans As TemporaryArray(Of BlockSpan),
+                                                  options As BlockStructureOptions,
                                                   cancellationToken As CancellationToken)
-            CollectCommentsRegions(compilationUnit, spans)
+            CollectCommentsRegions(compilationUnit, spans, options)
 
             If Not compilationUnit.Imports.IsEmpty Then
                 Dim startPos = compilationUnit.Imports.First().SpanStart
@@ -32,9 +32,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
             CollectCommentsRegions(compilationUnit.EndOfFileToken.LeadingTrivia, spans)
         End Sub
-
-        Protected Overrides Function SupportedInWorkspaceKind(kind As String) As Boolean
-            Return True
-        End Function
     End Class
 End Namespace

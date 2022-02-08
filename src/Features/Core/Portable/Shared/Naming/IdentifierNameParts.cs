@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
@@ -26,7 +29,8 @@ namespace Microsoft.CodeAnalysis.Shared.Naming
         {
             var baseName = RemovePrefixesAndSuffixes(symbol, rules, symbol.Name);
 
-            var parts = StringBreaker.GetWordParts(baseName);
+            using var parts = TemporaryArray<TextSpan>.Empty;
+            StringBreaker.AddWordParts(baseName, ref parts.AsRef());
             var words = CreateWords(parts, baseName);
 
             return new IdentifierNameParts(baseName, words);
@@ -43,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Shared.Naming
                     // remove specified prefix
                     var prefix = rule.NamingStyle.Prefix;
                     newBaseName = newBaseName.StartsWith(prefix)
-                        ? newBaseName.Substring(prefix.Length)
+                        ? newBaseName[prefix.Length..]
                         : newBaseName;
 
                     // remove specified suffix
@@ -69,15 +73,13 @@ namespace Microsoft.CodeAnalysis.Shared.Naming
             return RemovePrefixesAndSuffixes(symbol, rules, newBaseName);
         }
 
-        private static ImmutableArray<string> CreateWords(ArrayBuilder<TextSpan> parts, string name)
+        private static ImmutableArray<string> CreateWords(in TemporaryArray<TextSpan> parts, string name)
         {
-            using var resultDisposer = ArrayBuilder<string>.GetInstance(parts.Count, out var result);
+            using var words = TemporaryArray<string>.Empty;
             foreach (var part in parts)
-            {
-                result.Add(name.Substring(part.Start, part.Length));
-            }
+                words.Add(name.Substring(part.Start, part.Length));
 
-            return result.ToImmutable();
+            return words.ToImmutableAndClear();
         }
     }
 }

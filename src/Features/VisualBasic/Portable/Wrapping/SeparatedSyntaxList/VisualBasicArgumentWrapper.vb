@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping.SeparatedSyntaxList
@@ -58,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping.SeparatedSyntaxList
             If token.Parent.Ancestors().Contains(listSyntax) Then
                 Dim current = token.Parent
                 While current IsNot listSyntax
-                    If VisualBasicSyntaxFactsService.Instance.IsAnonymousFunction(current) Then
+                    If VisualBasicSyntaxFacts.Instance.IsAnonymousFunctionExpression(current) Then
                         Return False
                     End If
 

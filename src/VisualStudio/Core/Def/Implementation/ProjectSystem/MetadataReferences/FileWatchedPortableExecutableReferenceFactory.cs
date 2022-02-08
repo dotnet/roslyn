@@ -1,18 +1,26 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+#nullable disable
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.MetadataReferences
 {
     [Export]
     internal sealed class FileWatchedPortableExecutableReferenceFactory
     {
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
 
         /// <summary>
         /// This right now acquires the entire VisualStudioWorkspace because right now the production
@@ -31,25 +39,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.M
         /// File watching tokens from <see cref="_fileReferenceChangeContext"/> that are watching metadata references. These are only created once we are actually applying a batch because
         /// we don't determine until the batch is applied if the file reference will actually be a file reference or it'll be a converted project reference.
         /// </summary>
-        private readonly Dictionary<PortableExecutableReference, FileChangeWatcher.IFileWatchingToken> _metadataReferenceFileWatchingTokens = new Dictionary<PortableExecutableReference, FileChangeWatcher.IFileWatchingToken>();
+        private readonly Dictionary<PortableExecutableReference, FileChangeWatcher.IFileWatchingToken> _metadataReferenceFileWatchingTokens = new();
 
         /// <summary>
         /// <see cref="CancellationTokenSource"/>s for in-flight refreshing of metadata references. When we see a file change, we wait a bit before trying to actually
         /// update the workspace. We need cancellation tokens for those so we can cancel them either when a flurry of events come in (so we only do the delay after the last
         /// modification), or when we know the project is going away entirely.
         /// </summary>
-        private readonly Dictionary<string, CancellationTokenSource> _metadataReferenceRefreshCancellationTokenSources = new Dictionary<string, CancellationTokenSource>();
+        private readonly Dictionary<string, CancellationTokenSource> _metadataReferenceRefreshCancellationTokenSources = new();
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FileWatchedPortableExecutableReferenceFactory(
             Lazy<VisualStudioWorkspace> visualStudioWorkspace,
             FileChangeWatcherProvider fileChangeWatcherProvider)
         {
             _visualStudioWorkspace = visualStudioWorkspace;
 
-            // TODO: set this to watch the NuGet directory or the reference assemblies directory; since those change rarely and most references
-            // will come from them, we can avoid creating a bunch of explicit file watchers.
-            _fileReferenceChangeContext = fileChangeWatcherProvider.Watcher.CreateContext();
+            // We will do a single directory watch on the Reference Assemblies folder to avoid having to create separate file
+            // watches on individual .dlls that effectively never change.
+            var referenceAssembliesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Reference Assemblies", "Microsoft", "Framework");
+            var referenceAssemblies = new FileChangeWatcher.WatchedDirectory(referenceAssembliesPath, ".dll");
+
+            // TODO: set this to watch the NuGet directory as well; there's some concern that watching the entire directory
+            // might make restores take longer because we'll be watching changes that may not impact your project.
+
+            _fileReferenceChangeContext = fileChangeWatcherProvider.Watcher.CreateContext(referenceAssemblies);
             _fileReferenceChangeContext.FileChanged += FileReferenceChangeContext_FileChanged;
         }
 

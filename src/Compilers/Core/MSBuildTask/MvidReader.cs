@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
@@ -92,12 +92,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             for (int i = 0; i < count; i++)
             {
                 // Section: Name (8)
-                if (!ReadBytes(reader, 8, out byte[] name))
+                if (!ReadBytes(reader, 8, out byte[]? name))
                 {
                     return s_empty;
                 }
 
-                if (name.Length == 8 && name[0] == '.' &&
+                if (name!.Length == 8 && name[0] == '.' &&
                     name[1] == 'm' && name[2] == 'v' && name[3] == 'i' && name[4] == 'd' && name[5] == '\0')
                 {
                     // Section: VirtualSize (4)
@@ -143,12 +143,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 return s_empty;
             }
 
-            if (!ReadBytes(reader, 16, out byte[] guidBytes))
+            if (!ReadBytes(reader, 16, out byte[]? guidBytes))
             {
                 return s_empty;
             }
 
-            return new Guid(guidBytes);
+            return new Guid(guidBytes!);
         }
 
         private static bool ReadUInt16(BinaryReader reader, out ushort output)
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return true;
         }
 
-        private static bool ReadBytes(BinaryReader reader, int count, out byte[] output)
+        private static bool ReadBytes(BinaryReader reader, int count, out byte[]? output)
         {
             if (reader.BaseStream.Position + count >= reader.BaseStream.Length)
             {

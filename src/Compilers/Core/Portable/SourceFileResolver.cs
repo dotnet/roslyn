@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -62,15 +61,13 @@ namespace Microsoft.CodeAnalysis
             {
                 var pathMapBuilder = ArrayBuilder<KeyValuePair<string, string>>.GetInstance(pathMap.Length);
 
-                foreach (var kv in pathMap)
+                foreach (var (key, value) in pathMap)
                 {
-                    var key = kv.Key;
                     if (key == null || key.Length == 0)
                     {
                         throw new ArgumentException(CodeAnalysisResources.EmptyKeyInPathMap, nameof(pathMap));
                     }
 
-                    var value = kv.Value;
                     if (value == null)
                     {
                         throw new ArgumentException(CodeAnalysisResources.NullValueInPathMap, nameof(pathMap));
@@ -98,13 +95,13 @@ namespace Microsoft.CodeAnalysis
 
         public override string? NormalizePath(string path, string? baseFilePath)
         {
-            string normalizedPath = FileUtilities.NormalizeRelativePath(path, baseFilePath, _baseDirectory);
+            string? normalizedPath = FileUtilities.NormalizeRelativePath(path, baseFilePath, _baseDirectory);
             return (normalizedPath == null || _pathMap.IsDefaultOrEmpty) ? normalizedPath : PathUtilities.NormalizePathPrefix(normalizedPath, _pathMap);
         }
 
         public override string? ResolveReference(string path, string? baseFilePath)
         {
-            string resolvedPath = FileUtilities.ResolveRelativePath(path, baseFilePath, _baseDirectory, _searchPaths, FileExists);
+            string? resolvedPath = FileUtilities.ResolveRelativePath(path, baseFilePath, _baseDirectory, _searchPaths, FileExists);
             if (resolvedPath == null)
             {
                 return null;
@@ -119,12 +116,12 @@ namespace Microsoft.CodeAnalysis
             return FileUtilities.OpenRead(resolvedPath);
         }
 
-        protected virtual bool FileExists(string resolvedPath)
+        protected virtual bool FileExists([NotNullWhen(true)] string? resolvedPath)
         {
             return File.Exists(resolvedPath);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             // Explicitly check that we're not comparing against a derived type
             if (obj == null || GetType() != obj.GetType())
@@ -135,8 +132,13 @@ namespace Microsoft.CodeAnalysis
             return Equals((SourceFileResolver)obj);
         }
 
-        public bool Equals(SourceFileResolver other)
+        public bool Equals(SourceFileResolver? other)
         {
+            if (other is null)
+            {
+                return false;
+            }
+
             return
                 string.Equals(_baseDirectory, other._baseDirectory, StringComparison.Ordinal) &&
                 _searchPaths.SequenceEqual(other._searchPaths, StringComparer.Ordinal) &&

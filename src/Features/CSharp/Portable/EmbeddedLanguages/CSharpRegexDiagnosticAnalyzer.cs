@@ -4,7 +4,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages
 {

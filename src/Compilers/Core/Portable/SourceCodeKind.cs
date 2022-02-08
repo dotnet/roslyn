@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.ComponentModel;
 using Microsoft.CodeAnalysis.Text;
@@ -32,29 +30,5 @@ namespace Microsoft.CodeAnalysis
         [Obsolete("Use Script instead", error: false)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         Interactive = 2,
-    }
-
-    internal static partial class SourceCodeKindExtensions
-    {
-        internal static SourceCodeKind MapSpecifiedToEffectiveKind(this SourceCodeKind kind)
-        {
-            switch (kind)
-            {
-                case SourceCodeKind.Script:
-#pragma warning disable CS0618 // SourceCodeKind.Interactive is obsolete
-                case SourceCodeKind.Interactive:
-#pragma warning restore CS0618 // SourceCodeKind.Interactive is obsolete
-                    return SourceCodeKind.Script;
-
-                case SourceCodeKind.Regular:
-                default:
-                    return SourceCodeKind.Regular;
-            }
-        }
-
-        internal static bool IsValid(this SourceCodeKind value)
-        {
-            return value >= SourceCodeKind.Regular && value <= SourceCodeKind.Script;
-        }
     }
 }

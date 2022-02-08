@@ -13,16 +13,16 @@ namespace Microsoft.CodeAnalysis
     internal class CommonMethodEarlyWellKnownAttributeData : EarlyWellKnownAttributeData
     {
         #region ConditionalAttribute
-        private ImmutableArray<string> _lazyConditionalSymbols = ImmutableArray<string>.Empty;
+        private ImmutableArray<string?> _lazyConditionalSymbols = ImmutableArray<string?>.Empty;
 
-        public void AddConditionalSymbol(string name)
+        public void AddConditionalSymbol(string? name)
         {
             VerifySealed(expected: false);
             _lazyConditionalSymbols = _lazyConditionalSymbols.Add(name);
             SetDataStored();
         }
 
-        public ImmutableArray<string> ConditionalSymbols
+        public ImmutableArray<string?> ConditionalSymbols
         {
             get
             {
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis
 
         #region ObsoleteAttribute
         private ObsoleteAttributeData _obsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
-        public ObsoleteAttributeData ObsoleteAttributeData
+        public ObsoleteAttributeData? ObsoleteAttributeData
         {
             get
             {

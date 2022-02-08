@@ -5,6 +5,7 @@
 Imports System.ComponentModel.Composition
 Imports System.Threading
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.BraceMatching
@@ -13,12 +14,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.BraceMatching
         Implements IBraceMatcher
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
         Public Async Function FindBraces(document As Document,
-                                   position As Integer,
-                                   Optional cancellationToken As CancellationToken = Nothing) As Task(Of BraceMatchingResult?) Implements IBraceMatcher.FindBracesAsync
+                                         position As Integer,
+                                         options As BraceMatchingOptions,
+                                         cancellationToken As CancellationToken) As Task(Of BraceMatchingResult?) Implements IBraceMatcher.FindBracesAsync
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim token = root.FindToken(position)
 

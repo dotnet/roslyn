@@ -48,15 +48,15 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
 
             protected sealed override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync()
             {
-                var result = ArrayBuilder<WrappingGroup>.GetInstance();
-                await AddWrappingGroups(result).ConfigureAwait(false);
-                return result.ToImmutableAndFree();
+                using var _ = ArrayBuilder<WrappingGroup>.GetInstance(out var result);
+                await AddWrappingGroupsAsync(result).ConfigureAwait(false);
+                return result.ToImmutableAndClear();
             }
 
             protected sealed override ImmutableArray<Edit> GetWrapEachEdits(
                 WrappingStyle wrappingStyle, SyntaxTrivia indentationTrivia)
             {
-                var result = ArrayBuilder<Edit>.GetInstance();
+                using var _ = ArrayBuilder<Edit>.GetInstance(out var result);
 
                 if (_doMoveOpenBraceToNewLine)
                 {
@@ -84,12 +84,12 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
 
                 result.Add(Edit.UpdateBetween(_listItems.Last(), NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetLastToken()));
 
-                return result.ToImmutableAndFree();
+                return result.ToImmutableAndClear();
             }
 
             protected sealed override ImmutableArray<Edit> GetUnwrapAllEdits(WrappingStyle wrappingStyle)
             {
-                var result = ArrayBuilder<Edit>.GetInstance();
+                using var _ = ArrayBuilder<Edit>.GetInstance(out var result);
 
                 if (_doMoveOpenBraceToNewLine)
                 {
@@ -98,13 +98,13 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
 
                 result.AddRange(GetSeparatedListEdits(wrappingStyle));
 
-                return result.ToImmutableAndFree();
+                return result.ToImmutableAndClear();
             }
 
             protected sealed override ImmutableArray<Edit> GetWrapLongLinesEdits(
                 WrappingStyle wrappingStyle, SyntaxTrivia indentationTrivia)
             {
-                var result = ArrayBuilder<Edit>.GetInstance();
+                using var _ = ArrayBuilder<Edit>.GetInstance(out var result);
 
                 if (_doMoveOpenBraceToNewLine)
                 {
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
 
                 for (var i = 0; i < itemsAndSeparators.Count; i += 2)
                 {
-                    var item = itemsAndSeparators[i].AsNode();
+                    var item = itemsAndSeparators[i].AsNode()!;
 
                     // Figure out where we'd be after this item.
                     currentOffset += item.Span.Length;
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
 
                 result.Add(Edit.UpdateBetween(_listItems.Last(), NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetLastToken()));
 
-                return result.ToImmutableAndFree();
+                return result.ToImmutableAndClear();
             }
 
             protected sealed override string GetNestedCodeActionTitle(WrappingStyle wrappingStyle)
@@ -167,24 +167,24 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
             {
                 var parentTitle = Wrapper.Wrap_every_item;
 
-                var codeActions = ArrayBuilder<WrapItemsAction>.GetInstance();
+                using var _ = ArrayBuilder<WrapItemsAction>.GetInstance(out var codeActions);
 
                 codeActions.Add(await GetWrapEveryNestedCodeActionAsync(
                     parentTitle, WrappingStyle.WrapFirst_IndentRest).ConfigureAwait(false));
 
-                return new WrappingGroup(isInlinable: false, codeActions.ToImmutableAndFree());
+                return new WrappingGroup(isInlinable: false, codeActions.ToImmutableAndClear());
             }
 
             protected sealed override async Task<WrappingGroup> GetUnwrapGroupAsync()
             {
-                var unwrapActions = ArrayBuilder<WrapItemsAction>.GetInstance();
+                using var _ = ArrayBuilder<WrapItemsAction>.GetInstance(out var unwrapActions);
 
                 var parentTitle = Wrapper.Unwrap_list;
                 unwrapActions.Add(await GetUnwrapAllCodeActionAsync(parentTitle, WrappingStyle.UnwrapFirst_IndentRest).ConfigureAwait(false));
 
                 // The 'unwrap' title strings are unique and do not collide with any other code
                 // actions we're computing.  So they can be inlined if possible.
-                return new WrappingGroup(isInlinable: true, unwrapActions.ToImmutableAndFree());
+                return new WrappingGroup(isInlinable: true, unwrapActions.ToImmutableAndClear());
             }
 
             protected sealed override Task<WrapItemsAction> GetUnwrapAllCodeActionAsync(string parentTitle, WrappingStyle wrappingStyle)
@@ -198,12 +198,12 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
             protected sealed override async Task<WrappingGroup> GetWrapLongGroupAsync()
             {
                 var parentTitle = Wrapper.Wrap_long_list;
-                var codeActions = ArrayBuilder<WrapItemsAction>.GetInstance();
+                using var _ = ArrayBuilder<WrapItemsAction>.GetInstance(out var codeActions);
 
                 codeActions.Add(await GetWrapLongLineCodeActionAsync(
                     parentTitle, WrappingStyle.WrapFirst_IndentRest).ConfigureAwait(false));
 
-                return new WrappingGroup(isInlinable: false, codeActions.ToImmutableAndFree());
+                return new WrappingGroup(isInlinable: false, codeActions.ToImmutableAndClear());
             }
         }
     }

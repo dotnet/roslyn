@@ -6,8 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using System.Xml;
+using Microsoft.CodeAnalysis.PooledObjects;
 using XmlNames = Roslyn.Utilities.DocumentationCommentXmlNames;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
@@ -29,22 +32,27 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <summary>
         /// The text in the &lt;example&gt; tag. Null if no tag existed.
         /// </summary>
-        public string ExampleText { get; private set; }
+        public string? ExampleText { get; private set; }
 
         /// <summary>
         /// The text in the &lt;summary&gt; tag. Null if no tag existed.
         /// </summary>
-        public string SummaryText { get; private set; }
+        public string? SummaryText { get; private set; }
 
         /// <summary>
         /// The text in the &lt;returns&gt; tag. Null if no tag existed.
         /// </summary>
-        public string ReturnsText { get; private set; }
+        public string? ReturnsText { get; private set; }
+
+        /// <summary>
+        /// The text in the &lt;value&gt; tag. Null if no tag existed.
+        /// </summary>
+        public string? ValueText { get; private set; }
 
         /// <summary>
         /// The text in the &lt;remarks&gt; tag. Null if no tag existed.
         /// </summary>
-        public string RemarksText { get; private set; }
+        public string? RemarksText { get; private set; }
 
         /// <summary>
         /// The names of items in &lt;param&gt; tags.
@@ -65,15 +73,17 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// The item named in the &lt;completionlist&gt; tag's cref attribute.
         /// Null if the tag or cref attribute didn't exist.
         /// </summary>
-        public string CompletionListCref { get; private set; }
+        public string? CompletionListCref { get; private set; }
 
         /// <summary>
         /// Used for <see cref="CommentBuilder.TrimEachLine"/> method, to prevent new allocation of string
         /// </summary>
         private static readonly string[] s_NewLineAsStringArray = new string[] { "\n" };
 
-        private DocumentationComment()
+        private DocumentationComment(string fullXmlFragment)
         {
+            FullXmlFragment = fullXmlFragment;
+
             ParameterNames = ImmutableArray<string>.Empty;
             TypeParameterNames = ImmutableArray<string>.Empty;
             ExceptionTypes = ImmutableArray<string>.Empty;
@@ -82,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <summary>
         /// Cache of the most recently parsed fragment and the resulting DocumentationComment
         /// </summary>
-        private static volatile DocumentationComment s_cacheLastXmlFragmentParse;
+        private static volatile DocumentationComment? s_cacheLastXmlFragmentParse;
 
         /// <summary>
         /// Parses and constructs a <see cref="DocumentationComment" /> from the given fragment of XML.
@@ -108,10 +118,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private class CommentBuilder
         {
             private readonly DocumentationComment _comment;
-            private ImmutableArray<string>.Builder _parameterNamesBuilder;
-            private ImmutableArray<string>.Builder _typeParameterNamesBuilder;
-            private ImmutableArray<string>.Builder _exceptionTypesBuilder;
-            private Dictionary<string, ImmutableArray<string>.Builder> _exceptionTextBuilders;
+            private ImmutableArray<string>.Builder? _parameterNamesBuilder;
+            private ImmutableArray<string>.Builder? _typeParameterNamesBuilder;
+            private ImmutableArray<string>.Builder? _exceptionTypesBuilder;
+            private Dictionary<string, ImmutableArray<string>.Builder>? _exceptionTextBuilders;
 
             /// <summary>
             /// Parse and construct a <see cref="DocumentationComment" /> from the given fragment of XML.
@@ -129,14 +139,12 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     // It would be nice if we only had to catch XmlException to handle invalid XML
                     // while parsing doc comments. Unfortunately, other exceptions can also occur,
                     // so we just catch them all. See Dev12 Bug 612456 for an example.
-                    return new DocumentationComment { FullXmlFragment = xml, HadXmlParseError = true };
+                    return new DocumentationComment(xml) { HadXmlParseError = true };
                 }
             }
 
             private CommentBuilder(string xml)
-            {
-                _comment = new DocumentationComment() { FullXmlFragment = xml };
-            }
+                => _comment = new DocumentationComment(xml);
 
             private DocumentationComment ParseInternal(string xml)
             {
@@ -158,13 +166,65 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             private static void ParseCallback(XmlReader reader, CommentBuilder builder)
-            {
-                builder.ParseCallback(reader);
-            }
+                => builder.ParseCallback(reader);
 
-            private string TrimEachLine(string text)
+            // Find the shortest whitespace prefix and trim it from all the lines
+            // Before:
+            //  <summary>
+            //  Line1
+            //  <code>
+            //     Line2
+            //   Line3
+            //  </code>
+            //  </summary>
+            // After:
+            //<summary>
+            //Line1
+            //<code>
+            //   Line2
+            // Line3
+            //</code>
+            //</summary>
+            //
+            // We preserve the formatting to let the AbstractDocumentationCommentFormattingService get the unmangled
+            // <code> blocks.
+            // AbstractDocumentationCommentFormattingService will normalize whitespace for non-code element later.
+            private static string TrimEachLine(string text)
             {
-                return string.Join(Environment.NewLine, text.Split(s_NewLineAsStringArray, StringSplitOptions.RemoveEmptyEntries).Select(i => i.Trim()));
+                var lines = text.Split(s_NewLineAsStringArray, StringSplitOptions.RemoveEmptyEntries);
+
+                var maxPrefix = int.MaxValue;
+                foreach (var line in lines)
+                {
+                    var firstNonWhitespaceOffset = line.GetFirstNonWhitespaceOffset();
+
+                    // Don't include all-whitespace lines in the calculation
+                    // They'll be completely trimmed
+                    if (firstNonWhitespaceOffset == null)
+                        continue;
+
+                    // note: this code presumes all whitespace should be treated uniformly (for example that a tab and
+                    // a space are equivalent).  If that turns out to be an issue we will need to revise this to determine
+                    // an appropriate strategy for trimming here.
+                    maxPrefix = Math.Min(maxPrefix, firstNonWhitespaceOffset.Value);
+                }
+
+                if (maxPrefix == int.MaxValue)
+                    return string.Empty;
+
+                using var _ = PooledStringBuilder.GetInstance(out var builder);
+                for (var i = 0; i < lines.Length; i++)
+                {
+                    var line = lines[i];
+                    if (i != 0)
+                        builder.AppendLine();
+
+                    var trimmedLine = line.TrimEnd();
+                    if (trimmedLine.Length != 0)
+                        builder.Append(trimmedLine, maxPrefix, trimmedLine.Length - maxPrefix);
+                }
+
+                return builder.ToString();
             }
 
             private void ParseCallback(XmlReader reader)
@@ -183,6 +243,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     else if (XmlNames.ElementEquals(localName, XmlNames.ReturnsElementName) && _comment.ReturnsText == null)
                     {
                         _comment.ReturnsText = TrimEachLine(reader.ReadInnerXml());
+                    }
+                    else if (XmlNames.ElementEquals(localName, XmlNames.ValueElementName) && _comment.ValueText == null)
+                    {
+                        _comment.ValueText = TrimEachLine(reader.ReadInnerXml());
                     }
                     else if (XmlNames.ElementEquals(localName, XmlNames.RemarksElementName) && _comment.RemarksText == null)
                     {
@@ -251,14 +315,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
         }
 
-        private readonly Dictionary<string, string> _parameterTexts = new Dictionary<string, string>();
-        private readonly Dictionary<string, string> _typeParameterTexts = new Dictionary<string, string>();
-        private readonly Dictionary<string, ImmutableArray<string>> _exceptionTexts = new Dictionary<string, ImmutableArray<string>>();
+        private readonly Dictionary<string, string> _parameterTexts = new();
+        private readonly Dictionary<string, string> _typeParameterTexts = new();
+        private readonly Dictionary<string, ImmutableArray<string>> _exceptionTexts = new();
 
         /// <summary>
         /// Returns the text for a given parameter, or null if no documentation was given for the parameter.
         /// </summary>
-        public string GetParameterText(string parameterName)
+        public string? GetParameterText(string parameterName)
         {
             _parameterTexts.TryGetValue(parameterName, out var text);
             return text;
@@ -267,7 +331,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <summary>
         /// Returns the text for a given type parameter, or null if no documentation was given for the type parameter.
         /// </summary>
-        public string GetTypeParameterText(string typeParameterName)
+        public string? GetTypeParameterText(string typeParameterName)
         {
             _typeParameterTexts.TryGetValue(typeParameterName, out var text);
             return text;
@@ -293,6 +357,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <summary>
         /// An empty comment.
         /// </summary>
-        public static readonly DocumentationComment Empty = new DocumentationComment();
+        public static readonly DocumentationComment Empty = new(string.Empty);
     }
 }

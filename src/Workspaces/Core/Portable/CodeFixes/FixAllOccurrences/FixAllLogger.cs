@@ -46,14 +46,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                 if (isInternalCodeFixProvider)
                 {
-                    m[CodeFixProvider] = fixAllState.CodeFixProvider.GetType().FullName;
+                    m[CodeFixProvider] = fixAllState.CodeFixProvider.GetType().FullName!;
                     m[CodeActionEquivalenceKey] = fixAllState.CodeActionEquivalenceKey;
                     m[LanguageName] = fixAllState.Project.Language;
                 }
                 else
                 {
-                    m[CodeFixProvider] = fixAllState.CodeFixProvider.GetType().FullName.GetHashCode().ToString();
-                    m[CodeActionEquivalenceKey] = fixAllState.CodeActionEquivalenceKey != null ? fixAllState.CodeActionEquivalenceKey.GetHashCode().ToString() : null;
+                    m[CodeFixProvider] = fixAllState.CodeFixProvider.GetType().FullName!.GetHashCode().ToString();
+                    m[CodeActionEquivalenceKey] = fixAllState.CodeActionEquivalenceKey?.GetHashCode().ToString();
                     m[LanguageName] = fixAllState.Project.Language.GetHashCode().ToString();
                 }
 
@@ -150,8 +150,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         public static LogMessage CreateCorrelationLogMessage(int correlationId)
-        {
-            return KeyValueLogMessage.Create(LogType.UserAction, m => m[CorrelationId] = correlationId);
-        }
+            => KeyValueLogMessage.Create(LogType.UserAction, m => m[CorrelationId] = correlationId);
     }
 }

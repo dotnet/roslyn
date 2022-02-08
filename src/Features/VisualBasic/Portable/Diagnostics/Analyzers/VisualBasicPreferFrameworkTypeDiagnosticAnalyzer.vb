@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
             ImmutableArray.Create(SyntaxKind.PredefinedType)
 
         Protected Overrides Function IsInMemberAccessOrCrefReferenceContext(node As ExpressionSyntax) As Boolean
-            Return node.IsInMemberAccessContext() OrElse node.InsideCrefReference()
+            Return node.IsDirectChildOfMemberAccessExpression() OrElse node.InsideCrefReference()
         End Function
 
         Protected Overrides Function IsPredefinedTypeReplaceableWithFrameworkType(node As PredefinedTypeSyntax) As Boolean
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
         ''' Returns true, if the VB language keyword for predefined type matches its
         ''' actual framework type name.
         ''' </summary>
-        Private Function KeywordMatchesTypeName(kind As SyntaxKind) As Boolean
+        Private Shared Function KeywordMatchesTypeName(kind As SyntaxKind) As Boolean
             Select Case kind
                 Case _
                 SyntaxKind.BooleanKeyword,

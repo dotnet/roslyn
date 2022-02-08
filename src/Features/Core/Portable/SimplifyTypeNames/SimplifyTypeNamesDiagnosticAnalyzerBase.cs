@@ -4,11 +4,18 @@
 
 // #define LOG
 
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -31,30 +38,33 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(WorkspacesResources.Name_can_be_simplified), WorkspacesResources.ResourceManager, typeof(WorkspacesResources));
 
         private static readonly LocalizableString s_localizableTitleSimplifyNames = new LocalizableResourceString(nameof(FeaturesResources.Simplify_Names), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-        private static readonly DiagnosticDescriptor s_descriptorSimplifyNames = new DiagnosticDescriptor(IDEDiagnosticIds.SimplifyNamesDiagnosticId,
+        private static readonly DiagnosticDescriptor s_descriptorSimplifyNames = new(IDEDiagnosticIds.SimplifyNamesDiagnosticId,
                                                                     s_localizableTitleSimplifyNames,
                                                                     s_localizableMessage,
                                                                     DiagnosticCategory.Style,
                                                                     DiagnosticSeverity.Hidden,
                                                                     isEnabledByDefault: true,
-                                                                    customTags: DiagnosticCustomTags.Unnecessary);
+                                                                    helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(IDEDiagnosticIds.SimplifyNamesDiagnosticId),
+                                                                    customTags: DiagnosticCustomTags.Unnecessary.Concat(EnforceOnBuildValues.SimplifyNames.ToCustomTag()).ToArray());
 
         private static readonly LocalizableString s_localizableTitleSimplifyMemberAccess = new LocalizableResourceString(nameof(FeaturesResources.Simplify_Member_Access), FeaturesResources.ResourceManager, typeof(FeaturesResources));
-        private static readonly DiagnosticDescriptor s_descriptorSimplifyMemberAccess = new DiagnosticDescriptor(IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId,
+        private static readonly DiagnosticDescriptor s_descriptorSimplifyMemberAccess = new(IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId,
                                                                     s_localizableTitleSimplifyMemberAccess,
                                                                     s_localizableMessage,
                                                                     DiagnosticCategory.Style,
                                                                     DiagnosticSeverity.Hidden,
                                                                     isEnabledByDefault: true,
-                                                                    customTags: DiagnosticCustomTags.Unnecessary);
+                                                                    helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId),
+                                                                    customTags: DiagnosticCustomTags.Unnecessary.Concat(EnforceOnBuildValues.SimplifyMemberAccess.ToCustomTag()).ToArray());
 
-        private static readonly DiagnosticDescriptor s_descriptorPreferBuiltinOrFrameworkType = new DiagnosticDescriptor(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId,
+        private static readonly DiagnosticDescriptor s_descriptorPreferBuiltinOrFrameworkType = new(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId,
             s_localizableTitleSimplifyNames,
             s_localizableMessage,
             DiagnosticCategory.Style,
             DiagnosticSeverity.Hidden,
             isEnabledByDefault: true,
-            customTags: DiagnosticCustomTags.Unnecessary);
+            helpLinkUri: DiagnosticHelper.GetHelpLinkForDiagnosticId(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId),
+            customTags: DiagnosticCustomTags.Unnecessary.Concat(EnforceOnBuildValues.PreferBuiltInOrFrameworkType.ToCustomTag()).ToArray());
 
         internal abstract bool IsCandidate(SyntaxNode node);
         internal abstract bool CanSimplifyTypeNameExpression(
@@ -72,15 +82,17 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
         {
         }
 
+        public CodeActionRequestPriority RequestPriority => CodeActionRequestPriority.Normal;
+
         public bool OpenFileOnly(OptionSet options)
         {
             var preferTypeKeywordInDeclarationOption = options.GetOption(
-                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, GetLanguageName()).Notification;
+                CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, GetLanguageName())!.Notification;
             var preferTypeKeywordInMemberAccessOption = options.GetOption(
-                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, GetLanguageName()).Notification;
+                CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, GetLanguageName())!.Notification;
 
-            return !(preferTypeKeywordInDeclarationOption == NotificationOption.Warning || preferTypeKeywordInDeclarationOption == NotificationOption.Error ||
-                     preferTypeKeywordInMemberAccessOption == NotificationOption.Warning || preferTypeKeywordInMemberAccessOption == NotificationOption.Error);
+            return !(preferTypeKeywordInDeclarationOption == NotificationOption2.Warning || preferTypeKeywordInDeclarationOption == NotificationOption2.Error ||
+                     preferTypeKeywordInMemberAccessOption == NotificationOption2.Warning || preferTypeKeywordInMemberAccessOption == NotificationOption2.Error);
         }
 
         public sealed override void Initialize(AnalysisContext context)
@@ -93,14 +105,26 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
         private void AnalyzeCompilation(CompilationStartAnalysisContext context)
         {
-            context.RegisterSemanticModelAction(AnalyzeSemanticModel);
+            var analyzer = new AnalyzerImpl(this);
+            context.RegisterCodeBlockAction(analyzer.AnalyzeCodeBlock);
+            context.RegisterSemanticModelAction(analyzer.AnalyzeSemanticModel);
         }
 
-        protected abstract void AnalyzeSemanticModel(SemanticModelAnalysisContext context);
+        /// <summary>
+        /// Determine if a code block is eligible for analysis by <see cref="AnalyzeCodeBlock"/>.
+        /// </summary>
+        /// <param name="codeBlock">The syntax node provided via <see cref="CodeBlockAnalysisContext.CodeBlock"/>.</param>
+        /// <returns><see langword="true"/> if the code block should be analyzed by <see cref="AnalyzeCodeBlock"/>;
+        /// otherwise, <see langword="false"/> to skip analysis of the block. If a block is skipped, one or more child
+        /// blocks may be analyzed by <see cref="AnalyzeCodeBlock"/>, and any remaining spans can be analyzed by
+        /// <see cref="AnalyzeSemanticModel"/>.</returns>
+        protected abstract bool IsIgnoredCodeBlock(SyntaxNode codeBlock);
+        protected abstract ImmutableArray<Diagnostic> AnalyzeCodeBlock(CodeBlockAnalysisContext context);
+        protected abstract ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? codeBlockIntervalTree);
 
         protected abstract string GetLanguageName();
 
-        public bool TrySimplify(SemanticModel model, SyntaxNode node, out Diagnostic diagnostic, OptionSet optionSet, CancellationToken cancellationToken)
+        public bool TrySimplify(SemanticModel model, SyntaxNode node, [NotNullWhen(true)] out Diagnostic? diagnostic, OptionSet optionSet, CancellationToken cancellationToken)
         {
             if (!CanSimplifyTypeNameExpression(
                     model, node, optionSet,
@@ -123,7 +147,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
         internal static Diagnostic CreateDiagnostic(SemanticModel model, OptionSet optionSet, TextSpan issueSpan, string diagnosticId, bool inDeclaration)
         {
-            PerLanguageOption<CodeStyleOption<bool>> option;
+            PerLanguageOption2<CodeStyleOption2<bool>> option;
             DiagnosticDescriptor descriptor;
             ReportDiagnostic severity;
             switch (diagnosticId)
@@ -140,11 +164,11 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
                 case IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId:
                     option = inDeclaration
-                        ? CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration
-                        : CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
+                        ? CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration
+                        : CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
                     descriptor = s_descriptorPreferBuiltinOrFrameworkType;
 
-                    var optionValue = optionSet.GetOption(option, model.Language);
+                    var optionValue = optionSet.GetOption(option, model.Language)!;
                     severity = optionValue.Notification.Severity;
                     break;
                 default:
@@ -152,8 +176,8 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             }
 
             var tree = model.SyntaxTree;
-            var builder = ImmutableDictionary.CreateBuilder<string, string>();
-            builder["OptionName"] = nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess); // TODO: need the actual one
+            var builder = ImmutableDictionary.CreateBuilder<string, string?>();
+            builder["OptionName"] = nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess); // TODO: need the actual one
             builder["OptionLanguage"] = model.Language;
             var diagnostic = DiagnosticHelper.Create(descriptor, tree.GetLocation(issueSpan), severity, additionalLocations: null, builder.ToImmutable());
 
@@ -183,5 +207,115 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+
+        private class AnalyzerImpl
+        {
+            private readonly SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum> _analyzer;
+
+            /// <summary>
+            /// Tracks the analysis state of syntax trees in a compilation. Each syntax tree has the properties:
+            /// <list type="bullet">
+            /// <item><description>
+            /// <para><c>completed</c>: <see langword="true"/> to indicate that <c>intervalTree</c> has been obtained
+            /// for use in a <see cref="SemanticModelAnalysisContext"/> callback; otherwise, <see langword="false"/> to
+            /// indicate that <c>intervalTree</c> may be updated by adding a new non-overlapping <see cref="TextSpan"/>
+            /// for analysis performed by a <see cref="CodeBlockAnalysisContext"/> callback.</para>
+            ///
+            /// <para>This field also serves as the lock object for updating both <c>completed</c> and
+            /// <c>intervalTree</c>.</para>
+            /// </description></item>
+            /// <item><description>
+            /// <para><c>intervalTree</c>: the set of intervals analyzed by <see cref="CodeBlockAnalysisContext"/>
+            /// callbacks, and therefore do not need to be analyzed again by a
+            /// <see cref="SemanticModelAnalysisContext"/> callback.</para>
+            ///
+            /// <para>This field may only be accessed while <c>completed</c> is locked, and is not valid after
+            /// <c>completed</c> is <see langword="true"/>.</para>
+            /// </description></item>
+            /// </list>
+            /// </summary>
+            private readonly ConcurrentDictionary<SyntaxTree, (StrongBox<bool> completed, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? intervalTree)> _codeBlockIntervals
+                = new();
+
+            public AnalyzerImpl(SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnum> analyzer)
+                => _analyzer = analyzer;
+
+            public void AnalyzeCodeBlock(CodeBlockAnalysisContext context)
+            {
+                if (_analyzer.IsIgnoredCodeBlock(context.CodeBlock))
+                    return;
+
+                var (completed, intervalTree) = _codeBlockIntervals.GetOrAdd(context.CodeBlock.SyntaxTree, _ => (new StrongBox<bool>(false), SimpleIntervalTree.Create(new TextSpanIntervalIntrospector(), Array.Empty<TextSpan>())));
+                if (completed.Value)
+                    return;
+
+                RoslynDebug.AssertNotNull(intervalTree);
+                if (!TryProceedWithInterval(addIfAvailable: false, context.CodeBlock.FullSpan, completed, intervalTree))
+                    return;
+
+                var diagnostics = _analyzer.AnalyzeCodeBlock(context);
+
+                // After this point, cancellation is not allowed due to possible state alteration
+                if (!TryProceedWithInterval(addIfAvailable: true, context.CodeBlock.FullSpan, completed, intervalTree))
+                    return;
+
+                foreach (var diagnostic in diagnostics)
+                {
+                    context.ReportDiagnostic(diagnostic);
+                }
+
+                static bool TryProceedWithInterval(bool addIfAvailable, TextSpan span, StrongBox<bool> completed, SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector> intervalTree)
+                {
+                    lock (completed)
+                    {
+                        if (completed.Value)
+                            return false;
+
+                        if (intervalTree.HasIntervalThatOverlapsWith(span.Start, span.End))
+                            return false;
+
+                        if (addIfAvailable)
+                            intervalTree.AddIntervalInPlace(span);
+
+                        return true;
+                    }
+                }
+            }
+
+            public void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
+            {
+                // Get the state information for the syntax tree. If the state information is not available, it is
+                // initialized directly to a completed state, ensuring that concurrent (or future) calls to
+                // AnalyzeCodeBlock will always read completed==true, and intervalTree does not need to be initialized
+                // to a non-null value.
+                var (completed, intervalTree) = _codeBlockIntervals.GetOrAdd(context.SemanticModel.SyntaxTree, syntaxTree => (new StrongBox<bool>(true), null));
+
+                // Since SemanticModel callbacks only occur once per syntax tree, the completed state can be safely read
+                // here. It will have one of the values:
+                //
+                //   false: the state was initialized in AnalyzeCodeBlock, and intervalTree will be a non-null tree.
+                //   true: the state was initialized on the previous line, and either intervalTree will be null, or
+                //         a previous call to AnalyzeSemanticModel was cancelled and the new one will operate on the
+                //         same interval tree presented during the previous call.
+                if (!completed.Value)
+                {
+                    // This lock ensures we do not use intervalTree while it is being updated by a concurrent call to
+                    // AnalyzeCodeBlock.
+                    lock (completed)
+                    {
+                        // Prevent future code block callbacks from analyzing more spans within this tree
+                        completed.Value = true;
+                    }
+                }
+
+                var diagnostics = _analyzer.AnalyzeSemanticModel(context, intervalTree);
+
+                // After this point, cancellation is not allowed due to possible state alteration
+                foreach (var diagnostic in diagnostics)
+                {
+                    context.ReportDiagnostic(diagnostic);
+                }
+            }
+        }
     }
 }

@@ -9,33 +9,16 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
 {
     internal abstract class AbstractTaggerEventSource : ITaggerEventSource
     {
-        private readonly TaggerDelay _delay;
-
-        protected AbstractTaggerEventSource(TaggerDelay delay)
+        protected AbstractTaggerEventSource()
         {
-            _delay = delay;
         }
 
         public abstract void Connect();
         public abstract void Disconnect();
 
-        public event EventHandler<TaggerEventArgs> Changed;
-        public event EventHandler UIUpdatesPaused;
-        public event EventHandler UIUpdatesResumed;
+        public event EventHandler<TaggerEventArgs>? Changed;
 
         protected virtual void RaiseChanged()
-        {
-            this.Changed?.Invoke(this, new TaggerEventArgs(_delay));
-        }
-
-        protected virtual void RaiseUIUpdatesPaused()
-        {
-            this.UIUpdatesPaused?.Invoke(this, EventArgs.Empty);
-        }
-
-        protected virtual void RaiseUIUpdatesResumed()
-        {
-            this.UIUpdatesResumed?.Invoke(this, EventArgs.Empty);
-        }
+            => this.Changed?.Invoke(this, new TaggerEventArgs());
     }
 }

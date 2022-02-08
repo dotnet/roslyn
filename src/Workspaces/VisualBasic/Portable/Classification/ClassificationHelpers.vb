@@ -50,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             ElseIf token.IsKind(SyntaxKind.None, SyntaxKind.BadToken) Then
                 Return Nothing
             Else
-                Return Contract.FailWithReturn(Of String)("Unhandled token kind: " & token.Kind().ToString())
+                throw ExceptionUtilities.UnexpectedValue(token.Kind())
             End If
         End Function
 
@@ -313,7 +313,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 Case SyntaxKind.StructureStatement
                     Return ClassificationTypeNames.StructName
                 Case Else
-                    Return Contract.FailWithReturn(Of String)("Unhandled type declaration")
+                    throw ExceptionUtilities.UnexpectedValue(identifier.Parent.Kind)
             End Select
         End Function
 
@@ -323,8 +323,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             Worker.CollectClassifiedSpans(tokens, textSpan, result, cancellationToken)
         End Sub
 
+#Disable Warning IDE0060 ' Remove unused parameter - TODO: Do we need to do the same work here that we do in C#?
         Friend Function AdjustStaleClassification(text As SourceText, classifiedSpan As ClassifiedSpan) As ClassifiedSpan
-            ' TODO: Do we need to do the same work here that we do in C#?
+#Enable Warning IDE0060 ' Remove unused parameter
             Return classifiedSpan
         End Function
     End Module

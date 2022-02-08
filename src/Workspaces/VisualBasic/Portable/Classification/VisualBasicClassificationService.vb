@@ -15,14 +15,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         Inherits AbstractClassificationService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
-        Public Overrides Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken)
-            Dim temp = ArrayBuilder(Of ClassifiedSpan).GetInstance()
-            ClassificationHelpers.AddLexicalClassifications(text, textSpan, temp, cancellationToken)
-            AddRange(temp, result)
-            temp.Free()
+        Public Overrides Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As ArrayBuilder(Of ClassifiedSpan), cancellationToken As CancellationToken)
+            ClassificationHelpers.AddLexicalClassifications(text, textSpan, result, cancellationToken)
         End Sub
 
         Public Overrides Function AdjustStaleClassification(text As SourceText, classifiedSpan As ClassifiedSpan) As ClassifiedSpan

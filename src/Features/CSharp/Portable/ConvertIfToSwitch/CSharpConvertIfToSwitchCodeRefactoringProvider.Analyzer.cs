@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
@@ -12,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
     {
         private sealed class CSharpAnalyzer : Analyzer
         {
-            public CSharpAnalyzer(ISyntaxFactsService syntaxFacts, Feature features)
+            public CSharpAnalyzer(ISyntaxFacts syntaxFacts, Feature features)
                 : base(syntaxFacts, features)
             {
             }

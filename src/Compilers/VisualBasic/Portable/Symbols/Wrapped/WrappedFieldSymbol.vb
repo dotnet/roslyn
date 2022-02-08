@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Me._underlyingField.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken)
         End Function
 
-        Friend Overrides Function GetConstantValue(inProgress As SymbolsInProgress(Of FieldSymbol)) As ConstantValue
+        Friend Overrides Function GetConstantValue(inProgress As ConstantFieldsInProgress) As ConstantValue
             Return Me._underlyingField.GetConstantValue(inProgress)
         End Function
     End Class

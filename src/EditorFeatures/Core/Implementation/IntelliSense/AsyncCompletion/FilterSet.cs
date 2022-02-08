@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.Specialized;
-using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -53,6 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         public static readonly CompletionFilter PropertyFilter;
         public static readonly CompletionFilter MethodFilter;
         public static readonly CompletionFilter ExtensionMethodFilter;
+        public static readonly CompletionFilter OperatorFilter;
         public static readonly CompletionFilter LocalAndParameterFilter;
         public static readonly CompletionFilter KeywordFilter;
         public static readonly CompletionFilter SnippetFilter;
@@ -80,6 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             PropertyFilter = CreateCompletionFilterAndAddToBuilder(FeaturesResources.Properties, 'p', WellKnownTags.Property);
             MethodFilter = CreateCompletionFilterAndAddToBuilder(FeaturesResources.Methods, 'm', WellKnownTags.Method);
             ExtensionMethodFilter = CreateCompletionFilterAndAddToBuilder(FeaturesResources.Extension_methods, 'x', WellKnownTags.ExtensionMethod);
+            OperatorFilter = CreateCompletionFilterAndAddToBuilder(FeaturesResources.Operators, 'r', WellKnownTags.Operator);
             LocalAndParameterFilter = CreateCompletionFilterAndAddToBuilder(FeaturesResources.Locals_and_parameters, 'l', WellKnownTags.Local, WellKnownTags.Parameter);
             KeywordFilter = CreateCompletionFilterAndAddToBuilder(FeaturesResources.Keywords, 'k', WellKnownTags.Keyword);
             SnippetFilter = CreateCompletionFilterAndAddToBuilder(FeaturesResources.Snippets, 't', WellKnownTags.Snippet);
@@ -125,9 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         }
 
         public FilterSet()
-        {
-            _vector = new BitVector32();
-        }
+            => _vector = new BitVector32();
 
         public (ImmutableArray<CompletionFilter> filters, int data) GetFiltersAndAddToSet(RoslynCompletionItem item)
         {
@@ -169,23 +168,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         }
 
         public void CombineData(int filterSetData)
-        {
-            _vector[filterSetData] = true;
-        }
+            => _vector[filterSetData] = true;
 
-        public ImmutableArray<CompletionFilterWithState> GetFilterStatesInSet(bool addUnselectedExpander)
+        public ImmutableArray<CompletionFilterWithState> GetFilterStatesInSet()
         {
             var builder = new ArrayBuilder<CompletionFilterWithState>();
 
-            // An unselected expander is only added if `addUnselectedExpander == true` and the expander is not in the set.
-            if (_vector[s_expanderMask])
-            {
-                builder.Add(new CompletionFilterWithState(Expander, isAvailable: true, isSelected: true));
-            }
-            else if (addUnselectedExpander)
-            {
-                builder.Add(new CompletionFilterWithState(Expander, isAvailable: true, isSelected: false));
-            }
+            // We always show expander but its selection state depends on whether it is in the set.
+            builder.Add(new CompletionFilterWithState(Expander, isAvailable: true, isSelected: _vector[s_expanderMask]));
 
             foreach (var filterWithMask in s_filters)
             {
@@ -198,16 +188,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return builder.ToImmutableAndFree();
         }
 
-        private readonly struct FilterWithMask
-        {
-            public readonly CompletionFilter Filter;
-            public readonly int Mask;
-
-            public FilterWithMask(CompletionFilter filter, int mask)
-            {
-                Filter = filter;
-                Mask = mask;
-            }
-        }
+        private readonly record struct FilterWithMask(CompletionFilter Filter, int Mask);
     }
 }

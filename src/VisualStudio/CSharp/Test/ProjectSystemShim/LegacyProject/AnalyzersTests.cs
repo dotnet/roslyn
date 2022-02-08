@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -228,7 +231,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
         [CombinatorialData]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         [WorkItem(33505, "https://github.com/dotnet/roslyn/pull/33505")]
-        public void RuleSet_FileChangingOnDiskRefreshes(bool useCpsProject)
+        public async Task RuleSet_FileChangingOnDiskRefreshes(bool useCpsProject)
         {
             var ruleSetSource =
 @"<?xml version=""1.0"" encoding=""utf-8""?>
@@ -241,7 +244,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
             using var environment = new TestEnvironment();
             if (useCpsProject)
             {
-                CSharpHelpers.CreateCSharpCPSProject(environment, "Test", binOutputPath: null, $"/ruleset:\"{ruleSetFile.Path}\"");
+                await CSharpHelpers.CreateCSharpCPSProjectAsync(environment, "Test", binOutputPath: null, $"/ruleset:\"{ruleSetFile.Path}\"");
             }
             else
             {
@@ -257,11 +260,11 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 
             // Modify the file and raise a mock file change
             File.WriteAllText(ruleSetFile.Path, ruleSetSource.Replace("Error", "Warning"));
-            environment.RaiseFileChange(ruleSetFile.Path);
+            await environment.RaiseFileChangeAsync(ruleSetFile.Path);
 
             var listenerProvider = environment.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
             var waiter = listenerProvider.GetWaiter(FeatureAttribute.RuleSetEditor);
-            waiter.CreateExpeditedWaitTask().JoinUsingDispatcher(CancellationToken.None);
+            waiter.ExpeditedWaitAsync().JoinUsingDispatcher(CancellationToken.None);
 
             options = (CSharpCompilationOptions)environment.GetUpdatedCompilationOptionOfSingleProject();
             Assert.Equal(expected: ReportDiagnostic.Warn, actual: options.GeneralDiagnosticOption);

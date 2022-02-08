@@ -5,7 +5,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CompilerServer.UnitTests</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
+    <TargetFrameworks>net6.0;net472</TargetFrameworks>
 
     <!-- 
       Currently fails on CI against old versions of mono
@@ -14,7 +14,7 @@
     <SkipTests Condition="'$(TestRuntime)' == 'Mono'">true</SkipTests>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />
+    <ProjectReference Include="..\..\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\CSharp\csc\csc.csproj">
       <Aliases>csc</Aliases>
     </ProjectReference>
@@ -29,8 +29,8 @@
     <ProjectReference Include="..\..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="System" Condition="'$(TargetFramework)' != 'netcoreapp2.1'" />
-    <Reference Include="System.Xml" Condition="'$(TargetFramework)' != 'netcoreapp2.1'" />
+    <Reference Include="System" Condition="'$(TargetFramework)' != 'net6.0'" />
+    <Reference Include="System.Xml" Condition="'$(TargetFramework)' != 'net6.0'" />
     <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
     <PackageReference Include="Moq" Version="$(MoqVersion)" />
   </ItemGroup>

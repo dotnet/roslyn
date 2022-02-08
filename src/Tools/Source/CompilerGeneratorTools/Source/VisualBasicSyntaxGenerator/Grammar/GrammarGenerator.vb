@@ -87,7 +87,9 @@ Friend Class GrammarGenerator
                         Dim mappedChildren = structureNode.Children.Select(
                         Function(c)
                             If correspondingChildren.Contains(c) Then
-                                Return c.WithChildKind(correspondingChildrenKinds(c)(local_i))
+                                Return c.WithChildKind(
+                                    If(c.ChildKind(nodeKind.Name),
+                                       correspondingChildrenKinds(c)(local_i)))
                             End If
 
                             Return c

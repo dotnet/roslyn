@@ -2,12 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Options;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
@@ -19,63 +29,75 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             private readonly TLanguageService _languageService;
             private readonly IVsCodeWindow _codeWindow;
             private readonly ComEventSink _sink;
-            private readonly IOptionService _optionService;
+            private readonly IGlobalOptionService _globalOptions;
 
-            private INavigationBarController _navigationBarController;
-            private IVsDropdownBarClient _dropdownBarClient;
+            private IDisposable? _navigationBarController;
+            private IVsDropdownBarClient? _dropdownBarClient;
 
             public VsCodeWindowManager(TLanguageService languageService, IVsCodeWindow codeWindow)
             {
                 _languageService = languageService;
                 _codeWindow = codeWindow;
 
-                var workspace = languageService.Package.ComponentModel.GetService<VisualStudioWorkspace>();
-                _optionService = workspace.Services.GetService<IOptionService>();
+                _globalOptions = languageService.Package.ComponentModel.GetService<IGlobalOptionService>();
 
                 _sink = ComEventSink.Advise<IVsCodeWindowEvents>(codeWindow, this);
-                _optionService.OptionChanged += OnOptionChanged;
+                _globalOptions.OptionChanged += GlobalOptionChanged;
             }
 
             private void SetupView(IVsTextView view)
-            {
-                _languageService.SetupNewTextView(view);
-            }
+                => _languageService.SetupNewTextView(view);
 
-            private void TeardownView(IVsTextView view)
-            {
-            }
-
-            private void OnOptionChanged(object sender, OptionChangedEventArgs e)
+            private void GlobalOptionChanged(object sender, OptionChangedEventArgs e)
             {
                 if (e.Language != _languageService.RoslynLanguageName ||
-                    e.Option != NavigationBarOptions.ShowNavigationBar)
+                    e.Option != NavigationBarViewOptions.ShowNavigationBar)
                 {
                     return;
                 }
 
-                var enabled = _optionService.GetOption(NavigationBarOptions.ShowNavigationBar, _languageService.RoslynLanguageName);
-                AddOrRemoveDropdown(enabled);
+                AddOrRemoveDropdown();
             }
 
-            private void AddOrRemoveDropdown(bool enabled)
+            private void AddOrRemoveDropdown()
             {
-                if (!(_codeWindow is IVsDropdownBarManager dropdownManager))
+                if (_codeWindow is not IVsDropdownBarManager dropdownManager)
                 {
                     return;
                 }
 
+                if (ErrorHandler.Failed(_codeWindow.GetBuffer(out var buffer)) || buffer == null)
+                {
+                    return;
+                }
+
+                var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(buffer);
+                var document = textBuffer?.AsTextContainer()?.GetRelatedDocuments().FirstOrDefault();
+                // TODO - Remove the TS check once they move the liveshare navbar to LSP.  Then we can also switch to LSP
+                // for the local navbar implementation.
+                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1163360
+                if (textBuffer?.IsInLspEditorContext() == true && document!.Project!.Language != InternalLanguageNames.TypeScript)
+                {
+                    // Remove the existing dropdown bar if it is ours.
+                    if (IsOurDropdownBar(dropdownManager, out var _))
+                    {
+                        RemoveDropdownBar(dropdownManager);
+                    }
+
+                    return;
+                }
+
+                var enabled = _globalOptions.GetOption(NavigationBarViewOptions.ShowNavigationBar, _languageService.RoslynLanguageName);
                 if (enabled)
                 {
-                    var existingDropdownBar = GetDropdownBar(dropdownManager);
+                    if (IsOurDropdownBar(dropdownManager, out var existingDropdownBar))
+                    {
+                        // The dropdown bar is already one of ours, do nothing.
+                        return;
+                    }
+
                     if (existingDropdownBar != null)
                     {
-                        // Check if the existing dropdown is already one of ours, and do nothing if it is.
-                        if (_dropdownBarClient != null &&
-                            _dropdownBarClient == GetDropdownBarClient(existingDropdownBar))
-                        {
-                            return;
-                        }
-
                         // Not ours, so remove the old one so that we can add ours.
                         RemoveDropdownBar(dropdownManager);
                     }
@@ -85,11 +107,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                         Contract.ThrowIfFalse(_dropdownBarClient == null, "We shouldn't have a dropdown client if there isn't a dropdown");
                     }
 
-                    AdddropdownBar(dropdownManager);
+                    AddDropdownBar(dropdownManager);
                 }
                 else
                 {
                     RemoveDropdownBar(dropdownManager);
+                }
+
+                bool IsOurDropdownBar(IVsDropdownBarManager dropdownBarManager, out IVsDropdownBar? existingDropdownBar)
+                {
+                    existingDropdownBar = GetDropdownBar(dropdownBarManager);
+                    if (existingDropdownBar != null)
+                    {
+                        if (_dropdownBarClient != null &&
+                            _dropdownBarClient == GetDropdownBarClient(existingDropdownBar))
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
                 }
             }
 
@@ -105,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 return dropdownBarClient;
             }
 
-            private void AdddropdownBar(IVsDropdownBarManager dropdownManager)
+            private void AddDropdownBar(IVsDropdownBarManager dropdownManager)
             {
                 if (ErrorHandler.Failed(_codeWindow.GetBuffer(out var buffer)))
                 {
@@ -120,7 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
                 if (ErrorHandler.Failed(hr))
                 {
-                    newController.Disconnect();
+                    newController.Dispose();
                     ErrorHandler.ThrowOnFailure(hr);
                 }
 
@@ -135,7 +172,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 {
                     if (_navigationBarController != null)
                     {
-                        _navigationBarController.Disconnect();
+                        _navigationBarController.Dispose();
                         _navigationBarController = null;
                     }
 
@@ -158,16 +195,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     SetupView(secondaryView);
                 }
 
-                var enabled = _optionService.GetOption(NavigationBarOptions.ShowNavigationBar, _languageService.RoslynLanguageName);
-                AddOrRemoveDropdown(enabled);
+                AddOrRemoveDropdown();
 
                 return VSConstants.S_OK;
             }
 
             public int OnCloseView(IVsTextView view)
             {
-                TeardownView(view);
-
                 return VSConstants.S_OK;
             }
 
@@ -181,9 +215,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             public int RemoveAdornments()
             {
                 _sink.Unadvise();
-                _optionService.OptionChanged -= OnOptionChanged;
+                _globalOptions.OptionChanged -= GlobalOptionChanged;
 
-                AddOrRemoveDropdown(enabled: false);
+                if (_codeWindow is IVsDropdownBarManager dropdownManager)
+                {
+                    RemoveDropdownBar(dropdownManager);
+                }
 
                 return VSConstants.S_OK;
             }

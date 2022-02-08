@@ -2,15 +2,16 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.Simplification
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     Partial Friend Class VisualBasicMethodExtractor
@@ -24,11 +25,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return VisualBasicAnalyzer.AnalyzeResultAsync(selectionResult, cancellationToken)
         End Function
 
-        Protected Overrides Async Function GetInsertionPointAsync(document As SemanticDocument, position As Integer, cancellationToken As CancellationToken) As Task(Of InsertionPoint)
-            Contract.ThrowIfFalse(position >= 0)
+        Protected Overrides Async Function GetInsertionPointAsync(document As SemanticDocument, cancellationToken As CancellationToken) As Task(Of InsertionPoint)
+            Dim originalSpanStart = OriginalSelectionResult.OriginalSpan.Start
+            Contract.ThrowIfFalse(originalSpanStart >= 0)
 
             Dim root = Await document.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim basePosition = root.FindToken(position)
+            Dim basePosition = root.FindToken(originalSpanStart)
 
             Dim enclosingTopLevelNode As SyntaxNode = basePosition.GetAncestor(Of PropertyBlockSyntax)()
             If enclosingTopLevelNode Is Nothing Then
@@ -69,8 +71,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return VisualBasicCodeGenerator.GenerateResultAsync(insertionPoint, selectionResult, analyzeResult, cancellationToken)
         End Function
 
-        Protected Overrides Function GetFormattingRules(document As Document) As IEnumerable(Of AbstractFormattingRule)
-            Return SpecializedCollections.SingletonEnumerable(Of AbstractFormattingRule)(New FormattingRule()).Concat(Formatter.GetDefaultFormattingRules(document))
+        Protected Overrides Function GetCustomFormattingRules(document As Document) As ImmutableArray(Of AbstractFormattingRule)
+            Return ImmutableArray.Create(Of AbstractFormattingRule)(New FormattingRule())
         End Function
 
         Protected Overrides Function GetMethodNameAtInvocation(methodNames As IEnumerable(Of SyntaxNodeOrToken)) As SyntaxToken
@@ -97,8 +99,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Dim binding = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
 
             For Each typeParameter In TypeParameterCollector.Collect(type)
-                Dim vbType = DirectCast(typeParameter, ITypeSymbol)
-
                 Dim typeName = SyntaxFactory.ParseTypeName(typeParameter.Name)
                 Dim symbolInfo = binding.GetSpeculativeSymbolInfo(contextNode.SpanStart, typeName, SpeculativeBindingOption.BindAsTypeOrNamespace)
                 Dim currentType = TryCast(symbolInfo.Symbol, ITypeSymbol)
@@ -117,14 +117,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         Private Class FormattingRule
             Inherits CompatAbstractFormattingRule
 
-            Public Overrides Function GetAdjustNewLinesOperationSlow(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
+            Public Overrides Function GetAdjustNewLinesOperationSlow(ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
                 If Not previousToken.IsLastTokenOfStatement() Then
-                    Return nextOperation.Invoke()
+                    Return nextOperation.Invoke(previousToken, currentToken)
                 End If
 
                 ' between [generated code] and [existing code]
                 If Not CommonFormattingHelpers.HasAnyWhitespaceElasticTrivia(previousToken, currentToken) Then
-                    Return nextOperation.Invoke()
+                    Return nextOperation.Invoke(previousToken, currentToken)
                 End If
 
                 ' make sure attribute and previous statement has at least 1 blank lines between them
@@ -138,10 +138,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return FormattingOperations.CreateAdjustNewLinesOperation(2, AdjustNewLinesOption.ForceLines)
                 End If
 
-                Return nextOperation.Invoke()
+                Return nextOperation.Invoke(previousToken, currentToken)
             End Function
 
-            Private Function IsLessThanInAttribute(token As SyntaxToken) As Boolean
+            Private Shared Function IsLessThanInAttribute(token As SyntaxToken) As Boolean
                 ' < in attribute
                 If token.Kind = SyntaxKind.LessThanToken AndAlso
                    token.Parent.Kind = SyntaxKind.AttributeList AndAlso

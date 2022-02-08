@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -46,6 +48,48 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"using Goo = $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInGlobalUsingAlias()
+        {
+            await VerifyAbsenceAsync(
+@"global using Goo = $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestIncompleteStatementAttributeList()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[$$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestStatementAttributeList()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[$$Attr]"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestLocalFunctionAttributeList()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"[$$Attr] void local1() { }"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInLocalFunctionParameterAttributeList()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"void local1([$$Attr] int i) { }"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotInLocalFunctionTypeParameterAttributeList()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"void local1<[$$Attr] T>() { }"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

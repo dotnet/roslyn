@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -74,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Debugging
             }
 
             var offset = 0;
-            ReadGlobalHeader(customDebugInfo, ref offset, out var globalVersion, out var globalCount);
+            ReadGlobalHeader(customDebugInfo, ref offset, out var globalVersion, out _);
 
             if (globalVersion != CustomDebugInfoConstants.Version)
             {
@@ -300,6 +302,7 @@ namespace Microsoft.CodeAnalysis.Debugging
             {
                 builder.Add(DecodeTupleElementNamesInfo(bytes, ref offset));
             }
+
             return builder.ToImmutableAndFree();
         }
 
@@ -312,6 +315,7 @@ namespace Microsoft.CodeAnalysis.Debugging
                 var value = ReadUtf8String(bytes, ref offset);
                 builder.Add(string.IsNullOrEmpty(value) ? null : value);
             }
+
             var slotIndex = ReadInt32(bytes, ref offset);
             var scopeStart = ReadInt32(bytes, ref offset);
             var scopeEnd = ReadInt32(bytes, ref offset);
@@ -512,7 +516,7 @@ RETRY:
             if (importString.Length >= 2 && importString[0] == '@')
             {
                 var ch1 = importString[1];
-                if ('0' <= ch1 && ch1 <= '9')
+                if (ch1 is >= '0' and <= '9')
                 {
                     if (int.TryParse(importString.Substring(1), NumberStyles.None, CultureInfo.InvariantCulture, out var tempMethodToken))
                     {
@@ -876,8 +880,10 @@ RETRY:
                 {
                     break;
                 }
+
                 builder.Add(b);
             }
+
             var block = builder.ToArrayAndFree();
             return Encoding.UTF8.GetString(block, 0, block.Length);
         }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 OperationStatus status,
                 TextSpan originalSpan,
                 TextSpan finalSpan,
-                OptionSet options,
+                ExtractMethodOptions options,
                 bool selectionInExpression,
                 SemanticDocument document,
                 SyntaxAnnotation firstTokenAnnotation,
@@ -31,11 +33,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             public override bool ContainingScopeHasAsyncKeyword()
             {
-                var node = this.GetContainingScope();
+                var node = GetContainingScope();
 
                 return node switch
                 {
-                    AccessorDeclarationSyntax access => false,
+                    AccessorDeclarationSyntax _ => false,
                     MethodDeclarationSyntax method => method.Modifiers.Any(SyntaxKind.AsyncKeyword),
                     ParenthesizedLambdaExpressionSyntax lambda => lambda.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword,
                     SimpleLambdaExpressionSyntax lambda => lambda.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword,
@@ -46,30 +48,30 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             public override SyntaxNode GetContainingScope()
             {
-                Contract.ThrowIfNull(this.SemanticDocument);
-                Contract.ThrowIfTrue(this.SelectionInExpression);
+                Contract.ThrowIfNull(SemanticDocument);
+                Contract.ThrowIfTrue(SelectionInExpression);
 
                 // it contains statements
-                var firstToken = this.GetFirstTokenInSelection();
+                var firstToken = GetFirstTokenInSelection();
                 return firstToken.GetAncestors<SyntaxNode>().FirstOrDefault(n =>
                 {
-                    return n is AccessorDeclarationSyntax ||
-                           n is LocalFunctionStatementSyntax ||
-                           n is BaseMethodDeclarationSyntax ||
-                           n is AccessorDeclarationSyntax ||
-                           n is ParenthesizedLambdaExpressionSyntax ||
-                           n is SimpleLambdaExpressionSyntax ||
-                           n is AnonymousMethodExpressionSyntax ||
-                           n is CompilationUnitSyntax;
+                    return n is AccessorDeclarationSyntax or
+                           LocalFunctionStatementSyntax or
+                           BaseMethodDeclarationSyntax or
+                           AccessorDeclarationSyntax or
+                           ParenthesizedLambdaExpressionSyntax or
+                           SimpleLambdaExpressionSyntax or
+                           AnonymousMethodExpressionSyntax or
+                           CompilationUnitSyntax;
                 });
             }
 
             public override ITypeSymbol GetContainingScopeType()
             {
-                Contract.ThrowIfTrue(this.SelectionInExpression);
+                Contract.ThrowIfTrue(SelectionInExpression);
 
-                var node = this.GetContainingScope();
-                var semanticModel = this.SemanticDocument.SemanticModel;
+                var node = GetContainingScope();
+                var semanticModel = SemanticDocument.SemanticModel;
 
                 switch (node)
                 {

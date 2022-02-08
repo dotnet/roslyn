@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -531,7 +533,7 @@ class Program
                 // (39,34): error CS1601: Cannot make reference to variable of type 'TypedReference'
                 //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
                 Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref TypedReference ss").WithArguments("System.TypedReference").WithLocation(39, 34),
-                // (39,12): error CS1599: Method or delegate cannot return type 'TypedReference'
+                // (39,12): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
                 //     static ref TypedReference M1(ref TypedReference ss) => ref ss;
                 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ref TypedReference").WithArguments("System.TypedReference").WithLocation(39, 12)
             );
@@ -926,7 +928,7 @@ public class Program
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
             comp.VerifyDiagnostics(
-                // (14,19): error CS1599: Method or delegate cannot return type 'TypedReference'
+                // (14,19): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
                 //     public static TypedReference operator +(Span<int> x, Program y) => default(TypedReference);
                 Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "TypedReference").WithArguments("System.TypedReference").WithLocation(14, 19)
             );
@@ -956,7 +958,7 @@ public class Program
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
             comp.VerifyDiagnostics(
-                // (11,48): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or lambda expressions.
+                // (11,48): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
                 //     public static async Task<int> M1(Span<int> arg)
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "arg").WithArguments("System.Span<int>").WithLocation(11, 48)
             );
@@ -988,23 +990,17 @@ public class Program
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
             comp.VerifyDiagnostics(
-                // (13,9): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or lambda expressions.
+                // (13,9): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
                 //         Span<int> local = default(Span<int>);
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "Span<int>").WithArguments("System.Span<int>").WithLocation(13, 9),
-                // (13,19): warning CS0219: The variable 'local' is assigned but its value is never used
-                //         Span<int> local = default(Span<int>);
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local").WithArguments("local").WithLocation(13, 19)
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "Span<int>").WithArguments("System.Span<int>").WithLocation(13, 9)
             );
 
             comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.DebugExe);
 
             comp.VerifyDiagnostics(
-                // (13,9): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or lambda expressions.
+                // (13,9): error CS4012: Parameters or locals of type 'Span<int>' cannot be declared in async methods or async lambda expressions.
                 //         Span<int> local = default(Span<int>);
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "Span<int>").WithArguments("System.Span<int>").WithLocation(13, 9),
-                // (13,19): warning CS0219: The variable 'local' is assigned but its value is never used
-                //         Span<int> local = default(Span<int>);
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "local").WithArguments("local").WithLocation(13, 19)
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "Span<int>").WithArguments("System.Span<int>").WithLocation(13, 9)
             );
         }
 
@@ -1473,7 +1469,7 @@ class C
     {
         ref Span<int> q = ref x;
         return ref q;
-  	}
+    }
     
     static ref Span<int> M2(ref Span<int> x)
     {
@@ -1501,7 +1497,7 @@ class C
     
     static void M1(Span<int> s1)
     {
-		Span<int> s2 = stackalloc int[2];
+        Span<int> s2 = stackalloc int[2];
 
         M2(s1, s2);
         M2(s2, s1);
@@ -1514,7 +1510,7 @@ class C
 
         M2(y: in s2, x: s1);
         M2(y: in s1, x: s2);
-  	}
+    }
 
     static void M2(Span<int> x, in Span<int> y)
     {
@@ -1547,8 +1543,8 @@ class C
     
     static void M1(Span<int> s1)
     {
-		var obj = new C();
-		Span<int> s2 = stackalloc int[2];
+        var obj = new C();
+        Span<int> s2 = stackalloc int[2];
 
         Console.WriteLine(obj[s1, s2]);
         Console.WriteLine(obj[s2, s1]);
@@ -1561,7 +1557,7 @@ class C
 
         Console.WriteLine(obj[y: in s2, x: s1]);
         Console.WriteLine(obj[y: in s1, x: s2]);
-  	}
+    }
 
     string this[Span<int> x, in Span<int> y] => x.Length + "" - "" + y.Length;
 }", options: TestOptions.ReleaseExe), verify: Verification.Fails, expectedOutput: @"
@@ -1591,8 +1587,8 @@ class C
     
     static void M1(Span<int> s1)
     {
-		var obj = new C();
-		Span<int> s2 = stackalloc int[2];
+        var obj = new C();
+        Span<int> s2 = stackalloc int[2];
 
         M2(ref s1, out s2);         // one
         M2(ref s2, out s1);         // two
@@ -1605,7 +1601,7 @@ class C
 
         M2(ref s1, out s1);         // should be ok
         M2(ref s2, out s2);         // should be ok
-  	}
+    }
 
     static void M2(ref Span<int> x, out Span<int> y)
     {
@@ -1666,12 +1662,12 @@ class C
     
     static void M1(Span<int> s1)
     {
-		var obj = new C();
-		Span<int> s2 = stackalloc int[2];
+        var obj = new C();
+        Span<int> s2 = stackalloc int[2];
 
         M2(__arglist(ref s1, ref s2));  // one
         M2(__arglist(ref s2, ref s1));  // two
-  	}
+    }
 
     static void M2(__arglist)
     {
@@ -1689,6 +1685,249 @@ class C
                 // (17,9): error CS8350: This combination of arguments to 'C.M2(__arglist)' is disallowed because it may expose variables referenced by parameter '__arglist' outside of their declaration scope
                 //         M2(__arglist(ref s2, ref s1));  // two
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "M2(__arglist(ref s2, ref s1))").WithArguments("C.M2(__arglist)", "__arglist").WithLocation(17, 9));
+        }
+
+        [Fact]
+        [WorkItem(44588, "https://github.com/dotnet/roslyn/issues/44588")]
+        public void SwitchDefaultLocalInitialization_01()
+        {
+            var source = @"
+using System;
+
+struct Struct2
+{
+    public static ReadOnlySpan<T> GetSpan1<T>(int x)
+    {
+        return x switch
+        {
+            0 => default,
+            _ => default,
+        };
+    }
+
+    public static ReadOnlySpan<T> GetSpan2<T>(int x)
+    {
+        ReadOnlySpan<T> span;
+
+        span = x switch
+        {
+            0 => default,
+            _ => default,
+        };
+
+        return span;
+    }
+
+    public static ReadOnlySpan<T> GetSpan3<T>(int x)
+    {
+        ReadOnlySpan<T> span = x switch
+        {
+            0 => default,
+            _ => default,
+        };
+
+        return span;
+    }
+
+    public static ReadOnlySpan<T> GetSpan4<T>(int x)
+    {
+        ReadOnlySpan<T> span = default;
+
+        return span;
+    }
+}";
+            CreateCompilationWithMscorlibAndSpan(source).VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        [WorkItem(44588, "https://github.com/dotnet/roslyn/issues/44588")]
+        public void SwitchDefaultLocalInitialization_02()
+        {
+            var source = @"
+using System;
+
+struct Struct2
+{
+    public static Span<byte> GetSpan1(int x)
+    {
+        return x switch
+        {
+            0 => stackalloc byte[10], // 1
+            _ => default,
+        };
+    }
+
+    public static Span<byte> GetSpan2(int x)
+    {
+        Span<byte> span;
+
+        span = x switch
+        {
+            0 => stackalloc byte[10], // 2
+            _ => default,
+        };
+
+        return span;
+    }
+
+    public static Span<byte> GetSpan3(int x)
+    {
+        Span<byte> span = x switch
+        {
+            0 => stackalloc byte[10],
+            _ => default,
+        };
+
+        return span; // 3
+    }
+
+    public static Span<byte> GetSpan4(int x)
+    {
+        Span<byte> span = stackalloc byte[10];
+
+        return span; // 4
+    }
+}";
+            CreateCompilationWithMscorlibAndSpan(source).VerifyDiagnostics(
+                // (10,18): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
+                //             0 => stackalloc byte[10], // 1
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[10]").WithArguments("System.Span<byte>").WithLocation(10, 18),
+                // (21,18): error CS8353: A result of a stackalloc expression of type 'Span<byte>' cannot be used in this context because it may be exposed outside of the containing method
+                //             0 => stackalloc byte[10], // 2
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc byte[10]").WithArguments("System.Span<byte>").WithLocation(21, 18),
+                // (36,16): error CS8352: Cannot use local 'span' in this context because it may expose referenced variables outside of their declaration scope
+                //         return span; // 3
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "span").WithArguments("span").WithLocation(36, 16),
+                // (43,16): error CS8352: Cannot use local 'span' in this context because it may expose referenced variables outside of their declaration scope
+                //         return span; // 4
+                Diagnostic(ErrorCode.ERR_EscapeLocal, "span").WithArguments("span").WithLocation(43, 16)
+                );
+        }
+
+        [Fact]
+        [WorkItem(39663, "https://github.com/dotnet/roslyn/issues/39663")]
+        public void AssignToDiscard_01()
+        {
+            var text = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        _ = Test(stackalloc int[5]);
+        System.Console.WriteLine(""Done"");
+    }
+
+    static Span<int> Test(Span<int> items) => items;
+}
+";
+
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "Done").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(39663, "https://github.com/dotnet/roslyn/issues/39663")]
+        public void AssignToDiscard_02()
+        {
+            var text = @"
+using System;
+
+class Program
+{
+    static int[] _array = new int[] {};
+
+    static void Main()
+    {
+        _ = Test;
+        System.Console.WriteLine(""Done"");
+    }
+
+    static Span<int> Test => _array;
+}
+";
+
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "Done").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(39663, "https://github.com/dotnet/roslyn/issues/39663")]
+        public void AssignToDiscard_03()
+        {
+            var text = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        var l = Test(stackalloc int[5]);
+        _ = l;
+        System.Console.WriteLine(""Done"");
+    }
+
+    static Span<int> Test(Span<int> items) => items;
+}
+";
+
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "Done").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(39663, "https://github.com/dotnet/roslyn/issues/39663")]
+        public void AssignToDiscard_04()
+        {
+            var text = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        var l = Test(stackalloc int[5]);
+
+        {
+            int i = 0;
+            _ = l;
+            i++;
+        }
+
+        System.Console.WriteLine(""Done"");
+    }
+
+    static Span<int> Test(Span<int> items) => items;
+}
+";
+
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "Done").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(39663, "https://github.com/dotnet/roslyn/issues/39663")]
+        public void AssignToDiscard_05()
+        {
+            var text = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Test(stackalloc int[5]);
+        System.Console.WriteLine(""Done"");
+    }
+
+    static Span<int> Test(Span<int> items) => items;
+}
+";
+
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: "Done").VerifyDiagnostics();
         }
     }
 }

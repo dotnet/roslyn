@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 stack.Push(currentBinary);
                 currentBinary = currentBinary.Left as BoundBinaryOperatorBase;
             }
-            while (currentBinary is object);
+            while (currentBinary is not null);
 
             Debug.Assert(stack.Count > 0);
             var leftChild = (BoundExpression)Visit(stack.Peek().Left);
@@ -49,15 +48,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 currentBinary = stack.Pop();
 
-                bool foundInfo = _updatedNullabilities.TryGetValue(currentBinary, out (NullabilityInfo Info, TypeSymbol Type) infoAndType);
+                bool foundInfo = _updatedNullabilities.TryGetValue(currentBinary, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType);
                 var right = (BoundExpression)Visit(currentBinary.Right);
                 var type = foundInfo ? infoAndType.Type : currentBinary.Type;
 
                 currentBinary = currentBinary switch
                 {
-                    BoundBinaryOperator binary => binary.Update(binary.OperatorKind, binary.ConstantValueOpt, GetUpdatedSymbol(binary, binary.MethodOpt), binary.ResultKind, binary.OriginalUserDefinedOperatorsOpt, leftChild, right, type),
+                    BoundBinaryOperator binary => binary.Update(
+                        binary.OperatorKind,
+                        binary.Data?.WithUpdatedMethod(GetUpdatedSymbol(binary, binary.Method)),
+                        binary.ResultKind,
+                        leftChild,
+                        right,
+                        type!),
                     // https://github.com/dotnet/roslyn/issues/35031: We'll need to update logical.LogicalOperator
-                    BoundUserDefinedConditionalLogicalOperator logical => logical.Update(logical.OperatorKind, logical.LogicalOperator, logical.TrueOperator, logical.FalseOperator, logical.ResultKind, logical.OriginalUserDefinedOperatorsOpt, leftChild, right, type),
+                    BoundUserDefinedConditionalLogicalOperator logical => logical.Update(logical.OperatorKind, logical.LogicalOperator, logical.TrueOperator, logical.FalseOperator, logical.ConstrainedToTypeOpt, logical.ResultKind, logical.OriginalUserDefinedOperatorsOpt, leftChild, right, type!),
                     _ => throw ExceptionUtilities.UnexpectedValue(currentBinary.Kind),
                 };
 
@@ -155,6 +160,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _remappedSymbols.Add(local, updatedLocal);
                 return updatedLocal;
             }
+        }
+
+        public override BoundNode? VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node)
+        {
+            BoundExpression receiver = (BoundExpression)this.Visit(node.Receiver);
+            BoundExpression argument = (BoundExpression)this.Visit(node.Argument);
+            BoundExpression lengthOrCountAccess = node.LengthOrCountAccess;
+            BoundExpression indexerAccess = (BoundExpression)this.Visit(node.IndexerOrSliceAccess);
+            BoundImplicitIndexerAccess updatedNode;
+
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
+            {
+                updatedNode = node.Update(receiver, argument, lengthOrCountAccess, node.ReceiverPlaceholder, indexerAccess, node.ArgumentPlaceholders, infoAndType.Type!);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(receiver, argument, lengthOrCountAccess, node.ReceiverPlaceholder, indexerAccess, node.ArgumentPlaceholders, node.Type);
+            }
+            return updatedNode;
         }
 
         private ImmutableArray<T> GetUpdatedArray<T>(BoundNode expr, ImmutableArray<T> symbols) where T : Symbol?

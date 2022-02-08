@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Microsoft.VisualStudio.Utilities;
 using TextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
@@ -22,12 +25,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         {
             string result = null;
 
-            var waitIndicator = ComponentModel.GetService<IWaitIndicator>();
-            waitIndicator.Wait(
+            var uiThreadOperationExecutor = ComponentModel.GetService<IUIThreadOperationExecutor>();
+            uiThreadOperationExecutor.Execute(
                 "Intellisense",
-                allowCancel: false,
+                defaultDescription: "",
+                allowCancellation: false,
+                showProgress: false,
                 action: c =>
-                    result = ContainedLanguageCodeSupport.CreateUniqueEventName(GetThisDocument(), pszClassName, pszObjectName, pszNameOfEvent, c.CancellationToken));
+                    result = ContainedLanguageCodeSupport.CreateUniqueEventName(GetThisDocument(), pszClassName, pszObjectName, pszNameOfEvent, c.UserCancellationToken));
 
             pbstrEventHandlerName = result;
             return VSConstants.S_OK;
@@ -55,10 +60,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
 
             Tuple<string, string, TextSpan> idBodyAndInsertionPoint = null;
-            var waitIndicator = ComponentModel.GetService<IWaitIndicator>();
-            waitIndicator.Wait(
+            var uiThreadOperationExecutor = ComponentModel.GetService<IUIThreadOperationExecutor>();
+            uiThreadOperationExecutor.Execute(
                 "Intellisense",
-                allowCancel: false,
+                defaultDescription: "",
+                allowCancellation: false,
+                showProgress: false,
                 action: c => idBodyAndInsertionPoint = ContainedLanguageCodeSupport.EnsureEventHandler(
                     thisDocument,
                     targetDocument,
@@ -70,7 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     itemidInsertionPoint,
                     useHandlesClause: false,
                     additionalFormattingRule: targetDocument.Project.LanguageServices.GetService<IAdditionalFormattingRuleLanguageService>().GetAdditionalCodeGenerationRule(),
-                    cancellationToken: c.CancellationToken));
+                    cancellationToken: c.UserCancellationToken));
 
             pbstrUniqueMemberID = idBodyAndInsertionPoint.Item1;
             pbstrEventBody = idBodyAndInsertionPoint.Item2;
@@ -81,12 +88,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         public int GetBaseClassName(string pszClassName, out string pbstrBaseClassName)
         {
             var result = false;
-            var waitIndicator = this.ComponentModel.GetService<IWaitIndicator>();
             string baseClassName = null;
-            waitIndicator.Wait(
+            var uiThreadOperationExecutor = ComponentModel.GetService<IUIThreadOperationExecutor>();
+            uiThreadOperationExecutor.Execute(
                 "Intellisense",
-                allowCancel: false,
-                action: c => result = ContainedLanguageCodeSupport.TryGetBaseClassName(GetThisDocument(), pszClassName, c.CancellationToken, out baseClassName));
+                defaultDescription: "",
+                allowCancellation: false,
+                showProgress: false,
+                action: c => result = ContainedLanguageCodeSupport.TryGetBaseClassName(GetThisDocument(), pszClassName, c.UserCancellationToken, out baseClassName));
 
             pbstrBaseClassName = baseClassName;
             return result ? VSConstants.S_OK : VSConstants.E_FAIL;
@@ -102,11 +111,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         {
             IEnumerable<Tuple<string, string>> membersAndIds = null;
 
-            var waitIndicator = this.ComponentModel.GetService<IWaitIndicator>();
-            waitIndicator.Wait(
+            var uiThreadOperationExecutor = ComponentModel.GetService<IUIThreadOperationExecutor>();
+            uiThreadOperationExecutor.Execute(
                 "Intellisense",
-                allowCancel: false,
-                action: c => membersAndIds = ContainedLanguageCodeSupport.GetCompatibleEventHandlers(GetThisDocument(), pszClassName, pszObjectTypeName, pszNameOfEvent, c.CancellationToken));
+                defaultDescription: "",
+                allowCancellation: false,
+                showProgress: false,
+                action: c => membersAndIds = ContainedLanguageCodeSupport.GetCompatibleEventHandlers(GetThisDocument(), pszClassName, pszObjectTypeName, pszNameOfEvent, c.UserCancellationToken));
 
             pcMembers = membersAndIds.Count();
             CreateBSTRArray(ppbstrEventHandlerNames, membersAndIds.Select(t => t.Item1));
@@ -119,11 +130,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         {
             string memberId = null;
 
-            var waitIndicator = this.ComponentModel.GetService<IWaitIndicator>();
-            waitIndicator.Wait(
+            var uiThreadOperationExecutor = ComponentModel.GetService<IUIThreadOperationExecutor>();
+            uiThreadOperationExecutor.Execute(
                 "Intellisense",
-                allowCancel: false,
-                action: c => memberId = ContainedLanguageCodeSupport.GetEventHandlerMemberId(GetThisDocument(), pszClassName, pszObjectTypeName, pszNameOfEvent, pszEventHandlerName, c.CancellationToken));
+                defaultDescription: "",
+                allowCancellation: false,
+                showProgress: false,
+                action: c => memberId = ContainedLanguageCodeSupport.GetEventHandlerMemberId(GetThisDocument(), pszClassName, pszObjectTypeName, pszNameOfEvent, pszEventHandlerName, c.UserCancellationToken));
 
             pbstrUniqueMemberID = memberId;
             return pbstrUniqueMemberID == null ? VSConstants.S_FALSE : VSConstants.S_OK;
@@ -135,13 +148,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             TextSpan textSpan = default;
             var succeeded = false;
 
-            var waitIndicator = this.ComponentModel.GetService<IWaitIndicator>();
-            waitIndicator.Wait(
+            var uiThreadOperationExecutor = ComponentModel.GetService<IUIThreadOperationExecutor>();
+            uiThreadOperationExecutor.Execute(
                 "Intellisense",
-                allowCancel: false,
+                defaultDescription: "",
+                allowCancellation: false,
+                showProgress: false,
                 action: c =>
                 {
-                    if (ContainedLanguageCodeSupport.TryGetMemberNavigationPoint(GetThisDocument(), pszClassName, pszUniqueMemberID, out textSpan, out var targetDocument, c.CancellationToken))
+                    if (ContainedLanguageCodeSupport.TryGetMemberNavigationPoint(GetThisDocument(), pszClassName, pszUniqueMemberID, out textSpan, out var targetDocument, c.UserCancellationToken))
                     {
                         succeeded = true;
                         itemId = this.ContainedDocument.FindItemIdOfDocument(targetDocument);
@@ -157,11 +172,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         {
             IEnumerable<Tuple<string, string>> membersAndIds = null;
 
-            var waitIndicator = this.ComponentModel.GetService<IWaitIndicator>();
-            waitIndicator.Wait(
+            var uiThreadOperationExecutor = ComponentModel.GetService<IUIThreadOperationExecutor>();
+            uiThreadOperationExecutor.Execute(
                 "Intellisense",
-                allowCancel: false,
-                action: c => membersAndIds = ContainedLanguageCodeSupport.GetMembers(GetThisDocument(), pszClassName, (CODEMEMBERTYPE)dwFlags, c.CancellationToken));
+                defaultDescription: "",
+                allowCancellation: false,
+                showProgress: false,
+                action: c => membersAndIds = ContainedLanguageCodeSupport.GetMembers(GetThisDocument(), pszClassName, (CODEMEMBERTYPE)dwFlags, c.UserCancellationToken));
 
             pcMembers = membersAndIds.Count();
             CreateBSTRArray(ppbstrDisplayNames, membersAndIds.Select(t => t.Item1));
@@ -180,15 +197,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         {
             var result = 0;
 
-            var waitIndicator = this.ComponentModel.GetService<IWaitIndicator>();
-            waitIndicator.Wait(
+            var uiThreadOperationExecutor = ComponentModel.GetService<IUIThreadOperationExecutor>();
+            uiThreadOperationExecutor.Execute(
                 "Intellisense",
-                allowCancel: false,
+                defaultDescription: "",
+                allowCancellation: false,
+                showProgress: false,
                 action: c =>
                     {
                         var refactorNotifyServices = this.ComponentModel.DefaultExportProvider.GetExportedValues<IRefactorNotifyService>();
 
-                        if (!ContainedLanguageCodeSupport.TryRenameElement(GetThisDocument(), clrt, bstrOldID, bstrNewID, refactorNotifyServices, c.CancellationToken))
+                        if (!ContainedLanguageCodeSupport.TryRenameElement(GetThisDocument(), clrt, bstrOldID, bstrNewID, refactorNotifyServices, c.UserCancellationToken))
                         {
                             result = s_CONTAINEDLANGUAGE_CANNOTFINDITEM;
                         }
@@ -216,9 +235,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         private const int FACILITY_ITF = 4;
         private static int MakeHResult(uint sev, uint facility, uint code)
-        {
-            return unchecked((int)((sev << 31) | (facility << 16) | code));
-        }
+            => unchecked((int)((sev << 31) | (facility << 16) | code));
 
         protected static void CreateBSTRArray(IntPtr dest, IEnumerable<string> source)
         {

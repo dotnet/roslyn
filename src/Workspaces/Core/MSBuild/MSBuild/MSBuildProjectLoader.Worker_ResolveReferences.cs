@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild
@@ -78,17 +79,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     return builder.ToImmutable();
                 }
 
-                private static string GetFilePath(MetadataReference metadataReference)
+                private static string? GetFilePath(MetadataReference metadataReference)
                 {
-                    switch (metadataReference)
+                    return metadataReference switch
                     {
-                        case PortableExecutableReference portableExecutableReference:
-                            return portableExecutableReference.FilePath;
-                        case UnresolvedMetadataReference unresolvedMetadataReference:
-                            return unresolvedMetadataReference.Reference;
-                        default:
-                            return null;
-                    }
+                        PortableExecutableReference portableExecutableReference => portableExecutableReference.FilePath,
+                        UnresolvedMetadataReference unresolvedMetadataReference => unresolvedMetadataReference.Reference,
+                        _ => null,
+                    };
                 }
 
                 public void AddProjectReference(ProjectReference projectReference)
@@ -96,11 +94,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     _projectReferences.Add(projectReference);
                 }
 
-                public void SwapMetadataReferenceForProjectReference(ProjectReference projectReference, params string[] possibleMetadataReferencePaths)
+                public void SwapMetadataReferenceForProjectReference(ProjectReference projectReference, params string?[] possibleMetadataReferencePaths)
                 {
                     foreach (var path in possibleMetadataReferencePaths)
                     {
-                        Remove(path);
+                        if (path != null)
+                        {
+                            Remove(path);
+                        }
                     }
 
                     AddProjectReference(projectReference);
@@ -109,7 +110,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 /// <summary>
                 /// Returns true if a metadata reference with the given file path is contained within this list.
                 /// </summary>
-                public bool Contains(string filePath)
+                public bool Contains(string? filePath)
                     => filePath != null
                     && _pathToIndicesMap.ContainsKey(filePath);
 
@@ -124,12 +125,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     }
                 }
 
-                public ProjectInfo SelectProjectInfoByOutput(IEnumerable<ProjectInfo> projectInfos)
+                public ProjectInfo? SelectProjectInfoByOutput(IEnumerable<ProjectInfo> projectInfos)
                 {
                     foreach (var projectInfo in projectInfos)
                     {
-                        if (Contains(projectInfo.OutputFilePath) ||
-                            Contains(projectInfo.OutputRefFilePath))
+                        var outputFilePath = projectInfo.OutputFilePath;
+                        var outputRefFilePath = projectInfo.OutputRefFilePath;
+                        if (outputFilePath != null &&
+                            outputRefFilePath != null &&
+                            (Contains(outputFilePath) || Contains(outputRefFilePath)))
                         {
                             return projectInfo;
                         }
@@ -157,11 +161,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 {
                     var builder = ImmutableArray.CreateBuilder<MetadataReference>();
 
+                    // used to eliminate duplicates
+                    var _ = PooledHashSet<MetadataReference>.GetInstance(out var set);
+
                     for (var index = 0; index < _metadataReferences.Length; index++)
                     {
-                        if (!_indicesToRemove.Contains(index))
+                        var reference = _metadataReferences[index];
+                        if (!_indicesToRemove.Contains(index) && set.Add(reference))
                         {
-                            builder.Add(_metadataReferences[index]);
+                            builder.Add(reference);
                         }
                     }
 
@@ -172,7 +180,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     => _projectReferences.ToImmutable();
 
                 public ResolvedReferences ToResolvedReferences()
-                    => new ResolvedReferences(GetProjectReferences(), GetMetadataReferences());
+                    => new(GetProjectReferences(), GetMetadataReferences());
             }
 
             private async Task<ResolvedReferences> ResolveReferencesAsync(ProjectId id, ProjectFileInfo projectFileInfo, CommandLineArguments commandLineArgs, CancellationToken cancellationToken)
@@ -186,6 +194,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 var builder = new ResolvedReferencesBuilder(resolvedMetadataReferences);
 
                 var projectDirectory = Path.GetDirectoryName(projectFileInfo.FilePath);
+                RoslynDebug.AssertNotNull(projectDirectory);
 
                 // Next, iterate through all project references in the file and create project references.
                 foreach (var projectFileReference in projectFileInfo.ProjectReferences)
@@ -256,18 +265,21 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 }
 
                 // Find the project reference info whose output we have a metadata reference for.
-                ProjectInfo projectReferenceInfo = null;
+                ProjectInfo? projectReferenceInfo = null;
                 foreach (var info in projectReferenceInfos)
                 {
-                    if (builder.Contains(info.OutputFilePath) ||
-                        builder.Contains(info.OutputRefFilePath))
+                    var outputFilePath = info.OutputFilePath;
+                    var outputRefFilePath = info.OutputRefFilePath;
+                    if (outputFilePath != null &&
+                        outputRefFilePath != null &&
+                        (builder.Contains(outputFilePath) || builder.Contains(outputRefFilePath)))
                     {
                         projectReferenceInfo = info;
                         break;
                     }
                 }
 
-                if (projectReferenceInfo == null)
+                if (projectReferenceInfo is null)
                 {
                     // We didn't find the project reference info that matches any of our metadata references.
                     // In this case, we'll go ahead and use the first project reference info that was found,
@@ -295,14 +307,16 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     // reference is an UnresolvedMetadataReference, which will throw when we try to create a
                     // Compilation with it.
 
-                    if (!File.Exists(projectReferenceInfo.OutputRefFilePath))
+                    var outputRefFilePath = projectReferenceInfo.OutputRefFilePath;
+                    if (outputRefFilePath != null && !File.Exists(outputRefFilePath))
                     {
-                        builder.Remove(projectReferenceInfo.OutputRefFilePath);
+                        builder.Remove(outputRefFilePath);
                     }
 
-                    if (!File.Exists(projectReferenceInfo.OutputFilePath))
+                    var outputFilePath = projectReferenceInfo.OutputFilePath;
+                    if (outputFilePath != null && !File.Exists(outputFilePath))
                     {
-                        builder.Remove(projectReferenceInfo.OutputFilePath);
+                        builder.Remove(outputFilePath);
                     }
                 }
 
@@ -317,7 +331,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             private async Task<bool> VerifyUnloadableProjectOutputExistsAsync(string projectPath, ResolvedReferencesBuilder builder, CancellationToken cancellationToken)
             {
                 var outputFilePath = await _buildManager.TryGetOutputFilePathAsync(projectPath, cancellationToken).ConfigureAwait(false);
-                return builder.Contains(outputFilePath)
+                return outputFilePath != null
+                    && builder.Contains(outputFilePath)
                     && File.Exists(outputFilePath);
             }
 
@@ -352,7 +367,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 => _projectIdToProjectReferencesMap.TryGetValue(from, out var references)
                 && references.Contains(pr => pr.ProjectId == to);
 
-            private bool ProjectReferenceExists(ProjectId to, ProjectInfo from)
+            private static bool ProjectReferenceExists(ProjectId to, ProjectInfo from)
                 => from.ProjectReferences.Any(pr => pr.ProjectId == to);
 
             private bool TryAddReferenceToKnownProject(

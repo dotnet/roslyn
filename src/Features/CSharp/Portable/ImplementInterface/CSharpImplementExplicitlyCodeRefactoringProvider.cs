@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -22,10 +19,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ImplementInterfaceExplicitly), Shared]
     internal class CSharpImplementExplicitlyCodeRefactoringProvider :
         AbstractChangeImplementionCodeRefactoringProvider
     {
+        [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        public CSharpImplementExplicitlyCodeRefactoringProvider()
+        {
+        }
+
         protected override string Implement_0 => FeaturesResources.Implement_0_explicitly;
         protected override string Implement_all_interfaces => FeaturesResources.Implement_all_interfaces_explicitly;
         protected override string Implement => FeaturesResources.Implement_explicitly;
@@ -44,11 +47,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
         {
             var solution = project.Solution;
 
+            // We don't need to cascade in this search, we're only explicitly looking for direct
+            // calls to our instance member (and not anyone else already calling through the
+            // interface already).
+            //
+            // This can save a lot of extra time spent finding callers, especially for methods with
+            // high fan-out (like IDisposable.Dispose()).
+            var findRefsOptions = FindReferencesSearchOptions.Default with { Cascade = false };
             var references = await SymbolFinder.FindReferencesAsync(
-                new SymbolAndProjectId(implMember, project.Id),
-                solution, cancellationToken).ConfigureAwait(false);
+                implMember, solution, findRefsOptions, cancellationToken).ConfigureAwait(false);
 
-            var implReferences = references.FirstOrDefault(r => implMember.Equals(r.Definition));
+            var implReferences = references.FirstOrDefault();
             if (implReferences == null)
                 return;
 
@@ -80,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             }
         }
 
-        private void UpdateLocation(
+        private static void UpdateLocation(
             SemanticModel semanticModel, INamedTypeSymbol interfaceType,
             SyntaxEditor editor, ISyntaxFactsService syntaxFacts,
             Location location, CancellationToken cancellationToken)
@@ -89,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             if (identifierName == null || !syntaxFacts.IsIdentifierName(identifierName))
                 return;
 
-            var node = syntaxFacts.IsNameOfMemberAccessExpression(identifierName) || syntaxFacts.IsMemberBindingExpression(identifierName.Parent)
+            var node = syntaxFacts.IsNameOfSimpleMemberAccessExpression(identifierName) || syntaxFacts.IsNameOfMemberBindingExpression(identifierName)
                 ? identifierName.Parent
                 : identifierName;
 
@@ -97,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             if (syntaxFacts.IsInvocationExpression(node.Parent))
                 node = node.Parent;
 
-            var operation = semanticModel.GetOperation(node);
+            var operation = semanticModel.GetOperation(node, cancellationToken);
             var instance = operation switch
             {
                 IMemberReferenceOperation memberReference => memberReference.Instance,

@@ -4,7 +4,6 @@
 
 using System;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.VisualStudio.OLE.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -28,9 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             public abstract void GetDescription(out string pBstr);
 
             public void GetUnitType(out Guid pClsid, out int plID)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotImplementedException();
 
             public void OnNextAdd()
             {

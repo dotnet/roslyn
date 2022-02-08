@@ -11,9 +11,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -22,273 +24,126 @@ namespace Microsoft.CodeAnalysis.Completion
     /// <summary>
     /// A subtype of <see cref="CompletionService"/> that aggregates completions from one or more <see cref="CompletionProvider"/>s.
     /// </summary>
-    public abstract class CompletionServiceWithProviders : CompletionService, IEqualityComparer<ImmutableHashSet<string>>
+    public abstract partial class CompletionServiceWithProviders : CompletionService
     {
-        private static readonly Func<string, List<CompletionItem>> s_createList = _ => new List<CompletionItem>();
-
-        private readonly object _gate = new object();
-
-        private readonly Dictionary<string, CompletionProvider> _nameToProvider = new Dictionary<string, CompletionProvider>();
-        private readonly Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>> _rolesToProviders;
-        private readonly Func<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>> _createRoleProviders;
-        private readonly Func<string, CompletionProvider> _getProviderByName;
-
         private readonly Workspace _workspace;
+        private readonly ProviderManager _providerManager;
 
-        private readonly ImmutableArray<CompletionProvider>? _exclusiveProviders;
+        /// <summary>
+        /// Test-only switch.
+        /// </summary>
+        private bool _suppressPartialSemantics;
 
-        private IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> _importedProviders;
-
-        protected CompletionServiceWithProviders(Workspace workspace)
-            : this(workspace, exclusiveProviders: null)
-        {
-        }
-
-        internal CompletionServiceWithProviders(
-            Workspace workspace,
-            ImmutableArray<CompletionProvider>? exclusiveProviders = null)
+        internal CompletionServiceWithProviders(Workspace workspace)
         {
             _workspace = workspace;
-            _exclusiveProviders = exclusiveProviders;
-            _rolesToProviders = new Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>>(this);
-            _createRoleProviders = CreateRoleProviders;
-            _getProviderByName = GetProviderByName;
+            _providerManager = new(this);
         }
 
-        public override CompletionRules GetRules()
+        /// <summary>
+        /// Backward compatibility only.
+        /// </summary>
+        public sealed override CompletionRules GetRules()
         {
-            return CompletionRules.Default;
+            Debug.Fail("For backwards API compat only, should not be called");
+
+            // Publicly available options do not affect this API.
+            return GetRules(CompletionOptions.Default);
         }
 
         /// <summary>
         /// Returns the providers always available to the service.
         /// This does not included providers imported via MEF composition.
         /// </summary>
+        [Obsolete("Built-in providers will be ignored in a future release, please make them MEF exports instead.")]
         protected virtual ImmutableArray<CompletionProvider> GetBuiltInProviders()
-        {
-            return ImmutableArray<CompletionProvider>.Empty;
-        }
+            => ImmutableArray<CompletionProvider>.Empty;
 
-        private IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> GetImportedProviders()
+        internal IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> GetImportedProviders()
+            => _providerManager.GetImportedProviders();
+
+        protected ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string>? roles)
+            => _providerManager.GetProviders(roles);
+
+        protected virtual ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string>? roles, CompletionTrigger trigger)
+            => GetProviders(roles);
+
+        protected internal CompletionProvider? GetProvider(CompletionItem item)
+            => _providerManager.GetProvider(item);
+
+        /// <summary>
+        /// Returns a document with frozen partial semantic unless we already have a complete compilation available.
+        /// Getting full semantic could be costly in certain scenarios and would cause significant delay in completion. 
+        /// In most cases we'd still end up with complete document, but we'd consider it an acceptable trade-off even when 
+        /// we get into this transient state.
+        /// </summary>
+        private async Task<(Document document, SemanticModel? semanticModel)> GetDocumentWithFrozenPartialSemanticsAsync(Document document, CancellationToken cancellationToken)
         {
-            if (_importedProviders == null)
+            if (_suppressPartialSemantics)
             {
-                var language = Language;
-                var mefExporter = (IMefHostExportProvider)_workspace.Services.HostServices;
-
-                var providers = ExtensionOrderer.Order(
-                        mefExporter.GetExports<CompletionProvider, CompletionProviderMetadata>()
-                        .Where(lz => lz.Metadata.Language == language)
-                        ).ToList();
-
-                Interlocked.CompareExchange(ref _importedProviders, providers, null);
+                return (document, await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false));
             }
 
-            return _importedProviders;
+            return await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        private ImmutableArray<CompletionProvider> _testProviders = ImmutableArray<CompletionProvider>.Empty;
-
-        internal void SetTestProviders(IEnumerable<CompletionProvider> testProviders)
-        {
-            lock (_gate)
-            {
-                _testProviders = testProviders != null ? testProviders.ToImmutableArray() : ImmutableArray<CompletionProvider>.Empty;
-                _rolesToProviders.Clear();
-                _nameToProvider.Clear();
-            }
-        }
-
-        private ImmutableArray<CompletionProvider> CreateRoleProviders(ImmutableHashSet<string> roles)
-        {
-            var providers = GetAllProviders(roles);
-
-            foreach (var provider in providers)
-            {
-                _nameToProvider[provider.Name] = provider;
-            }
-
-            return providers;
-        }
-
-        private ImmutableArray<CompletionProvider> GetAllProviders(ImmutableHashSet<string> roles)
-        {
-            if (_exclusiveProviders.HasValue)
-            {
-                return _exclusiveProviders.Value;
-            }
-
-            var builtin = GetBuiltInProviders();
-            var imported = GetImportedProviders()
-                .Where(lz => lz.Metadata.Roles == null || lz.Metadata.Roles.Length == 0 || roles.Overlaps(lz.Metadata.Roles))
-                .Select(lz => lz.Value);
-
-            var providers = builtin.Concat(imported).Concat(_testProviders);
-            return providers.ToImmutableArray();
-        }
-
-        protected ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string> roles)
-        {
-            roles ??= ImmutableHashSet<string>.Empty;
-
-            lock (_gate)
-            {
-                return _rolesToProviders.GetOrAdd(roles, _createRoleProviders);
-            }
-        }
-
-        private ImmutableArray<CompletionProvider> GetFilteredProviders(
-            ImmutableHashSet<string> roles, CompletionTrigger trigger, OptionSet options)
-        {
-            return FilterProviders(GetProviders(roles, trigger), trigger, options);
-        }
-
-        protected virtual ImmutableArray<CompletionProvider> GetProviders(
-            ImmutableHashSet<string> roles, CompletionTrigger trigger)
-        {
-            return GetProviders(roles);
-        }
-
-        private ImmutableArray<CompletionProvider> FilterProviders(
-            ImmutableArray<CompletionProvider> providers,
-            CompletionTrigger trigger,
-            OptionSet options)
-        {
-            if (options.GetOption(CompletionServiceOptions.IsExpandedCompletion))
-            {
-                providers = providers.WhereAsArray(p => p.IsExpandItemProvider);
-            }
-
-            // If the caller passed along specific options that affect snippets,
-            // then defer to those.  Otherwise if the caller just wants the default
-            // behavior, then get the snippets behavior from our own rules.
-            var optionsRule = options.GetOption(CompletionOptions.SnippetsBehavior, Language);
-            var snippetsRule = optionsRule != SnippetsRule.Default
-                ? optionsRule
-                : GetRules().SnippetsRule;
-
-            if (snippetsRule == SnippetsRule.Default ||
-                snippetsRule == SnippetsRule.NeverInclude)
-            {
-                return providers.Where(p => !p.IsSnippetProvider).ToImmutableArray();
-            }
-            else if (snippetsRule == SnippetsRule.AlwaysInclude)
-            {
-                return providers;
-            }
-            else if (snippetsRule == SnippetsRule.IncludeAfterTypingIdentifierQuestionTab)
-            {
-                if (trigger.Kind == CompletionTriggerKind.Snippets)
-                {
-                    return providers.Where(p => p.IsSnippetProvider).ToImmutableArray();
-                }
-                else
-                {
-                    return providers.Where(p => !p.IsSnippetProvider).ToImmutableArray();
-                }
-            }
-
-            return ImmutableArray<CompletionProvider>.Empty;
-        }
-
-        internal protected CompletionProvider GetProvider(CompletionItem item)
-        {
-            CompletionProvider provider = null;
-
-            if (item.ProviderName != null)
-            {
-                lock (_gate)
-                {
-                    provider = _nameToProvider.GetOrAdd(item.ProviderName, _getProviderByName);
-                }
-            }
-
-            return provider;
-        }
-
-        private CompletionProvider GetProviderByName(string providerName)
-        {
-            var providers = GetAllProviders(roles: ImmutableHashSet<string>.Empty);
-            return providers.FirstOrDefault(p => p.Name == providerName);
-        }
-
-        public override async Task<CompletionList> GetCompletionsAsync(
+        public override async Task<CompletionList?> GetCompletionsAsync(
             Document document,
             int caretPosition,
             CompletionTrigger trigger,
-            ImmutableHashSet<string> roles,
-            OptionSet options,
+            ImmutableHashSet<string>? roles,
+            OptionSet? options,
             CancellationToken cancellationToken)
         {
-            var (completionList, _) = await GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, trigger, roles, options, cancellationToken).ConfigureAwait(false);
-            return completionList;
+            // Publicly available options do not affect this API.
+            var completionOptions = CompletionOptions.Default;
+            var passThroughOptions = options ?? document.Project.Solution.Options;
+
+            return await GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, completionOptions, passThroughOptions, trigger, roles, cancellationToken).ConfigureAwait(false);
         }
 
-        private protected async Task<(CompletionList completionList, bool expandItemsAvailable)> GetCompletionsWithAvailabilityOfExpandedItemsAsync(
+        private protected async Task<CompletionList> GetCompletionsWithAvailabilityOfExpandedItemsAsync(
             Document document,
             int caretPosition,
+            CompletionOptions options,
+            OptionSet passThroughOptions,
             CompletionTrigger trigger,
-            ImmutableHashSet<string> roles,
-            OptionSet options,
+            ImmutableHashSet<string>? roles,
             CancellationToken cancellationToken)
         {
+            // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
+            (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
+
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var defaultItemSpan = GetDefaultCompletionListSpan(text, caretPosition);
 
-            options ??= await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var providers = GetFilteredProviders(roles, trigger, options);
+            var providers = _providerManager.GetFilteredProviders(document.Project, roles, trigger, options);
 
-            var completionProviderToIndex = GetCompletionProviderToIndex(providers);
+            // Phase 1: Completion Providers decide if they are triggered based on textual analysis
+            // Phase 2: Completion Providers use syntax to confirm they are triggered, or decide they are not actually triggered and should become an augmenting provider
+            // Phase 3: Triggered Providers are asked for items
+            // Phase 4: If any items were provided, all augmenting providers are asked for items
+            // This allows a provider to be textually triggered but later decide to be an augmenting provider based on deeper syntactic analysis.
 
-            var triggeredProviders = ImmutableArray<CompletionProvider>.Empty;
-            switch (trigger.Kind)
-            {
-                case CompletionTriggerKind.Insertion:
-                case CompletionTriggerKind.Deletion:
-                    if (ShouldTriggerCompletion(text, caretPosition, trigger, roles, options))
-                    {
-                        triggeredProviders = providers.Where(p => p.ShouldTriggerCompletion(text, caretPosition, trigger, options)).ToImmutableArrayOrEmpty();
-                        if (triggeredProviders.Length == 0)
-                        {
-                            triggeredProviders = providers;
-                        }
-                    }
-                    break;
-                default:
-                    triggeredProviders = providers;
-                    break;
-            }
+            var triggeredProviders = GetTriggeredProviders(document, providers, caretPosition, options, trigger, roles, text);
+
+            var additionalAugmentingProviders = await GetAugmentingProviders(document, triggeredProviders, caretPosition, trigger, options, cancellationToken).ConfigureAwait(false);
+            triggeredProviders = triggeredProviders.Except(additionalAugmentingProviders).ToImmutableArray();
 
             // Now, ask all the triggered providers, in parallel, to populate a completion context.
             // Note: we keep any context with items *or* with a suggested item.  
-            var (triggeredCompletionContexts, expandItemsAvailableFromTriggeredProviders) = await ComputeNonEmptyCompletionContextsAsync(
-                document, caretPosition, trigger, options,
-                defaultItemSpan, triggeredProviders,
-                cancellationToken).ConfigureAwait(false);
+            var triggeredContexts = await ComputeNonEmptyCompletionContextsAsync(
+                document, caretPosition, trigger, options, defaultItemSpan, triggeredProviders, cancellationToken).ConfigureAwait(false);
 
-            // If we didn't even get any back with items, then there's nothing to do.
-            // i.e. if only got items back that had only suggestion items, then we don't
-            // want to show any completion.
-            if (!triggeredCompletionContexts.Any(cc => cc.Items.Count > 0))
-            {
-                return (null, expandItemsAvailableFromTriggeredProviders);
-            }
-
-            // All the contexts should be non-empty or have a suggestion item.
-            Debug.Assert(triggeredCompletionContexts.All(HasAnyItems));
+            // Nothing to do if we didn't even get any regular items back (i.e. 0 items or suggestion item only.)
+            if (!triggeredContexts.Any(cc => cc.Items.Count > 0))
+                return CompletionList.Empty;
 
             // See if there were completion contexts provided that were exclusive. If so, then
             // that's all we'll return.
-            var exclusiveContexts = triggeredCompletionContexts.Where(t => t.IsExclusive);
-
-            if (exclusiveContexts.Any())
-            {
-                return (MergeAndPruneCompletionLists(exclusiveContexts, defaultItemSpan, isExclusive: true),
-                    expandItemsAvailableFromTriggeredProviders);
-            }
-
-            // Shouldn't be any exclusive completion contexts at this point.
-            Debug.Assert(triggeredCompletionContexts.All(cc => !cc.IsExclusive));
+            var exclusiveContexts = triggeredContexts.Where(t => t.IsExclusive).ToImmutableArray();
+            if (!exclusiveContexts.IsEmpty)
+                return MergeAndPruneCompletionLists(exclusiveContexts, defaultItemSpan, options, isExclusive: true);
 
             // Great!  We had some items.  Now we want to see if any of the other providers 
             // would like to augment the completion list.  For example, we might trigger
@@ -296,29 +151,141 @@ namespace Microsoft.CodeAnalysis.Completion
             // we'll want to augment the list with all the regular symbol completion items.
             var augmentingProviders = providers.Except(triggeredProviders).ToImmutableArray();
 
-            var (augmentingCompletionContexts, expandItemsAvailableFromAugmentingProviders) = await ComputeNonEmptyCompletionContextsAsync(
-                document, caretPosition, trigger, options, defaultItemSpan,
-                augmentingProviders, cancellationToken).ConfigureAwait(false);
+            var augmentingContexts = await ComputeNonEmptyCompletionContextsAsync(
+                document, caretPosition, trigger, options, defaultItemSpan, augmentingProviders, cancellationToken).ConfigureAwait(false);
 
-            var allContexts = triggeredCompletionContexts.Concat(augmentingCompletionContexts);
-            Debug.Assert(allContexts.Length > 0);
+            GC.KeepAlive(semanticModel);
 
             // Providers are ordered, but we processed them in our own order.  Ensure that the
             // groups are properly ordered based on the original providers.
-            allContexts = allContexts.Sort((p1, p2) => completionProviderToIndex[p1.Provider] - completionProviderToIndex[p2.Provider]);
+            var completionProviderToIndex = GetCompletionProviderToIndex(providers);
+            var allContexts = triggeredContexts.Concat(augmentingContexts)
+                .Sort((p1, p2) => completionProviderToIndex[p1.Provider] - completionProviderToIndex[p2.Provider]);
 
-            return (MergeAndPruneCompletionLists(allContexts, defaultItemSpan, isExclusive: false),
-                (expandItemsAvailableFromTriggeredProviders || expandItemsAvailableFromAugmentingProviders));
+            return MergeAndPruneCompletionLists(allContexts, defaultItemSpan, options, isExclusive: false);
+
+            ImmutableArray<CompletionProvider> GetTriggeredProviders(
+                Document document, ConcatImmutableArray<CompletionProvider> providers, int caretPosition, CompletionOptions options, CompletionTrigger trigger, ImmutableHashSet<string>? roles, SourceText text)
+            {
+                switch (trigger.Kind)
+                {
+                    case CompletionTriggerKind.Insertion:
+                    case CompletionTriggerKind.Deletion:
+
+                        if (ShouldTriggerCompletion(document.Project, document.Project.LanguageServices, text, caretPosition, trigger, options, passThroughOptions, roles))
+                        {
+                            var triggeredProviders = providers.Where(p => p.ShouldTriggerCompletion(document.Project.LanguageServices, text, caretPosition, trigger, options, passThroughOptions)).ToImmutableArrayOrEmpty();
+
+                            Debug.Assert(ValidatePossibleTriggerCharacterSet(trigger.Kind, triggeredProviders, document, text, caretPosition, options));
+                            return triggeredProviders.IsEmpty ? providers.ToImmutableArray() : triggeredProviders;
+                        }
+
+                        return ImmutableArray<CompletionProvider>.Empty;
+
+                    default:
+                        return providers.ToImmutableArray();
+                }
+            }
+
+            static async Task<ImmutableArray<CompletionProvider>> GetAugmentingProviders(
+                Document document, ImmutableArray<CompletionProvider> triggeredProviders, int caretPosition, CompletionTrigger trigger, CompletionOptions options, CancellationToken cancellationToken)
+            {
+                var additionalAugmentingProviders = ArrayBuilder<CompletionProvider>.GetInstance(triggeredProviders.Length);
+                if (trigger.Kind == CompletionTriggerKind.Insertion)
+                {
+                    foreach (var provider in triggeredProviders)
+                    {
+                        if (!await provider.IsSyntacticTriggerCharacterAsync(document, caretPosition, trigger, options, cancellationToken).ConfigureAwait(false))
+                        {
+                            additionalAugmentingProviders.Add(provider);
+                        }
+                    }
+                }
+
+                return additionalAugmentingProviders.ToImmutableAndFree();
+            }
+        }
+
+        /// <summary>
+        /// Backward compatibility only.
+        /// </summary>
+        public sealed override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, ImmutableHashSet<string>? roles = null, OptionSet? options = null)
+        {
+            var document = text.GetOpenDocumentInCurrentContextWithChanges();
+            var languageServices = document?.Project.LanguageServices ?? _workspace.Services.GetLanguageServices(Language);
+
+            // Publicly available options do not affect this API.
+            var completionOptions = CompletionOptions.Default;
+            var passThroughOptions = options ?? document?.Project.Solution.Options ?? OptionValueSet.Empty;
+
+            return ShouldTriggerCompletion(document?.Project, languageServices, text, caretPosition, trigger, completionOptions, passThroughOptions, roles);
+        }
+
+        internal sealed override bool ShouldTriggerCompletion(
+            Project? project, HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options, OptionSet passThroughOptions, ImmutableHashSet<string>? roles = null)
+        {
+            if (!options.TriggerOnTyping)
+            {
+                return false;
+            }
+
+            if (trigger.Kind == CompletionTriggerKind.Deletion && SupportsTriggerOnDeletion(options))
+            {
+                return char.IsLetterOrDigit(trigger.Character) || trigger.Character == '.';
+            }
+
+            var providers = _providerManager.GetFilteredProviders(project, roles, trigger, options);
+            return providers.Any(p => p.ShouldTriggerCompletion(languageServices, text, caretPosition, trigger, options, passThroughOptions));
+        }
+
+        internal virtual bool SupportsTriggerOnDeletion(CompletionOptions options)
+            => options.TriggerOnDeletion == true;
+
+        private static bool ValidatePossibleTriggerCharacterSet(CompletionTriggerKind completionTriggerKind, IEnumerable<CompletionProvider> triggeredProviders,
+            Document document, SourceText text, int caretPosition, in CompletionOptions options)
+        {
+            // Only validate on insertion triggers.
+            if (completionTriggerKind != CompletionTriggerKind.Insertion)
+            {
+                return true;
+            }
+
+            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+            if (caretPosition > 0 && syntaxFactsService != null)
+            {
+                // The trigger character has already been inserted before the current caret position.
+                var character = text[caretPosition - 1];
+
+                // Identifier characters are not part of the possible trigger character set, so don't validate them.
+                var isIdentifierCharacter = syntaxFactsService.IsIdentifierStartCharacter(character) || syntaxFactsService.IsIdentifierEscapeCharacter(character);
+                if (isIdentifierCharacter)
+                {
+                    return true;
+                }
+
+                // Only verify against built in providers.  3rd party ones do not necessarily implement the possible trigger characters API.
+                foreach (var provider in triggeredProviders)
+                {
+                    if (provider is LSPCompletionProvider lspProvider && lspProvider.IsInsertionTrigger(text, caretPosition - 1, options))
+                    {
+                        if (!lspProvider.TriggerCharacters.Contains(character))
+                        {
+                            Debug.Assert(lspProvider.TriggerCharacters.Contains(character),
+                            $"the character {character} is not a valid trigger character for {lspProvider.Name}");
+                        }
+                    }
+                }
+            }
+
+            return true;
         }
 
         private static bool HasAnyItems(CompletionContext cc)
-        {
-            return cc.Items.Count > 0 || cc.SuggestionModeItem != null;
-        }
+            => cc.Items.Count > 0 || cc.SuggestionModeItem != null;
 
-        private async Task<(ImmutableArray<CompletionContext>, bool)> ComputeNonEmptyCompletionContextsAsync(
+        private static async Task<ImmutableArray<CompletionContext>> ComputeNonEmptyCompletionContextsAsync(
             Document document, int caretPosition, CompletionTrigger trigger,
-            OptionSet options, TextSpan defaultItemSpan,
+            CompletionOptions options, TextSpan defaultItemSpan,
             ImmutableArray<CompletionProvider> providers,
             CancellationToken cancellationToken)
         {
@@ -331,78 +298,50 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             var completionContexts = await Task.WhenAll(completionContextTasks).ConfigureAwait(false);
-            var nonEmptyContexts = completionContexts.Where(HasAnyItems).ToImmutableArray();
-            var shouldShowExpander = completionContexts.Any(context => context.ExpandItemsAvailable);
-            return (nonEmptyContexts, shouldShowExpander);
+            return completionContexts.Where(HasAnyItems).ToImmutableArray();
         }
 
         private CompletionList MergeAndPruneCompletionLists(
-            IEnumerable<CompletionContext> completionContexts,
+            ImmutableArray<CompletionContext> completionContexts,
             TextSpan defaultSpan,
+            in CompletionOptions options,
             bool isExclusive)
         {
             // See if any contexts changed the completion list span.  If so, the first context that
             // changed it 'wins' and picks the span that will be used for all items in the completion
             // list.  If no contexts changed it, then just use the default span provided by the service.
             var finalCompletionListSpan = completionContexts.FirstOrDefault(c => c.CompletionListSpan != defaultSpan)?.CompletionListSpan ?? defaultSpan;
-
-            var displayNameToItemsMap = new Dictionary<string, List<CompletionItem>>();
-            CompletionItem suggestionModeItem = null;
+            using var displayNameToItemsMap = new DisplayNameToItemsMap(this);
+            CompletionItem? suggestionModeItem = null;
 
             foreach (var context in completionContexts)
             {
-                Debug.Assert(context != null);
-
                 foreach (var item in context.Items)
                 {
                     Debug.Assert(item != null);
-                    AddToDisplayMap(item, displayNameToItemsMap);
+                    displayNameToItemsMap.Add(item);
                 }
 
                 // first one wins
                 suggestionModeItem ??= context.SuggestionModeItem;
             }
 
-            if (displayNameToItemsMap.Count == 0)
+            if (displayNameToItemsMap.IsEmpty)
             {
                 return CompletionList.Empty;
             }
 
             // TODO(DustinCa): Revisit performance of this.
-            var totalItems = displayNameToItemsMap.Values.Flatten().ToList();
-            totalItems.Sort();
+            using var _ = ArrayBuilder<CompletionItem>.GetInstance(displayNameToItemsMap.Count, out var builder);
+            builder.AddRange(displayNameToItemsMap);
+            builder.Sort();
 
             return CompletionList.Create(
                 finalCompletionListSpan,
-                totalItems.ToImmutableArray(),
-                GetRules(),
+                builder.ToImmutable(),
+                GetRules(options),
                 suggestionModeItem,
                 isExclusive);
-        }
-
-        private void AddToDisplayMap(
-            CompletionItem item,
-            Dictionary<string, List<CompletionItem>> displayNameToItemsMap)
-        {
-            var sameNamedItems = displayNameToItemsMap.GetOrAdd(item.GetEntireDisplayText(), s_createList);
-
-            // If two items have the same display text choose which one to keep.
-            // If they don't actually match keep both.
-
-            for (var i = 0; i < sameNamedItems.Count; i++)
-            {
-                var existingItem = sameNamedItems[i];
-
-                Debug.Assert(item.GetEntireDisplayText() == existingItem.GetEntireDisplayText());
-
-                if (ItemsMatch(item, existingItem))
-                {
-                    sameNamedItems[i] = GetBetterItem(item, existingItem);
-                    return;
-                }
-            }
-
-            sameNamedItems.Add(item);
         }
 
         /// <summary>
@@ -423,7 +362,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return item;
         }
 
-        private static Dictionary<CompletionProvider, int> GetCompletionProviderToIndex(ImmutableArray<CompletionProvider> completionProviders)
+        private static Dictionary<CompletionProvider, int> GetCompletionProviderToIndex(ConcatImmutableArray<CompletionProvider> completionProviders)
         {
             var result = new Dictionary<CompletionProvider, int>(completionProviders.Length);
 
@@ -437,58 +376,31 @@ namespace Microsoft.CodeAnalysis.Completion
             return result;
         }
 
-        private async Task<CompletionContext> GetContextAsync(
+        private static async Task<CompletionContext> GetContextAsync(
             CompletionProvider provider,
             Document document,
             int position,
             CompletionTrigger triggerInfo,
-            OptionSet options,
-            TextSpan? defaultSpan,
+            CompletionOptions options,
+            TextSpan defaultSpan,
             CancellationToken cancellationToken)
         {
-            options ??= document.Project.Solution.Workspace.Options;
-
-            if (defaultSpan == null)
-            {
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                defaultSpan = GetDefaultCompletionListSpan(text, position);
-            }
-
-            var context = new CompletionContext(provider, document, position, defaultSpan.Value, triggerInfo, options, cancellationToken);
+            var context = new CompletionContext(provider, document, position, defaultSpan, triggerInfo, options, cancellationToken);
             await provider.ProvideCompletionsAsync(context).ConfigureAwait(false);
             return context;
         }
 
-        public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken = default)
+        internal override async Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken = default)
         {
             var provider = GetProvider(item);
-            return provider != null
-                ? provider.GetDescriptionAsync(document, item, cancellationToken)
-                : Task.FromResult(CompletionDescription.Empty);
-        }
+            if (provider is null)
+                return CompletionDescription.Empty;
 
-        public override bool ShouldTriggerCompletion(
-            SourceText text, int caretPosition, CompletionTrigger trigger, ImmutableHashSet<string> roles = null, OptionSet options = null)
-        {
-            options ??= _workspace.Options;
-            if (!options.GetOption(CompletionOptions.TriggerOnTyping, Language))
-            {
-                return false;
-            }
-
-            if (trigger.Kind == CompletionTriggerKind.Deletion && SupportsTriggerOnDeletion(options))
-            {
-                return Char.IsLetterOrDigit(trigger.Character) || trigger.Character == '.';
-            }
-
-            var providers = GetFilteredProviders(roles, trigger, options);
-            return providers.Any(p => p.ShouldTriggerCompletion(text, caretPosition, trigger, options));
-        }
-
-        internal virtual bool SupportsTriggerOnDeletion(OptionSet options)
-        {
-            var opt = options.GetOption(CompletionOptions.TriggerOnDeletion, Language);
-            return opt == true;
+            // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
+            (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
+            var description = await provider.GetDescriptionAsync(document, item, options, displayOptions, cancellationToken).ConfigureAwait(false);
+            GC.KeepAlive(semanticModel);
+            return description;
         }
 
         public override async Task<CompletionChange> GetChangeAsync(
@@ -497,7 +409,11 @@ namespace Microsoft.CodeAnalysis.Completion
             var provider = GetProvider(item);
             if (provider != null)
             {
-                return await provider.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
+                // We don't need SemanticModel here, just want to make sure it won't get GC'd before CompletionProviders are able to get it.
+                (document, var semanticModel) = await GetDocumentWithFrozenPartialSemanticsAsync(document, cancellationToken).ConfigureAwait(false);
+                var change = await provider.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
+                GC.KeepAlive(semanticModel);
+                return change;
             }
             else
             {
@@ -505,82 +421,136 @@ namespace Microsoft.CodeAnalysis.Completion
             }
         }
 
-        internal override async Task<CompletionChange> GetChangeAsync(
-            Document document, CompletionItem item, TextSpan completionListSpan,
-            char? commitKey, CancellationToken cancellationToken)
+        private class DisplayNameToItemsMap : IEnumerable<CompletionItem>, IDisposable
         {
-            var provider = GetProvider(item);
-            return provider != null
-                ? await provider.GetChangeAsync(document, item, completionListSpan, commitKey, cancellationToken).ConfigureAwait(false)
-                : CompletionChange.Create(new TextChange(completionListSpan, item.DisplayText));
-        }
+            // We might need to handle large amount of items with import completion enabled,
+            // so use a dedicated pool to minimize array allocations.
+            // Set the size of pool to a small number 5 because we don't expect more than a
+            // couple of callers at the same time.
+            private static readonly ObjectPool<Dictionary<string, object>> s_uniqueSourcesPool
+                = new(factory: () => new(), size: 5);
 
-        bool IEqualityComparer<ImmutableHashSet<string>>.Equals(ImmutableHashSet<string> x, ImmutableHashSet<string> y)
-        {
-            if (x == y)
+            private readonly Dictionary<string, object> _displayNameToItemsMap;
+            private readonly CompletionServiceWithProviders _service;
+
+            public int Count { get; private set; }
+
+            public DisplayNameToItemsMap(CompletionServiceWithProviders service)
             {
-                return true;
+                _service = service;
+                _displayNameToItemsMap = s_uniqueSourcesPool.Allocate();
             }
 
-            if (x.Count != y.Count)
+            public void Dispose()
             {
-                return false;
+                _displayNameToItemsMap.Clear();
+                s_uniqueSourcesPool.Free(_displayNameToItemsMap);
             }
 
-            foreach (var v in x)
+            public bool IsEmpty => _displayNameToItemsMap.Count == 0;
+
+            public void Add(CompletionItem item)
             {
-                if (!y.Contains(v))
+                var entireDisplayText = item.GetEntireDisplayText();
+
+                if (!_displayNameToItemsMap.TryGetValue(entireDisplayText, out var value))
                 {
-                    return false;
+                    Count++;
+                    _displayNameToItemsMap.Add(entireDisplayText, item);
+                    return;
+                }
+
+                // If two items have the same display text choose which one to keep.
+                // If they don't actually match keep both.
+                if (value is CompletionItem sameNamedItem)
+                {
+                    if (_service.ItemsMatch(item, sameNamedItem))
+                    {
+                        _displayNameToItemsMap[entireDisplayText] = _service.GetBetterItem(item, sameNamedItem);
+                        return;
+                    }
+
+                    Count++;
+                    // Matching items should be rare, no need to use object pool for this.
+                    _displayNameToItemsMap[entireDisplayText] = new List<CompletionItem>() { sameNamedItem, item };
+                }
+                else if (value is List<CompletionItem> sameNamedItems)
+                {
+                    for (var i = 0; i < sameNamedItems.Count; i++)
+                    {
+                        var existingItem = sameNamedItems[i];
+                        if (_service.ItemsMatch(item, existingItem))
+                        {
+                            sameNamedItems[i] = _service.GetBetterItem(item, existingItem);
+                            return;
+                        }
+                    }
+
+                    Count++;
+                    sameNamedItems.Add(item);
                 }
             }
 
-            return true;
-        }
-
-        int IEqualityComparer<ImmutableHashSet<string>>.GetHashCode(ImmutableHashSet<string> obj)
-        {
-            var hash = 0;
-            foreach (var o in obj)
+            public IEnumerator<CompletionItem> GetEnumerator()
             {
-                hash += o.GetHashCode();
+                foreach (var value in _displayNameToItemsMap.Values)
+                {
+                    if (value is CompletionItem sameNamedItem)
+                    {
+                        yield return sameNamedItem;
+                    }
+                    else if (value is List<CompletionItem> sameNamedItems)
+                    {
+                        foreach (var item in sameNamedItems)
+                        {
+                            yield return item;
+                        }
+                    }
+                }
             }
 
-            return hash;
+            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
         }
 
         internal TestAccessor GetTestAccessor()
-            => new TestAccessor(this);
+            => new(this);
 
         internal readonly struct TestAccessor
         {
             private readonly CompletionServiceWithProviders _completionServiceWithProviders;
 
             public TestAccessor(CompletionServiceWithProviders completionServiceWithProviders)
-            {
-                _completionServiceWithProviders = completionServiceWithProviders;
-            }
+                => _completionServiceWithProviders = completionServiceWithProviders;
 
-            internal ImmutableArray<CompletionProvider>? ExclusiveProviders
-                => _completionServiceWithProviders._exclusiveProviders;
+            internal ImmutableArray<CompletionProvider> GetAllProviders(ImmutableHashSet<string> roles)
+                => _completionServiceWithProviders._providerManager.GetAllProviders(roles);
 
-            internal Task<CompletionContext> GetContextAsync(
+            internal async Task<CompletionContext> GetContextAsync(
                 CompletionProvider provider,
                 Document document,
                 int position,
                 CompletionTrigger triggerInfo,
-                OptionSet options,
+                CompletionOptions options,
                 CancellationToken cancellationToken)
             {
-                return _completionServiceWithProviders.GetContextAsync(
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var defaultItemSpan = _completionServiceWithProviders.GetDefaultCompletionListSpan(text, position);
+
+                return await CompletionServiceWithProviders.GetContextAsync(
                     provider,
                     document,
                     position,
                     triggerInfo,
                     options,
-                    defaultSpan: null,
-                    cancellationToken);
+                    defaultItemSpan,
+                    cancellationToken).ConfigureAwait(false);
             }
+
+            public void SuppressPartialSemantics()
+                => _completionServiceWithProviders._suppressPartialSemantics = true;
         }
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis
@@ -11,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal sealed class DefaultTextDocumentServiceProvider : IDocumentServiceProvider
     {
-        public static readonly DefaultTextDocumentServiceProvider Instance = new DefaultTextDocumentServiceProvider();
+        public static readonly DefaultTextDocumentServiceProvider Instance = new();
 
         private DefaultTextDocumentServiceProvider() { }
 
@@ -30,12 +32,12 @@ namespace Microsoft.CodeAnalysis
                 return documentPropertiesService;
             }
 
-            return default;
+            return null;
         }
 
         private class DocumentOperationService : IDocumentOperationService
         {
-            public static readonly DocumentOperationService Instance = new DocumentOperationService();
+            public static readonly DocumentOperationService Instance = new();
 
             // right now, we return CanApplyChange for all C# documents, but we probably want to return
             // false for generated files such as resx files or winform designer files.

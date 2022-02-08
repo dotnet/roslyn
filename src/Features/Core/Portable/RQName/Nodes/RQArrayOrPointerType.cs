@@ -9,8 +9,6 @@ namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
         public readonly RQType ElementType;
 
         public RQArrayOrPointerType(RQType elementType)
-        {
-            ElementType = elementType;
-        }
+            => ElementType = elementType;
     }
 }

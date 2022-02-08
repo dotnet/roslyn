@@ -3,17 +3,18 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
 Imports Microsoft.CodeAnalysis.Formatting.Rules
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.ComponentModelHost
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 Imports Microsoft.VisualStudio.Shell.Interop
+Imports Microsoft.VisualStudio.Utilities
 Imports IVsTextBufferCoordinator = Microsoft.VisualStudio.TextManager.Interop.IVsTextBufferCoordinator
 Imports VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan
 
@@ -45,14 +46,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                                               pszUniqueMemberID As String,
                                               pszObjectName As String,
                                               pszNameOfEvent As String) As Integer Implements IVsContainedLanguageStaticEventBinding.AddStaticEventBinding
-            Me.ComponentModel.GetService(Of IWaitIndicator)().Wait(
+            Me.ComponentModel.GetService(Of IUIThreadOperationExecutor)().Execute(
                 BasicVSResources.IntelliSense,
-                allowCancel:=False,
+                defaultDescription:="",
+                allowCancellation:=False,
+                showProgress:=False,
                 action:=Sub(c)
                             Dim visualStudioWorkspace = ComponentModel.GetService(Of VisualStudioWorkspace)()
                             Dim document = GetThisDocument()
                             ContainedLanguageStaticEventBinding.AddStaticEventBinding(
-                                document, visualStudioWorkspace, pszClassName, pszUniqueMemberID, pszObjectName, pszNameOfEvent, c.CancellationToken)
+                                document, visualStudioWorkspace, pszClassName, pszUniqueMemberID, pszObjectName, pszNameOfEvent, c.UserCancellationToken)
                         End Sub)
             Return VSConstants.S_OK
         End Function
@@ -100,12 +103,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                                                         ppbstrDisplayNames As IntPtr,
                                                         ppbstrMemberIDs As IntPtr) As Integer Implements IVsContainedLanguageStaticEventBinding.GetStaticEventBindingsForObject
             Dim members As Integer
-            Me.ComponentModel.GetService(Of IWaitIndicator)().Wait(
+            Me.ComponentModel.GetService(Of IUIThreadOperationExecutor)().Execute(
                 BasicVSResources.IntelliSense,
-                allowCancel:=False,
+                defaultDescription:="",
+                allowCancellation:=False,
+                showProgress:=Nothing,
                 action:=Sub(c)
                             Dim eventNamesAndMemberNamesAndIds = ContainedLanguageStaticEventBinding.GetStaticEventBindings(
-                                GetThisDocument(), pszClassName, pszObjectName, c.CancellationToken)
+                                GetThisDocument(), pszClassName, pszObjectName, c.UserCancellationToken)
                             members = eventNamesAndMemberNamesAndIds.Count()
                             CreateBSTRArray(ppbstrEventNames, eventNamesAndMemberNamesAndIds.Select(Function(e) e.Item1))
                             CreateBSTRArray(ppbstrDisplayNames, eventNamesAndMemberNamesAndIds.Select(Function(e) e.Item2))
@@ -121,14 +126,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                                                  pszObjectName As String,
                                                  pszNameOfEvent As String) As Integer Implements IVsContainedLanguageStaticEventBinding.RemoveStaticEventBinding
 
-            Me.ComponentModel.GetService(Of IWaitIndicator)().Wait(
+            Me.ComponentModel.GetService(Of IUIThreadOperationExecutor)().Execute(
                 BasicVSResources.IntelliSense,
-                allowCancel:=False,
+                defaultDescription:="",
+                allowCancellation:=False,
+                showProgress:=Nothing,
                 action:=Sub(c)
                             Dim visualStudioWorkspace = ComponentModel.GetService(Of VisualStudioWorkspace)()
                             Dim document = GetThisDocument()
                             ContainedLanguageStaticEventBinding.RemoveStaticEventBinding(
-                                document, visualStudioWorkspace, pszClassName, pszUniqueMemberID, pszObjectName, pszNameOfEvent, c.CancellationToken)
+                                document, visualStudioWorkspace, pszClassName, pszUniqueMemberID, pszObjectName, pszNameOfEvent, c.UserCancellationToken)
                         End Sub)
             Return VSConstants.S_OK
         End Function
@@ -138,7 +145,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
 
             Public Shared Shadows Instance As AbstractFormattingRule = New VisualBasicHelperFormattingRule()
 
-            Public Overrides Sub AddIndentBlockOperationsSlow(list As List(Of IndentBlockOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextIndentBlockOperationAction)
+            Public Overrides Sub AddIndentBlockOperationsSlow(list As List(Of IndentBlockOperation), node As SyntaxNode, ByRef nextOperation As NextIndentBlockOperationAction)
                 ' we need special behavior for VB due to @Helper code generation weird-ness.
                 ' this will looking for code gen specific style to make it not so expansive
                 If IsEndHelperPattern(node) Then
@@ -150,7 +157,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                     Return
                 End If
 
-                MyBase.AddIndentBlockOperationsSlow(list, node, optionSet, nextOperation)
+                MyBase.AddIndentBlockOperationsSlow(list, node, nextOperation)
             End Sub
 
             Private Shared Function IsHelperSubLambda(multiLineLambda As MultiLineLambdaExpressionSyntax) As Boolean

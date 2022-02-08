@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Xml;
@@ -54,12 +56,6 @@ namespace Microsoft.CodeAnalysis
             DtdProcessing = DtdProcessing.Prohibit,
         };
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.FxCop.Rules.Security.Xml.SecurityXmlRules", "CA3053:UseXmlSecureResolver",
-            MessageId = "System.Xml.XmlReader.Create",
-            Justification = @"For the call to XmlReader.Create() below, CA3053 recommends setting the
-XmlReaderSettings.XmlResolver property to either null or an instance of XmlSecureResolver.
-However, the said XmlResolver property no longer exists in .NET portable framework (i.e. core framework) which means there is no way to set it.
-So we suppress this error until the reporting for CA3053 has been updated to account for .NET portable framework.")]
         internal static AssemblyPortabilityPolicy LoadFromXml(Stream input)
         {
             // Note: Unlike Fusion XML reader the XmlReader doesn't allow whitespace in front of <?xml version=""1.0"" encoding=""utf-8"" ?>

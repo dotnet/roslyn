@@ -4,7 +4,9 @@
 
 using System;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
@@ -14,12 +16,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
     public class VisualStudioWorkspace_OutOfProc : OutOfProcComponent
     {
         private readonly VisualStudioWorkspace_InProc _inProc;
-        private readonly VisualStudioInstance _instance;
 
         internal VisualStudioWorkspace_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
-            _instance = visualStudioInstance;
             _inProc = CreateInProcComponent<VisualStudioWorkspace_InProc>(visualStudioInstance);
         }
         public void SetOptionInfer(string projectName, bool value)
@@ -27,9 +27,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _inProc.SetOptionInfer(projectName, value);
             WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
-
-        public void SetPersistenceOption(bool value)
-            => SetOption("Enabled", PersistentStorageOptions.OptionName, value);
 
         public bool IsPrettyListingOn(string languageName)
             => _inProc.IsPrettyListingOn(languageName);
@@ -49,29 +46,37 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void WaitForAllAsyncOperations(TimeSpan timeout, params string[] featureNames)
             => _inProc.WaitForAllAsyncOperations(timeout, featureNames);
 
+        public void WaitForAllAsyncOperationsOrFail(TimeSpan timeout, params string[] featureNames)
+            => _inProc.WaitForAllAsyncOperationsOrFail(timeout, featureNames);
+
         public void CleanUpWorkspace()
             => _inProc.CleanUpWorkspace();
+
+        public void ResetOptions()
+            => _inProc.ResetOptions();
 
         public void CleanUpWaitingService()
             => _inProc.CleanUpWaitingService();
 
-        public void SetQuickInfo(bool value)
-            => _inProc.EnableQuickInfo(value);
-
         public void SetImportCompletionOption(bool value)
         {
-            SetPerLanguageOption(
-                optionName: "ShowItemsFromUnimportedNamespaces",
-                feature: "CompletionOptions",
-                language: LanguageNames.CSharp,
-                value: value);
-
-            SetPerLanguageOption(
-                optionName: "ShowItemsFromUnimportedNamespaces",
-                feature: "CompletionOptions",
-                language: LanguageNames.VisualBasic,
-                value: value);
+            SetGlobalOption(WellKnownGlobalOption.CompletionOptions_ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, value);
+            SetGlobalOption(WellKnownGlobalOption.CompletionOptions_ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, value);
         }
+
+        public void SetEnableDecompilationOption(bool value)
+        {
+            SetOption("NavigateToDecompiledSources", "FeatureOnOffOptions", value);
+        }
+
+        public void SetArgumentCompletionSnippetsOption(bool value)
+        {
+            SetGlobalOption(WellKnownGlobalOption.CompletionViewOptions_EnableArgumentCompletionSnippets, LanguageNames.CSharp, value);
+            SetGlobalOption(WellKnownGlobalOption.CompletionViewOptions_EnableArgumentCompletionSnippets, LanguageNames.VisualBasic, value);
+        }
+
+        public void SetTriggerCompletionInArgumentLists(bool value)
+            => SetGlobalOption(WellKnownGlobalOption.CompletionOptions_TriggerInArgumentLists, LanguageNames.CSharp, value);
 
         public void SetFullSolutionAnalysis(bool value)
         {
@@ -88,9 +93,26 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 value: value ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.Default);
         }
 
-        public void SetFeatureOption(string feature, string optionName, string language, string valueString)
+        public void SetFileScopedNamespaces(bool value)
+            => _inProc.SetFileScopedNamespaces(value);
+
+        public void SetEnableOpeningSourceGeneratedFilesInWorkspaceExperiment(bool value)
+        {
+            SetOption(
+                optionName: LanguageServices.Implementation.SourceGeneratedFileManager.Options.EnableOpeningInWorkspace.Name,
+                feature: LanguageServices.Implementation.SourceGeneratedFileManager.Options.EnableOpeningInWorkspace.Feature,
+                value: value);
+        }
+
+        public void SetFeatureOption(string feature, string optionName, string? language, string? valueString)
             => _inProc.SetFeatureOption(feature, optionName, language, valueString);
 
-        public string GetWorkingFolder() => _inProc.GetWorkingFolder();
+        public object? GetGlobalOption(WellKnownGlobalOption option, string? language)
+            => _inProc.GetGlobalOption(option, language);
+
+        public void SetGlobalOption(WellKnownGlobalOption option, string? language, object? value)
+            => _inProc.SetGlobalOption(option, language, value);
+
+        public string? GetWorkingFolder() => _inProc.GetWorkingFolder();
     }
 }

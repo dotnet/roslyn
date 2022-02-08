@@ -3,12 +3,9 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Debugging
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Debugging
@@ -43,16 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Debugging
                 Dim conditionalAccess As ExpressionSyntax = Nothing
                 If expression.IsRightSideOfDotOrBang() Then
                     expression = DirectCast(expression.Parent, ExpressionSyntax)
-
-                    Dim curr = expression
-                    While True
-                        curr = curr.GetCorrespondingConditionalAccessExpression()
-                        If curr Is Nothing Then
-                            Exit While
-                        End If
-
-                        conditionalAccess = curr
-                    End While
+                    conditionalAccess = If(expression.GetRootConditionalAccessExpression(), expression)
                 End If
 
                 If expression.Parent.IsKind(SyntaxKind.InvocationExpression) Then

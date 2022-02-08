@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 
 namespace Roslyn.Utilities
@@ -28,6 +26,11 @@ namespace Roslyn.Utilities
         public static IList<T> EmptyList<T>()
         {
             return Empty.List<T>.Instance;
+        }
+
+        public static IReadOnlyList<T> EmptyBoxedImmutableArray<T>()
+        {
+            return Empty.BoxedImmutableArray<T>.Instance;
         }
 
         public static IReadOnlyList<T> EmptyReadOnlyList<T>()
@@ -70,6 +73,11 @@ namespace Roslyn.Utilities
         public static IEnumerator<T> SingletonEnumerator<T>(T value)
         {
             return new Singleton.Enumerator<T>(value);
+        }
+
+        public static IReadOnlyList<T> SingletonReadOnlyList<T>(T value)
+        {
+            return new Singleton.List<T>(value);
         }
 
         public static IList<T> SingletonList<T>(T value)

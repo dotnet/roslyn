@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.  
 
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using Microsoft.CodeAnalysis.PullMemberUp;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 {
@@ -37,11 +37,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
 
             public override object GetOptions(CancellationToken cancellationToken)
             {
-                var pullMemberUpOptionService = _service ?? _document.Project.Solution.Workspace.Services.GetService<IPullMemberUpOptionsService>();
-                return pullMemberUpOptionService.GetPullMemberUpOptions(_document, _selectedMember);
+                return _service.GetPullMemberUpOptions(_document, _selectedMember);
             }
 
-            protected async override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
+            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
             {
                 if (options is PullMembersUpOptions pullMemberUpOptions)
                 {
@@ -51,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
                 else
                 {
                     // If user click cancel button, options will be null and hit this branch
-                    return Array.Empty<CodeActionOperation>();
+                    return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
                 }
             }
         }

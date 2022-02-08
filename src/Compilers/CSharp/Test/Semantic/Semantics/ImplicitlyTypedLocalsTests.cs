@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -87,7 +89,7 @@ class Program
         {
             string alias = @"using var = var;";
             string text = @"
-class var { }
+class @var { }
  
 class B
 {
@@ -134,7 +136,7 @@ class C
 
 class D
 {
-    class var
+    class @var
     {
         public static implicit operator var(int x) { return null; }
     }

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -62,7 +60,7 @@ namespace Microsoft.CodeAnalysis
             _arguments = arguments;
         }
 
-        private DiagnosticInfo(DiagnosticInfo original, DiagnosticSeverity overriddenSeverity)
+        protected DiagnosticInfo(DiagnosticInfo original, DiagnosticSeverity overriddenSeverity)
         {
             _messageProvider = original.MessageProvider;
             _errorCode = original._errorCode;
@@ -137,7 +135,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         // Create a copy of this instance with a explicit overridden severity
-        internal DiagnosticInfo GetInstanceWithSeverity(DiagnosticSeverity severity)
+        internal virtual DiagnosticInfo GetInstanceWithSeverity(DiagnosticSeverity severity)
         {
             return new DiagnosticInfo(this, severity);
         }
@@ -199,7 +197,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public int Code { get { return _errorCode; } }
 
-        public DiagnosticDescriptor Descriptor
+        public virtual DiagnosticDescriptor Descriptor
         {
             get
             {
@@ -233,7 +231,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Gets the warning level. This is 0 for diagnostics with severity <see cref="DiagnosticSeverity.Error"/>,
-        /// otherwise an integer between 1 and 4.
+        /// otherwise an integer greater than zero.
         /// </summary>
         public int WarningLevel
         {
@@ -314,7 +312,7 @@ namespace Microsoft.CodeAnalysis
         /// Get the message id (for example "CS1001") for the message. This includes both the error number
         /// and a prefix identifying the source.
         /// </summary>
-        public string MessageIdentifier
+        public virtual string MessageIdentifier
         {
             get
             {
@@ -400,7 +398,7 @@ namespace Microsoft.CodeAnalysis
             return ((IFormattable)this).ToString(null, formatProvider);
         }
 
-        string IFormattable.ToString(string format, IFormatProvider? formatProvider)
+        string IFormattable.ToString(string? format, IFormatProvider? formatProvider)
         {
             return String.Format(formatProvider, "{0}: {1}",
                 _messageProvider.GetMessagePrefix(this.MessageIdentifier, this.Severity, this.IsWarningAsError, formatProvider as CultureInfo),

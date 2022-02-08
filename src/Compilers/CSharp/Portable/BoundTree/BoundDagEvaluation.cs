@@ -2,78 +2,159 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Roslyn.Utilities;
-
-#nullable enable
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     partial class BoundDagEvaluation
     {
-        public override bool Equals([NotNullWhen(true)] object? obj) => obj is BoundDagEvaluation other && this.Equals(other);
-        public virtual bool Equals([NotNullWhen(true)] BoundDagEvaluation? other)
+        public sealed override bool Equals([NotNullWhen(true)] object? obj) => obj is BoundDagEvaluation other && this.Equals(other);
+        public bool Equals(BoundDagEvaluation other)
         {
-            return !(other is null) &&
-                this.Kind == other.Kind &&
-                this.GetOriginalInput().Equals(other.GetOriginalInput()) &&
-                this.Symbol.Equals(other.Symbol, TypeCompareKind.AllIgnoreOptions);
+            return this == other ||
+                this.IsEquivalentTo(other) &&
+                this.Input.Equals(other.Input);
         }
-        private Symbol Symbol
+
+        /// <summary>
+        /// Check if this is equivalent to the <paramref name="other"/> node, ignoring the input.
+        /// </summary>
+        public virtual bool IsEquivalentTo(BoundDagEvaluation other)
+        {
+            return this == other ||
+               this.Kind == other.Kind &&
+               Symbol.Equals(this.Symbol, other.Symbol, TypeCompareKind.AllIgnoreOptions);
+        }
+
+        private Symbol? Symbol
         {
             get
             {
-                switch (this)
+                var result = this switch
                 {
-                    case BoundDagFieldEvaluation e: return e.Field.CorrespondingTupleField ?? e.Field;
-                    case BoundDagPropertyEvaluation e: return e.Property;
-                    case BoundDagTypeEvaluation e: return e.Type;
-                    case BoundDagDeconstructEvaluation e: return e.DeconstructMethod;
-                    case BoundDagIndexEvaluation e: return e.Property;
-                    default: throw ExceptionUtilities.UnexpectedValue(this.Kind);
+                    BoundDagFieldEvaluation e => e.Field.CorrespondingTupleField ?? e.Field,
+                    BoundDagPropertyEvaluation e => e.Property,
+                    BoundDagTypeEvaluation e => e.Type,
+                    BoundDagDeconstructEvaluation e => e.DeconstructMethod,
+                    BoundDagIndexEvaluation e => e.Property,
+                    BoundDagSliceEvaluation e => getSymbolFromIndexerAccess(e.IndexerAccess),
+                    BoundDagIndexerEvaluation e => getSymbolFromIndexerAccess(e.IndexerAccess),
+                    BoundDagAssignmentEvaluation => null,
+                    _ => throw ExceptionUtilities.UnexpectedValue(this.Kind)
+                };
+
+                Debug.Assert(result is not null || this is BoundDagAssignmentEvaluation);
+                return result;
+
+                static Symbol? getSymbolFromIndexerAccess(BoundExpression indexerAccess)
+                {
+                    switch (indexerAccess)
+                    {
+                        // array[Range]
+                        case BoundArrayAccess arrayAccess:
+                            return arrayAccess.Expression.Type;
+
+                        // array[Index]
+                        case BoundImplicitIndexerAccess { IndexerOrSliceAccess: BoundArrayAccess arrayAccess }:
+                            return arrayAccess.Expression.Type;
+
+                        default:
+                            return Binder.GetIndexerOrImplicitIndexerSymbol(indexerAccess);
+                    }
                 }
             }
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(GetOriginalInput().GetHashCode(), Symbol.GetHashCode());
+            return Hash.Combine(Input.GetHashCode(), this.Symbol?.GetHashCode() ?? 0);
         }
 
-        /// <summary>
-        /// Returns the original input for this evaluation, stripped of all Type Evaluations.
-        /// 
-        /// A BoundDagTypeEvaluation doesn't change the underlying object being pointed to
-        /// So two evaluations act on the same input so long as they have the same original input.
-        /// </summary>
-        private BoundDagTemp GetOriginalInput()
+#if DEBUG
+        private int _id = -1;
+
+        public int Id
         {
-            var input = this.Input;
-            while (input.Source is BoundDagTypeEvaluation source)
+            get
             {
-                input = source.Input;
+                return _id;
             }
-            return input;
+            internal set
+            {
+                Debug.Assert(value > 0, "Id must be positive but was set to " + value);
+                Debug.Assert(_id == -1, $"Id was set to {_id} and set again to {value}");
+                _id = value;
+            }
         }
 
-        public static bool operator ==(BoundDagEvaluation? left, BoundDagEvaluation? right)
+        internal string GetOutputTempDebuggerDisplay()
         {
-            return (left is null) ? right is null : left.Equals(right);
+            var id = Id;
+            return id switch
+            {
+                -1 => "<uninitialized>",
+
+                // Note that we never expect to create an evaluation with id 0
+                // To do so would imply that dag evaluation assigns to the original input
+                0 => "<error>",
+
+                _ => $"t{id}"
+            };
         }
-        public static bool operator !=(BoundDagEvaluation? left, BoundDagEvaluation? right)
-        {
-            return !(left == right);
-        }
+#endif
     }
 
     partial class BoundDagIndexEvaluation
     {
         public override int GetHashCode() => base.GetHashCode() ^ this.Index;
-        public override bool Equals(BoundDagEvaluation? obj)
+        public override bool IsEquivalentTo(BoundDagEvaluation obj)
         {
-            return base.Equals(obj) &&
-                // base.Equals checks the kind field, so the following cast is safe
+            return base.IsEquivalentTo(obj) &&
+                // base.IsEquivalentTo checks the kind field, so the following cast is safe
                 this.Index == ((BoundDagIndexEvaluation)obj).Index;
+        }
+    }
+
+    partial class BoundDagIndexerEvaluation
+    {
+        public override int GetHashCode() => base.GetHashCode() ^ this.Index;
+        public override bool IsEquivalentTo(BoundDagEvaluation obj)
+        {
+            return base.IsEquivalentTo(obj) &&
+                this.Index == ((BoundDagIndexerEvaluation)obj).Index;
+        }
+
+        private partial void Validate()
+        {
+            Debug.Assert(IndexerAccess is BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess);
+        }
+    }
+
+    partial class BoundDagSliceEvaluation
+    {
+        public override int GetHashCode() => base.GetHashCode() ^ this.StartIndex ^ this.EndIndex;
+        public override bool IsEquivalentTo(BoundDagEvaluation obj)
+        {
+            return base.IsEquivalentTo(obj) &&
+                (BoundDagSliceEvaluation)obj is var e &&
+                this.StartIndex == e.StartIndex && this.EndIndex == e.EndIndex;
+        }
+
+        private partial void Validate()
+        {
+            Debug.Assert(IndexerAccess is BoundIndexerAccess or BoundImplicitIndexerAccess or BoundArrayAccess);
+        }
+    }
+
+    partial class BoundDagAssignmentEvaluation
+    {
+        public override int GetHashCode() => Hash.Combine(base.GetHashCode(), this.Target.GetHashCode());
+        public override bool IsEquivalentTo(BoundDagEvaluation obj)
+        {
+            return base.IsEquivalentTo(obj) &&
+                this.Target.Equals(((BoundDagAssignmentEvaluation)obj).Target);
         }
     }
 }

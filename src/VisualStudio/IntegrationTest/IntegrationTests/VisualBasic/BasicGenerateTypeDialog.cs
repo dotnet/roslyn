@@ -20,8 +20,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
         private GenerateTypeDialog_OutOfProc GenerateTypeDialog => VisualStudio.GenerateTypeDialog;
 
-        public BasicGenerateTypeDialog(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(BasicGenerateTypeDialog))
+        public BasicGenerateTypeDialog(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(BasicGenerateTypeDialog))
         {
         }
 

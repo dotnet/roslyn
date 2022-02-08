@@ -3,7 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Structure
-Imports Microsoft.CodeAnalysis.VisualBasic.Structure.MetadataAsSource
+Imports Microsoft.CodeAnalysis.VisualBasic.Structure
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.MetadataAsSource
@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining.Metadata
         End Property
 
         Friend Overrides Function CreateProvider() As AbstractSyntaxStructureProvider
-            Return New MetadataRegionDirectiveStructureProvider()
+            Return New RegionDirectiveStructureProvider()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)>

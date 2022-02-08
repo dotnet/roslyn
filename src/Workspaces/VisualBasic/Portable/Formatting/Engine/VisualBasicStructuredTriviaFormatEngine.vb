@@ -3,8 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Partial Friend Class VisualBasicStructuredTriviaFormatEngine
@@ -12,30 +14,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Public Shared Function FormatTrivia(trivia As SyntaxTrivia,
                                       initialColumn As Integer,
-                                      optionSet As OptionSet,
+                                      options As SyntaxFormattingOptions,
                                       formattingRules As ChainedFormattingRules,
                                       cancellationToken As CancellationToken) As IFormattingResult
             Dim root = trivia.GetStructure()
-            Dim formatter = New VisualBasicStructuredTriviaFormatEngine(trivia, initialColumn, optionSet, formattingRules, root.GetFirstToken(includeZeroWidth:=True), root.GetLastToken(includeZeroWidth:=True))
+            Dim formatter = New VisualBasicStructuredTriviaFormatEngine(trivia, initialColumn, options, formattingRules, root.GetFirstToken(includeZeroWidth:=True), root.GetLastToken(includeZeroWidth:=True))
             Return formatter.Format(cancellationToken)
         End Function
 
         Private Sub New(trivia As SyntaxTrivia,
                        initialColumn As Integer,
-                       optionSet As OptionSet,
+                       options As SyntaxFormattingOptions,
                        formattingRules As ChainedFormattingRules,
                        token1 As SyntaxToken,
                        token2 As SyntaxToken)
             MyBase.New(TreeData.Create(trivia, initialColumn),
-                       optionSet, formattingRules, token1, token2)
+                       options, formattingRules, token1, token2)
         End Sub
 
+        Friend Overrides ReadOnly Property HeaderFacts As IHeaderFacts = VisualBasicHeaderFacts.Instance
+
         Protected Overrides Function CreateTriviaFactory() As AbstractTriviaDataFactory
-            Return New TriviaDataFactory(Me.TreeData, Me.OptionSet)
+            Return New TriviaDataFactory(Me.TreeData, Me.Options)
         End Function
 
         Protected Overrides Function CreateFormattingContext(tokenStream As TokenStream, cancellationToken As CancellationToken) As FormattingContext
-            Return New FormattingContext(Me, tokenStream, LanguageNames.VisualBasic)
+            Return New FormattingContext(Me, tokenStream)
         End Function
 
         Protected Overrides Function CreateNodeOperations(cancellationToken As CancellationToken) As NodeOperations

@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -15,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics
     internal sealed class CSharpAnalyzerDriverService : IAnalyzerDriverService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpAnalyzerDriverService()
         {
         }

@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
 
-namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
+namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.RegularExpressions
 {
-    internal class RegexEmbeddedLanguageEditorFeatures : RegexEmbeddedLanguageFeatures, IEmbeddedLanguageEditorFeatures
+    internal sealed class RegexEmbeddedLanguageEditorFeatures : RegexEmbeddedLanguage, IEmbeddedLanguageEditorFeatures
     {
         public IBraceMatcher BraceMatcher { get; }
 

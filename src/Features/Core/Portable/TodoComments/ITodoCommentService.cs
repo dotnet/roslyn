@@ -2,28 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.TodoComments
 {
-    /// <summary>
-    /// Description of a TODO comment type to find in a user's comments.
-    /// </summary>
-    internal readonly struct TodoCommentDescriptor
-    {
-        public string Text { get; }
-        public int Priority { get; }
-
-        public TodoCommentDescriptor(string text, int priority) : this()
-        {
-            Text = text;
-            Priority = priority;
-        }
-    }
-
     /// <summary>
     /// A TODO comment that has been found within the user's code.
     /// </summary>
@@ -39,10 +28,47 @@ namespace Microsoft.CodeAnalysis.TodoComments
             Message = message;
             Position = position;
         }
+
+        private TodoCommentData CreateSerializableData(
+            Document document, SourceText text, SyntaxTree? tree)
+        {
+            // make sure given position is within valid text range.
+            var textSpan = new TextSpan(Math.Min(text.Length, Math.Max(0, Position)), 0);
+
+            var location = tree == null
+                ? Location.Create(document.FilePath!, textSpan, text.Lines.GetLinePositionSpan(textSpan))
+                : tree.GetLocation(textSpan);
+            var originalLineInfo = location.GetLineSpan();
+            var mappedLineInfo = location.GetMappedLineSpan();
+
+            return new(
+                priority: Descriptor.Priority,
+                message: Message,
+                documentId: document.Id,
+                originalLine: originalLineInfo.StartLinePosition.Line,
+                originalColumn: originalLineInfo.StartLinePosition.Character,
+                originalFilePath: document.FilePath,
+                mappedLine: mappedLineInfo.StartLinePosition.Line,
+                mappedColumn: mappedLineInfo.StartLinePosition.Character,
+                mappedFilePath: mappedLineInfo.GetMappedFilePathIfExist());
+        }
+
+        public static async Task ConvertAsync(
+            Document document,
+            ImmutableArray<TodoComment> todoComments,
+            ArrayBuilder<TodoCommentData> converted,
+            CancellationToken cancellationToken)
+        {
+            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+
+            foreach (var comment in todoComments)
+                converted.Add(comment.CreateSerializableData(document, sourceText, syntaxTree));
+        }
     }
 
     internal interface ITodoCommentService : ILanguageService
     {
-        Task<IList<TodoComment>> GetTodoCommentsAsync(Document document, IList<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken);
+        Task<ImmutableArray<TodoComment>> GetTodoCommentsAsync(Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken);
     }
 }

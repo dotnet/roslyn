@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -13,9 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.VsNavIn
         private int _index;
 
         public NavInfoNodeEnum(ImmutableArray<NavInfoNode> nodes)
-        {
-            _nodes = nodes;
-        }
+            => _nodes = nodes;
 
         public int Clone(out IVsEnumNavInfoNodes ppEnum)
         {

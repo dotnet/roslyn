@@ -2,7 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.CSharp
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
     Public Class CastSimplificationTests
@@ -484,7 +484,7 @@ class C
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestCSharp_DoNotRemove_LambdaToDelegateTypeWithVar() As Task
+        Public Async Function TestCSharp_DoNotRemove_LambdaToDelegateTypeWithVar_CSharp9() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -511,8 +511,38 @@ class C
 }
 </code>
 
-            Await TestAsync(input, expected)
+            Await TestAsync(input, expected, csharpParseOptions:=CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9))
+        End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharp_DoNotRemove_LambdaToDelegateTypeWithVar_CSharp10() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C
+{
+    void M()
+    {
+        var a = {|Simplify:(System.Action)(() => { })|};
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+class C
+{
+    void M()
+    {
+        var a = () => { };
+    }
+}
+</code>
+
+            Await TestAsync(input, expected, csharpParseOptions:=CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
@@ -576,7 +606,6 @@ class C
 </code>
 
             Await TestAsync(input, expected)
-
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
@@ -608,7 +637,6 @@ class C
 </code>
 
             Await TestAsync(input, expected)
-
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
@@ -646,7 +674,6 @@ class C
 </code>
 
             Await TestAsync(input, expected)
-
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
@@ -966,6 +993,92 @@ static class A
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529855, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529855")>
+        Public Async Function TestCSharp_Remove_CastInIsExpression2() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System.Collections;
+
+static class A
+{
+    static void Goo(IEnumerable x)
+    {
+        if ({|Simplify:(IEnumerable)x|} is string)
+        {
+        }
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System.Collections;
+
+static class A
+{
+    static void Goo(IEnumerable x)
+    {
+        if (x is string)
+        {
+        }
+    }
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529855, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529855")>
+        Public Async Function TestCSharp_Remove_CastInIsExpression3() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System.Collections;
+using System.Collections.Generic;
+
+static class A
+{
+    static void Goo(List<int> x)
+    {
+        if ({|Simplify:(object)x|} is string)
+        {
+        }
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System.Collections;
+using System.Collections.Generic;
+
+static class A
+{
+    static void Goo(List<int> x)
+    {
+        if ((object)x is string)
+        {
+        }
+    }
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529843, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529843")>
         Public Async Function TestCSharp_Remove_CastToObjectTypeInReferenceComparison() As Task
             Dim input =
@@ -1043,7 +1156,7 @@ class Program
             Await TestAsync(input, expected)
         End Function
 
-        <Fact(), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529917, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529917")>
         Public Async Function TestCSharp_Remove_NullableTypeToInterfaceTypeInNullComparison() As Task
             Dim input =
@@ -1199,7 +1312,7 @@ class Program
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(531431, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531431")>
         Public Async Function TestCSharp_DoNotRemove_RequiredExplicitNullableCast_And_Remove_UnnecessaryExplicitNullableCast() As Task
             Dim input =
@@ -1237,12 +1350,14 @@ class Program
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Theory, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(530248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530248")>
-        Public Async Function TestCSharp_DoNotRemove_NecessaryCastInTernaryExpression() As Task
+        <InlineData(CodeAnalysis.CSharp.LanguageVersion.CSharp8, "(Base)d2")>
+        <InlineData(CodeAnalysis.CSharp.LanguageVersion.CSharp9, "d2")>
+        Public Async Function TestCSharp_CastInTernaryExpression(languageVersion As LanguageVersion, expectedFalseExpression As String) As Task
             Dim input =
 <Workspace>
-    <Project Language="C#" CommonReferences="true">
+    <Project Language="C#" CommonReferences="true" LanguageVersion=<%= languageVersion.ToDisplayString() %>>
         <Document><![CDATA[
 class Base { }
 class Derived1 : Base { }
@@ -1261,7 +1376,7 @@ class Test
 </Workspace>
 
             Dim expected =
-<code><![CDATA[
+<code>
 class Base { }
 class Derived1 : Base { }
 class Derived2 : Base { }
@@ -1270,21 +1385,22 @@ class Test
 {
     public Base F(bool flag, Derived1 d1, Derived2 d2)
     {
-        return flag ? d1 : (Base)d2;
+        return flag ? d1 : <%= expectedFalseExpression %>;
     }
 }
-]]>
 </code>
 
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Theory, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(530248, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530248")>
-        Public Async Function TestCSharp_DoNotRemove_NecessaryCastInTernaryExpression2() As Task
+        <InlineData(CodeAnalysis.CSharp.LanguageVersion.CSharp8, "(Base)d1")>
+        <InlineData(CodeAnalysis.CSharp.LanguageVersion.CSharp9, "d1")>
+        Public Async Function TestCSharp_CastInTernaryExpression2(languageVersion As LanguageVersion, expectedTrueExpression As String) As Task
             Dim input =
 <Workspace>
-    <Project Language="C#" CommonReferences="true">
+    <Project Language="C#" CommonReferences="true" LanguageVersion=<%= languageVersion.ToDisplayString() %>>
         <Document><![CDATA[
 class Base { }
 class Derived1 : Base { }
@@ -1303,7 +1419,7 @@ class Test
 </Workspace>
 
             Dim expected =
-<code><![CDATA[
+<code>
 class Base { }
 class Derived1 : Base { }
 class Derived2 : Base { }
@@ -1312,21 +1428,22 @@ class Test
 {
     public Base F(bool flag, Derived1 d1, Derived2 d2)
     {
-        return flag ? (Base)d1 : d2;
+        return flag ? <%= expectedTrueExpression %> : d2;
     }
 }
-]]>
 </code>
 
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Theory, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(530085, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530085")>
-        Public Async Function TestCSharp_DoNotRemove_NecessaryCastInTernaryExpression3() As Task
+        <InlineData(CodeAnalysis.CSharp.LanguageVersion.CSharp8, "(long?)value")>
+        <InlineData(CodeAnalysis.CSharp.LanguageVersion.CSharp9, "value")>
+        Public Async Function TestCSharp_CastInTernaryExpression3(languageVersion As LanguageVersion, expectedTrueExpression As String) As Task
             Dim input =
 <Workspace>
-    <Project Language="C#" CommonReferences="true">
+    <Project Language="C#" CommonReferences="true" LanguageVersion=<%= languageVersion.ToDisplayString() %>>
         <Document><![CDATA[
 class Program
 {
@@ -1343,17 +1460,16 @@ class Program
 </Workspace>
 
             Dim expected =
-<code><![CDATA[
+<code>
 class Program
 {
     static void Main(string[] args)
     {
         bool b = true;
         long value = 0;
-        long? a = b ? (long?)value : null;
+        long? a = b ? <%= expectedTrueExpression %> : null;
     }
 }
-]]>
 </code>
 
             Await TestAsync(input, expected)
@@ -1465,6 +1581,65 @@ class C
             Await TestAsync(input, expected)
         End Function
 
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529956")>
+        Public Async Function TestCSharp_DoRemove_UnnecessaryCastInForEachExpression() As Task
+            ' Currently not working, but would make sense to support in the future.
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+using System.Collections;
+using System.Collections.Generic;
+ 
+class C
+{
+    static void Main()
+    {
+        foreach (C x in {|Simplify:(IEnumerable<string>) new string[] { null }|})
+        {
+            Console.WriteLine(x == null);
+        }
+    }
+ 
+    public static implicit operator C(string s)
+    {
+        return new C();
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System;
+using System.Collections;
+using System.Collections.Generic;
+ 
+class C
+{
+    static void Main()
+    {
+        foreach (C x in new string[] { null })
+        {
+            Console.WriteLine(x == null);
+        }
+    }
+ 
+    public static implicit operator C(string s)
+    {
+        return new C();
+    }
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529956")>
         Public Async Function TestCSharp_DoNotRemove_NecessaryCastInForEachExpressionInsideLambda() As Task
@@ -1529,7 +1704,7 @@ class C
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529844, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529844")>
-        Public Async Function TestCSharp_DoNotRemove_NecessaryCastInNumericConversion() As Task
+        Public Async Function TestCSharp_DoRemove_UnnecessaryFPCastFromInteger() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -1564,7 +1739,7 @@ class Program
     {
         int x = int.MaxValue;
         double y = x;
-        double z = (float)x;
+        double z = x;
         Console.WriteLine(x);
         Console.WriteLine(y);
         Console.WriteLine(z);
@@ -1617,7 +1792,7 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529962, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529962")>
         Public Async Function TestCSharp_Remove_UnnecessaryCastInIsExpression() As Task
             Dim input =
@@ -1659,7 +1834,7 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(662196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/662196")>
         Public Async Function TestCSharp_Remove_UnnecessaryCastInAsExpression() As Task
             Dim input =
@@ -2014,7 +2189,7 @@ class C
 
         <WorkItem(529919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529919")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestCsharp_Remove_DelegateVarianceConversions() As Task
+        Public Async Function TestCSharp_Remove_DelegateVarianceConversions1() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -2052,13 +2227,96 @@ class Program
 </code>
 
             Await TestAsync(input, expected)
+        End Function
 
+        <WorkItem(529919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529919")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharp_Remove_DelegateVarianceConversions2() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Func<object, string> a = null;
+        Func<string, string> b = {|Simplify:(Func<string, string>)a|};
+        ({|Simplify:(Func<string, string>)a|})("A");
+        ({|Simplify:(Func<string, string>)a|}).Invoke("A");
+    }
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Func<object, string> a = null;
+        Func<string, string> b = a;
+        (a)("A");
+        (a).Invoke("A");
+    }
+}]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <WorkItem(529919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529919")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharp_DoNotRemove_DelegateVarianceConversions1() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Func<object, string> a = null;
+        Func<string, object> b = {|Simplify:(Func<string, object>)a|};
+        var v1 = ({|Simplify:(Func<string, object>)a|})("A");
+        var v2 = ({|Simplify:(Func<string, object>)a|}).Invoke("A");
+    }
+}]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        Func<object, string> a = null;
+        Func<string, object> b = a;
+        var v1 = ((Func<string, object>)a)("A");
+        var v2 = ((Func<string, object>)a).Invoke("A");
+    }
+}]]>
+</code>
+
+            Await TestAsync(input, expected)
         End Function
 
         <WorkItem(529884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529884")>
         <WorkItem(1043494, "DevDiv")>
         <WpfFact(Skip:="1043494"), Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestCsharp_DoNotRemove_ParamDefaultValueNegativeZero() As Task
+        Public Async Function TestCSharp_DoNotRemove_ParamDefaultValueNegativeZero() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -2110,13 +2368,12 @@ sealed class C : I
 </code>
 
             Await TestAsync(input, expected)
-
         End Function
 
         <WorkItem(529884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529884")>
         <WorkItem(1043494, "DevDiv")>
         <WpfFact(Skip:="1043494"), Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestCsharp_DoNotRemove_ParamDefaultValueNegativeZero2() As Task
+        Public Async Function TestCSharp_DoNotRemove_ParamDefaultValueNegativeZero2() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -2173,7 +2430,7 @@ sealed class C : I
 
         <WorkItem(529884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529884")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestCsharp_Remove_ParamDefaultValueZero() As Task
+        Public Async Function TestCSharp_Remove_ParamDefaultValueZero() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -2415,7 +2672,7 @@ static class Program
 
         <WorkItem(529877, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529877")>
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestCsharp_Remove_UnnecessarySealedClassToInterfaceCast() As Task
+        Public Async Function TestCSharp_Remove_UnnecessarySealedClassToInterfaceCast() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -2520,7 +2777,7 @@ struct S : IIncrementable
     {
         // Note: readonly modifier guarantees that a copy of a value type is always made before modification, so a boxing is not observable.
 
-        (s).Increment();
+        ((IIncrementable)s).Increment();
         Console.WriteLine(s.Value);
     }
 }
@@ -2528,12 +2785,11 @@ struct S : IIncrementable
 </code>
 
             Await TestAsync(input, expected)
-
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529888, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529888")>
-        Public Async Function TestCsharp_Remove_UnnecessaryObjectCreationToInterfaceCast() As Task
+        Public Async Function TestCSharp_Remove_UnnecessaryObjectCreationToInterfaceCast() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -2625,7 +2881,7 @@ class C : IDisposable
     static void Main()
     {
         var x = new C();
-        (x).Dispose();
+        ((IDisposable)x).Dispose();
     }
 }
 ]]>
@@ -2684,7 +2940,7 @@ class C : IDisposable
     static void Main()
     {
         var x = new C();
-        (x).Dispose();
+        ((IDisposable)x).Dispose();
     }
 }
 
@@ -2755,7 +3011,7 @@ class C : IDisposable
     static void Main()
     {
         var x = new C();
-        (x).Dispose();
+        ((IDisposable)x).Dispose();
     }
 
     interface I { }
@@ -2817,7 +3073,7 @@ class A
         static void Main()
         {
             var x = new C();
-            (x).Dispose();
+            ((IDisposable)x).Dispose();
         }
     }
 }
@@ -2878,7 +3134,7 @@ class A
         static void Main()
         {
             var x = new C();
-            (x).Dispose();
+            ((IDisposable)x).Dispose();
         }
     }
 }
@@ -3041,7 +3297,7 @@ struct D : IDisposable
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529889, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529889")>
-        Public Async Function TestCsharp_Remove_UnnecessaryCastFromImmutableValueTypeToInterface() As Task
+        Public Async Function TestCSharp_Remove_UnnecessaryCastFromImmutableValueTypeToInterface() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -3077,7 +3333,46 @@ class Program
 </code>
 
             Await TestAsync(input, expected)
+        End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529889, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529889")>
+        Public Async Function TestCsharp_Keep_NecessaryCastFromImmutableValueTypeToInterfaceWhenParameterNameIsDifferent() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+ 
+class Program
+{
+    static void Main()
+    {
+        int x = 1;
+        var y = ({|Simplify:(IComparable<int>)x|}).CompareTo(other:=0);
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System;
+ 
+class Program
+{
+    static void Main()
+    {
+        int x = 1;
+        var y = ((IComparable<int>)x).CompareTo(other:=0);
+    }
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
@@ -3174,9 +3469,9 @@ static class Program
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529988")>
-        Public Async Function TestCsharp_Remove_UnnecessaryCastInDelegateCreationExpression3() As Task
+        Public Async Function TestCSharp_Remove_UnnecessaryCastInDelegateCreationExpression3() As Task
             ' Note: Removing the cast changes the lambda parameter type, but doesn't change the semantics of the lambda body.
 
             Dim input =
@@ -3224,7 +3519,7 @@ static class Program
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529988")>
         Public Async Function TestCsharp_Remove_UnnecessaryCastInDelegateCreationExpression4() As Task
-            ' Note: Removing the cast changes the lambda parameter type, but doesn't change the semantics of the lambda body.
+            ' Note: this cast is not legal (it causes a semantic binding error in the lambda).  So do not remove it.
 
             Dim input =
 <Workspace>
@@ -3255,7 +3550,7 @@ static class Program
 {
     static void Main()
     {
-        new Action<string>((y) => { string x = y; x.Goo(); })(null);
+        new Action<string>((Action<object>)((y) => { string x = y; x.Goo(); }))(null);
     }
  
     static void Goo(this object x) { Console.WriteLine(1); }
@@ -3363,9 +3658,9 @@ static class Program
 
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/56938"), Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529988")>
-        Public Async Function TestCsharp_Remove_UnnecessaryCastInDelegateCreationExpression7() As Task
+        Public Async Function TestCSharp_Remove_UnnecessaryCastInDelegateCreationExpression7() As Task
             ' Note: Removing the cast changes the parameter type of lambda parameter "z"
             ' but not that of parameter "y" and hence the semantics of the lambda body aren't changed.
 
@@ -3618,7 +3913,7 @@ unsafe class C
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(835537, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835537")>
-        Public Async Function TestCsharp_DoNotRemove_NecessaryExplicitCastInReferenceComparison() As Task
+        Public Async Function TestCSharp_DoNotRemove_UnnecessaryExplicitCastInReferenceComparisonDueToWarning1() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -3654,7 +3949,7 @@ class Program
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(835537, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/835537")>
-        Public Async Function TestCsharp_DoNotRemove_NecessaryExplicitCastInReferenceComparison2() As Task
+        Public Async Function TestCSharp_DoNotRemove_UnnecessaryExplicitCastInReferenceComparisonDueToWarning3() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -3762,12 +4057,11 @@ public class Class1
 </code>
 
             Await TestAsync(input, expected)
-
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
         <WorkItem(529858, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529858")>
-        Public Async Function TestCsharp_Remove_UnnecessaryCastFromEnumTypeToUnderlyingType() As Task
+        Public Async Function TestCSharp_Remove_UnnecessaryCastFromEnumTypeToUnderlyingType() As Task
             Dim input =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -3803,7 +4097,248 @@ class C
 </code>
 
             Await TestAsync(input, expected)
+        End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529858, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529858")>
+        Public Async Function TestCSharp_Remove_UnnecessaryCastFromEnumTypeToUnderlyingType_Flipped() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+ 
+class C
+{
+    static void Main()
+    {
+        DayOfWeek x = DayOfWeek.Monday;
+        if (0 == {|Simplify:(int)x|}) { }
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System;
+ 
+class C
+{
+    static void Main()
+    {
+        DayOfWeek x = DayOfWeek.Monday;
+        if (0 == x) { }
+    }
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529858, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529858")>
+        Public Async Function TestCSharp_Remove_UnnecessaryCastFromEnumTypeToUnderlyingType2() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+ 
+class C
+{
+    static void Main()
+    {
+        DayOfWeek x = DayOfWeek.Monday;
+        if ({|Simplify:(int)x|} != 0) { }
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System;
+ 
+class C
+{
+    static void Main()
+    {
+        DayOfWeek x = DayOfWeek.Monday;
+        if (x != 0) { }
+    }
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529858, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529858")>
+        Public Async Function TestCSharp_Remove_UnnecessaryCastFromEnumTypeToUnderlyingType2_Flipped() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+ 
+class C
+{
+    static void Main()
+    {
+        DayOfWeek x = DayOfWeek.Monday;
+        if (0 != {|Simplify:(int)x|}) { }
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System;
+ 
+class C
+{
+    static void Main()
+    {
+        DayOfWeek x = DayOfWeek.Monday;
+        if (0 != x) { }
+    }
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529858, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529858")>
+        Public Async Function TestCSharp_Remove_UnnecessaryCastFromEnumTypeToUnderlyingType3() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+ 
+class C
+{
+    static void Main()
+    {
+        DayOfWeek x = DayOfWeek.Monday;
+        if ({|Simplify:(int)x|} == 1) { }
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System;
+ 
+class C
+{
+    static void Main()
+    {
+        DayOfWeek x = DayOfWeek.Monday;
+        if ((int)x == 1) { }
+    }
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529858, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529858")>
+        Public Async Function TestCSharp_Remove_UnnecessaryCastFromEnumTypeToUnderlyingType4() As Task
+            ' It would be fine for this behavior to change in the future.
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+ 
+class C
+{
+    static void Main()
+    {
+        DayOfWeek x = DayOfWeek.Monday;
+        if (x == (DayOfWeek)0) { }
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System;
+ 
+class C
+{
+    static void Main()
+    {
+        DayOfWeek x = DayOfWeek.Monday;
+        if (x == (DayOfWeek)0) { }
+    }
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(529858, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529858")>
+        Public Async Function TestCSharp_Remove_UnnecessaryCastFromEnumTypeToUnderlyingType5() As Task
+            ' This behavior must not change in the future.
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+using System;
+ 
+class C
+{
+    static void Main()
+    {
+        DayOfWeek x = DayOfWeek.Monday;
+        if (x == (DayOfWeek)1) { }
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+using System;
+ 
+class C
+{
+    static void Main()
+    {
+        DayOfWeek x = DayOfWeek.Monday;
+        if (x == (DayOfWeek)1) { }
+    }
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
@@ -4207,10 +4742,10 @@ class B
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function TestCSharp_DoNotRemove_NecessaryCastInConditionalExpression() As Task
+        Public Async Function TestCSharp_DoNotRemove_NecessaryCastInConditionalExpression_CSharp8() As Task
             Dim input =
 <Workspace>
-    <Project Language="C#" CommonReferences="true">
+    <Project Language="C#" CommonReferences="true" LanguageVersion="8">
         <Document><![CDATA[
 public struct Subject<T>
 {
@@ -4254,6 +4789,91 @@ public struct Subject<T>
     }
 }
 ]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharp_Remove_CastInConditionalExpression_CSharp9() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="9">
+        <Document><![CDATA[
+public struct Subject<T>
+{
+    private readonly T _value;
+    public Subject(T value)
+    : this()
+    {
+        _value = value;
+    }
+    public T Value
+    {
+        get { return _value; }
+    }
+    public Subject<TResult>? Is<TResult>() where TResult : T
+    {
+        return _value is TResult ? {|Simplify:(Subject<TResult>?)|}new Subject<TResult>((TResult)_value) : null;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+public struct Subject<T>
+{
+    private readonly T _value;
+    public Subject(T value)
+    : this()
+    {
+        _value = value;
+    }
+    public T Value
+    {
+        get { return _value; }
+    }
+    public Subject<TResult>? Is<TResult>() where TResult : T
+    {
+        return _value is TResult ? new Subject<TResult>((TResult)_value) : null;
+    }
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        Public Async Function TestCSharp_DoNotRemove_CastInConditionalExpressionWithDefault() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true" LanguageVersion="9">
+        <Document><![CDATA[
+public struct S
+{
+    void M()
+    {
+        int? x = DateTime.Now.DayOfWeek == DayOfWeek.Tuesday ? {|Simplify:(int?)|}42 : default;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+public struct S
+{
+    void M()
+    {
+        int? x = DateTime.Now.DayOfWeek == DayOfWeek.Tuesday ? (int?)42 : default;
+    }
+}
 </code>
 
             Await TestAsync(input, expected)
@@ -6234,7 +6854,7 @@ NotInheritable Class C
     End Sub
 
     Private Shared Sub Main()
-        Call New C().Goo()
+        Call DirectCast(New C(), I).Goo()
     End Sub
 End Class
 ]]>
@@ -6555,7 +7175,7 @@ NotInheritable Class D
     Inherits C
     Private Shared Sub Main()
         Dim s As New D()
-        Call s.Dispose()
+        Call DirectCast(s, IDisposable).Dispose()
     End Sub
 End Class
 ]]>
@@ -6637,7 +7257,7 @@ Structure S
     Private Shared Sub Main()
         ' Note: readonly modifier guarantees that a copy of a value type is always made before modification, so a boxing is not observable.
 
-        Call s.Increment()
+        Call DirectCast(s, IIncrementable).Increment()
         Console.WriteLine(s.Value)
     End Sub
 End Structure
@@ -6690,7 +7310,7 @@ End Structure
 Class X
     Implements IDisposable
     Private Shared Sub Main()
-        Call New X().Dispose()
+        Call DirectCast(New X(), IDisposable).Dispose()
         Call New Y().Dispose()
     End Sub
 
@@ -6745,7 +7365,7 @@ Class C
 
     Private Shared Sub Main()
         Dim x = New C()
-        Call x.Dispose()
+        Call DirectCast(x, IDisposable).Dispose()
     End Sub
 End Class
 ]]>
@@ -6809,7 +7429,7 @@ Class C
 
     Private Shared Sub Main()
         Dim x = New C()
-        Call x.Dispose()
+        Call DirectCast(x, IDisposable).Dispose()
     End Sub
 End Class
 
@@ -6889,7 +7509,7 @@ Class C
 
     Private Shared Sub Main()
         Dim x = New C()
-        Call x.Dispose()
+        Call DirectCast(x, IDisposable).Dispose()
     End Sub
 
     Private Interface I
@@ -6953,7 +7573,7 @@ Class A
 
         Private Shared Sub Main()
             Dim x = New C()
-            Call x.Dispose()
+            Call DirectCast(x, IDisposable).Dispose()
         End Sub
     End Class
 End Class
@@ -7015,7 +7635,7 @@ Class A
 
 		Private Shared Sub Main()
 			Dim x = New C()
-			Call x.Dispose()
+			Call DirectCast(x, IDisposable).Dispose()
 		End Sub
 	End Class
 End Class
@@ -7257,7 +7877,7 @@ End Interface
 Class M
     Implements I1
     Shared Sub Main()
-        Call New M().Goo()
+        Call CType(New M(), I1).Goo()
     End Sub
     Public Sub Goo() Implements I1.Goo
     End Sub

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
@@ -41,9 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
         }
 
         private SyntaxNode LookupNode()
-        {
-            return this.ParentElement.LookupNode();
-        }
+            => this.ParentElement.LookupNode();
 
         private EnvDTE.CodeElement CreateCodeAttribute(SyntaxNode node, SyntaxNode parentNode)
         {

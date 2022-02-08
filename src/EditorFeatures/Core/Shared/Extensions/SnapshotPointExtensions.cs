@@ -10,18 +10,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
     internal static class SnapshotPointExtensions
     {
         public static void GetLineAndCharacter(this SnapshotPoint point, out int lineNumber, out int characterIndex)
-        {
-            point.Snapshot.GetLineAndCharacter(point.Position, out lineNumber, out characterIndex);
-        }
+            => point.Snapshot.GetLineAndCharacter(point.Position, out lineNumber, out characterIndex);
 
         public static int GetContainingLineNumber(this SnapshotPoint point)
-        {
-            return point.GetContainingLine().LineNumber;
-        }
+            => point.GetContainingLine().LineNumber;
 
         public static ITrackingPoint CreateTrackingPoint(this SnapshotPoint point, PointTrackingMode trackingMode)
-        {
-            return point.Snapshot.CreateTrackingPoint(point, trackingMode);
-        }
+            => point.Snapshot.CreateTrackingPoint(point, trackingMode);
     }
 }

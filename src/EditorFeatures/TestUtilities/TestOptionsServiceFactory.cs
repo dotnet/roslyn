@@ -10,20 +10,24 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
-using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
-    [ExportWorkspaceServiceFactory(typeof(IOptionService), TestWorkspaceName.Name), Shared]
+    [ExportWorkspaceServiceFactory(typeof(IOptionService), ServiceLayer.Test), Shared, PartNotDiscoverable]
     internal class TestOptionsServiceFactory : IWorkspaceServiceFactory
     {
+        private readonly IWorkspaceThreadingService? _workspaceThreadingService;
         private readonly ImmutableArray<Lazy<IOptionProvider, LanguageMetadata>> _providers;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestOptionsServiceFactory(
+            [Import(AllowDefault = true)] IWorkspaceThreadingService? workspaceThreadingService,
             [ImportMany] IEnumerable<Lazy<IOptionProvider, LanguageMetadata>> optionProviders)
         {
+            _workspaceThreadingService = workspaceThreadingService;
             _providers = optionProviders.ToImmutableArray();
         }
 
@@ -31,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         {
             // give out new option service per workspace
             return new OptionServiceFactory.OptionService(
-                new GlobalOptionService(_providers, SpecializedCollections.EmptyEnumerable<Lazy<IOptionPersister>>()),
+                new GlobalOptionService(_workspaceThreadingService, _providers, SpecializedCollections.EmptyEnumerable<Lazy<IOptionPersisterProvider>>()),
                 workspaceServices);
         }
     }

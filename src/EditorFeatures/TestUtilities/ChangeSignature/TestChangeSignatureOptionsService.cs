@@ -2,36 +2,44 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 {
-    [ExportWorkspaceService(typeof(IChangeSignatureOptionsService), ServiceLayer.Default), Shared]
+    [ExportWorkspaceService(typeof(IChangeSignatureOptionsService), ServiceLayer.Test), Shared, PartNotDiscoverable]
     internal class TestChangeSignatureOptionsService : IChangeSignatureOptionsService
     {
-        public bool IsCancelled = true;
-        public int[] UpdatedSignature = null;
+        public AddedParameterOrExistingIndex[]? UpdatedSignature = null;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestChangeSignatureOptionsService()
         {
         }
 
-        public ChangeSignatureOptionsResult GetChangeSignatureOptions(ISymbol symbol, ParameterConfiguration parameters, INotificationService notificationService)
+        ChangeSignatureOptionsResult IChangeSignatureOptionsService.GetChangeSignatureOptions(
+            Document document,
+            int positionForTypeBinding,
+            ISymbol symbol,
+            ParameterConfiguration parameters)
         {
             var list = parameters.ToListOfParameters();
-
-            return new ChangeSignatureOptionsResult
-            {
-                IsCancelled = IsCancelled,
-                UpdatedSignature = new SignatureChange(
+            var updateParameters = UpdatedSignature != null
+                ? UpdatedSignature.Select(item => item.IsExisting ? list[item.OldIndex ?? -1] : item.GetAddedParameter(document)).ToImmutableArray()
+                : new ImmutableArray<Parameter>();
+            return new ChangeSignatureOptionsResult(new SignatureChange(
                     parameters,
-                    UpdatedSignature == null ? parameters : ParameterConfiguration.Create(UpdatedSignature.Select(i => list[i]).ToList(), parameters.ThisParameter != null, selectedIndex: 0))
-            };
+                    UpdatedSignature == null
+                    ? parameters
+                    : ParameterConfiguration.Create(updateParameters, parameters.ThisParameter != null, selectedIndex: 0)), previewChanges: false);
         }
     }
 }

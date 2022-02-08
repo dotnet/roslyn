@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Host
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DefaultWorkspaceEventListenerServiceFactory(
-            [ImportMany]IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners)
+            [ImportMany] IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners)
         {
             // we use this indirect abstraction to deliver IEventLister to workspace. 
             // otherwise, each Workspace implementation need to explicitly tell base event listeners either through
@@ -44,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Host
 
         private class Service : IWorkspaceEventListenerService
         {
-            private readonly object _gate = new object();
+            private readonly object _gate = new();
             private bool _initialized = false;
 
             private readonly Workspace _workspace;

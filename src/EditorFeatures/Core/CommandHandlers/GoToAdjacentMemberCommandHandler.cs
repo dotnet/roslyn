@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -33,32 +36,23 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         public string DisplayName => EditorFeaturesResources.Go_To_Adjacent_Member;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public GoToAdjacentMemberCommandHandler(IOutliningManagerService outliningManagerService)
-        {
-            _outliningManagerService = outliningManagerService;
-        }
+            => _outliningManagerService = outliningManagerService;
 
         public CommandState GetCommandState(GoToNextMemberCommandArgs args)
-        {
-            return GetCommandStateImpl(args);
-        }
+            => GetCommandStateImpl(args);
 
         public bool ExecuteCommand(GoToNextMemberCommandArgs args, CommandExecutionContext context)
-        {
-            return ExecuteCommandImpl(args, gotoNextMember: true, context);
-        }
+            => ExecuteCommandImpl(args, gotoNextMember: true, context);
 
         public CommandState GetCommandState(GoToPreviousMemberCommandArgs args)
-        {
-            return GetCommandStateImpl(args);
-        }
+            => GetCommandStateImpl(args);
 
         public bool ExecuteCommand(GoToPreviousMemberCommandArgs args, CommandExecutionContext context)
-        {
-            return ExecuteCommandImpl(args, gotoNextMember: false, context);
-        }
+            => ExecuteCommandImpl(args, gotoNextMember: false, context);
 
-        private CommandState GetCommandStateImpl(EditorCommandArgs args)
+        private static CommandState GetCommandStateImpl(EditorCommandArgs args)
         {
             var subjectBuffer = args.SubjectBuffer;
             var caretPoint = args.TextView.GetCaretPoint(subjectBuffer);
@@ -84,7 +78,6 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             {
                 return false;
             }
-
 
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document?.SupportsSyntaxTree != true)

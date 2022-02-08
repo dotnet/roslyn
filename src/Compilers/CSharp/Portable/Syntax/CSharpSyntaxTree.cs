@@ -7,6 +7,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // REVIEW: I would prefer to not expose CloneAsRoot and make the functionality
         // internal to CaaS layer, to ensure that for a given SyntaxTree there can not
         // be multiple trees claiming to be its children.
-        // 
+        //
         // However, as long as we provide GetRoot extensibility point on SyntaxTree
         // the guarantee above cannot be implemented and we have to provide some way for
         // creating root nodes.
@@ -43,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Produces a clone of a <see cref="CSharpSyntaxNode"/> which will have current syntax tree as its parent.
-        /// 
+        ///
         /// Caller must guarantee that if the same instance of <see cref="CSharpSyntaxNode"/> makes multiple calls
         /// to this function, only one result is observable.
         /// </summary>
@@ -58,12 +61,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Gets the root node of the syntax tree.
         /// </summary>
-        public new abstract CSharpSyntaxNode GetRoot(CancellationToken cancellationToken = default(CancellationToken));
+        public new abstract CSharpSyntaxNode GetRoot(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets the root node of the syntax tree if it is already available.
         /// </summary>
-        public abstract bool TryGetRoot(out CSharpSyntaxNode root);
+        public abstract bool TryGetRoot([NotNullWhen(true)] out CSharpSyntaxNode? root);
 
         /// <summary>
         /// Gets the root node of the syntax tree asynchronously.
@@ -72,10 +75,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// By default, the work associated with this method will be executed immediately on the current thread.
         /// Implementations that wish to schedule this work differently should override <see cref="GetRootAsync(CancellationToken)"/>.
         /// </remarks>
-        public new virtual Task<CSharpSyntaxNode> GetRootAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public new virtual Task<CSharpSyntaxNode> GetRootAsync(CancellationToken cancellationToken = default)
         {
-            CSharpSyntaxNode node;
-            return Task.FromResult(this.TryGetRoot(out node) ? node : this.GetRoot(cancellationToken));
+            return Task.FromResult(this.TryGetRoot(out CSharpSyntaxNode? node) ? node : this.GetRoot(cancellationToken));
         }
 
         /// <summary>
@@ -85,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Ensure that <see cref="SyntaxTree.HasCompilationUnitRoot"/> is true for this tree prior to invoking this method.
         /// </remarks>
         /// <exception cref="InvalidCastException">Throws this exception if <see cref="SyntaxTree.HasCompilationUnitRoot"/> is false.</exception>
-        public CompilationUnitSyntax GetCompilationUnitRoot(CancellationToken cancellationToken = default(CancellationToken))
+        public CompilationUnitSyntax GetCompilationUnitRoot(CancellationToken cancellationToken = default)
         {
             return (CompilationUnitSyntax)this.GetRoot(cancellationToken);
         }
@@ -143,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!_hasDirectives)
             {
-                var stack = this.GetRoot().CsGreen.ApplyDirectives(default(InternalSyntax.DirectiveStack));
+                var stack = this.GetRoot().CsGreen.ApplyDirectives(default);
                 SetDirectiveStack(stack);
             }
 
@@ -302,16 +304,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Factories
 
+        // The overload that has more parameters is itself obsolete, as an intentional break to allow future
+        // expansion
+#pragma warning disable RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
+
         /// <summary>
         /// Creates a new syntax tree from a syntax node.
         /// </summary>
+        public static SyntaxTree Create(CSharpSyntaxNode root, CSharpParseOptions? options = null, string? path = "", Encoding? encoding = null)
+        {
+#pragma warning disable CS0618 // We are calling into the obsolete member as that's the one that still does the real work
+            return Create(root, options, path, encoding, diagnosticOptions: null);
+#pragma warning restore CS0618
+        }
+
+#pragma warning restore RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
+
+        /// <summary>
+        /// Creates a new syntax tree from a syntax node.
+        /// </summary>
+        /// <param name="diagnosticOptions">An obsolete parameter. Diagnostic options should now be passed with <see cref="CompilationOptions.SyntaxTreeOptionsProvider"/></param>
+        /// <param name="isGeneratedCode">An obsolete parameter. It is unused.</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("The diagnosticOptions and isGeneratedCode parameters are obsolete due to performance problems, if you are using them use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
         public static SyntaxTree Create(
             CSharpSyntaxNode root,
-            CSharpParseOptions options = null,
-            string path = "",
-            Encoding encoding = null,
-            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions = null,
-            bool? isGeneratedCode = null)
+            CSharpParseOptions? options,
+            string? path,
+            Encoding? encoding,
+            // obsolete parameter -- unused
+            ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions,
+            // obsolete parameter -- unused
+            bool? isGeneratedCode)
         {
             if (root == null)
             {
@@ -322,12 +346,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ((CompilationUnitSyntax)root).GetConditionalDirectivesStack() :
                 InternalSyntax.DirectiveStack.Empty;
 
-            bool isGenerated = isGeneratedCode ??
-                GeneratedCodeUtilities.IsGeneratedCode(
-                    path,
-                    root,
-                    isComment: trivia => trivia.Kind() == SyntaxKind.SingleLineCommentTrivia || trivia.Kind() == SyntaxKind.MultiLineCommentTrivia);
-
             return new ParsedSyntaxTree(
                 textOpt: null,
                 encodingOpt: encoding,
@@ -337,7 +355,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 root: root,
                 directives: directives,
                 diagnosticOptions,
-                isGenerated,
                 cloneRoot: true);
         }
 
@@ -373,35 +390,95 @@ namespace Microsoft.CodeAnalysis.CSharp
                 root: root,
                 directives: InternalSyntax.DirectiveStack.Empty,
                 diagnosticOptions: null,
-                isGeneratedCode: null,
                 cloneRoot: false);
         }
+
+        /// <summary>
+        /// Produces a syntax tree by parsing the source text lazily. The syntax tree is realized when
+        /// <see cref="CSharpSyntaxTree.GetRoot(CancellationToken)"/> is called.
+        /// </summary>
+        internal static SyntaxTree ParseTextLazy(
+            SourceText text,
+            CSharpParseOptions? options = null,
+            string path = "")
+        {
+            return new LazySyntaxTree(text, options ?? CSharpParseOptions.Default, path, diagnosticOptions: null);
+        }
+
+        // The overload that has more parameters is itself obsolete, as an intentional break to allow future
+        // expansion
+#pragma warning disable RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
 
         /// <summary>
         /// Produces a syntax tree by parsing the source text.
         /// </summary>
         public static SyntaxTree ParseText(
             string text,
-            CSharpParseOptions options = null,
+            CSharpParseOptions? options = null,
             string path = "",
-            Encoding encoding = null,
-            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions = null,
-            bool? isGeneratedCode = null,
+            Encoding? encoding = null,
             CancellationToken cancellationToken = default)
+        {
+#pragma warning disable CS0618 // We are calling into the obsolete member as that's the one that still does the real work
+            return ParseText(text, options, path, encoding, diagnosticOptions: null, cancellationToken);
+#pragma warning restore CS0618
+        }
+
+#pragma warning restore RS0027
+
+        /// <summary>
+        /// Produces a syntax tree by parsing the source text.
+        /// </summary>
+        /// <param name="diagnosticOptions">An obsolete parameter. Diagnostic options should now be passed with <see cref="CompilationOptions.SyntaxTreeOptionsProvider"/></param>
+        /// <param name="isGeneratedCode">An obsolete parameter. It is unused.</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("The diagnosticOptions and isGeneratedCode parameters are obsolete due to performance problems, if you are using them use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
+        public static SyntaxTree ParseText(
+            string text,
+            CSharpParseOptions? options,
+            string path,
+            Encoding? encoding,
+            ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions,
+            bool? isGeneratedCode,
+            CancellationToken cancellationToken)
         {
             return ParseText(SourceText.From(text, encoding), options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
         }
+
+        // The overload that has more parameters is itself obsolete, as an intentional break to allow future
+        // expansion
+#pragma warning disable RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
 
         /// <summary>
         /// Produces a syntax tree by parsing the source text.
         /// </summary>
         public static SyntaxTree ParseText(
             SourceText text,
-            CSharpParseOptions options = null,
+            CSharpParseOptions? options = null,
             string path = "",
-            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions = null,
-            bool? isGeneratedCode = null,
             CancellationToken cancellationToken = default)
+        {
+#pragma warning disable CS0618 // We are calling into the obsolete member as that's the one that still does the real work
+            return ParseText(text, options, path, diagnosticOptions: null, cancellationToken);
+#pragma warning restore CS0618
+        }
+
+#pragma warning restore RS0027 // Public API with optional parameter(s) should have the most parameters amongst its public overloads.
+
+        /// <summary>
+        /// Produces a syntax tree by parsing the source text.
+        /// </summary>
+        /// <param name="diagnosticOptions">An obsolete parameter. Diagnostic options should now be passed with <see cref="CompilationOptions.SyntaxTreeOptionsProvider"/></param>
+        /// <param name="isGeneratedCode">An obsolete parameter. It is unused.</param>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("The diagnosticOptions and isGeneratedCode parameters are obsolete due to performance problems, if you are using them use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
+        public static SyntaxTree ParseText(
+            SourceText text,
+            CSharpParseOptions? options,
+            string path,
+            ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions,
+            bool? isGeneratedCode,
+            CancellationToken cancellationToken)
         {
             if (text == null)
             {
@@ -410,26 +487,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             options = options ?? CSharpParseOptions.Default;
 
-            using (var lexer = new InternalSyntax.Lexer(text, options))
-            {
-                using (var parser = new InternalSyntax.LanguageParser(lexer, oldTree: null, changes: null, cancellationToken: cancellationToken))
-                {
-                    var compilationUnit = (CompilationUnitSyntax)parser.ParseCompilationUnit().CreateRed();
-                    var tree = new ParsedSyntaxTree(
-                        text,
-                        text.Encoding,
-                        text.ChecksumAlgorithm,
-                        path,
-                        options,
-                        compilationUnit,
-                        parser.Directives,
-                        diagnosticOptions: diagnosticOptions,
-                        isGeneratedCode: isGeneratedCode,
-                        cloneRoot: true);
-                    tree.VerifySource();
-                    return tree;
-                }
-            }
+            using var lexer = new InternalSyntax.Lexer(text, options);
+            using var parser = new InternalSyntax.LanguageParser(lexer, oldTree: null, changes: null, cancellationToken: cancellationToken);
+            var compilationUnit = (CompilationUnitSyntax)parser.ParseCompilationUnit().CreateRed();
+            var tree = new ParsedSyntaxTree(
+                text,
+                text.Encoding,
+                text.ChecksumAlgorithm,
+                path,
+                options,
+                compilationUnit,
+                parser.Directives,
+                diagnosticOptions: diagnosticOptions,
+                cloneRoot: true);
+            tree.VerifySource();
+            return tree;
         }
 
         #endregion
@@ -447,8 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override SyntaxTree WithChangedText(SourceText newText)
         {
             // try to find the changes between the old text and the new text.
-            SourceText oldText;
-            if (this.TryGetText(out oldText))
+            if (this.TryGetText(out SourceText? oldText))
             {
                 var changes = newText.GetChangeRanges(oldText);
 
@@ -471,34 +542,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(changes));
             }
 
-            var oldTree = this;
+            IReadOnlyList<TextChangeRange>? workingChanges = changes;
+            CSharpSyntaxTree? oldTree = this;
 
             // if changes is entire text do a full reparse
-            if (changes.Count == 1 && changes[0].Span == new TextSpan(0, this.Length) && changes[0].NewLength == newText.Length)
+            if (workingChanges.Count == 1 && workingChanges[0].Span == new TextSpan(0, this.Length) && workingChanges[0].NewLength == newText.Length)
             {
                 // parser will do a full parse if we give it no changes
-                changes = null;
+                workingChanges = null;
                 oldTree = null;
             }
 
-            using (var lexer = new InternalSyntax.Lexer(newText, this.Options))
-            using (var parser = new InternalSyntax.LanguageParser(lexer, oldTree?.GetRoot(), changes))
-            {
-                var compilationUnit = (CompilationUnitSyntax)parser.ParseCompilationUnit().CreateRed();
-                var tree = new ParsedSyntaxTree(
-                    newText,
-                    newText.Encoding,
-                    newText.ChecksumAlgorithm,
-                    FilePath,
-                    Options,
-                    compilationUnit,
-                    parser.Directives,
-                    DiagnosticOptions,
-                    isGeneratedCode: _isGenerationConfigured ? (bool?)_lazyIsGeneratedCode.Value() : null,
-                    cloneRoot: true);
-                tree.VerifySource(changes);
-                return tree;
-            }
+            using var lexer = new InternalSyntax.Lexer(newText, this.Options);
+            using var parser = new InternalSyntax.LanguageParser(lexer, oldTree?.GetRoot(), workingChanges);
+
+            var compilationUnit = (CompilationUnitSyntax)parser.ParseCompilationUnit().CreateRed();
+            var tree = new ParsedSyntaxTree(
+                newText,
+                newText.Encoding,
+                newText.ChecksumAlgorithm,
+                FilePath,
+                Options,
+                compilationUnit,
+                parser.Directives,
+#pragma warning disable CS0618
+                DiagnosticOptions,
+#pragma warning restore CS0618
+                cloneRoot: true);
+            tree.VerifySource(changes);
+            return tree;
         }
 
         /// <summary>
@@ -536,6 +608,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region LinePositions and Locations
 
+        private CSharpLineDirectiveMap GetDirectiveMap()
+        {
+            if (_lazyLineDirectiveMap == null)
+            {
+                // Create the line directive map on demand.
+                Interlocked.CompareExchange(ref _lazyLineDirectiveMap, new CSharpLineDirectiveMap(this), null);
+            }
+
+            return _lazyLineDirectiveMap;
+        }
+
         /// <summary>
         /// Gets the location in terms of path, line and column for a given span.
         /// </summary>
@@ -545,13 +628,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <see cref="FileLinePositionSpan"/> that contains path, line and column information.
         /// </returns>
         /// <remarks>The values are not affected by line mapping directives (<c>#line</c>).</remarks>
-        public override FileLinePositionSpan GetLineSpan(TextSpan span, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return new FileLinePositionSpan(this.FilePath, GetLinePosition(span.Start), GetLinePosition(span.End));
-        }
+        public override FileLinePositionSpan GetLineSpan(TextSpan span, CancellationToken cancellationToken = default)
+            => new(FilePath, GetLinePosition(span.Start, cancellationToken), GetLinePosition(span.End, cancellationToken));
 
         /// <summary>
-        /// Gets the location in terms of path, line and column after applying source line mapping directives (<c>#line</c>). 
+        /// Gets the location in terms of path, line and column after applying source line mapping directives (<c>#line</c>).
         /// </summary>
         /// <param name="span">Span within the tree.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
@@ -566,26 +647,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// either specifies an explicit file path or is <c>#line default</c> exists and specifies an explicit path.
         /// </para>
         /// </returns>
-        public override FileLinePositionSpan GetMappedLineSpan(TextSpan span, CancellationToken cancellationToken = default(CancellationToken))
+        public override FileLinePositionSpan GetMappedLineSpan(TextSpan span, CancellationToken cancellationToken = default)
+            => GetDirectiveMap().TranslateSpan(GetText(cancellationToken), this.FilePath, span);
+
+        /// <inheritdoc/>
+        public override LineVisibility GetLineVisibility(int position, CancellationToken cancellationToken = default)
+            => GetDirectiveMap().GetLineVisibility(GetText(cancellationToken), position);
+
+        /// <inheritdoc/>
+        public override IEnumerable<LineMapping> GetLineMappings(CancellationToken cancellationToken = default)
         {
-            if (_lazyLineDirectiveMap == null)
-            {
-                // Create the line directive map on demand.
-                Interlocked.CompareExchange(ref _lazyLineDirectiveMap, new CSharpLineDirectiveMap(this), null);
-            }
-
-            return _lazyLineDirectiveMap.TranslateSpan(this.GetText(cancellationToken), this.FilePath, span);
-        }
-
-        public override LineVisibility GetLineVisibility(int position, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            if (_lazyLineDirectiveMap == null)
-            {
-                // Create the line directive map on demand.
-                Interlocked.CompareExchange(ref _lazyLineDirectiveMap, new CSharpLineDirectiveMap(this), null);
-            }
-
-            return _lazyLineDirectiveMap.GetLineVisibility(this.GetText(cancellationToken), position);
+            var map = GetDirectiveMap();
+            Debug.Assert(map.Entries.Length >= 1);
+            return (map.Entries.Length == 1) ? Array.Empty<LineMapping>() : map.GetLineMappings(GetText(cancellationToken).Lines);
         }
 
         /// <summary>
@@ -596,30 +670,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="isHiddenPosition">When the method returns, contains a boolean value indicating whether this span is considered hidden or not.</param>
         /// <returns>A resulting <see cref="FileLinePositionSpan"/>.</returns>
         internal override FileLinePositionSpan GetMappedLineSpanAndVisibility(TextSpan span, out bool isHiddenPosition)
-        {
-            if (_lazyLineDirectiveMap == null)
-            {
-                // Create the line directive map on demand.
-                Interlocked.CompareExchange(ref _lazyLineDirectiveMap, new CSharpLineDirectiveMap(this), null);
-            }
-
-            return _lazyLineDirectiveMap.TranslateSpanAndVisibility(this.GetText(), this.FilePath, span, out isHiddenPosition);
-        }
+            => GetDirectiveMap().TranslateSpanAndVisibility(GetText(), FilePath, span, out isHiddenPosition);
 
         /// <summary>
         /// Gets a boolean value indicating whether there are any hidden regions in the tree.
         /// </summary>
         /// <returns>True if there is at least one hidden region.</returns>
         public override bool HasHiddenRegions()
-        {
-            if (_lazyLineDirectiveMap == null)
-            {
-                // Create the line directive map on demand.
-                Interlocked.CompareExchange(ref _lazyLineDirectiveMap, new CSharpLineDirectiveMap(this), null);
-            }
-
-            return _lazyLineDirectiveMap.HasAnyHiddenRegions();
-        }
+            => GetDirectiveMap().HasAnyHiddenRegions();
 
         /// <summary>
         /// Given the error code and the source location, get the warning state based on <c>#pragma warning</c> directives.
@@ -631,67 +689,62 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_lazyPragmaWarningStateMap == null)
             {
                 // Create the warning state map on demand.
-                Interlocked.CompareExchange(ref _lazyPragmaWarningStateMap, new CSharpPragmaWarningStateMap(this, IsGeneratedCode()), null);
+                Interlocked.CompareExchange(ref _lazyPragmaWarningStateMap, new CSharpPragmaWarningStateMap(this), null);
             }
 
             return _lazyPragmaWarningStateMap.GetWarningState(id, position);
         }
 
-        private void EnsureNullableContextMapInitialized()
+        private NullableContextStateMap GetNullableContextStateMap()
         {
             if (_lazyNullableContextStateMap == null)
             {
                 // Create the #nullable directive map on demand.
-                Interlocked.CompareExchange(ref _lazyNullableContextStateMap, NullableContextStateMap.Create(this, IsGeneratedCode()), null);
+                Interlocked.CompareExchange(
+                    ref _lazyNullableContextStateMap,
+                    new StrongBox<NullableContextStateMap>(NullableContextStateMap.Create(this)),
+                    null);
             }
+            return _lazyNullableContextStateMap.Value;
         }
 
         internal NullableContextState GetNullableContextState(int position)
-        {
-            EnsureNullableContextMapInitialized();
-            return _lazyNullableContextStateMap.GetContextState(position);
-        }
+            => GetNullableContextStateMap().GetContextState(position);
 
-        /// <summary>
-        /// Returns true if there are any nullable directives that enable annotations, warnings, or both.
-        /// This does not include any restore directives.
-        /// </summary>
-        internal bool HasNullableEnables()
-        {
-            EnsureNullableContextMapInitialized();
-            return _lazyNullableContextStateMap.HasNullableEnables();
-        }
+        internal bool? IsNullableAnalysisEnabled(TextSpan span) => GetNullableContextStateMap().IsNullableAnalysisEnabled(span);
 
-        internal bool IsGeneratedCode()
+        internal bool IsGeneratedCode(SyntaxTreeOptionsProvider? provider, CancellationToken cancellationToken)
         {
-            if (_lazyIsGeneratedCode == ThreeState.Unknown)
+            return provider?.IsGenerated(this, cancellationToken) switch
             {
-                // Create the generated code status on demand
-                bool isGenerated = GeneratedCodeUtilities.IsGeneratedCode(
-                           this,
-                           isComment: trivia => trivia.Kind() == SyntaxKind.SingleLineCommentTrivia || trivia.Kind() == SyntaxKind.MultiLineCommentTrivia,
-                           cancellationToken: default);
-                _lazyIsGeneratedCode = isGenerated.ToThreeState();
+                null or GeneratedKind.Unknown => isGeneratedHeuristic(),
+                GeneratedKind kind => kind != GeneratedKind.NotGenerated
+            };
+
+            bool isGeneratedHeuristic()
+            {
+                if (_lazyIsGeneratedCode == GeneratedKind.Unknown)
+                {
+                    // Create the generated code status on demand
+                    bool isGenerated = GeneratedCodeUtilities.IsGeneratedCode(
+                            this,
+                            isComment: trivia => trivia.Kind() == SyntaxKind.SingleLineCommentTrivia || trivia.Kind() == SyntaxKind.MultiLineCommentTrivia,
+                            cancellationToken: default);
+                    _lazyIsGeneratedCode = isGenerated ? GeneratedKind.MarkedGenerated : GeneratedKind.NotGenerated;
+                }
+
+                return _lazyIsGeneratedCode == GeneratedKind.MarkedGenerated;
             }
-
-            return _lazyIsGeneratedCode == ThreeState.True;
         }
 
-        private CSharpLineDirectiveMap _lazyLineDirectiveMap;
-        private CSharpPragmaWarningStateMap _lazyPragmaWarningStateMap;
-        private NullableContextStateMap _lazyNullableContextStateMap;
-        /// <summary>
-        /// True if this file was marked generated or not generated, in which
-        /// case the value is stored in <see cref="_lazyIsGeneratedCode"/>. False
-        /// if the value was not marked and we're falling back to heuristic.
-        /// </summary>
-        private bool _isGenerationConfigured;
-        private ThreeState _lazyIsGeneratedCode = ThreeState.Unknown;
+        private CSharpLineDirectiveMap? _lazyLineDirectiveMap;
+        private CSharpPragmaWarningStateMap? _lazyPragmaWarningStateMap;
+        private StrongBox<NullableContextStateMap>? _lazyNullableContextStateMap;
 
-        private LinePosition GetLinePosition(int position)
-        {
-            return this.GetText().Lines.GetLinePosition(position);
-        }
+        private GeneratedKind _lazyIsGeneratedCode = GeneratedKind.Unknown;
+
+        private LinePosition GetLinePosition(int position, CancellationToken cancellationToken)
+            => GetText(cancellationToken).Lines.GetLinePosition(position);
 
         /// <summary>
         /// Gets a <see cref="Location"/> for the specified text <paramref name="span"/>.
@@ -755,6 +808,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public override IEnumerable<Diagnostic> GetDiagnostics(SyntaxToken token)
         {
+            if (token.Node == null)
+            {
+                throw new InvalidOperationException();
+            }
             return GetDiagnostics(token.Node, token.Position);
         }
 
@@ -767,12 +824,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public override IEnumerable<Diagnostic> GetDiagnostics(SyntaxTrivia trivia)
         {
+            if (trivia.UnderlyingNode == null)
+            {
+                throw new InvalidOperationException();
+            }
             return GetDiagnostics(trivia.UnderlyingNode, trivia.Position);
         }
 
         /// <summary>
         /// Gets a list of all the diagnostics in either the sub tree that has the specified node as its root or
-        /// associated with the token and its related trivia. 
+        /// associated with the token and its related trivia.
         /// </summary>
         /// <remarks>
         /// This method does not filter diagnostics based on <c>#pragma</c>s and compiler options
@@ -780,6 +841,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         public override IEnumerable<Diagnostic> GetDiagnostics(SyntaxNodeOrToken nodeOrToken)
         {
+            if (nodeOrToken.UnderlyingNode == null)
+            {
+                throw new InvalidOperationException();
+            }
             return GetDiagnostics(nodeOrToken.UnderlyingNode, nodeOrToken.Position);
         }
 
@@ -790,7 +855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This method does not filter diagnostics based on <c>#pragma</c>s and compiler options
         /// like /nowarn, /warnaserror etc.
         /// </remarks>
-        public override IEnumerable<Diagnostic> GetDiagnostics(CancellationToken cancellationToken = default(CancellationToken))
+        public override IEnumerable<Diagnostic> GetDiagnostics(CancellationToken cancellationToken = default)
         {
             return this.GetDiagnostics(this.GetRoot(cancellationToken));
         }
@@ -809,10 +874,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return await this.GetRootAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        protected override bool TryGetRootCore(out SyntaxNode root)
+        protected override bool TryGetRootCore([NotNullWhen(true)] out SyntaxNode? root)
         {
-            CSharpSyntaxNode node;
-            if (this.TryGetRoot(out node))
+            if (this.TryGetRoot(out CSharpSyntaxNode? node))
             {
                 root = node;
                 return true;
@@ -836,57 +900,37 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // 3.3 BACK COMPAT OVERLOAD -- DO NOT MODIFY
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("The diagnosticOptions parameter is obsolete due to performance problems, if you are passing non-null use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
         public static SyntaxTree ParseText(
             SourceText text,
-            CSharpParseOptions options,
+            CSharpParseOptions? options,
             string path,
-            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions,
+            ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions,
             CancellationToken cancellationToken)
             => ParseText(text, options, path, diagnosticOptions, isGeneratedCode: null, cancellationToken);
 
         // 3.3 BACK COMPAT OVERLOAD -- DO NOT MODIFY
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("The diagnosticOptions parameter is obsolete due to performance problems, if you are passing non-null use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
         public static SyntaxTree ParseText(
             string text,
-            CSharpParseOptions options,
+            CSharpParseOptions? options,
             string path,
-            Encoding encoding,
-            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions,
+            Encoding? encoding,
+            ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions,
             CancellationToken cancellationToken)
             => ParseText(text, options, path, encoding, diagnosticOptions, isGeneratedCode: null, cancellationToken);
 
         // 3.3 BACK COMPAT OVERLOAD -- DO NOT MODIFY
         [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("The diagnosticOptions parameter is obsolete due to performance problems, if you are passing non-null use CompilationOptions.SyntaxTreeOptionsProvider instead", error: false)]
         public static SyntaxTree Create(
             CSharpSyntaxNode root,
-            CSharpParseOptions options,
-            string path,
-            Encoding encoding,
-            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions)
+            CSharpParseOptions? options,
+            string? path,
+            Encoding? encoding,
+            ImmutableDictionary<string, ReportDiagnostic>? diagnosticOptions)
             => Create(root, options, path, encoding, diagnosticOptions, isGeneratedCode: null);
 
-        // 2.8 BACK COMPAT OVERLOAD -- DO NOT MODIFY
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public static SyntaxTree ParseText(
-            SourceText text,
-            CSharpParseOptions options,
-            string path,
-            CancellationToken cancellationToken)
-            => ParseText(text, options, path, diagnosticOptions: null, cancellationToken);
-
-        // 2.8 BACK COMPAT OVERLOAD -- DO NOT MODIFY
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public static SyntaxTree ParseText(
-            string text,
-            CSharpParseOptions options,
-            string path,
-            Encoding encoding,
-            CancellationToken cancellationToken)
-            => ParseText(text, options, path, encoding, diagnosticOptions: null, cancellationToken);
-
-        // 2.8 BACK COMPAT OVERLOAD -- DO NOT MODIFY
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public static SyntaxTree Create(CSharpSyntaxNode root, CSharpParseOptions options, string path, Encoding encoding)
-            => Create(root, options, path, encoding, diagnosticOptions: null);
     }
 }

@@ -2,19 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.CSharp.ChangeSignature;
-using Microsoft.CodeAnalysis.Editor.Implementation.Interactive;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities.ChangeSignature;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
 {
     public partial class ChangeSignatureTests : AbstractChangeSignatureTests
     {
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task RemoveParameters1()
         {
             var markup = @"
@@ -113,7 +115,7 @@ static class Ext
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public async Task RemoveParameters_GenericParameterType()
         {
             var markup = @"
@@ -183,7 +185,7 @@ public class DP20<T>
             await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         [WorkItem(1102830, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1102830")]
         [WorkItem(784, "https://github.com/dotnet/roslyn/issues/784")]
         public async Task RemoveParameters_ExtensionMethodInAnotherFile()
@@ -240,19 +242,16 @@ class C{i}
     </Project>
 </Workspace>";
 
-            // Ext(this F f, int i, string s) --> Ext(this F f, string s)
-            // If a reference does not bind correctly, it will believe Ext is not an extension
-            // method and remove the string argument instead of the int argument.
-
-            var updatedSignature = new[] { 0, 2 };
+            var updatedSignature = new[] {
+                new AddedParameterOrExistingIndex(0),
+                new AddedParameterOrExistingIndex(2) };
 
             using var testState = ChangeSignatureTestState.Create(XElement.Parse(workspaceXml));
-            testState.TestChangeSignatureOptionsService.IsCancelled = false;
             testState.TestChangeSignatureOptionsService.UpdatedSignature = updatedSignature;
-            var result = testState.ChangeSignature();
+            var result = await testState.ChangeSignatureAsync().ConfigureAwait(false);
 
             Assert.True(result.Succeeded);
-            Assert.Null(testState.ErrorMessage);
+            Assert.Null(result.ChangeSignatureFailureKind);
 
             foreach (var updatedDocument in testState.Workspace.Documents.Select(d => result.UpdatedSolution.GetDocument(d.Id)))
             {
@@ -267,16 +266,93 @@ class C{i}
             }
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WorkItem(1102830, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1102830")]
+        [WorkItem(784, "https://github.com/dotnet/roslyn/issues/784")]
+        public async Task AddRemoveParameters_ExtensionMethodInAnotherFile()
+        {
+            var workspaceXml = @"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""CSharpAssembly"" CommonReferences=""true"">";
+
+            for (var i = 0; i <= 4; i++)
+            {
+                workspaceXml += $@"
+<Document FilePath = ""C{i}.cs"">
+class C{i}
+{{
+    void M()
+    {{
+        C5 c = new C5();
+        c.Ext(1, ""two"");
+    }}
+}}
+</Document>";
+            }
+
+            workspaceXml += @"
+<Document FilePath = ""C5.cs"">
+public class C5
+{
+}
+
+public static class C5Ext
+{
+    public void $$Ext(this C5 c, int i, string s)
+    {
+    }
+}
+</Document>";
+
+            for (var i = 6; i <= 9; i++)
+            {
+                workspaceXml += $@"
+<Document FilePath = ""C{i}.cs"">
+class C{i}
+{{
+    void M()
+    {{
+        C5 c = new C5();
+        c.Ext(1, ""two"");
+    }}
+}}
+</Document>";
+            }
+
+            workspaceXml += @"
+    </Project>
+</Workspace>";
+
+            var updatedSignature = new[] {
+                new AddedParameterOrExistingIndex(0),
+                new AddedParameterOrExistingIndex(2),
+                new AddedParameterOrExistingIndex(new AddedParameter(null, "int", "newIntegerParameter", CallSiteKind.Value, callSiteValue:"123"), "int") };
+
+            using var testState = ChangeSignatureTestState.Create(XElement.Parse(workspaceXml));
+            testState.TestChangeSignatureOptionsService.UpdatedSignature = updatedSignature;
+            var result = await testState.ChangeSignatureAsync().ConfigureAwait(false);
+
+            Assert.True(result.Succeeded);
+            Assert.Null(result.ChangeSignatureFailureKind);
+
+            foreach (var updatedDocument in testState.Workspace.Documents.Select(d => result.UpdatedSolution.GetDocument(d.Id)))
+            {
+                if (updatedDocument.Name == "C5.cs")
+                {
+                    Assert.Contains("void Ext(this C5 c, string s, int newIntegerParameter)", (await updatedDocument.GetTextAsync(CancellationToken.None)).ToString());
+                }
+                else
+                {
+                    Assert.Contains(@"c.Ext(""two"", 123);", (await updatedDocument.GetTextAsync(CancellationToken.None)).ToString());
+                }
+            }
+        }
+
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void ChangeSignatureCommandDisabledInSubmission()
         {
-            var exportProvider = ExportProviderCache
-                .GetOrCreateExportProviderFactory(
-                    TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(typeof(InteractiveSupportsFeatureService.InteractiveTextBufferSupportsFeatureService)))
-                .CreateExportProvider();
-
             using var workspace = TestWorkspace.Create(XElement.Parse(@"
                 <Workspace>
                     <Submission Language=""C#"" CommonReferences=""true"">  
@@ -289,19 +365,48 @@ class C{i}
                     </Submission>
                 </Workspace> "),
                 workspaceKind: WorkspaceKind.Interactive,
-                exportProvider: exportProvider);
+                composition: EditorTestCompositions.EditorFeaturesWpf);
             // Force initialization.
             workspace.GetOpenDocumentIds().Select(id => workspace.GetTestDocument(id).GetTextView()).ToList();
 
             var textView = workspace.Documents.Single().GetTextView();
 
-            var handler = new CSharpChangeSignatureCommandHandler(workspace.GetService<IThreadingContext>());
+            var handler = workspace.ExportProvider.GetCommandHandler<CSharpChangeSignatureCommandHandler>(PredefinedCommandHandlerNames.ChangeSignature, ContentTypeNames.CSharpContentType);
 
             var state = handler.GetCommandState(new RemoveParametersCommandArgs(textView, textView.TextBuffer));
             Assert.True(state.IsUnspecified);
 
             state = handler.GetCommandState(new ReorderParametersCommandArgs(textView, textView.TextBuffer));
             Assert.True(state.IsUnspecified);
+        }
+
+        [WorkItem(44126, "https://github.com/dotnet/roslyn/issues/44126")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task RemoveParameters_ImplicitObjectCreation()
+        {
+            var markup = @"
+public class C
+{
+    public $$C(int a, string b) { }
+
+    void M()
+    {
+        C c = new(1, ""b"");
+    }
+}";
+            var updatedSignature = new[] { 1 };
+            var updatedCode = @"
+public class C
+{
+    public C(string b) { }
+
+    void M()
+    {
+        C c = new(""b"");
+    }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: updatedCode);
         }
     }
 }

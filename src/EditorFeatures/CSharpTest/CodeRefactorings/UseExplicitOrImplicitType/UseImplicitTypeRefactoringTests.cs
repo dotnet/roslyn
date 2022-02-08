@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseImplicitType;
@@ -92,7 +94,6 @@ class C
             await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
         }
 
-
         [Fact]
         [WorkItem(35180, "https://github.com/dotnet/roslyn/issues/35180")]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
@@ -169,7 +170,6 @@ class C
         int[||] i = 0, j = j;
     }
 }";
-
 
             await TestMissingInRegularAndScriptAsync(code);
         }
@@ -422,6 +422,145 @@ class C
 
             // We never want to get offered here under any circumstances.
             await TestMissingInRegularAndScriptAsync(code);
+        }
+
+        [Fact, WorkItem(42880, "https://github.com/dotnet/roslyn/issues/42880")]
+        public async Task TestRefLocal1()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        [||]ref string rStr1 = ref str;
+    }
+}";
+            var expected = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        ref var rStr1 = ref str;
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact, WorkItem(42880, "https://github.com/dotnet/roslyn/issues/42880")]
+        public async Task TestRefLocal2()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        ref [||]string rStr1 = ref str;
+    }
+}";
+
+            var expected = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        ref var rStr1 = ref str;
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact, WorkItem(42880, "https://github.com/dotnet/roslyn/issues/42880")]
+        public async Task TestRefLocal3()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        ref string [||]rStr1 = ref str;
+    }
+}";
+
+            var expected = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        ref var rStr1 = ref str;
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact, WorkItem(42880, "https://github.com/dotnet/roslyn/issues/42880")]
+        public async Task TestRefReadonlyLocal1()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        ref readonly [||]string rStr1 = ref str;
+    }
+}";
+
+            var expected = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        ref readonly var rStr1 = ref str;
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
+        }
+
+        [Fact, WorkItem(42880, "https://github.com/dotnet/roslyn/issues/42880")]
+        public async Task TestRefReadonlyLocal2()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        ref readonly string[||] rStr1 = ref str;
+    }
+}";
+
+            var expected = @"
+class C
+{
+    static void Main()
+    {
+        string str = """";
+
+        ref readonly var rStr1 = ref str;
+    }
+}";
+
+            await TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(code, expected);
         }
 
         private async Task TestInRegularAndScriptWhenDiagnosticNotAppliedAsync(string initialMarkup, string expectedMarkup)

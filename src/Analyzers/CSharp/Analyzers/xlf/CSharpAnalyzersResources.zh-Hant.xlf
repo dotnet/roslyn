@@ -1,0 +1,382 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="zh-Hant" original="../CSharpAnalyzersResources.resx">
+    <body>
+      <trans-unit id="Add_braces">
+        <source>Add braces</source>
+        <target state="translated">加入大括號</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_braces_to_0_statement">
+        <source>Add braces to '{0}' statement.</source>
+        <target state="translated">為 '{0}' 陳述式加入大括號。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Blank_line_not_allowed_after_constructor_initializer_colon">
+        <source>Blank line not allowed after constructor initializer colon</source>
+        <target state="translated">不允許在建構函式初始設定式冒號後加上空白行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Consecutive_braces_must_not_have_a_blank_between_them">
+        <source>Consecutive braces must not have blank line between them</source>
+        <target state="translated">連續大括弧之間不能有空白行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_switch_statement_to_expression">
+        <source>Convert switch statement to expression</source>
+        <target state="translated">將 switch 陳述式轉換為運算式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_block_scoped_namespace">
+        <source>Convert to block scoped namespace</source>
+        <target state="translated">轉換為已設定區塊範圍的 namespace</target>
+        <note>{Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Convert_to_file_scoped_namespace">
+        <source>Convert to file-scoped namespace</source>
+        <target state="translated">轉換為已設定檔案範圍的 namespace</target>
+        <note>{Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Deconstruct_variable_declaration">
+        <source>Deconstruct variable declaration</source>
+        <target state="translated">解構變數宣告</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Delegate_invocation_can_be_simplified">
+        <source>Delegate invocation can be simplified.</source>
+        <target state="translated">可以簡化委派引動的過程。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Discard_can_be_removed">
+        <source>Discard can be removed</source>
+        <target state="translated">可以移除捨棄</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Embedded_statements_must_be_on_their_own_line">
+        <source>Embedded statements must be on their own line</source>
+        <target state="translated">內嵌陳述式必須位於自己的行中</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indexing_can_be_simplified">
+        <source>Indexing can be simplified</source>
+        <target state="translated">可簡化索引</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_variable_declaration">
+        <source>Inline variable declaration</source>
+        <target state="translated">內嵌變數宣告</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Lambda_expression_can_be_removed">
+        <source>Lambda expression can be removed</source>
+        <target state="new">Lambda expression can be removed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Misplaced_using_directive">
+        <source>Misplaced using directive</source>
+        <target state="translated">using 指示詞位置錯誤</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Move_misplaced_using_directives">
+        <source>Move misplaced using directives</source>
+        <target state="translated">移動位置錯誤的 using 指示詞</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Make_readonly_fields_writable">
+        <source>Make readonly fields writable</source>
+        <target state="translated">將 readonly 欄位設為可寫入</target>
+        <note>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Local_function_can_be_made_static">
+        <source>Local function can be made static</source>
+        <target state="translated">區域函式可以變成靜態</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_local_function_static">
+        <source>Make local function 'static'</source>
+        <target state="translated">將區域函式設為 'static'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Negate_expression_changes_semantics">
+        <source>Negate expression (changes semantics)</source>
+        <target state="translated">否定運算式 (變更語義)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Null_check_can_be_clarified">
+        <source>Null check can be clarified</source>
+        <target state="translated">可以澄清 Null 檢查</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_null_check_over_type_check">
+        <source>Prefer 'null' check over type check</source>
+        <target state="translated">建議使用 'null' 檢查而非鍵入檢查</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Property_pattern_can_be_simplified">
+        <source>Property pattern can be simplified</source>
+        <target state="translated">可簡化屬性模式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_operator_preserves_semantics">
+        <source>Remove operator (preserves semantics)</source>
+        <target state="translated">移除運算子 (保留語義)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_suppression_operators">
+        <source>Remove suppression operators</source>
+        <target state="translated">移除隱藏的運算子</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_lambda_expression">
+        <source>Remove unnecessary lambda expression</source>
+        <target state="new">Remove unnecessary lambda expression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_suppression_operator">
+        <source>Remove unnecessary suppression operator</source>
+        <target state="translated">移除隱藏運算子中不需要的運算子</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnessary_discard">
+        <source>Remove unnecessary discard</source>
+        <target state="translated">移除不必要的捨棄</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_default_expression">
+        <source>Simplify 'default' expression</source>
+        <target state="translated">簡化 'default' 運算式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_delegate_invocation">
+        <source>Simplify delegate invocation</source>
+        <target state="new">Simplify delegate invocation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Simplify_property_pattern">
+        <source>Simplify property pattern</source>
+        <target state="translated">簡化屬性模式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Struct_contains_assignment_to_this_outside_of_constructor_Make_readonly_fields_writable">
+        <source>Struct contains assignment to 'this' outside of constructor. Make readonly fields writable.</source>
+        <target state="translated">Struct 包含建構函式外對 'this' 的指派。請將唯讀欄位設為可寫入。</target>
+        <note>{Locked="Struct"}{Locked="this"} these are C#/VB keywords and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Suppression_operator_has_no_effect_and_can_be_misinterpreted">
+        <source>Suppression operator has no effect and can be misinterpreted</source>
+        <target state="translated">隱藏運算子沒有作用，而且可能會造成誤解</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unreachable_code_detected">
+        <source>Unreachable code detected</source>
+        <target state="translated">偵測到執行不到的程式碼</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_accessors">
+        <source>Use block body for accessors</source>
+        <target state="translated">使用存取子的區塊主體</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_constructors">
+        <source>Use block body for constructors</source>
+        <target state="translated">使用建構函式的區塊主體</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_indexers">
+        <source>Use block body for indexers</source>
+        <target state="translated">使用索引子的區塊主體</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_local_functions">
+        <source>Use block body for local functions</source>
+        <target state="translated">為區域函式使用區塊主體</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_methods">
+        <source>Use block body for methods</source>
+        <target state="translated">使用方法的區塊主體</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_operators">
+        <source>Use block body for operators</source>
+        <target state="translated">使用運算子的區塊主體</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_block_body_for_properties">
+        <source>Use block body for properties</source>
+        <target state="translated">使用屬性的區塊主體</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_explicit_type">
+        <source>Use explicit type</source>
+        <target state="translated">使用明確類型</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_explicit_type_instead_of_var">
+        <source>Use explicit type instead of 'var'</source>
+        <target state="translated">使用明確類型，而非 'var'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_accessors">
+        <source>Use expression body for accessors</source>
+        <target state="translated">使用存取子的運算式主體</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_constructors">
+        <source>Use expression body for constructors</source>
+        <target state="translated">使用建構函式的運算式主體</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_indexers">
+        <source>Use expression body for indexers</source>
+        <target state="translated">使用索引子的運算式主體</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_local_functions">
+        <source>Use expression body for local functions</source>
+        <target state="translated">為區域函式使用運算式主體</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_methods">
+        <source>Use expression body for methods</source>
+        <target state="translated">使用方法的運算式主體</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_operators">
+        <source>Use expression body for operators</source>
+        <target state="translated">使用運算子的運算式主體</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_expression_body_for_properties">
+        <source>Use expression body for properties</source>
+        <target state="translated">使用屬性的運算式主體</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_implicit_type">
+        <source>Use implicit type</source>
+        <target state="translated">使用隱含類型</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_index_operator">
+        <source>Use index operator</source>
+        <target state="translated">使用索引運算子</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_is_null_check">
+        <source>Use 'is null' check</source>
+        <target state="translated">使用 'is null' 檢查</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_local_function">
+        <source>Use local function</source>
+        <target state="translated">使用區域函式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_new">
+        <source>Use 'new(...)'</source>
+        <target state="translated">使用 'new(...)'</target>
+        <note>{Locked="new(...)"} This is a C# construct and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Use_parameter_null_checking">
+        <source>Use parameter null checking</source>
+        <target state="new">Use parameter null checking</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_pattern_matching">
+        <source>Use pattern matching</source>
+        <target state="translated">使用模式比對</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_pattern_matching_may_change_code_meaning">
+        <source>Use pattern matching (may change code meaning)</source>
+        <target state="translated">使用模式比對 (可能會變更程式碼的含義)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_range_operator">
+        <source>Use range operator</source>
+        <target state="translated">使用範圍運算子</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_simple_using_statement">
+        <source>Use simple 'using' statement</source>
+        <target state="translated">使用簡單的 'using' 陳述式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_switch_expression">
+        <source>Use 'switch' expression</source>
+        <target state="translated">使用 'switch' 運算式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_tuple_to_swap_values">
+        <source>Use tuple to swap values</source>
+        <target state="translated">使用元組交換值</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Using_directives_must_be_placed_inside_of_a_namespace_declaration">
+        <source>Using directives must be placed inside of a namespace declaration</source>
+        <target state="translated">using 指示詞必須放在 namespace 宣告內</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Using_directives_must_be_placed_outside_of_a_namespace_declaration">
+        <source>Using directives must be placed outside of a namespace declaration</source>
+        <target state="translated">using 指示詞必須放在 namespace 宣告外</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized. {Locked="namespace"} "namespace" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Variable_declaration_can_be_deconstructed">
+        <source>Variable declaration can be deconstructed</source>
+        <target state="translated">變數宣告可進行解構</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Variable_declaration_can_be_inlined">
+        <source>Variable declaration can be inlined</source>
+        <target state="translated">變數宣告可內置</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_colon_Moving_using_directives_may_change_code_meaning">
+        <source>Warning: Moving using directives may change code meaning.</source>
+        <target state="translated">警告: 移動 using 指示詞可能會變更程式碼意義。</target>
+        <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="_0_can_be_simplified">
+        <source>{0} can be simplified</source>
+        <target state="translated">可簡化 {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="default_expression_can_be_simplified">
+        <source>'default' expression can be simplified</source>
+        <target state="translated">'default' 運算式可予簡化</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="if_statement_can_be_simplified">
+        <source>'if' statement can be simplified</source>
+        <target state="translated">'if' 陳述式可簡化</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="new_expression_can_be_simplified">
+        <source>'new' expression can be simplified</source>
+        <target state="translated">'new' 運算式可簡化</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="typeof_can_be_converted_ to_nameof">
+        <source>'typeof' can be converted  to 'nameof'</source>
+        <target state="translated">'typeof' 可轉換為 'nameof'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="use_var_instead_of_explicit_type">
+        <source>use 'var' instead of explicit type</source>
+        <target state="translated">使用 'var'，而非明確類型</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Using_directive_is_unnecessary">
+        <source>Using directive is unnecessary.</source>
+        <target state="translated">無須使用指示詞。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="using_statement_can_be_simplified">
+        <source>'using' statement can be simplified</source>
+        <target state="translated">'using' 陳述式可簡化</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

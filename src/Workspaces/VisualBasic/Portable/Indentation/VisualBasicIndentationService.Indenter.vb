@@ -2,12 +2,9 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Indentation
-Imports Microsoft.CodeAnalysis.LanguageServices
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -16,48 +13,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
     Partial Friend Class VisualBasicIndentationService
         Protected Overrides Function ShouldUseTokenIndenter(indenter As Indenter, ByRef token As SyntaxToken) As Boolean
             Return ShouldUseSmartTokenFormatterInsteadOfIndenter(
-                indenter.Rules, indenter.Root, indenter.LineToBeIndented, indenter.OptionSet, token)
+                indenter.Rules, indenter.Root, indenter.LineToBeIndented, indenter.Options.FormattingOptions, token)
         End Function
 
         Protected Overrides Function CreateSmartTokenFormatter(indenter As Indenter) As ISmartTokenFormatter
-            Dim workspace = indenter.Document.Project.Solution.Workspace
-            Dim formattingRuleFactory = workspace.Services.GetService(Of IHostDependentFormattingRuleFactoryService)()
-            Dim rules = {New SpecialFormattingRule(), formattingRuleFactory.CreateRule(indenter.Document.Document, indenter.LineToBeIndented.Start)}.Concat(Formatter.GetDefaultFormattingRules(indenter.Document.Document))
-
-            Return New VisualBasicSmartTokenFormatter(indenter.OptionSet, rules, indenter.Root)
+            Dim services = indenter.Document.Project.Solution.Workspace.Services
+            Dim formattingRuleFactory = services.GetService(Of IHostDependentFormattingRuleFactoryService)()
+            Dim rules = {New SpecialFormattingRule(indenter.Options.AutoFormattingOptions.IndentStyle), formattingRuleFactory.CreateRule(indenter.Document.Document, indenter.LineToBeIndented.Start)}.Concat(Formatter.GetDefaultFormattingRules(indenter.Document.Document))
+            Return New VisualBasicSmartTokenFormatter(indenter.Options.FormattingOptions, rules, indenter.Root)
         End Function
 
         Protected Overrides Function GetDesiredIndentationWorker(
                 indenter As Indenter,
-                token As SyntaxToken,
-                previousLine As TextLine,
-                lastNonWhitespacePosition As Integer) As IndentationResult
+                tokenOpt As SyntaxToken?,
+                triviaOpt As SyntaxTrivia?) As IndentationResult?
 
-            If token.Span.End = lastNonWhitespacePosition + 1 Then
-                Return GetIndentationBasedOnToken(indenter, token)
-            Else
-                Debug.Assert(token.FullSpan.Contains(lastNonWhitespacePosition))
+            If triviaOpt.HasValue Then
+                Dim trivia = triviaOpt.Value
 
-                Dim trivia = indenter.Root.FindTrivia(lastNonWhitespacePosition)
+                If trivia.Kind = SyntaxKind.CommentTrivia OrElse
+                   trivia.Kind = SyntaxKind.DocumentationCommentTrivia Then
 
-                ' preserve the indentation of the comment trivia before a case statement
-                If trivia.Kind = SyntaxKind.CommentTrivia AndAlso trivia.Token.IsKind(SyntaxKind.CaseKeyword) AndAlso trivia.Token.Parent.IsKind(SyntaxKind.CaseStatement) Then
-                    Return indenter.GetIndentationOfLine(previousLine)
+                    ' if the comment is the only thing on a line, then preserve its indentation for the next line.
+                    Dim line = indenter.Text.Lines.GetLineFromPosition(trivia.FullSpan.Start)
+                    If line.GetFirstNonWhitespacePosition() = trivia.FullSpan.Start Then
+                        Return New IndentationResult(trivia.FullSpan.Start, 0)
+                    End If
                 End If
 
-                If trivia.Kind = SyntaxKind.LineContinuationTrivia Then
-                    Return GetIndentationBasedOnToken(indenter, GetTokenOnLeft(trivia), trivia)
-                End If
-
-                ' Line ends in comment
-                If trivia.Kind = SyntaxKind.CommentTrivia Then ' Two cases a line ending comment or _ comment
-                    Dim firstTrivia As SyntaxTrivia = indenter.Tree.GetRoot(indenter.CancellationToken).FindTrivia(token.Span.End + 1)
-                    ' firstTrivia contains either an _ or a comment, this is the First trivia after the last Token on the line
-                    If firstTrivia.Kind = SyntaxKind.LineContinuationTrivia Then
-                        Return GetIndentationBasedOnToken(indenter, GetTokenOnLeft(firstTrivia), firstTrivia)
-                    Else
-                        ' This is we have just a comment
-                        Return GetIndentationBasedOnToken(indenter, GetTokenOnLeft(trivia), trivia)
+                If trivia.Kind = SyntaxKind.CommentTrivia Then
+                    ' Line ends in comment
+                    ' Two cases a line ending comment or _ comment
+                    If tokenOpt.HasValue Then
+                        Dim firstTrivia As SyntaxTrivia = indenter.Tree.GetRoot(indenter.CancellationToken).FindTrivia(tokenOpt.Value.Span.End + 1)
+                        ' firstTrivia contains either an _ or a comment, this is the First trivia after the last Token on the line
+                        If firstTrivia.Kind = SyntaxKind.LineContinuationTrivia Then
+                            Return GetIndentationBasedOnToken(indenter, GetTokenOnLeft(firstTrivia), firstTrivia)
+                        Else
+                            ' This is we have just a comment
+                            Return GetIndentationBasedOnToken(indenter, GetTokenOnLeft(trivia), trivia)
+                        End If
                     End If
                 End If
 
@@ -66,23 +61,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
                     Return GetIndentationBasedOnToken(indenter, GetTokenOnLeft(trivia), trivia)
                 End If
 
-                ' okay, now check whether the trivia is at the beginning of the line
-                Dim firstNonWhitespacePosition = previousLine.GetFirstNonWhitespacePosition()
-                If Not firstNonWhitespacePosition.HasValue Then
-                    Return indenter.IndentFromStartOfLine(0)
+                If trivia.Kind = SyntaxKind.LineContinuationTrivia Then
+                    Return GetIndentationBasedOnToken(indenter, GetTokenOnLeft(trivia), trivia)
                 End If
-
-                Dim firstTokenOnLine = indenter.Root.FindToken(firstNonWhitespacePosition.Value, findInsideTrivia:=True)
-                If firstTokenOnLine.Kind <> SyntaxKind.None AndAlso firstTokenOnLine.Span.Contains(firstNonWhitespacePosition.Value) Then
-                    'okay, beginning of the line is not trivia, use this token as the base token
-                    Return GetIndentationBasedOnToken(indenter, firstTokenOnLine)
-                End If
-
-                Return indenter.GetIndentationOfLine(previousLine)
             End If
+
+            If tokenOpt.HasValue Then
+                Return GetIndentationBasedOnToken(indenter, tokenOpt.Value)
+            End If
+
+            Return Nothing
         End Function
 
-        Private Function GetTokenOnLeft(trivia As SyntaxTrivia) As SyntaxToken
+        Private Shared Function GetTokenOnLeft(trivia As SyntaxTrivia) As SyntaxToken
             Dim token = trivia.Token
             If token.Span.End <= trivia.SpanStart AndAlso Not token.IsMissing Then
                 Return token
@@ -91,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Return token.GetPreviousToken()
         End Function
 
-        Private Function GetIndentationBasedOnToken(indenter As Indenter, token As SyntaxToken, Optional trivia As SyntaxTrivia = Nothing) As IndentationResult
+        Private Shared Function GetIndentationBasedOnToken(indenter As Indenter, token As SyntaxToken, Optional trivia As SyntaxTrivia = Nothing) As IndentationResult
             Dim sourceText = indenter.LineToBeIndented.Text
 
             Dim position = indenter.GetCurrentPositionNotBelongToEndOfFileToken(indenter.LineToBeIndented.Start)
@@ -109,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
 
             Dim queryNode = token.GetAncestor(Of QueryClauseSyntax)()
             If queryNode IsNot Nothing Then
-                Dim subQuerySpaces = If(token.IsLastTokenOfStatement(), 0, indenter.OptionSet.GetOption(FormattingOptions.IndentationSize, token.Language))
+                Dim subQuerySpaces = If(token.IsLastTokenOfStatement(), 0, indenter.Options.FormattingOptions.IndentationSize)
                 Return indenter.GetIndentationOfToken(queryNode.GetFirstToken(includeZeroWidth:=True), subQuerySpaces)
             End If
 
@@ -124,18 +115,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             End If
 
             ' implicit line continuation case
-            If IsLineContinuable(token, trivia, position) Then
+            If IsLineContinuable(token, trivia) Then
                 Return GetIndentationFromTokenLineAfterLineContinuation(indenter, token, trivia)
             End If
 
             Return GetIndentationOfCurrentPosition(indenter, token, position)
         End Function
 
-        Private Function GetIndentationOfCurrentPosition(indenter As Indenter, token As SyntaxToken, position As Integer) As IndentationResult
+        Private Shared Function GetIndentationOfCurrentPosition(indenter As Indenter, token As SyntaxToken, position As Integer) As IndentationResult
             Return GetIndentationOfCurrentPosition(indenter, token, position, extraSpaces:=0)
         End Function
 
-        Private Function GetIndentationOfCurrentPosition(indenter As Indenter, token As SyntaxToken, position As Integer, extraSpaces As Integer) As IndentationResult
+        Private Shared Function GetIndentationOfCurrentPosition(indenter As Indenter, token As SyntaxToken, position As Integer, extraSpaces As Integer) As IndentationResult
             ' special case for multi-line string
             Dim containingToken = indenter.Tree.FindTokenOnLeftOfPosition(position, indenter.CancellationToken)
             If containingToken.IsKind(SyntaxKind.InterpolatedStringTextToken) OrElse
@@ -143,6 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
                 (containingToken.IsKind(SyntaxKind.CloseBraceToken) AndAlso token.Parent.IsKind(SyntaxKind.Interpolation)) Then
                 Return indenter.IndentFromStartOfLine(0)
             End If
+
             If containingToken.Kind = SyntaxKind.StringLiteralToken AndAlso containingToken.FullSpan.Contains(position) Then
                 Return indenter.IndentFromStartOfLine(0)
             End If
@@ -150,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Return indenter.IndentFromStartOfLine(indenter.Finder.GetIndentationOfCurrentPosition(indenter.Tree, token, position, extraSpaces, indenter.CancellationToken))
         End Function
 
-        Private Function IsLineContinuable(lastVisibleTokenOnPreviousLine As SyntaxToken, trivia As SyntaxTrivia, position As Integer) As Boolean
+        Private Shared Function IsLineContinuable(lastVisibleTokenOnPreviousLine As SyntaxToken, trivia As SyntaxTrivia) As Boolean
             If trivia.Kind = SyntaxKind.LineContinuationTrivia OrElse
                 trivia.Kind = SyntaxKind.SkippedTokensTrivia Then
                 Return True
@@ -183,7 +175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Return False
         End Function
 
-        Private Function IsCloseBraceOfInitializerSyntax(visibleTokenOnCurrentLine As SyntaxToken) As Boolean
+        Private Shared Function IsCloseBraceOfInitializerSyntax(visibleTokenOnCurrentLine As SyntaxToken) As Boolean
             If visibleTokenOnCurrentLine.IsKind(SyntaxKind.CloseBraceToken) Then
                 Dim visibleTokenOnCurrentLineParent = visibleTokenOnCurrentLine.Parent
                 If TypeOf visibleTokenOnCurrentLineParent Is ObjectCreationInitializerSyntax OrElse
@@ -195,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Return False
         End Function
 
-        Private Function ContainingStatementHasDiagnostic(node As SyntaxNode) As Boolean
+        Private Shared Function ContainingStatementHasDiagnostic(node As SyntaxNode) As Boolean
             If node Is Nothing Then
                 Return False
             End If
@@ -212,7 +204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Return containingStatement.ContainsDiagnostics()
         End Function
 
-        Private Function GetIndentationFromOperationService(indenter As Indenter, token As SyntaxToken, position As Integer) As IndentationResult?
+        Private Shared Function GetIndentationFromOperationService(indenter As Indenter, token As SyntaxToken, position As Integer) As IndentationResult?
             ' check operation service to see whether we can determine indentation from it
             If token.Kind = SyntaxKind.None Then
                 Return Nothing
@@ -241,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Return Nothing
         End Function
 
-        Private Function GetIndentationFromTokenLineAfterLineContinuation(indenter As Indenter, token As SyntaxToken, trivia As SyntaxTrivia) As IndentationResult
+        Private Shared Function GetIndentationFromTokenLineAfterLineContinuation(indenter As Indenter, token As SyntaxToken, trivia As SyntaxTrivia) As IndentationResult
             Dim sourceText = indenter.LineToBeIndented.Text
             Dim position = indenter.LineToBeIndented.Start
 
@@ -279,7 +271,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             If statement Is Nothing Then
                 If trivia.Kind <> SyntaxKind.None Then
                     Dim triviaLine = sourceText.Lines.GetLineFromPosition(trivia.SpanStart)
-                    Return indenter.GetIndentationOfLine(triviaLine, indenter.OptionSet.GetOption(FormattingOptions.IndentationSize, token.Language))
+                    Return indenter.GetIndentationOfLine(triviaLine, indenter.Options.FormattingOptions.IndentationSize)
                 End If
 
                 ' no base line to use to calculate the indentation
@@ -291,24 +283,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Return GetIndentationFromTwoLines(indenter, firstTokenLine, currentTokenLine, token, position)
         End Function
 
-        Private Function IsCommaInParameters(token As SyntaxToken) As Boolean
+        Private Shared Function IsCommaInParameters(token As SyntaxToken) As Boolean
             Return token.Kind = SyntaxKind.CommaToken AndAlso
                 (TypeOf token.Parent Is ParameterListSyntax OrElse
                     TypeOf token.Parent Is ArgumentListSyntax OrElse
                     TypeOf token.Parent Is TypeParameterListSyntax)
         End Function
 
-        Private Function GetIndentationFromTwoLines(indenter As Indenter, firstLine As TextLine, secondLine As TextLine, token As SyntaxToken, position As Integer) As IndentationResult
+        Private Shared Function GetIndentationFromTwoLines(indenter As Indenter, firstLine As TextLine, secondLine As TextLine, token As SyntaxToken, position As Integer) As IndentationResult
             If firstLine.LineNumber = secondLine.LineNumber Then
                 ' things are on same line, put the indentation size
-                Return GetIndentationOfCurrentPosition(indenter, token, position, indenter.OptionSet.GetOption(FormattingOptions.IndentationSize, token.Language))
+                Return GetIndentationOfCurrentPosition(indenter, token, position, indenter.Options.FormattingOptions.IndentationSize)
             End If
 
             ' multiline
             Return indenter.GetIndentationOfLine(secondLine)
         End Function
 
-        Private Function HasLinesBetween(lineNumber1 As Integer, lineNumber2 As Integer) As Boolean
+        Private Shared Function HasLinesBetween(lineNumber1 As Integer, lineNumber2 As Integer) As Boolean
             Return lineNumber1 + 1 < lineNumber2
         End Function
     End Class

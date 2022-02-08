@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
@@ -9,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.OrderModifiers;
 using Microsoft.CodeAnalysis.OrderModifiers;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
 {
@@ -39,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase
 
             private async Task<SyntaxNode> GetNewNodeAsync(SyntaxNode node, CancellationToken cancellationToken)
             {
-                var syntaxFacts = CSharpSyntaxFactsService.Instance;
+                var syntaxFacts = CSharpSyntaxFacts.Instance;
                 var modifiers = syntaxFacts.GetModifiers(node);
                 var newModifiers = modifiers.Add(SyntaxFactory.Token(SyntaxKind.NewKeyword));
 

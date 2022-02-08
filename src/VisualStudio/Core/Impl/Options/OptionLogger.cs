@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 
@@ -44,8 +46,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         }
 
         private static string GetOptionValue(object oldValue)
-        {
-            return oldValue == null ? "[null]" : oldValue.ToString();
-        }
+            => oldValue == null ? "[null]" : oldValue.ToString();
     }
 }

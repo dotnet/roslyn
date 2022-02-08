@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         /// specify a title.
         /// </summary>
         /// <param name="expectedTitle"></param>
-        public void VerifyOpen(string expectedTitle, TimeSpan? timeout = default)
+        public void VerifyOpen(string expectedTitle, TimeSpan? timeout = null)
         {
             using (var cancellationTokenSource = timeout != null ? new CancellationTokenSource(timeout.Value) : null)
             {

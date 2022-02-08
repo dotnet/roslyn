@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -16,10 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
         {
             // dispatch to the switch sections
-            var initialState = VisitSwitchStatementDispatch(node);
+            var afterSwitchState = VisitSwitchStatementDispatch(node);
 
             // visit switch sections
-            var afterSwitchState = UnreachableState();
             var switchSections = node.SwitchSections;
             var iLastSection = (switchSections.Length - 1);
             for (var iSection = 0; iSection <= iLastSection; iSection++)
@@ -28,12 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Even though it is illegal for the end of a switch section to be reachable, in erroneous
                 // code it may be reachable.  We treat that as an implicit break (branch to afterSwitchState).
                 Join(ref afterSwitchState, ref this.State);
-            }
-
-            if (node.DecisionDag.ReachableLabels.Contains(node.BreakLabel) ||
-                (node.DefaultLabel == null && node.Expression.ConstantValue == null && IsTraditionalSwitch(node)))
-            {
-                Join(ref afterSwitchState, ref initialState);
             }
 
             ResolveBreaks(afterSwitchState, node.BreakLabel);
@@ -48,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TLocalState initialState = this.State.Clone();
 
-            var reachableLabels = node.DecisionDag.ReachableLabels;
+            var reachableLabels = node.ReachabilityDecisionDag.ReachableLabels;
             foreach (var section in node.SwitchSections)
             {
                 foreach (var label in section.SwitchLabels)
@@ -75,7 +70,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return initialState;
+            TLocalState afterSwitchState = UnreachableState();
+            if (node.ReachabilityDecisionDag.ReachableLabels.Contains(node.BreakLabel) ||
+                (node.DefaultLabel == null && node.Expression.ConstantValue == null && IsTraditionalSwitch(node)))
+            {
+                Join(ref afterSwitchState, ref initialState);
+            }
+
+            return afterSwitchState;
         }
 
         /// <summary>
@@ -155,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitRvalue(node.Expression);
             var dispatchState = this.State;
             var endState = UnreachableState();
-            var reachableLabels = node.DecisionDag.ReachableLabels;
+            var reachableLabels = node.ReachabilityDecisionDag.ReachableLabels;
             foreach (var arm in node.SwitchArms)
             {
                 SetState(dispatchState.Clone());

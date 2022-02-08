@@ -7,10 +7,16 @@ using System.Diagnostics;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.Emit;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal partial class EventSymbol :
+    internal partial class
+#if DEBUG
+        EventSymbolAdapter : SymbolAdapter,
+#else
+        EventSymbol :
+#endif 
         Cci.IEventDefinition
     {
         #region IEventDefinition Members
@@ -19,15 +25,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             CheckDefinitionInvariant();
 
-            var addMethod = this.AddMethod;
-            Debug.Assert((object)addMethod != null);
+            var addMethod = AdaptedEventSymbol.AddMethod?.GetCciAdapter();
+            RoslynDebug.Assert((object?)addMethod != null);
             if (addMethod.ShouldInclude(context))
             {
                 yield return addMethod;
             }
 
-            var removeMethod = this.RemoveMethod;
-            Debug.Assert((object)removeMethod != null);
+            var removeMethod = AdaptedEventSymbol.RemoveMethod?.GetCciAdapter();
+            RoslynDebug.Assert((object?)removeMethod != null);
             if (removeMethod.ShouldInclude(context))
             {
                 yield return removeMethod;
@@ -39,8 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                MethodSymbol addMethod = this.AddMethod;
-                Debug.Assert((object)addMethod != null);
+                var addMethod = AdaptedEventSymbol.AddMethod?.GetCciAdapter();
+                RoslynDebug.Assert((object?)addMethod != null);
                 return addMethod;
             }
         }
@@ -50,8 +56,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                MethodSymbol removeMethod = this.RemoveMethod;
-                Debug.Assert((object)removeMethod != null);
+                var removeMethod = AdaptedEventSymbol.RemoveMethod?.GetCciAdapter();
+                RoslynDebug.Assert((object?)removeMethod != null);
                 return removeMethod;
             }
         }
@@ -61,16 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return HasRuntimeSpecialName;
-            }
-        }
-
-        internal virtual bool HasRuntimeSpecialName
-        {
-            get
-            {
-                CheckDefinitionInvariant();
-                return false;
+                return AdaptedEventSymbol.HasRuntimeSpecialName;
             }
         }
 
@@ -79,11 +76,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.HasSpecialName;
+                return AdaptedEventSymbol.HasSpecialName;
             }
         }
 
-        Cci.IMethodReference Cci.IEventDefinition.Caller
+        Cci.IMethodReference? Cci.IEventDefinition.Caller
         {
             get
             {
@@ -94,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         Cci.ITypeReference Cci.IEventDefinition.GetType(EmitContext context)
         {
-            return ((PEModuleBuilder)context.Module).Translate(this.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
+            return ((PEModuleBuilder)context.Module).Translate(AdaptedEventSymbol.Type, syntaxNodeOpt: (CSharpSyntaxNode?)context.SyntaxNode, diagnostics: context.Diagnostics);
         }
 
         #endregion
@@ -106,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.ContainingType;
+                return AdaptedEventSymbol.ContainingType.GetCciAdapter();
             }
         }
 
@@ -115,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return PEModuleBuilder.MemberVisibility(this);
+                return PEModuleBuilder.MemberVisibility(AdaptedEventSymbol);
             }
         }
 
@@ -126,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(EmitContext context)
         {
             CheckDefinitionInvariant();
-            return this.ContainingType;
+            return AdaptedEventSymbol.ContainingType.GetCciAdapter();
         }
 
         #endregion
@@ -154,10 +151,58 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.MetadataName;
+                return AdaptedEventSymbol.MetadataName;
             }
         }
 
         #endregion
     }
+
+    internal partial class EventSymbol
+    {
+#if DEBUG
+        private EventSymbolAdapter? _lazyAdapter;
+
+        protected sealed override SymbolAdapter GetCciAdapterImpl() => GetCciAdapter();
+
+        internal new EventSymbolAdapter GetCciAdapter()
+        {
+            if (_lazyAdapter is null)
+            {
+                return InterlockedOperations.Initialize(ref _lazyAdapter, new EventSymbolAdapter(this));
+            }
+
+            return _lazyAdapter;
+        }
+#else
+        internal EventSymbol AdaptedEventSymbol => this;
+
+        internal new EventSymbol GetCciAdapter()
+        {
+            return this;
+        }
+#endif
+
+        internal virtual bool HasRuntimeSpecialName
+        {
+            get
+            {
+                CheckDefinitionInvariant();
+                return false;
+            }
+        }
+    }
+
+#if DEBUG
+    internal partial class EventSymbolAdapter
+    {
+        internal EventSymbolAdapter(EventSymbol underlyingEventSymbol)
+        {
+            AdaptedEventSymbol = underlyingEventSymbol;
+        }
+
+        internal sealed override Symbol AdaptedSymbol => AdaptedEventSymbol;
+        internal EventSymbol AdaptedEventSymbol { get; }
+    }
+#endif
 }

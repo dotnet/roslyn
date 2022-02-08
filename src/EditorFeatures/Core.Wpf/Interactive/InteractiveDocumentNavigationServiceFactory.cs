@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
@@ -15,14 +17,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
         private readonly IDocumentNavigationService _singleton;
 
         [ImportingConstructor]
-        public InteractiveDocumentNavigationServiceFactory()
-        {
-            _singleton = new InteractiveDocumentNavigationService();
-        }
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public InteractiveDocumentNavigationServiceFactory(IThreadingContext threadingContext)
+            => _singleton = new InteractiveDocumentNavigationService(threadingContext);
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return _singleton;
-        }
+            => _singleton;
     }
 }

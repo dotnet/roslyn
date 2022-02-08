@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Threading;
@@ -46,7 +48,19 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             };
 
             return MefHostServices.DefaultAssemblies.Concat(
-                MefHostServices.LoadNearbyAssemblies(assemblyNames));
+                MefHostServicesHelpers.LoadNearbyAssemblies(assemblyNames));
+        }
+
+        internal readonly struct TestAccessor
+        {
+            /// <summary>
+            /// Allows tests to clear services between runs.
+            /// </summary>
+            internal static void ClearCachedServices()
+            {
+                // The existing host, if any, is not retained past this call.
+                s_defaultServices = null;
+            }
         }
     }
 }

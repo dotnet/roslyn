@@ -21,7 +21,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
         private readonly TestExtensionErrorHandler _errorHandler;
 
         [ImportingConstructor]
-        public TestExtensionManager([Import]TestExtensionErrorHandler errorHandler)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public TestExtensionManager([Import] TestExtensionErrorHandler errorHandler)
         {
             _errorHandler = errorHandler;
         }

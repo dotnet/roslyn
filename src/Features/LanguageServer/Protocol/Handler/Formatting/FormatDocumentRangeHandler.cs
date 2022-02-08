@@ -2,21 +2,33 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [Shared]
-    [ExportLspMethod(Methods.TextDocumentRangeFormattingName)]
-    internal class FormatDocumentRangeHandler : FormatDocumentHandlerBase, IRequestHandler<DocumentRangeFormattingParams, TextEdit[]>
+    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
+    [ProvidesMethod(Methods.TextDocumentRangeFormattingName)]
+    internal class FormatDocumentRangeHandler : AbstractFormatDocumentHandlerBase<DocumentRangeFormattingParams, TextEdit[]?>
     {
-        public async Task<TextEdit[]> HandleRequestAsync(Solution solution, DocumentRangeFormattingParams request, ClientCapabilities clientCapabilities,
-            CancellationToken cancellationToken)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public FormatDocumentRangeHandler()
         {
-            return await GetTextEdits(solution, request.TextDocument.Uri, cancellationToken, range: request.Range).ConfigureAwait(false);
         }
+
+        public override string Method => Methods.TextDocumentRangeFormattingName;
+
+        public override TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentRangeFormattingParams request) => request.TextDocument;
+
+        public override Task<TextEdit[]?> HandleRequestAsync(
+            DocumentRangeFormattingParams request,
+            RequestContext context,
+            CancellationToken cancellationToken)
+            => GetTextEditsAsync(context, request.Options, cancellationToken, range: request.Range);
     }
 }

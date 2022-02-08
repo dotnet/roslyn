@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class OutDeconstructVarPendingInference
     {
-        public BoundDeconstructValuePlaceholder Placeholder;
+        public BoundDeconstructValuePlaceholder? Placeholder;
 
         public BoundDeconstructValuePlaceholder SetInferredTypeWithAnnotations(TypeWithAnnotations type, Binder binder, bool success)
         {

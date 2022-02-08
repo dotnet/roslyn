@@ -4,7 +4,9 @@
 
 using System;
 using System.Composition;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Setup
@@ -14,20 +16,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
     public class TestExtensionErrorHandler : IExtensionErrorHandler
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestExtensionErrorHandler()
         {
         }
 
         public void HandleError(object sender, Exception exception)
         {
-            if (exception is ArgumentOutOfRangeException argumentOutOfRangeException
-                && argumentOutOfRangeException.ParamName == "index"
-                && argumentOutOfRangeException.StackTrace.Contains("Microsoft.NodejsTools.Repl.ReplOutputClassifier.GetClassificationSpans"))
-            {
-                // Known issue https://github.com/Microsoft/nodejstools/issues/2138
-                return;
-            }
-
             if (exception is ArgumentException argumentException
                 && argumentException.Message.Contains("SnapshotPoint")
                 && argumentException.StackTrace.Contains("Microsoft.VisualStudio.Text.Editor.Implementation.WpfTextView.ValidateBufferPosition"))
@@ -36,7 +31,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
                 return;
             }
 
-            FatalError.Report(exception);
+            if (exception is TaskCanceledException taskCanceledException
+                && taskCanceledException.StackTrace.Contains("Microsoft.CodeAnalysis.Editor.Implementation.Suggestions.SuggestedActionsSourceProvider.SuggestedActionsSource.GetSuggestedActions"))
+            {
+                // Workaround for https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1070469
+                return;
+            }
+
+            FatalError.ReportAndPropagate(exception);
         }
     }
 }

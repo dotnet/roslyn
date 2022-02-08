@@ -51,9 +51,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' Hide the GetAttribute overload which takes a diagnostic bag.
         ' This ensures that diagnostics from the early bound attributes are never preserved.
         Friend Shadows Function GetAttribute(node As AttributeSyntax, boundAttributeType As NamedTypeSymbol, <Out> ByRef generatedDiagnostics As Boolean) As SourceAttributeData
-            Dim diagnostics = DiagnosticBag.GetInstance()
+            Dim diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
             Dim earlyAttribute = MyBase.GetAttribute(node, boundAttributeType, diagnostics)
-            generatedDiagnostics = Not diagnostics.IsEmptyWithoutResolution()
+            generatedDiagnostics = Not diagnostics.DiagnosticBag.IsEmptyWithoutResolution()
             diagnostics.Free()
             Return earlyAttribute
         End Function
@@ -169,9 +169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim memberAccess = TryCast(DirectCast(node, InvocationExpressionSyntax).Expression, MemberAccessExpressionSyntax)
                     If memberAccess IsNot Nothing Then
-                        Dim diagnostics = DiagnosticBag.GetInstance
-                        Dim boundExpression = memberAccessBinder.BindExpression(memberAccess, diagnostics)
-                        diagnostics.Free()
+                        Dim boundExpression = memberAccessBinder.BindExpression(memberAccess, BindingDiagnosticBag.Discarded)
 
                         If boundExpression.HasErrors Then
                             Return False

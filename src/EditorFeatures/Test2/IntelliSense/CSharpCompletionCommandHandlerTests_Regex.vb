@@ -6,8 +6,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
     Public Class CSharpCompletionCommandHandlerTests_Regex
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function ExplicitInvoke() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ExplicitInvoke(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System.Text.RegularExpressions;
@@ -18,18 +18,18 @@ class c
         var r = new Regex("$$");
     }
 }
-]]></Document>)
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendInvokeCompletionList()
-                Await state.AssertSelectedCompletionItem("\A", inlineDescription:=WorkspacesResources.Regex_start_of_string_only_short)
+                Await state.AssertSelectedCompletionItem("\A", inlineDescription:=FeaturesResources.Regex_start_of_string_only_short)
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("new Regex(""\\A"")", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function ExplicitInvoke_VerbatimString() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function ExplicitInvoke_VerbatimString(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System.Text.RegularExpressions;
@@ -40,7 +40,7 @@ class c
         var r = new Regex(@"$$");
     }
 }
-]]></Document>)
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem("\A")
@@ -50,8 +50,8 @@ class c
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/35631"), Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestCaretPlacement() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCaretPlacement(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System.Text.RegularExpressions;
@@ -62,11 +62,11 @@ class c
         var r = new Regex(@"$$");
     }
 }
-]]></Document>)
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars("[")
 
-                Await state.AssertSelectedCompletionItem("[  character-group  ]")
+                Await state.AssertSelectedCompletionItem($"[  {FeaturesResources.Regex_character_group}  ]")
                 state.SendDownKey()
                 state.SendDownKey()
                 state.SendDownKey()
@@ -79,8 +79,8 @@ class c
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestBackslashBInCharacterClass() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestBackslashBInCharacterClass(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System.Text.RegularExpressions;
@@ -91,17 +91,17 @@ class c
         var r = new Regex(@"[$$]");
     }
 }
-]]></Document>)
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars("\b")
 
                 Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem("\b", description:=WorkspacesResources.Regex_backspace_character_long)
+                Await state.AssertSelectedCompletionItem("\b", description:=FeaturesResources.Regex_backspace_character_long)
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestBackslashBOutOfCharacterClass() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestBackslashBOutOfCharacterClass(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System.Text.RegularExpressions;
@@ -112,17 +112,17 @@ class c
         var r = new Regex(@"$$");
     }
 }
-]]></Document>)
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars("\b")
 
                 Await state.AssertCompletionSession()
-                Await state.AssertSelectedCompletionItem("\b", description:=WorkspacesResources.Regex_word_boundary_long)
+                Await state.AssertSelectedCompletionItem("\b", description:=FeaturesResources.Regex_word_boundary_long)
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function OnlyEscapes() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function OnlyEscapes(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System.Text.RegularExpressions;
@@ -133,7 +133,7 @@ class c
         var r = new Regex(@"$$");
     }
 }
-]]></Document>)
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars("\")
                 Await state.AssertCompletionSession()
@@ -147,8 +147,8 @@ class c
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function OnlyClasses() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function OnlyClasses(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System.Text.RegularExpressions;
@@ -159,7 +159,7 @@ class c
         var r = new Regex(@"$$");
     }
 }
-]]></Document>)
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars("[")
                 Await state.AssertCompletionSession()
@@ -173,8 +173,8 @@ class c
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function OnlyGroups() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function OnlyGroups(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System.Text.RegularExpressions;
@@ -185,7 +185,7 @@ class c
         var r = new Regex(@"$$");
     }
 }
-]]></Document>)
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars("(")
                 Await state.AssertCompletionSession()
@@ -199,8 +199,8 @@ class c
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestKReferenceOutsideOfCharacterClass() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestKReferenceOutsideOfCharacterClass(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System.Text.RegularExpressions;
@@ -211,7 +211,7 @@ class c
         var r = new Regex(@"$$");
     }
 }
-]]></Document>)
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars("\")
                 Await state.AssertCompletionSession()
@@ -223,8 +223,8 @@ class c
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestNoKReferenceInsideOfCharacterClass() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestNoKReferenceInsideOfCharacterClass(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System.Text.RegularExpressions;
@@ -235,7 +235,7 @@ class c
         var r = new Regex(@"[$$]");
     }
 }
-]]></Document>)
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars("\")
                 Await state.AssertCompletionSession()
@@ -247,8 +247,8 @@ class c
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestCategory() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCategory(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System.Text.RegularExpressions;
@@ -259,7 +259,7 @@ class c
         var r = new Regex(@"\p$$");
     }
 }
-]]></Document>)
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars("{")
                 Await state.AssertCompletionSession()
@@ -271,8 +271,32 @@ class c
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function NotInInterpolatedString() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestNegativeCategory(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System.Text.RegularExpressions;
+class c
+{
+    void goo()
+    {
+        var r = new Regex(@"\P$$");
+    }
+}
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendTypeChars("{")
+                Await state.AssertCompletionSession()
+
+                Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "IsGreek"))
+
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NotInInterpolatedString(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System.Text.RegularExpressions;
@@ -283,15 +307,15 @@ class c
         var r = new Regex($"$$");
     }
 }
-]]></Document>)
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertNoCompletionSession()
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function NotInInterpolatedStringPart() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NotInInterpolatedStringPart(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System.Text.RegularExpressions;
@@ -302,7 +326,7 @@ class c
         var r = new Regex($"goo{$$}bar");
     }
 }
-]]></Document>)
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionSession()
@@ -312,8 +336,8 @@ class c
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function NotInInterpolatedStringPrefix() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NotInInterpolatedStringPrefix(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System.Text.RegularExpressions;
@@ -324,15 +348,15 @@ class c
         var r = new Regex($"go$$o{0}bar");
     }
 }
-]]></Document>)
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertNoCompletionSession()
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function NotInInterpolatedStringSuffix() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NotInInterpolatedStringSuffix(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System.Text.RegularExpressions;
@@ -343,15 +367,15 @@ class c
         var r = new Regex($"goo{0}$$");
     }
 }
-]]></Document>)
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertNoCompletionSession()
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function NotInInterpolatedVerbatimString1() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NotInInterpolatedVerbatimString1(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System.Text.RegularExpressions;
@@ -362,15 +386,15 @@ class c
         var r = new Regex($@"$$");
     }
 }
-]]></Document>)
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertNoCompletionSession()
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function NotInInterpolatedVerbatimString2() As Task
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NotInInterpolatedVerbatimString2(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
 using System.Text.RegularExpressions;
@@ -381,7 +405,7 @@ class c
         var r = new Regex(@$"$$");
     }
 }
-]]></Document>)
+]]></Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendInvokeCompletionList()
                 Await state.AssertNoCompletionSession()

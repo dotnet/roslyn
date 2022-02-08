@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,8 +27,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         /// to call the _CanCallOnBackground variant. We hope to audit _CanCallOnBackground periodically, and so rather than
         /// having to understand that each of those uses are Venus and thus get a special pass.</remarks>
         public static T WaitAndGetResult_Venus<T>(this Task<T> task, CancellationToken cancellationToken)
-        {
-            return task.WaitAndGetResult_CanCallOnBackground(cancellationToken);
-        }
+            => task.WaitAndGetResult_CanCallOnBackground(cancellationToken);
     }
 }

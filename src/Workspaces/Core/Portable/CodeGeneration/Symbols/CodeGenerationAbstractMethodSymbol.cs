@@ -2,8 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Immutable;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -15,9 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         private readonly ImmutableArray<AttributeData> _returnTypeAttributes;
 
         public virtual ImmutableArray<AttributeData> GetReturnTypeAttributes()
-        {
-            return _returnTypeAttributes;
-        }
+            => _returnTypeAttributes;
 
         protected CodeGenerationAbstractMethodSymbol(
             INamedTypeSymbol containingType,
@@ -25,13 +25,15 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             string name,
-            ImmutableArray<AttributeData> returnTypeAttributes)
-            : base(containingType, attributes, declaredAccessibility, modifiers, name)
+            ImmutableArray<AttributeData> returnTypeAttributes,
+            string documentationCommentXml = null)
+            : base(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, documentationCommentXml)
         {
             _returnTypeAttributes = returnTypeAttributes.NullToEmpty();
         }
 
         public abstract int Arity { get; }
+        public abstract System.Reflection.MethodImplAttributes MethodImplementationFlags { get; }
         public abstract bool ReturnsVoid { get; }
         public abstract bool ReturnsByRef { get; }
         public abstract bool ReturnsByRefReadonly { get; }
@@ -42,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract ImmutableArray<IParameterSymbol> Parameters { get; }
         public abstract IMethodSymbol ConstructedFrom { get; }
         public abstract bool IsReadOnly { get; }
+        public abstract bool IsInitOnly { get; }
         public abstract IMethodSymbol OverriddenMethod { get; }
         public abstract IMethodSymbol ReducedFrom { get; }
         public abstract ITypeSymbol GetTypeInferredDuringReduction(ITypeParameterSymbol reducedFromTypeParameter);
@@ -49,72 +52,43 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract ImmutableArray<IMethodSymbol> ExplicitInterfaceImplementations { get; }
         public abstract IMethodSymbol PartialDefinitionPart { get; }
         public abstract IMethodSymbol PartialImplementationPart { get; }
+        public abstract bool IsPartialDefinition { get; }
 
         public NullableAnnotation ReceiverNullableAnnotation => ReceiverType.NullableAnnotation;
         public NullableAnnotation ReturnNullableAnnotation => ReturnType.NullableAnnotation;
         public ImmutableArray<NullableAnnotation> TypeArgumentNullableAnnotations => TypeArguments.SelectAsArray(a => a.NullableAnnotation);
 
-        public virtual ITypeSymbol ReceiverType
-        {
-            get
-            {
-                return this.ContainingType;
-            }
-        }
+        public virtual ITypeSymbol ReceiverType => this.ContainingType;
 
         public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitMethod(this);
-        }
+            => visitor.VisitMethod(this);
 
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitMethod(this);
-        }
+            => visitor.VisitMethod(this);
 
         public virtual MethodKind MethodKind => MethodKind.Ordinary;
 
         public override SymbolKind Kind => SymbolKind.Method;
 
-        public virtual bool IsGenericMethod
-        {
-            get
-            {
-                return this.Arity > 0;
-            }
-        }
+        public virtual bool IsGenericMethod => this.Arity > 0;
 
         public virtual bool IsExtensionMethod => false;
 
-        public virtual bool IsAsync
-        {
-            get
-            {
-                return this.Modifiers.IsAsync;
-            }
-        }
+        public virtual bool IsAsync => this.Modifiers.IsAsync;
 
         public virtual bool IsVararg => false;
 
         public bool IsCheckedBuiltin => false;
 
+        public override ISymbol ContainingSymbol => this.ContainingType;
+
         public virtual bool HidesBaseMethodsByName => false;
 
         public ImmutableArray<CustomModifier> RefCustomModifiers
-        {
-            get
-            {
-                return ImmutableArray.Create<CustomModifier>();
-            }
-        }
+            => ImmutableArray.Create<CustomModifier>();
 
         public virtual ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get
-            {
-                return ImmutableArray.Create<CustomModifier>();
-            }
-        }
+            => ImmutableArray.Create<CustomModifier>();
 
         public virtual ISymbol AssociatedSymbol => null;
 
@@ -122,19 +96,17 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public bool IsConditional => false;
 
+        public SignatureCallingConvention CallingConvention => SignatureCallingConvention.Default;
+
+        public ImmutableArray<INamedTypeSymbol> UnmanagedCallingConventionTypes => ImmutableArray<INamedTypeSymbol>.Empty;
+
         public IMethodSymbol Construct(params ITypeSymbol[] typeArguments)
-        {
-            return new CodeGenerationConstructedMethodSymbol(this, typeArguments.ToImmutableArray());
-        }
+            => new CodeGenerationConstructedMethodSymbol(this, typeArguments.ToImmutableArray());
 
         public IMethodSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation> typeArgumentNullableAnnotations)
-        {
-            return new CodeGenerationConstructedMethodSymbol(this, typeArguments);
-        }
+            => new CodeGenerationConstructedMethodSymbol(this, typeArguments);
 
         public DllImportData GetDllImportData()
-        {
-            return null;
-        }
+            => null;
     }
 }

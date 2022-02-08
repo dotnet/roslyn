@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -308,20 +306,23 @@ namespace Microsoft.CodeAnalysis
 
             var nodes = this.ToList();
             nodes.InsertRange(index, nodesAndTokens);
-            return CreateList(nodes[0].UnderlyingNode!, nodes);
+            return CreateList(nodes);
         }
 
-        private static SyntaxNodeOrTokenList CreateList(GreenNode creator, List<SyntaxNodeOrToken> items)
+        private static SyntaxNodeOrTokenList CreateList(List<SyntaxNodeOrToken> items)
         {
             if (items.Count == 0)
             {
                 return default(SyntaxNodeOrTokenList);
             }
 
-            var newGreen = creator.CreateList(items.Select(n => n.UnderlyingNode!))!;
+            var newGreen = GreenNode.CreateList(items, static n => n.RequiredUnderlyingNode)!;
             if (newGreen.IsToken)
             {
-                newGreen = creator.CreateList(new[] { newGreen }, alwaysCreateListNode: true)!;
+                newGreen = Syntax.InternalSyntax.SyntaxList.List(new[]
+                {
+                    new ArrayElement<GreenNode> {Value = newGreen}
+                });
             }
 
             return new SyntaxNodeOrTokenList(newGreen.CreateRed(), 0);
@@ -338,10 +339,9 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
 
-            var node = this[index];
             var nodes = this.ToList();
             nodes.RemoveAt(index);
-            return CreateList(node.UnderlyingNode!, nodes);
+            return CreateList(nodes);
         }
 
         /// <summary>
@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis
                 var nodes = this.ToList();
                 nodes.RemoveAt(index);
                 nodes.InsertRange(index, newNodesAndTokens);
-                return CreateList(nodeOrTokenInList.UnderlyingNode!, nodes);
+                return CreateList(nodes);
             }
 
             throw new ArgumentOutOfRangeException(nameof(nodeOrTokenInList));
@@ -479,7 +479,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns>
         ///   <c>true</c> if the specified <see cref="object"/> is equal to this instance; otherwise, <c>false</c>.
         /// </returns>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is SyntaxNodeOrTokenList && Equals((SyntaxNodeOrTokenList)obj);
         }
@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis
         [SuppressMessage("Performance", "CA1067", Justification = "Equality not actually implemented")]
         public struct Enumerator : IEnumerator<SyntaxNodeOrToken>
         {
-            private SyntaxNodeOrTokenList _list;
+            private readonly SyntaxNodeOrTokenList _list;
             private int _index;
 
             internal Enumerator(in SyntaxNodeOrTokenList list)
@@ -554,7 +554,7 @@ namespace Microsoft.CodeAnalysis
             {
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 throw new NotSupportedException();
             }

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (rewrittenCondition.ConstantValue == null)
             {
-                return node.Update(node.IsRef, rewrittenCondition, rewrittenConsequence, rewrittenAlternative, node.ConstantValueOpt, node.Type);
+                return node.Update(node.IsRef, rewrittenCondition, rewrittenConsequence, rewrittenAlternative, node.ConstantValueOpt, node.NaturalTypeOpt, node.WasTargetTyped, node.Type);
             }
 
             return RewriteConditionalOperator(
@@ -44,11 +44,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenCondition,
             BoundExpression rewrittenConsequence,
             BoundExpression rewrittenAlternative,
-            ConstantValue constantValueOpt,
+            ConstantValue? constantValueOpt,
             TypeSymbol rewrittenType,
             bool isRef)
         {
-            ConstantValue conditionConstantValue = rewrittenCondition.ConstantValue;
+            ConstantValue? conditionConstantValue = rewrittenCondition.ConstantValue;
             if (conditionConstantValue == ConstantValue.True)
             {
                 return rewrittenConsequence;
@@ -66,6 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenConsequence,
                     rewrittenAlternative,
                     constantValueOpt,
+                    rewrittenType,
+                    wasTargetTyped: false,
                     rewrittenType);
             }
         }

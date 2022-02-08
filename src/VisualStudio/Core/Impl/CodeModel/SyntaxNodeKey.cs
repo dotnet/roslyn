@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
@@ -49,14 +51,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         public override int GetHashCode()
-        {
-            return _name.GetHashCode() + _ordinal;
-        }
+            => _name.GetHashCode() + _ordinal;
 
         public override string ToString()
-        {
-            return $"{{{_name}, {_ordinal}}}";
-        }
+            => $"{{{_name}, {_ordinal}}}";
 
         public string Name
         {
@@ -74,13 +72,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         }
 
         public static bool operator ==(SyntaxNodeKey left, SyntaxNodeKey right)
-        {
-            return left.Equals(right);
-        }
+            => left.Equals(right);
 
         public static bool operator !=(SyntaxNodeKey left, SyntaxNodeKey right)
-        {
-            return !left.Equals(right);
-        }
+            => !left.Equals(right);
     }
 }

@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -58,7 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
             private void AddValueExpression()
             {
                 // If we're in a setter/adder/remover then add "value".
-                if (_parentStatement.GetAncestorOrThis<AccessorDeclarationSyntax>().IsKind(SyntaxKind.SetAccessorDeclaration, SyntaxKind.AddAccessorDeclaration, SyntaxKind.RemoveAccessorDeclaration))
+                if (_parentStatement.GetAncestorOrThis<AccessorDeclarationSyntax>().IsKind(
+                    SyntaxKind.SetAccessorDeclaration, SyntaxKind.InitAccessorDeclaration, SyntaxKind.AddAccessorDeclaration, SyntaxKind.RemoveAccessorDeclaration))
                 {
                     _expressions.Add("value");
                 }
@@ -68,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
             {
                 // If it's an instance member, then also add "this".
                 var memberDeclaration = _parentStatement.GetAncestorOrThis<MemberDeclarationSyntax>();
-                if (!memberDeclaration.GetModifiers().Any(SyntaxKind.StaticKeyword))
+                if (!memberDeclaration.IsKind(SyntaxKind.GlobalStatement) && !memberDeclaration.GetModifiers().Any(SyntaxKind.StaticKeyword))
                 {
                     _expressions.Add("this");
                 }
@@ -79,13 +81,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
                 var block = GetImmediatelyContainingBlock();
 
                 // if we're the start of a "catch(Goo e)" clause, then add "e".
-                if (block != null && block.IsParentKind(SyntaxKind.CatchClause))
+                if (block != null && block.IsParentKind(SyntaxKind.CatchClause, out CatchClauseSyntax catchClause) &&
+                    catchClause.Declaration != null && catchClause.Declaration.Identifier.Kind() != SyntaxKind.None)
                 {
-                    var catchClause = (CatchClauseSyntax)block.Parent;
-                    if (catchClause.Declaration != null && catchClause.Declaration.Identifier.Kind() != SyntaxKind.None)
-                    {
-                        _expressions.Add(catchClause.Declaration.Identifier.ValueText);
-                    }
+                    _expressions.Add(catchClause.Declaration.Identifier.ValueText);
                 }
             }
 
@@ -99,9 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
             }
 
             private bool IsFirstBlockStatement()
-            {
-                return _parentStatement.Parent is BlockSyntax parentBlockOpt && parentBlockOpt.Statements.FirstOrDefault() == _parentStatement;
-            }
+                => _parentStatement.Parent is BlockSyntax parentBlockOpt && parentBlockOpt.Statements.FirstOrDefault() == _parentStatement;
 
             private void AddCurrentDeclaration()
             {
@@ -121,6 +118,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
                 {
                     var parameterList = ((MemberDeclarationSyntax)block.Parent).GetParameterList();
                     AddParameters(parameterList);
+                }
+                else if (block is null
+                    && _parentStatement.Parent is GlobalStatementSyntax { Parent: CompilationUnitSyntax compilationUnit } globalStatement
+                    && compilationUnit.Members.FirstOrDefault() == globalStatement)
+                {
+                    _expressions.Add("args");
                 }
             }
 
@@ -227,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
 
             private void AddLastStatementOfConstruct(StatementSyntax statement)
             {
-                if (statement == default(StatementSyntax))
+                if (statement == null)
                 {
                     return;
                 }

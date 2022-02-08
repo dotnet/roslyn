@@ -20,8 +20,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicGenerateConstructorDialog(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(BasicGenerateConstructorDialog))
+        public BasicGenerateConstructorDialog(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(BasicGenerateConstructorDialog))
         {
         }
 
@@ -104,6 +104,7 @@ End Class");
             VisualStudio.Editor.Verify.CodeAction("Generate constructor...", applyFix: true, blockUntilComplete: false);
             VerifyDialog(isOpen: true);
             VisualStudio.Editor.DialogSendKeys(DialogName, VirtualKey.Tab);
+            VisualStudio.Editor.DialogSendKeys(DialogName, VirtualKey.Tab);
             VisualStudio.Editor.PressDialogButton(DialogName, "Down");
             Dialog_ClickOk();
             VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.LightBulb);
@@ -139,6 +140,7 @@ End Class");
             VisualStudio.Editor.InvokeCodeActionList();
             VisualStudio.Editor.Verify.CodeAction("Generate constructor...", applyFix: true, blockUntilComplete: false);
             VerifyDialog(isOpen: true);
+            VisualStudio.Editor.DialogSendKeys(DialogName, VirtualKey.Tab);
             VisualStudio.Editor.DialogSendKeys(DialogName, VirtualKey.Tab);
             VisualStudio.Editor.DialogSendKeys(DialogName, VirtualKey.Space);
             Dialog_ClickOk();

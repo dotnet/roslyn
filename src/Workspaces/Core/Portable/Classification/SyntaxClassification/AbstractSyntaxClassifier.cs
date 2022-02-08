@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Classification.Classifiers
 {
@@ -18,14 +15,14 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
         {
         }
 
-        protected string? GetClassificationForType(ITypeSymbol type)
+        protected static string? GetClassificationForType(ITypeSymbol type)
             => type.GetClassification();
 
-        public virtual void AddClassifications(Workspace workspace, SyntaxNode syntax, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        public virtual void AddClassifications(SyntaxNode syntax, SemanticModel semanticModel, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
         }
 
-        public virtual void AddClassifications(Workspace workspace, SyntaxToken syntax, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        public virtual void AddClassifications(SyntaxToken syntax, SemanticModel semanticModel, ClassificationOptions options, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
         }
 

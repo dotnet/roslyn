@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Syntax
 {
@@ -74,6 +75,7 @@ namespace Microsoft.CodeAnalysis.Syntax
 
         public SeparatedSyntaxListBuilder<TNode> AddSeparator(in SyntaxToken separatorToken)
         {
+            Debug.Assert(separatorToken.Node is object);
             CheckExpectedSeparator();
             _expectedSeparator = false;
             _builder.AddInternal(separatorToken.Node);

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -206,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _name; }
         }
 
-        internal sealed override bool HasSpecialName
+        internal override bool HasSpecialName
         {
             get { return _interfaceMethod.HasSpecialName; }
         }
@@ -223,20 +225,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
         {
-            return true;
+            return !IsStatic;
         }
 
         internal override bool IsMetadataFinal
         {
             get
             {
-                return true;
+                return !IsStatic;
             }
         }
 
         internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
         {
-            return true;
+            return !IsStatic;
         }
 
         public override DllImportData GetDllImportData()

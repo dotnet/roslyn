@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -2463,49 +2465,34 @@ False
 False");
             comp.VerifyIL("Program.Test<T>(System.Func<T>)", @"
 {
-  // Code size      110 (0x6e)
+  // Code size       72 (0x48)
   .maxstack  2
-  .locals init (T V_0,
-                T V_1)
+  .locals init (T V_0)
   IL_0000:  ldarg.0
   IL_0001:  callvirt   ""T System.Func<T>.Invoke()""
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
-  IL_0009:  ldloca.s   V_1
-  IL_000b:  initobj    ""T""
-  IL_0011:  ldloc.1
-  IL_0012:  box        ""T""
-  IL_0017:  brtrue.s   IL_002c
-  IL_0019:  ldobj      ""T""
-  IL_001e:  stloc.1
-  IL_001f:  ldloca.s   V_1
-  IL_0021:  ldloc.1
-  IL_0022:  box        ""T""
-  IL_0027:  brtrue.s   IL_002c
-  IL_0029:  pop
-  IL_002a:  br.s       IL_0037
-  IL_002c:  constrained. ""T""
-  IL_0032:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_0037:  ldarg.0
-  IL_0038:  callvirt   ""T System.Func<T>.Invoke()""
-  IL_003d:  stloc.0
-  IL_003e:  ldloca.s   V_0
-  IL_0040:  ldloca.s   V_1
-  IL_0042:  initobj    ""T""
-  IL_0048:  ldloc.1
-  IL_0049:  box        ""T""
-  IL_004e:  brtrue.s   IL_0062
-  IL_0050:  ldobj      ""T""
-  IL_0055:  stloc.1
-  IL_0056:  ldloca.s   V_1
-  IL_0058:  ldloc.1
-  IL_0059:  box        ""T""
-  IL_005e:  brtrue.s   IL_0062
-  IL_0060:  pop
-  IL_0061:  ret
-  IL_0062:  constrained. ""T""
-  IL_0068:  callvirt   ""void System.IDisposable.Dispose()""
-  IL_006d:  ret
+  IL_0009:  dup
+  IL_000a:  ldobj      ""T""
+  IL_000f:  box        ""T""
+  IL_0014:  brtrue.s   IL_0019
+  IL_0016:  pop
+  IL_0017:  br.s       IL_0024
+  IL_0019:  constrained. ""T""
+  IL_001f:  callvirt   ""void System.IDisposable.Dispose()""
+  IL_0024:  ldarg.0
+  IL_0025:  callvirt   ""T System.Func<T>.Invoke()""
+  IL_002a:  stloc.0
+  IL_002b:  ldloca.s   V_0
+  IL_002d:  dup
+  IL_002e:  ldobj      ""T""
+  IL_0033:  box        ""T""
+  IL_0038:  brtrue.s   IL_003c
+  IL_003a:  pop
+  IL_003b:  ret
+  IL_003c:  constrained. ""T""
+  IL_0042:  callvirt   ""void System.IDisposable.Dispose()""
+  IL_0047:  ret
 }
 ");
         }
@@ -5504,15 +5491,15 @@ class C<T>
             var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
-    // (15,33): error CS0023: Operator '?' cannot be applied to operand of type 'T'
-    //         Func<object> a = () => c?.M();
-    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "T").WithLocation(15, 33),
-    // (18,41): error CS0023: Operator '?' cannot be applied to operand of type 'T'
-    //     static public object F2(C<T> c) => c?.M();
-    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "T").WithLocation(18, 41),
-    // (20,44): error CS0023: Operator '?' cannot be applied to operand of type 'T'
-    //     static public object P1 => (new C<T>())?.M();
-    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "T").WithLocation(20, 44)
+                // (15,34): error CS8977: 'T' cannot be made nullable.
+                //         Func<object> a = () => c?.M();
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".M()").WithArguments("T").WithLocation(15, 34),
+                // (18,42): error CS8977: 'T' cannot be made nullable.
+                //     static public object F2(C<T> c) => c?.M();
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".M()").WithArguments("T").WithLocation(18, 42),
+                // (20,45): error CS8977: 'T' cannot be made nullable.
+                //     static public object P1 => (new C<T>())?.M();
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".M()").WithArguments("T").WithLocation(20, 45)
                 );
         }
 
@@ -5633,15 +5620,15 @@ unsafe class C
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
 
             compilation.VerifyDiagnostics(
-    // (16,40): error CS0023: Operator '?' cannot be applied to operand of type 'void*'
-    //         Func<object, object> a = o => c?.M();
-    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "void*").WithLocation(16, 40),
-    // (19,38): error CS0023: Operator '?' cannot be applied to operand of type 'void*'
-    //     static public object F2(C c) => c?.M();
-    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "void*").WithLocation(19, 38),
-    // (21,41): error CS0023: Operator '?' cannot be applied to operand of type 'void*'
-    //     static public object P1 => (new C())?.M();
-    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "void*").WithLocation(21, 41)
+                // (16,41): error CS8977: 'void*' cannot be made nullable.
+                //         Func<object, object> a = o => c?.M();
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".M()").WithArguments("void*").WithLocation(16, 41),
+                // (19,39): error CS8977: 'void*' cannot be made nullable.
+                //     static public object F2(C c) => c?.M();
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".M()").WithArguments("void*").WithLocation(19, 39),
+                // (21,42): error CS8977: 'void*' cannot be made nullable.
+                //     static public object P1 => (new C())?.M();
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".M()").WithArguments("void*").WithLocation(21, 42)
                 );
         }
 
@@ -5770,9 +5757,9 @@ class C<T>
             var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
-    // (15,17): error CS0023: Operator '?' cannot be applied to operand of type 'T'
-    //         for (; x?.M();)
-    Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "T").WithLocation(15, 17)
+                // (15,18): error CS8977: 'T' cannot be made nullable.
+                //         for (; x?.M();)
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".M()").WithArguments("T").WithLocation(15, 18)
                 );
         }
 
@@ -7527,6 +7514,38 @@ False
 ";
             CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput);
             CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        [WorkItem(57629, "https://github.com/dotnet/roslyn/issues/57629")]
+        public void Issue57629()
+        {
+            var source = @"
+namespace OperatorQuestionmarkProblem
+{
+    public class OuterClass<TValue>
+    {
+        public class InnerClass
+        {
+            public TValue SomeInfo() { throw null; }
+
+            public InnerClass Next { get; set; }
+
+            void Test()
+            {
+                Next?.SomeInfo();
+                _ = Next?.SomeInfo();
+            }
+        }
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyEmitDiagnostics(
+                // (15,26): error CS8977: 'TValue' cannot be made nullable.
+                //                 _ = Next?.SomeInfo();
+                Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".SomeInfo()").WithArguments("TValue").WithLocation(15, 26)
+                );
         }
     }
 }

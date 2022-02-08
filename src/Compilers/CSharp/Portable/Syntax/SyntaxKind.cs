@@ -4,6 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+#pragma warning disable CA1200 // Avoid using cref tags with a prefix - The prefix is required since this file is referenced in projects that can't access syntax nodes
     // DO NOT CHANGE NUMBERS ASSIGNED TO EXISTING KINDS OR YOU WILL BREAK BINARY COMPATIBILITY
     public enum SyntaxKind : ushort
     {
@@ -11,233 +12,467 @@ namespace Microsoft.CodeAnalysis.CSharp
         List = GreenNode.ListKind,
 
         // punctuation
+        /// <summary>Represents <c>~</c> token.</summary>
         TildeToken = 8193,
+        /// <summary>Represents <c>!</c> token.</summary>
         ExclamationToken = 8194,
+        /// <summary>Represents <c>$</c> token.</summary>
+        /// <remarks>This is a debugger special punctuation and not related to string interpolation.</remarks>
         DollarToken = 8195,
+        /// <summary>Represents <c>%</c> token.</summary>
         PercentToken = 8196,
+        /// <summary>Represents <c>^</c> token.</summary>
         CaretToken = 8197,
+        /// <summary>Represents <c>&amp;</c> token.</summary>
         AmpersandToken = 8198,
+        /// <summary>Represents <c>*</c> token.</summary>
         AsteriskToken = 8199,
+        /// <summary>Represents <c>(</c> token.</summary>
         OpenParenToken = 8200,
+        /// <summary>Represents <c>)</c> token.</summary>
         CloseParenToken = 8201,
+        /// <summary>Represents <c>-</c> token.</summary>
         MinusToken = 8202,
+        /// <summary>Represents <c>+</c> token.</summary>
         PlusToken = 8203,
+        /// <summary>Represents <c>=</c> token.</summary>
         EqualsToken = 8204,
+        /// <summary>Represents <c>{</c> token.</summary>
         OpenBraceToken = 8205,
+        /// <summary>Represents <c>}</c> token.</summary>
         CloseBraceToken = 8206,
+        /// <summary>Represents <c>[</c> token.</summary>
         OpenBracketToken = 8207,
+        /// <summary>Represents <c>]</c> token.</summary>
         CloseBracketToken = 8208,
+        /// <summary>Represents <c>|</c> token.</summary>
         BarToken = 8209,
+        /// <summary>Represents <c>\</c> token.</summary>
         BackslashToken = 8210,
+        /// <summary>Represents <c>:</c> token.</summary>
         ColonToken = 8211,
+        /// <summary>Represents <c>;</c> token.</summary>
         SemicolonToken = 8212,
+        /// <summary>Represents <c>"</c> token.</summary>
         DoubleQuoteToken = 8213,
+        /// <summary>Represents <c>'</c> token.</summary>
         SingleQuoteToken = 8214,
+        /// <summary>Represents <c>&lt;</c> token.</summary>
         LessThanToken = 8215,
+        /// <summary>Represents <c>,</c> token.</summary>
         CommaToken = 8216,
+        /// <summary>Represents <c>&gt;</c> token.</summary>
         GreaterThanToken = 8217,
+        /// <summary>Represents <c>.</c> token.</summary>
         DotToken = 8218,
+        /// <summary>Represents <c>?</c> token.</summary>
         QuestionToken = 8219,
+        /// <summary>Represents <c>#</c> token.</summary>
         HashToken = 8220,
+        /// <summary>Represents <c>/</c> token.</summary>
         SlashToken = 8221,
+        /// <summary>Represents <c>..</c> token.</summary>
         DotDotToken = 8222,
 
         // additional xml tokens
+        /// <summary>Represents <c>/&gt;</c> token.</summary>
         SlashGreaterThanToken = 8232, // xml empty element end
+        /// <summary>Represents <c>&lt;/</c> token.</summary>
         LessThanSlashToken = 8233, // element end tag start token
+        /// <summary>Represents <c>&lt;!--</c> token.</summary>
         XmlCommentStartToken = 8234, // <!--
+        /// <summary>Represents <c>--&gt;</c> token.</summary>
         XmlCommentEndToken = 8235, // -->
+        /// <summary>Represents <c>&lt;![CDATA[</c> token.</summary>
         XmlCDataStartToken = 8236, // <![CDATA[
+        /// <summary>Represents <c>]]&gt;</c> token.</summary>
         XmlCDataEndToken = 8237, // ]]>
+        /// <summary>Represents <c>&lt;?</c> token.</summary>
         XmlProcessingInstructionStartToken = 8238, // <?
+        /// <summary>Represents <c>?&gt;</c> token.</summary>
         XmlProcessingInstructionEndToken = 8239, // ?>
 
         // compound punctuation
+        /// <summary>Represents <c>||</c> token.</summary>
         BarBarToken = 8260,
+        /// <summary>Represents <c>&amp;&amp;</c> token.</summary>
         AmpersandAmpersandToken = 8261,
+        /// <summary>Represents <c>--</c> token.</summary>
         MinusMinusToken = 8262,
+        /// <summary>Represents <c>++</c> token.</summary>
         PlusPlusToken = 8263,
+        /// <summary>Represents <c>::</c> token.</summary>
         ColonColonToken = 8264,
+        /// <summary>Represents <c>??</c> token.</summary>
         QuestionQuestionToken = 8265,
+        /// <summary>Represents <c>-&gt;</c> token.</summary>
         MinusGreaterThanToken = 8266,
+        /// <summary>Represents <c>!=</c> token.</summary>
         ExclamationEqualsToken = 8267,
+        /// <summary>Represents <c>==</c> token.</summary>
         EqualsEqualsToken = 8268,
+        /// <summary>Represents <c>=&gt;</c> token.</summary>
         EqualsGreaterThanToken = 8269,
+        /// <summary>Represents <c>&lt;=</c> token.</summary>
         LessThanEqualsToken = 8270,
+        /// <summary>Represents <c>&lt;&lt;</c> token.</summary>
         LessThanLessThanToken = 8271,
+        /// <summary>Represents <c>&lt;&lt;=</c> token.</summary>
         LessThanLessThanEqualsToken = 8272,
+        /// <summary>Represents <c>&gt;=</c> token.</summary>
         GreaterThanEqualsToken = 8273,
+        /// <summary>Represents <c>&gt;&gt;</c> token.</summary>
         GreaterThanGreaterThanToken = 8274,
+        /// <summary>Represents <c>&gt;&gt;=</c> token.</summary>
         GreaterThanGreaterThanEqualsToken = 8275,
+        /// <summary>Represents <c>/=</c> token.</summary>
         SlashEqualsToken = 8276,
+        /// <summary>Represents <c>*=</c> token.</summary>
         AsteriskEqualsToken = 8277,
+        /// <summary>Represents <c>|=</c> token.</summary>
         BarEqualsToken = 8278,
+        /// <summary>Represents <c>&amp;=</c> token.</summary>
         AmpersandEqualsToken = 8279,
+        /// <summary>Represents <c>+=</c> token.</summary>
         PlusEqualsToken = 8280,
+        /// <summary>Represents <c>-=</c> token.</summary>
         MinusEqualsToken = 8281,
+        /// <summary>Represents <c>^=</c> token.</summary>
         CaretEqualsToken = 8282,
+        /// <summary>Represents <c>%=</c> token.</summary>
         PercentEqualsToken = 8283,
+        /// <summary>Represents <c>??=</c> token.</summary>
         QuestionQuestionEqualsToken = 8284,
+        /// <summary>Represents <c>!!</c> token.</summary>
+        ExclamationExclamationToken = 8285,
 
         // Keywords
+        /// <summary>Represents <see langword="bool"/>.</summary>
         BoolKeyword = 8304,
+        /// <summary>Represents <see langword="byte"/>.</summary>
         ByteKeyword = 8305,
+        /// <summary>Represents <see langword="sbyte"/>.</summary>
         SByteKeyword = 8306,
+        /// <summary>Represents <see langword="short"/>.</summary>
         ShortKeyword = 8307,
+        /// <summary>Represents <see langword="ushort"/>.</summary>
         UShortKeyword = 8308,
+        /// <summary>Represents <see langword="int"/>.</summary>
         IntKeyword = 8309,
+        /// <summary>Represents <see langword="uint"/>.</summary>
         UIntKeyword = 8310,
+        /// <summary>Represents <see langword="long"/>.</summary>
         LongKeyword = 8311,
+        /// <summary>Represents <see langword="ulong"/>.</summary>
         ULongKeyword = 8312,
+        /// <summary>Represents <see langword="double"/>.</summary>
         DoubleKeyword = 8313,
+        /// <summary>Represents <see langword="float"/>.</summary>
         FloatKeyword = 8314,
+        /// <summary>Represents <see langword="decimal"/>.</summary>
         DecimalKeyword = 8315,
+        /// <summary>Represents <see langword="string"/>.</summary>
         StringKeyword = 8316,
+        /// <summary>Represents <see langword="char"/>.</summary>
         CharKeyword = 8317,
+        /// <summary>Represents <see langword="void"/>.</summary>
         VoidKeyword = 8318,
+        /// <summary>Represents <see langword="object"/>.</summary>
         ObjectKeyword = 8319,
+        /// <summary>Represents <see langword="typeof"/>.</summary>
         TypeOfKeyword = 8320,
+        /// <summary>Represents <see langword="sizeof"/>.</summary>
         SizeOfKeyword = 8321,
+        /// <summary>Represents <see langword="null"/>.</summary>
         NullKeyword = 8322,
+        /// <summary>Represents <see langword="true"/>.</summary>
         TrueKeyword = 8323,
+        /// <summary>Represents <see langword="false"/>.</summary>
         FalseKeyword = 8324,
+        /// <summary>Represents <see langword="if"/>.</summary>
         IfKeyword = 8325,
+        /// <summary>Represents <see langword="else"/>.</summary>
         ElseKeyword = 8326,
+        /// <summary>Represents <see langword="while"/>.</summary>
         WhileKeyword = 8327,
+        /// <summary>Represents <see langword="for"/>.</summary>
         ForKeyword = 8328,
+        /// <summary>Represents <see langword="foreach"/>.</summary>
         ForEachKeyword = 8329,
+        /// <summary>Represents <see langword="do"/>.</summary>
         DoKeyword = 8330,
+        /// <summary>Represents <see langword="switch"/>.</summary>
         SwitchKeyword = 8331,
+        /// <summary>Represents <see langword="case"/>.</summary>
         CaseKeyword = 8332,
+        /// <summary>Represents <see langword="default"/>.</summary>
         DefaultKeyword = 8333,
+        /// <summary>Represents <see langword="try"/>.</summary>
         TryKeyword = 8334,
+        /// <summary>Represents <see langword="catch"/>.</summary>
         CatchKeyword = 8335,
+        /// <summary>Represents <see langword="finally"/>.</summary>
         FinallyKeyword = 8336,
+        /// <summary>Represents <see langword="lock"/>.</summary>
         LockKeyword = 8337,
+        /// <summary>Represents <see langword="goto"/>.</summary>
         GotoKeyword = 8338,
+        /// <summary>Represents <see langword="break"/>.</summary>
         BreakKeyword = 8339,
+        /// <summary>Represents <see langword="continue"/>.</summary>
         ContinueKeyword = 8340,
+        /// <summary>Represents <see langword="return"/>.</summary>
         ReturnKeyword = 8341,
+        /// <summary>Represents <see langword="throw"/>.</summary>
         ThrowKeyword = 8342,
+        /// <summary>Represents <see langword="public"/>.</summary>
         PublicKeyword = 8343,
+        /// <summary>Represents <see langword="private"/>.</summary>
         PrivateKeyword = 8344,
+        /// <summary>Represents <see langword="internal"/>.</summary>
         InternalKeyword = 8345,
+        /// <summary>Represents <see langword="protected"/>.</summary>
         ProtectedKeyword = 8346,
+        /// <summary>Represents <see langword="static"/>.</summary>
         StaticKeyword = 8347,
+        /// <summary>Represents <see langword="readonly"/>.</summary>
         ReadOnlyKeyword = 8348,
+        /// <summary>Represents <see langword="sealed"/>.</summary>
         SealedKeyword = 8349,
+        /// <summary>Represents <see langword="const"/>.</summary>
         ConstKeyword = 8350,
+        /// <summary>Represents <see langword="fixed"/>.</summary>
         FixedKeyword = 8351,
+        /// <summary>Represents <see langword="stackalloc"/>.</summary>
         StackAllocKeyword = 8352,
+        /// <summary>Represents <see langword="volatile"/>.</summary>
         VolatileKeyword = 8353,
+        /// <summary>Represents <see langword="new"/>.</summary>
         NewKeyword = 8354,
+        /// <summary>Represents <see langword="override"/>.</summary>
         OverrideKeyword = 8355,
+        /// <summary>Represents <see langword="abstract"/>.</summary>
         AbstractKeyword = 8356,
+        /// <summary>Represents <see langword="virtual"/>.</summary>
         VirtualKeyword = 8357,
+        /// <summary>Represents <see langword="event"/>.</summary>
         EventKeyword = 8358,
+        /// <summary>Represents <see langword="extern"/>.</summary>
         ExternKeyword = 8359,
+        /// <summary>Represents <see langword="ref"/>.</summary>
         RefKeyword = 8360,
+        /// <summary>Represents <see langword="out"/>.</summary>
         OutKeyword = 8361,
+        /// <summary>Represents <see langword="in"/>.</summary>
         InKeyword = 8362,
+        /// <summary>Represents <see langword="is"/>.</summary>
         IsKeyword = 8363,
+        /// <summary>Represents <see langword="as"/>.</summary>
         AsKeyword = 8364,
+        /// <summary>Represents <see langword="params"/>.</summary>
         ParamsKeyword = 8365,
+        /// <summary>Represents <see langword="__arglist"/>.</summary>
         ArgListKeyword = 8366,
+        /// <summary>Represents <see langword="__makeref"/>.</summary>
         MakeRefKeyword = 8367,
+        /// <summary>Represents <see langword="__reftype"/>.</summary>
         RefTypeKeyword = 8368,
+        /// <summary>Represents <see langword="__refvalue"/>.</summary>
         RefValueKeyword = 8369,
+        /// <summary>Represents <see langword="this"/>.</summary>
         ThisKeyword = 8370,
+        /// <summary>Represents <see langword="base"/>.</summary>
         BaseKeyword = 8371,
+        /// <summary>Represents <see langword="namespace"/>.</summary>
         NamespaceKeyword = 8372,
+        /// <summary>Represents <see langword="using"/>.</summary>
         UsingKeyword = 8373,
+        /// <summary>Represents <see langword="class"/>.</summary>
         ClassKeyword = 8374,
+        /// <summary>Represents <see langword="struct"/>.</summary>
         StructKeyword = 8375,
+        /// <summary>Represents <see langword="interface"/>.</summary>
         InterfaceKeyword = 8376,
+        /// <summary>Represents <see langword="enum"/>.</summary>
         EnumKeyword = 8377,
+        /// <summary>Represents <see langword="delegate"/>.</summary>
         DelegateKeyword = 8378,
+        /// <summary>Represents <see langword="checked"/>.</summary>
         CheckedKeyword = 8379,
+        /// <summary>Represents <see langword="unchecked"/>.</summary>
         UncheckedKeyword = 8380,
+        /// <summary>Represents <see langword="unsafe"/>.</summary>
         UnsafeKeyword = 8381,
+        /// <summary>Represents <see langword="operator"/>.</summary>
         OperatorKeyword = 8382,
+        /// <summary>Represents <see langword="explicit"/>.</summary>
         ExplicitKeyword = 8383,
+        /// <summary>Represents <see langword="implicit"/>.</summary>
         ImplicitKeyword = 8384,
 
         // contextual keywords
+        /// <summary>Represents <see langword="yield"/>.</summary>
         YieldKeyword = 8405,
+        /// <summary>Represents <see langword="partial"/>.</summary>
         PartialKeyword = 8406,
+        /// <summary>Represents <see langword="alias"/>.</summary>
         AliasKeyword = 8407,
+        /// <summary>Represents <see langword="global"/>.</summary>
         GlobalKeyword = 8408,
+        /// <summary>Represents <see langword="assembly"/>.</summary>
         AssemblyKeyword = 8409,
+        /// <summary>Represents <see langword="module"/>.</summary>
         ModuleKeyword = 8410,
+        /// <summary>Represents <see langword="type"/>.</summary>
         TypeKeyword = 8411,
+        /// <summary>Represents <see langword="field"/>.</summary>
         FieldKeyword = 8412,
+        /// <summary>Represents <see langword="method"/>.</summary>
         MethodKeyword = 8413,
+        /// <summary>Represents <see langword="param"/>.</summary>
         ParamKeyword = 8414,
+        /// <summary>Represents <see langword="property"/>.</summary>
         PropertyKeyword = 8415,
+        /// <summary>Represents <see langword="typevar"/>.</summary>
         TypeVarKeyword = 8416,
+        /// <summary>Represents <see langword="get"/>.</summary>
         GetKeyword = 8417,
+        /// <summary>Represents <see langword="set"/>.</summary>
         SetKeyword = 8418,
+        /// <summary>Represents <see langword="add"/>.</summary>
         AddKeyword = 8419,
+        /// <summary>Represents <see langword="remove"/>.</summary>
         RemoveKeyword = 8420,
+        /// <summary>Represents <see langword="where"/>.</summary>
         WhereKeyword = 8421,
+        /// <summary>Represents <see langword="from"/>.</summary>
         FromKeyword = 8422,
+        /// <summary>Represents <see langword="group"/>.</summary>
         GroupKeyword = 8423,
+        /// <summary>Represents <see langword="join"/>.</summary>
         JoinKeyword = 8424,
+        /// <summary>Represents <see langword="into"/>.</summary>
         IntoKeyword = 8425,
+        /// <summary>Represents <see langword="let"/>.</summary>
         LetKeyword = 8426,
+        /// <summary>Represents <see langword="by"/>.</summary>
         ByKeyword = 8427,
+        /// <summary>Represents <see langword="select"/>.</summary>
         SelectKeyword = 8428,
+        /// <summary>Represents <see langword="orderby"/>.</summary>
         OrderByKeyword = 8429,
+        /// <summary>Represents <see langword="on"/>.</summary>
         OnKeyword = 8430,
+        /// <summary>Represents <see langword="equals"/>.</summary>
         EqualsKeyword = 8431,
+        /// <summary>Represents <see langword="ascending"/>.</summary>
         AscendingKeyword = 8432,
+        /// <summary>Represents <see langword="descending"/>.</summary>
         DescendingKeyword = 8433,
+        /// <summary>Represents <see langword="nameof"/>.</summary>
         NameOfKeyword = 8434,
+        /// <summary>Represents <see langword="async"/>.</summary>
         AsyncKeyword = 8435,
+        /// <summary>Represents <see langword="await"/>.</summary>
         AwaitKeyword = 8436,
+        /// <summary>Represents <see langword="when"/>.</summary>
         WhenKeyword = 8437,
-        /// when adding a contextual keyword following functions must be adapted:
-        /// <see cref="SyntaxFacts.GetContextualKeywordKinds"/>
-        /// <see cref="SyntaxFacts.IsContextualKeyword(SyntaxKind)"/>
+        /// <summary>Represents <see langword="or"/>.</summary>
+        OrKeyword = 8438,
+        /// <summary>Represents <see langword="and"/>.</summary>
+        AndKeyword = 8439,
+        /// <summary>Represents <see langword="not"/>.</summary>
+        NotKeyword = 8440,
+
+        // Don't use 8441. It corresponds to a deleted kind (DataKeyword) that was previously shipped.
+
+        /// <summary>Represents <see langword="with"/>.</summary>
+        WithKeyword = 8442,
+        /// <summary>Represents <see langword="init"/>.</summary>
+        InitKeyword = 8443,
+        /// <summary>Represents <see langword="record"/>.</summary>
+        RecordKeyword = 8444,
+        /// <summary>Represents <see langword="managed"/>.</summary>
+        ManagedKeyword = 8445,
+        /// <summary>Represents <see langword="unmanaged"/>.</summary>
+        UnmanagedKeyword = 8446,
+
+        // when adding a contextual keyword following functions must be adapted:
+        // <see cref="SyntaxFacts.GetContextualKeywordKinds"/>
+        // <see cref="SyntaxFacts.IsContextualKeyword(SyntaxKind)"/>
+        // <see cref="SyntaxFacts.GetContextualKeywordKind(string)"/>
+        // <see cref="SyntaxFacts.GetText(SyntaxKind)"/>
 
         // keywords with an enum value less than ElifKeyword are considered i.a. contextual keywords
         // additional preprocessor keywords
+        /// <summary>Represents <see langword="elif"/>.</summary>
         ElifKeyword = 8467,
+        /// <summary>Represents <see langword="endif"/>.</summary>
         EndIfKeyword = 8468,
+        /// <summary>Represents <see langword="region"/>.</summary>
         RegionKeyword = 8469,
+        /// <summary>Represents <see langword="endregion"/>.</summary>
         EndRegionKeyword = 8470,
+        /// <summary>Represents <see langword="define"/>.</summary>
         DefineKeyword = 8471,
+        /// <summary>Represents <see langword="undef"/>.</summary>
         UndefKeyword = 8472,
+        /// <summary>Represents <see langword="warning"/>.</summary>
         WarningKeyword = 8473,
+        /// <summary>Represents <see langword="error"/>.</summary>
         ErrorKeyword = 8474,
+        /// <summary>Represents <see langword="line"/>.</summary>
         LineKeyword = 8475,
+        /// <summary>Represents <see langword="pragma"/>.</summary>
         PragmaKeyword = 8476,
+        /// <summary>Represents <see langword="hidden"/>.</summary>
         HiddenKeyword = 8477,
+        /// <summary>Represents <see langword="checksum"/>.</summary>
         ChecksumKeyword = 8478,
+        /// <summary>Represents <see langword="disable"/>.</summary>
         DisableKeyword = 8479,
+        /// <summary>Represents <see langword="restore"/>.</summary>
         RestoreKeyword = 8480,
+        /// <summary>Represents <see langword="r"/>.</summary>
         ReferenceKeyword = 8481,
 
+        /// <summary>Represents <c>$"</c> token.</summary>
         InterpolatedStringStartToken = 8482,            // $"
+        /// <summary>Represents <c>"</c> token that is closing <c>$"</c>.</summary>
         InterpolatedStringEndToken = 8483,              // "
+        /// <summary>Represents <c>$@</c> or <c>@$</c> token.</summary>
         InterpolatedVerbatimStringStartToken = 8484,    // $@" or @$"
 
         // additional preprocessor keywords (continued)
+        /// <summary>Represents <see langword="load"/>.</summary>
         LoadKeyword = 8485,
+        /// <summary>Represents <see langword="nullable"/>.</summary>
         NullableKeyword = 8486,
+        /// <summary>Represents <see langword="enable"/>.</summary>
         EnableKeyword = 8487,
 
         // targets for #nullable directive
+        /// <summary>Represents <see langword="warnings"/>.</summary>
         WarningsKeyword = 8488,
+        /// <summary>Represents <see langword="annotations"/>.</summary>
         AnnotationsKeyword = 8489,
 
         // Other
+        /// <summary>Represents <see langword="var"/>.</summary>
         VarKeyword = 8490,
+        /// <summary>Represents <c>_</c> token.</summary>
         UnderscoreToken = 8491,
+        /// <summary>Represents that nothing was specified as a type argument.</summary>
+        /// <remarks>For example <c>Dictionary&lt;,&gt;</c> which has <see cref="OmittedTypeArgumentToken"/> as a child of <see cref="T:Microsoft.CodeAnalysis.CSharp.Syntax.OmittedTypeArgumentSyntax"/> before and after the <see cref="CommaToken"/>.</remarks>
         OmittedTypeArgumentToken = 8492,
+        /// <summary>Represents that nothing was specified as an array size.</summary>
+        /// <remarks>For example <c>int[,]</c> which has <see cref="OmittedArraySizeExpressionToken"/> as a child of <see cref="T:Microsoft.CodeAnalysis.CSharp.Syntax.OmittedArraySizeExpressionSyntax"/> before and after the <see cref="CommaToken"/>.</remarks>
         OmittedArraySizeExpressionToken = 8493,
+        /// <summary>Represents a token that comes after the end of a directive such as <c>#endif</c>.</summary>
         EndOfDirectiveToken = 8494,
+        /// <summary>Represents the end of a triple-slash documentation comment.</summary>
         EndOfDocumentationCommentToken = 8495,
+        /// <summary>Represents the end of a file.</summary>
         EndOfFileToken = 8496, //NB: this is assumed to be the last textless token
 
         // tokens with text
@@ -250,8 +485,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         XmlTextLiteralToken = 8513,    // xml text node text
         XmlTextLiteralNewLineToken = 8514,
 
-        InterpolatedStringToken = 8515,                 // terminal for a whole interpolated string $" ... { expr } ..."
-                                                        // This only exists in transient form during parsing.
+        /// <summary>
+        /// Token for a whole interpolated string <c>$""" ... { expr } ..."""</c>. This only exists in transient form during parsing.
+        /// </summary>
+        InterpolatedStringToken = 8515,
         InterpolatedStringTextToken = 8517,             // literal text that is part of an interpolated string
 
         // trivia
@@ -349,6 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ImplicitElementAccess = 8656,
         IsPatternExpression = 8657,
         RangeExpression = 8658,
+        ImplicitObjectCreationExpression = 8659,
 
         // binary expressions
         AddExpression = 8668,
@@ -501,6 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         NamespaceDeclaration = 8842,
         UsingDirective = 8843,
         ExternAliasDirective = 8844,
+        FileScopedNamespaceDeclaration = 8845,
 
         // attributes
         AttributeList = 8847,
@@ -586,8 +825,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         SwitchExpressionArm = 9026,
         VarPattern = 9027,
 
+        // new patterns added in C# 9.0
+        ParenthesizedPattern = 9028,
+        RelationalPattern = 9029,
+        TypePattern = 9030,
+        OrPattern = 9031,
+        AndPattern = 9032,
+        NotPattern = 9033,
+
+        // new patterns added in C# 11.0
+        SlicePattern = 9034,
+        ListPattern = 9035,
+
         // Kinds between 9000 and 9039 are "reserved" for pattern matching.
-        // Please start with 9040 if you add more kinds below.
 
         DeclarationExpression = 9040,
         RefExpression = 9050,
@@ -596,5 +846,36 @@ namespace Microsoft.CodeAnalysis.CSharp
         ImplicitStackAllocArrayCreationExpression = 9053,
         SuppressNullableWarningExpression = 9054,
         NullableDirectiveTrivia = 9055,
+
+        FunctionPointerType = 9056,
+        FunctionPointerParameter = 9057,
+        FunctionPointerParameterList = 9058,
+        FunctionPointerCallingConvention = 9059,
+
+        InitAccessorDeclaration = 9060,
+
+        WithExpression = 9061,
+        WithInitializerExpression = 9062,
+        RecordDeclaration = 9063,
+
+        DefaultConstraint = 9064,
+
+        PrimaryConstructorBaseType = 9065,
+
+        FunctionPointerUnmanagedCallingConventionList = 9066,
+        FunctionPointerUnmanagedCallingConvention = 9067,
+
+        RecordStructDeclaration = 9068,
+
+        ExpressionColon = 9069,
+        LineDirectivePosition = 9070,
+        LineSpanDirectiveTrivia = 9071,
+
+        SingleLineRawStringLiteralToken = 9072,
+        MultiLineRawStringLiteralToken = 9073,
+
+        InterpolatedSingleLineRawStringStartToken = 9080,   // $"""
+        InterpolatedMultiLineRawStringStartToken = 9081,    // $""" (whitespace and newline are included in the Text for this token)
+        InterpolatedRawStringEndToken = 9082,               // """ (preceding whitespace and newline are included in the Text for this token)
     }
 }

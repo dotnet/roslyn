@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
@@ -22,24 +25,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly ITextUndoHistoryWorkspaceService _serviceSingleton;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioTextUndoHistoryWorkspaceServiceFactory(ITextUndoHistoryRegistry undoHistoryRegistry)
-        {
-            _serviceSingleton = new TextUndoHistoryWorkspaceService(undoHistoryRegistry);
-        }
+            => _serviceSingleton = new TextUndoHistoryWorkspaceService(undoHistoryRegistry);
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return _serviceSingleton;
-        }
+            => _serviceSingleton;
 
         private class TextUndoHistoryWorkspaceService : ITextUndoHistoryWorkspaceService
         {
             private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
 
             public TextUndoHistoryWorkspaceService(ITextUndoHistoryRegistry undoHistoryRegistry)
-            {
-                _undoHistoryRegistry = undoHistoryRegistry;
-            }
+                => _undoHistoryRegistry = undoHistoryRegistry;
 
             public bool TryGetTextUndoHistory(Workspace editorWorkspace, ITextBuffer textBuffer, out ITextUndoHistory undoHistory)
             {
@@ -66,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                         break;
 
-                    case MiscellaneousFilesWorkspace miscellaneousFilesWorkspace:
+                    case MiscellaneousFilesWorkspace _:
 
                         // Nothing to do in this case: textBuffer is correct!
 
@@ -79,8 +77,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 }
 
-                undoHistory = _undoHistoryRegistry.GetHistory(textBuffer);
-                return true;
+                return _undoHistoryRegistry.TryGetHistory(textBuffer, out undoHistory);
             }
         }
     }

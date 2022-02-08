@@ -4,127 +4,129 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Expressions
     Public Class GetXmlNamespaceKeywordRecommenderTests
+        Inherits RecommenderTests
+
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GetXmlNamespaceHelpTextTest() As Task
-            Await VerifyRecommendationDescriptionTextIsAsync(<MethodBody>Return |</MethodBody>, "GetXmlNamespace",
+        Public Sub GetXmlNamespaceHelpTextTest()
+            VerifyRecommendationDescriptionTextIs(<MethodBody>Return |</MethodBody>, "GetXmlNamespace",
 $"{VBFeaturesResources.GetXmlNamespace_function}
 {VBWorkspaceResources.Returns_the_System_Xml_Linq_XNamespace_object_corresponding_to_the_specified_XML_namespace_prefix}
 GetXmlNamespace([{VBWorkspaceResources.xmlNamespacePrefix}]) As System.Xml.Linq.XNamespace")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoneInClassDeclarationTest() As Task
-            Await VerifyRecommendationsMissingAsync(<ClassDeclaration>|</ClassDeclaration>, "GetXmlNamespace")
-        End Function
+        Public Sub NoneInClassDeclarationTest()
+            VerifyRecommendationsMissing(<ClassDeclaration>|</ClassDeclaration>, "GetXmlNamespace")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GetXmlNamespaceNotInStatementTest() As Task
-            Await VerifyRecommendationsMissingAsync(<MethodBody>|</MethodBody>, "GetXmlNamespace")
-        End Function
+        Public Sub GetXmlNamespaceNotInStatementTest()
+            VerifyRecommendationsMissing(<MethodBody>|</MethodBody>, "GetXmlNamespace")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GetXmlNamespaceAfterReturnTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Return |</MethodBody>, "GetXmlNamespace")
-        End Function
+        Public Sub GetXmlNamespaceAfterReturnTest()
+            VerifyRecommendationsContain(<MethodBody>Return |</MethodBody>, "GetXmlNamespace")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GetXmlNamespaceAfterArgument1Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(|</MethodBody>, "GetXmlNamespace")
-        End Function
+        Public Sub GetXmlNamespaceAfterArgument1Test()
+            VerifyRecommendationsContain(<MethodBody>Goo(|</MethodBody>, "GetXmlNamespace")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GetXmlNamespaceAfterArgument2Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(bar, |</MethodBody>, "GetXmlNamespace")
-        End Function
+        Public Sub GetXmlNamespaceAfterArgument2Test()
+            VerifyRecommendationsContain(<MethodBody>Goo(bar, |</MethodBody>, "GetXmlNamespace")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GetXmlNamespaceAfterBinaryExpressionTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(bar + |</MethodBody>, "GetXmlNamespace")
-        End Function
+        Public Sub GetXmlNamespaceAfterBinaryExpressionTest()
+            VerifyRecommendationsContain(<MethodBody>Goo(bar + |</MethodBody>, "GetXmlNamespace")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GetXmlNamespaceAfterNotTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(Not |</MethodBody>, "GetXmlNamespace")
-        End Function
+        Public Sub GetXmlNamespaceAfterNotTest()
+            VerifyRecommendationsContain(<MethodBody>Goo(Not |</MethodBody>, "GetXmlNamespace")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GetXmlNamespaceAfterTypeOfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If TypeOf |</MethodBody>, "GetXmlNamespace")
-        End Function
+        Public Sub GetXmlNamespaceAfterTypeOfTest()
+            VerifyRecommendationsContain(<MethodBody>If TypeOf |</MethodBody>, "GetXmlNamespace")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GetXmlNamespaceAfterDoWhileTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Do While |</MethodBody>, "GetXmlNamespace")
-        End Function
+        Public Sub GetXmlNamespaceAfterDoWhileTest()
+            VerifyRecommendationsContain(<MethodBody>Do While |</MethodBody>, "GetXmlNamespace")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GetXmlNamespaceAfterDoUntilTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Do Until |</MethodBody>, "GetXmlNamespace")
-        End Function
+        Public Sub GetXmlNamespaceAfterDoUntilTest()
+            VerifyRecommendationsContain(<MethodBody>Do Until |</MethodBody>, "GetXmlNamespace")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GetXmlNamespaceAfterLoopWhileTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub GetXmlNamespaceAfterLoopWhileTest()
+            VerifyRecommendationsContain(<MethodBody>
 Do
 Loop While |</MethodBody>, "GetXmlNamespace")
-        End Function
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GetXmlNamespaceAfterLoopUntilTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>
+        Public Sub GetXmlNamespaceAfterLoopUntilTest()
+            VerifyRecommendationsContain(<MethodBody>
 Do
 Loop Until |</MethodBody>, "GetXmlNamespace")
-        End Function
+        End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GetXmlNamespaceAfterIfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>If |</MethodBody>, "GetXmlNamespace")
-        End Function
+        Public Sub GetXmlNamespaceAfterIfTest()
+            VerifyRecommendationsContain(<MethodBody>If |</MethodBody>, "GetXmlNamespace")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GetXmlNamespaceAfterElseIfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>ElseIf |</MethodBody>, "GetXmlNamespace")
-        End Function
+        Public Sub GetXmlNamespaceAfterElseIfTest()
+            VerifyRecommendationsContain(<MethodBody>ElseIf |</MethodBody>, "GetXmlNamespace")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GetXmlNamespaceAfterElseSpaceIfTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Else If |</MethodBody>, "GetXmlNamespace")
-        End Function
+        Public Sub GetXmlNamespaceAfterElseSpaceIfTest()
+            VerifyRecommendationsContain(<MethodBody>Else If |</MethodBody>, "GetXmlNamespace")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GetXmlNamespaceAfterErrorTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Error |</MethodBody>, "GetXmlNamespace")
-        End Function
+        Public Sub GetXmlNamespaceAfterErrorTest()
+            VerifyRecommendationsContain(<MethodBody>Error |</MethodBody>, "GetXmlNamespace")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GetXmlNamespaceAfterThrowTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Throw |</MethodBody>, "GetXmlNamespace")
-        End Function
+        Public Sub GetXmlNamespaceAfterThrowTest()
+            VerifyRecommendationsContain(<MethodBody>Throw |</MethodBody>, "GetXmlNamespace")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GetXmlNamespaceAfterInitializerTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = |</MethodBody>, "GetXmlNamespace")
-        End Function
+        Public Sub GetXmlNamespaceAfterInitializerTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x = |</MethodBody>, "GetXmlNamespace")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GetXmlNamespaceAfterArrayInitializerSquiggleTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = {|</MethodBody>, "GetXmlNamespace")
-        End Function
+        Public Sub GetXmlNamespaceAfterArrayInitializerSquiggleTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x = {|</MethodBody>, "GetXmlNamespace")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GetXmlNamespaceAfterArrayInitializerCommaTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Dim x = {0, |</MethodBody>, "GetXmlNamespace")
-        End Function
+        Public Sub GetXmlNamespaceAfterArrayInitializerCommaTest()
+            VerifyRecommendationsContain(<MethodBody>Dim x = {0, |</MethodBody>, "GetXmlNamespace")
+        End Sub
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function GetXmlNamespaceAfterWhileLoopTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>While |</MethodBody>, "GetXmlNamespace")
-        End Function
+        Public Sub GetXmlNamespaceAfterWhileLoopTest()
+            VerifyRecommendationsContain(<MethodBody>While |</MethodBody>, "GetXmlNamespace")
+        End Sub
 
         <WorkItem(543270, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543270")>
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
-        Public Async Function NoGetXmlNamespaceInDelegateCreationTest() As Task
+        Public Sub NoGetXmlNamespaceInDelegateCreationTest()
             Dim code =
 <File>
 Module Program
@@ -140,7 +142,7 @@ Module Program
 End Module
 </File>
 
-            Await VerifyRecommendationsMissingAsync(code, "GetXmlNamespace")
-        End Function
+            VerifyRecommendationsMissing(code, "GetXmlNamespace")
+        End Sub
     End Class
 End Namespace

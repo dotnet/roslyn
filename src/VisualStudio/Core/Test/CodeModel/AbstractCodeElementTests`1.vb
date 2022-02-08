@@ -51,10 +51,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
             End Using
         End Sub
 
-        Protected Overloads Async Function TestElementUpdate(
+        Private Protected Overloads Async Function TestElementUpdate(
                 code As XElement, expectedCode As XElement, updater As Action(Of TCodeElement),
-                Optional options As IDictionary(Of OptionKey, Object) = Nothing) As Task
-            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
+                Optional options As IDictionary(Of OptionKey2, Object) = Nothing,
+                Optional editorConfig As String = "") As Task
+            Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code, editorConfig))
                 Dim workspace = state.Workspace
                 If options IsNot Nothing Then
                     For Each kvp In options
@@ -773,16 +774,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Function
 
-        Protected Overrides Async Function TestAddProperty(
+        Private Protected Overrides Async Function TestAddProperty(
                 code As XElement, expectedCode As XElement, data As PropertyData,
-                Optional options As IDictionary(Of OptionKey, Object) = Nothing) As Task
+                Optional options As IDictionary(Of OptionKey2, Object) = Nothing,
+                Optional editorConfig As String = "") As Task
             Await TestElementUpdate(code, expectedCode,
                 Sub(codeElement)
                     Dim prop = AddProperty(codeElement, data)
                     Assert.NotNull(prop)
                     Assert.True(data.GetterName = prop.Name OrElse data.PutterName = prop.Name)
                 End Sub,
-                options)
+                options,
+                editorConfig)
         End Function
 
         Protected Overrides Async Function TestAddVariable(code As XElement, expectedCode As XElement, data As VariableData) As Task
@@ -1106,13 +1109,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 End Sub)
         End Sub
 
-        Private Sub TestAllParameterNamesByName(parameters As EnvDTE.CodeElements, expectedParameterNames() As String)
+        Private Shared Sub TestAllParameterNamesByName(parameters As EnvDTE.CodeElements, expectedParameterNames() As String)
             For index = 0 To expectedParameterNames.Count() - 1
                 Assert.NotNull(parameters.Item(expectedParameterNames(index)))
             Next
         End Sub
 
-        Private Sub TestAllParameterNamesByIndex(parameters As EnvDTE.CodeElements, expectedParameterNames() As String)
+        Private Shared Sub TestAllParameterNamesByIndex(parameters As EnvDTE.CodeElements, expectedParameterNames() As String)
             For index = 0 To expectedParameterNames.Count() - 1
                 ' index + 1 for Item because Parameters are not zero indexed
                 Assert.Equal(expectedParameterNames(index), parameters.Item(index + 1).Name)

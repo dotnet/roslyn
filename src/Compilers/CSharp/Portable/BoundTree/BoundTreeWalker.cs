@@ -3,10 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -29,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected void VisitUnoptimizedForm(BoundQueryClause queryClause)
         {
-            BoundExpression unoptimizedForm = queryClause.UnoptimizedForm;
+            BoundExpression? unoptimizedForm = queryClause.UnoptimizedForm;
 
             // The unoptimized form of a query has an additional argument in the call,
             // which is typically the "trivial" expression x where x is the query
@@ -70,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected int RecursionDepth => _recursionDepth;
 
-        public override BoundNode Visit(BoundNode node)
+        public override BoundNode? Visit(BoundNode? node)
         {
             var expression = node as BoundExpression;
             if (expression != null)
@@ -104,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(recursionDepth)
         { }
 
-        public sealed override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
+        public sealed override BoundNode? VisitBinaryOperator(BoundBinaryOperator node)
         {
             if (node.Left.Kind != BoundKind.BinaryOperator)
             {

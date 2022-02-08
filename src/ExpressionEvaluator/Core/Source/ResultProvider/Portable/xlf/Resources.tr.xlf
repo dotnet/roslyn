@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="InvalidPointerDereference">
         <source>Cannot dereference '{0}'. The pointer is not valid.</source>
-        <target state="translated">{0}' başvurusu çözülemiyor. İşaretçi geçerli değil.</target>
+        <target state="translated">'{0}' başvurusu çözülemiyor. İşaretçi geçerli değil.</target>
         <note>Invalid pointer dereference</note>
       </trans-unit>
       <trans-unit id="NativeView">

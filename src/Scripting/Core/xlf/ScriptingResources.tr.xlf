@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="CantAssignTo">
         <source>Can't assign '{0}' to '{1}'.</source>
-        <target state="translated">{1}' öğesine '{0}' atanamıyor.</target>
+        <target state="translated">'{1}' öğesine '{0}' atanamıyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ExpectedAnAssemblyReference">
@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="GlobalsNotAssignable">
         <source>The globals of type '{0}' is not assignable to '{1}'</source>
-        <target state="translated">{0}' türündeki genel değişkenler '{1}' öğesine atanamaz</target>
+        <target state="translated">'{0}' türündeki genel değişkenler '{1}' öğesine atanamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="StartingStateIncompatible">
@@ -108,7 +108,8 @@ Script directives:
   Enter         Geçerli gönderim tamamlanmış görünüyorsa değerlendir. Aksi takdirde, yeni bir satır ekle.
   Escape        Geçerli gönderimi sil.
   Yukarı Ok       Geçerli gönderimi önceki bir gönderimle değiştir.
-  Aşağı Ok     Geçerli gönderimi sonraki bir gönderimle değiştir (daha önce geriye gittikten sonra).  Ctrl-C        REPL'den çık.
+  Aşağı Ok     Geçerli gönderimi sonraki bir gönderimle değiştir (daha önce geriye gittikten sonra).
+  Ctrl-C        REPL'den çık.
 REPL komutları:
   #help         Kullanılabilir komutlarda ve anahtar bağlamalarında yardımı görüntüle.
 Betik yönergeleri:
@@ -123,7 +124,7 @@ Betik yönergeleri:
       </trans-unit>
       <trans-unit id="AssemblyAlreadyLoadedNotSigned">
         <source>Assembly '{0}' has already been loaded from '{1}'. A different assembly with the same name can't be loaded unless it's signed: '{2}'.</source>
-        <target state="translated">{0}' derlemesi daha önce '{1}' konumundan yüklendi. İmzalı olmadığı sürece aynı ada sahip başka bir derleme yüklenemez: '{2}'.</target>
+        <target state="translated">'{0}' derlemesi daha önce '{1}' konumundan yüklendi. İmzalı olmadığı sürece aynı ada sahip başka bir derleme yüklenemez: '{2}'.</target>
         <note />
       </trans-unit>
     </body>

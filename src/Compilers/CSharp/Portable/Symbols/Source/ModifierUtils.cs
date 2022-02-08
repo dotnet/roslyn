@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Diagnostics;
 using Roslyn.Utilities;
 
@@ -14,10 +16,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers defaultAccess,
             DeclarationModifiers allowedModifiers,
             Location errorLocation,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             out bool modifierErrors)
         {
-            var result = modifiers.ToDeclarationModifiers(diagnostics);
+            var result = modifiers.ToDeclarationModifiers(diagnostics.DiagnosticBag ?? new DiagnosticBag());
             result = CheckModifiers(result, allowedModifiers, errorLocation, diagnostics, modifiers, out modifierErrors);
 
             if ((result & DeclarationModifiers.AccessibilityMask) == 0)
@@ -32,11 +34,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers modifiers,
             DeclarationModifiers allowedModifiers,
             Location errorLocation,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             SyntaxTokenList? modifierTokens,
             out bool modifierErrors)
         {
             modifierErrors = false;
+            DeclarationModifiers reportStaticNotVirtualForModifiers = DeclarationModifiers.None;
+
+            if ((modifiers & allowedModifiers & DeclarationModifiers.Static) != 0)
+            {
+                reportStaticNotVirtualForModifiers = allowedModifiers & (DeclarationModifiers.Override | DeclarationModifiers.Virtual);
+                allowedModifiers &= ~reportStaticNotVirtualForModifiers;
+            }
+
             DeclarationModifiers errorModifiers = modifiers & ~allowedModifiers;
             DeclarationModifiers result = modifiers & allowedModifiers;
 
@@ -53,18 +63,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         ReportPartialError(errorLocation, diagnostics, modifierTokens);
                         break;
 
+                    case DeclarationModifiers.Override:
+                    case DeclarationModifiers.Virtual:
+                        if ((reportStaticNotVirtualForModifiers & oneError) == 0)
+                        {
+                            goto default;
+                        }
+
+                        diagnostics.Add(ErrorCode.ERR_StaticNotVirtual, errorLocation, ModifierUtils.ConvertSingleModifierToSyntaxText(oneError));
+                        break;
+
                     default:
                         diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, ConvertSingleModifierToSyntaxText(oneError));
                         break;
                 }
 
-                modifierErrors = true;
-            }
-
-            bool isMethod = (allowedModifiers & (DeclarationModifiers.Partial | DeclarationModifiers.Virtual)) == (DeclarationModifiers.Partial | DeclarationModifiers.Virtual);
-            if (isMethod && ((result & (DeclarationModifiers.Partial | DeclarationModifiers.Private)) == (DeclarationModifiers.Partial | DeclarationModifiers.Private)))
-            {
-                diagnostics.Add(ErrorCode.ERR_PartialMethodInvalidModifier, errorLocation);
                 modifierErrors = true;
             }
 
@@ -76,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        private static void ReportPartialError(Location errorLocation, DiagnosticBag diagnostics, SyntaxTokenList? modifierTokens)
+        private static void ReportPartialError(Location errorLocation, BindingDiagnosticBag diagnostics, SyntaxTokenList? modifierTokens)
         {
             // If we can find the 'partial' token, report it on that.
             if (modifierTokens != null)
@@ -97,27 +110,78 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers modifiers,
             DeclarationModifiers defaultInterfaceImplementationModifiers,
             Location errorLocation,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
-            if (!hasBody && (modifiers & defaultInterfaceImplementationModifiers) != 0)
+            if ((modifiers & defaultInterfaceImplementationModifiers) != 0)
             {
                 LanguageVersion availableVersion = ((CSharpParseOptions)errorLocation.SourceTree.Options).LanguageVersion;
-                LanguageVersion requiredVersion = MessageID.IDS_DefaultInterfaceImplementation.RequiredVersion();
+                LanguageVersion requiredVersion;
+
+                if ((modifiers & defaultInterfaceImplementationModifiers & DeclarationModifiers.Static) != 0 &&
+                    (modifiers & defaultInterfaceImplementationModifiers & (DeclarationModifiers.Sealed | DeclarationModifiers.Abstract)) != 0)
+                {
+                    var reportModifiers = DeclarationModifiers.Sealed | DeclarationModifiers.Abstract;
+                    if ((modifiers & defaultInterfaceImplementationModifiers & (DeclarationModifiers.Sealed | DeclarationModifiers.Abstract)) == (DeclarationModifiers.Sealed | DeclarationModifiers.Abstract))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_BadMemberFlag, errorLocation, ConvertSingleModifierToSyntaxText(DeclarationModifiers.Sealed));
+                        reportModifiers &= ~DeclarationModifiers.Sealed;
+                    }
+
+                    requiredVersion = MessageID.IDS_FeatureStaticAbstractMembersInInterfaces.RequiredVersion();
+                    if (availableVersion < requiredVersion)
+                    {
+                        ReportUnsupportedModifiersForLanguageVersion(modifiers, reportModifiers, errorLocation, diagnostics, availableVersion, requiredVersion);
+                    }
+
+                    return; // below we will either ask for an earlier version of the language, or will not report anything
+                }
+
+                if (hasBody)
+                {
+                    if ((modifiers & defaultInterfaceImplementationModifiers & DeclarationModifiers.Static) != 0)
+                    {
+                        Binder.CheckFeatureAvailability(errorLocation.SourceTree, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, errorLocation);
+                    }
+                }
+                else
+                {
+                    requiredVersion = MessageID.IDS_DefaultInterfaceImplementation.RequiredVersion();
+                    if (availableVersion < requiredVersion)
+                    {
+                        ReportUnsupportedModifiersForLanguageVersion(modifiers, defaultInterfaceImplementationModifiers, errorLocation, diagnostics, availableVersion, requiredVersion);
+                    }
+                }
+            }
+        }
+
+        internal static void ReportUnsupportedModifiersForLanguageVersion(DeclarationModifiers modifiers, DeclarationModifiers unsupportedModifiers, Location errorLocation, BindingDiagnosticBag diagnostics, LanguageVersion availableVersion, LanguageVersion requiredVersion)
+        {
+            DeclarationModifiers errorModifiers = modifiers & unsupportedModifiers;
+            var requiredVersionArgument = new CSharpRequiredLanguageVersion(requiredVersion);
+            var availableVersionArgument = availableVersion.ToDisplayString();
+            while (errorModifiers != DeclarationModifiers.None)
+            {
+                DeclarationModifiers oneError = errorModifiers & ~(errorModifiers - 1);
+                Debug.Assert(oneError != DeclarationModifiers.None);
+                errorModifiers = errorModifiers & ~oneError;
+                diagnostics.Add(ErrorCode.ERR_InvalidModifierForLanguageVersion, errorLocation,
+                                ConvertSingleModifierToSyntaxText(oneError),
+                                availableVersionArgument,
+                                requiredVersionArgument);
+            }
+        }
+
+        internal static void CheckFeatureAvailabilityForStaticAbstractMembersInInterfacesIfNeeded(DeclarationModifiers mods, bool isExplicitInterfaceImplementation, Location location, BindingDiagnosticBag diagnostics)
+        {
+            if (isExplicitInterfaceImplementation && (mods & DeclarationModifiers.Static) != 0)
+            {
+                Debug.Assert(location.SourceTree is not null);
+
+                LanguageVersion availableVersion = ((CSharpParseOptions)location.SourceTree.Options).LanguageVersion;
+                LanguageVersion requiredVersion = MessageID.IDS_FeatureStaticAbstractMembersInInterfaces.RequiredVersion();
                 if (availableVersion < requiredVersion)
                 {
-                    DeclarationModifiers errorModifiers = modifiers & defaultInterfaceImplementationModifiers;
-                    var requiredVersionArgument = new CSharpRequiredLanguageVersion(requiredVersion);
-                    var availableVersionArgument = availableVersion.ToDisplayString();
-                    while (errorModifiers != DeclarationModifiers.None)
-                    {
-                        DeclarationModifiers oneError = errorModifiers & ~(errorModifiers - 1);
-                        Debug.Assert(oneError != DeclarationModifiers.None);
-                        errorModifiers = errorModifiers & ~oneError;
-                        diagnostics.Add(ErrorCode.ERR_DefaultInterfaceImplementationModifier, errorLocation,
-                                        ConvertSingleModifierToSyntaxText(oneError),
-                                        availableVersionArgument,
-                                        requiredVersionArgument);
-                    }
+                    ModifierUtils.ReportUnsupportedModifiersForLanguageVersion(mods, DeclarationModifiers.Static, location, diagnostics, availableVersion, requiredVersion);
                 }
             }
         }
@@ -131,7 +195,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     mods |= DeclarationModifiers.Sealed;
                 }
             }
-            else if ((mods & (DeclarationModifiers.Static | DeclarationModifiers.Private | DeclarationModifiers.Partial | DeclarationModifiers.Virtual | DeclarationModifiers.Abstract)) == 0)
+            else if ((mods & DeclarationModifiers.Static) != 0)
+            {
+                mods &= ~DeclarationModifiers.Sealed;
+            }
+            else if ((mods & (DeclarationModifiers.Private | DeclarationModifiers.Partial | DeclarationModifiers.Virtual | DeclarationModifiers.Abstract)) == 0)
             {
                 Debug.Assert(!isExplicitInterfaceImplementation);
 
@@ -167,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return mods;
         }
 
-        private static string ConvertSingleModifierToSyntaxText(DeclarationModifiers modifier)
+        internal static string ConvertSingleModifierToSyntaxText(DeclarationModifiers modifier)
         {
             switch (modifier)
             {

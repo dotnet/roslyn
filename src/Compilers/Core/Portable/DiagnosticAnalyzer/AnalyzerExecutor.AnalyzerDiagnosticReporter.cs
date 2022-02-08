@@ -2,12 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -29,26 +25,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 new ObjectPool<AnalyzerDiagnosticReporter>(() => new AnalyzerDiagnosticReporter(), 10);
 
             public static AnalyzerDiagnosticReporter GetInstance(
-                SyntaxTree contextTree,
+                SourceOrAdditionalFile contextFile,
                 TextSpan? span,
                 Compilation compilation,
                 DiagnosticAnalyzer analyzer,
                 bool isSyntaxDiagnostic,
-                Action<Diagnostic> addNonCategorizedDiagnosticOpt,
-                Action<Diagnostic, DiagnosticAnalyzer, bool> addCategorizedLocalDiagnosticOpt,
-                Action<Diagnostic, DiagnosticAnalyzer> addCategorizedNonLocalDiagnosticOpt,
+                Action<Diagnostic>? addNonCategorizedDiagnostic,
+                Action<Diagnostic, DiagnosticAnalyzer, bool>? addCategorizedLocalDiagnostic,
+                Action<Diagnostic, DiagnosticAnalyzer>? addCategorizedNonLocalDiagnostic,
                 Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> shouldSuppressGeneratedCodeDiagnostic,
                 CancellationToken cancellationToken)
             {
                 var item = s_objectPool.Allocate();
-                item._contextTree = contextTree;
+                item._contextFile = contextFile;
                 item._span = span;
                 item._compilation = compilation;
                 item._analyzer = analyzer;
                 item._isSyntaxDiagnostic = isSyntaxDiagnostic;
-                item._addNonCategorizedDiagnosticOpt = addNonCategorizedDiagnosticOpt;
-                item._addCategorizedLocalDiagnosticOpt = addCategorizedLocalDiagnosticOpt;
-                item._addCategorizedNonLocalDiagnosticOpt = addCategorizedNonLocalDiagnosticOpt;
+                item._addNonCategorizedDiagnostic = addNonCategorizedDiagnostic;
+                item._addCategorizedLocalDiagnostic = addCategorizedLocalDiagnostic;
+                item._addCategorizedNonLocalDiagnostic = addCategorizedNonLocalDiagnostic;
                 item._shouldSuppressGeneratedCodeDiagnostic = shouldSuppressGeneratedCodeDiagnostic;
                 item._cancellationToken = cancellationToken;
                 return item;
@@ -56,27 +52,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public void Free()
             {
-                _contextTree = default!;
-                _span = default;
-                _compilation = default!;
-                _analyzer = default!;
+                _contextFile = null!;
+                _span = null;
+                _compilation = null!;
+                _analyzer = null!;
                 _isSyntaxDiagnostic = default;
-                _addNonCategorizedDiagnosticOpt = default!;
-                _addCategorizedLocalDiagnosticOpt = default!;
-                _addCategorizedNonLocalDiagnosticOpt = default!;
-                _shouldSuppressGeneratedCodeDiagnostic = default!;
+                _addNonCategorizedDiagnostic = null!;
+                _addCategorizedLocalDiagnostic = null!;
+                _addCategorizedNonLocalDiagnostic = null!;
+                _shouldSuppressGeneratedCodeDiagnostic = null!;
                 _cancellationToken = default;
                 s_objectPool.Free(this);
             }
 
-            private SyntaxTree _contextTree;
+            private SourceOrAdditionalFile? _contextFile;
             private TextSpan? _span;
             private Compilation _compilation;
             private DiagnosticAnalyzer _analyzer;
             private bool _isSyntaxDiagnostic;
-            private Action<Diagnostic> _addNonCategorizedDiagnosticOpt;
-            private Action<Diagnostic, DiagnosticAnalyzer, bool> _addCategorizedLocalDiagnosticOpt;
-            private Action<Diagnostic, DiagnosticAnalyzer> _addCategorizedNonLocalDiagnosticOpt;
+            private Action<Diagnostic>? _addNonCategorizedDiagnostic;
+            private Action<Diagnostic, DiagnosticAnalyzer, bool>? _addCategorizedLocalDiagnostic;
+            private Action<Diagnostic, DiagnosticAnalyzer>? _addCategorizedNonLocalDiagnostic;
             private Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> _shouldSuppressGeneratedCodeDiagnostic;
             private CancellationToken _cancellationToken;
 
@@ -95,25 +91,43 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return;
                 }
 
-                if (_addCategorizedLocalDiagnosticOpt == null)
+                if (_addCategorizedLocalDiagnostic == null)
                 {
-                    RoslynDebug.Assert(_addNonCategorizedDiagnosticOpt != null);
-                    _addNonCategorizedDiagnosticOpt(diagnostic);
+                    Debug.Assert(_addNonCategorizedDiagnostic != null);
+                    _addNonCategorizedDiagnostic(diagnostic);
                     return;
                 }
 
-                Debug.Assert(_addNonCategorizedDiagnosticOpt == null);
-                RoslynDebug.Assert(_addCategorizedNonLocalDiagnosticOpt != null);
+                Debug.Assert(_addNonCategorizedDiagnostic == null);
+                Debug.Assert(_addCategorizedNonLocalDiagnostic != null);
 
-                if (diagnostic.Location.IsInSource &&
-                    _contextTree == diagnostic.Location.SourceTree &&
+                if (isLocalDiagnostic(diagnostic) &&
                     (!_span.HasValue || _span.Value.IntersectsWith(diagnostic.Location.SourceSpan)))
                 {
-                    _addCategorizedLocalDiagnosticOpt(diagnostic, _analyzer, _isSyntaxDiagnostic);
+                    _addCategorizedLocalDiagnostic(diagnostic, _analyzer, _isSyntaxDiagnostic);
                 }
                 else
                 {
-                    _addCategorizedNonLocalDiagnosticOpt(diagnostic, _analyzer);
+                    _addCategorizedNonLocalDiagnostic(diagnostic, _analyzer);
+                }
+
+                return;
+
+                bool isLocalDiagnostic(Diagnostic diagnostic)
+                {
+                    if (diagnostic.Location.IsInSource)
+                    {
+                        return _contextFile?.SourceTree != null &&
+                            _contextFile.Value.SourceTree == diagnostic.Location.SourceTree;
+                    }
+
+                    if (_contextFile?.AdditionalFile != null &&
+                        diagnostic.Location is ExternalFileLocation externalFileLocation)
+                    {
+                        return PathUtilities.Comparer.Equals(_contextFile.Value.AdditionalFile.Path, externalFileLocation.FilePath);
+                    }
+
+                    return false;
                 }
             }
         }

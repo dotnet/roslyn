@@ -2,17 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy;
-using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
@@ -51,17 +51,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             string projectSystemName,
             IVsHierarchy hierarchy,
             IServiceProvider serviceProvider,
-            IThreadingContext threadingContext,
-            HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt,
-            ICommandLineParserService commandLineParserServiceOpt)
+            IThreadingContext threadingContext)
             : base(projectSystemName,
                    hierarchy,
                    LanguageNames.CSharp,
+                   isVsIntellisenseProject: projectRoot is IVsIntellisenseProject,
                    serviceProvider,
                    threadingContext,
-                   externalErrorReportingPrefix: "CS",
-                   hostDiagnosticUpdateSourceOpt: hostDiagnosticUpdateSourceOpt,
-                   commandLineParserServiceOpt: commandLineParserServiceOpt)
+                   externalErrorReportingPrefix: "CS")
         {
             _projectRoot = projectRoot;
             _serviceProvider = serviceProvider;

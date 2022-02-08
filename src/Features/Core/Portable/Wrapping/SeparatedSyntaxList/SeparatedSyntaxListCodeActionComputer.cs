@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,9 +33,9 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 
             protected sealed override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync()
             {
-                var result = ArrayBuilder<WrappingGroup>.GetInstance();
-                await AddWrappingGroups(result).ConfigureAwait(false);
-                return result.ToImmutableAndFree();
+                using var _ = ArrayBuilder<WrappingGroup>.GetInstance(out var result);
+                await AddWrappingGroupsAsync(result).ConfigureAwait(false);
+                return result.ToImmutableAndClear();
             }
 
             protected sealed override Task<WrapItemsAction> GetUnwrapAllCodeActionAsync(string parentTitle, WrappingStyle wrappingStyle)
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             {
                 var parentTitle = Wrapper.Wrap_every_item;
 
-                var codeActions = ArrayBuilder<WrapItemsAction>.GetInstance();
+                using var _ = ArrayBuilder<WrapItemsAction>.GetInstance(out var codeActions);
 
                 // MethodName(int a,
                 //            int b,
@@ -85,12 +87,12 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 
                 // See comment in GetWrapLongTopLevelCodeActionAsync for explanation of why we're
                 // not inlinable.
-                return new WrappingGroup(isInlinable: false, codeActions.ToImmutableAndFree());
+                return new WrappingGroup(isInlinable: false, codeActions.ToImmutableAndClear());
             }
 
             protected sealed override async Task<WrappingGroup> GetUnwrapGroupAsync()
             {
-                var unwrapActions = ArrayBuilder<WrapItemsAction>.GetInstance();
+                using var _ = ArrayBuilder<WrapItemsAction>.GetInstance(out var unwrapActions);
 
                 var parentTitle = Wrapper.Unwrap_list;
 
@@ -103,13 +105,13 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 
                 // The 'unwrap' title strings are unique and do not collide with any other code
                 // actions we're computing.  So they can be inlined if possible.
-                return new WrappingGroup(isInlinable: true, unwrapActions.ToImmutableAndFree());
+                return new WrappingGroup(isInlinable: true, unwrapActions.ToImmutable());
             }
 
             protected sealed override async Task<WrappingGroup> GetWrapLongGroupAsync()
             {
                 var parentTitle = Wrapper.Wrap_long_list;
-                var codeActions = ArrayBuilder<WrapItemsAction>.GetInstance();
+                using var _ = ArrayBuilder<WrapItemsAction>.GetInstance(out var codeActions);
 
                 // MethodName(int a, int b, int c,
                 //            int d, int e, int f,
@@ -142,13 +144,13 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 // We can't in-line these nested actions because the parent title is necessary to
                 // determine which situation each child action applies to.
 
-                return new WrappingGroup(isInlinable: false, codeActions.ToImmutableAndFree());
+                return new WrappingGroup(isInlinable: false, codeActions.ToImmutable());
             }
 
             protected sealed override ImmutableArray<Edit> GetWrapEachEdits(
                 WrappingStyle wrappingStyle, SyntaxTrivia indentationTrivia)
             {
-                var result = ArrayBuilder<Edit>.GetInstance();
+                using var _ = ArrayBuilder<Edit>.GetInstance(out var result);
 
                 AddTextChangeBetweenOpenAndFirstItem(wrappingStyle, result);
 
@@ -172,13 +174,13 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 // last item.  Delete whatever is between it and the close token of the list.
                 result.Add(Edit.DeleteBetween(_listItems.Last(), _listSyntax.GetLastToken()));
 
-                return result.ToImmutableAndFree();
+                return result.ToImmutableAndClear();
             }
 
             protected sealed override ImmutableArray<Edit> GetWrapLongLinesEdits(
                 WrappingStyle wrappingStyle, SyntaxTrivia indentationTrivia)
             {
-                var result = ArrayBuilder<Edit>.GetInstance();
+                using var _ = ArrayBuilder<Edit>.GetInstance(out var result);
 
                 AddTextChangeBetweenOpenAndFirstItem(wrappingStyle, result);
 
@@ -221,12 +223,12 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                     currentOffset += nextToken.Span.Length;
                 }
 
-                return result.ToImmutableAndFree();
+                return result.ToImmutable();
             }
 
             protected override ImmutableArray<Edit> GetUnwrapAllEdits(WrappingStyle wrappingStyle)
             {
-                return GetSeparatedListEdits(wrappingStyle).ToImmutableAndFree();
+                return GetSeparatedListEdits(wrappingStyle);
             }
         }
     }

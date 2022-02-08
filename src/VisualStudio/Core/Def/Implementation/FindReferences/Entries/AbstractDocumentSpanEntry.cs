@@ -17,12 +17,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
     {
         /// <summary>
         /// Base type of all <see cref="Entry"/>s that represent some source location in 
-        /// a <see cref="CodeAnalysis.Document"/>.  Navigation to that location is provided by this type.
+        /// a <see cref="Document"/>.  Navigation to that location is provided by this type.
         /// Subclasses can be used to provide customized line text to display in the entry.
         /// </summary>
         private abstract class AbstractDocumentSpanEntry : AbstractItemEntry
         {
-            private readonly string _projectName;
             private readonly object _boxedProjectGuid;
 
             private readonly SourceText _lineText;
@@ -31,39 +30,30 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             protected AbstractDocumentSpanEntry(
                 AbstractTableDataSourceFindUsagesContext context,
                 RoslynDefinitionBucket definitionBucket,
-                string projectName,
                 Guid projectGuid,
                 SourceText lineText,
                 MappedSpanResult mappedSpanResult)
                 : base(definitionBucket, context.Presenter)
             {
-                _projectName = projectName;
                 _boxedProjectGuid = projectGuid;
 
                 _lineText = lineText;
                 _mappedSpanResult = mappedSpanResult;
             }
 
-            protected override object GetValueWorker(string keyName)
-            {
-                switch (keyName)
-                {
-                    case StandardTableKeyNames.DocumentName:
-                        return _mappedSpanResult.FilePath;
-                    case StandardTableKeyNames.Line:
-                        return _mappedSpanResult.LinePositionSpan.Start.Line;
-                    case StandardTableKeyNames.Column:
-                        return _mappedSpanResult.LinePositionSpan.Start.Character;
-                    case StandardTableKeyNames.ProjectName:
-                        return _projectName;
-                    case StandardTableKeyNames.ProjectGuid:
-                        return _boxedProjectGuid;
-                    case StandardTableKeyNames.Text:
-                        return _lineText.ToString().Trim();
-                }
+            protected abstract string GetProjectName();
 
-                return null;
-            }
+            protected override object? GetValueWorker(string keyName)
+                => keyName switch
+                {
+                    StandardTableKeyNames.DocumentName => _mappedSpanResult.FilePath,
+                    StandardTableKeyNames.Line => _mappedSpanResult.LinePositionSpan.Start.Line,
+                    StandardTableKeyNames.Column => _mappedSpanResult.LinePositionSpan.Start.Character,
+                    StandardTableKeyNames.ProjectName => GetProjectName(),
+                    StandardTableKeyNames.ProjectGuid => _boxedProjectGuid,
+                    StandardTableKeyNames.Text => _lineText.ToString().Trim(),
+                    _ => null,
+                };
 
             public static async Task<MappedSpanResult?> TryMapAndGetFirstAsync(DocumentSpan documentSpan, SourceText sourceText, CancellationToken cancellationToken)
             {

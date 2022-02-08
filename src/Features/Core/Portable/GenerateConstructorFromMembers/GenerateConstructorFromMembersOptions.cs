@@ -8,10 +8,10 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
     internal static class GenerateConstructorFromMembersOptions
     {
-        public static readonly PerLanguageOption<bool> AddNullChecks = new PerLanguageOption<bool>(
+        public static readonly PerLanguageOption2<bool> AddNullChecks = new(
             nameof(GenerateConstructorFromMembersOptions),
             nameof(AddNullChecks), defaultValue: false,
-            storageLocations: new RoamingProfileStorageLocation(
+            storageLocation: new RoamingProfileStorageLocation(
                 $"TextEditor.%LANGUAGE%.Specific.{nameof(GenerateConstructorFromMembersOptions)}.{nameof(AddNullChecks)}"));
     }
 }

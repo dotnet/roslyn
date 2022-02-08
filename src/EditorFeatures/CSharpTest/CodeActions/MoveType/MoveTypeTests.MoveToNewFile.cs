@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
@@ -315,6 +317,31 @@ class Class2 { }";
 {
     class Class1 { }
 }";
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveTypeWithWithFileScopedNamespace()
+        {
+            var code =
+@"namespace N1;
+
+[||]class Class1 { }
+class Class2 { }
+";
+
+            var codeAfterMove =
+@"namespace N1;
+class Class2 { }
+";
+
+            var expectedDocumentName = "Class1.cs";
+
+            var destinationDocumentText =
+@"namespace N1;
+
+class Class1 { }
+";
             await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
 
@@ -883,7 +910,7 @@ partial class Outer
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText,
                 onAfterWorkspaceCreated: w =>
                 {
-                    w.TryApplyChanges(w.CurrentSolution.WithOptions(w.CurrentSolution.Options.WithChangedOption(FormattingOptions.InsertFinalNewLine, true)));
+                    w.TryApplyChanges(w.CurrentSolution.WithOptions(w.CurrentSolution.Options.WithChangedOption(FormattingOptions2.InsertFinalNewLine, true)));
                 });
         }
 
@@ -924,7 +951,7 @@ partial class Outer
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText,
                 onAfterWorkspaceCreated: w =>
                 {
-                    w.TryApplyChanges(w.CurrentSolution.WithOptions(w.CurrentSolution.Options.WithChangedOption(FormattingOptions.InsertFinalNewLine, false)));
+                    w.TryApplyChanges(w.CurrentSolution.WithOptions(w.CurrentSolution.Options.WithChangedOption(FormattingOptions2.InsertFinalNewLine, false)));
                 });
         }
 
@@ -1384,6 +1411,255 @@ partial class Class1
 
             await TestMoveTypeToNewFileAsync(
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WorkItem(50329, "https://github.com/dotnet/roslyn/issues/50329")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveRecordToNewFilePreserveUsings()
+        {
+            var code =
+@"using System;
+
+[||]record CacheContext(String Message);
+
+class Program { }";
+            var codeAfterMove = @"class Program { }";
+
+            var expectedDocumentName = "CacheContext.cs";
+            var destinationDocumentText = @"using System;
+
+record CacheContext(String Message);
+";
+
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MoveClassInTopLevelStatements()
+        {
+            var code = @"
+using ConsoleApp1;
+using System;
+
+var c = new C();
+Console.WriteLine(c.Hello);
+
+class [||]C
+{
+    public string Hello => ""Hello"";
+}";
+
+            var codeAfterMove = @"
+using ConsoleApp1;
+using System;
+
+var c = new C();
+Console.WriteLine(c.Hello);
+";
+
+            var expectedDocumentName = "C.cs";
+            var destinationDocumentText = @"class C
+{
+    public string Hello => ""Hello"";
+}";
+
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task MissingInTopLevelStatementsOnly()
+        {
+            var code = @"
+using ConsoleApp1;
+using System;
+
+var c = new object();
+[||]Console.WriteLine(c.ToString());
+";
+
+            await TestMissingAsync(code);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WorkItem(55544, "https://github.com/dotnet/roslyn/issues/55544")]
+        public async Task MoveInNamespace_WithAttributes1()
+        {
+            var code = @"
+using Sytem.Reflection;
+
+[assembly: AssemblyCompany("")]
+namespace N
+{
+    class A 
+    {
+    }
+
+    class [||]B
+    {
+    }
+}";
+
+            var codeAfterMove = @"
+using Sytem.Reflection;
+
+[assembly: AssemblyCompany("")]
+namespace N
+{
+    class A 
+    {
+    }
+}";
+
+            var expectedDocumentName = "B.cs";
+            var destinationDocumentText = @"namespace N
+{
+    class B
+    {
+    }
+}";
+
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WorkItem(55544, "https://github.com/dotnet/roslyn/issues/55544")]
+        public async Task MoveInNamespace_WithAttributes2()
+        {
+            var code = @"
+using Sytem.Reflection;
+
+[assembly: AssemblyCompany("")]
+namespace N
+{
+    class A 
+    {
+    }
+
+    [Test]
+    class [||]B
+    {
+    }
+}";
+
+            var codeAfterMove = @"
+using Sytem.Reflection;
+
+[assembly: AssemblyCompany("")]
+namespace N
+{
+    class A 
+    {
+    }
+}";
+
+            var expectedDocumentName = "B.cs";
+            var destinationDocumentText = @"namespace N
+{
+    [Test]
+    class B
+    {
+    }
+}";
+
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WorkItem(55544, "https://github.com/dotnet/roslyn/issues/55544")]
+        public async Task MoveInNamespace_WithAttributes3()
+        {
+            var code = @"
+namespace N
+{
+    class A 
+    {
+    }
+
+    [Test]
+    class [||]B
+    {
+    }
+}";
+
+            var codeAfterMove = @"
+namespace N
+{
+    class A 
+    {
+    }
+}";
+
+            var expectedDocumentName = "B.cs";
+            var destinationDocumentText = @"
+namespace N
+{
+    [Test]
+    class B
+    {
+    }
+}";
+
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WorkItem(55544, "https://github.com/dotnet/roslyn/issues/55544")]
+        public async Task MoveTopLevel_WithAttributes1()
+        {
+            var code = @"
+[Test]
+class [||]A
+{
+}
+
+class B
+{
+}";
+
+            var codeAfterMove = @"
+class B
+{
+}";
+
+            var expectedDocumentName = "A.cs";
+            var destinationDocumentText = @"[Test]
+class A
+{
+}
+";
+
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        [WorkItem(55544, "https://github.com/dotnet/roslyn/issues/55544")]
+        public async Task MoveTopLevel_WithAttributes2()
+        {
+            var code = @"
+[Test]
+class [||]A
+{
+}
+
+[Test]
+class B
+{
+}";
+
+            var codeAfterMove = @"
+[Test]
+class B
+{
+}";
+
+            var expectedDocumentName = "A.cs";
+            var destinationDocumentText = @"[Test]
+class A
+{
+}
+";
+
+            await TestMoveTypeToNewFileAsync(code, codeAfterMove, expectedDocumentName, destinationDocumentText);
         }
     }
 }

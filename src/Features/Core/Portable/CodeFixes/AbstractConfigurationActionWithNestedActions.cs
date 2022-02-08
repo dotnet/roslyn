@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeActions;
 
@@ -20,6 +22,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         // Put configurations/suppressions at the end of everything.
-        internal override CodeActionPriority Priority => CodeActionPriority.None;
+        internal override CodeActionPriority Priority => CodeActionPriority.Lowest;
+
+        /// <summary>
+        /// Additional priority associated with all configuration and suppression code actions.
+        /// This allows special code actions such as Bulk configuration to to be at the end of
+        /// all suppression and configuration actions by having a lower additional priority.
+        /// </summary>
+        internal virtual CodeActionPriority AdditionalPriority => CodeActionPriority.Medium;
+
+        internal virtual bool IsBulkConfigurationAction => false;
     }
 }

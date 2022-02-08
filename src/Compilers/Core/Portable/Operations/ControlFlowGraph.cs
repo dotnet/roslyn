@@ -5,8 +5,10 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
 
@@ -23,12 +25,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
     {
         private readonly ControlFlowGraphBuilder.CaptureIdDispenser _captureIdDispenser;
         private readonly ImmutableDictionary<IMethodSymbol, (ControlFlowRegion region, ILocalFunctionOperation operation, int ordinal)> _localFunctionsMap;
-        private ControlFlowGraph[] _lazyLocalFunctionsGraphs;
+        private ControlFlowGraph?[]? _lazyLocalFunctionsGraphs;
         private readonly ImmutableDictionary<IFlowAnonymousFunctionOperation, (ControlFlowRegion region, int ordinal)> _anonymousFunctionsMap;
-        private ControlFlowGraph[] _lazyAnonymousFunctionsGraphs;
+        private ControlFlowGraph?[]? _lazyAnonymousFunctionsGraphs;
 
         internal ControlFlowGraph(IOperation originalOperation,
-                                  ControlFlowGraph parent,
+                                  ControlFlowGraph? parent,
                                   ControlFlowGraphBuilder.CaptureIdDispenser captureIdDispenser,
                                   ImmutableArray<BasicBlock> blocks, ControlFlowRegion root,
                                   ImmutableArray<IMethodSymbol> localFunctions,
@@ -78,7 +80,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// Returns null if <see cref="SemanticModel.GetOperation(SyntaxNode, CancellationToken)"/> returns null for the given <paramref name="node"/> and <paramref name="semanticModel"/>.
         /// Otherwise, returns a <see cref="ControlFlowGraph"/> for the executable code block.
         /// </returns>
-        public static ControlFlowGraph Create(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken = default)
+        public static ControlFlowGraph? Create(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken = default)
         {
             if (node == null)
             {
@@ -90,7 +92,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 throw new ArgumentNullException(nameof(semanticModel));
             }
 
-            IOperation operation = semanticModel.GetOperation(node, cancellationToken);
+            IOperation? operation = semanticModel.GetOperation(node, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
             return operation == null ? null : CreateCore(operation, nameof(operation), cancellationToken);
         }
@@ -176,19 +178,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 throw new ArgumentException(CodeAnalysisResources.OperationHasNullSemanticModel, argumentNameForException);
             }
 
-            try
-            {
-                ControlFlowGraph controlFlowGraph = ControlFlowGraphBuilder.Create(operation);
-                Debug.Assert(controlFlowGraph.OriginalOperation == operation);
-                return controlFlowGraph;
-            }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
-            {
-                // Log a Non-fatal-watson and then ignore the crash in the attempt of getting flow graph.
-                Debug.Assert(false, "\n" + e.ToString());
-            }
-
-            return default;
+            ControlFlowGraph controlFlowGraph = ControlFlowGraphBuilder.Create(operation);
+            Debug.Assert(controlFlowGraph.OriginalOperation == operation);
+            return controlFlowGraph;
         }
 
         /// <summary>
@@ -203,7 +195,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// Non-null for a control flow graph generated for a local function or a lambda.
         /// Null otherwise.
         /// </summary>
-        public ControlFlowGraph Parent { get; }
+        public ControlFlowGraph? Parent { get; }
 
         /// <summary>
         /// Basic blocks for the control flow graph.
@@ -240,7 +232,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return controlFlowGraph;
         }
 
-        internal bool TryGetLocalFunctionControlFlowGraph(IMethodSymbol localFunction, CancellationToken cancellationToken, out ControlFlowGraph controlFlowGraph)
+        internal bool TryGetLocalFunctionControlFlowGraph(IMethodSymbol localFunction, CancellationToken cancellationToken, [NotNullWhen(true)] out ControlFlowGraph? controlFlowGraph)
         {
             if (!_localFunctionsMap.TryGetValue(localFunction, out (ControlFlowRegion enclosing, ILocalFunctionOperation operation, int ordinal) info))
             {
@@ -255,15 +247,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 Interlocked.CompareExchange(ref _lazyLocalFunctionsGraphs, new ControlFlowGraph[LocalFunctions.Length], null);
             }
 
-            if (_lazyLocalFunctionsGraphs[info.ordinal] == null)
+            ref ControlFlowGraph? localFunctionGraph = ref _lazyLocalFunctionsGraphs[info.ordinal];
+            if (localFunctionGraph == null)
             {
                 Debug.Assert(localFunction == info.operation.Symbol);
                 ControlFlowGraph graph = ControlFlowGraphBuilder.Create(info.operation, this, info.enclosing, _captureIdDispenser);
                 Debug.Assert(graph.OriginalOperation == info.operation);
-                Interlocked.CompareExchange(ref _lazyLocalFunctionsGraphs[info.ordinal], graph, null);
+                Interlocked.CompareExchange(ref localFunctionGraph, graph, null);
             }
 
-            controlFlowGraph = _lazyLocalFunctionsGraphs[info.ordinal];
+            controlFlowGraph = localFunctionGraph;
             Debug.Assert(controlFlowGraph.Parent == this);
             return true;
         }
@@ -280,7 +273,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 throw new ArgumentNullException(nameof(anonymousFunction));
             }
 
-            if (!TryGetAnonymousFunctionControlFlowGraph(anonymousFunction, cancellationToken, out ControlFlowGraph controlFlowGraph))
+            if (!TryGetAnonymousFunctionControlFlowGraph(anonymousFunction, cancellationToken, out ControlFlowGraph? controlFlowGraph))
             {
                 throw new ArgumentOutOfRangeException(nameof(anonymousFunction));
             }
@@ -288,7 +281,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return controlFlowGraph;
         }
 
-        internal bool TryGetAnonymousFunctionControlFlowGraph(IFlowAnonymousFunctionOperation anonymousFunction, CancellationToken cancellationToken, out ControlFlowGraph controlFlowGraph)
+        internal bool TryGetAnonymousFunctionControlFlowGraph(IFlowAnonymousFunctionOperation anonymousFunction, CancellationToken cancellationToken, [NotNullWhen(true)] out ControlFlowGraph? controlFlowGraph)
         {
             if (!_anonymousFunctionsMap.TryGetValue(anonymousFunction, out (ControlFlowRegion enclosing, int ordinal) info))
             {
@@ -301,16 +294,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 Interlocked.CompareExchange(ref _lazyAnonymousFunctionsGraphs, new ControlFlowGraph[_anonymousFunctionsMap.Count], null);
             }
 
-            if (_lazyAnonymousFunctionsGraphs[info.ordinal] == null)
+            ref ControlFlowGraph? anonymousFlowGraph = ref _lazyAnonymousFunctionsGraphs[info.ordinal];
+            if (anonymousFlowGraph == null)
             {
                 var anonymous = (FlowAnonymousFunctionOperation)anonymousFunction;
                 ControlFlowGraph graph = ControlFlowGraphBuilder.Create(anonymous.Original, this, info.enclosing, _captureIdDispenser, in anonymous.Context);
                 Debug.Assert(graph.OriginalOperation == anonymous.Original);
-                Interlocked.CompareExchange(ref _lazyAnonymousFunctionsGraphs[info.ordinal], graph, null);
+                Interlocked.CompareExchange(ref anonymousFlowGraph, graph, null);
             }
 
-            controlFlowGraph = _lazyAnonymousFunctionsGraphs[info.ordinal];
-            Debug.Assert(controlFlowGraph.Parent == this);
+            controlFlowGraph = anonymousFlowGraph;
+            Debug.Assert(controlFlowGraph!.Parent == this);
             return true;
         }
     }

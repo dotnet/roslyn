@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal sealed class MetadataImageReference : PortableExecutableReference
     {
-        private readonly string _display;
+        private readonly string? _display;
         private readonly Metadata _metadata;
 
-        internal MetadataImageReference(Metadata metadata, MetadataReferenceProperties properties, DocumentationProvider documentation, string filePath, string display)
+        internal MetadataImageReference(Metadata metadata, MetadataReferenceProperties properties, DocumentationProvider? documentation, string? filePath, string? display)
             : base(properties, filePath, documentation ?? DocumentationProvider.Default)
         {
             _display = display;

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
@@ -14,7 +12,7 @@ namespace Roslyn.Utilities
     /// </summary>
     internal class ReferenceEqualityComparer : IEqualityComparer<object?>
     {
-        public static readonly ReferenceEqualityComparer Instance = new ReferenceEqualityComparer();
+        public static readonly ReferenceEqualityComparer Instance = new();
 
         private ReferenceEqualityComparer()
         {
@@ -32,7 +30,8 @@ namespace Roslyn.Utilities
 
         public static int GetHashCode(object? a)
         {
-            return RuntimeHelpers.GetHashCode(a);
+            // https://github.com/dotnet/roslyn/issues/41539
+            return RuntimeHelpers.GetHashCode(a!);
         }
     }
 }

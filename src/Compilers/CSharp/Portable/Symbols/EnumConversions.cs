@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -15,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case DeclarationKind.Class:
                 case DeclarationKind.Script:
                 case DeclarationKind.ImplicitClass:
+                case DeclarationKind.Record:
                     return TypeKind.Class;
 
                 case DeclarationKind.Submission:
@@ -30,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return TypeKind.Interface;
 
                 case DeclarationKind.Struct:
+                case DeclarationKind.RecordStruct:
                     return TypeKind.Struct;
 
                 default:

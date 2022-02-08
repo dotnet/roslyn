@@ -16,10 +16,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
 
             return new CodeGenerationNamedTypeSymbol(
+                namedType.ContainingAssembly,
                 namedType.ContainingType,
                 namedType.GetAttributes(),
                 namedType.DeclaredAccessibility,
                 namedType.GetSymbolModifiers(),
+                namedType.IsRecord,
                 namedType.TypeKind,
                 namedType.Name,
                 namedType.TypeParameters,
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 namedType.Interfaces,
                 namedType.SpecialType,
                 namedType.NullableAnnotation,
-                namedType.GetMembers().WhereAsArray(s => !(s is INamedTypeSymbol)),
+                namedType.GetMembers().WhereAsArray(s => s is not INamedTypeSymbol),
                 namedType.GetTypeMembers().SelectAsArray(t => t.ToCodeGenerationSymbol()),
                 namedType.EnumUnderlyingType);
         }

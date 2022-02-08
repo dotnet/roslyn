@@ -2,16 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.Build.Utilities;
+using System.Reflection;
+
+#if DEBUG || BOOTSTRAP
+using System;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System;
 using System.Threading;
+using Microsoft.Build.Utilities;
+using Roslyn.Utilities;
+#endif
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
+    using static Microsoft.CodeAnalysis.CommandLine.BuildResponse;
+
 #if DEBUG || BOOTSTRAP
     /// <summary>
     /// This task exists to help us validate our bootstrap building phase is executing correctly.  The bootstrap
@@ -21,14 +28,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     public sealed partial class ValidateBootstrap : Task
     {
         private static readonly ConcurrentDictionary<AssemblyName, byte> s_failedLoadSet = new ConcurrentDictionary<AssemblyName, byte>();
-        private static int s_failedServerConnectionCount = 0;
+        private static readonly ConcurrentQueue<(ResponseType ResponseType, string? OutputAssembly)> s_failedQueue = new ConcurrentQueue<(ResponseType ResponseType, string? OutputAssembly)>();
 
-        private string _tasksAssemblyFullPath;
+        private string? _tasksAssemblyFullPath;
 
-        public string TasksAssemblyFullPath
+        [DisallowNull]
+        public string? TasksAssemblyFullPath
         {
             get { return _tasksAssemblyFullPath; }
-            set { _tasksAssemblyFullPath = NormalizePath(Path.GetFullPath(value)); }
+            set { _tasksAssemblyFullPath = NormalizePath(Path.GetFullPath(value!)); }
         }
 
         public ValidateBootstrap()
@@ -62,25 +70,57 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
             }
 
-            // The number chosen is arbitrary here.  The goal of this check is to catch cases where a coding error has 
-            // broken our ability to use the compiler server in the bootstrap phase.
+            // This represents the maximum number of failed build attempts on the server before we will declare
+            // that the overall build itself failed. 
             //
-            // It's possible on completely correct code for the server connection to fail.  There could be simply 
-            // named pipe errors, CPU load causing timeouts, etc ...  Hence flagging a single failure would produce
-            // a lot of false positives.  The current value was chosen as a reasonable number for warranting an 
-            // investigation.
-            if (s_failedServerConnectionCount > 20)
+            // The goal is to keep this at zero. The errors here are a mix of repository construction errors (having
+            // incompatible NuGet analyzers) and product errors (having flaky behavior in the server). Any time this
+            // number goes above zero it means we are dropping connections during developer inner loop builds and 
+            // hence measurably slowing down our productivity.
+            //
+            // When we find issues in the server or our infra we can temporarily raise this number while it is
+            // being worked out but should file a bug to track getting this to zero.
+            const int maxRejectCount = 0;
+            var rejectCount = 0;
+            foreach (var tuple in s_failedQueue.ToList())
             {
-                Log.LogError($"Too many compiler server connection failures detected: {s_failedServerConnectionCount}");
-                allGood = false;
+                switch (tuple.ResponseType)
+                {
+                    case ResponseType.AnalyzerInconsistency:
+                        Log.LogError($"Analyzer inconsistency building {tuple.OutputAssembly}");
+                        allGood = false;
+                        break;
+                    case ResponseType.MismatchedVersion:
+                    case ResponseType.IncorrectHash:
+                        Log.LogError($"Critical error {tuple.ResponseType} building {tuple.OutputAssembly}");
+                        allGood = false;
+                        break;
+                    case ResponseType.Rejected:
+                        rejectCount++;
+                        if (rejectCount > maxRejectCount)
+                        {
+                            Log.LogError($"Too many compiler server connection failures detected");
+                            allGood = false;
+                        }
+                        break;
+                    case ResponseType.Completed:
+                    case ResponseType.Shutdown:
+                        // Expected messages
+                        break;
+                    default:
+                        Log.LogError($"Unexpected response type {tuple.ResponseType}");
+                        allGood = false;
+                        break;
+                }
             }
 
             return allGood;
         }
 
-        private static string NormalizePath(string path)
+        [return: NotNullIfNotNull("path")]
+        private static string? NormalizePath(string? path)
         {
-            if (string.IsNullOrEmpty(path))
+            if (RoslynString.IsNullOrEmpty(path))
             {
                 return path;
             }
@@ -94,7 +134,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             return path;
         }
 
-        private string GetDirectory(Assembly assembly) => Path.GetDirectoryName(Utilities.TryGetAssemblyPath(assembly));
+        private string? GetDirectory(Assembly assembly) => Path.GetDirectoryName(Utilities.TryGetAssemblyPath(assembly));
 
         internal static void AddFailedLoad(AssemblyName name)
         {
@@ -111,9 +151,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
         }
 
-        internal static void AddFailedServerConnection()
+        internal static void AddFailedServerConnection(ResponseType type, string? outputAssembly)
         {
-            Interlocked.Increment(ref s_failedServerConnectionCount);
+            s_failedQueue.Enqueue((type, outputAssembly));
         }
     }
 #endif
@@ -127,10 +167,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 #endif
         }
 
-        internal static void AddFailedServerConnection()
+        internal static void AddFailedServerConnection(ResponseType type, string? outputAssembly)
         {
 #if DEBUG || BOOTSTRAP
-            ValidateBootstrap.AddFailedServerConnection();
+            ValidateBootstrap.AddFailedServerConnection(type, outputAssembly);
 #endif
         }
     }

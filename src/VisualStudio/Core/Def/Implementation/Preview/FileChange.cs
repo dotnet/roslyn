@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -126,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             return new ChangeList(new[] { entireSpanChild });
         }
 
-        private string GetDisplayText(string excerpt)
+        private static string GetDisplayText(string excerpt)
         {
             if (excerpt.Contains("\r\n"))
             {
@@ -178,9 +180,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         }
 
         public override void UpdatePreview()
-        {
-            engine.UpdatePreview(this.Id, (SpanChange)Children.Changes[0]);
-        }
+            => engine.UpdatePreview(this.Id, (SpanChange)Children.Changes[0]);
 
         private SourceText UpdateBufferText()
         {
@@ -195,9 +195,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         }
 
         public TextDocument GetOldDocument()
-        {
-            return _left;
-        }
+            => _left;
 
         public TextDocument GetUpdatedDocument()
         {
@@ -229,7 +227,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                 }
             }
 
-            pData[0].Image = pData[0].SelectedImage = (ushort)StandardGlyphGroup.GlyphLibrary;
+            pData[0].Image = pData[0].SelectedImage
+                = document.Project.Language == LanguageNames.CSharp ? (ushort)StandardGlyphGroup.GlyphCSharpFile :
+                                                                      (ushort)StandardGlyphGroup.GlyphGroupClass;
         }
 
         private static IHierarchicalDifferenceCollection ComputeDiffSpans(ITextDifferencingService diffService, TextDocument left, TextDocument right, CancellationToken cancellationToken)

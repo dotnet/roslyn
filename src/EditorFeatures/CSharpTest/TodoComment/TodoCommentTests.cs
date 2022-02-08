@@ -2,25 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Linq;
-using System.Threading;
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.TodoComments;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities.TodoComments;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
 {
     [UseExportProvider]
-    public class TodoCommentTests
+    public class TodoCommentTests : AbstractTodoCommentTests
     {
+        protected override TestWorkspace CreateWorkspace(string codeWithMarker)
+        {
+            var workspace = TestWorkspace.CreateCSharp(codeWithMarker);
+            workspace.SetOptions(workspace.Options.WithChangedOption(TodoCommentOptions.TokenList, DefaultTokenList));
+            return workspace;
+        }
+
         [Fact]
         public async Task SingleLineTodoComment_Colon()
         {
@@ -169,47 +171,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TodoComment
         ///         [|UNDONE: test2             |]";
 
             await TestAsync(code);
-        }
-
-        private static async Task TestAsync(string codeWithMarker)
-        {
-            await TestAsync(codeWithMarker, remote: false);
-            await TestAsync(codeWithMarker, remote: true);
-        }
-
-        private static async Task TestAsync(string codeWithMarker, bool remote)
-        {
-            using var workspace = TestWorkspace.CreateCSharp(codeWithMarker, openDocuments: false);
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(RemoteHostOptions.RemoteHostTest, remote)));
-
-            var commentTokens = new TodoCommentTokens();
-            var provider = new TodoCommentIncrementalAnalyzerProvider(commentTokens, Array.Empty<Lazy<IEventListener, EventListenerMetadata>>());
-            var worker = (TodoCommentIncrementalAnalyzer)provider.CreateIncrementalAnalyzer(workspace);
-
-            var document = workspace.Documents.First();
-            var initialTextSnapshot = document.GetTextBuffer().CurrentSnapshot;
-            var documentId = document.Id;
-            var reasons = new InvocationReasons(PredefinedInvocationReasons.DocumentAdded);
-            await worker.AnalyzeSyntaxAsync(workspace.CurrentSolution.GetDocument(documentId), InvocationReasons.Empty, CancellationToken.None);
-
-            var todoLists = worker.GetItems_TestingOnly(documentId);
-            var expectedLists = document.SelectedSpans;
-
-            Assert.Equal(todoLists.Length, expectedLists.Count);
-
-            for (var i = 0; i < todoLists.Length; i++)
-            {
-                var todo = todoLists[i];
-                var span = expectedLists[i];
-
-                var line = initialTextSnapshot.GetLineFromPosition(span.Start);
-                var text = initialTextSnapshot.GetText(span.ToSpan());
-
-                Assert.Equal(todo.MappedLine, line.LineNumber);
-                Assert.Equal(todo.MappedColumn, span.Start - line.Start);
-                Assert.Equal(todo.Message, text);
-            }
         }
     }
 }

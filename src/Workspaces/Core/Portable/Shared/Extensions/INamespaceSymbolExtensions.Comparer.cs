@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using System.Linq;
 using Roslyn.Utilities;
@@ -15,14 +13,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private class Comparer : IEqualityComparer<INamespaceSymbol?>
         {
             public bool Equals(INamespaceSymbol? x, INamespaceSymbol? y)
-            {
-                return GetNameParts(x).SequenceEqual(GetNameParts(y));
-            }
+                => GetNameParts(x).SequenceEqual(GetNameParts(y));
 
             public int GetHashCode(INamespaceSymbol? obj)
-            {
-                return GetNameParts(obj).Aggregate(0, (a, v) => Hash.Combine(v, a));
-            }
+                => GetNameParts(obj).Aggregate(0, (a, v) => Hash.Combine(v, a));
         }
     }
 }

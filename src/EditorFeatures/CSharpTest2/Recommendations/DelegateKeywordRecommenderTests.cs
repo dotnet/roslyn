@@ -47,12 +47,37 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"using Goo = $$");
+            await VerifyAbsenceAsync(
+@"using Goo = d$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInEmptyStatement()
+        public async Task TestNotInGlobalUsingAlias()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            await VerifyAbsenceAsync(
+@"global using Goo = $$");
+            await VerifyAbsenceAsync(
+@"global using Goo = d$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInUsingAliasTypeParameter()
+        {
+            await VerifyKeywordAsync(
+@"using Goo = T<$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInGlobalUsingAliasTypeParameter()
+        {
+            await VerifyKeywordAsync(
+@"global using Goo = T<$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInEmptyStatement()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
 @"$$"));
         }
 
@@ -80,10 +105,26 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterGlobalUsing()
+        {
+            await VerifyKeywordAsync(
+@"global using Goo;
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterNamespace()
         {
             await VerifyKeywordAsync(
 @"namespace N {}
+$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterFileScopedNamespace()
+        {
+            await VerifyKeywordAsync(
+@"namespace N;
 $$");
         }
 
@@ -147,6 +188,22 @@ using Goo;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotBeforeGlobalUsing()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Regular,
+@"$$
+global using Goo;");
+        }
+
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/9880"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotBeforeGlobalUsing_Interactive()
+        {
+            await VerifyAbsenceAsync(SourceCodeKind.Script,
+@"$$
+global using Goo;");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAssemblyAttribute()
         {
             await VerifyKeywordAsync(
@@ -196,15 +253,11 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterPartial()
-        {
-            await VerifyAbsenceAsync(@"partial $$");
-        }
+            => await VerifyAbsenceAsync(@"partial $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterAbstract()
-        {
-            await VerifyAbsenceAsync(@"abstract $$");
-        }
+            => await VerifyAbsenceAsync(@"abstract $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterInternal()
@@ -236,27 +289,34 @@ $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotAfterSealed()
+            => await VerifyAbsenceAsync(@"sealed $$");
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterStatic()
         {
-            await VerifyAbsenceAsync(@"sealed $$");
+            await VerifyKeywordAsync(SourceCodeKind.Regular, @"static $$");
+            await VerifyKeywordAsync(SourceCodeKind.Script, @"static $$");
+        }
+
+        [WorkItem(53585, "https://github.com/dotnet/roslyn/issues/53585")]
+        [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [ClassData(typeof(TheoryDataKeywordsIndicatingLocalFunction))]
+        public async Task TestAfterKeywordIndicatingLocalFunction(string keyword)
+        {
+            await VerifyKeywordAsync(SourceCodeKind.Regular, AddInsideMethod(@$"{keyword} $$"));
+            await VerifyKeywordAsync(SourceCodeKind.Script, AddInsideMethod(@$"{keyword} $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterStatic()
+        public async Task TestAfterStaticPublic()
         {
-            await VerifyAbsenceAsync(@"static $$");
+            await VerifyAbsenceAsync(SourceCodeKind.Regular, @"static public $$");
+            await VerifyKeywordAsync(SourceCodeKind.Script, @"static public $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterStaticPublic()
-        {
-            await VerifyAbsenceAsync(@"static public $$");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterDelegate()
-        {
-            await VerifyAbsenceAsync(@"delegate $$");
-        }
+        public async Task TestAfterDelegate()
+            => await VerifyKeywordAsync(@"delegate $$");
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestDelegateAsArgument()
@@ -309,25 +369,25 @@ $$");
 
         [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInTypeOf()
+        public async Task TestInTypeOf()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"typeof($$"));
         }
 
         [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInDefault()
+        public async Task TestInDefault()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"default($$"));
         }
 
         [WorkItem(538804, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538804")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInSizeOf()
+        public async Task TestInSizeOf()
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"sizeof($$"));
         }
 
@@ -357,15 +417,24 @@ class C
         Action a = async $$");
         }
 
-        [WorkItem(607197, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/607197")]
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterAsyncInMemberDeclaration()
+        public async Task TestAfterAsyncInMemberDeclaration()
         {
-            await VerifyAbsenceAsync(@"
+            await VerifyKeywordAsync(@"
 using System;
 class C
 {
     async $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestInFunctionPointerTypeList()
+        {
+            await VerifyKeywordAsync(@"
+using System;
+class C
+{
+    delegate*<$$");
         }
     }
 }

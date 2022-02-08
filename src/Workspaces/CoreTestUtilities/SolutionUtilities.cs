@@ -2,12 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -16,7 +17,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public static ProjectChanges GetSingleChangedProjectChanges(Solution oldSolution, Solution newSolution)
         {
             var solutionDifferences = newSolution.GetChanges(oldSolution);
-            var projectId = solutionDifferences.GetProjectChanges().Single().ProjectId;
+            var projectChanges = solutionDifferences.GetProjectChanges();
+
+            Assert.NotNull(projectChanges);
+            Assert.NotEmpty(projectChanges);
+
+            var projectId = projectChanges.Single().ProjectId;
 
             var oldProject = oldSolution.GetRequiredProject(projectId);
             var newProject = newSolution.GetRequiredProject(projectId);
@@ -72,7 +78,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var projectsDifference = GetChangedProjectChanges(oldSolution, newSolution);
             foreach (var projectDifference in projectsDifference)
             {
-                changedDocuments.AddRange(projectDifference.GetChangedDocuments(true));
+                changedDocuments.AddRange(projectDifference.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true));
             }
 
             return changedDocuments;
@@ -94,6 +100,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var projectChanges = GetSingleChangedProjectChanges(oldSolution, newSolution);
             return Tuple.Create(projectChanges.NewProject, projectChanges.GetAddedProjectReferences().Single());
+        }
+
+        public static Project AddEmptyProject(Solution solution, string languageName = LanguageNames.CSharp, string name = "TestProject")
+        {
+            var id = ProjectId.CreateNewId();
+            return solution.AddProject(
+                ProjectInfo.Create(
+                    id,
+                    VersionStamp.Default,
+                    name: name,
+                    assemblyName: name,
+                    language: languageName)).GetRequiredProject(id);
         }
     }
 }

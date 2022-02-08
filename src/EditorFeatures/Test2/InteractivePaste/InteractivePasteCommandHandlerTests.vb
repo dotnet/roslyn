@@ -5,6 +5,7 @@
 Imports System.Text
 Imports System.Windows
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.VisualStudio.InteractiveWindow
@@ -14,12 +15,11 @@ Imports Microsoft.VisualStudio.Text.Operations
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
     <[UseExportProvider]>
     Public Class InteractivePasteCommandhandlerTests
-        Const ClipboardLineBasedCutCopyTag As String = "VisualStudioEditorOperationsLineCutCopyClipboardTag"
-        Const BoxSelectionCutCopyTag As String = "MSDEVColumnSelect"
+        Private Const ClipboardLineBasedCutCopyTag As String = "VisualStudioEditorOperationsLineCutCopyClipboardTag"
+        Private Const BoxSelectionCutCopyTag As String = "MSDEVColumnSelect"
 
-        Private Function CreateCommandHandler(workspace As TestWorkspace) As InteractivePasteCommandHandler
-            Dim handler = New InteractivePasteCommandHandler(workspace.GetService(Of IEditorOperationsFactoryService),
-                                                             workspace.GetService(Of ITextUndoHistoryRegistry))
+        Private Shared Function CreateCommandHandler(workspace As TestWorkspace) As InteractivePasteCommandHandler
+            Dim handler = workspace.ExportProvider.GetCommandHandler(Of InteractivePasteCommandHandler)(PredefinedCommandHandlerNames.InteractivePaste)
             handler.RoslynClipboard = New MockClipboard()
             Return handler
         End Function
@@ -32,13 +32,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
                         <Project Language="C#" CommonReferences="true">
                             <Document/>
                         </Project>
-                    </Workspace>)
+                    </Workspace>,
+                    composition:=EditorTestCompositions.EditorFeaturesWpf)
 
                 Dim textView = workspace.Documents.Single().GetTextView()
 
                 Dim handler = CreateCommandHandler(workspace)
                 Dim clipboard = DirectCast(handler.RoslynClipboard, MockClipboard)
-
 
                 Dim json = "
                 [
@@ -67,7 +67,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
                         <Project Language="C#" CommonReferences="true">
                             <Document/>
                         </Project>
-                    </Workspace>)
+                    </Workspace>,
+                    composition:=EditorTestCompositions.EditorFeaturesWpf)
 
                 Dim textView = workspace.Documents.Single().GetTextView()
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(textView)
@@ -103,7 +104,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
                         <Project Language="C#" CommonReferences="true">
                             <Document/>
                         </Project>
-                    </Workspace>)
+                    </Workspace>,
+                    composition:=EditorTestCompositions.EditorFeaturesWpf)
 
                 Dim textView = workspace.Documents.Single().GetTextView()
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(textView)
@@ -133,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
             End Using
         End Sub
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/24749")>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub PasteCommandWithInteractiveFormatAsBoxCopy()
             Using workspace = TestWorkspace.Create(
@@ -141,7 +143,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
                         <Project Language="C#" CommonReferences="true">
                             <Document/>
                         </Project>
-                    </Workspace>)
+                    </Workspace>,
+                    composition:=EditorTestCompositions.EditorFeaturesWpf)
 
                 Dim textView = workspace.Documents.Single().GetTextView()
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(textView)
@@ -184,7 +187,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
                         <Project Language="C#" CommonReferences="true">
                             <Document/>
                         </Project>
-                    </Workspace>)
+                    </Workspace>,
+                    composition:=EditorTestCompositions.EditorFeaturesWpf)
 
                 Dim textView = workspace.Documents.Single().GetTextView()
                 Dim editorOperations = workspace.GetService(Of IEditorOperationsFactoryService)().GetEditorOperations(textView)
@@ -221,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
             End Using
         End Sub
 
-        Private Sub CopyToClipboard(clipboard As MockClipboard, text As String, json As String, includeRepl As Boolean, isLineCopy As Boolean, isBoxCopy As Boolean)
+        Private Shared Sub CopyToClipboard(clipboard As MockClipboard, text As String, json As String, includeRepl As Boolean, isLineCopy As Boolean, isBoxCopy As Boolean)
             clipboard.Clear()
 
             Dim data = New DataObject()
@@ -232,15 +236,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
             If includeRepl Then
                 data.SetData(InteractiveClipboardFormat.Tag, json)
             End If
+
             If isLineCopy Then
                 data.SetData(ClipboardLineBasedCutCopyTag, True)
             End If
+
             If isBoxCopy Then
                 data.SetData(BoxSelectionCutCopyTag, True)
             End If
+
             clipboard.SetDataObject(data)
         End Sub
-
 
         Private Class MockClipboard
             Implements InteractivePasteCommandHandler.IRoslynClipboard

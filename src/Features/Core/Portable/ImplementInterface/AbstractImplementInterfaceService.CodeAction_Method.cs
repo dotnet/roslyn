@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -23,10 +21,9 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 DeclarationModifiers modifiers,
                 bool generateAbstractly,
                 bool useExplicitInterfaceSymbol,
-                string memberName,
-                CancellationToken cancellationToken)
+                string memberName)
             {
-                var syntaxFacts = Document.GetLanguageService<ISyntaxFactsService>();
+                var syntaxFacts = Document.GetRequiredLanguageService<ISyntaxFactsService>();
 
                 var updatedMethod = method.EnsureNonConflictingNames(State.ClassOrStructType, syntaxFacts);
 
@@ -47,36 +44,10 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
 
             private SyntaxNode CreateStatement(Compilation compilation, IMethodSymbol method)
             {
-                if (ThroughMember == null)
-                {
-                    var factory = Document.GetLanguageService<SyntaxGenerator>();
-                    return factory.CreateThrowNotImplementedStatement(compilation);
-                }
-                else
-                {
-                    return CreateDelegationStatement(method);
-                }
-            }
-
-            private SyntaxNode CreateDelegationStatement(
-                IMethodSymbol method)
-            {
                 var factory = Document.GetLanguageService<SyntaxGenerator>();
-                var through = CreateThroughExpression(factory);
-
-                var memberName = method.IsGenericMethod
-                    ? factory.GenericName(method.Name, method.TypeArguments.OfType<ITypeSymbol>().ToList())
-                    : factory.IdentifierName(method.Name);
-
-                through = factory.MemberAccessExpression(
-                    through, memberName);
-
-                var arguments = factory.CreateArguments(method.Parameters.As<IParameterSymbol>());
-                var invocationExpression = factory.InvocationExpression(through, arguments);
-
-                return method.ReturnsVoid
-                    ? factory.ExpressionStatement(invocationExpression)
-                    : factory.ReturnStatement(invocationExpression);
+                return ThroughMember == null
+                    ? factory.CreateThrowNotImplementedStatement(compilation)
+                    : factory.GenerateDelegateThroughMemberStatement(method, ThroughMember);
             }
         }
     }

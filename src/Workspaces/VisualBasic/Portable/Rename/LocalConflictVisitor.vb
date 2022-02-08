@@ -4,7 +4,6 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
@@ -74,6 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             For Each clause In node.Clauses
                 Visit(clause)
             Next
+
             _tracker.RemoveIdentifiers(tokens)
         End Sub
 
@@ -95,6 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             For Each statement In block
                 Visit(statement)
             Next
+
             _tracker.RemoveIdentifiers(tokens)
         End Sub
 

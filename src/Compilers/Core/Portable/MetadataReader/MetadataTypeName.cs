@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -15,6 +17,7 @@ namespace Microsoft.CodeAnalysis
     /// Also, allows us to stop using strings in the APIs that accept only metadata names, 
     /// making usage of them less bug prone.
     /// </summary>
+    [NonCopyable]
     internal partial struct MetadataTypeName
     {
         /// <summary>
@@ -244,7 +247,7 @@ namespace Microsoft.CodeAnalysis
         /// I.e. arity is inferred from the name and matching type must have the same
         /// emitted name and arity.
         /// </summary>
-        public bool UseCLSCompliantNameArityEncoding
+        public readonly bool UseCLSCompliantNameArityEncoding
         {
             get
             {
@@ -258,7 +261,7 @@ namespace Microsoft.CodeAnalysis
         /// If ForcedArity >= 0 and UseCLSCompliantNameArityEncoding, lookup may
         /// fail because ForcedArity doesn't match the one encoded in the name.
         /// </summary>
-        public int ForcedArity
+        public readonly int ForcedArity
         {
             get
             {
@@ -282,7 +285,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public bool IsNull
+        public readonly bool IsNull
         {
             get
             {

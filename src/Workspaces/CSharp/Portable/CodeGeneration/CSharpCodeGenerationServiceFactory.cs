@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Host;
@@ -13,13 +14,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
     internal partial class CSharpCodeGenerationServiceFactory : ILanguageServiceFactory
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpCodeGenerationServiceFactory()
         {
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices provider)
-        {
-            return new CSharpCodeGenerationService(provider);
-        }
+            => new CSharpCodeGenerationService(provider);
     }
 }

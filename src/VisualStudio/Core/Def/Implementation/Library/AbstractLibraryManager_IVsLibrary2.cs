@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
@@ -12,9 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
     internal partial class AbstractLibraryManager : IVsLibrary2
     {
         int IVsLibrary2.AddBrowseContainer(VSCOMPONENTSELECTORDATA[] pcdComponent, ref uint pgrfOptions, string[] pbstrComponentAdded)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         int IVsLibrary2.CreateNavInfo(SYMBOL_DESCRIPTION_NODE[] rgSymbolNodes, uint ulcNodes, out IVsNavInfo ppNavInfo)
         {
@@ -23,9 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
         }
 
         int IVsLibrary2.GetBrowseContainersForHierarchy(IVsHierarchy pHierarchy, uint celt, VSBROWSECONTAINER[] rgBrowseContainers, uint[] pcActual)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         int IVsLibrary2.GetGuid(out IntPtr ppguidLib)
         {
@@ -52,9 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
         }
 
         int IVsLibrary2.GetSeparatorString(IntPtr pszSeparator)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         int IVsLibrary2.GetSupportedCategoryFields2(int category, out uint pgrfCatField)
         {
@@ -63,19 +59,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
         }
 
         int IVsLibrary2.LoadState(IStream pIStream, LIB_PERSISTTYPE lptType)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         int IVsLibrary2.RemoveBrowseContainer(uint dwReserved, string pszLibName)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         int IVsLibrary2.SaveState(IStream pIStream, LIB_PERSISTTYPE lptType)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         int IVsLibrary2.UpdateCounter(out uint pCurUpdate)
         {

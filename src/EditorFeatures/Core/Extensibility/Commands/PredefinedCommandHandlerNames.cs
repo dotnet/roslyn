@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 
 namespace Microsoft.CodeAnalysis.Editor
@@ -168,8 +170,23 @@ namespace Microsoft.CodeAnalysis.Editor
         public const string PasteTrackingPaste = "Paste Tracking Paste Command Handler";
 
         /// <summary>
+        /// Command handler name for Paste in Add Imports.
+        /// </summary>
+        public const string AddImportsPaste = "Add Imports Paste Command Handler";
+
+        /// <summary>
         /// Command handler name for Edit and Continue file save handler.
         /// </summary>
         public const string EditAndContinueFileSave = "Edit and Continue Save File Handler";
+
+        /// <summary>
+        /// Command handler name for showing the Value Tracking tool window.
+        /// </summary>
+        public const string ShowValueTracking = "Show Value Tracking";
+
+        /// <summary>
+        /// Command handler name for showing the Callstack Explorer tool window.
+        /// </summary>
+        public const string ShowCallstackExplorer = "Show Callstack Explorer";
     }
 }

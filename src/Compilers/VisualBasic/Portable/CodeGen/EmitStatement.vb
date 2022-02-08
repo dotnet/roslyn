@@ -13,7 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
-    Friend Partial Class CodeGenerator
+    Partial Friend Class CodeGenerator
         Private Sub EmitStatement(statement As BoundStatement)
             Select Case statement.Kind
 
@@ -1105,7 +1105,7 @@ OtherExpressions:
                 _builder.EmitOpCode(ILOpCode.[Call], stackAdjustment:=0)
                 _builder.EmitToken(stringHashMethodRef, syntaxNode, _diagnostics)
 
-                Dim UInt32Type = DirectCast(_module.GetSpecialType(SpecialType.System_UInt32, syntaxNode, _diagnostics), TypeSymbol)
+                Dim UInt32Type = DirectCast(_module.GetSpecialType(SpecialType.System_UInt32, syntaxNode, _diagnostics).GetInternalSymbol(), TypeSymbol)
                 keyHash = AllocateTemp(UInt32Type, syntaxNode)
 
                 _builder.EmitLocalStore(keyHash)
@@ -1426,7 +1426,10 @@ OtherExpressions:
             _builder.OpenLocalScope(ScopeType.StateMachineVariable)
 
             For Each field In scope.Fields
-                DefineUserDefinedStateMachineHoistedLocal(DirectCast(field, StateMachineFieldSymbol))
+                Dim stateMachineField = DirectCast(field, StateMachineFieldSymbol)
+                If stateMachineField.SlotIndex >= 0 Then
+                    DefineUserDefinedStateMachineHoistedLocal(stateMachineField)
+                End If
             Next
 
             EmitStatement(scope.Statement)

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.  
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -16,11 +18,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Wa
         public string ProblemsListViewAutomationText => ServicesVSResources.Review_Changes;
 
         public PullMemberUpWarningViewModel(PullMembersUpOptions options)
-        {
-            WarningMessageContainer = GenerateMessage(options);
-        }
+            => WarningMessageContainer = GenerateMessage(options);
 
-        private ImmutableArray<string> GenerateMessage(PullMembersUpOptions options)
+        private static ImmutableArray<string> GenerateMessage(PullMembersUpOptions options)
         {
             var warningMessagesBuilder = ImmutableArray.CreateBuilder<string>();
 

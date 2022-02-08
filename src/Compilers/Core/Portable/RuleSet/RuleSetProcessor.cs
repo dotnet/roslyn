@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -54,20 +56,15 @@ namespace Microsoft.CodeAnalysis
         /// Creates and loads the rule set from a file
         /// </summary>
         /// <param name="filePath">The file path to load the rule set</param>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.FxCop.Rules.Security.Xml.SecurityXmlRules", "CA3053:UseXmlSecureResolver",
-            MessageId = "System.Xml.XmlReader.Create",
-            Justification = @"For the call to XmlReader.Create() below, CA3053 recommends setting the
-XmlReaderSettings.XmlResolver property to either null or an instance of XmlSecureResolver.
-However, the said XmlResolver property no longer exists in .NET portable framework (i.e. core framework) which means there is no way to set it.
-So we suppress this error until the reporting for CA3053 has been updated to account for .NET portable framework.")]
+#nullable enable
         public static RuleSet LoadFromFile(string filePath)
         {
             // First read the file without doing any validation
             filePath = FileUtilities.NormalizeAbsolutePath(filePath);
             XmlReaderSettings settings = GetDefaultXmlReaderSettings();
 
-            XDocument ruleSetDocument = null;
-            XElement ruleSetNode = null;
+            XDocument? ruleSetDocument = null;
+            XElement? ruleSetNode = null;
 
             using (Stream stream = FileUtilities.OpenRead(filePath))
             using (XmlReader xmlReader = XmlReader.Create(stream, settings))
@@ -143,6 +140,7 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
 
             return new RuleSet(filePath, generalOption, specificOptions.ToImmutable(), includes.ToImmutable());
         }
+#nullable disable
 
         /// <summary>
         /// Load the rules from the XML node

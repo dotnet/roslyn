@@ -2,30 +2,28 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.AssignOutParameters;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
+using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeFixVerifier<
+    Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer,
+    Microsoft.CodeAnalysis.CSharp.AssignOutParameters.AssignOutParametersAboveReturnCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
 {
-    public partial class AssignOutParametersAboveReturnTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class AssignOutParametersAboveReturnTests
     {
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (null, new AssignOutParametersAboveReturnCodeFixProvider());
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestForSimpleReturn()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"class C
 {
     char M(out int i)
     {
-        [|return 'a';|]
+        {|CS0177:return 'a';|}
     }
 }",
 @"class C
@@ -41,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestForSwitchSectionReturn()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"class C
 {
     char M(out int i)
@@ -49,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         switch (0)
         {
             default:
-                [|return 'a';|]
+                {|CS0177:return 'a';|}
         }
     }
 }",
@@ -70,21 +68,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestMissingWhenVariableAssigned()
         {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
+            var code = @"class C
 {
     char M(out int i)
     {
         i = 0;
-        [|return 'a';|]
+        return 'a';
     }
-}");
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestWhenNotAssignedThroughAllPaths1()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"class C
 {
     char M(bool b, out int i)
@@ -92,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         if (b)
             i = 1;
         
-        [|return 'a';|]
+        {|CS0177:return 'a';|}
     }
 }",
 @"class C
@@ -110,12 +109,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestWhenNotAssignedThroughAllPaths2()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"class C
 {
     bool M(out int i1, out int i2)
     {
-        [|return Try(out i1) || Try(out i2);|]
+        {|CS0177:return Try(out i1) || Try(out i2);|}
     }
 
     bool Try(out int i)
@@ -143,30 +142,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestMissingWhenAssignedThroughAllPaths()
         {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
+            var code = @"class C
 {
-    char M(out int i)
+    char M(bool b, out int i)
     {
         if (b)
             i = 1;
         else
             i = 2;
         
-        [|return 'a';|]
+        return 'a';
     }
-}");
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestMultiple()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"class C
 {
     char M(out int i, out string s)
     {
-        [|return 'a';|]
+        {|CS0177:{|CS0177:return 'a';|}|}
     }
 }",
 @"class C
@@ -183,20 +183,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestMultiple_AssignedInReturn1()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"class C
 {
-    char M(out int i, out string s)
+    string M(out int i, out string s)
     {
-        [|return s = "";|]
+        {|CS0177:return s = """";|}
     }
 }",
 @"class C
 {
-    char M(out int i, out string s)
+    string M(out int i, out string s)
     {
         i = 0;
-        return s = "";
+        return s = """";
     }
 }");
         }
@@ -204,17 +204,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestMultiple_AssignedInReturn2()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"class C
 {
-    char M(out int i, out string s)
+    string M(out int i, out string s)
     {
-        [|return (i = 0).ToString();|]
+        {|CS0177:return (i = 0).ToString();|}
     }
 }",
 @"class C
 {
-    char M(out int i, out string s)
+    string M(out int i, out string s)
     {
         s = null;
         return (i = 0).ToString();
@@ -225,14 +225,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestNestedReturn()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"class C
 {
     char M(out int i)
     {
         if (true)
         {
-            [|return 'a';|]
+            {|CS0177:return 'a';|}
         }
     }
 }",
@@ -252,13 +252,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestNestedReturnNoBlock()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"class C
 {
     char M(out int i)
     {
         if (true)
-            [|return 'a';|]
+            {|CS0177:return 'a';|}
     }
 }",
 @"class C
@@ -277,17 +277,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestNestedReturnEvenWhenWrittenAfter()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"class C
 {
     char M(bool b, out int i)
     {
         if (b)
         {
-            [|return 'a';|]
+            {|CS0177:return 'a';|}
         }
 
         i = 1;
+        throw null;
     }
 }",
 @"class C
@@ -301,6 +302,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         }
 
         i = 1;
+        throw null;
     }
 }");
         }
@@ -308,10 +310,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestForExpressionBodyMember()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"class C
 {
-    char M(out int i) => [|'a';|]
+    char M(out int i) => {|CS0177:'a'|};
 }",
 @"class C
 {
@@ -326,13 +328,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestForLambdaExpressionBody()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"class C
 {
     delegate char D(out int i);
     void X()
     {
-        D d = (out int i) => [|'a';|]
+        D d = (out int i) => {|CS0177:'a'|};
     }
 }",
 @"class C
@@ -348,14 +350,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestMissingForLocalFunctionExpressionBody()
         {
-            // Note desirable.  Happens because error is not reported on expr-body
-            // like for lambdas.
-            await TestMissingInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"class C
 {
     void X()
     {
-        char D(out int i) => [|'a';|]
+        char {|CS0177:D|}(out int i) => 'a';
+        D(out _);
+    }
+}",
+@"class C
+{
+    void X()
+    {
+        char D(out int i) { i = 0; return 'a'; }
+
         D(out _);
     }
 }");
@@ -364,7 +373,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestForLambdaBlockBody()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"class C
 {
     delegate char D(out int i);
@@ -372,8 +381,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
     {
         D d = (out int i) =>
         {
-            [|return 'a';|]
-        }
+            {|CS0177:return 'a';|}
+        };
     }
 }",
 @"class C
@@ -385,7 +394,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         {
             i = 0;
             return 'a';
-        }
+        };
     }
 }");
         }
@@ -393,14 +402,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestForLocalFunctionBlockBody()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"class C
 {
     void X()
     {
         char D(out int i)
         {
-            [|return 'a';|]
+            {|CS0177:return 'a';|}
         }
 
         D(out _);
@@ -424,8 +433,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestForOutParamInSinglePath()
         {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
+            var code = @"class C
 {
     char M(bool b, out int i)
     {
@@ -434,28 +442,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         else
             SomeMethod(out i);
 
-        [|return 'a';|]
+        return 'a';
     }
 
     void SomeMethod(out int i) => i = 0;
-}");
+}";
+
+            await VerifyCS.VerifyCodeFixAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestFixAll1()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"class C
 {
     char M(bool b, out int i, out int j)
     {
         if (b)
         {
-            {|FixAllInDocument:return 'a';|}
+            {|CS0177:{|CS0177:return 'a';|}|}
         }
         else
         {
-            return 'a';
+            {|CS0177:{|CS0177:return 'a';|}|}
         }
     }
 }",
@@ -482,29 +492,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestFixAll1_MultipleMethods()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"class C
 {
     char M(bool b, out int i, out int j)
     {
         if (b)
         {
-            {|FixAllInDocument:return 'a';|}
+            {|CS0177:{|CS0177:return 'a';|}|}
         }
         else
         {
-            return 'a';
+            {|CS0177:{|CS0177:return 'a';|}|}
         }
     }
     char N(bool b, out int i, out int j)
     {
         if (b)
         {
-            return 'a';
+            {|CS0177:{|CS0177:return 'a';|}|}
         }
         else
         {
-            return 'a';
+            {|CS0177:{|CS0177:return 'a';|}|}
         }
     }
 }",
@@ -546,15 +556,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestFixAll2()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"class C
 {
     char M(bool b, out int i, out int j)
     {
         if (b)
-            {|FixAllInDocument:return 'a';|}
+            {|CS0177:{|CS0177:return 'a';|}|}
         else
-            return 'a';
+            {|CS0177:{|CS0177:return 'a';|}|}
     }
 }",
 @"class C
@@ -580,22 +590,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestFixAll2_MultipleMethods()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"class C
 {
     char M(bool b, out int i, out int j)
     {
         if (b)
-            {|FixAllInDocument:return 'a';|}
+            {|CS0177:{|CS0177:return 'a';|}|}
         else
-            return 'a';
+            {|CS0177:{|CS0177:return 'a';|}|}
     }
     char N(bool b, out int i, out int j)
     {
         if (b)
-            return 'a';
+            {|CS0177:{|CS0177:return 'a';|}|}
         else
-            return 'a';
+            {|CS0177:{|CS0177:return 'a';|}|}
     }
 }",
 @"class C
@@ -636,7 +646,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestFixAll3()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"class C
 {
     char M(bool b, out int i, out int j)
@@ -644,12 +654,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         if (b)
         {
             i = 0;
-            {|FixAllInDocument:return 'a';|}
+            {|CS0177:return 'a';|}
         }
         else
         {
             j = 0;
-            return 'a';
+            {|CS0177:return 'a';|}
         }
     }
 }",
@@ -676,7 +686,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAssignOutParameters)]
         public async Task TestFixAll3_MultipleMethods()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyCodeFixAsync(
 @"class C
 {
     char M(bool b, out int i, out int j)
@@ -684,12 +694,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         if (b)
         {
             i = 0;
-            {|FixAllInDocument:return 'a';|}
+            {|CS0177:return 'a';|}
         }
         else
         {
             j = 0;
-            return 'a';
+            {|CS0177:return 'a';|}
         }
     }
     char N(bool b, out int i, out int j)
@@ -697,12 +707,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AssignOutParameters
         if (b)
         {
             i = 0;
-            return 'a';
+            {|CS0177:return 'a';|}
         }
         else
         {
             j = 0;
-            return 'a';
+            {|CS0177:return 'a';|}
         }
     }
 }",

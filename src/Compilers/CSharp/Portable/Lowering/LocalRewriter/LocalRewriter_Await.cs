@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression VisitAwaitExpression(BoundAwaitExpression node, bool used)
         {
-            return RewriteAwaitExpression((BoundExpression)base.VisitAwaitExpression(node), used);
+            return RewriteAwaitExpression((BoundExpression)base.VisitAwaitExpression(node)!, used);
         }
 
         private BoundExpression RewriteAwaitExpression(SyntaxNode syntax, BoundExpression rewrittenExpression, BoundAwaitableInfo awaitableInfo, TypeSymbol type, bool used)

@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddConstructorParametersFromMembers
-    Public Class AddConstructorParameterFromMembersTests
+    Public Class AddConstructorParametersFromMembersTests
         Inherits AbstractVisualBasicCodeActionTest
 
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
@@ -562,6 +562,372 @@ End Class",
         Me.p = p
     End Sub
 End Class", index:=2, title:=String.Format(FeaturesResources.Add_to_0, "Program(Integer, Integer, Integer)"))
+        End Function
+
+        <WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        public async function TestNonSelection1() As Task
+            Await TestInRegularAndScriptAsync(
+"imports System.Collections.Generic
+
+class Program
+    dim i As Integer
+  [||]  dim s As String
+
+    public sub new(i As Integer)
+        Me.i = i
+    end sub
+end class",
+"imports System.Collections.Generic
+
+class Program
+    dim i As Integer
+    dim s As String
+
+    public sub new(i As Integer, s As String)
+        Me.i = i
+        Me.s = s
+    end sub
+end class", title:=String.Format(FeaturesResources.Add_parameters_to_0, "Program(Integer)"))
+        End Function
+
+        <WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        Public Async Function TestNonSelection2() As Task
+            Await TestInRegularAndScriptAsync(
+"imports System.Collections.Generic
+
+class Program
+    dim i As Integer
+    [||]dim s As String
+
+    public sub new(i As Integer)
+        Me.i = i
+    end sub
+end class",
+"imports System.Collections.Generic
+
+class Program
+    dim i As Integer
+    dim s As String
+
+    public sub new(i As Integer, s As String)
+        Me.i = i
+        Me.s = s
+    end sub
+end class", title:=String.Format(FeaturesResources.Add_parameters_to_0, "Program(Integer)"))
+        End Function
+
+        <WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        Public Async Function TestNonSelection3() As Task
+            Await TestInRegularAndScriptAsync(
+"imports System.Collections.Generic
+
+class Program
+    dim i As Integer
+    dim [||]s As String
+
+    public sub new(i As Integer)
+        Me.i = i
+    end sub
+end class",
+"imports System.Collections.Generic
+
+class Program
+    dim i As Integer
+    dim s As String
+
+    public sub new(i As Integer, s As String)
+        Me.i = i
+        Me.s = s
+    end sub
+end class", title:=String.Format(FeaturesResources.Add_parameters_to_0, "Program(Integer)"))
+        End Function
+
+        <WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        Public Async Function TestNonSelection4() As Task
+            Await TestInRegularAndScriptAsync(
+"imports System.Collections.Generic
+
+class Program
+    dim i As Integer
+    dim s[||] As String
+
+    public sub new(i As Integer)
+        Me.i = i
+    end sub
+end class",
+"imports System.Collections.Generic
+
+class Program
+    dim i As Integer
+    dim s As String
+
+    public sub new(i As Integer, s As String)
+        Me.i = i
+        Me.s = s
+    end sub
+end class", title:=String.Format(FeaturesResources.Add_parameters_to_0, "Program(Integer)"))
+        End Function
+
+        <WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        Public Async Function TestNonSelection5() As Task
+            Await TestInRegularAndScriptAsync(
+"imports System.Collections.Generic
+
+class Program
+    dim i As Integer
+    dim s As String [||]
+
+    public sub new(i As Integer)
+        Me.i = i
+    end sub
+end class",
+"imports System.Collections.Generic
+
+class Program
+    dim i As Integer
+    dim s As String
+
+    public sub new(i As Integer, s As String)
+        Me.i = i
+        Me.s = s
+    end sub
+end class", title:=String.Format(FeaturesResources.Add_parameters_to_0, "Program(Integer)"))
+        End Function
+
+        <WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        Public Async Function TestNonSelectionMultiVar1() As Task
+            Await TestInRegularAndScriptAsync(
+"imports System.Collection.Generic
+
+class Program
+    dim i As Integer
+    [||]dim s, t As String
+
+    public sub new(i As Integer)
+        Me.i = i
+    end sub
+end class",
+"imports System.Collection.Generic
+
+class Program
+    dim i As Integer
+    dim s, t As String
+
+    public sub new(i As Integer, s As String, t As String)
+        Me.i = i
+        Me.s = s
+        Me.t = t
+    end sub
+end class", title:=String.Format(FeaturesResources.Add_parameters_to_0, "Program(Integer)"))
+        End Function
+
+        <WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        Public Async Function TestNonSelectionMultiVar2() As Task
+            Await TestInRegularAndScriptAsync(
+"imports System.Collection.Generic
+
+class Program
+    dim i As Integer
+    dim s, t As String[||]
+
+    public sub new(i As Integer)
+        Me.i = i
+    end sub
+end class",
+"imports System.Collection.Generic
+
+class Program
+    dim i As Integer
+    dim s, t As String
+
+    public sub new(i As Integer, s As String, t As String)
+        Me.i = i
+        Me.s = s
+        Me.t = t
+    end sub
+end class", title:=String.Format(FeaturesResources.Add_parameters_to_0, "Program(Integer)"))
+        End Function
+
+        <WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        Public Async Function TestNonSelectionMultiVar3() As Task
+            Await TestInRegularAndScriptAsync(
+"imports System.Collection.Generic
+
+class Program
+    dim i As Integer
+    dim [||]s, t As String
+
+    public sub new(i As Integer)
+        Me.i = i
+    end sub
+end class",
+"imports System.Collection.Generic
+
+class Program
+    dim i As Integer
+    dim s, t As String
+
+    public sub new(i As Integer, s As String)
+        Me.i = i
+        Me.s = s
+    end sub
+end class", title:=String.Format(FeaturesResources.Add_parameters_to_0, "Program(Integer)"))
+        End Function
+
+        <WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        Public Async Function TestNonSelectionMultiVar4() As Task
+            Await TestInRegularAndScriptAsync(
+"imports System.Collection.Generic
+
+class Program
+    dim i As Integer
+    dim s[||], t As String
+
+    public sub new(i As Integer)
+        Me.i = i
+    end sub
+end class",
+"imports System.Collection.Generic
+
+class Program
+    dim i As Integer
+    dim s, t As String
+
+    public sub new(i As Integer, s As String)
+        Me.i = i
+        Me.s = s
+    end sub
+end class", title:=String.Format(FeaturesResources.Add_parameters_to_0, "Program(Integer)"))
+        End Function
+
+        <WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        Public Async Function TestNonSelectionMultiVar5() As Task
+            Await TestInRegularAndScriptAsync(
+"imports System.Collection.Generic
+
+class Program
+    dim i As Integer
+    dim s, [||]t As String
+
+    public sub new(i As Integer)
+        Me.i = i
+    end sub
+end class",
+"imports System.Collection.Generic
+
+class Program
+    dim i As Integer
+    dim s, t As String
+
+    public sub new(i As Integer, t As String)
+        Me.i = i
+        Me.t = t
+    end sub
+end class", title:=String.Format(FeaturesResources.Add_parameters_to_0, "Program(Integer)"))
+        End Function
+
+        <WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        Public Async Function TestNonSelectionMultiVar6() As Task
+            Await TestInRegularAndScriptAsync(
+"imports System.Collection.Generic
+
+class Program
+    dim i As Integer
+    dim s, t[||] As String
+
+    public sub new(i As Integer)
+        Me.i = i
+    end sub
+end class",
+"imports System.Collection.Generic
+
+class Program
+    dim i As Integer
+    dim s, t As String
+
+    public sub new(i As Integer, t As String)
+        Me.i = i
+        Me.t = t
+    end sub
+end class", title:=String.Format(FeaturesResources.Add_parameters_to_0, "Program(Integer)"))
+        End Function
+
+        <WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        Public Async Function TestNonSelectionMissing1() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"imports System.Collection.Generic
+
+class Program
+    dim i As Integer
+    [||]
+    dim s, t As String
+
+    public sub new(i As Integer)
+        Me.i = i
+    end sub
+}")
+        End Function
+
+        <WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        Public Async Function TestNonSelectionMissing2() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"imports System.Collection.Generic
+
+class Program
+{
+    dim i As Integer
+    d[||]im s, t As String
+
+    public sub new(i As Integer)
+        Me.i = i
+    end sub
+}")
+        End Function
+
+        <WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        Public Async Function TestNonSelectionMissing3() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"imports System.Collection.Generic
+
+class Program
+    dim i As Integer
+    dim[||] s, t As String
+
+    public sub new(i As Integer)
+    {
+        Me.i = i
+    end sub
+}")
+        End Function
+
+        <WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        Public Async Function TestNonSelectionMissing4() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"imports System.Collection.Generic
+
+class Program
+    dim i As Integer
+    dim s,[||] t As String
+
+    public sub new(i As Integer)
+        Me.i = i
+    end sub
+}")
         End Function
     End Class
 End Namespace

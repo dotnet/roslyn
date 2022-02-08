@@ -1,160 +1,197 @@
 # Branches that trigger a build on commit
 trigger:
-- master
-- master-vs-deps
+- main
+- main-vs-deps
 - release/*
 - features/*
 - demos/*
 
 # Branches that trigger builds on PR
 pr:
-- master
-- master-vs-deps
-- release/*
-- features/*
-- demos/*
+  branches:
+    include:
+    - main
+    - main-vs-deps
+    - release/*
+    - features/*
+    - demos/*
+  paths:
+    exclude:
+      - docs/*
+      - .github/*
 
+# Windows Build and Test Jobs
 jobs:
-- job: Windows_Desktop_Unit_Tests
+- template: eng/pipelines/build-windows-job.yml
+  parameters:
+    jobName: Build_Windows_Debug
+    testArtifactName: Transport_Artifacts_Windows_Debug
+    configuration: Debug
+    queueName: Build.Windows.Amd64.VS2022.Pre.Open
+
+- template: eng/pipelines/build-windows-job.yml
+  parameters:
+    jobName: Build_Windows_Release
+    testArtifactName: Transport_Artifacts_Windows_Release
+    configuration: Release
+    queueName: Build.Windows.Amd64.VS2022.Pre.Open
+
+- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+  - template: eng/pipelines/test-windows-job.yml
+    parameters:
+      testRunName: 'Test Windows Desktop Debug 32'
+      jobName: Test_Windows_Desktop_Debug_32
+      buildJobName: Build_Windows_Debug
+      testArtifactName: Transport_Artifacts_Windows_Debug
+      configuration: Debug
+      testArguments: -testDesktop -test32
+
+- template: eng/pipelines/test-windows-job.yml
+  parameters:
+    testRunName: 'Test Windows Desktop Debug 64'
+    jobName: Test_Windows_Desktop_Debug_64
+    buildJobName: Build_Windows_Debug
+    testArtifactName: Transport_Artifacts_Windows_Debug
+    configuration: Debug
+    testArguments: -testDesktop -test64
+
+- template: eng/pipelines/test-windows-job.yml
+  parameters:
+    testRunName: 'Test Windows CoreClr Debug'
+    jobName: Test_Windows_CoreClr_Debug
+    buildJobName: Build_Windows_Debug
+    testArtifactName: Transport_Artifacts_Windows_Debug
+    configuration: Debug
+    testArguments: -testCoreClr
+
+- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+  - template: eng/pipelines/test-windows-job-single-machine.yml
+    parameters:
+      testRunName: 'Test Windows CoreClr Debug Single Machine'
+      jobName: Test_Windows_CoreClr_Debug_Single_Machine
+      buildJobName: Build_Windows_Debug
+      testArtifactName: Transport_Artifacts_Windows_Debug
+      configuration: Debug
+      testArguments: -testCoreClr
+
+- template: eng/pipelines/test-windows-job.yml
+  parameters:
+    testRunName: 'Test Windows Desktop Release 32'
+    jobName: Test_Windows_Desktop_Release_32
+    buildJobName: Build_Windows_Release
+    testArtifactName: Transport_Artifacts_Windows_Release
+    configuration: Release
+    testArguments: -testDesktop -test32
+
+- template: eng/pipelines/test-windows-job.yml
+  parameters:
+    testRunName: 'Test Windows Desktop Spanish Release 64'
+    jobName: Test_Windows_Desktop_Spanish_Release_64
+    buildJobName: Build_Windows_Release
+    testArtifactName: Transport_Artifacts_Windows_Release
+    configuration: Release
+    testArguments: -testDesktop -test64 -helixQueueName Windows.10.Amd64.Server19H1.ES.Open
+
+- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+  - template: eng/pipelines/test-windows-job.yml
+    parameters:
+      testRunName: 'Test Windows Desktop Release 64'
+      jobName: Test_Windows_Desktop_Release_64
+      buildJobName: Build_Windows_Release
+      testArtifactName: Transport_Artifacts_Windows_Release
+      configuration: Release
+      testArguments: -testDesktop -test64
+
+- template: eng/pipelines/test-windows-job.yml
+  parameters:
+    testRunName: 'Test Windows CoreClr Release'
+    jobName: Test_Windows_CoreClr_Release
+    buildJobName: Build_Windows_Release
+    testArtifactName: Transport_Artifacts_Windows_Release
+    configuration: Release
+    testArguments: -testCoreClr
+
+- template: eng/pipelines/test-windows-job.yml
+  parameters:
+    testRunName: 'Test Windows CoreCLR IOperation Debug'
+    jobName: Test_Windows_CoreClr_IOperation_Debug
+    buildJobName: Build_Windows_Debug
+    testArtifactName: Transport_Artifacts_Windows_Debug
+    configuration: Debug
+    testArguments: -testCoreClr -testIOperation -testCompilerOnly
+
+# Unix Build and Test Jobs
+- template: eng/pipelines/build-unix-job.yml
+  parameters:
+    jobName: Build_Unix_Debug
+    testArtifactName: Transport_Artifacts_Unix_Debug
+    configuration: Debug
+    queueName: Build.Ubuntu.1804.Amd64.Open
+
+- template: eng/pipelines/test-unix-job.yml
+  parameters:
+    testRunName: 'Test Linux Debug'
+    jobName: Test_Linux_Debug
+    buildJobName: Build_Unix_Debug
+    testArtifactName: Transport_Artifacts_Unix_Debug
+    configuration: Debug
+    testArguments: --testCoreClr --helixQueueName Ubuntu.1804.Amd64.Open
+
+- ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+  - template: eng/pipelines/test-unix-job-single-machine.yml
+    parameters:
+      testRunName: 'Test Linux Debug Single Machine'
+      jobName: Test_Linux_Debug_Single_Machine
+      buildJobName: Build_Unix_Debug
+      testArtifactName: Transport_Artifacts_Unix_Debug
+      configuration: Debug
+      testArguments: --testCoreClr
+      queueName: 'Build.Ubuntu.1804.amd64.Open'
+
+- template: eng/pipelines/test-unix-job.yml
+  parameters:
+    testRunName: 'Test macOS Debug'
+    jobName: Test_macOS_Debug
+    buildJobName: Build_Unix_Debug
+    testArtifactName: Transport_Artifacts_Unix_Debug
+    configuration: Debug
+    testArguments: --testCoreClr --helixQueueName OSX.1015.Amd64.Open
+
+- template: eng/common/templates/jobs/source-build.yml
+
+# Build Correctness Jobs
+
+- job: Correctness_Determinism
   pool:
-    name: NetCorePublic-Pool
-    queue: BuildPool.Windows.10.Amd64.Open
-  strategy:
-    maxParallel: 4
-    matrix:
-      debug_32:
-        _configuration: Debug
-        _testKind: Test32
-      debug_64:
-        _configuration: Debug
-        _testKind: Test64
-      release_32:
-        _configuration: Release
-        _testKind: Test32
-      release_64:
-        _configuration: Release
-        _testKind: Test64
-  timeoutInMinutes: 90
-
-  steps:
-    - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -testDesktop -$(_testKind) -procdump -skipAnalyzers
-      displayName: Build and Test
-
-    - task: PublishTestResults@2
-      displayName: Publish xUnit Test Results
-      inputs:
-        testRunner: XUnit
-        testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\$(_configuration)\*.xml'
-        mergeTestResults: true
-        testRunTitle: 'Windows Desktop $(_configuration) $(_testKind)'
-      condition: always()
-
-    - task: PublishBuildArtifacts@1
-      displayName: Publish Logs
-      inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\$(_configuration)'
-        ArtifactName: 'Windows Desktop $(_configuration) $(_testKind)' 
-        publishLocation: Container
-      continueOnError: true
-      condition: not(succeeded())
-
-- job: Windows_Desktop_Spanish_Unit_Tests
-  pool:
-    name: NetCorePublic-Pool
-    queue: BuildPool.Windows.10.Amd64.ES.VS2017.Open
-  timeoutInMinutes: 90
-
-  steps:
-    - script: eng/cibuild.cmd -configuration Debug -prepareMachine -testDesktop -skipAnalyzers
-      displayName: Build and Test
-
-    - task: PublishTestResults@2
-      displayName: Publish xUnit Test Results
-      inputs:
-        testRunner: XUnit
-        testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\Debug\*.xml'
-        mergeTestResults: true
-        testRunTitle: 'Windows Desktop Spanish'
-      condition: always()
-
-    - task: PublishBuildArtifacts@1
-      inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\Debug'
-        ArtifactName: 'Windows Desktop Spanish' 
-        publishLocation: Container
-      continueOnError: true
-      condition: not(succeeded())
-
-- job: Windows_CoreClr_Unit_Tests
-  pool:
-    name: NetCorePublic-Pool
-    queue: BuildPool.Windows.10.Amd64.VS2017.Open
-  strategy:
-    maxParallel: 2
-    matrix:
-      debug:
-        _configuration: Debug
-      release:
-        _configuration: Release
-  timeoutInMinutes: 90
-
-  steps:
-    - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -msbuildEngine:dotnet -testCoreClr -skipAnalyzers
-      displayName: Build and Test
-
-    - task: PublishTestResults@2
-      displayName: Publish xUnit Test Results
-      inputs:
-        testRunner: XUnit
-        testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\$(_configuration)\*.xml'
-        mergeTestResults: true
-        testRunTitle: 'Windows CoreClr $(_configuration)'
-      condition: always()
-
-    - task: PublishBuildArtifacts@1
-      displayName: Publish Logs
-      inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\$(_configuration)'
-        ArtifactName: 'Windows CoreClr $(_configuration)'
-        publishLocation: Container
-      continueOnError: true
-      condition: not(succeeded())
-           
-- job: Windows_Determinism_Test
-  pool:
-    name: NetCorePublic-Pool
-    queue: BuildPool.Windows.10.Amd64.VS2017.Open
+    name: NetCore1ESPool-Public
+    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
   timeoutInMinutes: 90
   steps:
+    - template: eng/pipelines/checkout-windows-task.yml
+
     - script: eng/test-determinism.cmd -configuration Debug
       displayName: Build - Validate determinism
 
-    - task: PublishBuildArtifacts@1
-      displayName: Publish Logs
-      inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\Debug'
-        ArtifactName: 'Build Determinism Files'
-        publishLocation: Container
-      continueOnError: true
-      condition: not(succeeded())
+    - template: eng/pipelines/publish-logs.yml
+      parameters:
+        jobName: Correctness_Determinism
+        configuration: Debug
 
-- job: Windows_Correctness_Test
+- job: Correctness_Build
   pool:
-    name: NetCorePublic-Pool
-    queue: BuildPool.Windows.10.Amd64.VS2017.Open
+    name: NetCore1ESPool-Public
+    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
   timeoutInMinutes: 90
   steps:
-    - script: eng/test-build-correctness.cmd -configuration Release
+    - template: eng/pipelines/checkout-windows-task.yml
+
+    - script: eng/test-build-correctness.cmd -configuration Release -enableDumps
       displayName: Build - Validate correctness
 
-    - task: PublishBuildArtifacts@1
-      displayName: Publish Logs
-      inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\Release'
-        ArtifactName: 'Build Correctness Files'
-        publishLocation: Container
-      continueOnError: true
-      condition: not(succeeded())
+    - template: eng/pipelines/publish-logs.yml
+      parameters:
+        jobName: Correctness_Build
+        configuration: Release
 
     - task: PublishBuildArtifacts@1
       displayName: Publish Artifact Packages
@@ -172,85 +209,33 @@ jobs:
         publishLocation: Container
       condition: succeeded()
 
-- job: Linux_Test
+- job: Correctness_Rebuild
   pool:
-   name: NetCorePublic-Pool
-   queue: BuildPool.Ubuntu.1604.amd64.Open
-  strategy:
-    maxParallel: 2
-    matrix:
-      coreclr:
-        _args: --testCoreClr --docker
-        _name: CoreClr
-        _configuration: Debug
-# Disabling Mono while https://github.com/mono/mono/issues/16373 is worked out
-#      mono:
-#        _args: --testMono --docker
-#        _name: Mono
-#        _configuration: Debug
+    name: NetCore1ESPool-Public
+    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
   timeoutInMinutes: 90
   steps:
-    - script: ./eng/cibuild.sh --configuration $(_configuration) --prepareMachine --skipAnalyzers $(_args)
-      displayName: Build and Test
-    - task: PublishTestResults@2
-      displayName: Publish xUnit Test Results
+    - template: eng/pipelines/checkout-windows-task.yml
+
+    - task: PowerShell@2
+      displayName: Restore
       inputs:
-        testRunner: XUnit
-        testResultsFiles: '$(Build.SourcesDirectory)/artifacts/TestResults/$(_configuration)/*.xml'
-        mergeTestResults: true
-        testRunTitle: 'Linux $(_name)'
-      condition: always()
+        filePath: eng/build.ps1
+        arguments: -configuration Debug -prepareMachine -ci -restore -binaryLog
+
+    - powershell: .\eng\test-rebuild.ps1 -ci -configuration Release
+      displayName: Run BuildValidator
 
     - task: PublishBuildArtifacts@1
-      displayName: Publish Logs
+      displayName: Publish BuildValidator debug outputs
       inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)/artifacts/log/$(_configuration)'
-        ArtifactName: 'Linux $(_name)'
+        PathtoPublish: '$(Build.SourcesDirectory)/artifacts/BuildValidator'
+        ArtifactName: 'BuildValidator_DebugOut'
         publishLocation: Container
       continueOnError: true
-      condition: not(succeeded())
+      condition: failed()
 
-- job: SourceBuild_Test
-  pool:
-   name: NetCorePublic-Pool
-   queue: BuildPool.Ubuntu.1604.amd64.Open
-  timeoutInMinutes: 90
-  steps:
-    - script: ./eng/cibuild.sh --configuration Debug --prepareMachine --docker --sourceBuild --skipAnalyzers
-      displayName: Build
-    - task: PublishBuildArtifacts@1
-      displayName: Publish Logs
-      inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)/artifacts/log/Debug'
-        ArtifactName: 'SourceBuild_Test'
-        publishLocation: Container
-      continueOnError: true
-      condition: not(succeeded())
-
-- job: macOS_Test
-  pool:
-    vmImage: 'macOS-10.13'
-  timeoutInMinutes: 90
-
-  steps:
-    - script: ./eng/cibuild.sh --configuration Debug --prepareMachine --testCoreClr --skipAnalyzers
-      displayName: Build and Test
-
-    - task: PublishTestResults@2
-      displayName: Publish xUnit Test Results
-      inputs:
-        testRunner: XUnit
-        testResultsFiles: '$(Build.SourcesDirectory)/artifacts/TestResults/Debug/*.xml'
-        mergeTestResults: true
-        testRunTitle: 'macOS CoreClr'
-      condition: always()
-
-    - task: PublishBuildArtifacts@1
-      displayName: Publish Logs
-      inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)/artifacts/log/Debug'
-        ArtifactName: 'macOS CoreClr'
-        publishLocation: Container
-      continueOnError: true
-      condition: not(succeeded())
-
+    - template: eng/pipelines/publish-logs.yml
+      parameters:
+        jobName: Correctness_Rebuild
+        configuration: Release

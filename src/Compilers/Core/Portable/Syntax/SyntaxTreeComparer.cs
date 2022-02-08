@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     {
         public static readonly SyntaxTreeComparer Instance = new SyntaxTreeComparer();
 
-        public bool Equals(SyntaxTree x, SyntaxTree y)
+        public bool Equals(SyntaxTree? x, SyntaxTree? y)
         {
             if (x == null)
             {

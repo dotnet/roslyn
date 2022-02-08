@@ -2,24 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition.Hosting;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.LanguageServices;
 using Roslyn.Test.Utilities;
 using Xunit.Sdk;
 
@@ -56,21 +52,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </summary>
         private static readonly TimeSpan CleanupTimeout = TimeSpan.FromMinutes(1);
 
-        // Cache the export provider factory for RoslynServices.RemoteHostAssemblies
-        private static readonly Lazy<IExportProviderFactory> s_remoteHostExportProviderFactory = new Lazy<IExportProviderFactory>(
-            CreateRemoteHostExportProviderFactory,
-            LazyThreadSafetyMode.ExecutionAndPublication);
-
-        private readonly Lazy<MefHostServices> _remoteHostServices = new Lazy<MefHostServices>(
-            CreateRemoteHostServices,
-            LazyThreadSafetyMode.ExecutionAndPublication);
-
         private MefHostServices? _hostServices;
 
-        public override void Before(MethodInfo methodUnderTest)
+        static UseExportProviderAttribute()
         {
+            // Make sure we run the module initializer for Roslyn.Test.Utilities. C# projects do this via a
+            // build-injected module initializer, but VB projects can ensure initialization occurs by applying the
+            // UseExportProviderAttribute to test classes that rely on it.
+            RuntimeHelpers.RunModuleConstructor(typeof(TestBase).Module.ModuleHandle);
+        }
+
+        public override void Before(MethodInfo? methodUnderTest)
+        {
+            // Need to clear cached MefHostServices between test runs.
+            MSBuildMefHostServices.TestAccessor.ClearCachedServices();
             MefHostServices.TestAccessor.HookServiceCreation(CreateMefHostServices);
-            RoslynServices.TestAccessor.HookHostServices(() => _remoteHostServices.Value);
 
             // make sure we enable this for all unit tests
             AsynchronousOperationListenerProvider.Enable(enable: true, diagnostics: true);
@@ -89,62 +85,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// <item>Clearing static state variables related to the use of MEF during a test.</item>
         /// </list>
         /// </remarks>
-        public override void After(MethodInfo methodUnderTest)
+        public override void After(MethodInfo? methodUnderTest)
         {
-            var exportProvider = ExportProviderCache.ExportProviderForCleanup;
             try
             {
-                if (exportProvider?.GetExportedValues<IAsynchronousOperationListenerProvider>().SingleOrDefault() is { } listenerProvider)
-                {
-                    if (exportProvider.GetExportedValues<IThreadingContext>().SingleOrDefault()?.HasMainThread ?? false)
-                    {
-                        // Immediately clear items from the foreground notification service for which cancellation is
-                        // requested. This service maintains a queue separately from Tasks, and work items scheduled for
-                        // execution after a delay are not immediately purged when cancellation is requested. This code
-                        // instructs the service to walk the list of queued work items and immediately cancel and purge any
-                        // which are already cancelled.
-                        var foregroundNotificationService = exportProvider.GetExportedValues<IForegroundNotificationService>().SingleOrDefault() as ForegroundNotificationService;
-                        foregroundNotificationService?.ReleaseCancelledItems();
-                    }
-
-                    // Join remaining operations with a timeout
-                    using (var timeoutTokenSource = new CancellationTokenSource(CleanupTimeout))
-                    {
-                        try
-                        {
-                            var waiter = ((AsynchronousOperationListenerProvider)listenerProvider).WaitAllDispatcherOperationAndTasksAsync();
-                            waiter.JoinUsingDispatcher(timeoutTokenSource.Token);
-                        }
-                        catch (OperationCanceledException ex) when (timeoutTokenSource.IsCancellationRequested)
-                        {
-                            var messageBuilder = new StringBuilder("Failed to clean up listeners in a timely manner.");
-                            foreach (var token in ((AsynchronousOperationListenerProvider)listenerProvider).GetTokens())
-                            {
-                                messageBuilder.AppendLine().Append($"  {token}");
-                            }
-
-                            throw new TimeoutException(messageBuilder.ToString(), ex);
-                        }
-                    }
-
-                    // Verify the synchronization context was not used incorrectly
-                    var testExportJoinableTaskContext = exportProvider.GetExportedValues<TestExportJoinableTaskContext>().SingleOrDefault();
-                    if (testExportJoinableTaskContext?.SynchronizationContext is TestExportJoinableTaskContext.DenyExecutionSynchronizationContext synchronizationContext)
-                    {
-                        synchronizationContext.ThrowIfSwitchOccurred();
-                    }
-                }
+                DisposeExportProvider(ExportProviderCache.LocalExportProviderForCleanup);
+                DisposeExportProvider(ExportProviderCache.RemoteExportProviderForCleanup);
             }
             finally
             {
-                // Dispose of the export provider, including calling Dispose for any IDisposable services created during
-                // the test.
-                exportProvider?.Dispose();
-
+                // Need to clear cached MefHostServices between test runs.
+                MSBuildMefHostServices.TestAccessor.ClearCachedServices();
                 // Replace hooks with ones that always throw exceptions. These hooks detect cases where code executing
                 // after the end of a test attempts to create an ExportProvider.
                 MefHostServices.TestAccessor.HookServiceCreation(DenyMefHostServicesCreationBetweenTests);
-                RoslynServices.TestAccessor.HookHostServices(() => throw new InvalidOperationException("Cannot create host services after test tear down."));
 
                 // Reset static state variables.
                 _hostServices = null;
@@ -152,29 +106,96 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        private MefHostServices CreateMefHostServices(IEnumerable<Assembly> assemblies, bool requestingDefaultAssemblies)
+        private static void DisposeExportProvider(ExportProvider? exportProvider)
         {
-            if (requestingDefaultAssemblies && ExportProviderCache.ExportProviderForCleanup != null)
+            if (exportProvider == null)
             {
-                if (_hostServices == null)
-                {
-                    var hostServices = new ExportProviderMefHostServices(ExportProviderCache.ExportProviderForCleanup);
-                    Interlocked.CompareExchange(ref _hostServices, hostServices, null);
-                }
-
-                return _hostServices;
+                return;
             }
 
-            var catalog = ExportProviderCache.GetOrCreateAssemblyCatalog(assemblies);
+            // Dispose of the export provider, including calling Dispose for any IDisposable services created during the test.
+            using var _ = exportProvider;
+
+            if (exportProvider.GetExportedValues<IAsynchronousOperationListenerProvider>().SingleOrDefault() is { } listenerProvider)
+            {
+                // Verify the synchronization context was not used incorrectly
+                var testExportJoinableTaskContext = exportProvider.GetExportedValues<TestExportJoinableTaskContext>().SingleOrDefault();
+                var denyExecutionSynchronizationContext = testExportJoinableTaskContext?.SynchronizationContext as TestExportJoinableTaskContext.DenyExecutionSynchronizationContext;
+
+                // Join remaining operations with a timeout
+                using (var timeoutTokenSource = new CancellationTokenSource(CleanupTimeout))
+                {
+                    if (denyExecutionSynchronizationContext is object)
+                    {
+                        // Immediately cancel the test if the synchronization context is improperly used
+                        denyExecutionSynchronizationContext.InvalidSwitch += delegate { timeoutTokenSource.CancelAfter(0); };
+                        denyExecutionSynchronizationContext.ThrowIfSwitchOccurred();
+                    }
+
+                    try
+                    {
+                        // This attribute cleans up the in-process and out-of-process export providers separately, so we
+                        // don't need to provide a workspace when waiting for operations to complete.
+                        var waiter = ((AsynchronousOperationListenerProvider)listenerProvider).WaitAllDispatcherOperationAndTasksAsync(workspace: null);
+                        waiter.JoinUsingDispatcher(timeoutTokenSource.Token);
+                    }
+                    catch (OperationCanceledException ex) when (timeoutTokenSource.IsCancellationRequested)
+                    {
+                        // If the failure was caused by an invalid thread change, throw that exception
+                        denyExecutionSynchronizationContext?.ThrowIfSwitchOccurred();
+
+                        var messageBuilder = new StringBuilder("Failed to clean up listeners in a timely manner.");
+                        foreach (var token in ((AsynchronousOperationListenerProvider)listenerProvider).GetTokens())
+                        {
+                            messageBuilder.AppendLine().Append($"  {token}");
+                        }
+
+                        throw new TimeoutException(messageBuilder.ToString(), ex);
+                    }
+                }
+
+                denyExecutionSynchronizationContext?.ThrowIfSwitchOccurred();
+
+                foreach (var testErrorHandler in exportProvider.GetExportedValues<ITestErrorHandler>())
+                {
+                    var exceptions = testErrorHandler.Exceptions;
+                    if (exceptions.Count > 0)
+                    {
+                        throw new AggregateException("Tests threw unexpected exceptions", exceptions);
+                    }
+                }
+            }
+        }
+
+        private MefHostServices CreateMefHostServices(IEnumerable<Assembly> assemblies)
+        {
+            ExportProvider exportProvider;
+
+            if (assemblies is ImmutableArray<Assembly> array &&
+                array == MefHostServices.DefaultAssemblies &&
+                ExportProviderCache.LocalExportProviderForCleanup != null)
+            {
+                if (_hostServices != null)
+                {
+                    return _hostServices;
+                }
+
+                exportProvider = ExportProviderCache.LocalExportProviderForCleanup;
+            }
+            else
+            {
+                exportProvider = ExportProviderCache.GetOrCreateExportProviderFactory(assemblies).CreateExportProvider();
+            }
+
             Interlocked.CompareExchange(
-                ref _hostServices,
-                new ExportProviderMefHostServices(ExportProviderCache.GetOrCreateExportProviderFactory(catalog).CreateExportProvider()),
-                null);
+                    ref _hostServices,
+                    new ExportProviderMefHostServices(exportProvider),
+                    null);
 
             return _hostServices;
         }
 
-        private static MefHostServices DenyMefHostServicesCreationBetweenTests(IEnumerable<Assembly> assemblies, bool requestingDefaultAssemblies)
+        private static MefHostServices DenyMefHostServicesCreationBetweenTests(IEnumerable<Assembly> assemblies)
         {
             // If you hit this, one of three situations occurred:
             //
@@ -185,18 +206,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // 3. A test attempted to use an ExportProvider in the constructor of the test, or during the initialization
             //    of a field in the test class.
             throw new InvalidOperationException("Cannot create host services after test tear down.");
-        }
-
-        private static IExportProviderFactory CreateRemoteHostExportProviderFactory()
-        {
-            var configuration = CompositionConfiguration.Create(ExportProviderCache.GetOrCreateAssemblyCatalog(RoslynServices.RemoteHostAssemblies).WithCompositionService());
-            var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
-            return runtimeComposition.CreateExportProviderFactory();
-        }
-
-        private static MefHostServices CreateRemoteHostServices()
-        {
-            return new ExportProviderMefHostServices(s_remoteHostExportProviderFactory.Value.CreateExportProvider());
         }
 
         private class ExportProviderMefHostServices : MefHostServices, IMefHostExportProvider
@@ -210,19 +219,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             protected internal override HostWorkspaceServices CreateWorkspaceServices(Workspace workspace)
-            {
-                return _vsHostServices.CreateWorkspaceServices(workspace);
-            }
+                => _vsHostServices.CreateWorkspaceServices(workspace);
 
             IEnumerable<Lazy<TExtension, TMetadata>> IMefHostExportProvider.GetExports<TExtension, TMetadata>()
-            {
-                return _vsHostServices.GetExports<TExtension, TMetadata>();
-            }
+                => _vsHostServices.GetExports<TExtension, TMetadata>();
 
             IEnumerable<Lazy<TExtension>> IMefHostExportProvider.GetExports<TExtension>()
-            {
-                return _vsHostServices.GetExports<TExtension>();
-            }
+                => _vsHostServices.GetExports<TExtension>();
         }
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -55,6 +57,12 @@ class B
             Assert.Equal("A", semanticModel.GetTypeInfo(invocation).Type.Name);
             Assert.Equal("M", semanticModel.GetSymbolInfo(invocation).Symbol.Name);
             Assert.NotEmpty(semanticModel.LookupSymbols(position, name: "A"));
+
+            semanticModel = semanticModel.Compilation.GetSemanticModel(semanticModel.SyntaxTree);
+            Assert.Equal("A", semanticModel.GetTypeInfo(invocation).Type.Name);
+            Assert.Null(semanticModel.GetSymbolInfo(invocation).Symbol);
+            Assert.Equal("M", semanticModel.GetSymbolInfo(invocation).CandidateSymbols.Single().Name);
+            Assert.Equal(CandidateReason.Inaccessible, semanticModel.GetSymbolInfo(invocation).CandidateReason);
         }
 
         [Fact]

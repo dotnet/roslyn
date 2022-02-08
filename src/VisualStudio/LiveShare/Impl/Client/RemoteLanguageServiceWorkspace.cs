@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.IO;
@@ -13,9 +12,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -25,6 +27,8 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Workspace.VSIntegration.Contracts;
+using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 using Task = System.Threading.Tasks.Task;
 
@@ -34,53 +38,71 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
     /// A Roslyn workspace that contains projects that exist on a remote machine.
     /// </summary>
     [Export(typeof(RemoteLanguageServiceWorkspace))]
-    internal sealed class RemoteLanguageServiceWorkspace : Workspace, IDisposable, IRunningDocumentTableEventListener
+    internal sealed class RemoteLanguageServiceWorkspace : CodeAnalysis.Workspace, IDisposable, IRunningDocumentTableEventListener
     {
+        /// <summary>
+        /// Gate to make sure we only update the paths and trigger RDT one at a time.
+        /// Guards <see cref="_remoteWorkspaceRootPaths"/> and <see cref="_registeredExternalPaths"/>
+        /// </summary>
+        private static readonly SemaphoreSlim s_RemotePathsGate = new SemaphoreSlim(initialCount: 1);
+
         private readonly IServiceProvider _serviceProvider;
-        private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly IThreadingContext _threadingContext;
         private readonly RunningDocumentTableEventTracker _runningDocumentTableEventTracker;
+        private readonly IVsFolderWorkspaceService _vsFolderWorkspaceService;
 
         private const string ExternalProjectName = "ExternalDocuments";
 
         // A collection of opened documents in RDT, indexed by the moniker of the document.
         private ImmutableDictionary<string, DocumentId> _openedDocs = ImmutableDictionary<string, DocumentId>.Empty;
 
-        private CollaborationSession _session;
-        private string _remoteRootPath;
-        private string _externalPath;
-        private RemoteDiagnosticListTable _remoteDiagnosticListTable;
+        private CollaborationSession? _session;
 
-        public bool IsRemoteSession { get; private set; }
+        /// <summary>
+        /// Stores the current base folder path(s) on the client that hold files retrieved from the host workspace(s).
+        /// </summary>
+        private ImmutableHashSet<string> _remoteWorkspaceRootPaths;
+
+        /// <summary>
+        /// Stores the current base folder path(s) on the client that holds registered external files.
+        /// </summary>
+        private ImmutableHashSet<string> _registeredExternalPaths;
+
+        private readonly RemoteDiagnosticListTable _remoteDiagnosticListTable;
+
+        public bool IsRemoteSession => _session != null;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RemoteLanguageServiceWorkspace"/> class.
         /// </summary>
         [ImportingConstructor]
-        public RemoteLanguageServiceWorkspace(ExportProvider exportProvider,
-                                              IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
-                                              SVsServiceProvider serviceProvider,
-                                              IDiagnosticService diagnosticService,
-                                              ITableManagerProvider tableManagerProvider,
-                                              IThreadingContext threadingContext)
-            : base(VisualStudioMefHostServices.Create(exportProvider), WorkspaceKind.AnyCodeRoslynWorkspace)
-
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public RemoteLanguageServiceWorkspace(
+            ExportProvider exportProvider,
+            IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
+            IVsFolderWorkspaceService vsFolderWorkspaceService,
+            SVsServiceProvider serviceProvider,
+            IDiagnosticService diagnosticService,
+            ITableManagerProvider tableManagerProvider,
+            IGlobalOptionService globalOptions,
+            IThreadingContext threadingContext)
+            : base(VisualStudioMefHostServices.Create(exportProvider), WorkspaceKind.CloudEnvironmentClientWorkspace)
         {
             _serviceProvider = serviceProvider;
 
-            _remoteDiagnosticListTable = new RemoteDiagnosticListTable(serviceProvider, this, diagnosticService, tableManagerProvider);
-
-            var componentModel = _serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
-            Assumes.Present(componentModel);
-
-            _editorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
+            _remoteDiagnosticListTable = new RemoteDiagnosticListTable(serviceProvider, this, globalOptions, diagnosticService, tableManagerProvider);
 
             var runningDocumentTable = (IVsRunningDocumentTable)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
             _runningDocumentTableEventTracker = new RunningDocumentTableEventTracker(threadingContext, editorAdaptersFactoryService, runningDocumentTable, this);
             _threadingContext = threadingContext;
+
+            _vsFolderWorkspaceService = vsFolderWorkspaceService;
+
+            _remoteWorkspaceRootPaths = ImmutableHashSet<string>.Empty;
+            _registeredExternalPaths = ImmutableHashSet<string>.Empty;
         }
 
-        void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy hierarchy) => NotifyOnDocumentOpened(moniker, textBuffer, hierarchy);
+        void IRunningDocumentTableEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy, IVsWindowFrame? windowFrame) => NotifyOnDocumentOpened(moniker, textBuffer);
 
         void IRunningDocumentTableEventListener.OnCloseDocument(string moniker) => NotifyOnDocumentClosing(moniker);
 
@@ -94,119 +116,144 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             // Handled by Add/Remove.
         }
 
-        public async Task SetSession(CollaborationSession session)
+        public async Task SetSessionAsync(CollaborationSession session)
         {
             _session = session;
-            var roots = await session.ListRootsAsync(CancellationToken.None).ConfigureAwait(false);
-            if (roots.Length > 0)
-            {
-                _remoteRootPath = session.ConvertSharedUriToLocalPath(roots[0]);
-                _remoteRootPath = _remoteRootPath.Substring(0, _remoteRootPath.Length - 1);
-                var lastSlash = _remoteRootPath.LastIndexOf('\\');
-                _externalPath = _remoteRootPath.Substring(0, lastSlash + 1);
-                _externalPath += "~external";
-            }
-            IsRemoteSession = true;
+
+            StartSolutionCrawler();
+
+            // Get the initial workspace roots and update any files that have been opened.
+            await UpdatePathsToRemoteFilesAsync(session).ConfigureAwait(false);
+
+            _vsFolderWorkspaceService.OnActiveWorkspaceChanged += OnActiveWorkspaceChangedAsync;
             session.RemoteServicesChanged += (object sender, RemoteServicesChangedEventArgs e) =>
             {
                 _remoteDiagnosticListTable.UpdateWorkspaceDiagnosticsPresent(_session.RemoteServiceNames.Contains("workspaceDiagnostics"));
             };
         }
 
-        public void EndSession()
+        public string? GetRemoteExternalRoot(string filePath)
+            => _registeredExternalPaths.SingleOrDefault(externalPath => filePath.StartsWith(externalPath));
+
+        public string? GetRemoteWorkspaceRoot(string filePath)
+            => _remoteWorkspaceRootPaths.SingleOrDefault(remoteWorkspaceRoot => filePath.StartsWith(remoteWorkspaceRoot));
+
+        /// <summary>
+        /// Event that gets triggered whenever the active workspace changes.  If we're in a live share session
+        /// this means that the remote workpace roots have also changed and need to be updated.
+        /// This will not be called concurrently.
+        /// </summary>
+        private async Task OnActiveWorkspaceChangedAsync(object sender, EventArgs args)
         {
-            IsRemoteSession = false;
+            if (IsRemoteSession)
+            {
+                await UpdatePathsToRemoteFilesAsync(_session!).ConfigureAwait(false);
+            }
         }
 
-        public void Init()
+        /// <summary>
+        /// Retrieves the base folder paths for files on the client that have been retrieved from the remote host.
+        /// Triggers a refresh of all open files so we make sure they are in the correct workspace.
+        /// </summary>
+        private async Task UpdatePathsToRemoteFilesAsync(CollaborationSession session)
         {
-            StartSolutionCrawler();
+            var (remoteRootPaths, externalPaths) = await GetLocalPathsOfRemoteRootsAsync(session).ConfigureAwait(false);
+
+            // Make sure we update our references to the remote roots and iterate RDT only one at a time.
+            using (await s_RemotePathsGate.DisposableWaitAsync(CancellationToken.None).ConfigureAwait(false))
+            {
+                if (IsRemoteSession && (!_remoteWorkspaceRootPaths.Equals(remoteRootPaths) || !_registeredExternalPaths.Equals(externalPaths)))
+                {
+                    _remoteWorkspaceRootPaths = remoteRootPaths;
+                    _registeredExternalPaths = externalPaths;
+                    await RefreshAllFilesAsync().ConfigureAwait(false);
+                }
+            }
+        }
+
+        private static async Task<(ImmutableHashSet<string> remoteRootPaths, ImmutableHashSet<string> externalPaths)> GetLocalPathsOfRemoteRootsAsync(CollaborationSession session)
+        {
+            var roots = await session.ListRootsAsync(CancellationToken.None).ConfigureAwait(false);
+            var localPathsOfRemoteRoots = roots.Select(root => session.ConvertSharedUriToLocalPath(root)).ToImmutableArray();
+
+            var remoteRootPaths = ImmutableHashSet.CreateBuilder<string>();
+            var externalPaths = ImmutableHashSet.CreateBuilder<string>();
+
+            foreach (var localRoot in localPathsOfRemoteRoots)
+            {
+                // The local root is something like tmp\\xxx\\<workspace name>
+                // The external root should be tmp\\xxx\\~external, so replace the workspace name with ~external.
+#pragma warning disable CS8602 // Dereference of a possibly null reference. (Can localRoot be null here?)
+                var splitRoot = localRoot.TrimEnd('\\').Split('\\');
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
+                splitRoot[splitRoot.Length - 1] = "~external";
+                var externalPath = string.Join("\\", splitRoot) + "\\";
+
+                remoteRootPaths.Add(localRoot);
+                externalPaths.Add(externalPath);
+            }
+
+            return (remoteRootPaths.ToImmutable(), externalPaths.ToImmutable());
+        }
+
+        public void EndSession()
+        {
+            _session = null;
+            _vsFolderWorkspaceService.OnActiveWorkspaceChanged -= OnActiveWorkspaceChangedAsync;
+            StopSolutionCrawler();
+
+            // Clear the remote paths on end of session.  Live share handles closing all the files.
+            using (s_RemotePathsGate.DisposableWait())
+            {
+                _remoteWorkspaceRootPaths = ImmutableHashSet<string>.Empty;
+                _registeredExternalPaths = ImmutableHashSet<string>.Empty;
+            }
         }
 
         /// <inheritdoc />
         public override bool CanOpenDocuments => true;
 
         /// <inheritdoc />
-        public void OnManagedProjectAdded(ProjectInfo projectInfo)
-        {
-            //Notify AnyCode Roslyn workspace a project is being added.
-            OnProjectAdded(projectInfo);
-        }
-
-        /// <inheritdoc />
-        public void OnManagedProjectReloaded(ProjectInfo projectInfo)
-        {
-            //Notify AnyCode Roslyn workspace a project is being reloaded.
-            OnProjectReloaded(projectInfo);
-        }
-
-        /// <inheritdoc />
-        public void OnManagedProjectReferenceAdded(ProjectId projectId, ProjectReference reference)
-        {
-            //Notify AnyCode Roslyn workspace a project reference is being reloaded.
-            OnProjectReferenceAdded(projectId, reference);
-        }
-
-        /// <inheritdoc />
-        public void UpdateProjectReferences(ProjectId projectId, IEnumerable<ProjectReference> references)
-        {
-            var roslynProject = CurrentSolution.GetProject(projectId);
-            roslynProject = roslynProject.WithProjectReferences(references);
-        }
-
-        /// <inheritdoc />
-        public void OnFileReloaded(object docInfo)
-        {
-            OnDocumentReloaded(docInfo as DocumentInfo);
-        }
-
-        /// <inheritdoc />
-        public void NotifyOnDocumentOpened(string moniker, ITextBuffer textBuffer, IVsHierarchy hierarchy)
+        public void NotifyOnDocumentOpened(string moniker, ITextBuffer textBuffer)
         {
             if (_openedDocs.ContainsKey(moniker))
             {
                 return;
             }
 
-            Document document = GetOrAddDocument(moniker);
+            var document = GetOrAddDocument(moniker);
 
             if (document != null)
             {
-                SourceTextContainer textContainer = textBuffer.AsTextContainer();
+                var textContainer = textBuffer.AsTextContainer();
                 OnDocumentOpened(document.Id, textContainer);
                 _openedDocs = _openedDocs.SetItem(moniker, document.Id);
             }
         }
 
-        private bool IsExternalLocalUri(string localPath)
+        /// <summary>
+        /// Iterates through the RDT and re-opens any files that are present.
+        /// Used to update opened files after remote workspace roots change.
+        /// </summary>
+        public async Task RefreshAllFilesAsync()
         {
-            return _externalPath == null
-                ? false
-                : localPath.StartsWith(_externalPath) && localPath.Length > (_externalPath.Length + 1);
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(CancellationToken.None);
+            var documents = _runningDocumentTableEventTracker.EnumerateDocumentSet();
+            foreach (var (moniker, textBuffer, _) in documents)
+            {
+                NotifyOnDocumentOpened(moniker, textBuffer);
+            }
         }
 
-        public Document GetOrAddDocument(string filePath)
+        public Document? GetOrAddDocument(string filePath)
         {
-            DocumentId docId = CurrentSolution.GetDocumentIdsWithFilePath(filePath).FirstOrDefault();
+            var docId = CurrentSolution.GetDocumentIdsWithFilePath(filePath).FirstOrDefault();
             if (docId != null)
             {
                 return CurrentSolution.GetDocument(docId);
             }
 
             if (!IsRemoteSession)
-            {
-                return null;
-            }
-
-            if (_remoteRootPath == null)
-            {
-                return null;
-            }
-
-            // If the document is within the joined folder or it's a registered external file,
-            // add it to the workspace, otherwise bail out.
-            if (!filePath.StartsWith(_remoteRootPath) &&
-                    !IsExternalLocalUri(filePath))
             {
                 return null;
             }
@@ -218,13 +265,27 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                 return null;
             }
 
-            var folderName = Path.GetFileNameWithoutExtension(_remoteRootPath);
-            return AddDocumentToProject(filePath, language, folderName);
+            // If the document is within the joined folder or it's a registered external file,
+            // add it to the workspace, otherwise bail out.
+            var remoteWorkspaceRoot = GetRemoteWorkspaceRoot(filePath);
+            var remoteExternalRoot = GetRemoteExternalRoot(filePath);
+            if (!string.IsNullOrEmpty(remoteWorkspaceRoot))
+            {
+                return AddDocumentToProject(filePath, language, Path.GetFileName(Path.GetDirectoryName(remoteWorkspaceRoot)));
+            }
+            else if (!string.IsNullOrEmpty(remoteExternalRoot))
+            {
+                return AddDocumentToProject(filePath, language, Path.GetFileName(Path.GetDirectoryName(remoteExternalRoot)));
+            }
+            else
+            {
+                return null;
+            }
         }
 
-        public Document GetOrAddExternalDocument(string filePath, string language)
+        public Document? GetOrAddExternalDocument(string filePath, string language)
         {
-            DocumentId docId = CurrentSolution.GetDocumentIdsWithFilePath(filePath).FirstOrDefault();
+            var docId = CurrentSolution.GetDocumentIdsWithFilePath(filePath).FirstOrDefault();
             if (docId != null)
             {
                 return CurrentSolution.GetDocument(docId);
@@ -233,7 +294,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             return AddDocumentToProject(filePath, language, ExternalProjectName);
         }
 
-        public async Task<DocumentSpan?> GetDocumentSpanFromLocation(LSP.Location location, CancellationToken cancellationToken)
+        public async Task<DocumentSpan?> GetDocumentSpanFromLocationAsync(LSP.Location location, CancellationToken cancellationToken)
         {
             var document = GetOrAddDocument(location.Uri.LocalPath);
             if (document == null)
@@ -266,8 +327,8 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             if (project == null)
             {
                 var projectInfo = ProjectInfo.Create(ProjectId.CreateNewId(), VersionStamp.Create(), projectName, projectName, language);
-                OnManagedProjectAdded(projectInfo);
-                project = CurrentSolution.GetProject(projectInfo.Id);
+                OnProjectAdded(projectInfo);
+                project = CurrentSolution.GetRequiredProject(projectInfo.Id);
             }
 
             var docInfo = DocumentInfo.Create(DocumentId.CreateNewId(project.Id),
@@ -275,20 +336,24 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                                                   loader: new FileTextLoader(filePath, null),
                                                   filePath: filePath);
             OnDocumentAdded(docInfo);
-            return CurrentSolution.GetDocument(docInfo.Id);
+            return CurrentSolution.GetDocument(docInfo.Id)!;
         }
 
-        private string GetLanguage(string filePath)
+        private static string? GetLanguage(string filePath)
         {
             var fileExtension = Path.GetExtension(filePath).ToLower();
 
             if (fileExtension == ".cs")
             {
-                return StringConstants.CSharpLspLanguageName;
+                return LanguageNames.CSharp;
             }
-            else if (fileExtension == ".ts" || fileExtension == ".js")
+            else if (fileExtension is ".ts" or ".js")
             {
                 return StringConstants.TypeScriptLanguageName;
+            }
+            else if (fileExtension == ".vb")
+            {
+                return LanguageNames.VisualBasic;
             }
 
             return null;
@@ -297,7 +362,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// <inheritdoc />
         public void NotifyOnDocumentClosing(string moniker)
         {
-            if (_openedDocs.TryGetValue(moniker, out DocumentId id))
+            if (_openedDocs.TryGetValue(moniker, out var id))
             {
                 // check if the doc is part of the current Roslyn workspace before notifying Roslyn.
                 if (CurrentSolution.ContainsProject(id.ProjectId))
@@ -311,8 +376,13 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// <inheritdoc />
         public override void OpenDocument(DocumentId documentId, bool activate = true)
         {
+            if (_session == null)
+            {
+                return;
+            }
+
             var doc = CurrentSolution.GetDocument(documentId);
-            if (doc != null)
+            if (doc != null && doc.FilePath != null)
             {
                 var svc = _serviceProvider.GetService(typeof(SVsUIShellOpenDocument)) as IVsUIShellOpenDocument;
                 Report.IfNotPresent(svc);
@@ -323,16 +393,18 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
                 _threadingContext.JoinableTaskFactory.Run(async () =>
                 {
+#pragma warning disable CS8604 // Possible null reference argument. (Can ConvertLocalPathToSharedUri return null here?)
                     await _session.DownloadFileAsync(_session.ConvertLocalPathToSharedUri(doc.FilePath), CancellationToken.None).ConfigureAwait(true);
+#pragma warning restore CS8604 // Possible null reference argument.
                 });
 
-                Guid logicalView = Guid.Empty;
+                var logicalView = Guid.Empty;
                 if (ErrorHandler.Succeeded(svc.OpenDocumentViaProject(doc.FilePath,
                                                                       ref logicalView,
                                                                       out var sp,
-                                                                      out IVsUIHierarchy hier,
-                                                                      out uint itemid,
-                                                                      out IVsWindowFrame frame))
+                                                                      out var hier,
+                                                                      out var itemid,
+                                                                      out var frame))
                     && frame != null)
                 {
                     if (activate)
@@ -346,8 +418,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
                     if (_runningDocumentTableEventTracker.IsFileOpen(doc.FilePath) && _runningDocumentTableEventTracker.TryGetBufferFromMoniker(doc.FilePath, out var buffer))
                     {
-                        var hierarchy = _runningDocumentTableEventTracker.GetDocumentHierarchy(doc.FilePath);
-                        NotifyOnDocumentOpened(doc.FilePath, buffer, hierarchy);
+                        NotifyOnDocumentOpened(doc.FilePath, buffer);
                     }
                 }
             }
@@ -388,9 +459,13 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
         /// <inheritdoc/>
         protected override void Dispose(bool disposing)
+            => base.Dispose(disposing);
+
+        /// <summary>
+        /// Marker class to easily group error reporting for missing live share text buffers.
+        /// </summary>
+        private class LiveShareTextBufferMissingException : Exception
         {
-            StopSolutionCrawler();
-            base.Dispose(disposing);
         }
 
         /// <inheritdoc />
@@ -408,13 +483,20 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                         return textContainer.TryGetTextBuffer();
                     });
 
+                    if (textBuffer == null)
+                    {
+                        // Text buffer is missing for opened Live Share document.
+                        FatalError.ReportAndCatch(new LiveShareTextBufferMissingException());
+                        return;
+                    }
+
                     UpdateText(textBuffer, text);
                 }
                 else
                 {
                     // The edits would get sent by the co-authoring service to the owner.
                     // The invisible editor saves the file on being disposed, which should get reflected  on the owner's side.
-                    using (var invisibleEditor = new InvisibleEditor(_serviceProvider, document.FilePath, hierarchyOpt: null,
+                    using (var invisibleEditor = new InvisibleEditor(_serviceProvider, document.FilePath!, hierarchy: null,
                                                  needsSave: true, needsUndoDisabled: false))
                     {
                         UpdateText(invisibleEditor.TextBuffer, text);
@@ -441,13 +523,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         }
 
         private void StartSolutionCrawler()
-        {
-            DiagnosticProvider.Enable(this, DiagnosticProvider.Options.Syntax);
-        }
+            => DiagnosticProvider.Enable(this, DiagnosticProvider.Options.Syntax);
 
         private void StopSolutionCrawler()
-        {
-            DiagnosticProvider.Disable(this);
-        }
+            => DiagnosticProvider.Disable(this);
     }
 }

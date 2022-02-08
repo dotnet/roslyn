@@ -2,28 +2,24 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if CODE_STYLE
-extern alias CodeStyle;
-#endif
-
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
 
 #if CODE_STYLE
-using Formatter = CodeStyle::Microsoft.CodeAnalysis.Formatting.Formatter;
-using FormatterState = Microsoft.CodeAnalysis.Formatting.ISyntaxFormattingService;
+using Formatter = Microsoft.CodeAnalysis.Formatting.FormatterHelper;
+using FormattingProvider = Microsoft.CodeAnalysis.Formatting.ISyntaxFormattingService;
 #else
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
-using FormatterState = Microsoft.CodeAnalysis.Workspace;
+using FormattingProvider = Microsoft.CodeAnalysis.Host.HostWorkspaceServices;
 #endif
 
 namespace Microsoft.CodeAnalysis
 {
     internal static class FormattingCodeFixHelper
     {
-        internal static async Task<SyntaxTree> FixOneAsync(SyntaxTree syntaxTree, FormatterState formatterState, OptionSet options, Diagnostic diagnostic, CancellationToken cancellationToken)
+        internal static async Task<SyntaxTree> FixOneAsync(SyntaxTree syntaxTree, FormattingProvider formattingProvider, SyntaxFormattingOptions options, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             // The span to format is the full line(s) containing the diagnostic
             var text = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -34,11 +30,7 @@ namespace Microsoft.CodeAnalysis
                 text.Lines[diagnosticLinePositionSpan.End.Line].End);
 
             var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-#if CODE_STYLE
-            var formattedRoot = Formatter.Format(root, formatterState, new[] { spanToFormat }, options, Formatter.GetDefaultFormattingRules(formatterState), cancellationToken);
-#else
-            var formattedRoot = Formatter.Format(root, spanToFormat, formatterState, options, cancellationToken);
-#endif
+            var formattedRoot = Formatter.Format(root, spanToFormat, formattingProvider, options, cancellationToken);
 
             return syntaxTree.WithRootAndOptions(formattedRoot, syntaxTree.Options);
         }

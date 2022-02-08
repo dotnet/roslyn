@@ -2,24 +2,28 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Editor.FindUsages
+Imports System.Threading
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToImplementation
     <[UseExportProvider]>
     Public Class GoToImplementationTests
 
-        Private Async Function TestAsync(workspaceDefinition As XElement, Optional shouldSucceed As Boolean = True) As Task
+        Private Shared Async Function TestAsync(workspaceDefinition As XElement, host As TestHost, Optional shouldSucceed As Boolean = True, Optional metadataDefinitions As String() = Nothing) As Task
             Await GoToHelpers.TestAsync(
-            workspaceDefinition,
-            Async Function(document As Document, position As Integer, context As SimpleFindUsagesContext) As Task
-                Dim findUsagesService = document.GetLanguageService(Of IFindUsagesService)
-                Await findUsagesService.FindImplementationsAsync(document, position, context).ConfigureAwait(False)
-            End Function,
-            shouldSucceed)
+                workspaceDefinition,
+                host,
+                Async Function(document As Document, position As Integer, context As SimpleFindUsagesContext) As Task
+                    Dim findUsagesService = document.GetLanguageService(Of IFindUsagesService)
+                    Await findUsagesService.FindImplementationsAsync(context, document, position, CancellationToken.None).ConfigureAwait(False)
+                End Function,
+                shouldSucceed,
+                metadataDefinitions)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Async Function TestEmptyFile() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestEmptyFile(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -29,11 +33,11 @@ $$
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace, shouldSucceed:=False)
+            Await TestAsync(workspace, host, shouldSucceed:=False)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Async Function TestWithSingleClass() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithSingleClass(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -43,11 +47,11 @@ class [|$$C|] { }
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace)
+            Await TestAsync(workspace, host)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Async Function TestWithAbstractClass() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithAbstractClass(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -63,11 +67,11 @@ class [|D|] : C
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace)
+            Await TestAsync(workspace, host)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Async Function TestWithAbstractClassFromInterface() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithAbstractClassFromInterface(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -79,11 +83,11 @@ class [|D|] : C { }
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace)
+            Await TestAsync(workspace, host)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Async Function TestWithSealedClass() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithSealedClass(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -95,11 +99,11 @@ sealed class [|$$C|]
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace)
+            Await TestAsync(workspace, host)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Async Function TestWithStruct() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithStruct(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -111,11 +115,11 @@ struct [|$$C|]
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace)
+            Await TestAsync(workspace, host)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Async Function TestWithEnum() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithEnum(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -127,11 +131,11 @@ enum [|$$C|]
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace)
+            Await TestAsync(workspace, host)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Async Function TestWithNonAbstractClass() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithNonAbstractClass(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -147,11 +151,11 @@ class [|D|] : C
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace)
+            Await TestAsync(workspace, host)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Async Function TestWithSingleClassImplementation() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithSingleClassImplementation(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -162,11 +166,11 @@ interface $$I { }
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace)
+            Await TestAsync(workspace, host)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Async Function TestWithTwoClassImplementations() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithTwoClassImplementations(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -178,11 +182,11 @@ interface $$I { }
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace)
+            Await TestAsync(workspace, host)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Async Function TestWithOneMethodImplementation_01() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithOneMethodImplementation_01(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -193,11 +197,11 @@ interface I { void $$M(); }
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace)
+            Await TestAsync(workspace, host)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Async Function TestWithOneMethodImplementation_02() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithOneMethodImplementation_02(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -208,11 +212,11 @@ interface I { void [|$$M|]() {} }
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace)
+            Await TestAsync(workspace, host)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Async Function TestWithOneMethodImplementation_03() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithOneMethodImplementation_03(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -223,11 +227,11 @@ interface I { void [|$$M|]() {} }
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace)
+            Await TestAsync(workspace, host)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Async Function TestWithOneMethodImplementation_04() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithOneMethodImplementation_04(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -242,11 +246,11 @@ interface I { void $$M(); }
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace)
+            Await TestAsync(workspace, host)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Async Function TestWithOneMethodImplementation_05() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithOneMethodImplementation_05(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -261,11 +265,11 @@ interface I { void [|$$M|]() {} }
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace)
+            Await TestAsync(workspace, host)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Async Function TestWithOneEventImplementation() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithOneEventImplementation(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -278,11 +282,11 @@ interface I { event EventHandler $$E; }
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace)
+            Await TestAsync(workspace, host)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Async Function TestWithTwoMethodImplementations() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithTwoMethodImplementations(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -294,11 +298,11 @@ interface I { void $$M(); }
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace)
+            Await TestAsync(workspace, host)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Async Function TestWithNonInheritedImplementation() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithNonInheritedImplementation(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -310,12 +314,12 @@ interface I { void $$M(); }
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace)
+            Await TestAsync(workspace, host)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
         <WorkItem(6752, "https://github.com/dotnet/roslyn/issues/6752")>
-        Public Async Function TestWithVirtualMethodImplementationWithInterfaceOnBaseClass() As Task
+        Public Async Function TestWithVirtualMethodImplementationWithInterfaceOnBaseClass(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -327,12 +331,12 @@ interface I { void $$M(); }
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace)
+            Await TestAsync(workspace, host)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
         <WorkItem(6752, "https://github.com/dotnet/roslyn/issues/6752")>
-        Public Async Function TestWithVirtualMethodImplementationWithInterfaceOnDerivedClass() As Task
+        Public Async Function TestWithVirtualMethodImplementationWithInterfaceOnDerivedClass(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -344,12 +348,12 @@ interface I { void $$M(); }
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace)
+            Await TestAsync(workspace, host)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
         <WorkItem(6752, "https://github.com/dotnet/roslyn/issues/6752")>
-        Public Async Function TestWithVirtualMethodImplementationAndInterfaceImplementedOnDerivedType() As Task
+        Public Async Function TestWithVirtualMethodImplementationAndInterfaceImplementedOnDerivedType(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -361,28 +365,28 @@ interface I { void $$M(); }
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace)
+            Await TestAsync(workspace, host)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
         <WorkItem(6752, "https://github.com/dotnet/roslyn/issues/6752")>
-        Public Async Function TestWithAbstractMethodImplementation() As Task
+        Public Async Function TestWithAbstractMethodImplementation(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
-class C : I { public abstract void [|M|]() { } }
+class C : I { public abstract void M() { } }
 class D : C { public override void [|M|]() { } }}
 interface I { void $$M(); }
         </Document>
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace)
+            Await TestAsync(workspace, host)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Async Function TestWithInterfaceMemberFromMetdataAtUseSite() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithInterfaceMemberFromMetdataAtUseSite(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -401,11 +405,11 @@ class C : IDisposable
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace)
+            Await TestAsync(workspace, host, metadataDefinitions:={"mscorlib:ActivationContext.Dispose", "mscorlib:AsymmetricAlgorithm.Dispose", "mscorlib:AsyncFlowControl.Dispose", "mscorlib:BinaryReader.Dispose", "mscorlib:BinaryWriter.Dispose", "mscorlib:CancellationTokenRegistration.Dispose", "mscorlib:CancellationTokenSource.Dispose", "mscorlib:CharEnumerator.Dispose", "mscorlib:CountdownEvent.Dispose", "mscorlib:CriticalHandle.Dispose", "mscorlib:CryptoAPITransform.Dispose", "mscorlib:DeriveBytes.Dispose", "mscorlib:Enumerator.Dispose", "mscorlib:Enumerator.Dispose", "mscorlib:Enumerator.Dispose", "mscorlib:Enumerator.Dispose", "mscorlib:EventListener.Dispose", "mscorlib:EventSource.Dispose", "mscorlib:ExecutionContext.Dispose", "mscorlib:FromBase64Transform.Dispose", "mscorlib:HashAlgorithm.Dispose", "mscorlib:HostExecutionContext.Dispose", "mscorlib:IsolatedStorageFile.Dispose", "mscorlib:ManualResetEventSlim.Dispose", "mscorlib:MemoryFailPoint.Dispose", "mscorlib:RandomNumberGenerator.Dispose", "mscorlib:RegistryKey.Dispose", "mscorlib:ResourceReader.Dispose", "mscorlib:ResourceSet.Dispose", "mscorlib:ResourceWriter.Dispose", "mscorlib:RijndaelManagedTransform.Dispose", "mscorlib:SafeHandle.Dispose", "mscorlib:SecureString.Dispose", "mscorlib:SecurityContext.Dispose", "mscorlib:SemaphoreSlim.Dispose", "mscorlib:Stream.Dispose", "mscorlib:SymmetricAlgorithm.Dispose", "mscorlib:Task.Dispose", "mscorlib:TextReader.Dispose", "mscorlib:TextWriter.Dispose", "mscorlib:ThreadLocal.Dispose", "mscorlib:Timer.Dispose", "mscorlib:ToBase64Transform.Dispose", "mscorlib:UnmanagedMemoryAccessor.Dispose", "mscorlib:WaitHandle.Dispose", "mscorlib:WindowsIdentity.Dispose", "mscorlib:WindowsImpersonationContext.Dispose", "mscorlib:X509Certificate.Dispose", "System.Core:CngKey.Dispose", "System.Core:CounterSet.Dispose", "System.Core:CounterSetInstance.Dispose", "System.Core:CounterSetInstanceCounterDataSet.Dispose", "System.Core:ECDiffieHellmanPublicKey.Dispose", "System.Core:Enumerator.Dispose", "System.Core:EventLogConfiguration.Dispose", "System.Core:EventLogPropertySelector.Dispose", "System.Core:EventLogReader.Dispose", "System.Core:EventLogSession.Dispose", "System.Core:EventLogWatcher.Dispose", "System.Core:EventProvider.Dispose", "System.Core:EventRecord.Dispose", "System.Core:MemoryMappedFile.Dispose", "System.Core:ProviderMetadata.Dispose", "System.Core:ReaderWriterLockSlim.Dispose", "System:AlternateViewCollection.Dispose", "System:AttachmentBase.Dispose", "System:AttachmentCollection.Dispose", "System:Barrier.Dispose", "System:BlockingCollection.Dispose", "System:ClientWebSocket.Dispose", "System:Component.Dispose", "System:Container.Dispose", "System:Enumerator.Dispose", "System:Enumerator.Dispose", "System:Enumerator.Dispose", "System:Enumerator.Dispose", "System:Enumerator.Dispose", "System:Enumerator.Dispose", "System:Enumerator.Dispose", "System:EventHandlerList.Dispose", "System:License.Dispose", "System:LinkedResourceCollection.Dispose", "System:MailMessage.Dispose", "System:MarshalByValueComponent.Dispose", "System:ServiceContainer.Dispose", "System:SmtpClient.Dispose", "System:Socket.Dispose", "System:SocketAsyncEventArgs.Dispose", "System:TcpClient.Dispose", "System:TraceListener.Dispose", "System:UdpClient.Dispose", "System:WebResponse.Dispose", "System:X509Chain.Dispose", "System:X509Store.Dispose"})
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Async Function TestWithSimpleMethod() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithSimpleMethod(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -418,11 +422,11 @@ class C
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace)
+            Await TestAsync(workspace, host)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Async Function TestWithOverridableMethodOnBase() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithOverridableMethodOnBase(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -440,11 +444,11 @@ class D : C
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace)
+            Await TestAsync(workspace, host)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Async Function TestWithOverridableMethodOnImplementation() As Task
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithOverridableMethodOnImplementation(host As TestHost) As Task
             ' Our philosophy is to only show derived in this case, since we know the implementation of 
             ' D could never call C.M here
             Dim workspace =
@@ -464,12 +468,12 @@ class D : C
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace)
+            Await TestAsync(workspace, host)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
         <WorkItem(19700, "https://github.com/dotnet/roslyn/issues/19700")>
-        Public Async Function TestWithIntermediateAbstractOverrides() As Task
+        Public Async Function TestWithIntermediateAbstractOverrides(host As TestHost) As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
@@ -478,7 +482,7 @@ class D : C
         public virtual void $$[|M|]() { }
     }
     abstract class B : A {
-        public abstract override void [|M|]();
+        public abstract override void M();
     }
     sealed class C1 : B {
         public override void [|M|]() { }
@@ -490,7 +494,213 @@ class D : C
     </Project>
 </Workspace>
 
-            Await TestAsync(workspace)
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WorkItem(43093, "https://github.com/dotnet/roslyn/issues/43093")>
+        Public Async Function TestMultiTargetting1(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Name="BaseProjectCore" Language="C#" CommonReferencesNetCoreApp="true">
+        <Document FilePath="C.cs">
+public interface $$IInterface
+{
+}
+        </Document>
+    </Project>
+    <Project Name="BaseProjectStandard" Language="C#" CommonReferencesNetStandard20="true">
+        <Document IsLinkFile="true" LinkProjectName="BaseProjectCore" LinkFilePath="C.cs">
+public interface IInterface
+{
+}
+        </Document>
+    </Project>
+    <Project Name="ImplProject" Language="C#" CommonReferences="true">
+        <ProjectReference>BaseProjectStandard</ProjectReference>
+        <Document>
+public class [|Impl|] : IInterface
+{
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WorkItem(46818, "https://github.com/dotnet/roslyn/issues/46818")>
+        Public Async Function TestCrossTargetting1(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Name="BaseProjectCore" Language="C#" CommonReferencesNetCoreApp="true">
+        <ProjectReference>BaseProjectStandard</ProjectReference>
+        <Document FilePath="C.cs">
+using System;
+using System.Threading.Tasks;
+
+namespace MultiTargettingCore
+{
+    public class Class1
+    {
+        static async Task Main(string[] args)
+        {
+            IStringCreator strCreator = new StringCreator();
+            var result = await strCreator.$$CreateStringAsync();
+        }
+    }
+}
+        </Document>
+    </Project>
+    <Project Name="BaseProjectStandard" Language="C#" CommonReferencesNetStandard20="true">
+        <Document>
+using System.Threading.Tasks;
+
+public interface IStringCreator
+{
+    Task&lt;string&gt; CreateStringAsync();
+}
+
+public class StringCreator : IStringCreator
+{
+    public async Task&lt;string&gt; [|CreateStringAsync|]()
+    {
+        return "Another hello world - async!";
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WorkItem(46818, "https://github.com/dotnet/roslyn/issues/46818")>
+        Public Async Function TestCrossTargetting2(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Name="BaseProjectCore" Language="C#" CommonReferencesNetCoreApp="true">
+        <ProjectReference>BaseProjectStandard</ProjectReference>
+        <Document FilePath="C.cs">
+using System;
+using System.Threading.Tasks;
+
+namespace MultiTargettingCore
+{
+    public class Class1
+    {
+        static async Task Main(string[] args)
+        {
+            IStringCreator strCreator = new StringCreator();
+            var result = await strCreator.$$CreateTupleAsync();
+        }
+    }
+}
+        </Document>
+    </Project>
+    <Project Name="BaseProjectStandard" Language="C#" CommonReferencesNetStandard20="true">
+        <Document>
+using System.Threading.Tasks;
+
+public interface IStringCreator
+{
+    Task&lt;(string s, string t)&gt; CreateTupleAsync();
+}
+
+public class StringCreator : IStringCreator
+{
+    public async Task&lt;(string x, string y)&gt; [|CreateTupleAsync|]()
+    {
+        return default;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WorkItem(46818, "https://github.com/dotnet/roslyn/issues/46818")>
+        Public Async Function TestCrossTargetting3(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Name="BaseProjectCore" Language="C#" CommonReferencesNetCoreApp="true">
+        <ProjectReference>BaseProjectStandard</ProjectReference>
+        <Document FilePath="C.cs">
+using System;
+using System.Threading.Tasks;
+
+namespace MultiTargettingCore
+{
+    public class Class1
+    {
+        static async Task Main(string[] args)
+        {
+            IStringCreator strCreator = new StringCreator();
+            var result = await strCreator.$$CreateNintAsync();
+        }
+    }
+}
+        </Document>
+    </Project>
+    <Project Name="BaseProjectStandard" Language="C#" CommonReferencesNetStandard20="true">
+        <Document>
+using System.Threading.Tasks;
+
+public interface IStringCreator
+{
+    Task&lt;nint&gt; CreateNintAsync();
+}
+
+public class StringCreator : IStringCreator
+{
+    public async Task&lt;nint&gt; [|CreateNintAsync|]()
+    {
+        return default;
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WorkItem(26167, "https://github.com/dotnet/roslyn/issues/26167")>
+        Public Async Function SkipIntermediaryAbstractMethodIfOverridden(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C : I { public abstract void M(); }
+class D : C { public override void [|M|]() { } }
+interface I { void $$M(); }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
+        End Function
+
+        <Theory, CombinatorialData, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WorkItem(26167, "https://github.com/dotnet/roslyn/issues/26167")>
+        Public Async Function IncludeAbstractMethodIfNotOverridden(host As TestHost) As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C : I { public abstract void [|M|](); }
+interface I { void $$M(); }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace, host)
         End Function
     End Class
 End Namespace

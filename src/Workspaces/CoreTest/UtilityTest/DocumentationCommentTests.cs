@@ -2,8 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -18,6 +19,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Null(document.ExampleText);
             Assert.Null(document.ReturnsText);
+            Assert.Null(document.ValueText);
             Assert.Null(document.SummaryText);
         }
 
@@ -27,6 +29,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var comment = DocumentationComment.FromXmlFragment(
                 @"<summary>Hello, world!</summary>
                   <returns>42.</returns>
+                  <value>43.</value>
                   <example>goo.Bar();</example>
                   <param name=""goo"">A goo.</param>
                   <typeparam name=""T"">A type.</typeparam>
@@ -35,6 +38,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Equal("Hello, world!", comment.SummaryText);
             Assert.Equal("42.", comment.ReturnsText);
+            Assert.Equal("43.", comment.ValueText);
             Assert.Equal("goo.Bar();", comment.ExampleText);
             Assert.Equal("goo", comment.ParameterNames[0]);
             Assert.Equal("A goo.", comment.GetParameterText("goo"));
@@ -43,6 +47,32 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("System.Exception", comment.ExceptionTypes[0]);
             Assert.Equal("An exception", comment.GetExceptionTexts("System.Exception")[0]);
             Assert.Equal("A remark", comment.RemarksText);
+        }
+
+        [Fact]
+        public void ParseFullTagEmptyValues()
+        {
+            var comment = DocumentationComment.FromXmlFragment(
+                @"<summary></summary>
+                  <returns></returns>
+                  <value></value>
+                  <example></example>
+                  <param name=""goo""></param>
+                  <typeparam name=""T""></typeparam>
+                  <exception cref=""System.Exception""></exception>
+                  <remarks></remarks>");
+
+            Assert.Equal(string.Empty, comment.SummaryText);
+            Assert.Equal(string.Empty, comment.ReturnsText);
+            Assert.Equal(string.Empty, comment.ValueText);
+            Assert.Equal(string.Empty, comment.ExampleText);
+            Assert.Equal("goo", comment.ParameterNames[0]);
+            Assert.Equal(string.Empty, comment.GetParameterText("goo"));
+            Assert.Equal("T", comment.TypeParameterNames[0]);
+            Assert.Equal(string.Empty, comment.GetTypeParameterText("T"));
+            Assert.Equal("System.Exception", comment.ExceptionTypes[0]);
+            Assert.Equal(string.Empty, comment.GetExceptionTexts("System.Exception")[0]);
+            Assert.Equal(string.Empty, comment.RemarksText);
         }
 
         [Fact]
@@ -248,23 +278,71 @@ Hello
 
             var fullXml = $@"<summary>{multiLineText}</summary>
                   <returns>{multiLineText}</returns>
+                  <value>{multiLineText}</value>
                   <example>{multiLineText}</example>
                   <param name=""goo"">{multiLineText}</param>
                   <typeparam name=""T"">{multiLineText}</typeparam>
                   <remarks>{multiLineText}</remarks>";
 
-
             var expected = @"Hello
-World     .
+     World     .
 +
 .......
 123
-1";
+                                           1";
 
             var comment = DocumentationComment.FromXmlFragment(fullXml);
 
             Assert.Equal(expected, comment.SummaryText);
             Assert.Equal(expected, comment.ReturnsText);
+            Assert.Equal(expected, comment.ValueText);
+            Assert.Equal(expected, comment.ExampleText);
+            Assert.Equal(expected, comment.GetParameterText("goo"));
+            Assert.Equal(expected, comment.GetTypeParameterText("T"));
+            Assert.Equal(expected, comment.RemarksText);
+        }
+
+        [Fact, WorkItem(18901, "https://github.com/dotnet/roslyn/pull/18901")]
+        public void TrimEachLineCommonOffset()
+        {
+            var multiLineText = @"
+
+
+
+  Hello
+    World     .        
+  +
+  .......
+         
+
+
+
+
+    123
+
+                                           1";
+
+            var fullXml = $@"<summary>{multiLineText}</summary>
+                  <returns>{multiLineText}</returns>
+                  <value>{multiLineText}</value>
+                  <example>{multiLineText}</example>
+                  <param name=""goo"">{multiLineText}</param>
+                  <typeparam name=""T"">{multiLineText}</typeparam>
+                  <remarks>{multiLineText}</remarks>";
+
+            var expected = @"Hello
+  World     .
++
+.......
+
+  123
+                                         1";
+
+            var comment = DocumentationComment.FromXmlFragment(fullXml);
+
+            Assert.Equal(expected, comment.SummaryText);
+            Assert.Equal(expected, comment.ReturnsText);
+            Assert.Equal(expected, comment.ValueText);
             Assert.Equal(expected, comment.ExampleText);
             Assert.Equal(expected, comment.GetParameterText("goo"));
             Assert.Equal(expected, comment.GetTypeParameterText("T"));

@@ -2,12 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionService;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 {
@@ -21,43 +24,48 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void String_TopLevel()
         {
             using var session = CreateSessionDoubleQuote("$$");
             Assert.NotNull(session);
-            CheckStart(session.Session, expectValidSession: false);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void VerbatimString_TopLevel()
         {
             using var session = CreateSessionDoubleQuote("@$$");
             Assert.NotNull(session);
-            CheckStart(session.Session, expectValidSession: false);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void Char_TopLevel()
         {
             using var session = CreateSessionSingleQuote("$$");
             Assert.NotNull(session);
-            CheckStart(session.Session, expectValidSession: false);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void String_TopLevel2()
         {
             using var session = CreateSessionDoubleQuote("using System;$$");
             Assert.NotNull(session);
-            CheckStart(session.Session, expectValidSession: false);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public void VerbatimString_TopLevel2()
         {
             using var session = CreateSessionDoubleQuote("using System;@$$");
             Assert.NotNull(session);
-            CheckStart(session.Session, expectValidSession: false);
+            CheckStart(session.Session);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -72,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 }";
             using var session = CreateSessionDoubleQuote(code);
             Assert.NotNull(session);
-            CheckStart(session.Session);
+            CheckStart(session.Session, expectValidSession: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -421,18 +429,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
             CheckStart(session.Session, expectValidSession: false);
         }
 
-        internal Holder CreateSessionSingleQuote(string code)
+        internal static Holder CreateSessionSingleQuote(string code)
         {
             return CreateSession(
                 TestWorkspace.CreateCSharp(code),
-                BraceCompletionSessionProvider.SingleQuote.OpenCharacter, BraceCompletionSessionProvider.SingleQuote.CloseCharacter);
+                SingleQuote.OpenCharacter, SingleQuote.CloseCharacter);
         }
 
-        internal Holder CreateSessionDoubleQuote(string code)
+        internal static Holder CreateSessionDoubleQuote(string code)
         {
             return CreateSession(
                 TestWorkspace.CreateCSharp(code),
-                BraceCompletionSessionProvider.DoubleQuote.OpenCharacter, BraceCompletionSessionProvider.DoubleQuote.CloseCharacter);
+                DoubleQuote.OpenCharacter, DoubleQuote.CloseCharacter);
         }
     }
 }

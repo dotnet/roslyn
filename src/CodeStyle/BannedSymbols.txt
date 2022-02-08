@@ -1,0 +1,23 @@
+P:Microsoft.CodeAnalysis.Project.LanguageServices; Use 'GetExtendedLanguageServices' instead
+M:Microsoft.CodeAnalysis.Host.HostWorkspaceServices.GetLanguageServices(System.String); Use 'GetExtendedLanguageServices' or directly get the language service by invoking 'GetLanguageService' or 'GetRequiredLanguageService'
+T:Microsoft.CodeAnalysis.Options.OptionSet; 'OptionSet' is not available in CodeStyle layer. Add a using/Imports statement defining 'OptionSet = Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions' when preprocessor variable 'CODE_STYLE' is defined
+T:Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption`1; Use 'Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption2' instead
+T:Microsoft.CodeAnalysis.CodeStyle.CodeStyleOptions; Use 'Microsoft.CodeAnalysis.CodeStyle.CodeStyleOptions2' instead
+T:Microsoft.CodeAnalysis.Options.OptionKey; Use 'Microsoft.CodeAnalysis.Options.OptionKey2' instead
+T:Microsoft.CodeAnalysis.CodeStyle.NotificationOption; Use 'Microsoft.CodeAnalysis.CodeStyle.NotificationOption2' instead
+M:Microsoft.CodeAnalysis.DiagnosticDescriptor.#ctor(System.String,System.String,System.String,System.String,Microsoft.CodeAnalysis.DiagnosticSeverity,System.Boolean,System.String,System.String,System.String[]); Analyzers should extend 'AbstractBuiltInCodeStyleDiagnosticAnalyzer' or 'AbstractCodeQualityDiagnosticAnalyzer' instead
+M:Microsoft.CodeAnalysis.DiagnosticDescriptor.#ctor(System.String,Microsoft.CodeAnalysis.LocalizableString,Microsoft.CodeAnalysis.LocalizableString,System.String,Microsoft.CodeAnalysis.DiagnosticSeverity,System.Boolean,Microsoft.CodeAnalysis.LocalizableString,System.String,System.String[]); Analyzers should extend 'AbstractBuiltInCodeStyleDiagnosticAnalyzer' or 'AbstractCodeQualityDiagnosticAnalyzer' instead
+
+T:System.ComponentModel.Composition.ExportAttribute; Use types from System.Composition instead
+T:System.ComponentModel.Composition.ExportMetadataAttribute; Use types from System.Composition instead
+T:System.ComponentModel.Composition.ImportAttribute; Use types from System.Composition instead
+T:System.ComponentModel.Composition.ImportManyAttribute; Use types from System.Composition instead
+T:System.ComponentModel.Composition.ImportMetadataConstraintAttribut; Use types from System.Composition instead
+T:System.ComponentModel.Composition.ImportingConstructorAttribute; Use types from System.Composition instead
+T:System.ComponentModel.Composition.MetadataAttributeAttribute; Use types from System.Composition instead
+T:System.ComponentModel.Composition.OnImportsSatisfiedAttribute; Use types from System.Composition instead
+T:System.ComponentModel.Composition.PartMetadataAttribute; Use types from System.Composition instead
+T:System.ComponentModel.Composition.PartNotDiscoverableAttribute; Use types from System.Composition instead
+T:System.ComponentModel.Composition.SharedAttribute; Use types from System.Composition instead
+T:System.ComponentModel.Composition.SharingBoundaryAttribute; Use types from System.Composition instead
+T:System.ComponentModel.Composition.Convention.AttributedModelProvider; Use types from System.Composition instead

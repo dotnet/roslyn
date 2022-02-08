@@ -18,8 +18,9 @@ namespace Microsoft.CodeAnalysis
         public abstract string Path { get; }
 
         /// <summary>
-        /// Retrieves a <see cref="SourceText"/> with the contents of this file.
+        /// Returns a <see cref="SourceText"/> with the contents of this file, or <c>null</c> if
+        /// there were errors reading the file.
         /// </summary>
-        public abstract SourceText GetText(CancellationToken cancellationToken = default(CancellationToken));
+        public abstract SourceText? GetText(CancellationToken cancellationToken = default);
     }
 }

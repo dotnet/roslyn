@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -10,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -148,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Editor
         /// and TextSpan in the original solution, and specify their new span and possible conflict
         /// resolution.
         /// </summary>
-        Task<IInlineRenameReplacementInfo> GetReplacementsAsync(string replacementText, OptionSet optionSet, CancellationToken cancellationToken);
+        Task<IInlineRenameReplacementInfo> GetReplacementsAsync(string replacementText, SymbolRenameOptions options, CancellationToken cancellationToken);
     }
 
     internal interface IInlineRenameInfo
@@ -175,9 +177,9 @@ namespace Microsoft.CodeAnalysis.Editor
         bool HasOverloads { get; }
 
         /// <summary>
-        /// Whether the Rename Overloads option should be forced to true. Used if rename is invoked from within a nameof expression.
+        /// True if overloads must be renamed (the user is not given a choice). Used if rename is invoked from within a nameof expression.
         /// </summary>
-        bool ForceRenameOverloads { get; }
+        bool MustRenameOverloads { get; }
 
         /// <summary>
         /// The short name of the symbol being renamed, for use in displaying information to the user.
@@ -195,6 +197,11 @@ namespace Microsoft.CodeAnalysis.Editor
         Glyph Glyph { get; }
 
         /// <summary>
+        /// The locations of the potential rename candidates for the symbol.
+        /// </summary>
+        ImmutableArray<DocumentSpan> DefinitionLocations { get; }
+
+        /// <summary>
         /// Gets the final name of the symbol if the user has typed the provided replacement text
         /// in the editor.  Normally, the final name will be same as the replacement text.  However,
         /// that may not always be the same.  For example, when renaming an attribute the replacement
@@ -206,20 +213,20 @@ namespace Microsoft.CodeAnalysis.Editor
         /// Returns the actual span that should be edited in the buffer for a given rename reference
         /// location.
         /// </summary>
-        TextSpan GetReferenceEditSpan(InlineRenameLocation location, CancellationToken cancellationToken);
+        TextSpan GetReferenceEditSpan(InlineRenameLocation location, string triggerText, CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns the actual span that should be edited in the buffer for a given rename conflict
         /// location.
         /// </summary>
-        TextSpan? GetConflictEditSpan(InlineRenameLocation location, string replacementText, CancellationToken cancellationToken);
+        TextSpan? GetConflictEditSpan(InlineRenameLocation location, string triggerText, string replacementText, CancellationToken cancellationToken);
 
         /// <summary>
         /// Determine the set of locations to rename given the provided options. May be called 
         /// multiple times.  For example, this can be called one time for the initial set of
         /// locations to rename, as well as any time the rename options are changed by the user.
         /// </summary>
-        Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken);
+        Task<IInlineRenameLocationSet> FindRenameLocationsAsync(SymbolRenameOptions options, CancellationToken cancellationToken);
 
         /// <summary>
         /// Called before the rename is applied to the specified documents in the workspace.  Return 
@@ -242,6 +249,8 @@ namespace Microsoft.CodeAnalysis.Editor
         /// </summary>
         InlineRenameFileRenameInfo GetFileRenameInfo();
     }
+
+#nullable enable
 
     /// <summary>
     /// Language service that allows a language to participate in the editor's inline rename feature.

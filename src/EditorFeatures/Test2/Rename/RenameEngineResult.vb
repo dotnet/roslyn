@@ -3,13 +3,15 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 Imports Microsoft.VisualStudio.Text
-Imports Xunit.Sdk
-Imports Microsoft.CodeAnalysis.Options
 Imports Xunit.Abstractions
+Imports Xunit.Sdk
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     ''' <summary>
@@ -38,18 +40,32 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             _workspace = workspace
             _resolution = resolution
 
-            If resolution IsNot Nothing Then
-                _unassertedRelatedLocations = New HashSet(Of RelatedLocation)(resolution.RelatedLocations)
-            Else
-                _unassertedRelatedLocations = New HashSet(Of RelatedLocation)()
-            End If
+            _unassertedRelatedLocations = New HashSet(Of RelatedLocation)(resolution.RelatedLocations)
 
             _renameTo = renameTo
         End Sub
 
-        Public Shared Function Create(helper As ITestOutputHelper, workspaceXml As XElement, renameTo As String, Optional changedOptionSet As Dictionary(Of OptionKey, Object) = Nothing) As RenameEngineResult
-            Dim workspace = TestWorkspace.CreateWorkspace(workspaceXml)
+        Public Shared Function Create(
+                helper As ITestOutputHelper,
+                workspaceXml As XElement,
+                renameTo As String,
+                host As RenameTestHost,
+                Optional renameOptions As SymbolRenameOptions = Nothing,
+                Optional expectFailure As Boolean = False,
+                Optional sourceGenerator As ISourceGenerator = Nothing) As RenameEngineResult
+
+            Dim composition = EditorTestCompositions.EditorFeatures.AddParts(GetType(NoCompilationContentTypeLanguageService), GetType(NoCompilationContentTypeDefinitions))
+
+            If host = RenameTestHost.OutOfProcess_SingleCall OrElse host = RenameTestHost.OutOfProcess_SplitCall Then
+                composition = composition.WithTestHostParts(Remote.Testing.TestHost.OutOfProcess)
+            End If
+
+            Dim workspace = TestWorkspace.CreateWorkspace(workspaceXml, composition:=composition)
             workspace.SetTestLogger(AddressOf helper.WriteLine)
+
+            If sourceGenerator IsNot Nothing Then
+                workspace.OnAnalyzerReferenceAdded(workspace.CurrentSolution.ProjectIds.Single(), New TestGeneratorReference(sourceGenerator))
+            End If
 
             Dim engineResult As RenameEngineResult = Nothing
             Try
@@ -62,24 +78,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
 
                 Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
 
-                Dim symbolAndProjectId = RenameLocations.ReferenceProcessing.GetRenamableSymbolAsync(document, cursorPosition, CancellationToken.None).Result
-                Dim symbol = symbolAndProjectId.Symbol
+                Dim symbol = RenameLocations.ReferenceProcessing.TryGetRenamableSymbolAsync(document, cursorPosition, CancellationToken.None).Result
                 If symbol Is Nothing Then
                     AssertEx.Fail("The symbol touching the $$ could not be found.")
                 End If
 
-                Dim optionSet = workspace.Options
+                Dim result = GetConflictResolution(renameTo, workspace.CurrentSolution, symbol, renameOptions, host)
 
-                If changedOptionSet IsNot Nothing Then
-                    For Each entry In changedOptionSet
-                        optionSet = optionSet.WithChangedOption(entry.Key, entry.Value)
-                    Next
+                If expectFailure Then
+                    Assert.NotNull(result.ErrorMessage)
+                    Return engineResult
+                Else
+                    Assert.Null(result.ErrorMessage)
                 End If
-
-                Dim locations = RenameLocations.FindAsync(symbolAndProjectId, workspace.CurrentSolution, optionSet, CancellationToken.None).Result
-                Dim originalName = symbol.Name.Split("."c).Last()
-
-                Dim result = ConflictResolver.ResolveConflictsAsync(locations, originalName, renameTo, optionSet, hasConflict:=Nothing, cancellationToken:=CancellationToken.None).Result
 
                 engineResult = New RenameEngineResult(workspace, result, renameTo)
                 engineResult.AssertUnlabeledSpansRenamedAndHaveNoConflicts()
@@ -90,10 +101,36 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 Else
                     workspace.Dispose()
                 End If
+
                 Throw
             End Try
 
             Return engineResult
+        End Function
+
+        Private Shared Function GetConflictResolution(
+                renameTo As String,
+                solution As Solution,
+                symbol As ISymbol,
+                renameOptions As SymbolRenameOptions,
+                host As RenameTestHost) As ConflictResolution
+
+            If host = RenameTestHost.OutOfProcess_SplitCall Then
+                ' This tests that each portion of rename can properly marshal to/from the OOP process. It validates
+                ' features that need to call each part independently and operate on the intermediary values.
+
+                Dim locations = Renamer.FindRenameLocationsAsync(
+                    solution, symbol, renameOptions, CancellationToken.None).GetAwaiter().GetResult()
+
+                Return locations.ResolveConflictsAsync(renameTo, nonConflictSymbols:=Nothing, cancellationToken:=CancellationToken.None).GetAwaiter().GetResult()
+            Else
+                ' This tests that rename properly works when the entire call is remoted to OOP and the final result is
+                ' marshaled back.
+
+                Return Renamer.RenameSymbolAsync(
+                    solution, symbol, renameTo, renameOptions,
+                    nonConflictSymbols:=Nothing, CancellationToken.None).GetAwaiter().GetResult()
+            End If
         End Function
 
         Friend ReadOnly Property ConflictResolution As ConflictResolution
@@ -103,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         End Property
 
         Private Sub AssertUnlabeledSpansRenamedAndHaveNoConflicts()
-            For Each documentWithSpans In _workspace.Documents
+            For Each documentWithSpans In _workspace.Documents.Where(Function(d) Not d.IsSourceGenerated)
                 Dim oldSyntaxTree = _workspace.CurrentSolution.GetDocument(documentWithSpans.Id).GetSyntaxTreeAsync().Result
 
                 For Each span In documentWithSpans.SelectedSpans
@@ -171,7 +208,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
         Private Sub AssertLocationReplacedWith(location As Location, replacementText As String, Optional isRenameWithinStringOrComment As Boolean = False)
             Try
                 Dim documentId = ConflictResolution.OldSolution.GetDocumentId(location.SourceTree)
-                Dim newLocation = ConflictResolution.GetTestAccessor().GetResolutionTextSpan(location.SourceSpan, documentId)
+                Dim newLocation = ConflictResolution.GetResolutionTextSpan(location.SourceSpan, documentId)
 
                 Dim newTree = ConflictResolution.NewSolution.GetDocument(documentId).GetSyntaxTreeAsync().Result
                 Dim newToken = newTree.GetRoot.FindToken(newLocation.Start, findInsideTrivia:=True)
@@ -181,12 +218,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 ElseIf isRenameWithinStringOrComment AndAlso newToken.FullSpan.Contains(newLocation) Then
                     newText = newToken.ToFullString().Substring(newLocation.Start - newToken.FullSpan.Start, newLocation.Length)
                 Else
-                    Dim newNode = newToken.Parent
-                    While (newNode IsNot Nothing AndAlso newNode.Span <> newLocation)
-                        newNode = newNode.Parent
-                    End While
-
-                    newText = newNode.ToString()
+                    newText = newTree.GetText().ToString(newLocation)
                 End If
 
                 Assert.Equal(replacementText, newText)

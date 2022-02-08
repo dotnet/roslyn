@@ -2,30 +2,36 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Friend Class TestStateFactory
         Public Shared Function CreateCSharpTestState(documentElement As XElement,
-                                                     Optional extraCompletionProviders As CompletionProvider() = Nothing,
                                                      Optional excludedTypes As List(Of Type) = Nothing,
                                                      Optional extraExportedTypes As List(Of Type) = Nothing,
                                                      Optional includeFormatCommandHandler As Boolean = False,
-                                                     Optional languageVersion As CodeAnalysis.CSharp.LanguageVersion = CodeAnalysis.CSharp.LanguageVersion.Default) As TestState
+                                                     Optional languageVersion As LanguageVersion = LanguageVersion.Default,
+                                                     Optional showCompletionInArgumentLists As Boolean = True) As TestState
 
-            Return New TestState(<Workspace>
-                                     <Project Language="C#" CommonReferences="true" LanguageVersion=<%= DirectCast(languageVersion, Int32) %>>
-                                         <Document>
-                                             <%= documentElement.Value %>
-                                         </Document>
-                                     </Project>
-                                 </Workspace>,
-                                 extraCompletionProviders, excludedTypes, extraExportedTypes,
+            Dim testState = New TestState(<Workspace>
+                                              <Project Language="C#" CommonReferences="true" LanguageVersion=<%= languageVersion.ToDisplayString() %>>
+                                                  <Document>
+                                                      <%= documentElement.Value %>
+                                                  </Document>
+                                              </Project>
+                                          </Workspace>,
+                                 excludedTypes, extraExportedTypes,
                                  includeFormatCommandHandler, workspaceKind:=Nothing)
+
+            testState.Workspace.GlobalOptions.SetGlobalOption(
+                New OptionKey(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp), showCompletionInArgumentLists)
+
+            Return testState
         End Function
 
         Public Shared Function CreateVisualBasicTestState(documentElement As XElement,
-                                                           Optional extraCompletionProviders As CompletionProvider() = Nothing,
                                                            Optional extraExportedTypes As List(Of Type) = Nothing) As TestState
 
             Return New TestState(<Workspace>
@@ -35,17 +41,22 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                          </Document>
                                      </Project>
                                  </Workspace>,
-                                 extraCompletionProviders, excludedTypes:=Nothing, extraExportedTypes,
+                                 excludedTypes:=Nothing, extraExportedTypes,
                                  includeFormatCommandHandler:=False, workspaceKind:=Nothing)
         End Function
 
         Public Shared Function CreateTestStateFromWorkspace(workspaceElement As XElement,
-                                                            Optional extraCompletionProviders As CompletionProvider() = Nothing,
-                                                            Optional extraExportedTypes As List(Of Type) = Nothing,
-                                                            Optional workspaceKind As String = Nothing) As TestState
+                                                            Optional extraExportedTypes As IEnumerable(Of Type) = Nothing,
+                                                            Optional workspaceKind As String = Nothing,
+                                                            Optional showCompletionInArgumentLists As Boolean = True) As TestState
 
-            Return New TestState(workspaceElement, extraCompletionProviders,
-                                   excludedTypes:=Nothing, extraExportedTypes, includeFormatCommandHandler:=False, workspaceKind)
+            Dim testState = New TestState(
+                workspaceElement, excludedTypes:=Nothing, extraExportedTypes, includeFormatCommandHandler:=False, workspaceKind)
+
+            testState.Workspace.GlobalOptions.SetGlobalOption(
+                New OptionKey(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp), showCompletionInArgumentLists)
+
+            Return testState
         End Function
     End Class
 End Namespace

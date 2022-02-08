@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 parameterList,
                 initializer,
                 body,
-                default(ArrowExpressionClauseSyntax),
+                expressionBody: null,
                 semicolonToken);
     }
 }
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxTokenList modifiers,
             SyntaxToken identifier,
             ParameterListSyntax parameterList,
-            ConstructorInitializerSyntax initializer,
+            ConstructorInitializerSyntax? initializer,
             BlockSyntax body)
             => ConstructorDeclaration(
                 attributeLists,
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterList,
                 initializer,
                 body,
-                default(ArrowExpressionClauseSyntax),
+                expressionBody: null,
                 default(SyntaxToken));
 
         public static ConstructorDeclarationSyntax ConstructorDeclaration(
@@ -56,8 +56,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxTokenList modifiers,
             SyntaxToken identifier,
             ParameterListSyntax parameterList,
-            ConstructorInitializerSyntax initializer,
-            BlockSyntax body,
+            ConstructorInitializerSyntax? initializer,
+            BlockSyntax? body,
             SyntaxToken semicolonToken)
             => ConstructorDeclaration(
                 attributeLists,
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterList,
                 initializer,
                 body,
-                default(ArrowExpressionClauseSyntax),
+                expressionBody: null,
                 semicolonToken);
 
         public static ConstructorDeclarationSyntax ConstructorDeclaration(
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 identifier,
                 parameterList,
                 initializer,
-                default(BlockSyntax),
+                body: null,
                 expressionBody,
                 default(SyntaxToken));
 
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 identifier,
                 parameterList,
                 initializer,
-                default(BlockSyntax),
+                body: null,
                 expressionBody,
                 semicolonToken);
 

@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="tr" original="../CodeFixesResources.resx">
+    <body>
+      <trans-unit id="Add_blank_line_after_block">
+        <source>Add blank line after block</source>
+        <target state="translated">Bloktan sonra boş satır ekleme</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_both">
+        <source>Add both</source>
+        <target state="translated">Her ikisini de ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_default_case">
+        <source>Add default case</source>
+        <target state="translated">Varsayılan durum ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_file_header">
+        <source>Add file header</source>
+        <target state="translated">Dosya üst bilgisi ekle</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_Name_Violation_colon_0">
+        <source>Fix Name Violation: {0}</source>
+        <target state="translated">Ad İhlalini Düzelt: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_occurrences_in">
+        <source>Fix all occurrences in</source>
+        <target state="translated">Tüm oluşumları şurada düzelt:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_extra_blank_lines">
+        <source>Remove extra blank lines</source>
+        <target state="translated">Fazladan boş satırları kaldır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_redundant_assignment">
+        <source>Remove redundant assignment</source>
+        <target state="translated">Gereksiz atamayı kaldır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_or_Configure_issues">
+        <source>Suppress or Configure issues</source>
+        <target state="translated">Sorunları Gizle veya Yapılandır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Update_suppression_format">
+        <source>Update suppression format</source>
+        <target state="translated">Yinelenen uyarıları engelleme biçimini güncelleştir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_discard_underscore">
+        <source>Use discard '_'</source>
+        <target state="translated">'_' atmasını kullan</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_discarded_local">
+        <source>Use discarded local</source>
+        <target state="translated">Atılmış yereli kullan</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

@@ -3,20 +3,14 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
     Public Class InvocationExpressionSignatureHelpProviderTests
         Inherits AbstractVisualBasicSignatureHelpProviderTests
 
-        Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
-            MyBase.New(workspaceFixture)
-        End Sub
-
-        Friend Overrides Function CreateSignatureHelpProvider() As ISignatureHelpProvider
-            Return New InvocationExpressionSignatureHelpProvider()
+        Friend Overrides Function GetSignatureHelpProviderType() As Type
+            Return GetType(InvocationExpressionSignatureHelpProvider)
         End Function
 
 #Region "Regular tests"
@@ -681,14 +675,14 @@ End Module]]></a>.Value
             expectedOrderedItems.Add(New SignatureHelpTestItem(
 $"List(Of 'a).Add(item As 'a)
 
-{FeaturesResources.Anonymous_Types_colon}
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} New With {{ .A As Integer, .B As Integer }}",
                                      String.Empty,
                                      String.Empty,
                                      currentParameterIndex:=0,
                                      description:=$"
 
-{FeaturesResources.Anonymous_Types_colon}
+{FeaturesResources.Types_colon}
     'a {FeaturesResources.is_} New With {{ .A As Integer, .B As Integer }}"))
 
             Await TestAsync(markup, expectedOrderedItems)
@@ -1785,7 +1779,6 @@ End Class
                                                 hideAdvancedMembers:=False)
         End Function
 
-
 #End Region
 
         <WorkItem(543038, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543038")>
@@ -1829,7 +1822,7 @@ end class
                                  <Document IsLinkFile="true" LinkAssemblyName="Proj1" LinkFilePath="SourceDocument"/>
                              </Project>
                          </Workspace>]]></text>.Value.NormalizeLineEndings()
-            Dim expectedDescription = New SignatureHelpTestItem("C.bar()" + vbCrLf + vbCrLf + String.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available) + vbCrLf + String.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available) + vbCrLf + vbCrLf + FeaturesResources.You_can_use_the_navigation_bar_to_switch_context, currentParameterIndex:=0)
+            Dim expectedDescription = New SignatureHelpTestItem("C.bar()" + vbCrLf + vbCrLf + String.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available) + vbCrLf + String.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available) + vbCrLf + vbCrLf + FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts, currentParameterIndex:=0)
             Await VerifyItemWithReferenceWorkerAsync(markup, {expectedDescription}, False)
         End Function
 
@@ -1859,7 +1852,7 @@ class C
                              </Project>
                          </Workspace>]]></text>.Value.NormalizeLineEndings()
 
-            Dim expectedDescription = New SignatureHelpTestItem("C.bar()" + $"\r\n\r\n{String.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{String.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_context}".Replace("\r\n", vbCrLf), currentParameterIndex:=0)
+            Dim expectedDescription = New SignatureHelpTestItem("C.bar()" + $"\r\n\r\n{String.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{String.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}".Replace("\r\n", vbCrLf), currentParameterIndex:=0)
             Await VerifyItemWithReferenceWorkerAsync(markup, {expectedDescription}, False)
         End Function
 
@@ -1971,6 +1964,26 @@ End Class
             expectedOrderedItems.Add(New SignatureHelpTestItem("A.New(x As Integer)", String.Empty, String.Empty, currentParameterIndex:=0))
 
             Await TestAsync(markup, expectedOrderedItems)
+        End Function
+
+        <WorkItem(40451, "https://github.com/dotnet/roslyn/issues/40451")>
+        <Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
+        Public Async Function TestSigHelpIsVisibleWithDuplicateMethodNames() As Task
+            Dim markup = "
+Class C
+    Shared Sub Test()
+        M(1, 2$$)
+    End Sub
+
+    Sub M(y As Integer)
+    End Sub
+
+    Shared Sub M(x As Integer, y As Integer)
+    End Sub
+End Class
+"
+
+            Await TestAsync(markup, {New SignatureHelpTestItem("C.M(x As Integer, y As Integer)")})
         End Function
     End Class
 End Namespace

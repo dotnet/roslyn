@@ -2,6 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -10,92 +14,96 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
 {
-    internal partial class InlineTemporaryCodeRefactoringProvider
+    internal partial class CSharpInlineTemporaryCodeRefactoringProvider
     {
         private class ReferenceRewriter : CSharpSyntaxRewriter
         {
-            private readonly SemanticModel _semanticModel;
-            private readonly ILocalSymbol _localSymbol;
-            private readonly VariableDeclaratorSyntax _variableDeclarator;
+            private readonly ISet<IdentifierNameSyntax> _conflictReferences;
+            private readonly ISet<IdentifierNameSyntax> _nonConflictReferences;
             private readonly ExpressionSyntax _expressionToInline;
             private readonly CancellationToken _cancellationToken;
 
             private ReferenceRewriter(
-                SemanticModel semanticModel,
-                VariableDeclaratorSyntax variableDeclarator,
+                ISet<IdentifierNameSyntax> conflictReferences,
+                ISet<IdentifierNameSyntax> nonConflictReferences,
                 ExpressionSyntax expressionToInline,
                 CancellationToken cancellationToken)
             {
-                _semanticModel = semanticModel;
-                _localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken);
-                _variableDeclarator = variableDeclarator;
+                _conflictReferences = conflictReferences;
+                _nonConflictReferences = nonConflictReferences;
                 _expressionToInline = expressionToInline;
                 _cancellationToken = cancellationToken;
             }
 
-            private bool IsReference(SimpleNameSyntax name)
-            {
-                if (name.Identifier.ValueText != _variableDeclarator.Identifier.ValueText)
-                {
-                    return false;
-                }
-
-                var symbol = _semanticModel.GetSymbolInfo(name).Symbol;
-                return symbol != null
-                    && symbol.Equals(_localSymbol);
-            }
-
-            public override SyntaxNode VisitIdentifierName(IdentifierNameSyntax node)
+            public override SyntaxNode? VisitIdentifierName(IdentifierNameSyntax node)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
 
-                if (IsReference(node))
-                {
-                    if (HasConflict(node, _variableDeclarator))
-                    {
-                        return node.Update(node.Identifier.WithAdditionalAnnotations(CreateConflictAnnotation()));
-                    }
+                if (_conflictReferences.Contains(node))
+                    return node.Update(node.Identifier.WithAdditionalAnnotations(CreateConflictAnnotation()));
 
-                    return _expressionToInline
-                        .Parenthesize()
-                        .WithAdditionalAnnotations(Formatter.Annotation, Simplifier.Annotation);
-                }
+                if (_nonConflictReferences.Contains(node))
+                    return _expressionToInline;
 
                 return base.VisitIdentifierName(node);
             }
 
-            public override SyntaxNode VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
+            public override SyntaxNode? VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
             {
-                var nameEquals = node.NameEquals;
-                var expression = node.Expression;
-                var identifier = expression as IdentifierNameSyntax;
-
-                if (nameEquals != null || identifier == null || !IsReference(identifier) || HasConflict(identifier, _variableDeclarator))
+                if (node.NameEquals == null &&
+                    node.Expression is IdentifierNameSyntax identifier &&
+                    _nonConflictReferences.Contains(identifier))
                 {
-                    return base.VisitAnonymousObjectMemberDeclarator(node);
+
+                    // Special case inlining into anonymous types to ensure that we keep property names:
+                    //
+                    // E.g.
+                    //     int x = 42;
+                    //     var a = new { x; };
+                    //
+                    // Should become:
+                    //     var a = new { x = 42; };
+                    return node.Update(SyntaxFactory.NameEquals(identifier), (ExpressionSyntax)Visit(node.Expression));
                 }
 
-                // Special case inlining into anonymous types to ensure that we keep property names:
-                //
-                // E.g.
-                //     int x = 42;
-                //     var a = new { x; };
-                //
-                // Should become:
-                //     var a = new { x = 42; };
-                nameEquals = SyntaxFactory.NameEquals(identifier);
-                expression = (ExpressionSyntax)this.Visit(expression);
-                return node.Update(nameEquals, expression).WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation);
+                return base.VisitAnonymousObjectMemberDeclarator(node);
+            }
+
+            public override SyntaxNode? VisitArgument(ArgumentSyntax node)
+            {
+                if (node.Parent is TupleExpressionSyntax tupleExpression &&
+                    ShouldAddTupleMemberName(node, out var identifier) &&
+                    tupleExpression.Arguments.Count(a => ShouldAddTupleMemberName(a, out _)) == 1)
+                {
+                    return node.Update(SyntaxFactory.NameColon(identifier), node.RefKindKeyword, (ExpressionSyntax)Visit(node.Expression));
+                }
+
+                return base.VisitArgument(node);
+            }
+
+            private bool ShouldAddTupleMemberName(ArgumentSyntax node, [NotNullWhen(true)] out IdentifierNameSyntax? identifier)
+            {
+                if (node.NameColon == null &&
+                    node.Expression is IdentifierNameSyntax id &&
+                    _nonConflictReferences.Contains(id) &&
+                    !SyntaxFacts.IsReservedTupleElementName(id.Identifier.ValueText))
+                {
+                    identifier = id;
+                    return true;
+                }
+
+                identifier = null;
+                return false;
             }
 
             public static SyntaxNode Visit(
-                SemanticModel semanticModel,
                 SyntaxNode scope,
-                VariableDeclaratorSyntax variableDeclarator,
+                ISet<IdentifierNameSyntax> conflictReferences,
+                ISet<IdentifierNameSyntax> nonConflictReferences,
                 ExpressionSyntax expressionToInline,
                 CancellationToken cancellationToken)
             {
-                var rewriter = new ReferenceRewriter(semanticModel, variableDeclarator, expressionToInline, cancellationToken);
+                var rewriter = new ReferenceRewriter(conflictReferences, nonConflictReferences, expressionToInline, cancellationToken);
                 return rewriter.Visit(scope);
             }
         }

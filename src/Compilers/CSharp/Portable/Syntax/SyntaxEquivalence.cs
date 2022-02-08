@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     internal static class SyntaxEquivalence
     {
-        internal static bool AreEquivalent(SyntaxTree before, SyntaxTree after, Func<SyntaxKind, bool> ignoreChildNode, bool topLevel)
+        internal static bool AreEquivalent(SyntaxTree? before, SyntaxTree? after, Func<SyntaxKind, bool>? ignoreChildNode, bool topLevel)
         {
             if (before == after)
             {
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return AreEquivalent(before.GetRoot(), after.GetRoot(), ignoreChildNode, topLevel);
         }
 
-        public static bool AreEquivalent(SyntaxNode before, SyntaxNode after, Func<SyntaxKind, bool> ignoreChildNode, bool topLevel)
+        public static bool AreEquivalent(SyntaxNode? before, SyntaxNode? after, Func<SyntaxKind, bool>? ignoreChildNode, bool topLevel)
         {
             Debug.Assert(!topLevel || ignoreChildNode == null);
 
@@ -49,8 +49,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return before.RawKind == after.RawKind && (before.Node == null || AreTokensEquivalent(before.Node, after.Node, ignoreChildNode: null));
         }
 
-        private static bool AreTokensEquivalent(GreenNode before, GreenNode after, Func<SyntaxKind, bool> ignoreChildNode)
+        private static bool AreTokensEquivalent(GreenNode? before, GreenNode? after, Func<SyntaxKind, bool>? ignoreChildNode)
         {
+            if (before is null || after is null)
+            {
+                return (before is null && after is null);
+            }
+
             // NOTE(cyrusn): Do we want to drill into trivia?  Can documentation ever affect the
             // global meaning of symbols?  This can happen in java with things like the "@obsolete"
             // clause in doc comment.  However, i don't know if anything like that exists in C#. 
@@ -77,6 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.CharacterLiteralToken:
                 case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.SingleLineRawStringLiteralToken:
+                case SyntaxKind.MultiLineRawStringLiteralToken:
                 case SyntaxKind.InterpolatedStringTextToken:
                     if (((Green.SyntaxToken)before).Text != ((Green.SyntaxToken)after).Text)
                     {
@@ -88,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return AreNullableDirectivesEquivalent(before, after, ignoreChildNode);
         }
 
-        private static bool AreEquivalentRecursive(GreenNode before, GreenNode after, Func<SyntaxKind, bool> ignoreChildNode, bool topLevel)
+        private static bool AreEquivalentRecursive(GreenNode? before, GreenNode? after, Func<SyntaxKind, bool>? ignoreChildNode, bool topLevel)
         {
             if (before == after)
             {
@@ -157,8 +164,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 var e2 = after.ChildNodesAndTokens().GetEnumerator();
                 while (true)
                 {
-                    GreenNode child1 = null;
-                    GreenNode child2 = null;
+                    GreenNode? child1 = null;
+                    GreenNode? child2 = null;
 
                     // skip ignored children:
                     while (e1.MoveNext())
@@ -218,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
         }
 
-        private static bool AreNullableDirectivesEquivalent(GreenNode before, GreenNode after, Func<SyntaxKind, bool> ignoreChildNode)
+        private static bool AreNullableDirectivesEquivalent(GreenNode before, GreenNode after, Func<SyntaxKind, bool>? ignoreChildNode)
         {
             // Fast path for when the caller does not care about nullable directives. This can happen in some IDE refactorings.
             if (ignoreChildNode is object && ignoreChildNode(SyntaxKind.NullableDirectiveTrivia))
@@ -230,8 +237,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             using var afterDirectivesEnumerator = ((Green.CSharpSyntaxNode)after).GetDirectives().GetEnumerator();
             while (true)
             {
-                Green.DirectiveTriviaSyntax beforeAnnotation = getNextNullableDirective(beforeDirectivesEnumerator, ignoreChildNode);
-                Green.DirectiveTriviaSyntax afterAnnotation = getNextNullableDirective(afterDirectivesEnumerator, ignoreChildNode);
+                Green.DirectiveTriviaSyntax? beforeAnnotation = getNextNullableDirective(beforeDirectivesEnumerator, ignoreChildNode);
+                Green.DirectiveTriviaSyntax? afterAnnotation = getNextNullableDirective(afterDirectivesEnumerator, ignoreChildNode);
 
                 if (beforeAnnotation == null || afterAnnotation == null)
                 {
@@ -243,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     return false;
                 }
 
-                static Green.DirectiveTriviaSyntax getNextNullableDirective(IEnumerator<Green.DirectiveTriviaSyntax> enumerator, Func<SyntaxKind, bool> ignoreChildNode)
+                static Green.DirectiveTriviaSyntax? getNextNullableDirective(IEnumerator<Green.DirectiveTriviaSyntax> enumerator, Func<SyntaxKind, bool>? ignoreChildNode)
                 {
                     while (enumerator.MoveNext())
                     {

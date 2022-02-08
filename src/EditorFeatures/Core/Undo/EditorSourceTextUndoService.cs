@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -9,21 +11,21 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text;
+using System;
 
 namespace Microsoft.CodeAnalysis.Editor.Undo
 {
     [ExportWorkspaceService(typeof(ISourceTextUndoService), ServiceLayer.Editor), Shared]
     internal sealed class EditorSourceTextUndoService : ISourceTextUndoService
     {
-        private readonly Dictionary<SourceText, SourceTextUndoTransaction> _transactions = new Dictionary<SourceText, SourceTextUndoTransaction>();
+        private readonly Dictionary<SourceText, SourceTextUndoTransaction> _transactions = new();
 
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public EditorSourceTextUndoService(ITextUndoHistoryRegistry undoHistoryRegistry)
-        {
-            _undoHistoryRegistry = undoHistoryRegistry;
-        }
+            => _undoHistoryRegistry = undoHistoryRegistry;
 
         public ISourceTextUndoTransaction RegisterUndoTransaction(SourceText sourceText, string description)
         {

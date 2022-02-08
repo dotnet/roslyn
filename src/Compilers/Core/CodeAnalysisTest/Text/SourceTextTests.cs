@@ -2,6 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -218,13 +222,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
             Assert.False(SourceText.IsBinary(encoding.GetString(new byte[] { 0x81, 0x8D, 0x8F, 0x90, 0x9D })));
             // Unicode string: äëïöüû
             Assert.False(SourceText.IsBinary("abc def baz aeiouy \u00E4\u00EB\u00EF\u00F6\u00FC\u00FB"));
-            Assert.True(SourceText.IsBinary(encoding.GetString(TestResources.NetFX.v4_0_30319.System)));
+            Assert.True(SourceText.IsBinary(encoding.GetString(TestMetadata.ResourcesNet451.System)));
         }
 
         [Fact]
         public void FromThrowsIfBinary()
         {
-            var bytes = TestResources.NetFX.v4_0_30319.System;
+            var bytes = TestMetadata.ResourcesNet451.System;
             Assert.Throws<InvalidDataException>(() => SourceText.From(bytes, bytes.Length, throwIfBinaryDetected: true));
 
             var stream = new MemoryStream(bytes);
@@ -301,6 +305,55 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
 
             TestTryReadByteOrderMark(expectedEncoding: null, expectedPreambleLength: 0, data: new byte[] { 0xfe });
             TestTryReadByteOrderMark(expectedEncoding: Encoding.BigEndianUnicode, expectedPreambleLength: 2, data: new byte[] { 0xfe, 0xff });
+        }
+
+        [Fact]
+        [WorkItem(41903, "https://github.com/dotnet/roslyn/issues/41903")]
+        public void WriteWithRangeStartingLaterThanZero()
+        {
+            var sourceText = SourceText.From("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+
+            var writer = new StringWriter();
+            sourceText.Write(writer, TextSpan.FromBounds(1, sourceText.Length));
+
+            Assert.Equal("BCDEFGHIJKLMNOPQRSTUVWXYZ", writer.ToString());
+        }
+
+        public static IEnumerable<object[]> AllRanges(int totalLength) =>
+            from start in Enumerable.Range(0, totalLength)
+            from length in Enumerable.Range(0, totalLength - start)
+            select new object[] { new TextSpan(start, length) };
+
+        [Theory]
+        [MemberData(nameof(AllRanges), 10)]
+        [WorkItem(41903, "https://github.com/dotnet/roslyn/issues/41903")]
+        public void WriteWithAllRanges(TextSpan span)
+        {
+            const string Text = "0123456789";
+            var sourceText = SourceText.From(Text);
+
+            var writer = new StringWriter();
+            sourceText.Write(writer, span);
+
+            Assert.Equal(Text.Substring(span.Start, span.Length), writer.ToString());
+        }
+
+        [Fact]
+        public void WriteWithSpanStartingAfterEndThrowsOutOfRange()
+        {
+            var ex = Assert.ThrowsAny<ArgumentOutOfRangeException>(() =>
+                SourceText.From("ABC").Write(TextWriter.Null, TextSpan.FromBounds(4, 4)));
+
+            Assert.Equal("span", ex.ParamName);
+        }
+
+        [Fact]
+        public void WriteWithSpanEndingAfterEndThrowsOutOfRange()
+        {
+            var ex = Assert.ThrowsAny<ArgumentOutOfRangeException>(() =>
+                SourceText.From("ABC").Write(TextWriter.Null, TextSpan.FromBounds(2, 4)));
+
+            Assert.Equal("span", ex.ParamName);
         }
     }
 }

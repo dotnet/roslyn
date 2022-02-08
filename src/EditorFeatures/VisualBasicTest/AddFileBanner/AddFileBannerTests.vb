@@ -267,6 +267,39 @@ end class
 </Workspace>")
         End Function
 
+        <Theory, Trait(Traits.Feature, Traits.Features.CodeActionsAddFileBanner)>
+        <InlineData("", 1)>
+        <InlineData("file_header_template =", 1)>
+        <InlineData("file_header_template = unset", 1)>
+        <InlineData("file_header_template = defined file header", 0)>
+        Public Async Function TestMissingWhenHandledByAnalyzer(fileHeaderTemplate As String, expectedActionCount As Integer) As Task
+            Dim initialMarkup = $"
+<Workspace>
+    <Project Language=""Visual Basic"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""/0/Test0.vb"">[||]Imports System
+
+class Program1
+    sub Main()
+    end sub
+end class
+        </Document>
+        <Document FilePath=""/0/Test1.vb"">' This is the banner
+
+class Program2
+end class
+        </Document>
+        <AnalyzerConfigDocument FilePath=""/.editorconfig"">
+root = true
+
+[*]
+{fileHeaderTemplate}
+        </AnalyzerConfigDocument>
+    </Project>
+</Workspace>"
+
+            Await TestActionCountAsync(initialMarkup, expectedActionCount)
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddFileBanner)>
         Public Async Function TestMissingIfOtherFileDoesNotHaveBanner() As Task
             Await TestMissingAsync(

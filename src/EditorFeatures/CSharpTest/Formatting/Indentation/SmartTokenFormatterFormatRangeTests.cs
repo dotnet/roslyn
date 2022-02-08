@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,6 +18,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -567,32 +570,35 @@ get
             await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
+        [WpfTheory]
         [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
-        public async Task AccessorList9()
+        [InlineData("get")]
+        [InlineData("set")]
+        [InlineData("init")]
+        public async Task AccessorList9(string accessor)
         {
-            var code = @"class C
-{
+            var code = $@"class C
+{{
     int Prop
-    {
-set
-        {
+    {{
+{accessor}
+        {{
             ;
-        }$$
-    }
-}";
+        }}$$
+    }}
+}}";
 
-            var expected = @"class C
-{
+            var expected = $@"class C
+{{
     int Prop
-    {
-        set
-        {
+    {{
+        {accessor}
+        {{
             ;
-        }
-    }
-}";
+        }}
+    }}
+}}";
 
             await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
@@ -2117,12 +2123,13 @@ class Class
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        [WorkItem(44423, "https://github.com/dotnet/roslyn/issues/44423")]
         public async Task CharLiterals1()
         {
-            var code = @"''';$$";
+            var code = @"';$$";
 
             var expected = string.Empty;
-            await AutoFormatOnMarkerAsync(code, expected, SyntaxKind.EndOfFileToken, SyntaxKind.None);
+            await AutoFormatOnMarkerAsync(code, expected, SyntaxKind.CharacterLiteralToken, SyntaxKind.None);
         }
 
         [Fact]
@@ -3119,6 +3126,66 @@ class Program{
         [WpfTheory]
         [CombinatorialData]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public void UsingStatementWithNestedCheckedStatement(bool useTabs)
+        {
+            var code = @"class C
+{
+    public void M()
+    {
+        using (null)
+        checked
+        {
+        }$$
+    }
+}";
+
+            var expected = @"class C
+{
+    public void M()
+    {
+        using (null)
+            checked
+            {
+            }
+    }
+}";
+
+            AutoFormatToken(code, expected, useTabs);
+        }
+
+        [WpfTheory]
+        [CombinatorialData]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public void UsingStatementWithNestedUncheckedStatement(bool useTabs)
+        {
+            var code = @"class C
+{
+    public void M()
+    {
+        using (null)
+        unchecked
+        {
+        }$$
+    }
+}";
+
+            var expected = @"class C
+{
+    public void M()
+    {
+        using (null)
+            unchecked
+            {
+            }
+    }
+}";
+
+            AutoFormatToken(code, expected, useTabs);
+        }
+
+        [WpfTheory]
+        [CombinatorialData]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public void FixedStatementWithNestedUsingStatement(bool useTabs)
         {
             var code = @"class C
@@ -3472,7 +3539,7 @@ class Program{
             using var workspace = TestWorkspace.CreateCSharp(markup);
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(FormattingOptions.UseTabs, LanguageNames.CSharp, useTabs)));
+                .WithChangedOption(FormattingOptions2.UseTabs, LanguageNames.CSharp, useTabs)));
 
             var subjectDocument = workspace.Documents.Single();
 
@@ -3485,47 +3552,34 @@ class Program{
             Assert.Equal(expected, newSnapshot.GetText());
         }
 
-        private static Tuple<OptionSet, IEnumerable<AbstractFormattingRule>> GetService(
-            TestWorkspace workspace)
-        {
-            var options = workspace.Options;
-            return Tuple.Create(options, Formatter.GetDefaultFormattingRules(workspace, LanguageNames.CSharp));
-        }
+        private static Task AutoFormatOnColonAsync(string codeWithMarker, string expected, SyntaxKind startTokenKind)
+            => AutoFormatOnMarkerAsync(codeWithMarker, expected, SyntaxKind.ColonToken, startTokenKind);
 
-        private Task AutoFormatOnColonAsync(string codeWithMarker, string expected, SyntaxKind startTokenKind)
-        {
-            return AutoFormatOnMarkerAsync(codeWithMarker, expected, SyntaxKind.ColonToken, startTokenKind);
-        }
+        private static Task AutoFormatOnSemicolonAsync(string codeWithMarker, string expected, SyntaxKind startTokenKind)
+            => AutoFormatOnMarkerAsync(codeWithMarker, expected, SyntaxKind.SemicolonToken, startTokenKind);
 
-        private Task AutoFormatOnSemicolonAsync(string codeWithMarker, string expected, SyntaxKind startTokenKind)
-        {
-            return AutoFormatOnMarkerAsync(codeWithMarker, expected, SyntaxKind.SemicolonToken, startTokenKind);
-        }
+        private static Task AutoFormatOnCloseBraceAsync(string codeWithMarker, string expected, SyntaxKind startTokenKind)
+            => AutoFormatOnMarkerAsync(codeWithMarker, expected, SyntaxKind.CloseBraceToken, startTokenKind);
 
-        private Task AutoFormatOnCloseBraceAsync(string codeWithMarker, string expected, SyntaxKind startTokenKind)
-        {
-            return AutoFormatOnMarkerAsync(codeWithMarker, expected, SyntaxKind.CloseBraceToken, startTokenKind);
-        }
-
-        private async Task AutoFormatOnMarkerAsync(string initialMarkup, string expected, SyntaxKind tokenKind, SyntaxKind startTokenKind)
+        private static async Task AutoFormatOnMarkerAsync(string initialMarkup, string expected, SyntaxKind tokenKind, SyntaxKind startTokenKind)
         {
             await AutoFormatOnMarkerAsync(initialMarkup, expected, useTabs: false, tokenKind, startTokenKind).ConfigureAwait(false);
             await AutoFormatOnMarkerAsync(initialMarkup.Replace("    ", "\t"), expected.Replace("    ", "\t"), useTabs: true, tokenKind, startTokenKind).ConfigureAwait(false);
         }
 
-        private async Task AutoFormatOnMarkerAsync(string initialMarkup, string expected, bool useTabs, SyntaxKind tokenKind, SyntaxKind startTokenKind)
+        private static async Task AutoFormatOnMarkerAsync(string initialMarkup, string expected, bool useTabs, SyntaxKind tokenKind, SyntaxKind startTokenKind)
         {
             using var workspace = TestWorkspace.CreateCSharp(initialMarkup);
 
             workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(FormattingOptions.UseTabs, LanguageNames.CSharp, useTabs)));
+                .WithChangedOption(FormattingOptions2.UseTabs, LanguageNames.CSharp, useTabs)));
 
-            var tuple = GetService(workspace);
             var testDocument = workspace.Documents.Single();
             var buffer = testDocument.GetTextBuffer();
             var position = testDocument.CursorPosition.Value;
 
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
+            var rules = Formatter.GetDefaultFormattingRules(document);
 
             var root = (CompilationUnitSyntax)await document.GetSyntaxRootAsync();
             var endToken = root.FindToken(position);
@@ -3535,7 +3589,8 @@ class Program{
             }
 
             Assert.Equal(tokenKind, endToken.Kind());
-            var formatter = new CSharpSmartTokenFormatter(tuple.Item1, tuple.Item2, root);
+            var options = await IndentationOptions.FromDocumentAsync(document, CancellationToken.None);
+            var formatter = new CSharpSmartTokenFormatter(options, rules, root);
 
             var tokenRange = FormattingRangeHelper.FindAppropriateRange(endToken);
             if (tokenRange == null)
@@ -3550,7 +3605,7 @@ class Program{
                 return;
             }
 
-            var changes = formatter.FormatRange(workspace, tokenRange.Value.Item1, tokenRange.Value.Item2, CancellationToken.None);
+            var changes = formatter.FormatRange(workspace.Services, tokenRange.Value.Item1, tokenRange.Value.Item2, CancellationToken.None);
             var actual = GetFormattedText(buffer, changes);
             Assert.Equal(expected, actual);
         }

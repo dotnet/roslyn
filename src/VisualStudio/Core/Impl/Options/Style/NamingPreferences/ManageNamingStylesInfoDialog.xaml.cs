@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Notification;
@@ -32,9 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         }
 
         private void AddButton_Click(object sender, RoutedEventArgs e)
-        {
-            _viewModel.AddItem();
-        }
+            => _viewModel.AddItem();
 
         private void RemoveButton_Click(object sender, RoutedEventArgs e)
         {
@@ -51,13 +51,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         }
 
         private void OK_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = true;
-        }
+            => DialogResult = true;
 
         private void Cancel_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
-        }
+            => DialogResult = false;
     }
 }

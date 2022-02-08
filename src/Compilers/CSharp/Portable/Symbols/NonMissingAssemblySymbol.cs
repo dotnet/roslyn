@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -110,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object)result != null)
             {
                 // We only cache result equivalent to digging through type forwarders, which
-                // might produce an forwarder specific ErrorTypeSymbol. We don't want to 
+                // might produce a forwarder specific ErrorTypeSymbol. We don't want to 
                 // return that error symbol, unless digThroughForwardedTypes is true.
                 if (digThroughForwardedTypes || (!result.IsErrorType() && (object)result.ContainingAssembly == (object)this))
                 {
@@ -174,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override abstract NamedTypeSymbol TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies);
+        internal abstract override NamedTypeSymbol TryLookupForwardedMetadataTypeWithCycleDetection(ref MetadataTypeName emittedName, ConsList<AssemblySymbol> visitedAssemblies);
 
         private NamedTypeSymbol LookupTopLevelMetadataTypeInCache(ref MetadataTypeName emittedName)
         {

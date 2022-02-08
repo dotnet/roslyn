@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -51,11 +53,16 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments
                 {
                     if (trivia.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia)
                     {
-                        newLeadingTrivia.Add(SyntaxFactory.Comment("//"));
-                        newLeadingTrivia.Add(SyntaxFactory.ElasticCarriageReturnLineFeed);
-
                         var structuredTrivia = (DocumentationCommentTriviaSyntax)trivia.GetStructure();
-                        newLeadingTrivia.AddRange(ConvertDocCommentToRegularComment(structuredTrivia));
+                        var commentLines = ConvertDocCommentToRegularComment(structuredTrivia).ToSyntaxTriviaList();
+
+                        if (commentLines.Count > 0)
+                        {
+                            newLeadingTrivia.Add(SyntaxFactory.Comment("//"));
+                            newLeadingTrivia.Add(SyntaxFactory.ElasticCarriageReturnLineFeed);
+
+                            newLeadingTrivia.AddRange(commentLines);
+                        }
                     }
                     else
                     {

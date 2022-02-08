@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="_0_reference">
         <source>{0} reference</source>
-        <target state="translated">{0}-Verweis</target>
+        <target state="translated">{0} Verweis</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_references">

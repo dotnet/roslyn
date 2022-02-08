@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
@@ -21,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             protected override IReadOnlyList<DocumentId> GetDocumentIds(Project fromProject)
                 => fromProject.DocumentIds;
 
-            protected override TextDocument GetDocument(Solution currentSolution)
+            protected override TextDocument? GetDocument(Solution currentSolution)
                 => currentSolution.GetDocument(this.DocumentId);
         }
     }

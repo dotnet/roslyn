@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString;
@@ -9,70 +11,74 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using CSharpLanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion;
+using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeRefactoringVerifier<
+    Microsoft.CodeAnalysis.CSharp.ConvertToInterpolatedString.CSharpConvertConcatenationToInterpolatedStringRefactoringProvider>;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedString
 {
-    public class ConvertConcatenationToInterpolatedStringTests : AbstractCSharpCodeActionTest
+    public class ConvertConcatenationToInterpolatedStringTests
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new CSharpConvertConcatenationToInterpolatedStringRefactoringProvider();
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestMissingOnSimpleString()
         {
-            await TestMissingInRegularAndScriptAsync(
-@"public class C
+            var code = @"public class C
 {
     void M()
     {
         var v = [||]""string"";
     }
-}");
+}";
+
+            await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestMissingOnConcatenatedStrings1()
         {
-            await TestMissingInRegularAndScriptAsync(
-@"public class C
+            var code = @"public class C
 {
     void M()
     {
         var v = [||]""string"" + ""string"";
     }
-}");
+}";
+
+            await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestMissingOnConcatenatedStrings2()
         {
-            await TestMissingInRegularAndScriptAsync(
-@"public class C
+            var code = @"public class C
 {
     void M()
     {
         var v = ""string"" + [||]""string"";
     }
-}");
+}";
+
+            await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestMissingOnConcatenatedStrings3()
         {
-            await TestMissingInRegularAndScriptAsync(
-@"public class C
+            var code = @"public class C
 {
     void M()
     {
         var v = ""string"" + '.' + [||]""string"";
     }
-}");
+}";
+
+            await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithStringOnLeft()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyRefactoringAsync(
 @"public class C
 {
     void M()
@@ -92,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestRightSideOfString()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyRefactoringAsync(
 @"public class C
 {
     void M()
@@ -112,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithStringOnRight()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyRefactoringAsync(
 @"public class C
 {
     void M()
@@ -132,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithComplexExpressionOnLeft()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyRefactoringAsync(
 @"public class C
 {
     void M()
@@ -152,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithTrivia1()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyRefactoringAsync(
 @"
 public class C
 {
@@ -178,7 +184,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithComplexExpressions()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyRefactoringAsync(
 @"public class C
 {
     void M()
@@ -198,7 +204,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithEscapes1()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyRefactoringAsync(
 @"
 public class C
 {
@@ -220,7 +226,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithEscapes2()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyRefactoringAsync(
 @"
 public class C
 {
@@ -242,7 +248,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithVerbatimString1()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyRefactoringAsync(
 @"public class C
 {
     void M()
@@ -262,46 +268,49 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestMissingWithMixedStringTypes1()
         {
-            await TestMissingInRegularAndScriptAsync(
-@"public class C
+            var code = @"public class C
 {
     void M()
     {
         var v = 1 + [||]@""string"" + 2 + ""string"";
     }
-}");
+}";
+
+            await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestMissingWithMixedStringTypes2()
         {
-            await TestMissingInRegularAndScriptAsync(
-@"public class C
+            var code = @"public class C
 {
     void M()
     {
         var v = 1 + @""string"" + 2 + [||]""string"";
     }
-}");
+}";
+
+            await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestMissingWithMixedStringTypes3()
         {
-            await TestMissingInRegularAndScriptAsync(
-@"public class C
+            var code = @"public class C
 {
     void M()
     {
         var v = 1 + @""string"" + 2 + [||]'\n';
     }
-}");
+}";
+
+            await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithOverloadedOperator()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyRefactoringAsync(
 @"public class D
 {
     public static bool operator +(D d, string s) => false;
@@ -335,11 +344,10 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithOverloadedOperator2()
         {
-            await TestMissingInRegularAndScriptAsync(
-@"public class D
+            var code = @"public class D
 {
-    public static bool operator +(D d, string s) => false;
-    public static bool operator +(string s, D d) => false;
+    public static int operator +(D d, string s) => 0;
+    public static int operator +(string s, D d) => 0;
 }
 
 public class C
@@ -349,14 +357,16 @@ public class C
         D d = null;
         var v = d + [||]""string"" + 1;
     }
-}");
+}";
+
+            await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
         [WorkItem(16820, "https://github.com/dotnet/roslyn/issues/16820")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithMultipleStringConcatinations()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyRefactoringAsync(
 @"public class C
 {
     void M()
@@ -377,7 +387,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithMultipleStringConcatinations2()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyRefactoringAsync(
 @"public class C
 {
     void M()
@@ -398,7 +408,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithMultipleStringConcatinations3()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyRefactoringAsync(
 @"public class C
 {
     void M()
@@ -419,44 +429,47 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithMultipleStringConcatinations4()
         {
-            await TestMissingInRegularAndScriptAsync(
-@"public class C
+            var code = @"public class C
 {
     void M()
     {
         var v = ""A"" + 1 + [||]""B"" + @""C"";
     }
-}");
+}";
+
+            await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
         [WorkItem(20943, "https://github.com/dotnet/roslyn/issues/20943")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestMissingWithDynamic1()
         {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
+            var code = @"class C
 {
     void M()
     {
         dynamic a = ""b"";
         string c = [||]""d"" + a + ""e"";
     }
-}");
+}";
+
+            await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
         [WorkItem(20943, "https://github.com/dotnet/roslyn/issues/20943")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestMissingWithDynamic2()
         {
-            await TestMissingInRegularAndScriptAsync(
-@"class C
+            var code = @"class C
 {
     void M()
     {
         dynamic dynamic = null;
         var x = dynamic.someVal + [||]"" $"";
     }
-}");
+}";
+
+            await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
         [WorkItem(23536, "https://github.com/dotnet/roslyn/issues/23536")]
@@ -464,7 +477,7 @@ public class C
         public async Task TestWithStringLiteralWithBraces()
         {
             {
-                await TestInRegularAndScriptAsync(
+                await VerifyCS.VerifyRefactoringAsync(
     @"public class C
 {
     void M()
@@ -484,10 +497,33 @@ public class C
 
         [WorkItem(23536, "https://github.com/dotnet/roslyn/issues/23536")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        public async Task TestWithStringLiteralWithBraces2()
+        {
+            {
+                await VerifyCS.VerifyRefactoringAsync(
+    @"public class C
+{
+    void M()
+    {
+        var v = 1 + [||]""{string}"" + ""{string}"";
+    }
+}",
+    @"public class C
+{
+    void M()
+    {
+        var v = $""{1}{{string}}{{string}}"";
+    }
+}");
+            }
+        }
+
+        [WorkItem(23536, "https://github.com/dotnet/roslyn/issues/23536")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithStringLiteralWithDoubleBraces()
         {
             {
-                await TestInRegularAndScriptAsync(
+                await VerifyCS.VerifyRefactoringAsync(
     @"public class C
 {
     void M()
@@ -510,7 +546,7 @@ public class C
         public async Task TestWithMultipleStringLiteralsWithBraces()
         {
             {
-                await TestInRegularAndScriptAsync(
+                await VerifyCS.VerifyRefactoringAsync(
     @"public class C
 {
     void M()
@@ -532,7 +568,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithVerbatimStringWithBraces()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyRefactoringAsync(
 @"public class C
 {
     void M()
@@ -553,7 +589,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithMultipleVerbatimStringsWithBraces()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyRefactoringAsync(
 @"public class C
 {
     void M()
@@ -575,7 +611,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithSelectionOnEntireToBeInterpolatedString()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyRefactoringAsync(
 @"public class C
 {
     void M()
@@ -596,15 +632,16 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestMissingWithSelectionOnPartOfToBeInterpolatedStringPrefix()
         {
-            // see comment in AbstractConvertConcatenationToInterpolatedStringRefactoringProvider:ComputeRefactoringsAsync
-            await TestMissingInRegularAndScriptAsync(
-@"public class C
+            var code = @"public class C
 {
     void M()
     {
         var v = [|""string"" + 1|] + ""string"";
     }
-}");
+}";
+
+            // see comment in AbstractConvertConcatenationToInterpolatedStringRefactoringProvider:ComputeRefactoringsAsync
+            await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
         [WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
@@ -612,15 +649,16 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestMissingWithSelectionOnPartOfToBeInterpolatedStringSuffix()
         {
-            // see comment in AbstractConvertConcatenationToInterpolatedStringRefactoringProvider:ComputeRefactoringsAsync
-            await TestMissingInRegularAndScriptAsync(
-@"public class C
+            var code = @"public class C
 {
     void M()
     {
         var v = ""string"" + [|1 + ""string""|];
     }
-}");
+}";
+
+            // see comment in AbstractConvertConcatenationToInterpolatedStringRefactoringProvider:ComputeRefactoringsAsync
+            await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
         [WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
@@ -628,22 +666,23 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestMissingWithSelectionOnMiddlePartOfToBeInterpolatedString()
         {
-            // see comment in AbstractConvertConcatenationToInterpolatedStringRefactoringProvider:ComputeRefactoringsAsync
-            await TestMissingInRegularAndScriptAsync(
-@"public class C
+            var code = @"public class C
 {
     void M()
     {
         var v = ""a"" + [|1 + ""string""|] + ""b"";
     }
-}");
+}";
+
+            // see comment in AbstractConvertConcatenationToInterpolatedStringRefactoringProvider:ComputeRefactoringsAsync
+            await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
         [WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithSelectionExceedingToBeInterpolatedString()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyRefactoringAsync(
 @"public class C
 {
     void M()
@@ -664,7 +703,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithCaretBeforeNonStringToken()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyRefactoringAsync(
 @"public class C
 {
     void M()
@@ -685,7 +724,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithCaretAfterNonStringToken()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyRefactoringAsync(
 @"public class C
 {
     void M()
@@ -706,7 +745,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithCaretBeforePlusToken()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyRefactoringAsync(
 @"public class C
 {
     void M()
@@ -727,7 +766,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithCaretAfterPlusToken()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyRefactoringAsync(
 @"public class C
 {
     void M()
@@ -748,7 +787,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithCaretBeforeLastPlusToken()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyRefactoringAsync(
 @"public class C
 {
     void M()
@@ -769,7 +808,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestWithCaretAfterLastPlusToken()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyRefactoringAsync(
 @"public class C
 {
     void M()
@@ -790,7 +829,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestConcatenationWithNoStringLiterals()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyRefactoringAsync(
 @"public class C
 {
     void M()
@@ -802,7 +841,7 @@ public class C
 {
     void M()
     {
-        var v = $""{1}{(""string"")}"";
+        var v = $""{1}{""string""}"";
     }
 }");
         }
@@ -811,7 +850,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestConcatenationWithChar()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyRefactoringAsync(
 @"public class C
 {
     void M()
@@ -836,7 +875,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestConcatenationWithCharAfterStringLiteral()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyRefactoringAsync(
 @"public class C
 {
     void M()
@@ -859,7 +898,7 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestConcatenationWithCharBeforeStringLiteral()
         {
-            await TestInRegularAndScriptAsync(
+            await VerifyCS.VerifyRefactoringAsync(
 @"public class C
 {
     void M()
@@ -882,20 +921,41 @@ public class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestConcatenationWithConstMember()
         {
-            await TestMissingAsync(@"
+            var code = @"
 class C
 {
     const string Hello = ""Hello"";
     const string World = ""World"";
     const string Message = Hello + "" "" + [||]World;
-}");
+}";
+            var fixedCode = @"
+class C
+{
+    const string Hello = ""Hello"";
+    const string World = ""World"";
+    const string Message = $""{Hello} {World}"";
+}";
+
+            await new VerifyCS.Test
+            {
+                LanguageVersion = CSharpLanguageVersion.CSharp9,
+                TestCode = code,
+                FixedCode = code,
+            }.RunAsync();
+
+            await new VerifyCS.Test
+            {
+                LanguageVersion = CSharpLanguageVersion.Preview,
+                TestCode = code,
+                FixedCode = fixedCode,
+            }.RunAsync();
         }
 
         [WorkItem(40413, "https://github.com/dotnet/roslyn/issues/40413")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestConcatenationWithConstDeclaration()
         {
-            await TestMissingAsync(@"
+            var code = @"
 class C
 {
     void M() {
@@ -903,14 +963,38 @@ class C
         const string World = ""World"";
         const string Message = Hello + "" "" + [||]World;
     }
-}");
+}";
+            var fixedCode = @"
+class C
+{
+    void M() {
+        const string Hello = ""Hello"";
+        const string World = ""World"";
+        const string Message = $""{Hello} {World}"";
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                LanguageVersion = CSharpLanguageVersion.CSharp9,
+                TestCode = code,
+                FixedCode = code,
+            }.RunAsync();
+
+            await new VerifyCS.Test
+            {
+                LanguageVersion = CSharpLanguageVersion.Preview,
+                TestCode = code,
+                FixedCode = fixedCode,
+            }.RunAsync();
         }
 
         [WorkItem(40413, "https://github.com/dotnet/roslyn/issues/40413")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
         public async Task TestConcatenationWithInlineString()
         {
-            await TestInRegularAndScriptAsync(@"
+            await VerifyCS.VerifyRefactoringAsync(@"
+using System;
 class C
 {
     void M() {
@@ -920,6 +1004,7 @@ class C
     }
 }",
 @"
+using System;
 class C
 {
     void M() {
@@ -928,6 +1013,105 @@ class C
         Console.WriteLine($""{Hello} {World}"");
     }
 }");
+        }
+
+        [WorkItem(49229, "https://github.com/dotnet/roslyn/issues/49229")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [InlineData(@"[|""a"" + $""{1:000}""|]",
+                     @"$""a{1:000}""")]
+        [InlineData(@"[|""a"" + $""b{1:000}""|]",
+                     @"$""ab{1:000}""")]
+        [InlineData(@"[|$""a{1:000}"" + ""b""|]",
+                     @"$""a{1:000}b""")]
+        [InlineData(@"[|""a"" + $""b{1:000}c"" + ""d""|]",
+                     @"$""ab{1:000}cd""")]
+        [InlineData(@"[|""a"" + $""{1:000}b"" + ""c""|]",
+                     @"$""a{1:000}bc""")]
+        [InlineData(@"[|""a"" + $""{1:000}"" + $""{2:000}"" + ""b""|]",
+                     @"$""a{1:000}{2:000}b""")]
+        [InlineData(@"[|@""a"" + @$""{1:000}""|]",
+                     @"$@""a{1:000}""")]
+        [InlineData(@"[|@""a"" + $""{1:000}""|]",
+                     @"$@""a{$""{1:000}""}""")]
+        [InlineData(@"[|""a"" + @$""{1:000}""|]",
+                     @"$""a{@$""{1:000}""}""")]
+        public async Task TestInliningOfInterpolatedString(string before, string after)
+        {
+            var initialMarkup = $@"
+class C
+{{
+    void M() {{
+        _ = {before};
+    }}
+}}";
+            var expected = $@"
+class C
+{{
+    void M() {{
+        _ = {after};
+    }}
+}}";
+            await VerifyCS.VerifyRefactoringAsync(initialMarkup, expected);
+        }
+
+        [WorkItem(49229, "https://github.com/dotnet/roslyn/issues/49229")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [InlineData(@"""\t"" [|+|] 1",
+                   @"$""\t{1}""")]
+        [InlineData(@"""😀"" [|+|] 1",
+                   @"$""😀{1}""")]
+        [InlineData(@"""\u2764"" [|+|] 1",
+                   @"$""\u2764{1}""")]
+        [InlineData(@"""\"""" [|+|] 1",
+                   @"$""\""{1}""")]
+        [InlineData(@"""{}"" [|+|] 1",
+                   @"$""{{}}{1}""")]
+        public async Task TestUnicodeAndEscapeHandling(string before, string after)
+        {
+            var initialMarkup = $@"
+class C
+{{
+    void M() {{
+        _ = {before};
+    }}
+}}";
+            var expected = $@"
+class C
+{{
+    void M() {{
+        _ = {after};
+    }}
+}}";
+            await VerifyCS.VerifyRefactoringAsync(initialMarkup, expected);
+        }
+
+        [WorkItem(49229, "https://github.com/dotnet/roslyn/issues/49229")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
+        [InlineData(@"""a"" [|+|] (1 + 1)",
+                   @"$""a{1 + 1}""")]
+        [InlineData(@"""a"" [||]+ (1 + 1) + ""b"" + (2 + 2)",
+                   @"$""a{1 + 1}b{2 + 2}""")]
+        [InlineData(@"""a"" [|+|] (true ? ""t"" : ""f"")",
+                   @"$""a{(true ? ""t"" : ""f"")}""")]
+        [InlineData(@"""a"" [|+|] $""{(1 + 1)}""",
+                   @"$""a{(1 + 1)}""")]
+        public async Task TestRemovalOfSuperflousParenthesis(string before, string after)
+        {
+            var initialMarkup = $@"
+class C
+{{
+    void M() {{
+        _ = {before};
+    }}
+}}";
+            var expected = $@"
+class C
+{{
+    void M() {{
+        _ = {after};
+    }}
+}}";
+            await VerifyCS.VerifyRefactoringAsync(initialMarkup, expected);
         }
     }
 }

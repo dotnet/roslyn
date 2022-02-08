@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
@@ -22,9 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
         }
 
         public static T GetMember<T>(this Document document, int index) where T : SyntaxNode
-        {
-            return (T)document.GetSyntaxRootAsync().Result.GetMember(index);
-        }
+            => (T)document.GetSyntaxRootAsync().Result.GetMember(index);
 
         public static T GetMember<T>(this T node, int index) where T : SyntaxNode
         {

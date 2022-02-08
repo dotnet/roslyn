@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pl" original="../VBResources.resx">
     <body>
+      <trans-unit id="ERR_AssignmentInitOnly">
+        <source>Init-only property '{0}' can only be assigned by an object member initializer, or on 'Me', 'MyClass` or 'MyBase' in an instance constructor.</source>
+        <target state="translated">Właściwość tylko do inicjowania „{0}” może być przypisana tylko przez inicjatora składowej obiektu lub w elemencie „Me”, „MyClass” lub „MyBase” w konstruktorze wystąpień.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadAbstractStaticMemberAccess">
+        <source>A shared abstract interface member cannot be accessed.</source>
+        <target state="translated">Nie można uzyskać dostępu do współużytkowanego abstrakcyjnego elementu członkowskiego interfejsu.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadSwitchValue">
         <source>Command-line syntax error: '{0}' is not a valid value for the '{1}' option. The value must be of the form '{2}'.</source>
         <target state="translated">Błąd składni wiersza polecenia: „{0}” nie jest prawidłową wartością dla opcji „{1}”. Wartość musi mieć postać „{2}”.</target>
@@ -22,6 +32,16 @@
         <target state="translated">Wiele plików konfiguracji analizatora nie może znajdować się w tym samym katalogu („{0}”).</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_OverridingInitOnlyProperty">
+        <source>'{0}' cannot override init-only '{1}'.</source>
+        <target state="translated">Właściwość „{0}” nie może przesłonić właściwości tylko do inicjowania „{1}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PropertyDoesntImplementInitOnly">
+        <source>Init-only '{0}' cannot be implemented.</source>
+        <target state="translated">Nie można zaimplementować właściwości tylko do inicjowania „{0}”.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
         <target state="translated">Nie można osadzić typu „{0}”, ponieważ zawiera ponowną abstrakcję składowej z interfejsu podstawowego. Rozważ ustawienie właściwości „Osadź typy międzyoperacyjne” na wartość false.</target>
@@ -37,9 +57,34 @@
         <target state="translated">Docelowe środowisko uruchomieniowe nie obsługuje poziomu dostępu „Protected”, „Protected Friend” ani „Private Protected” dla składowej interfejsu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SharedEventNeedsHandlerInTheSameType">
+        <source>Events of shared WithEvents variables cannot be handled by methods in a different type.</source>
+        <target state="translated">Zdarzenia udostępnionych zmiennych WithEvents nie mogą zostać obsłużone przez metody w innym typie.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnimplementedSharedMember">
+        <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</source>
+        <target state="translated">{0}„{1}” nie może zaimplementować interfejsu „{3}”, ponieważ zawiera udostępnioną abstrakcję „{2}”.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedCallersOnlyNotSupported">
+        <source>'UnmanagedCallersOnly' attribute is not supported.</source>
+        <target state="translated">Atrybut „UnmanagedCallersOnly” jest nieobsługiwany.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_CallerArgumentExpression">
+        <source>caller argument expression</source>
+        <target state="translated">wyrażenie argumentu wywołującego</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_CommentsAfterLineContinuation">
         <source>comments after line continuation</source>
         <target state="translated">komentarze po kontynuacji wiersza</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_InitOnlySettersUsage">
+        <source>assigning to or passing 'ByRef' properties with init-only setters</source>
+        <target state="translated">przypisywanie lub przekazywanie właściwości „ByRef” za pomocą metod ustawiających tylko do inicjowania</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
@@ -127,6 +172,7 @@
                                   both mean SARIF version 2.1.0.
 -reportanalyzer                   Report additional analyzer information, such as
                                   execution time.
+-skipanalyzers[+|-]               Skip execution of diagnostic analyzers.
 
                                   - LANGUAGE -
 -define:&lt;symbol_list&gt;             Declare global conditional compilation
@@ -260,7 +306,7 @@
                                   sekcji manifestu wyjściowego środowiska PE.
 -win32resource:&lt;plik&gt;             Określa plik zasobów środowiska Win32 (res).
 
-                                  - GEEROWANIE KODU -
+                                  - GENEROWANIE KODU -
 -optimize[+|-]                    Włącz optymalizacje.
 -removeintchecks[+|-]             Usuń kontrole liczb całkowitych. Domyślnie wyłączone.
 -debug[+|-]                       Emituj informacje o debugowaniu.
@@ -286,10 +332,11 @@
 -errorlog:&lt;plik&gt;[,version=&lt;wersja_sarif&gt;]         
                                   Określ plik, w którym mają zostać zarejestrowane dane diagnostyczne
                                   w formacie SARIF.
-                                  sarif_version:{1|2|2.1} Domyślne wartości 1. 2 i 2.1
+                                  wersja_sarif:{1|2|2.1} Domyślne wartości 1. 2 i 2.1
                                   oznaczają format SARIF w wersji 2.1.0.
 -reportanalyzer                   Zgłoś dodatkowe informacje analizatora, takie jak
                                   czas wykonywania.
+-skipanalyzers[+|-]               Pomiń wykonywanie analizatorów diagnostycznych.
 
                                   - JĘZYK -
 -define:&lt;lista_symboli&gt;             Zadeklaruj globalne symbole
@@ -300,24 +347,24 @@
                                   import_list:przestrzeń_nazw, ,...
 -langversion:?                    Wyświetl dozwolone wartości dla wersji języka
 -langversion:&lt;ciąg&gt;             Określ wersję języka, taką jak
-                                  „domyślna” (najnowsza wersja główna) lub
-                                  „najnowsza” (najnowsza wersja, z uwzględnieniem wersji pomocniczych)
+                                  „default” (najnowsza wersja główna) lub
+                                  „latest” (najnowsza wersja, z uwzględnieniem wersji pomocniczych)
                                   albo konkretna wersja, na przykład „14” lub „15.3”
 -optionexplicit[+|-]              Wymagaj jawnej deklaracji zmiennych.
 -optioninfer[+|-]                 Zezwalaj na wnioskowanie o typie zmiennych.
 -rootnamespace:&lt;ciąg&gt;           Określa główną przestrzeń nazw dla wszystkich
-                                  deklaracji typów..
+                                  deklaracji typów.
 -optionstrict[+|-]                Wymuszaj ścisłą semantykę języka.
 -optionstrict:custom              Ostrzegaj, gdy ścisła semantyka języka nie jest
                                   przestrzegana.
--optioncompare:binary             Określa binrane porównywanie ciągów.
+-optioncompare:binary             Określa binarne porównywanie ciągów.
                                   Jest to opcja domyślna.
 -optioncompare:text               Określa tekstowe porównywanie ciągów.
 
                                   - RÓŻNE -
 -help                             Wyświetl ten komunikat dotyczący użycia. (krótka wersja: -?)
 -noconfig                         Nie dołączaj automatycznie pliku VBC.RSP.
--nologo                           Nie wyświetlaj transparentu kompilatora z informacjami o prawach autorskich.
+-nologo                           Nie wyświetlaj baneru kompilatora z informacjami o prawach autorskich.
 -quiet                            Cichy tryb wyjściowy.
 -verbose                          Wyświetl pełne komunikaty
 -parallel[+|-]                    Współbieżna kompilacja.
@@ -374,6 +421,16 @@
 -vbruntime:&lt;plik&gt;                 Wykonaj kompilację przy użyciu alternatywnego
                                   środowiska uruchomieniowego języka Visual Basic w pliku &lt;plik&gt;.
 </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ThereAreNoFunctionPointerTypesInVB">
+        <source>There are no function pointer types in VB.</source>
+        <target state="translated">W języku VB nie ma typów wskaźnikowych funkcji.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ThereAreNoNativeIntegerTypesInVB">
+        <source>There are no native integer types in VB.</source>
+        <target state="translated">Brak typów natywnej liczby całkowitej w języku Visual Basic.</target>
         <note />
       </trans-unit>
       <trans-unit id="Trees0">
@@ -449,6 +506,70 @@
       <trans-unit id="TypeArgumentCannotBeNothing">
         <source>Type argument cannot be Nothing</source>
         <target state="translated">Argument typu nie może mieć wartości Nothing</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework">
+        <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
+        <target state="translated">Zestaw „{0}” zawierający typ „{1}” odwołuje się do platformy .NET Framework, co nie jest obsługiwane.</target>
+        <note>{1} is the type that was loaded, {0} is the containing assembly.</note>
+      </trans-unit>
+      <trans-unit id="WRN_AnalyzerReferencesFramework_Title">
+        <source>The loaded assembly references .NET Framework, which is not supported.</source>
+        <target state="translated">Załadowany zestaw odwołuje się do platformy .NET Framework, co nie jest obsługiwane.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="translated">Atrybut CallerArgumentExpressionAttribute zastosowany do parametru „{0}” nie będzie działać. Jest on stosowany z nieprawidłową nazwą parametru.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeHasInvalidParameterName_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect. It is applied with an invalid parameter name.</source>
+        <target state="translated">CallerArgumentExpressionAttribute zastosowane do parametru nie będzie działać. Jest on stosowany z nieprawidłową nazwą parametru.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential">
+        <source>The CallerArgumentExpressionAttribute applied to parameter '{0}' will have no effect because it's self-referential.</source>
+        <target state="translated">Atrybut CallerArgumentExpressionAttribute zastosowany do parametru „{0}” nie będzie działać, ponieważ jego odwołanie jest samodzielne.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential_Title">
+        <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</source>
+        <target state="translated">Atrybut CallerArgumentExpressionAttribute zastosowany do parametru nie będzie działać, ponieważ jest to odwołanie samodzielne.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration">
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
+        <target state="translated">Generator „{0}” nie mógł wygenerować źródła. W rezultacie nie będzie on współtworzyć danych wyjściowych i mogą wystąpić błędy kompilacji. Typ wyjątku: „{1}”, komunikat: „{2}”</target>
+        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
+        <source>Generator threw the following exception:
+'{0}'.</source>
+        <target state="translated">Generator zgłosił następujący wyjątek:
+„{0}”.</target>
+        <note>{0} is the string representation of the exception that was thrown.</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
+        <source>Generator failed to generate source.</source>
+        <target state="translated">Generator nie mógł wygenerować źródła.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization">
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
+        <target state="translated">Generator „{0}” nie mógł przeprowadzić inicjalizacji. W rezultacie nie będzie on współtworzyć danych wyjściowych i mogą wystąpić błędy kompilacji. Typ wyjątku: „{1}”, komunikat: „{2}”</target>
+        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
+        <source>Generator threw the following exception:
+'{0}'.</source>
+        <target state="translated">Generator zgłosił następujący wyjątek:
+„{0}”.</target>
+        <note>{0} is the string representation of the exception that was thrown.</note>
+      </trans-unit>
+      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
+        <source>Generator failed to initialize.</source>
+        <target state="translated">Generator nie mógł przeprowadzić inicjalizacji.</target>
         <note />
       </trans-unit>
       <trans-unit id="WrongNumberOfTypeArguments">
@@ -774,6 +895,11 @@
       <trans-unit id="ERR_IllegalChar">
         <source>Character is not valid.</source>
         <target state="translated">Znak jest nieprawidłowy.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StdInOptionProvidedButConsoleInputIsNotRedirected">
+        <source>stdin argument '-' is specified, but input has not been redirected from the standard input stream.</source>
+        <target state="translated">określono argument stdin „-”, ale dane wejściowe nie zostały przekierowane ze standardowego strumienia wejściowego.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StrictDisallowsObjectOperand1">
@@ -2373,7 +2499,7 @@
       </trans-unit>
       <trans-unit id="ERR_MustInheritEventNotOverridden">
         <source>'{0}' is a MustOverride event in the base class '{1}'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class '{2}' MustInherit.</source>
-        <target state="translated">'„{0}” jest zdarzeniem MustOverride w klasie bazowej „{1}”. Język Visual Basic nie obsługuje przesłaniania zdarzeń. Musisz określić implementację zdarzenia w klasie bazowej lub ustawić klasę „{2}” jako zdarzenie MustInherit.</target>
+        <target state="translated">„{0}” jest zdarzeniem MustOverride w klasie bazowej „{1}”. Język Visual Basic nie obsługuje przesłaniania zdarzeń. Musisz określić implementację zdarzenia w klasie bazowej lub ustawić klasę „{2}” jako zdarzenie MustInherit.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NegativeArraySize">
@@ -8701,7 +8827,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidFormatSpecifier">
         <source>'{0}' is not a valid format specifier</source>
-        <target state="translated">'„{0}” nie jest prawidłowym specyfikatorem formatu</target>
+        <target state="translated">„{0}” nie jest prawidłowym specyfikatorem formatu</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidPreprocessorConstantType">

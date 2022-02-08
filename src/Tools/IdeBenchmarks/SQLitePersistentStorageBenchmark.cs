@@ -6,14 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.SolutionSize;
-using Microsoft.CodeAnalysis.SQLite;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SQLite.v2;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Test.Utilities;
 
@@ -32,6 +32,15 @@ namespace IdeBenchmarks
         private IChecksummedPersistentStorage _storage;
         private Document _document;
         private Random _random;
+
+        public SQLitePersistentStorageBenchmarks()
+        {
+            _document = null!;
+            _storage = null!;
+            _storageService = null!;
+            _workspace = null!;
+            _random = null!;
+        }
 
         [GlobalSetup]
         public void GlobalSetup()
@@ -52,20 +61,17 @@ namespace IdeBenchmarks
     </Project>
 </Workspace>");
 
-            // Ensure we always use the storage service, no matter what the size of the solution.
-            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(
-                _workspace.CurrentSolution.Options.WithChangedOption(StorageOptions.SolutionSizeThreshold, -1)));
+            // Explicitly choose the sqlite db to test.
+            _workspace.TryApplyChanges(_workspace.CurrentSolution.WithOptions(_workspace.Options
+                .WithChangedOption(StorageOptions.Database, StorageDatabase.SQLite)));
 
-            _storageService = new SQLitePersistentStorageService(
-                _workspace.Services.GetService<IOptionService>(),
-                new LocationService(),
-                new SolutionSizeTracker());
+            var connectionPoolService = _workspace.ExportProvider.GetExportedValue<SQLiteConnectionPoolService>();
+            var asyncListener = _workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.PersistentStorage);
 
-            _storage = _storageService.GetStorageWorker(_workspace.CurrentSolution);
-            if (_storage == NoOpPersistentStorage.Instance)
-            {
-                throw new InvalidOperationException("We didn't properly get the sqlite storage instance.");
-            }
+            _storageService = new SQLitePersistentStorageService(connectionPoolService, new StorageConfiguration(), asyncListener);
+
+            var solution = _workspace.CurrentSolution;
+            _storage = _storageService.GetStorageWorkerAsync(SolutionKey.ToSolutionKey(solution), CancellationToken.None).AsTask().GetAwaiter().GetResult();
 
             Console.WriteLine("Storage type: " + _storage.GetType());
             _document = _workspace.CurrentSolution.Projects.Single().Documents.Single();
@@ -80,12 +86,12 @@ namespace IdeBenchmarks
                 throw new InvalidOperationException();
             }
 
-            _document = null;
+            _document = null!;
             _storage.Dispose();
-            _storage = null;
-            _storageService = null;
+            _storage = null!;
+            _storageService = null!;
             _workspace.Dispose();
-            _workspace = null;
+            _workspace = null!;
 
             _useExportProviderAttribute.After(null);
         }
@@ -93,14 +99,15 @@ namespace IdeBenchmarks
         private static readonly byte[] s_bytes = new byte[1000];
 
         [Benchmark(Baseline = true)]
-        public Task Perf()
+        public Task PerfAsync()
         {
-            var tasks = new List<Task>();
+            const int capacity = 1000;
+            var tasks = new List<Task>(capacity);
 
             // Create a lot of overlapping reads and writes to the DB to several different keys. The
             // percentage of reads and writes is parameterized above, allowing us to validate
             // performance with several different usage patterns.
-            for (var i = 0; i < 1000; i++)
+            for (var i = 0; i < capacity; i++)
             {
                 var name = _random.Next(0, 4).ToString();
                 if (_random.Next(0, 100) < ReadPercentage)
@@ -123,16 +130,11 @@ namespace IdeBenchmarks
             return Task.WhenAll(tasks);
         }
 
-        private class SolutionSizeTracker : ISolutionSizeTracker
+        private class StorageConfiguration : IPersistentStorageConfiguration
         {
-            public long GetSolutionSize(Workspace workspace, SolutionId solutionId) => 0;
-        }
+            public bool ThrowOnFailure => true;
 
-        private class LocationService : IPersistentStorageLocationService
-        {
-            public bool IsSupported(Workspace workspace) => true;
-
-            public string TryGetStorageLocation(Solution _)
+            public string TryGetStorageLocation(SolutionKey _)
             {
                 // Store the db in a different random temp dir.
                 var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());

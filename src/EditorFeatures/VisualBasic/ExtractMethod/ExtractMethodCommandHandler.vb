@@ -3,8 +3,10 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.ComponentModel.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
@@ -18,10 +20,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ExtractMethod
         Inherits AbstractExtractMethodCommandHandler
 
         <ImportingConstructor()>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New(threadingContext As IThreadingContext,
                        undoManager As ITextBufferUndoManagerProvider,
-                       renameService As IInlineRenameService)
-            MyBase.New(threadingContext, undoManager, renameService)
+                       renameService As IInlineRenameService,
+                       globalOptions As IGlobalOptionService)
+            MyBase.New(threadingContext, undoManager, renameService, globalOptions)
         End Sub
     End Class
 End Namespace

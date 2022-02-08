@@ -26,25 +26,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         //      [return: A2]
         //      public delegate void Goo();
         // attributesToBind will only contain first attribute syntax.
-        internal static void BindAttributeTypes(ImmutableArray<Binder> binders, ImmutableArray<AttributeSyntax> attributesToBind, Symbol ownerSymbol, NamedTypeSymbol[] boundAttributeTypes, DiagnosticBag diagnostics)
+        internal static void BindAttributeTypes(
+            ImmutableArray<Binder> binders, ImmutableArray<AttributeSyntax> attributesToBind, Symbol ownerSymbol, NamedTypeSymbol[] boundAttributeTypes,
+            Action<AttributeSyntax>? beforeAttributePartBound,
+            Action<AttributeSyntax>? afterAttributePartBound,
+            BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(binders.Any());
             Debug.Assert(attributesToBind.Any());
             Debug.Assert((object)ownerSymbol != null);
             Debug.Assert(binders.Length == attributesToBind.Length);
-            Debug.Assert(boundAttributeTypes != null);
+            RoslynDebug.Assert(boundAttributeTypes != null);
 
             for (int i = 0; i < attributesToBind.Length; i++)
             {
                 // Some types may have been bound by an earlier stage.
-                if ((object)boundAttributeTypes[i] == null)
+                if (boundAttributeTypes[i] is null)
                 {
                     var binder = binders[i];
+                    AttributeSyntax attributeToBind = attributesToBind[i];
+
+                    beforeAttributePartBound?.Invoke(attributeToBind);
 
                     // BindType for AttributeSyntax's name is handled specially during lookup, see Binder.LookupAttributeType.
                     // When looking up a name in attribute type context, we generate a diagnostic + error type if it is not an attribute type, i.e. named type deriving from System.Attribute.
                     // Hence we can assume here that BindType returns a NamedTypeSymbol.
-                    boundAttributeTypes[i] = (NamedTypeSymbol)binder.BindType(attributesToBind[i].Name, diagnostics).Type;
+                    boundAttributeTypes[i] = (NamedTypeSymbol)binder.BindType(attributeToBind.Name, diagnostics).Type;
+
+                    afterAttributePartBound?.Invoke(attributeToBind);
                 }
             }
         }
@@ -54,15 +63,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<Binder> binders,
             ImmutableArray<AttributeSyntax> attributesToBind,
             ImmutableArray<NamedTypeSymbol> boundAttributeTypes,
-            CSharpAttributeData[] attributesBuilder,
-            DiagnosticBag diagnostics)
+            CSharpAttributeData?[] attributeDataArray,
+            BoundAttribute?[]? boundAttributeArray,
+            Action<AttributeSyntax>? beforeAttributePartBound,
+            Action<AttributeSyntax>? afterAttributePartBound,
+            BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(binders.Any());
             Debug.Assert(attributesToBind.Any());
             Debug.Assert(boundAttributeTypes.Any());
             Debug.Assert(binders.Length == attributesToBind.Length);
             Debug.Assert(boundAttributeTypes.Length == attributesToBind.Length);
-            Debug.Assert(attributesBuilder != null);
+            RoslynDebug.Assert(attributeDataArray != null);
 
             for (int i = 0; i < attributesToBind.Length; i++)
             {
@@ -70,23 +82,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NamedTypeSymbol boundAttributeType = boundAttributeTypes[i];
                 Binder binder = binders[i];
 
-                var attribute = (SourceAttributeData)attributesBuilder[i];
+                var attribute = (SourceAttributeData?)attributeDataArray[i];
                 if (attribute == null)
                 {
-                    attributesBuilder[i] = binder.GetAttribute(attributeSyntax, boundAttributeType, diagnostics);
+                    (attributeDataArray[i], var boundAttribute) = binder.GetAttribute(attributeSyntax, boundAttributeType, beforeAttributePartBound, afterAttributePartBound, diagnostics);
+                    if (boundAttributeArray is not null)
+                    {
+                        boundAttributeArray[i] = boundAttribute;
+                    }
                 }
                 else
                 {
+                    Debug.Assert(boundAttributeArray is null || boundAttributeArray[i] is not null);
+
                     // attributesBuilder might contain some early bound well-known attributes, which had no errors.
                     // We don't rebind the early bound attributes, but need to compute isConditionallyOmitted.
                     // Note that AttributeData.IsConditionallyOmitted is required only during emit, but must be computed here as
                     // its value depends on the values of conditional symbols, which in turn depends on the source file where the attribute is applied.
 
                     Debug.Assert(!attribute.HasErrors);
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    bool isConditionallyOmitted = binder.IsAttributeConditionallyOmitted(attribute.AttributeClass, attributeSyntax.SyntaxTree, ref useSiteDiagnostics);
-                    diagnostics.Add(attributeSyntax, useSiteDiagnostics);
-                    attributesBuilder[i] = attribute.WithOmittedCondition(isConditionallyOmitted);
+                    Debug.Assert(attribute.AttributeClass is object);
+                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = binder.GetNewCompoundUseSiteInfo(diagnostics);
+                    bool isConditionallyOmitted = binder.IsAttributeConditionallyOmitted(attribute.AttributeClass, attributeSyntax.SyntaxTree, ref useSiteInfo);
+                    diagnostics.Add(attributeSyntax, useSiteInfo);
+                    attributeDataArray[i] = attribute.WithOmittedCondition(isConditionallyOmitted);
                 }
             }
         }
@@ -95,16 +114,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Bind Single Attribute
 
-        internal CSharpAttributeData GetAttribute(AttributeSyntax node, NamedTypeSymbol boundAttributeType, DiagnosticBag diagnostics)
+        internal (CSharpAttributeData, BoundAttribute) GetAttribute(
+            AttributeSyntax node, NamedTypeSymbol boundAttributeType,
+            Action<AttributeSyntax>? beforeAttributePartBound,
+            Action<AttributeSyntax>? afterAttributePartBound,
+            BindingDiagnosticBag diagnostics)
         {
+            beforeAttributePartBound?.Invoke(node);
             var boundAttribute = new ExecutableCodeBinder(node, this.ContainingMemberOrLambda, this).BindAttribute(node, boundAttributeType, diagnostics);
-
-            return GetAttribute(boundAttribute, diagnostics);
+            afterAttributePartBound?.Invoke(node);
+            return (GetAttribute(boundAttribute, diagnostics), boundAttribute);
         }
 
-        internal BoundAttribute BindAttribute(AttributeSyntax node, NamedTypeSymbol attributeType, DiagnosticBag diagnostics)
+        internal BoundAttribute BindAttribute(AttributeSyntax node, NamedTypeSymbol attributeType, BindingDiagnosticBag diagnostics)
         {
-            return this.GetBinder(node).BindAttributeCore(node, attributeType, diagnostics);
+            return this.GetRequiredBinder(node).BindAttributeCore(node, attributeType, diagnostics);
         }
 
         private Binder SkipSemanticModelBinder()
@@ -113,15 +137,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             while (result.IsSemanticModelBinder)
             {
-                result = result.Next;
+                result = result.Next!;
             }
 
             return result;
         }
 
-        private BoundAttribute BindAttributeCore(AttributeSyntax node, NamedTypeSymbol attributeType, DiagnosticBag diagnostics)
+        private BoundAttribute BindAttributeCore(AttributeSyntax node, NamedTypeSymbol attributeType, BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(this.SkipSemanticModelBinder() == this.GetBinder(node).SkipSemanticModelBinder());
+            Debug.Assert(this.SkipSemanticModelBinder() == this.GetRequiredBinder(node).SkipSemanticModelBinder());
 
             // If attribute name bound to an error type with a single named type
             // candidate symbol, we want to bind the attribute constructor
@@ -148,12 +172,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder attributeArgumentBinder = this.WithAdditionalFlags(BinderFlags.AttributeArgument);
             AnalyzedAttributeArguments analyzedArguments = attributeArgumentBinder.BindAttributeArguments(argumentListOpt, attributeTypeForBinding, diagnostics);
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             ImmutableArray<int> argsToParamsOpt = default;
             bool expanded = false;
-            MethodSymbol attributeConstructor = null;
+            MethodSymbol? attributeConstructor = null;
 
             // Bind attributeType's constructor based on the bound constructor arguments
+            ImmutableArray<BoundExpression> boundConstructorArguments;
             if (!attributeTypeForBinding.IsErrorType())
             {
                 attributeConstructor = BindAttributeConstructor(node,
@@ -164,9 +189,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                 suppressErrors: attributeType.IsErrorType(),
                                                                 ref argsToParamsOpt,
                                                                 ref expanded,
-                                                                ref useSiteDiagnostics);
+                                                                ref useSiteInfo,
+                                                                out boundConstructorArguments);
             }
-            diagnostics.Add(node, useSiteDiagnostics);
+            else
+            {
+                boundConstructorArguments = analyzedArguments.ConstructorArguments.Arguments.SelectAsArray(
+                    static (arg, attributeArgumentBinder) => attributeArgumentBinder.BindToTypeForErrorRecovery(arg),
+                    attributeArgumentBinder);
+            }
+            Debug.Assert(boundConstructorArguments.All(a => !a.NeedsToBeConverted()));
+            diagnostics.Add(node, useSiteInfo);
 
             if (attributeConstructor is object)
             {
@@ -178,28 +211,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var constructorArguments = analyzedArguments.ConstructorArguments;
-            ImmutableArray<BoundExpression> boundConstructorArguments = constructorArguments.Arguments.ToImmutableAndFree();
-            ImmutableArray<string> boundConstructorArgumentNamesOpt = constructorArguments.GetNames();
-            ImmutableArray<BoundExpression> boundNamedArguments = analyzedArguments.NamedArguments;
-            constructorArguments.Free();
+            ImmutableArray<string?> boundConstructorArgumentNamesOpt = analyzedArguments.ConstructorArguments.GetNames();
+            ImmutableArray<BoundAssignmentOperator> boundNamedArguments = analyzedArguments.NamedArguments?.ToImmutableAndFree() ?? ImmutableArray<BoundAssignmentOperator>.Empty;
+            Debug.Assert(boundNamedArguments.All(arg => !arg.Right.NeedsToBeConverted()));
+
+            analyzedArguments.ConstructorArguments.Free();
 
             return new BoundAttribute(node, attributeConstructor, boundConstructorArguments, boundConstructorArgumentNamesOpt, argsToParamsOpt, expanded,
                 boundNamedArguments, resultKind, attributeType, hasErrors: resultKind != LookupResultKind.Viable);
         }
 
-        private CSharpAttributeData GetAttribute(BoundAttribute boundAttribute, DiagnosticBag diagnostics)
+        private CSharpAttributeData GetAttribute(BoundAttribute boundAttribute, BindingDiagnosticBag diagnostics)
         {
             var attributeType = (NamedTypeSymbol)boundAttribute.Type;
             var attributeConstructor = boundAttribute.Constructor;
 
-            Debug.Assert((object)attributeType != null);
-
-            NullableWalker.AnalyzeIfNeeded(this, boundAttribute, diagnostics);
+            RoslynDebug.Assert((object)attributeType != null);
+            Debug.Assert(boundAttribute.Syntax.Kind() == SyntaxKind.Attribute);
 
             bool hasErrors = boundAttribute.HasAnyErrors;
 
-            if (attributeType.IsErrorType() || attributeType.IsAbstract || (object)attributeConstructor == null)
+            if (attributeType.IsErrorType() || attributeType.IsAbstract || attributeConstructor is null)
             {
                 // prevent cascading diagnostics
                 Debug.Assert(hasErrors);
@@ -227,17 +259,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 constructorArguments = GetRewrittenAttributeConstructorArguments(out constructorArgumentsSourceIndices, attributeConstructor,
-                    constructorArgsArray, boundAttribute.ConstructorArgumentNamesOpt, (AttributeSyntax)boundAttribute.Syntax, diagnostics, ref hasErrors);
+                    constructorArgsArray, boundAttribute.ConstructorArgumentNamesOpt, (AttributeSyntax)boundAttribute.Syntax, boundAttribute.ConstructorArgumentsToParamsOpt, diagnostics, ref hasErrors);
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            bool isConditionallyOmitted = IsAttributeConditionallyOmitted(attributeType, boundAttribute.SyntaxTree, ref useSiteDiagnostics);
-            diagnostics.Add(boundAttribute.Syntax, useSiteDiagnostics);
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            bool isConditionallyOmitted = IsAttributeConditionallyOmitted(attributeType, boundAttribute.SyntaxTree, ref useSiteInfo);
+            diagnostics.Add(boundAttribute.Syntax, useSiteInfo);
 
             return new SourceAttributeData(boundAttribute.Syntax.GetReference(), attributeType, attributeConstructor, constructorArguments, constructorArgumentsSourceIndices, namedArguments, hasErrors, isConditionallyOmitted);
         }
 
-        private void ValidateTypeForAttributeParameters(ImmutableArray<ParameterSymbol> parameters, CSharpSyntaxNode syntax, DiagnosticBag diagnostics, ref bool hasErrors)
+        private void ValidateTypeForAttributeParameters(ImmutableArray<ParameterSymbol> parameters, CSharpSyntaxNode syntax, BindingDiagnosticBag diagnostics, ref bool hasErrors)
         {
             foreach (var parameter in parameters)
             {
@@ -252,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected bool IsAttributeConditionallyOmitted(NamedTypeSymbol attributeType, SyntaxTree syntaxTree, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        protected bool IsAttributeConditionallyOmitted(NamedTypeSymbol attributeType, SyntaxTree? syntaxTree, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // When early binding attributes, we don't want to determine if the attribute type is conditional and if so, must be emitted or not.
             // Invoking IsConditional property on attributeType can lead to a cycle, hence we delay this computation until after early binding.
@@ -273,10 +305,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                var baseType = attributeType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+                var baseType = attributeType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteInfo);
                 if ((object)baseType != null && baseType.IsConditional)
                 {
-                    return IsAttributeConditionallyOmitted(baseType, syntaxTree, ref useSiteDiagnostics);
+                    return IsAttributeConditionallyOmitted(baseType, syntaxTree, ref useSiteInfo);
                 }
 
                 return true;
@@ -288,20 +320,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The result of this method captures some AnalyzedArguments, which must be free'ed by the caller.
+        /// The caller is responsible for freeing <see cref="AnalyzedAttributeArguments.ConstructorArguments"/> and <see cref="AnalyzedAttributeArguments.NamedArguments"/>.
         /// </summary>
         private AnalyzedAttributeArguments BindAttributeArguments(
-            AttributeArgumentListSyntax attributeArgumentList,
+            AttributeArgumentListSyntax? attributeArgumentList,
             NamedTypeSymbol attributeType,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
         {
             var boundConstructorArguments = AnalyzedArguments.GetInstance();
-            var boundNamedArguments = ImmutableArray<BoundExpression>.Empty;
+            ArrayBuilder<BoundAssignmentOperator>? boundNamedArgumentsBuilder = null;
 
             if (attributeArgumentList != null)
             {
-                ArrayBuilder<BoundExpression> boundNamedArgumentsBuilder = null;
-                HashSet<string> boundNamedArgumentsSet = null;
+                HashSet<string>? boundNamedArgumentsSet = null;
 
                 // Only report the first "non-trailing named args required C# 7.2" error,
                 // so as to avoid "cascading" errors.
@@ -334,34 +365,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // Named argument
                         // TODO: use fully qualified identifier name for boundNamedArgumentsSet
-                        string argumentName = argument.NameEquals.Name.Identifier.ValueText;
+                        string argumentName = argument.NameEquals.Name.Identifier.ValueText!;
                         if (boundNamedArgumentsBuilder == null)
                         {
-                            boundNamedArgumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
+                            boundNamedArgumentsBuilder = ArrayBuilder<BoundAssignmentOperator>.GetInstance();
                             boundNamedArgumentsSet = new HashSet<string>();
                         }
-                        else if (boundNamedArgumentsSet.Contains(argumentName))
+                        else if (boundNamedArgumentsSet!.Contains(argumentName))
                         {
                             // Duplicate named argument
                             Error(diagnostics, ErrorCode.ERR_DuplicateNamedAttributeArgument, argument, argumentName);
                         }
 
-                        BoundExpression boundNamedArgument = BindNamedAttributeArgument(argument, attributeType, diagnostics);
+                        BoundAssignmentOperator boundNamedArgument = BindNamedAttributeArgument(argument, attributeType, diagnostics);
                         boundNamedArgumentsBuilder.Add(boundNamedArgument);
                         boundNamedArgumentsSet.Add(argumentName);
                     }
                 }
-
-                if (boundNamedArgumentsBuilder != null)
-                {
-                    boundNamedArguments = boundNamedArgumentsBuilder.ToImmutableAndFree();
-                }
             }
 
-            return new AnalyzedAttributeArguments(boundConstructorArguments, boundNamedArguments);
+            return new AnalyzedAttributeArguments(boundConstructorArguments, boundNamedArgumentsBuilder);
         }
 
-        private BoundExpression BindNamedAttributeArgument(AttributeArgumentSyntax namedArgument, NamedTypeSymbol attributeType, DiagnosticBag diagnostics)
+        private BoundAssignmentOperator BindNamedAttributeArgument(AttributeArgumentSyntax namedArgument, NamedTypeSymbol attributeType, BindingDiagnosticBag diagnostics)
         {
             bool wasError;
             LookupResultKind resultKind;
@@ -376,6 +402,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (setMethod != null)
                 {
                     ReportDiagnosticsIfObsolete(diagnostics, setMethod, namedArgument, hasBaseReceiver: false);
+
+                    if (setMethod.IsInitOnly && setMethod.DeclaringCompilation != this.Compilation)
+                    {
+                        // an error would have already been reported on declaring an init-only setter
+                        CheckFeatureAvailability(namedArgument, MessageID.IDS_FeatureInitOnlySetters, diagnostics);
+                    }
                 }
             }
 
@@ -398,9 +430,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // TODO: should we create an entry even if there are binding errors?
             var fieldSymbol = namedArgumentNameSymbol as FieldSymbol;
+            RoslynDebug.Assert(namedArgument.NameEquals is object);
             IdentifierNameSyntax nameSyntax = namedArgument.NameEquals.Name;
             BoundExpression lvalue;
-            if ((object)fieldSymbol != null)
+            if (fieldSymbol is object)
             {
                 var containingAssembly = fieldSymbol.ContainingAssembly as SourceAssemblySymbol;
 
@@ -412,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var propertySymbol = namedArgumentNameSymbol as PropertySymbol;
-                if ((object)propertySymbol != null)
+                if (propertySymbol is object)
                 {
                     lvalue = new BoundPropertyAccess(nameSyntax, null, propertySymbol, resultKind, namedArgumentType);
                 }
@@ -425,21 +458,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundAssignmentOperator(namedArgument, lvalue, namedArgumentValue, namedArgumentType);
         }
 
-        private Symbol BindNamedAttributeArgumentName(AttributeArgumentSyntax namedArgument, NamedTypeSymbol attributeType, DiagnosticBag diagnostics, out bool wasError, out LookupResultKind resultKind)
+        private Symbol BindNamedAttributeArgumentName(AttributeArgumentSyntax namedArgument, NamedTypeSymbol attributeType, BindingDiagnosticBag diagnostics, out bool wasError, out LookupResultKind resultKind)
         {
+            RoslynDebug.Assert(namedArgument.NameEquals is object);
             var identifierName = namedArgument.NameEquals.Name;
             var name = identifierName.Identifier.ValueText;
             LookupResult result = LookupResult.GetInstance();
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            this.LookupMembersWithFallback(result, attributeType, name, 0, ref useSiteDiagnostics);
-            diagnostics.Add(identifierName, useSiteDiagnostics);
-            Symbol resultSymbol = this.ResultSymbol(result, name, 0, identifierName, diagnostics, false, out wasError);
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+            this.LookupMembersWithFallback(result, attributeType, name, 0, ref useSiteInfo);
+            diagnostics.Add(identifierName, useSiteInfo);
+            Symbol resultSymbol = this.ResultSymbol(result, name, 0, identifierName, diagnostics, false, out wasError, qualifierOpt: null);
             resultKind = result.Kind;
             result.Free();
             return resultSymbol;
         }
 
-        private TypeSymbol BindNamedAttributeArgumentType(AttributeArgumentSyntax namedArgument, Symbol namedArgumentNameSymbol, NamedTypeSymbol attributeType, DiagnosticBag diagnostics)
+        private TypeSymbol BindNamedAttributeArgumentType(AttributeArgumentSyntax namedArgument, Symbol namedArgumentNameSymbol, NamedTypeSymbol attributeType, BindingDiagnosticBag diagnostics)
         {
             if (namedArgumentNameSymbol.Kind == SymbolKind.ErrorType)
             {
@@ -452,7 +486,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:            attribute class T. If T has no such field or property, then a compile-time error occurs.
 
             bool invalidNamedArgument = false;
-            TypeSymbol namedArgumentType = null;
+            TypeSymbol? namedArgumentType = null;
             invalidNamedArgument |= (namedArgumentNameSymbol.DeclaredAccessibility != Accessibility.Public);
             invalidNamedArgument |= namedArgumentNameSymbol.IsStatic;
 
@@ -477,8 +511,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (!invalidNamedArgument)
                         {
                             invalidNamedArgument =
-                                getMethod.DeclaredAccessibility != Accessibility.Public ||
-                                setMethod.DeclaredAccessibility != Accessibility.Public;
+                                getMethod!.DeclaredAccessibility != Accessibility.Public ||
+                                setMethod!.DeclaredAccessibility != Accessibility.Public;
                         }
                         break;
 
@@ -490,6 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (invalidNamedArgument)
             {
+                RoslynDebug.Assert(namedArgument.NameEquals is object);
                 return new ExtendedErrorTypeSymbol(attributeType,
                     namedArgumentNameSymbol,
                     LookupResultKind.NotAVariable,
@@ -497,8 +532,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         namedArgument.NameEquals.Name.Location,
                         namedArgumentNameSymbol.Name));
             }
+
+            RoslynDebug.Assert(namedArgumentType is object);
+
             if (!namedArgumentType.IsValidAttributeParameterType(Compilation))
             {
+                RoslynDebug.Assert(namedArgument.NameEquals is object);
                 return new ExtendedErrorTypeSymbol(attributeType,
                     namedArgumentNameSymbol,
                     LookupResultKind.NotAVariable,
@@ -514,12 +553,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             AttributeSyntax node,
             NamedTypeSymbol attributeType,
             AnalyzedArguments boundConstructorArguments,
-            DiagnosticBag diagnostics,
+            BindingDiagnosticBag diagnostics,
             ref LookupResultKind resultKind,
             bool suppressErrors,
             ref ImmutableArray<int> argsToParamsOpt,
             ref bool expanded,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
+            out ImmutableArray<BoundExpression> constructorArguments)
         {
             MemberResolutionResult<MethodSymbol> memberResolutionResult;
             ImmutableArray<MethodSymbol> candidateConstructors;
@@ -535,9 +575,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 allowProtectedConstructorsOfBaseType: true))
             {
                 resultKind = resultKind.WorseResultKind(
-                    memberResolutionResult.IsValid && !IsConstructorAccessible(memberResolutionResult.Member, ref useSiteDiagnostics) ?
+                    memberResolutionResult.IsValid && !IsConstructorAccessible(memberResolutionResult.Member, ref useSiteInfo) ?
                         LookupResultKind.Inaccessible :
                         LookupResultKind.OverloadResolutionFailure);
+                constructorArguments = BuildArgumentsForErrorRecovery(boundConstructorArguments, candidateConstructors);
+            }
+            else
+            {
+                constructorArguments = boundConstructorArguments.Arguments.ToImmutable();
             }
             argsToParamsOpt = memberResolutionResult.Result.ArgsToParamsOpt;
             expanded = memberResolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
@@ -564,12 +609,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             out ImmutableArray<int> constructorArgumentsSourceIndices,
             MethodSymbol attributeConstructor,
             ImmutableArray<TypedConstant> constructorArgsArray,
-            ImmutableArray<string> constructorArgumentNamesOpt,
+            ImmutableArray<string?> constructorArgumentNamesOpt,
             AttributeSyntax syntax,
-            DiagnosticBag diagnostics,
+            ImmutableArray<int> argumentsToParams,
+            BindingDiagnosticBag diagnostics,
             ref bool hasErrors)
         {
-            Debug.Assert((object)attributeConstructor != null);
+            RoslynDebug.Assert((object)attributeConstructor != null);
             Debug.Assert(!constructorArgsArray.IsDefault);
             Debug.Assert(!hasErrors);
 
@@ -583,14 +629,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!hasNamedCtorArguments ||
                 constructorArgumentNamesOpt.Length == argumentsCount);
 
-            // index of the first named constructor argument
-            int firstNamedArgIndex = -1;
-
             ImmutableArray<ParameterSymbol> parameters = attributeConstructor.Parameters;
             int parameterCount = parameters.Length;
 
             var reorderedArguments = new TypedConstant[parameterCount];
-            int[] sourceIndices = null;
+            int[]? sourceIndices = null;
 
             for (int i = 0; i < parameterCount; i++)
             {
@@ -623,20 +666,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        // named constructor argument
-
-                        // Store the index of the first named constructor argument
-                        if (firstNamedArgIndex == -1)
-                        {
-                            firstNamedArgIndex = argsConsumedCount;
-                        }
-
                         // Current parameter must either have a matching named argument or a default value
                         // For the former case, argsConsumedCount must be incremented to note that we have
                         // consumed a named argument. For the latter case, argsConsumedCount stays same.
                         int matchingArgumentIndex;
-                        reorderedArgument = GetMatchingNamedOrOptionalConstructorArgument(out matchingArgumentIndex, constructorArgsArray,
-                            constructorArgumentNamesOpt, parameter, firstNamedArgIndex, argumentsCount, ref argsConsumedCount, syntax, diagnostics);
+                        reorderedArgument = getMatchingNamedOrOptionalConstructorArgument(out matchingArgumentIndex, constructorArgsArray,
+                            parameter, argumentsCount, ref argsConsumedCount, syntax, argumentsToParams, diagnostics);
 
                         sourceIndices = sourceIndices ?? CreateSourceIndicesArray(i, parameterCount);
                         sourceIndices[i] = matchingArgumentIndex;
@@ -644,7 +679,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    reorderedArgument = GetDefaultValueArgument(parameter, syntax, diagnostics);
+                    reorderedArgument = GetDefaultValueArgument(parameter, syntax, argumentsToParams, argumentsCount, diagnostics);
                     sourceIndices = sourceIndices ?? CreateSourceIndicesArray(i, parameterCount);
                 }
 
@@ -656,7 +691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (reorderedArgument.Kind == TypedConstantKind.Array &&
                         parameter.Type.TypeKind == TypeKind.Array &&
-                        !((TypeSymbol)reorderedArgument.TypeInternal).Equals(parameter.Type, TypeCompareKind.AllIgnoreOptions))
+                        !((TypeSymbol)reorderedArgument.TypeInternal!).Equals(parameter.Type, TypeCompareKind.AllIgnoreOptions))
                     {
                         // NOTE: As in dev11, we don't allow array covariance conversions (presumably, we don't have a way to
                         // represent the conversion in metadata).
@@ -670,6 +705,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             constructorArgumentsSourceIndices = sourceIndices != null ? sourceIndices.AsImmutableOrNull() : default(ImmutableArray<int>);
             return reorderedArguments.AsImmutableOrNull();
+
+            // Local functions
+            TypedConstant getMatchingNamedOrOptionalConstructorArgument(
+                out int matchingArgumentIndex,
+                ImmutableArray<TypedConstant> constructorArgsArray,
+                ParameterSymbol parameter,
+                int argumentsCount,
+                ref int argsConsumedCount,
+                AttributeSyntax syntax,
+                ImmutableArray<int> argumentsToParams,
+                BindingDiagnosticBag diagnostics)
+            {
+                matchingArgumentIndex = argumentsToParams.IsDefaultOrEmpty
+                    ? parameter.Ordinal
+                    : argumentsToParams.IndexOf(parameter.Ordinal);
+
+                if (matchingArgumentIndex > -1)
+                {
+                    // found a matching named argument
+                    Debug.Assert(matchingArgumentIndex < argumentsCount);
+
+                    // increment argsConsumedCount
+                    argsConsumedCount++;
+                    return constructorArgsArray[matchingArgumentIndex];
+                }
+                else
+                {
+                    return GetDefaultValueArgument(parameter, syntax, argumentsToParams, argumentsCount, diagnostics);
+                }
+            }
         }
 
         private static int[] CreateSourceIndicesArray(int paramIndex, int parameterCount)
@@ -691,39 +756,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return sourceIndices;
         }
 
-        private TypedConstant GetMatchingNamedOrOptionalConstructorArgument(
-            out int matchingArgumentIndex,
-            ImmutableArray<TypedConstant> constructorArgsArray,
-            ImmutableArray<string> constructorArgumentNamesOpt,
-            ParameterSymbol parameter,
-            int startIndex,
-            int argumentsCount,
-            ref int argsConsumedCount,
-            AttributeSyntax syntax,
-            DiagnosticBag diagnostics)
+        private static int GetMatchingNamedConstructorArgumentIndex(string parameterName, ImmutableArray<string?> argumentNamesOpt, int startIndex, int argumentsCount)
         {
-            int index = GetMatchingNamedConstructorArgumentIndex(parameter.Name, constructorArgumentNamesOpt, startIndex, argumentsCount);
-
-            if (index < argumentsCount)
-            {
-                // found a matching named argument
-                Debug.Assert(index >= startIndex);
-
-                // increment argsConsumedCount
-                argsConsumedCount++;
-                matchingArgumentIndex = index;
-                return constructorArgsArray[index];
-            }
-            else
-            {
-                matchingArgumentIndex = -1;
-                return GetDefaultValueArgument(parameter, syntax, diagnostics);
-            }
-        }
-
-        private static int GetMatchingNamedConstructorArgumentIndex(string parameterName, ImmutableArray<string> argumentNamesOpt, int startIndex, int argumentsCount)
-        {
-            Debug.Assert(parameterName != null);
+            RoslynDebug.Assert(parameterName != null);
             Debug.Assert(startIndex >= 0 && startIndex < argumentsCount);
 
             if (parameterName.IsEmpty() || !argumentNamesOpt.Any())
@@ -748,22 +783,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return argIndex;
         }
 
-        private TypedConstant GetDefaultValueArgument(ParameterSymbol parameter, AttributeSyntax syntax, DiagnosticBag diagnostics)
+        private TypedConstant GetDefaultValueArgument(ParameterSymbol parameter, AttributeSyntax syntax, ImmutableArray<int> argumentsToParams, int argumentsCount, BindingDiagnosticBag diagnostics)
         {
             var parameterType = parameter.Type;
-            ConstantValue defaultConstantValue = parameter.IsOptional ? parameter.ExplicitDefaultConstantValue : ConstantValue.NotAvailable;
+            ConstantValue? defaultConstantValue = parameter.IsOptional ? parameter.ExplicitDefaultConstantValue : ConstantValue.NotAvailable;
 
             TypedConstantKind kind;
-            object defaultValue = null;
+            object? defaultValue = null;
 
             if (!IsEarlyAttributeBinder && parameter.IsCallerLineNumber)
             {
                 int line = syntax.SyntaxTree.GetDisplayLineNumber(syntax.Name.Span);
                 kind = TypedConstantKind.Primitive;
 
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                var conversion = Conversions.GetCallerLineNumberConversion(parameterType, ref useSiteDiagnostics);
-                diagnostics.Add(syntax, useSiteDiagnostics);
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
+                var conversion = Conversions.GetCallerLineNumberConversion(parameterType, ref useSiteInfo);
+                diagnostics.Add(syntax, useSiteInfo);
 
                 if (conversion.IsNumeric || conversion.IsConstantExpression)
                 {
@@ -776,21 +811,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     // Boxing or identity conversion:
-                    parameterType = Compilation.GetSpecialType(SpecialType.System_Int32);
+                    parameterType = GetSpecialType(SpecialType.System_Int32, diagnostics, syntax);
                     defaultValue = line;
                 }
             }
             else if (!IsEarlyAttributeBinder && parameter.IsCallerFilePath)
             {
-                parameterType = Compilation.GetSpecialType(SpecialType.System_String);
+                parameterType = GetSpecialType(SpecialType.System_String, diagnostics, syntax);
                 kind = TypedConstantKind.Primitive;
                 defaultValue = syntax.SyntaxTree.GetDisplayPath(syntax.Name.Span, Compilation.Options.SourceReferenceResolver);
             }
             else if (!IsEarlyAttributeBinder && parameter.IsCallerMemberName && (object)((ContextualAttributeBinder)this).AttributedMember != null)
             {
-                parameterType = Compilation.GetSpecialType(SpecialType.System_String);
+                parameterType = GetSpecialType(SpecialType.System_String, diagnostics, syntax);
                 kind = TypedConstantKind.Primitive;
                 defaultValue = ((ContextualAttributeBinder)this).AttributedMember.GetMemberCallerName();
+            }
+            // We check IsCallerMemberName here since the above if can be reached with AttributedMember == null, in which case,
+            // We shouldn't be checking CallerArgumentExpression
+            else if (!IsEarlyAttributeBinder && syntax.ArgumentList is not null && !parameter.IsCallerMemberName &&
+                getCallerArgumentArgumentIndex(parameter, argumentsToParams) is int argumentIndex && argumentIndex > -1 && argumentIndex < argumentsCount)
+            {
+                Debug.Assert(argumentsCount <= syntax.ArgumentList.Arguments.Count);
+                parameterType = GetSpecialType(SpecialType.System_String, diagnostics, syntax);
+                kind = TypedConstantKind.Primitive;
+                defaultValue = syntax.ArgumentList.Arguments[argumentIndex].Expression.ToString();
             }
             else if (defaultConstantValue == ConstantValue.NotAvailable)
             {
@@ -847,10 +892,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return new TypedConstant(parameterType, kind, defaultValue);
             }
+
+            static int getCallerArgumentArgumentIndex(ParameterSymbol parameter, ImmutableArray<int> argumentsToParams)
+            {
+                return argumentsToParams.IsDefault || parameter.CallerArgumentExpressionParameterIndex == -1
+                        ? parameter.CallerArgumentExpressionParameterIndex
+                        : argumentsToParams.IndexOf(parameter.CallerArgumentExpressionParameterIndex);
+            }
         }
 
         private static TypedConstant GetParamArrayArgument(ParameterSymbol parameter, ImmutableArray<TypedConstant> constructorArgsArray,
-            ImmutableArray<string> constructorArgumentNamesOpt, int argumentsCount, int argsConsumedCount, Conversions conversions, out bool foundNamed)
+            ImmutableArray<string?> constructorArgumentNamesOpt, int argumentsCount, int argsConsumedCount, Conversions conversions, out bool foundNamed)
         {
             Debug.Assert(argsConsumedCount <= argumentsCount);
 
@@ -911,8 +963,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null; // ignoring, since already bound argument and parameter
-            Conversion conversion = conversions.ClassifyBuiltInConversion((TypeSymbol)argument.TypeInternal, parameter.Type, ref useSiteDiagnostics);
+            Debug.Assert(argument.TypeInternal is object);
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded; // ignoring, since already bound argument and parameter
+            Conversion conversion = conversions.ClassifyBuiltInConversion((TypeSymbol)argument.TypeInternal, parameter.Type, ref discardedUseSiteInfo);
 
             // NOTE: Won't always succeed, even though we've performed overload resolution.
             // For example, passing int[] to params object[] actually treats the int[] as an element of the object[].
@@ -942,7 +995,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _binder = binder;
             }
 
-            public ImmutableArray<TypedConstant> VisitArguments(ImmutableArray<BoundExpression> arguments, DiagnosticBag diagnostics, ref bool attrHasErrors, bool parentHasErrors = false)
+            public ImmutableArray<TypedConstant> VisitArguments(ImmutableArray<BoundExpression> arguments, BindingDiagnosticBag diagnostics, ref bool attrHasErrors, bool parentHasErrors = false)
             {
                 var validatedArguments = ImmutableArray<TypedConstant>.Empty;
 
@@ -963,9 +1016,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return validatedArguments;
             }
 
-            public ImmutableArray<KeyValuePair<string, TypedConstant>> VisitNamedArguments(ImmutableArray<BoundExpression> arguments, DiagnosticBag diagnostics, ref bool attrHasErrors)
+            public ImmutableArray<KeyValuePair<string, TypedConstant>> VisitNamedArguments(ImmutableArray<BoundAssignmentOperator> arguments, BindingDiagnosticBag diagnostics, ref bool attrHasErrors)
             {
-                ArrayBuilder<KeyValuePair<string, TypedConstant>> builder = null;
+                ArrayBuilder<KeyValuePair<string, TypedConstant>>? builder = null;
                 foreach (var argument in arguments)
                 {
                     var kv = VisitNamedArgument(argument, diagnostics, ref attrHasErrors);
@@ -989,28 +1042,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return builder.ToImmutableAndFree();
             }
 
-            private KeyValuePair<String, TypedConstant>? VisitNamedArgument(BoundExpression argument, DiagnosticBag diagnostics, ref bool attrHasErrors)
+            private KeyValuePair<String, TypedConstant>? VisitNamedArgument(BoundAssignmentOperator assignment, BindingDiagnosticBag diagnostics, ref bool attrHasErrors)
             {
                 KeyValuePair<String, TypedConstant>? visitedArgument = null;
 
-                switch (argument.Kind)
+                switch (assignment.Left.Kind)
                 {
-                    case BoundKind.AssignmentOperator:
-                        var assignment = (BoundAssignmentOperator)argument;
+                    case BoundKind.FieldAccess:
+                        var fa = (BoundFieldAccess)assignment.Left;
+                        visitedArgument = new KeyValuePair<String, TypedConstant>(fa.FieldSymbol.Name, VisitExpression(assignment.Right, diagnostics, ref attrHasErrors, assignment.HasAnyErrors));
+                        break;
 
-                        switch (assignment.Left.Kind)
-                        {
-                            case BoundKind.FieldAccess:
-                                var fa = (BoundFieldAccess)assignment.Left;
-                                visitedArgument = new KeyValuePair<String, TypedConstant>(fa.FieldSymbol.Name, VisitExpression(assignment.Right, diagnostics, ref attrHasErrors, argument.HasAnyErrors));
-                                break;
-
-                            case BoundKind.PropertyAccess:
-                                var pa = (BoundPropertyAccess)assignment.Left;
-                                visitedArgument = new KeyValuePair<String, TypedConstant>(pa.PropertySymbol.Name, VisitExpression(assignment.Right, diagnostics, ref attrHasErrors, argument.HasAnyErrors));
-                                break;
-                        }
-
+                    case BoundKind.PropertyAccess:
+                        var pa = (BoundPropertyAccess)assignment.Left;
+                        visitedArgument = new KeyValuePair<String, TypedConstant>(pa.PropertySymbol.Name, VisitExpression(assignment.Right, diagnostics, ref attrHasErrors, assignment.HasAnyErrors));
                         break;
                 }
 
@@ -1024,20 +1069,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:        b) A System.Type object.
             // SPEC:        c) A one-dimensional array of attribute-argument-expressions
 
-            private TypedConstant VisitExpression(BoundExpression node, DiagnosticBag diagnostics, ref bool attrHasErrors, bool curArgumentHasErrors)
+            private TypedConstant VisitExpression(BoundExpression node, BindingDiagnosticBag diagnostics, ref bool attrHasErrors, bool curArgumentHasErrors)
             {
                 // Validate Statement 1) of the spec comment above.
 
+                RoslynDebug.Assert(node.Type is object);
                 var typedConstantKind = node.Type.GetAttributeParameterTypedConstantKind(_binder.Compilation);
 
                 return VisitExpression(node, typedConstantKind, diagnostics, ref attrHasErrors, curArgumentHasErrors || typedConstantKind == TypedConstantKind.Error);
             }
 
-            private TypedConstant VisitExpression(BoundExpression node, TypedConstantKind typedConstantKind, DiagnosticBag diagnostics, ref bool attrHasErrors, bool curArgumentHasErrors)
+            private TypedConstant VisitExpression(BoundExpression node, TypedConstantKind typedConstantKind, BindingDiagnosticBag diagnostics, ref bool attrHasErrors, bool curArgumentHasErrors)
             {
                 // Validate Statement 2) of the spec comment above.
 
-                ConstantValue constantValue = node.ConstantValue;
+                ConstantValue? constantValue = node.ConstantValue;
                 if (constantValue != null)
                 {
                     if (constantValue.IsBad)
@@ -1045,7 +1091,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         typedConstantKind = TypedConstantKind.Error;
                     }
 
-                    return CreateTypedConstant(node, typedConstantKind, diagnostics, ref attrHasErrors, curArgumentHasErrors, simpleValue: node.ConstantValue.Value);
+                    ConstantValueUtils.CheckLangVersionForConstantValue(node, diagnostics);
+
+                    return CreateTypedConstant(node, typedConstantKind, diagnostics, ref attrHasErrors, curArgumentHasErrors, simpleValue: constantValue.Value);
                 }
 
                 switch (node.Kind)
@@ -1061,7 +1109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            private TypedConstant VisitConversion(BoundConversion node, DiagnosticBag diagnostics, ref bool attrHasErrors, bool curArgumentHasErrors)
+            private TypedConstant VisitConversion(BoundConversion node, BindingDiagnosticBag diagnostics, ref bool attrHasErrors, bool curArgumentHasErrors)
             {
                 Debug.Assert(node.ConstantValue == null);
 
@@ -1077,7 +1125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var operand = node.Operand;
                 var operandType = operand.Type;
 
-                if ((object)type != null && (object)operandType != null)
+                if ((object)type != null && operandType is object)
                 {
                     if (type.SpecialType == SpecialType.System_Object ||
                         operandType.IsArray() && type.IsArray() &&
@@ -1091,16 +1139,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CreateTypedConstant(node, TypedConstantKind.Error, diagnostics, ref attrHasErrors, curArgumentHasErrors);
             }
 
-            private static TypedConstant VisitTypeOfExpression(BoundTypeOfOperator node, DiagnosticBag diagnostics, ref bool attrHasErrors, bool curArgumentHasErrors)
+            private static TypedConstant VisitTypeOfExpression(BoundTypeOfOperator node, BindingDiagnosticBag diagnostics, ref bool attrHasErrors, bool curArgumentHasErrors)
             {
-                var typeOfArgument = (TypeSymbol)node.SourceType.Type;
+                var typeOfArgument = (TypeSymbol?)node.SourceType.Type;
 
                 // typeof argument is allowed to be:
                 //  (a) an unbound type
                 //  (b) closed constructed type
                 // typeof argument cannot be an open type
 
-                if ((object)typeOfArgument != null) // skip this if the argument was an alias symbol
+                if (typeOfArgument is object) // skip this if the argument was an alias symbol
                 {
                     var isValidArgument = true;
                     switch (typeOfArgument.Kind)
@@ -1127,7 +1175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CreateTypedConstant(node, TypedConstantKind.Type, diagnostics, ref attrHasErrors, curArgumentHasErrors, simpleValue: node.SourceType.Type);
             }
 
-            private TypedConstant VisitArrayCreation(BoundArrayCreation node, DiagnosticBag diagnostics, ref bool attrHasErrors, bool curArgumentHasErrors)
+            private TypedConstant VisitArrayCreation(BoundArrayCreation node, BindingDiagnosticBag diagnostics, ref bool attrHasErrors, bool curArgumentHasErrors)
             {
                 ImmutableArray<BoundExpression> bounds = node.Bounds;
                 int boundsCount = bounds.Length;
@@ -1168,10 +1216,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CreateTypedConstant(node, typedConstantKind, diagnostics, ref attrHasErrors, curArgumentHasErrors, arrayValue: initializer);
             }
 
-            private static TypedConstant CreateTypedConstant(BoundExpression node, TypedConstantKind typedConstantKind, DiagnosticBag diagnostics, ref bool attrHasErrors, bool curArgumentHasErrors,
-                object simpleValue = null, ImmutableArray<TypedConstant> arrayValue = default(ImmutableArray<TypedConstant>))
+            private static TypedConstant CreateTypedConstant(BoundExpression node, TypedConstantKind typedConstantKind, BindingDiagnosticBag diagnostics, ref bool attrHasErrors, bool curArgumentHasErrors,
+                object? simpleValue = null, ImmutableArray<TypedConstant> arrayValue = default(ImmutableArray<TypedConstant>))
             {
                 var type = node.Type;
+                RoslynDebug.Assert(type is object);
 
                 if (typedConstantKind != TypedConstantKind.Error && type.ContainsTypeParameter())
                 {
@@ -1225,9 +1274,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private struct AnalyzedAttributeArguments
         {
             internal readonly AnalyzedArguments ConstructorArguments;
-            internal readonly ImmutableArray<BoundExpression> NamedArguments;
+            internal readonly ArrayBuilder<BoundAssignmentOperator>? NamedArguments;
 
-            internal AnalyzedAttributeArguments(AnalyzedArguments constructorArguments, ImmutableArray<BoundExpression> namedArguments)
+            internal AnalyzedAttributeArguments(AnalyzedArguments constructorArguments, ArrayBuilder<BoundAssignmentOperator>? namedArguments)
             {
                 this.ConstructorArguments = constructorArguments;
                 this.NamedArguments = namedArguments;

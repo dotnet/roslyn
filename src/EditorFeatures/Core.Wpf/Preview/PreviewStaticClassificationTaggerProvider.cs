@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -36,9 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public PreviewStaticClassificationTaggerProvider(ClassificationTypeMap typeMap)
-        {
-            _typeMap = typeMap;
-        }
+            => _typeMap = typeMap;
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer)
             where T : ITag

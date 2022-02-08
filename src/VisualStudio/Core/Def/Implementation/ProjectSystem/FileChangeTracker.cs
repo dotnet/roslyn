@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -18,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     {
         private const _VSFILECHANGEFLAGS DefaultFileChangeFlags = _VSFILECHANGEFLAGS.VSFILECHG_Time | _VSFILECHANGEFLAGS.VSFILECHG_Add | _VSFILECHANGEFLAGS.VSFILECHG_Del | _VSFILECHANGEFLAGS.VSFILECHG_Size;
 
-        private static readonly AsyncLazy<uint?> s_none = new AsyncLazy<uint?>(ct => null, cacheResult: true);
+        private static readonly AsyncLazy<uint?> s_none = new(value: null);
 
         private readonly IVsFileChangeEx _fileChangeService;
         private readonly string _filePath;
@@ -49,7 +51,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// and easy to delete if this lock has contention itself. Given we tend to call <see cref="StartFileChangeListeningAsync"/> on the UI
         /// thread, I don't expect to see contention.
         /// </summary>
-        private static readonly object s_lastBackgroundTaskGate = new object();
+        private static readonly object s_lastBackgroundTaskGate = new();
 
         public FileChangeTracker(IVsFileChangeEx fileChangeService, string filePath, _VSFILECHANGEFLAGS fileChangeFlags = DefaultFileChangeFlags)
         {
@@ -93,10 +95,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public void EnsureSubscription()
         {
             // make sure we have file notification subscribed
-            var unused = _fileChangeCookie.GetValue(CancellationToken.None);
+            _ = _fileChangeCookie.GetValue(CancellationToken.None);
         }
 
-        public void StartFileChangeListeningAsync()
+        public Task StartFileChangeListeningAsync()
         {
             if (_disposed)
             {
@@ -109,7 +111,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 try
                 {
-                    return await ((IVsAsyncFileChangeEx)_fileChangeService).AdviseFileChangeAsync(_filePath, _fileChangeFlags, this).ConfigureAwait(false);
+                    // TODO: Should we pass in cancellationToken here insead of CancellationToken.None?
+                    return await ((IVsAsyncFileChangeEx)_fileChangeService).AdviseFileChangeAsync(_filePath, _fileChangeFlags, this, CancellationToken.None).ConfigureAwait(false);
                 }
                 catch (Exception e) when (ReportException(e))
                 {
@@ -132,15 +135,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (s_lastBackgroundTaskGate)
             {
                 s_lastBackgroundTask = s_lastBackgroundTask.ContinueWith(_ => _fileChangeCookie.GetValueAsync(CancellationToken.None), CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default).Unwrap();
+                return s_lastBackgroundTask;
             }
         }
 
         private static bool ReportException(Exception e)
         {
             // If we got a PathTooLongException there's really nothing we can do about it; we will fail to read the file later which is fine
-            if (!(e is PathTooLongException))
+            if (e is not PathTooLongException)
             {
-                return FatalError.ReportWithoutCrash(e);
+                return FatalError.ReportAndCatch(e);
             }
 
             // We'll always capture all exceptions regardless. If we don't, then the exception is captured by our lazy and will be potentially rethrown from
@@ -190,9 +194,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         int IVsFileChangeEvents.DirectoryChanged(string directory)
-        {
-            throw new Exception("We only watch files; we should never be seeing directory changes!");
-        }
+            => throw new Exception("We only watch files; we should never be seeing directory changes!");
 
         int IVsFileChangeEvents.FilesChanged(uint changeCount, string[] files, uint[] changes)
         {
@@ -209,19 +211,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         int IVsFreeThreadedFileChangeEvents2.DirectoryChanged(string pszDirectory)
-        {
-            throw new Exception("We only watch files; we should never be seeing directory changes!");
-        }
+            => throw new Exception("We only watch files; we should never be seeing directory changes!");
 
         int IVsFreeThreadedFileChangeEvents2.DirectoryChangedEx(string pszDirectory, string pszFile)
-        {
-            throw new Exception("We only watch files; we should never be seeing directory changes!");
-        }
+            => throw new Exception("We only watch files; we should never be seeing directory changes!");
 
         int IVsFreeThreadedFileChangeEvents2.DirectoryChangedEx2(string pszDirectory, uint cChanges, string[] rgpszFile, uint[] rggrfChange)
-        {
-            throw new Exception("We only watch files; we should never be seeing directory changes!");
-        }
+            => throw new Exception("We only watch files; we should never be seeing directory changes!");
 
         int IVsFreeThreadedFileChangeEvents.FilesChanged(uint cChanges, string[] rgpszFile, uint[] rggrfChange)
         {
@@ -231,13 +227,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         int IVsFreeThreadedFileChangeEvents.DirectoryChanged(string pszDirectory)
-        {
-            throw new Exception("We only watch files; we should never be seeing directory changes!");
-        }
+            => throw new Exception("We only watch files; we should never be seeing directory changes!");
 
         int IVsFreeThreadedFileChangeEvents.DirectoryChangedEx(string pszDirectory, string pszFile)
-        {
-            throw new Exception("We only watch files; we should never be seeing directory changes!");
-        }
+            => throw new Exception("We only watch files; we should never be seeing directory changes!");
     }
 }

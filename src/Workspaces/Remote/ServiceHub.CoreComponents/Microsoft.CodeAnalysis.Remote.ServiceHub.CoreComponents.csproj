@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <!-- The purpose of this project is to include all dependecies of Microsoft.CodeAnalysis.Remote.ServiceHub targeting .Net Core -->
+    <IsShipping>false</IsShipping>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- These references need to be deployed to the vsix subfolder containing servicehub bits for .Net Core -->
+    <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" />
+    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawbundle_greenVersion)" />
+  </ItemGroup>
+
+  <Target Name="PublishProjectOutputGroup" DependsOnTargets="Publish" Returns="@(_PublishedFiles)">
+    <ItemGroup>
+      <_ExcludedFiles Include="$(PublishDir)**\Microsoft.CodeAnalysis.Remote.ServiceHub.CoreComponents.*" />
+      <_ExcludedFiles Include="$(PublishDir)**\*.pdb" />
+      <!-- the only assembly we need under runtime folder (runtimes\win-x64\native\e_sqlite3.dll) is handled by the vsix project directly -->
+      <_ExcludedFiles Include="$(PublishDir)\runtimes\**\*.*" />
+      <!-- For binaries below, we want to use the version provided by the runtime, not the ones from the NuGet packages -->
+      <_ExcludedFiles Include="$(PublishDir)\Microsoft.Win32.Registry.dll'" />
+      <_ExcludedFiles Include="$(PublishDir)\System.Diagnostics.DiagnosticSource.dll'" />
+      <_ExcludedFiles Include="$(PublishDir)\System.Runtime.CompilerServices.Unsafe.dll'" />
+      <_ExcludedFiles Include="$(PublishDir)\System.Security.AccessControl.dll'" />
+      <_ExcludedFiles Include="$(PublishDir)\System.Security.Principal.Windows.dll'" />
+      <_ExcludedFiles Include="$(PublishDir)\System.Threading.Tasks.Dataflow.dll'" />
+    </ItemGroup>
+    <ItemGroup>
+      <!-- Need to include and then update items (https://github.com/microsoft/msbuild/issues/1053) -->
+      <_PublishedFiles Include="$(PublishDir)**\*.*" Exclude="@(_ExcludedFiles)"/>
+      <!-- Set TargetPath -->
+      <_PublishedFiles Update="@(_PublishedFiles)" TargetPath="%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+  </Target>
+</Project>

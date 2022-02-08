@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
 {
@@ -16,22 +17,26 @@ namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
         {
             private readonly bool _placeSystemNamespaceFirst;
             private readonly bool _separateGroups;
+            private readonly SyntaxTrivia _newLineTrivia;
 
             public readonly IList<TextChange> TextChanges = new List<TextChange>();
 
             public Rewriter(bool placeSystemNamespaceFirst,
-                            bool separateGroups)
+                            bool separateGroups,
+                            SyntaxTrivia newLineTrivia)
             {
                 _placeSystemNamespaceFirst = placeSystemNamespaceFirst;
                 _separateGroups = separateGroups;
+                _newLineTrivia = newLineTrivia;
             }
 
             public override SyntaxNode VisitCompilationUnit(CompilationUnitSyntax node)
             {
-                node = (CompilationUnitSyntax)base.VisitCompilationUnit(node);
+                node = (CompilationUnitSyntax)base.VisitCompilationUnit(node)!;
                 UsingsAndExternAliasesOrganizer.Organize(
                     node.Externs, node.Usings,
                     _placeSystemNamespaceFirst, _separateGroups,
+                    _newLineTrivia,
                     out var organizedExternAliasList, out var organizedUsingList);
 
                 var result = node.WithExterns(organizedExternAliasList).WithUsings(organizedUsingList);
@@ -44,12 +49,19 @@ namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
                 return result;
             }
 
+            public override SyntaxNode VisitFileScopedNamespaceDeclaration(FileScopedNamespaceDeclarationSyntax node)
+                => VisitBaseNamespaceDeclaration((BaseNamespaceDeclarationSyntax?)base.VisitFileScopedNamespaceDeclaration(node));
+
             public override SyntaxNode VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
+                => VisitBaseNamespaceDeclaration((BaseNamespaceDeclarationSyntax?)base.VisitNamespaceDeclaration(node));
+
+            private BaseNamespaceDeclarationSyntax VisitBaseNamespaceDeclaration(BaseNamespaceDeclarationSyntax? node)
             {
-                node = (NamespaceDeclarationSyntax)base.VisitNamespaceDeclaration(node);
+                Contract.ThrowIfNull(node);
                 UsingsAndExternAliasesOrganizer.Organize(
                     node.Externs, node.Usings,
                     _placeSystemNamespaceFirst, _separateGroups,
+                    _newLineTrivia,
                     out var organizedExternAliasList, out var organizedUsingList);
 
                 var result = node.WithExterns(organizedExternAliasList).WithUsings(organizedUsingList);
@@ -66,22 +78,14 @@ namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
                 where TSyntax : SyntaxNode
             {
                 if (list.Count > 0)
-                {
                     this.TextChanges.Add(new TextChange(GetTextSpan(list), GetNewText(organizedList)));
-                }
             }
 
-            private string GetNewText<TSyntax>(SyntaxList<TSyntax> organizedList)
-                where TSyntax : SyntaxNode
-            {
-                return string.Join(string.Empty, organizedList.Select(t => t.ToFullString()));
-            }
+            private static string GetNewText<TSyntax>(SyntaxList<TSyntax> organizedList) where TSyntax : SyntaxNode
+                => string.Join(string.Empty, organizedList.Select(t => t.ToFullString()));
 
-            private TextSpan GetTextSpan<TSyntax>(SyntaxList<TSyntax> list)
-                where TSyntax : SyntaxNode
-            {
-                return TextSpan.FromBounds(list.First().FullSpan.Start, list.Last().FullSpan.End);
-            }
+            private static TextSpan GetTextSpan<TSyntax>(SyntaxList<TSyntax> list) where TSyntax : SyntaxNode
+                => TextSpan.FromBounds(list.First().FullSpan.Start, list.Last().FullSpan.End);
         }
     }
 }

@@ -11,7 +11,6 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Simplification
-Imports Microsoft.CodeAnalysis.Options
 Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
@@ -19,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         Partial Private MustInherit Class VisualBasicCodeGenerator
             Inherits CodeGenerator(Of StatementSyntax, ExpressionSyntax, StatementSyntax)
 
-            Private _methodName As SyntaxToken
+            Private ReadOnly _methodName As SyntaxToken
 
             Public Shared Async Function GenerateResultAsync(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzerResult As AnalyzerResult, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
                 Dim generator = Create(insertionPoint, selectionResult, analyzerResult)
@@ -40,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return New MultipleStatementsCodeGenerator(insertionPoint, selectionResult, analyzerResult)
                 End If
 
-                Return Contract.FailWithReturn(Of VisualBasicCodeGenerator)("Unknown selection")
+                throw ExceptionUtilities.UnexpectedValue(selectionResult)
             End Function
 
             Protected Sub New(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzerResult As AnalyzerResult)
@@ -58,6 +57,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
             Protected Overrides Function GetPreviousMember(document As SemanticDocument) As SyntaxNode
                 Return Me.InsertionPoint.With(document).GetContext()
+            End Function
+
+            Protected Overrides Function ShouldLocalFunctionCaptureParameter(node As SyntaxNode) As Boolean
+                Return False
             End Function
 
             Protected Overrides Function GenerateMethodDefinition(localFunction As Boolean, cancellationToken As CancellationToken) As OperationStatus(Of IMethodSymbol)
@@ -105,9 +108,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Dim semanticModel = SemanticDocument.SemanticModel
                 Dim context = InsertionPoint.GetContext()
                 Dim postProcessor = New PostProcessor(semanticModel, context.SpanStart)
-                Dim statements = SpecializedCollections.EmptyEnumerable(Of StatementSyntax)()
 
-                statements = AddSplitOrMoveDeclarationOutStatementsToCallSite(statements, cancellationToken)
+                Dim statements = AddSplitOrMoveDeclarationOutStatementsToCallSite(cancellationToken)
                 statements = postProcessor.MergeDeclarationStatements(statements)
                 statements = AddAssignmentStatementToCallSite(statements, cancellationToken)
                 statements = Await AddInvocationAtCallSiteAsync(statements, cancellationToken).ConfigureAwait(False)
@@ -163,27 +165,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return New DeclarationModifiers(isStatic:=isShared, isAsync:=isAsync)
             End Function
 
-            Private Function CreateMethodBody(cancellationToken As CancellationToken) As OperationStatus(Of IEnumerable(Of StatementSyntax))
+            Private Function CreateMethodBody(cancellationToken As CancellationToken) As OperationStatus(Of ImmutableArray(Of StatementSyntax))
                 Dim statements = GetInitialStatementsForMethodDefinitions()
                 statements = SplitOrMoveDeclarationIntoMethodDefinition(statements, cancellationToken)
                 statements = MoveDeclarationOutFromMethodDefinition(statements, cancellationToken)
 
-                Dim emptyStatements = SpecializedCollections.EmptyEnumerable(Of StatementSyntax)()
+                Dim emptyStatements = ImmutableArray(Of StatementSyntax).Empty
                 Dim returnStatements = AppendReturnStatementIfNeeded(emptyStatements)
 
                 statements = statements.Concat(returnStatements)
 
                 Dim semanticModel = SemanticDocument.SemanticModel
                 Dim context = Me.InsertionPoint.GetContext()
-                Dim postProcessor = New PostProcessor(semanticModel, context.SpanStart)
-                statements = postProcessor.RemoveDeclarationAssignmentPattern(statements)
-                statements = postProcessor.RemoveInitializedDeclarationAndReturnPattern(statements)
+
+                statements = PostProcessor.RemoveDeclarationAssignmentPattern(statements)
+                statements = PostProcessor.RemoveInitializedDeclarationAndReturnPattern(statements)
 
                 ' assign before checking issues so that we can do negative preview
                 Return CheckActiveStatements(statements).With(statements)
             End Function
 
-            Private Function CheckActiveStatements(statements As IEnumerable(Of StatementSyntax)) As OperationStatus
+            Private Shared Function CheckActiveStatements(statements As ImmutableArray(Of StatementSyntax)) As OperationStatus
                 Dim count = statements.Count()
                 If count = 0 Then
                     Return OperationStatus.NoActiveStatement
@@ -217,7 +219,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                 Return OperationStatus.NoActiveStatement
             End Function
 
-            Private Function MoveDeclarationOutFromMethodDefinition(statements As IEnumerable(Of StatementSyntax), cancellationToken As CancellationToken) As IEnumerable(Of StatementSyntax)
+            Private Function MoveDeclarationOutFromMethodDefinition(statements As ImmutableArray(Of StatementSyntax), cancellationToken As CancellationToken) As ImmutableArray(Of StatementSyntax)
                 Dim variableToRemoveMap = CreateVariableDeclarationToRemoveMap(
                     Me.AnalyzerResult.GetVariablesToMoveOutToCallSiteOrDelete(cancellationToken), cancellationToken)
 
@@ -273,10 +275,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Next expressionStatement
                 Next
 
-                Return declarationStatements
+                Return declarationStatements.ToImmutableArray()
             End Function
 
-            Private Function SplitOrMoveDeclarationIntoMethodDefinition(statements As IEnumerable(Of StatementSyntax), cancellationToken As CancellationToken) As IEnumerable(Of StatementSyntax)
+            Private Function SplitOrMoveDeclarationIntoMethodDefinition(statements As ImmutableArray(Of StatementSyntax), cancellationToken As CancellationToken) As ImmutableArray(Of StatementSyntax)
                 Dim semanticModel = CType(Me.SemanticDocument.SemanticModel, SemanticModel)
                 Dim context = Me.InsertionPoint.GetContext()
                 Dim postProcessor = New PostProcessor(semanticModel, context.SpanStart)
@@ -365,13 +367,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                                         SyntaxFactory.Token(SyntaxKind.FalseKeyword))))))
                         End If
                     End If
+
                     Return SyntaxFactory.AwaitExpression(invocation)
                 End If
 
                 Return invocation
             End Function
 
-            Private Function GetIdentifierName(name As String) As ExpressionSyntax
+            Private Shared Function GetIdentifierName(name As String) As ExpressionSyntax
                 Dim bracket = SyntaxFacts.MakeHalfWidthIdentifier(name.First) = "[" AndAlso SyntaxFacts.MakeHalfWidthIdentifier(name.Last) = "]"
                 If bracket Then
                     Dim unescaped = name.Substring(1, name.Length() - 2)

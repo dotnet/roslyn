@@ -20,8 +20,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicFindReferences(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(BasicFindReferences))
+        public BasicFindReferences(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(BasicFindReferences))
         {
         }
 
@@ -39,11 +39,7 @@ End Class
 
             VisualStudio.SendKeys.Send(Shift(VirtualKey.F12));
 
-            const string localReferencesCaption = "'local' references";
-            var results = VisualStudio.FindReferencesWindow.GetContents(localReferencesCaption);
-
-            var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
-            Assert.Equal(expected: localReferencesCaption, actual: activeWindowCaption);
+            var results = VisualStudio.FindReferencesWindow.GetContents();
 
             Assert.Collection(
                 results,
@@ -86,11 +82,7 @@ End Class
 
             VisualStudio.SendKeys.Send(Shift(VirtualKey.F12));
 
-            const string alphaReferencesCaption = "'Alpha' references";
-            var results = VisualStudio.FindReferencesWindow.GetContents(alphaReferencesCaption);
-
-            var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
-            Assert.Equal(expected: alphaReferencesCaption, actual: activeWindowCaption);
+            var results = VisualStudio.FindReferencesWindow.GetContents();
 
             Assert.Collection(
                 results,
@@ -109,6 +101,11 @@ End Class
                         Assert.Equal(expected: 34, actual: reference.Column);
                     }
                 });
+
+            VisualStudio.FindReferencesWindow.NavigateTo(results[0], isPreview: false, shouldActivate: true);
+            // Assert we are in the right file now
+            Assert.Equal("Class1.vb", VisualStudio.Shell.GetActiveWindowCaption());
+            Assert.Equal("Alpha As Int32", VisualStudio.Editor.GetLineTextAfterCaret());
         }
     }
 }

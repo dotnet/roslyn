@@ -1,9 +1,12 @@
-﻿using System.Collections.Generic;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.ReplacePropertyWithMethods;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -13,6 +16,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
 {
     public class ReplacePropertyWithMethodsTests : AbstractCSharpCodeActionTest
     {
+        private OptionsCollection PreferExpressionBodiedMethods =>
+            new(GetLanguage()) { { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement } };
+
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new ReplacePropertyWithMethodsCodeRefactoringProvider();
 
@@ -1682,7 +1688,346 @@ class C : IGoo
 }");
         }
 
-        private IDictionary<OptionKey, object> PreferExpressionBodiedMethods =>
-            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
+        [WorkItem(38379, "https://github.com/dotnet/roslyn/issues/38379")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestUnsafeExpressionBody()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public unsafe void* [||]Pointer => default;
+}",
+@"class C
+{
+    public unsafe void* GetPointer()
+    {
+        return default;
+    }
+}");
+        }
+
+        [WorkItem(38379, "https://github.com/dotnet/roslyn/issues/38379")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestUnsafeAutoProperty()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public unsafe void* [||]Pointer { get; set; }
+}",
+@"class C
+{
+    private unsafe void* pointer;
+
+    public unsafe void* GetPointer()
+    {
+        return pointer;
+    }
+
+    public unsafe void SetPointer(void* value)
+    {
+        pointer = value;
+    }
+}");
+        }
+
+        [WorkItem(38379, "https://github.com/dotnet/roslyn/issues/38379")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestUnsafeSafeType()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public unsafe int [||]P
+    {
+        get => 0;
+        set {}
+    }
+}",
+@"class C
+{
+    public unsafe int GetP()
+    {
+        return 0;
+    }
+
+    public unsafe void SetP(int value)
+    { }
+}");
+        }
+
+        [WorkItem(22760, "https://github.com/dotnet/roslyn/issues/22760")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task QualifyFieldAccessWhenNecessary1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public int [||]Value { get; }
+
+    public C(int value)
+    {
+        Value = value;
+    }
+}",
+@"class C
+{
+    private readonly int value;
+
+    public int GetValue()
+    {
+        return value;
+    }
+
+    public C(int value)
+    {
+        this.value = value;
+    }
+}");
+        }
+
+        [WorkItem(22760, "https://github.com/dotnet/roslyn/issues/22760")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task QualifyFieldAccessWhenNecessary2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public int [||]Value { get; }
+
+    public C(int value)
+    {
+        this.Value = value;
+    }
+}",
+@"class C
+{
+    private readonly int value;
+
+    public int GetValue()
+    {
+        return value;
+    }
+
+    public C(int value)
+    {
+        this.value = value;
+    }
+}");
+        }
+
+        [WorkItem(22760, "https://github.com/dotnet/roslyn/issues/22760")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task QualifyFieldAccessWhenNecessary3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public static int [||]Value { get; }
+
+    public static void Set(int value)
+    {
+        Value = value;
+    }
+}",
+@"class C
+{
+    private static readonly int value;
+
+    public static int GetValue()
+    {
+        return value;
+    }
+
+    public static void Set(int value)
+    {
+        C.value = value;
+    }
+}");
+        }
+
+        [WorkItem(45171, "https://github.com/dotnet/roslyn/issues/45171")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestReferenceInObjectInitializer()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class Tweet
+{
+    public string [||]Tweet { get; }
+}
+
+class C
+{
+    void Main()
+    {
+        var t = new Tweet();
+        var t1 = new Tweet
+        {
+            Tweet = t.Tweet
+        };
+    }
+}",
+@"public class Tweet
+{
+    private readonly string tweet;
+
+    public string GetTweet()
+    {
+        return tweet;
+    }
+}
+
+class C
+{
+    void Main()
+    {
+        var t = new Tweet();
+        var t1 = new Tweet
+        {
+            {|Conflict:Tweet|} = t.GetTweet()
+        };
+    }
+}");
+        }
+
+        [WorkItem(45171, "https://github.com/dotnet/roslyn/issues/45171")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestReferenceInImplicitObjectInitializer()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class Tweet
+{
+    public string [||]Tweet { get; }
+}
+
+class C
+{
+    void Main()
+    {
+        var t = new Tweet();
+        Tweet t1 = new()
+        {
+            Tweet = t.Tweet
+        };
+    }
+}",
+@"public class Tweet
+{
+    private readonly string tweet;
+
+    public string GetTweet()
+    {
+        return tweet;
+    }
+}
+
+class C
+{
+    void Main()
+    {
+        var t = new Tweet();
+        Tweet t1 = new()
+        {
+            {|Conflict:Tweet|} = t.GetTweet()
+        };
+    }
+}");
+        }
+
+        [WorkItem(45171, "https://github.com/dotnet/roslyn/issues/45171")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestReferenceInWithInitializer()
+        {
+            await TestInRegularAndScriptAsync(
+@"public class Tweet
+{
+    public string [||]Tweet { get; }
+}
+
+class C
+{
+    void Main()
+    {
+        var t = new Tweet();
+        var t1 = t with
+        {
+            Tweet = t.Tweet
+        };
+    }
+}",
+@"public class Tweet
+{
+    private readonly string tweet;
+
+    public string GetTweet()
+    {
+        return tweet;
+    }
+}
+
+class C
+{
+    void Main()
+    {
+        var t = new Tweet();
+        var t1 = t with
+        {
+            {|Conflict:Tweet|} = t.GetTweet()
+        };
+    }
+}");
+        }
+
+        [WorkItem(57376, "https://github.com/dotnet/roslyn/issues/57376")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestInLinkedFile()
+        {
+            await TestInRegularAndScriptAsync(
+@"<Workspace>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.1'>
+        <Document FilePath='C.cs'>
+class C
+{
+    int [||]Prop
+    {
+        set
+        {
+            var v = value;
+        }
+    }
+
+    void M()
+    {
+        this.Prop = 1;
+    }
+}
+        </Document>
+    </Project>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.2'>
+        <Document IsLinkFile='true' LinkProjectName='CSProj.1' LinkFilePath='C.cs'/>
+    </Project>
+</Workspace>",
+@"<Workspace>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.1'>
+        <Document FilePath='C.cs'>
+class C
+{
+    private void SetProp(int value)
+    {
+        var v = value;
+    }
+
+    void M()
+    {
+        this.SetProp(1);
+    }
+}
+        </Document>
+    </Project>
+    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.2'>
+        <Document IsLinkFile='true' LinkProjectName='CSProj.1' LinkFilePath='C.cs'/>
+    </Project>
+</Workspace>");
+        }
     }
 }

@@ -4,9 +4,9 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
-Imports Microsoft.CodeAnalysis.Editor.visualbasic.UnitTests.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
     Public MustInherit Class AbstractWrappingTests
@@ -16,9 +16,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
             Return FlattenActions(actions)
         End Function
 
-        Protected Shared Function GetIndentionColumn(column As Integer) As Dictionary(Of OptionKey, Object)
-            Return New Dictionary(Of OptionKey, Object) From {
-                   {FormattingOptions.PreferredWrappingColumn, column}
+        Private Protected Function GetIndentionColumn(column As Integer) As OptionsCollection
+            Return New OptionsCollection(GetLanguage()) From {
+                   {FormattingOptions2.PreferredWrappingColumn, column}
                }
         End Function
 
@@ -29,9 +29,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
             Return TestAllWrappingCasesAsync(input, options:=Nothing, outputs)
         End Function
 
-        Protected Function TestAllWrappingCasesAsync(
+        Private Protected Function TestAllWrappingCasesAsync(
             input As String,
-            options As IDictionary(Of OptionKey, Object),
+            options As OptionsCollection,
             ParamArray outputs As String()) As Task
 
             Dim parameters = New TestParameters(options:=options)

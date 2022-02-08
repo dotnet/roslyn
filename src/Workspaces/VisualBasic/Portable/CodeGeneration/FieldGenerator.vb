@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
@@ -67,17 +68,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Public Function GenerateFieldDeclaration(field As IFieldSymbol,
                                                         destination As CodeGenerationDestination,
                                                         options As CodeGenerationOptions) As FieldDeclarationSyntax
-            Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of ModifiedIdentifierSyntax)(field, options)
+            Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of FieldDeclarationSyntax)(field, options)
             If reusableSyntax IsNot Nothing Then
-                Dim variableDeclarator = TryCast(reusableSyntax.Parent, VariableDeclaratorSyntax)
-                If variableDeclarator IsNot Nothing Then
-                    Dim names = (New SeparatedSyntaxList(Of ModifiedIdentifierSyntax)).Add(reusableSyntax)
-                    Dim newVariableDeclarator = variableDeclarator.WithNames(names)
-                    Dim fieldDecl = TryCast(variableDeclarator.Parent, FieldDeclarationSyntax)
-                    If fieldDecl IsNot Nothing Then
-                        Return fieldDecl.WithDeclarators((New SeparatedSyntaxList(Of VariableDeclaratorSyntax)).Add(newVariableDeclarator))
-                    End If
-                End If
+                return reusableSyntax
             End If
 
             Dim initializerNode = TryCast(CodeGenerationFieldInfo.GetInitializer(field), ExpressionSyntax)
@@ -108,30 +101,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Private Function GenerateModifiers(field As IFieldSymbol,
                                                   destination As CodeGenerationDestination,
                                                   options As CodeGenerationOptions) As SyntaxTokenList
-            Dim tokens = New List(Of SyntaxToken)()
-            AddAccessibilityModifiers(field.DeclaredAccessibility, tokens, destination, options, Accessibility.Private)
+            Dim tokens As ArrayBuilder(Of SyntaxToken) = Nothing
+            Using x = ArrayBuilder(Of SyntaxToken).GetInstance(tokens)
 
-            If field.IsConst Then
-                tokens.Add(SyntaxFactory.Token(SyntaxKind.ConstKeyword))
-            Else
-                If field.IsStatic AndAlso destination <> CodeGenerationDestination.ModuleType Then
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.SharedKeyword))
+                AddAccessibilityModifiers(field.DeclaredAccessibility, tokens, destination, options, Accessibility.Private)
+
+                If field.IsConst Then
+                    tokens.Add(SyntaxFactory.Token(SyntaxKind.ConstKeyword))
+                Else
+                    If field.IsStatic AndAlso destination <> CodeGenerationDestination.ModuleType Then
+                        tokens.Add(SyntaxFactory.Token(SyntaxKind.SharedKeyword))
+                    End If
+
+                    If field.IsReadOnly Then
+                        tokens.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword))
+                    End If
+
+                    If CodeGenerationFieldInfo.GetIsWithEvents(field) Then
+                        tokens.Add(SyntaxFactory.Token(SyntaxKind.WithEventsKeyword))
+                    End If
+
+                    If tokens.Count = 0 Then
+                        tokens.Add(SyntaxFactory.Token(SyntaxKind.DimKeyword))
+                    End If
                 End If
 
-                If field.IsReadOnly Then
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword))
-                End If
-
-                If CodeGenerationFieldInfo.GetIsWithEvents(field) Then
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.WithEventsKeyword))
-                End If
-
-                If tokens.Count = 0 Then
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.DimKeyword))
-                End If
-            End If
-
-            Return SyntaxFactory.TokenList(tokens)
+                Return SyntaxFactory.TokenList(tokens)
+            End Using
         End Function
     End Module
 End Namespace

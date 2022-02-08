@@ -182,8 +182,8 @@ End Class
             Assert.False(type1.IsOverrides)
 
             ' 4 nested types, 64 members overall
-            Assert.Equal(64, type1.GetMembers().Length)
-            Assert.Equal(4, type1.GetTypeMembers().Length())
+            Assert.Equal(63, type1.GetMembers().Length)
+            Assert.Equal(3, type1.GetTypeMembers().Length())
             ' IDictionary<TKey, TValue>, ICollection<KeyValuePair<TKey, TValue>>, IEnumerable<KeyValuePair<TKey, TValue>>, 
             ' IDictionary, ICollection, IEnumerable, ISerializable, IDeserializationCallback
             Assert.Equal(8, type1.Interfaces.Length())
@@ -574,7 +574,7 @@ End Class
             Dim iEquatable As NamedTypeSymbol = compilation.GetWellKnownType(WellKnownType.System_IEquatable_T)
             Assert.False(iEquatable.IsErrorType())
             Assert.Equal(1, iEquatable.Arity)
-            Assert.Null(compilation.GetTypeByMetadataName("System.IEquatable`1"))
+            Assert.Same(iEquatable, compilation.GetTypeByMetadataName("System.IEquatable`1"))
 
             Dim iQueryable_T As NamedTypeSymbol = compilation.GetWellKnownType(WellKnownType.System_Linq_IQueryable_T)
             Assert.True(iQueryable_T.IsErrorType())

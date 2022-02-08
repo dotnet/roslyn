@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
@@ -367,9 +369,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private static string ToString(DkmEvaluationResult result)
         {
-            if (result is DkmSuccessEvaluationResult success) return ToString(success);
+            if (result is DkmSuccessEvaluationResult success)
+                return ToString(success);
 
-            if (result is DkmIntermediateEvaluationResult intermediate) return ToString(intermediate);
+            if (result is DkmIntermediateEvaluationResult intermediate)
+                return ToString(intermediate);
 
             return ToString((DkmFailedEvaluationResult)result);
         }

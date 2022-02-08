@@ -7212,6 +7212,5 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="void Validator<T>.DoValidate(object objectToValidate)
 void ValidatorBase<T>.DoValidate(T objectToValidate)")
         End Sub
-
     End Class
 End Namespace

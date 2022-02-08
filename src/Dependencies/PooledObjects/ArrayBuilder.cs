@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         private readonly ImmutableArray<T>.Builder _builder;
 
-        private readonly ObjectPool<ArrayBuilder<T>> _pool;
+        private readonly ObjectPool<ArrayBuilder<T>>? _pool;
 
         public ArrayBuilder(int size)
         {
@@ -67,6 +67,29 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         public ImmutableArray<T> ToImmutable()
         {
             return _builder.ToImmutable();
+        }
+
+        /// <summary>
+        /// Realizes the array and clears the collection.
+        /// </summary>
+        public ImmutableArray<T> ToImmutableAndClear()
+        {
+            ImmutableArray<T> result;
+            if (Count == 0)
+            {
+                result = ImmutableArray<T>.Empty;
+            }
+            else if (_builder.Capacity == Count)
+            {
+                result = _builder.MoveToImmutable();
+            }
+            else
+            {
+                result = ToImmutable();
+                Clear();
+            }
+
+            return result;
         }
 
         public int Count
@@ -102,7 +125,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         {
             while (index > _builder.Count)
             {
-                _builder.Add(default);
+                _builder.Add(default!);
             }
 
             if (index == _builder.Count)
@@ -170,6 +193,26 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             for (var i = startIndex; i < endIndex; i++)
             {
                 if (match(_builder[i]))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        public int FindIndex<TArg>(Func<T, TArg, bool> match, TArg arg)
+            => FindIndex(0, Count, match, arg);
+
+        public int FindIndex<TArg>(int startIndex, Func<T, TArg, bool> match, TArg arg)
+            => FindIndex(startIndex, Count - startIndex, match, arg);
+
+        public int FindIndex<TArg>(int startIndex, int count, Func<T, TArg, bool> match, TArg arg)
+        {
+            var endIndex = startIndex + count;
+            for (var i = startIndex; i < endIndex; i++)
+            {
+                if (match(_builder[i], arg))
                 {
                     return i;
                 }
@@ -268,7 +311,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             var tmp = ArrayBuilder<U>.GetInstance(Count);
             foreach (var i in this)
             {
-                tmp.Add((U)i);
+                tmp.Add((U)i!);
             }
 
             return tmp.ToImmutableAndFree();
@@ -279,6 +322,8 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         /// </summary>
         public ImmutableArray<T> ToImmutableAndFree()
         {
+            // This is mostly the same as 'MoveToImmutable', but avoids delegating to that method since 'Free' contains
+            // fast paths to avoid caling 'Clear' in some cases.
             ImmutableArray<T> result;
             if (Count == 0)
             {
@@ -376,8 +421,8 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public static ObjectPool<ArrayBuilder<T>> CreatePool(int size)
         {
-            ObjectPool<ArrayBuilder<T>> pool = null;
-            pool = new ObjectPool<ArrayBuilder<T>>(() => new ArrayBuilder<T>(pool), size);
+            ObjectPool<ArrayBuilder<T>>? pool = null;
+            pool = new ObjectPool<ArrayBuilder<T>>(() => new ArrayBuilder<T>(pool!), size);
             return pool;
         }
 
@@ -390,15 +435,16 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
-            return GetEnumerator();
+            return _builder.GetEnumerator();
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
-            return GetEnumerator();
+            return _builder.GetEnumerator();
         }
 
-        internal Dictionary<K, ImmutableArray<T>> ToDictionary<K>(Func<T, K> keySelector, IEqualityComparer<K> comparer = null)
+        internal Dictionary<K, ImmutableArray<T>> ToDictionary<K>(Func<T, K> keySelector, IEqualityComparer<K>? comparer = null)
+            where K : notnull
         {
             if (this.Count == 1)
             {
@@ -445,9 +491,27 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             _builder.AddRange(items._builder);
         }
 
+        public void AddRange<U>(ArrayBuilder<U> items, Func<U, T> selector)
+        {
+            foreach (var item in items)
+            {
+                _builder.Add(selector(item));
+            }
+        }
+
         public void AddRange<U>(ArrayBuilder<U> items) where U : T
         {
             _builder.AddRange(items._builder);
+        }
+
+        public void AddRange<U>(ArrayBuilder<U> items, int start, int length) where U : T
+        {
+            Debug.Assert(start >= 0 && length >= 0);
+            Debug.Assert(start + length <= items.Count);
+            for (int i = start, end = start + length; i < end; i++)
+            {
+                Add(items[i]);
+            }
         }
 
         public void AddRange(ImmutableArray<T> items)
@@ -460,6 +524,16 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             _builder.AddRange(items, length);
         }
 
+        public void AddRange(ImmutableArray<T> items, int start, int length)
+        {
+            Debug.Assert(start >= 0 && length >= 0);
+            Debug.Assert(start + length <= items.Length);
+            for (int i = start, end = start + length; i < end; i++)
+            {
+                Add(items[i]);
+            }
+        }
+
         public void AddRange<S>(ImmutableArray<S> items) where S : class, T
         {
             AddRange(ImmutableArray<T>.CastUp(items));
@@ -467,6 +541,8 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public void AddRange(T[] items, int start, int length)
         {
+            Debug.Assert(start >= 0 && length >= 0);
+            Debug.Assert(start + length <= items.Length);
             for (int i = start, end = start + length; i < end; i++)
             {
                 Add(items[i]);

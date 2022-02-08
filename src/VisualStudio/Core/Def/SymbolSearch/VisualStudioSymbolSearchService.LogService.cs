@@ -2,13 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
@@ -16,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
     {
         private class LogService : ForegroundThreadAffinitizedObject, ISymbolSearchLogService
         {
-            private static readonly LinkedList<string> s_log = new LinkedList<string>();
+            private static readonly LinkedList<string> s_log = new();
 
             private readonly IVsActivityLog _activityLog;
 
@@ -26,27 +27,23 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 _activityLog = activityLog;
             }
 
-            public Task LogInfoAsync(string text)
-            {
-                return LogAsync(text, __ACTIVITYLOG_ENTRYTYPE.ALE_INFORMATION);
-            }
+            public ValueTask LogInfoAsync(string text, CancellationToken cancellationToken)
+                => LogAsync(text, __ACTIVITYLOG_ENTRYTYPE.ALE_INFORMATION);
 
-            public Task LogExceptionAsync(string exception, string text)
-            {
-                return LogAsync(text + ". " + exception, __ACTIVITYLOG_ENTRYTYPE.ALE_ERROR);
-            }
+            public ValueTask LogExceptionAsync(string exception, string text, CancellationToken cancellationToken)
+                => LogAsync(text + ". " + exception, __ACTIVITYLOG_ENTRYTYPE.ALE_ERROR);
 
-            private Task LogAsync(string text, __ACTIVITYLOG_ENTRYTYPE type)
+            private ValueTask LogAsync(string text, __ACTIVITYLOG_ENTRYTYPE type)
             {
                 Log(text, type);
-                return Task.CompletedTask;
+                return default;
             }
 
             private void Log(string text, __ACTIVITYLOG_ENTRYTYPE type)
             {
-                if (!this.IsForeground())
+                if (!IsForeground())
                 {
-                    this.InvokeBelowInputPriorityAsync(() => Log(text, type));
+                    InvokeBelowInputPriorityAsync(() => Log(text, type));
                     return;
                 }
 

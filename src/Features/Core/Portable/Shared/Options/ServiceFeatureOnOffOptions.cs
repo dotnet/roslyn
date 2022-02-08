@@ -1,6 +1,8 @@
-﻿using System;
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.Shared.Options
 {
@@ -9,14 +11,10 @@ namespace Microsoft.CodeAnalysis.Shared.Options
         /// <summary>
         /// This option is used by TypeScript.
         /// </summary>
-        [Obsolete("Currently used by TypeScript - should move to the new option SolutionCrawlerOptions.BackgroundAnalysisScopeOption")]
-        public static readonly PerLanguageOption<bool?> ClosedFileDiagnostic = SolutionCrawlerOptions.ClosedFileDiagnostic;
-
-        /// <summary>
-        /// This option is used by TypeScript.
-        /// </summary>
-        public static readonly PerLanguageOption<bool> RemoveDocumentDiagnosticsOnDocumentClose = new PerLanguageOption<bool>(
+#pragma warning disable RS0030 // Do not used banned APIs - to avoid a binary breaking API change.
+        public static readonly PerLanguageOption<bool> RemoveDocumentDiagnosticsOnDocumentClose = new(
             "ServiceFeatureOnOffOptions", "RemoveDocumentDiagnosticsOnDocumentClose", defaultValue: false,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.RemoveDocumentDiagnosticsOnDocumentClose"));
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.RemoveDocumentDiagnosticsOnDocumentClose"));
+#pragma warning restore RS0030 // Do not used banned APIs
     }
 }

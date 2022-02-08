@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
@@ -20,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
                 return LanguageDebugInfo.GetLanguageID(pBuffer, iLine, iCol, out pguidLanguageID);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e) && false)
+            catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -32,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
                 return LanguageDebugInfo.GetLocationOfName(pszName, out pbstrMkDoc, out pspanLocation);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e) && false)
+            catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -44,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
                 return LanguageDebugInfo.GetNameOfLocation(pBuffer, iLine, iCol, out pbstrName, out piLineOffset);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e) && false)
+            catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -56,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
                 return LanguageDebugInfo.GetProximityExpressions(pBuffer, iLine, iCol, cLines, out ppEnum);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e) && false)
+            catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -68,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
                 return LanguageDebugInfo.IsMappedLocation(pBuffer, iLine, iCol);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e) && false)
+            catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -80,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
                 return LanguageDebugInfo.ResolveName(pszName, dwFlags, out ppNames);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e) && false)
+            catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -92,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
                 return LanguageDebugInfo.ValidateBreakpointLocation(pBuffer, iLine, iCol, pCodeSpan);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrash(e) && false)
+            catch (Exception e) when (FatalError.ReportAndPropagate(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }

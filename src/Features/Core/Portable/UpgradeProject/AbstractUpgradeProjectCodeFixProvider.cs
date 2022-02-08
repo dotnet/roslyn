@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -10,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.UpgradeProject
@@ -32,11 +35,11 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
         {
             var diagnostics = context.Diagnostics;
 
-            context.RegisterFixes(GetUpgradeProjectCodeActionsAsync(context), diagnostics);
+            context.RegisterFixes(GetUpgradeProjectCodeActions(context), diagnostics);
             return Task.CompletedTask;
         }
 
-        protected ImmutableArray<CodeAction> GetUpgradeProjectCodeActionsAsync(CodeFixContext context)
+        protected ImmutableArray<CodeAction> GetUpgradeProjectCodeActions(CodeFixContext context)
         {
             var project = context.Document.Project;
             var solution = project.Solution;
@@ -89,9 +92,7 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
         }
 
         private bool CanUpgrade(Project project, string language, string version)
-        {
-            return project.Language == language && IsUpgrade(project, version);
-        }
+            => project.Language == language && IsUpgrade(project, version);
     }
 
     internal class ProjectOptionsChangeAction : SolutionChangeAction
@@ -102,6 +103,6 @@ namespace Microsoft.CodeAnalysis.UpgradeProject
         }
 
         protected override Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
-            => Task.FromResult(Enumerable.Empty<CodeActionOperation>());
+            => SpecializedTasks.EmptyEnumerable<CodeActionOperation>();
     }
 }

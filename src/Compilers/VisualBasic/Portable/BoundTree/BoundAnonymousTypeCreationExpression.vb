@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundAnonymousTypeCreationExpression
+    Partial Friend Class BoundAnonymousTypeCreationExpression
 
         Public Overrides ReadOnly Property ExpressionSymbol As Symbol
             Get

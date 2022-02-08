@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -15,10 +18,11 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MakeLocalFunctionStaticCodeFixProvider)), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MakeLocalFunctionStatic), Shared]
     internal class MakeLocalFunctionStaticCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public MakeLocalFunctionStaticCodeFixProvider()
         {
         }
@@ -41,21 +45,21 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeLocalFunctionStatic
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var localFunctions = diagnostics.SelectAsArray(d => d.AdditionalLocations[0].FindNode(cancellationToken));
+            var localFunctions = diagnostics.SelectAsArray(d => d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken));
             foreach (var localFunction in localFunctions)
             {
                 editor.ReplaceNode(
                     localFunction,
-                    (current, generator) => MakeLocalFunctionStaticHelper.AddStaticModifier(current, generator));
+                    (current, generator) => MakeLocalFunctionStaticCodeFixHelper.AddStaticModifier(current, generator));
             }
 
             return Task.CompletedTask;
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : CustomCodeActions.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Make_local_function_static, createChangedDocument, FeaturesResources.Make_local_function_static)
+                : base(CSharpAnalyzersResources.Make_local_function_static, createChangedDocument, CSharpAnalyzersResources.Make_local_function_static)
             {
             }
         }

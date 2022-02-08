@@ -2,23 +2,26 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Completion
 {
     internal sealed class FSharpInternalCommonCompletionProvider : CommonCompletionProvider
     {
-        private readonly IFSharpCommonCompletionProvider _provider;
+        private readonly FSharpCommonCompletionProviderBase _provider;
 
-        public FSharpInternalCommonCompletionProvider(IFSharpCommonCompletionProvider provider)
+        public FSharpInternalCommonCompletionProvider(FSharpCommonCompletionProviderBase provider)
         {
             _provider = provider;
         }
+
+        internal override string Language => LanguageNames.FSharp;
 
         public override Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -30,9 +33,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Completion
             return _provider.GetTextChangeAsync(base.GetTextChangeAsync, selectedItem, ch, cancellationToken);
         }
 
-        internal override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, CompletionOptions options)
         {
-            return _provider.IsInsertionTrigger(text, insertedCharacterPosition, options);
+            return _provider.IsInsertionTrigger(text, insertedCharacterPosition);
         }
     }
 }

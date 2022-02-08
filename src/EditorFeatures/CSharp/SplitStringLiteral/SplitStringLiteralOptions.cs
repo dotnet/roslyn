@@ -2,29 +2,29 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 {
-    internal class SplitStringLiteralOptions
-    {
-        public static PerLanguageOption<bool> Enabled =
-            new PerLanguageOption<bool>(nameof(SplitStringLiteralOptions), nameof(Enabled), defaultValue: true,
-                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SplitStringLiterals"));
-    }
-
-    [ExportOptionProvider(LanguageNames.CSharp), Shared]
-    internal class SplitStringLiteralOptionsProvider : IOptionProvider
+    [ExportGlobalOptionProvider(LanguageNames.CSharp), Shared]
+    internal sealed class SplitStringLiteralOptions : IOptionProvider
     {
         [ImportingConstructor]
-        public SplitStringLiteralOptionsProvider()
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public SplitStringLiteralOptions()
         {
         }
 
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            SplitStringLiteralOptions.Enabled);
+        ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
+            Enabled);
+
+        public static PerLanguageOption2<bool> Enabled =
+            new(nameof(SplitStringLiteralOptions), nameof(Enabled), defaultValue: true,
+                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SplitStringLiterals"));
     }
 }

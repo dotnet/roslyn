@@ -4,7 +4,6 @@
 
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 
-
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
     public class EncapsulateField_OutOfProc : OutOfProcComponent

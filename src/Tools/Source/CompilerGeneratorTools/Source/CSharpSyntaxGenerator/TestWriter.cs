@@ -2,14 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 namespace CSharpSyntaxGenerator
 {
     internal class TestWriter : AbstractFileWriter
     {
-        private TestWriter(TextWriter writer, Tree tree) : base(writer, tree)
+        private TestWriter(TextWriter writer, Tree tree, CancellationToken cancellationToken = default) : base(writer, tree, cancellationToken)
         {
         }
 
@@ -76,7 +79,7 @@ namespace CSharpSyntaxGenerator
 
         private void WriteNodeGenerators(bool isGreen)
         {
-            var nodes = Tree.Types.Where(n => !(n is PredefinedNode) && !(n is AbstractNode));
+            var nodes = Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode);
             bool first = true;
             foreach (var node in nodes)
             {
@@ -147,7 +150,7 @@ namespace CSharpSyntaxGenerator
                 }
                 else if (field.Type == "SyntaxToken")
                 {
-                    var kind = ChooseValidKind(field);
+                    var kind = ChooseValidKind(field, node);
                     var leadingTrivia = isGreen ? "null, " : string.Empty;
                     var trailingTrivia = isGreen ? ", null" : string.Empty;
                     if (kind == "IdentifierToken")
@@ -168,7 +171,7 @@ namespace CSharpSyntaxGenerator
                     }
                     else
                     {
-                        Write($"{syntaxFactory}.Token(SyntaxKind.{ChooseValidKind(field)})");
+                        Write($"{syntaxFactory}.Token(SyntaxKind.{kind})");
                     }
                 }
                 else if (field.Type == "CSharpSyntaxNode")
@@ -208,7 +211,7 @@ namespace CSharpSyntaxGenerator
 
         private void WriteFactoryPropertyTests(bool isGreen)
         {
-            var nodes = Tree.Types.Where(n => !(n is PredefinedNode) && !(n is AbstractNode));
+            var nodes = Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode);
             bool first = true;
             foreach (var node in nodes)
             {
@@ -254,13 +257,14 @@ namespace CSharpSyntaxGenerator
                     }
                     else if (field.Type == "SyntaxToken")
                     {
+                        var kind = ChooseValidKind(field, node);
                         if (!isGreen)
                         {
-                            WriteLine($"Assert.Equal(SyntaxKind.{ChooseValidKind(field)}, node.{field.Name}.Kind());");
+                            WriteLine($"Assert.Equal(SyntaxKind.{kind}, node.{field.Name}.Kind());");
                         }
                         else
                         {
-                            WriteLine($"Assert.Equal(SyntaxKind.{ChooseValidKind(field)}, node.{field.Name}.Kind);");
+                            WriteLine($"Assert.Equal(SyntaxKind.{kind}, node.{field.Name}.Kind);");
                         }
                     }
                     else
@@ -315,7 +319,7 @@ namespace CSharpSyntaxGenerator
 
         private void WriteRewriterTests()
         {
-            var nodes = Tree.Types.Where(n => !(n is PredefinedNode) && !(n is AbstractNode));
+            var nodes = Tree.Types.Where(n => n is not PredefinedNode and not AbstractNode);
             bool first = true;
             foreach (var node in nodes)
             {
@@ -381,9 +385,10 @@ namespace CSharpSyntaxGenerator
         }
 
         //guess a reasonable kind if there are no constraints
-        private static string ChooseValidKind(Field field)
+        private string ChooseValidKind(Field field, Node nd)
         {
-            return field.Kinds.Any() ? field.Kinds[0].Name : "IdentifierToken";
+            var fieldKinds = GetKindsOfFieldOrNearestParent(nd, field);
+            return fieldKinds?.Any() == true ? fieldKinds[0].Name : "IdentifierToken";
         }
     }
 }

@@ -5029,7 +5029,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_04()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5059,7 +5059,7 @@ End Module
                     ]]></file>
                 </compilation>)
 
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       48 (0x30)
@@ -5093,7 +5093,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_05()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5122,7 +5122,7 @@ Module Module1
 End Module
                     ]]></file>
                 </compilation>)
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       30 (0x1e)
@@ -5150,7 +5150,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_06()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5179,7 +5179,7 @@ Module Module1
 End Module
                     ]]></file>
                 </compilation>)
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
    // Code size       30 (0x1e)
@@ -5207,7 +5207,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_07()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5236,7 +5236,7 @@ Module Module1
 End Module
                     ]]></file>
                 </compilation>)
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       30 (0x1e)
@@ -5264,7 +5264,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_08()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5290,7 +5290,7 @@ End Module
                     ]]></file>
                 </compilation>)
 
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       10 (0xa)
@@ -5309,7 +5309,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_09()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5334,7 +5334,7 @@ Module Module1
 End Module
                     ]]></file>
                 </compilation>)
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       15 (0xf)
@@ -5356,7 +5356,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_10()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5381,7 +5381,7 @@ Module Module1
 End Module
                     ]]></file>
                 </compilation>)
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       10 (0xa)
@@ -5400,7 +5400,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_11()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5425,7 +5425,7 @@ Module Module1
 End Module
                     ]]></file>
                 </compilation>)
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       23 (0x17)
@@ -5451,7 +5451,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_12()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5477,7 +5477,7 @@ End Module
                     ]]></file>
                 </compilation>)
 
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       10 (0xa)
@@ -5496,7 +5496,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_13()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5521,7 +5521,7 @@ Module Module1
 End Module
                     ]]></file>
                 </compilation>)
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       23 (0x17)
@@ -5547,7 +5547,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_14()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5572,7 +5572,7 @@ Module Module1
 End Module
                     ]]></file>
                 </compilation>)
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       10 (0xa)
@@ -5591,7 +5591,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_15()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5616,7 +5616,7 @@ Module Module1
 End Module
                     ]]></file>
                 </compilation>)
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       15 (0xf)
@@ -5638,7 +5638,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_16()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5659,7 +5659,7 @@ Module Module1
 End Module
                     ]]></file>
                 </compilation>)
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size        4 (0x4)
@@ -5676,7 +5676,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_17()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5697,7 +5697,7 @@ Module Module1
 End Module
                     ]]></file>
                 </compilation>)
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size        4 (0x4)
@@ -5714,7 +5714,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_18()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5740,7 +5740,7 @@ End Module
                     ]]></file>
                 </compilation>)
 
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       56 (0x38)
@@ -5778,7 +5778,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_19()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5803,7 +5803,7 @@ Module Module1
 End Module
                     ]]></file>
                 </compilation>)
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       38 (0x26)
@@ -5834,7 +5834,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_20()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5864,7 +5864,7 @@ End Module
                     ]]></file>
                 </compilation>)
 
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       37 (0x25)
@@ -5894,7 +5894,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_21()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5920,7 +5920,7 @@ End Module
                     ]]></file>
                 </compilation>)
 
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       53 (0x35)
@@ -5956,7 +5956,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_22()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -5982,7 +5982,7 @@ End Module
                     ]]></file>
                 </compilation>)
 
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size      134 (0x86)
@@ -6052,7 +6052,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_23()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -6078,7 +6078,7 @@ End Module
                     ]]></file>
                 </compilation>)
 
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size      149 (0x95)
@@ -6153,7 +6153,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_24()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -6179,7 +6179,7 @@ End Module
                     ]]></file>
                 </compilation>)
 
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       53 (0x35)
@@ -6215,7 +6215,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_25()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -6241,7 +6241,7 @@ End Module
                     ]]></file>
                 </compilation>)
 
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       53 (0x35)
@@ -6277,7 +6277,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_26()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -6307,7 +6307,7 @@ End Module
                     ]]></file>
                 </compilation>)
 
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       93 (0x5d)
@@ -6361,7 +6361,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_27()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -6391,7 +6391,7 @@ End Module
                     ]]></file>
                 </compilation>)
 
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       93 (0x5d)
@@ -6445,7 +6445,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_28()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -6471,7 +6471,7 @@ End Module
                     ]]></file>
                 </compilation>)
 
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       68 (0x44)
@@ -6512,7 +6512,7 @@ End Module
         <Fact()>
         <WorkItem(38305, "https://github.com/dotnet/roslyn/issues/38305")>
         Public Sub BooleanExpression_29()
-            Dim verifyer = CompileAndVerify(
+            Dim verifier = CompileAndVerify(
                 <compilation>
                     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -6538,7 +6538,7 @@ End Module
                     ]]></file>
                 </compilation>)
 
-            verifyer.VerifyIL("Module1.Test1",
+            verifier.VerifyIL("Module1.Test1",
             <![CDATA[
 {
   // Code size       68 (0x44)
@@ -6805,6 +6805,466 @@ End Module
             End Function
 
         End Class
+
+        <Fact()>
+        Public Sub BooleanExpression_31()
+            Dim verifier = CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Function Test1() As Integer
+        If GetC()?.F Then
+            Return 2
+        Else
+            Return 3
+        End If
+    End Function
+
+    Function GetC() As C
+        Return Nothing
+    End Function
+
+End Module
+
+Class C
+    Public F As Boolean
+End Class
+                    ]]></file>
+                </compilation>)
+
+            verifier.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       27 (0x1b)
+  .maxstack  2
+  .locals init (Integer V_0) //Test1
+  IL_0000:  call       "Function Module1.GetC() As C"
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_000c
+  IL_0008:  pop
+  IL_0009:  ldc.i4.0
+  IL_000a:  br.s       IL_0011
+  IL_000c:  ldfld      "C.F As Boolean"
+  IL_0011:  brfalse.s  IL_0017
+  IL_0013:  ldc.i4.2
+  IL_0014:  stloc.0
+  IL_0015:  br.s       IL_0019
+  IL_0017:  ldc.i4.3
+  IL_0018:  stloc.0
+  IL_0019:  ldloc.0
+  IL_001a:  ret
+}
+                ]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub BooleanExpression_32()
+            Dim verifier = CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Function Test1() As Integer
+        If GetBool1() AndAlso GetC()?.F Then
+            Return 2
+        Else
+            Return 3
+        End If
+    End Function
+
+    Function GetBool1() As Boolean
+        Return Nothing
+    End Function
+
+    Function GetC() As C
+        Return Nothing
+    End Function
+
+End Module
+
+Class C
+    Public F As Boolean
+End Class
+                    ]]></file>
+                </compilation>)
+
+            verifier.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       34 (0x22)
+  .maxstack  2
+  .locals init (Integer V_0) //Test1
+  IL_0000:  call       "Function Module1.GetBool1() As Boolean"
+  IL_0005:  brfalse.s  IL_001e
+  IL_0007:  call       "Function Module1.GetC() As C"
+  IL_000c:  dup
+  IL_000d:  brtrue.s   IL_0013
+  IL_000f:  pop
+  IL_0010:  ldc.i4.0
+  IL_0011:  br.s       IL_0018
+  IL_0013:  ldfld      "C.F As Boolean"
+  IL_0018:  brfalse.s  IL_001e
+  IL_001a:  ldc.i4.2
+  IL_001b:  stloc.0
+  IL_001c:  br.s       IL_0020
+  IL_001e:  ldc.i4.3
+  IL_001f:  stloc.0
+  IL_0020:  ldloc.0
+  IL_0021:  ret
+}
+                ]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub BooleanExpression_33()
+            Dim verifier = CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Function Test1() As Integer
+        If GetC()?.F OrElse GetBool1() Then
+            Return 2
+        Else
+            Return 3
+        End If
+    End Function
+
+    Function GetBool1() As Boolean
+        Return Nothing
+    End Function
+
+    Function GetC() As C
+        Return Nothing
+    End Function
+
+End Module
+
+Class C
+    Public F As Boolean
+End Class
+                    ]]></file>
+                </compilation>)
+
+            verifier.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       34 (0x22)
+  .maxstack  2
+  .locals init (Integer V_0) //Test1
+  IL_0000:  call       "Function Module1.GetC() As C"
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_000c
+  IL_0008:  pop
+  IL_0009:  ldc.i4.0
+  IL_000a:  br.s       IL_0011
+  IL_000c:  ldfld      "C.F As Boolean"
+  IL_0011:  brtrue.s   IL_001a
+  IL_0013:  call       "Function Module1.GetBool1() As Boolean"
+  IL_0018:  brfalse.s  IL_001e
+  IL_001a:  ldc.i4.2
+  IL_001b:  stloc.0
+  IL_001c:  br.s       IL_0020
+  IL_001e:  ldc.i4.3
+  IL_001f:  stloc.0
+  IL_0020:  ldloc.0
+  IL_0021:  ret
+}
+                ]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub BooleanExpression_34()
+            Dim verifier = CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Function Test1() As Integer
+        If GetBool1() AndAlso GetC()?.F OrElse GetBool2() Then
+            Return 2
+        Else
+            Return 3
+        End If
+    End Function
+
+    Function GetBool1() As Boolean
+        Return Nothing
+    End Function
+
+    Function GetBool2() As Boolean
+        Return Nothing
+    End Function
+
+    Function GetC() As C
+        Return Nothing
+    End Function
+
+End Module
+
+Class C
+    Public F As Boolean
+End Class
+                    ]]></file>
+                </compilation>)
+
+            verifier.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       41 (0x29)
+  .maxstack  2
+  .locals init (Integer V_0) //Test1
+  IL_0000:  call       "Function Module1.GetBool1() As Boolean"
+  IL_0005:  brfalse.s  IL_001a
+  IL_0007:  call       "Function Module1.GetC() As C"
+  IL_000c:  dup
+  IL_000d:  brtrue.s   IL_0013
+  IL_000f:  pop
+  IL_0010:  ldc.i4.0
+  IL_0011:  br.s       IL_0018
+  IL_0013:  ldfld      "C.F As Boolean"
+  IL_0018:  brtrue.s   IL_0021
+  IL_001a:  call       "Function Module1.GetBool2() As Boolean"
+  IL_001f:  brfalse.s  IL_0025
+  IL_0021:  ldc.i4.2
+  IL_0022:  stloc.0
+  IL_0023:  br.s       IL_0027
+  IL_0025:  ldc.i4.3
+  IL_0026:  stloc.0
+  IL_0027:  ldloc.0
+  IL_0028:  ret
+}
+                ]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub BooleanExpression_35()
+            Dim verifier = CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Function Test1() As Integer
+        If GetNullable() AndAlso GetC()?.F Then
+            Return 2
+        Else
+            Return 3
+        End If
+    End Function
+
+    Function GetNullable() As Boolean?
+        Return Nothing
+    End Function
+
+    Function GetC() As C
+        Return Nothing
+    End Function
+
+End Module
+
+Class C
+    Public F As Boolean
+End Class
+                    ]]></file>
+                </compilation>)
+
+            verifier.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       60 (0x3c)
+  .maxstack  2
+  .locals init (Integer V_0, //Test1
+                Boolean? V_1)
+  IL_0000:  call       "Function Module1.GetNullable() As Boolean?"
+  IL_0005:  stloc.1
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  call       "Function Boolean?.get_HasValue() As Boolean"
+  IL_000d:  brfalse.s  IL_0018
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_0016:  brfalse.s  IL_0038
+  IL_0018:  call       "Function Module1.GetC() As C"
+  IL_001d:  dup
+  IL_001e:  brtrue.s   IL_0024
+  IL_0020:  pop
+  IL_0021:  ldc.i4.0
+  IL_0022:  br.s       IL_0029
+  IL_0024:  ldfld      "C.F As Boolean"
+  IL_0029:  brfalse.s  IL_0038
+  IL_002b:  ldloca.s   V_1
+  IL_002d:  call       "Function Boolean?.get_HasValue() As Boolean"
+  IL_0032:  brfalse.s  IL_0038
+  IL_0034:  ldc.i4.2
+  IL_0035:  stloc.0
+  IL_0036:  br.s       IL_003a
+  IL_0038:  ldc.i4.3
+  IL_0039:  stloc.0
+  IL_003a:  ldloc.0
+  IL_003b:  ret
+}
+                ]]>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(38306, "https://github.com/dotnet/roslyn/issues/38306")>
+        Public Sub BooleanExpression_36()
+            Dim verifier = CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Function Test1() As Integer
+        If (GetC()?.F).GetValueOrDefault() AndAlso GetBool1() Then
+            Return 2
+        Else
+            Return 3
+        End If
+    End Function
+
+    Function GetBool1() As Boolean
+        Return Nothing
+    End Function
+
+    Function GetC() As C
+        Return Nothing
+    End Function
+
+End Module
+
+Class C
+    Public F As Boolean
+End Class
+                    ]]></file>
+                </compilation>)
+
+            verifier.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       55 (0x37)
+  .maxstack  2
+  .locals init (Integer V_0, //Test1
+                Boolean? V_1)
+  IL_0000:  call       "Function Module1.GetC() As C"
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_0014
+  IL_0008:  pop
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  initobj    "Boolean?"
+  IL_0011:  ldloc.1
+  IL_0012:  br.s       IL_001e
+  IL_0014:  ldfld      "C.F As Boolean"
+  IL_0019:  newobj     "Sub Boolean?..ctor(Boolean)"
+  IL_001e:  stloc.1
+  IL_001f:  ldloca.s   V_1
+  IL_0021:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_0026:  brfalse.s  IL_0033
+  IL_0028:  call       "Function Module1.GetBool1() As Boolean"
+  IL_002d:  brfalse.s  IL_0033
+  IL_002f:  ldc.i4.2
+  IL_0030:  stloc.0
+  IL_0031:  br.s       IL_0035
+  IL_0033:  ldc.i4.3
+  IL_0034:  stloc.0
+  IL_0035:  ldloc.0
+  IL_0036:  ret
+}
+                ]]>)
+        End Sub
+
+        <Fact()>
+        <WorkItem(38306, "https://github.com/dotnet/roslyn/issues/38306")>
+        Public Sub BooleanExpression_37()
+            Dim verifier = CompileAndVerify(
+                <compilation>
+                    <file name="a.vb"><![CDATA[
+Option Explicit On
+
+Module Module1
+
+    Sub Main()
+    End Sub
+
+    Function Test1() As Integer
+        If If(GetC()?.F, False) AndAlso GetBool1() Then
+            Return 2
+        Else
+            Return 3
+        End If
+    End Function
+
+    Function GetBool1() As Boolean
+        Return Nothing
+    End Function
+
+    Function GetC() As C
+        Return Nothing
+    End Function
+
+End Module
+
+Class C
+    Public F As Boolean
+End Class
+                    ]]></file>
+                </compilation>)
+
+            verifier.VerifyIL("Module1.Test1",
+            <![CDATA[
+{
+  // Code size       34 (0x22)
+  .maxstack  2
+  .locals init (Integer V_0) //Test1
+  IL_0000:  call       "Function Module1.GetC() As C"
+  IL_0005:  dup
+  IL_0006:  brtrue.s   IL_000c
+  IL_0008:  pop
+  IL_0009:  ldc.i4.0
+  IL_000a:  br.s       IL_0011
+  IL_000c:  ldfld      "C.F As Boolean"
+  IL_0011:  brfalse.s  IL_001e
+  IL_0013:  call       "Function Module1.GetBool1() As Boolean"
+  IL_0018:  brfalse.s  IL_001e
+  IL_001a:  ldc.i4.2
+  IL_001b:  stloc.0
+  IL_001c:  br.s       IL_0020
+  IL_001e:  ldc.i4.3
+  IL_001f:  stloc.0
+  IL_0020:  ldloc.0
+  IL_0021:  ret
+}
+                ]]>)
+        End Sub
 
     End Class
 End Namespace

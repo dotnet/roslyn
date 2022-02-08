@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
-    Friend Partial Class CharacterLiteralTokenSyntax
+    Partial Friend Class CharacterLiteralTokenSyntax
         Friend NotOverridable Overrides ReadOnly Property ObjectValue As Object
             Get
                 Return Me.Value
@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Property
     End Class
 
-    Friend Partial Class DateLiteralTokenSyntax
+    Partial Friend Class DateLiteralTokenSyntax
         Friend NotOverridable Overrides ReadOnly Property ObjectValue As Object
             Get
                 Return Me.Value
@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Property
     End Class
 
-    Friend Partial Class DecimalLiteralTokenSyntax
+    Partial Friend Class DecimalLiteralTokenSyntax
         Friend NotOverridable Overrides ReadOnly Property ObjectValue As Object
             Get
                 Return Me.Value
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Property
     End Class
 
-    Friend Partial Class StringLiteralTokenSyntax
+    Partial Friend Class StringLiteralTokenSyntax
         Friend NotOverridable Overrides ReadOnly Property ObjectValue As Object
             Get
                 Return Me.Value
@@ -166,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     End Class
 
     ''' <summary>
-    ''' Represents an floating literal token.
+    ''' Represents a floating literal token.
     ''' </summary>
     Friend NotInheritable Class FloatingLiteralTokenSyntax(Of T)
         Inherits FloatingLiteralTokenSyntax
@@ -236,7 +236,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     End Class
 
     ''' <summary>
-    ''' Represents an floating literal token.
+    ''' Represents a floating literal token.
     ''' </summary>
     Friend MustInherit Class FloatingLiteralTokenSyntax
         Inherits SyntaxToken

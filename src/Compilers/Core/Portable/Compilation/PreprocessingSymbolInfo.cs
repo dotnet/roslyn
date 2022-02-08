@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Roslyn.Utilities;
 using System;
 
@@ -36,7 +34,7 @@ namespace Microsoft.CodeAnalysis
                 && object.Equals(this.IsDefined, other.IsDefined);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is PreprocessingSymbolInfo p && this.Equals(p);
         }

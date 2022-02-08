@@ -22,6 +22,6 @@ namespace Microsoft.CodeAnalysis.CodeActions
         public const string Kind = "CodeAction_Navigation";
 
         public static SyntaxAnnotation Create()
-            => new SyntaxAnnotation(Kind);
+            => new(Kind);
     }
 }

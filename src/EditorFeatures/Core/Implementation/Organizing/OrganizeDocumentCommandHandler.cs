@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -35,17 +38,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
         private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public OrganizeDocumentCommandHandler(IThreadingContext threadingContext)
-        {
-            _threadingContext = threadingContext;
-        }
+            => _threadingContext = threadingContext;
 
         public string DisplayName => EditorFeaturesResources.Organize_Document;
 
         public CommandState GetCommandState(OrganizeDocumentCommandArgs args)
-        {
-            return GetCommandState(args, _ => EditorFeaturesResources.Organize_Document, needsSemantics: true);
-        }
+            => GetCommandState(args, _ => EditorFeaturesResources.Organize_Document, needsSemantics: true);
 
         public bool ExecuteCommand(OrganizeDocumentCommandArgs args, CommandExecutionContext context)
         {
@@ -68,16 +68,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
         }
 
         public CommandState GetCommandState(SortImportsCommandArgs args)
-        {
-            return GetCommandState(args, o => o.SortImportsDisplayStringWithAccelerator, needsSemantics: false);
-        }
+            => GetCommandState(args, o => o.SortImportsDisplayStringWithAccelerator, needsSemantics: false);
 
         public CommandState GetCommandState(SortAndRemoveUnnecessaryImportsCommandArgs args)
-        {
-            return GetCommandState(args, o => o.SortAndRemoveUnusedImportsDisplayStringWithAccelerator, needsSemantics: true);
-        }
+            => GetCommandState(args, o => o.SortAndRemoveUnusedImportsDisplayStringWithAccelerator, needsSemantics: true);
 
-        private CommandState GetCommandState(EditorCommandArgs args, Func<IOrganizeImportsService, string> descriptionString, bool needsSemantics)
+        private static CommandState GetCommandState(EditorCommandArgs args, Func<IOrganizeImportsService, string> descriptionString, bool needsSemantics)
         {
             if (IsCommandSupported(args, needsSemantics, out var workspace))
             {
@@ -90,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
             }
         }
 
-        private bool IsCommandSupported(EditorCommandArgs args, bool needsSemantics, out Workspace workspace)
+        private static bool IsCommandSupported(EditorCommandArgs args, bool needsSemantics, out Workspace workspace)
         {
             workspace = null;
             if (args.SubjectBuffer.TryGetWorkspace(out var retrievedWorkspace))
@@ -116,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
         {
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Organizing_document))
             {
-                this.SortImports(args.SubjectBuffer, context.OperationContext);
+                SortImports(args.SubjectBuffer, context.OperationContext);
             }
 
             return true;
@@ -132,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
             return true;
         }
 
-        private void SortImports(ITextBuffer subjectBuffer, IUIThreadOperationContext operationContext)
+        private static void SortImports(ITextBuffer subjectBuffer, IUIThreadOperationContext operationContext)
         {
             var cancellationToken = operationContext.UserCancellationToken;
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
@@ -163,8 +159,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
         }
 
         protected static void ApplyTextChange(Document oldDocument, Document newDocument)
-        {
-            oldDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, CancellationToken.None);
-        }
+            => oldDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, CancellationToken.None);
     }
 }

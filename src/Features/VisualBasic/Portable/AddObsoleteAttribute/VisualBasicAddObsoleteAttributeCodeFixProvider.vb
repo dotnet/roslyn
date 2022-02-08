@@ -4,11 +4,13 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.AddObsoleteAttribute
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddObsoleteAttribute
-    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicAddObsoleteAttributeCodeFixProvider)), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AddObsoleteAttribute), [Shared]>
     Friend Class VisualBasicAddObsoleteAttributeCodeFixProvider
         Inherits AbstractAddObsoleteAttributeCodeFixProvider
 
@@ -19,8 +21,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddObsoleteAttribute
             )
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
-            MyBase.New(VisualBasicSyntaxFactsService.Instance, VBFeaturesResources.Add_Obsolete)
+            MyBase.New(VisualBasicSyntaxFacts.Instance, VBFeaturesResources.Add_Obsolete)
         End Sub
     End Class
 End Namespace

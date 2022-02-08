@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Globalization;
 using System.Windows;
@@ -17,13 +19,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
     internal class EnumBoolConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return value?.Equals(parameter) ?? DependencyProperty.UnsetValue;
-        }
+            => value?.Equals(parameter) ?? DependencyProperty.UnsetValue;
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return value?.Equals(true) == true ? parameter : Binding.DoNothing;
-        }
+            => value?.Equals(true) == true ? parameter : Binding.DoNothing;
     }
 }

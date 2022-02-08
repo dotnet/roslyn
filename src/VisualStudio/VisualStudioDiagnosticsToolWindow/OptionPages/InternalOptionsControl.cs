@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Linq;
 using System.Windows;
@@ -163,7 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return null;
         }
 
-        private string GetAdditionalText(string additional)
+        private static string GetAdditionalText(string additional)
         {
             if (additional == null)
             {
@@ -173,7 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return " [" + additional + "]";
         }
 
-        private string GetLanguage(string languageName)
+        private static string GetLanguage(string languageName)
         {
             if (languageName == null)
             {
@@ -187,22 +189,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             if (languageName == null)
             {
-                BindToOption(checkBox, (Option<bool>)option);
+                BindToOption(checkBox, (Option2<bool>)option);
                 return;
             }
 
-            BindToOption(checkBox, (PerLanguageOption<bool>)option, languageName);
+            BindToOption(checkBox, (PerLanguageOption2<bool>)option, languageName);
         }
 
         private void BindToTextBox(TextBox textBox, IOption option, string languageName = null)
         {
             if (languageName == null)
             {
-                BindToOption(textBox, (Option<int>)option);
+                BindToOption(textBox, (Option2<int>)option);
                 return;
             }
 
-            BindToOption(textBox, (PerLanguageOption<int>)option, languageName);
+            BindToOption(textBox, (PerLanguageOption2<int>)option, languageName);
         }
     }
 }

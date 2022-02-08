@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
-using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -16,10 +15,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ImplementInterfaceImplicitly), Shared]
     internal class CSharpImplementImplicitlyCodeRefactoringProvider :
         AbstractChangeImplementionCodeRefactoringProvider
     {
+        [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        public CSharpImplementImplicitlyCodeRefactoringProvider()
+        {
+        }
+
         protected override string Implement_0 => FeaturesResources.Implement_0_implicitly;
         protected override string Implement_all_interfaces => FeaturesResources.Implement_all_interfaces_implicitly;
         protected override string Implement => FeaturesResources.Implement_implicitly;
@@ -31,7 +36,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
         // If we don't implement any interface members explicitly we can't convert this to be
         // implicit.
         protected override bool CheckMemberCanBeConverted(ISymbol member)
-            => member.ExplicitInterfaceImplementations().Length > 0;
+        {
+            var memberInterfaceImplementations = member.ExplicitInterfaceImplementations();
+            if (memberInterfaceImplementations.Length == 0)
+                return false;
+            var containingTypeInterfaces = member.ContainingType.AllInterfaces;
+            if (containingTypeInterfaces.Length == 0)
+                return false;
+            return memberInterfaceImplementations.Any(impl => containingTypeInterfaces.Contains(impl.ContainingType));
+        }
 
         // When converting to implicit, we don't need to update any references.
         protected override Task UpdateReferencesAsync(Project project, SolutionEditor solutionEditor, ISymbol implMember, INamedTypeSymbol containingType, CancellationToken cancellationToken)
@@ -40,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
         protected override SyntaxNode ChangeImplementation(SyntaxGenerator generator, SyntaxNode decl, ISymbol _)
             => generator.WithAccessibility(WithoutExplicitImpl(decl), Accessibility.Public);
 
-        private SyntaxNode? WithoutExplicitImpl(SyntaxNode decl)
+        private static SyntaxNode WithoutExplicitImpl(SyntaxNode decl)
             => decl switch
             {
                 MethodDeclarationSyntax member => member.WithExplicitInterfaceSpecifier(null),

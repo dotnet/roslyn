@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,12 +24,13 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertLinqQueryToForEachProvider)), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertLinqQueryToForEach), Shared]
     internal sealed class CSharpConvertLinqQueryToForEachProvider : AbstractConvertLinqQueryToForEachProvider<QueryExpressionSyntax, StatementSyntax>
     {
         private static readonly TypeSyntax VarNameIdentifier = SyntaxFactory.IdentifierName("var");
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpConvertLinqQueryToForEachProvider()
         {
         }
@@ -74,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                         SyntaxKind.MultiLineDocumentationCommentTrivia) ||
                     _source.ContainsDirectives))
                 {
-                    documentUpdateInfo = default;
+                    documentUpdateInfo = null;
                     return false;
                 }
 
@@ -82,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 if (!CanTryConvertToLocalFunction() ||
                     !TryCreateStackFromQueryExpression(out var queryExpressionProcessingInfo))
                 {
-                    documentUpdateInfo = default;
+                    documentUpdateInfo = null;
                     return false;
                 }
 
@@ -96,12 +100,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 {
                     if (!documentUpdateInfo.Source.IsParentKind(SyntaxKind.Block) &&
                         documentUpdateInfo.Destinations.Length > 1)
-
+                    {
                         documentUpdateInfo = new DocumentUpdateInfo(documentUpdateInfo.Source, SyntaxFactory.Block(documentUpdateInfo.Destinations));
+                    }
+
                     return true;
                 }
 
-                documentUpdateInfo = default;
+                documentUpdateInfo = null;
                 return false;
             }
 
@@ -112,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 bool hasExtraDeclarations,
                 out StatementSyntax extraStatementToAddAbove)
             {
-                extraStatementToAddAbove = default;
+                extraStatementToAddAbove = null;
                 switch (node.Kind())
                 {
                     case SyntaxKind.WhereClause:
@@ -214,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                         var identifier = ((QueryBodySyntax)selectClause.Parent).Continuation.Identifier;
                         return AddToBlockTop(CreateLocalDeclarationStatement(identifier, selectClause.Expression, generateTypeFromExpression: true), statement);
                     default:
-                        throw new ArgumentException($"Unexpected node kind {node.Kind().ToString()}");
+                        throw new ArgumentException($"Unexpected node kind {node.Kind()}");
                 }
             }
 
@@ -236,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                         return TryConvertIfInMemberAccessExpression((MemberAccessExpressionSyntax)parent, queryExpressionProcessingInfo, out documentUpdateInfo);
                 }
 
-                documentUpdateInfo = default;
+                documentUpdateInfo = null;
                 return false;
             }
 
@@ -250,13 +256,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 SyntaxNode currentNode = _source;
                 while (currentNode != null)
                 {
-                    if (currentNode is StatementSyntax) { return true; }
-                    if (currentNode is ExpressionSyntax ||
-                        currentNode is ArgumentSyntax ||
-                        currentNode is ArgumentListSyntax ||
-                        currentNode is EqualsValueClauseSyntax ||
-                        currentNode is VariableDeclaratorSyntax ||
-                        currentNode is VariableDeclarationSyntax)
+                    if (currentNode is StatementSyntax)
+                    {
+                        return true;
+                    }
+
+                    if (currentNode is ExpressionSyntax or
+                        ArgumentSyntax or
+                        ArgumentListSyntax or
+                        EqualsValueClauseSyntax or
+                        VariableDeclaratorSyntax or
+                        VariableDeclarationSyntax)
                     {
                         currentNode = currentNode.Parent;
                     }
@@ -287,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                     }
                 }
 
-                documentUpdateInfo = default;
+                documentUpdateInfo = null;
                 return false;
             }
 
@@ -319,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                             out documentUpdateInfo);
                 }
 
-                documentUpdateInfo = default;
+                documentUpdateInfo = null;
                 return false;
             }
 
@@ -358,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                               out documentUpdateInfo);
                 }
 
-                documentUpdateInfo = default;
+                documentUpdateInfo = null;
                 return false;
             }
 
@@ -400,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                     }
                 }
 
-                documentUpdateInfo = default;
+                documentUpdateInfo = null;
                 return false;
             }
 
@@ -501,9 +511,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 }
 
                 // Will still try to replace with a local function above.
-                nodesBefore = default;
-                nodesAfter = default;
-                variable = default;
+                nodesBefore = null;
+                nodesAfter = null;
+                variable = null;
                 return false;
             }
 
@@ -530,7 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 var parentStatement = _source.GetAncestorOrThis<StatementSyntax>();
                 if (parentStatement == null)
                 {
-                    documentUpdateInfo = default;
+                    documentUpdateInfo = null;
                     return false;
                 }
 
@@ -559,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                     }
                     else
                     {
-                        documentUpdateInfo = default;
+                        documentUpdateInfo = null;
                         return false;
                     }
                 }
@@ -612,7 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
 
                 if (forEachStatement.Expression.WalkDownParentheses() != _source)
                 {
-                    documentUpdateInfo = default;
+                    documentUpdateInfo = null;
                     return false;
                 }
 
@@ -630,7 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                                 usedNames: Enumerable.Empty<string>(),
                                 _cancellationToken).ValueText != identifierName)
                         {
-                            documentUpdateInfo = default;
+                            documentUpdateInfo = null;
                             return false;
                         }
                     }
@@ -669,7 +679,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 }
 
                 // in all other cases try to replace with a local function - this is called above.
-                documentUpdateInfo = default;
+                documentUpdateInfo = null;
                 return false;
             }
 
@@ -729,20 +739,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 // The conversion requires yield return which cannot be added to lambdas and anonymous method declarations.
                 if (IsWithinImmediateLambdaOrAnonymousMethod(returnStatement))
                 {
-                    documentUpdateInfo = default;
+                    documentUpdateInfo = null;
                     return false;
                 }
 
                 var memberDeclarationNode = FindParentMemberDeclarationNode(returnStatement, out var declaredSymbol);
-                if (!(declaredSymbol is IMethodSymbol methodSymbol))
+                if (declaredSymbol is not IMethodSymbol methodSymbol)
                 {
-                    documentUpdateInfo = default;
+                    documentUpdateInfo = null;
                     return false;
                 }
 
                 if (methodSymbol.ReturnType.OriginalDefinition?.SpecialType != SpecialType.System_Collections_Generic_IEnumerable_T)
                 {
-                    documentUpdateInfo = default;
+                    documentUpdateInfo = null;
                     return false;
                 }
 
@@ -766,7 +776,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                     return true;
                 }
 
-                documentUpdateInfo = default;
+                documentUpdateInfo = null;
                 return false;
             }
 
@@ -787,7 +797,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 Func<ExpressionSyntax, StatementSyntax> leafExpressionCreationMethod,
                 QueryExpressionProcessingInfo queryExpressionProcessingInfo)
             {
-                StatementSyntax statement = default;
+                StatementSyntax statement = null;
                 var stack = queryExpressionProcessingInfo.Stack;
                 // Executes syntax building methods from bottom to the top of the tree.
                 // Process last clause
@@ -870,7 +880,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                     }
 
                     // GroupClause is not supported by the conversion
-                    if (!(queryBody.SelectOrGroup is SelectClauseSyntax selectClause))
+                    if (queryBody.SelectOrGroup is not SelectClauseSyntax selectClause)
                     {
                         return false;
                     }
@@ -909,7 +919,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                     return IsLocalOrParameterSymbol(conversion.Operand);
                 }
 
-                return operation.Kind == OperationKind.LocalReference || operation.Kind == OperationKind.ParameterReference;
+                return operation.Kind is OperationKind.LocalReference or OperationKind.ParameterReference;
             }
 
             private static BlockSyntax WrapWithBlock(StatementSyntax statement)
@@ -956,8 +966,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 {
                     Stack = new Stack<CSharpSyntaxNode>();
                     Stack.Push(fromClause);
-                    IdentifierNames = new HashSet<string>();
-                    IdentifierNames.Add((fromClause.Identifier.ValueText));
+                    IdentifierNames = new HashSet<string> { fromClause.Identifier.ValueText };
                 }
 
                 public bool TryAdd(CSharpSyntaxNode node, SyntaxToken identifier)

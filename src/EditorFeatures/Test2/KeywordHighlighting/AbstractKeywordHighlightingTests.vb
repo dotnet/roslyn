@@ -10,6 +10,8 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Highlighting
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.Text
 Imports Roslyn.Utilities
@@ -24,21 +26,20 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
                 Dim snapshot = testDocument.GetTextBuffer().CurrentSnapshot
                 Dim caretPosition = testDocument.CursorPosition.Value
                 Dim document As Document = workspace.CurrentSolution.Projects.First.Documents.First
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
 
-                Dim options = workspace.Options.WithChangedOption(FeatureOnOffOptions.KeywordHighlighting, document.Project.Language, optionIsEnabled)
-                document = document.WithSolutionOptions(options)
+                globalOptions.SetGlobalOption(New OptionKey(FeatureOnOffOptions.KeywordHighlighting, document.Project.Language), optionIsEnabled)
 
                 WpfTestRunner.RequireWpfFact($"{NameOf(AbstractKeywordHighlightingTests)}.{NameOf(Me.VerifyHighlightsAsync)} creates asynchronous taggers")
 
-                Dim highlightingService = workspace.GetService(Of IHighlightingService)()
                 Dim tagProducer = New HighlighterViewTaggerProvider(
-                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
-                    highlightingService,
-                    workspace.GetService(Of IForegroundNotificationService),
+                    workspace.GetService(Of IThreadingContext),
+                    workspace.GetService(Of IHighlightingService)(),
+                    globalOptions,
                     AsynchronousOperationListenerProvider.NullProvider)
 
                 Dim context = New TaggerContext(Of KeywordHighlightTag)(document, snapshot, New SnapshotPoint(snapshot, caretPosition))
-                Await tagProducer.ProduceTagsAsync_ForTestingPurposesOnly(context)
+                Await tagProducer.GetTestAccessor().ProduceTagsAsync(context)
 
                 Dim producedTags = From tag In context.tagSpans
                                    Order By tag.Span.Start

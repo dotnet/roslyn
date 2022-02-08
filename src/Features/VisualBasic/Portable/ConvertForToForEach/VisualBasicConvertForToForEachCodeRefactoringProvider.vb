@@ -3,15 +3,15 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.ConvertForToForEach
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForToForEach
-    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicConvertForToForEachCodeRefactoringProvider)), [Shared]>
+    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ConvertForToForEach), [Shared]>
     Friend Class VisualBasicConvertForToForEachCodeRefactoringProvider
         Inherits AbstractConvertForToForEachCodeRefactoringProvider(Of
             StatementSyntax,
@@ -22,6 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForToForEach
             VariableDeclaratorSyntax)
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
@@ -59,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForToForEach
                     Dim subtraction = TryCast(forStatement.ToValue, BinaryExpressionSyntax)
                     If subtraction?.Kind() = SyntaxKind.SubtractExpression Then
                         Dim subtractionRight = TryCast(subtraction.Right, LiteralExpressionSyntax)
-                        If TypeOf subtractionRight.Token.Value Is Integer AndAlso
+                        If TypeOf subtractionRight?.Token.Value Is Integer AndAlso
                            DirectCast(subtractionRight.Token.Value, Integer) = 1 Then
 
                             memberAccess = TryCast(subtraction.Left, MemberAccessExpressionSyntax)

@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -15,9 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
         protected readonly TLibraryManager LibraryManager;
 
         protected AbstractObjectList(TLibraryManager libraryManager)
-        {
-            this.LibraryManager = libraryManager;
-        }
+            => this.LibraryManager = libraryManager;
 
         protected abstract bool CanGoToSource(uint index, VSOBJGOTOSRCTYPE srcType);
         protected abstract bool TryGetCategoryField(uint index, int category, out uint categoryField);
@@ -27,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
         protected abstract IVsSimpleObjectList2 GetList(uint index, uint listType, uint flags, VSOBSEARCHCRITERIA2[] pobSrch);
         protected abstract string GetText(uint index, VSTREETEXTOPTIONS tto);
         protected abstract string GetTipText(uint index, VSTREETOOLTIPTYPE eTipType);
-        protected abstract int GoToSource(uint index, VSOBJGOTOSRCTYPE srcType);
+        protected abstract Task GoToSourceAsync(uint index, VSOBJGOTOSRCTYPE srcType);
         protected abstract uint GetUpdateCounter();
 
         protected virtual bool SupportsBrowseContainers
@@ -36,9 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
         }
 
         protected virtual bool TryGetBrowseContainerData(uint index, ref VSCOMPONENTSELECTORDATA data)
-        {
-            return false;
-        }
+            => false;
 
         protected virtual bool TryFindBrowseContainer(VSCOMPONENTSELECTORDATA data, out uint index)
         {
@@ -74,9 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
         }
 
         protected virtual object GetBrowseObject(uint index)
-        {
-            return null;
-        }
+            => null;
 
         protected virtual bool SupportsNavInfo
         {
@@ -84,14 +81,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
         }
 
         protected virtual IVsNavInfo GetNavInfo(uint index)
-        {
-            return null;
-        }
+            => null;
 
         protected virtual IVsNavInfoNode GetNavInfoNode(uint index)
-        {
-            return null;
-        }
+            => null;
 
         protected virtual bool TryLocateNavInfoNode(IVsNavInfoNode pNavInfoNode, out uint index)
         {
@@ -105,9 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
         }
 
         protected virtual bool TryFillDescription(uint index, _VSOBJDESCOPTIONS options, IVsObjectBrowserDescription3 description)
-        {
-            return false;
-        }
+            => false;
 
         int IVsSimpleObjectList2.CanDelete(uint index, out int pfOK)
         {
@@ -138,24 +129,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
         }
 
         int IVsSimpleObjectList2.DoDelete(uint index, uint grfFlags)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         int IVsSimpleObjectList2.DoDragDrop(uint index, IDataObject pDataObject, uint grfKeyState, ref uint pdwEffect)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         int IVsSimpleObjectList2.DoRename(uint index, string pszNewName, uint grfFlags)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         int IVsSimpleObjectList2.EnumClipboardFormats(uint index, uint grfFlags, uint celt, VSOBJCLIPFORMAT[] rgcfFormats, uint[] pcActual)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         int IVsSimpleObjectList2.FillDescription2(uint index, uint grfOptions, IVsObjectBrowserDescription3 pobDesc)
         {
@@ -193,9 +176,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
         }
 
         int IVsSimpleObjectList2.GetClipboardFormat(uint index, uint grfFlags, FORMATETC[] pFormatetc, STGMEDIUM[] pMedium)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         int IVsSimpleObjectList2.GetContextMenu(uint index, out Guid pclsidActive, out int pnMenuId, out IOleCommandTarget ppCmdTrgtActive)
         {
@@ -253,9 +234,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
         }
 
         int IVsSimpleObjectList2.GetMultipleSourceItems(uint index, uint grfGSI, uint cItems, VSITEMSELECTION[] rgItemSel)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         int IVsSimpleObjectList2.GetNavInfo(uint index, out IVsNavInfo ppNavInfo)
         {
@@ -333,11 +312,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
         int IVsSimpleObjectList2.GoToSource(uint index, VSOBJGOTOSRCTYPE srcType)
         {
             if (index >= GetItemCount())
-            {
                 return VSConstants.E_INVALIDARG;
-            }
 
-            return GoToSource(index, srcType);
+            // Fire and forget
+            _ = GoToSourceAsync(index, srcType);
+            return VSConstants.S_OK;
         }
 
         int IVsSimpleObjectList2.LocateNavInfoNode(IVsNavInfoNode pNavInfoNode, out uint pulIndex)
@@ -354,19 +333,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
         }
 
         int IVsSimpleObjectList2.OnClose(VSTREECLOSEACTIONS[] ptca)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         int IVsSimpleObjectList2.QueryDragDrop(uint index, IDataObject pDataObject, uint grfKeyState, ref uint pdwEffect)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         int IVsSimpleObjectList2.ShowHelp(uint index)
-        {
-            return VSConstants.E_NOTIMPL;
-        }
+            => VSConstants.E_NOTIMPL;
 
         int IVsSimpleObjectList2.UpdateCounter(out uint pCurUpdate)
         {

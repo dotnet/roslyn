@@ -6,6 +6,7 @@ Imports System.Composition
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Snippets
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
@@ -14,7 +15,7 @@ Imports Roslyn.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
     <[UseExportProvider]>
     Public Class SnippetCompletionProviderTests
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/46295"), Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Async Function SnippetCompletion() As Task
             Dim markup = "a?$$"
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic, extraParts:={GetType(MockSnippetInfoService)})
@@ -28,7 +29,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                 Dim document = testState.Workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim selectedItem = testState.GetSelectedItem()
                 Dim service = CompletionService.GetService(document)
-                Dim itemDescription = Await service.GetDescriptionAsync(document, selectedItem)
+                Dim itemDescription = Await service.GetDescriptionAsync(document, selectedItem, CompletionOptions.Default, SymbolDescriptionOptions.Default)
                 Assert.True(itemDescription.Text.StartsWith("Description"))
 
                 testState.SendTabToCompletion()
@@ -37,7 +38,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/46295"), Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Async Function TracksChangeSpanCorrectly() As Task
             Dim markup = "a?$$"
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic, extraParts:={GetType(MockSnippetInfoService)})
@@ -45,7 +46,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                 testState.SendTabToCompletion()
                 Await testState.AssertSelectedCompletionItem(displayText:="Shortcut")
 
-                testState.SendBackspace()
+                testState.SendBackSpace()
                 Await testState.AssertSelectedCompletionItem(displayText:="Shortcut")
 
                 testState.SendTabToCompletion()
@@ -81,8 +82,7 @@ End Class</File>.Value
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic, extraParts:={GetType(MockSnippetInfoService)})
             Using testState
                 Dim workspace = testState.Workspace
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(New Options.OptionKey(CompletionOptions.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)))
+                workspace.GlobalOptions.SetGlobalOption(New Options.OptionKey(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)
                 testState.SendTypeChars("'T")
                 Await testState.AssertNoCompletionSession()
             End Using
@@ -99,14 +99,13 @@ End Class</File>.Value
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic, extraParts:={GetType(MockSnippetInfoService)})
             Using testState
                 Dim workspace = testState.Workspace
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(New Options.OptionKey(CompletionOptions.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)))
+                workspace.GlobalOptions.SetGlobalOption(New Options.OptionKey(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)
                 testState.SendTypeChars("'''T")
                 Await testState.AssertNoCompletionSession()
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/46295"), Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Async Function SnippetsAlwaysOfferedOutsideComment() As Task
             Dim markup = <File>
 Class C
@@ -116,19 +115,19 @@ End Class</File>.Value
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic, extraParts:={GetType(MockSnippetInfoService)})
             Using testState
                 Dim workspace = testState.Workspace
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(New Options.OptionKey(CompletionOptions.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)))
+                workspace.GlobalOptions.SetGlobalOption(New Options.OptionKey(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.VisualBasic), SnippetsRule.AlwaysInclude)
                 testState.SendTypeChars("Shortcut")
                 Await testState.AssertSelectedCompletionItem(displayText:="Shortcut")
             End Using
         End Function
     End Class
 
-    <ExportLanguageService(GetType(ISnippetInfoService), LanguageNames.VisualBasic), [Shared]>
+    <ExportLanguageService(GetType(ISnippetInfoService), LanguageNames.VisualBasic, ServiceLayer.Test), [Shared], PartNotDiscoverable>
     Friend Class MockSnippetInfoService
         Implements ISnippetInfoService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 

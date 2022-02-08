@@ -5,15 +5,17 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
@@ -30,6 +32,8 @@ namespace Microsoft.VisualStudio.LanguageServices
     [Export(typeof(VisualStudioWorkspaceImpl))]
     internal class RoslynVisualStudioWorkspace : VisualStudioWorkspaceImpl
     {
+        private readonly IThreadingContext _threadingContext;
+
         /// <remarks>
         /// Must be lazily constructed since the <see cref="IStreamingFindUsagesPresenter"/> implementation imports a
         /// backreference to <see cref="VisualStudioWorkspace"/>.
@@ -40,26 +44,35 @@ namespace Microsoft.VisualStudio.LanguageServices
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RoslynVisualStudioWorkspace(
             ExportProvider exportProvider,
+            IThreadingContext threadingContext,
             Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
             [Import(typeof(SVsServiceProvider))] IAsyncServiceProvider asyncServiceProvider)
             : base(exportProvider, asyncServiceProvider)
         {
+            _threadingContext = threadingContext;
             _streamingPresenter = streamingPresenter;
         }
 
         internal override IInvisibleEditor OpenInvisibleEditor(DocumentId documentId)
         {
-            var globalUndoService = this.Services.GetService<IGlobalUndoService>();
+            var globalUndoService = this.Services.GetRequiredService<IGlobalUndoService>();
             var needsUndoDisabled = false;
+
+            var textDocument = this.CurrentSolution.GetTextDocument(documentId);
+
+            if (textDocument == null)
+            {
+                throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, documentId));
+            }
 
             // Do not save the file if is open and there is not a global undo transaction.
             var needsSave = globalUndoService.IsGlobalTransactionOpen(this) || !this.IsDocumentOpen(documentId);
             if (needsSave)
             {
-                if (this.CurrentSolution.ContainsDocument(documentId))
+                if (textDocument is Document document)
                 {
                     // Disable undo on generated documents
-                    needsUndoDisabled = this.CurrentSolution.GetDocument(documentId).IsGeneratedCode(CancellationToken.None);
+                    needsUndoDisabled = document.IsGeneratedCode(CancellationToken.None);
                 }
                 else
                 {
@@ -68,50 +81,33 @@ namespace Microsoft.VisualStudio.LanguageServices
                 }
             }
 
-            var document = this.CurrentSolution.GetTextDocument(documentId);
+            // Documents in the VisualStudioWorkspace always have file paths since that's how we get files given
+            // to us from the project system.
+            Contract.ThrowIfNull(textDocument.FilePath);
 
-            return new InvisibleEditor(ServiceProvider.GlobalProvider, document.FilePath, GetHierarchy(documentId.ProjectId), needsSave, needsUndoDisabled);
+            return new InvisibleEditor(ServiceProvider.GlobalProvider, textDocument.FilePath, GetHierarchy(documentId.ProjectId), needsSave, needsUndoDisabled);
         }
 
-        private static bool TryResolveSymbol(ISymbol symbol, Project project, CancellationToken cancellationToken, out ISymbol resolvedSymbol, out Project resolvedProject)
-        {
-            resolvedSymbol = null;
-            resolvedProject = null;
+        [Obsolete("Use TryGoToDefinitionAsync instead", error: true)]
+        public override bool TryGoToDefinition(ISymbol symbol, Project project, CancellationToken cancellationToken)
+            => _threadingContext.JoinableTaskFactory.Run(() => TryGoToDefinitionAsync(symbol, project, cancellationToken));
 
-            var currentProject = project.Solution.Workspace.CurrentSolution.GetProject(project.Id);
-            if (currentProject == null)
-            {
-                return false;
-            }
-
-            var originalCompilation = project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var symbolId = SymbolKey.Create(symbol, cancellationToken);
-            var currentCompilation = currentProject.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var symbolInfo = symbolId.Resolve(currentCompilation, cancellationToken: cancellationToken);
-
-            if (symbolInfo.Symbol == null)
-            {
-                return false;
-            }
-
-            resolvedSymbol = symbolInfo.Symbol;
-            resolvedProject = currentProject;
-
-            return true;
-        }
-
-        public override bool TryGoToDefinition(
+        public override async Task<bool> TryGoToDefinitionAsync(
             ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
-            if (!TryResolveSymbol(symbol, project, cancellationToken,
-                    out var searchSymbol, out var searchProject))
-            {
+            var currentProject = project.Solution.Workspace.CurrentSolution.GetProject(project.Id);
+            if (currentProject == null)
                 return false;
-            }
 
-            return GoToDefinitionHelpers.TryGoToDefinition(
-                searchSymbol, searchProject,
-                _streamingPresenter.Value, cancellationToken);
+            var symbolId = SymbolKey.Create(symbol, cancellationToken);
+            var currentCompilation = await currentProject.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var symbolInfo = symbolId.Resolve(currentCompilation, cancellationToken: cancellationToken);
+            if (symbolInfo.Symbol == null)
+                return false;
+
+            return await GoToDefinitionHelpers.TryGoToDefinitionAsync(
+                symbolInfo.Symbol, currentProject.Solution,
+                _threadingContext, _streamingPresenter.Value, cancellationToken).ConfigureAwait(false);
         }
 
         public override bool TryFindAllReferences(ISymbol symbol, Project project, CancellationToken cancellationToken)
@@ -127,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             // object browser item.  Now ObjectBrowser goes through the streaming-FindRefs system.
         }
 
-        internal override object GetBrowseObject(SymbolListItem symbolListItem)
+        internal override object? GetBrowseObject(SymbolListItem symbolListItem)
         {
             var compilation = symbolListItem.GetCompilation(this);
             if (compilation == null)
@@ -162,7 +158,10 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
 
             var tree = sourceLocation.SourceTree;
+            Contract.ThrowIfNull(tree, "We have a location that was in source, but doesn't have a SourceTree.");
+
             var document = project.GetDocument(tree);
+            Contract.ThrowIfNull(document, "We have a symbol coming from a tree, and that tree isn't in the Project it supposedly came from.");
 
             var vsFileCodeModel = this.GetFileCodeModel(document.Id);
 

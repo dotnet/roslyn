@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Structure;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Structure;
@@ -26,8 +29,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         internal override async Task<ImmutableArray<BlockSpan>> GetBlockSpansWorkerAsync(Document document, int position)
         {
             var outliningService = document.GetLanguageService<BlockStructureService>();
-
-            return (await outliningService.GetBlockStructureAsync(document, CancellationToken.None)).Spans;
+            var options = BlockStructureOptions.From(document.Project);
+            return (await outliningService.GetBlockStructureAsync(document, options, CancellationToken.None)).Spans;
         }
 
         [WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]
@@ -35,12 +38,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure.MetadataAsSou
         public async Task PrependedDollarSign()
         {
             const string code = @"
-$$class C
+{|hint:$$class C{|textspan:
 {
     public void $Invoke();
-}";
+}|}|}";
 
-            await VerifyNoBlockSpansAsync(code);
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
         [WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]
@@ -48,12 +52,13 @@ $$class C
         public async Task SymbolsAndPunctuation()
         {
             const string code = @"
-$$class C
+{|hint:$$class C{|textspan:
 {
     public void !#$%^&*(()_-+=|\}]{[""':;?/>.<,~`();
-}";
+}|}|}";
 
-            await VerifyNoBlockSpansAsync(code);
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
 
         [WorkItem(1174405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174405")]
@@ -61,12 +66,14 @@ $$class C
         public async Task IdentifierThatLooksLikeCode()
         {
             const string code = @"
-$$class C
+{|hint1:$$class C{|textspan1:
 {
-    public void } } public class CodeInjection{ } /* now everything is commented ();
+    public void }|}|} } {|hint2:public class CodeInjection{|textspan2:{ }|}|} /* now everything is commented ();
 }";
 
-            await VerifyNoBlockSpansAsync(code);
+            await VerifyBlockSpansAsync(code,
+                Region("textspan1", "hint1", CSharpStructureHelpers.Ellipsis, autoCollapse: false),
+                Region("textspan2", "hint2", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
         }
     }
 }

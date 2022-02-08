@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
@@ -393,7 +396,7 @@ class Program
 ";
 
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (17,9): error CS1648: Members of readonly field 'S1.field' cannot be modified (except in a constructor or a variable initializer)
+                // (17,9): error CS1648: Members of readonly field 'S1.field' cannot be modified (except in a constructor, an init-only member or a variable initializer)
                 //         c.field.x[0] = 12;
                 Diagnostic(ErrorCode.ERR_AssgReadonly2, "c.field.x[0]").WithArguments("S1.field").WithLocation(17, 9),
                 // (19,27): error CS1649: Members of readonly field 'S1.field' cannot be used as a ref or out value (except in a constructor)
@@ -1135,6 +1138,23 @@ unsafe class C
   IL_001e:  pop
   IL_001f:  ret
 }");
+        }
+
+        [Fact]
+        [WorkItem(1141012, "https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1141012")]
+        public void FixedSizeBufferRetargeting()
+        {
+            var source = @"
+public unsafe struct FixedBuffer
+{
+    public fixed byte buffer[256];
+}";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Mscorlib40, assemblyName: "fixedBuffer");
+            comp.VerifyDiagnostics();
+
+            var comp3 = CreateCompilation("", references: new[] { comp.ToMetadataReference() }, targetFramework: TargetFramework.Mscorlib46);
+            var retargetingField = comp3.GlobalNamespace.GetMember<NamedTypeSymbol>("FixedBuffer").GetMember<RetargetingFieldSymbol>("buffer");
+            Assert.True(retargetingField.IsFixedSizeBuffer);
         }
     }
 }

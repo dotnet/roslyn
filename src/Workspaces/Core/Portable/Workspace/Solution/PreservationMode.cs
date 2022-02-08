@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
 
 namespace Microsoft.CodeAnalysis
 {
@@ -19,5 +20,11 @@ namespace Microsoft.CodeAnalysis
         /// The value is guaranteed to the same instance across multiple accesses.
         /// </summary>
         PreserveIdentity = 1
+    }
+
+    internal static class PreservationModeExtensions
+    {
+        public static bool IsValid(this PreservationMode mode)
+            => mode is >= PreservationMode.PreserveValue and <= PreservationMode.PreserveIdentity;
     }
 }

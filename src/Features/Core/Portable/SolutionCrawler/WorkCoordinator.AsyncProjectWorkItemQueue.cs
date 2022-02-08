@@ -13,11 +13,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal partial class SolutionCrawlerRegistrationService
     {
-        private partial class WorkCoordinator
+        internal partial class WorkCoordinator
         {
             private sealed class AsyncProjectWorkItemQueue : AsyncWorkItemQueue<ProjectId>
             {
-                private readonly Dictionary<ProjectId, WorkItem> _projectWorkQueue = new Dictionary<ProjectId, WorkItem>();
+                private readonly Dictionary<ProjectId, WorkItem> _projectWorkQueue = new();
 
                 public AsyncProjectWorkItemQueue(SolutionCrawlerProgressReporter progressReporter, Workspace workspace)
                     : base(progressReporter, workspace)
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 protected override bool TryTakeAnyWork_NoLock(
-                    ProjectId preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService analyzerService,
+                    ProjectId? preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService? analyzerService,
                     out WorkItem workItem)
                 {
                     // there must be at least one item in the map when this is called unless host is shutting down.
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         return true;
                     }
 
-                    return Contract.FailWithReturn<bool>("how?");
+                    throw ExceptionUtilities.Unreachable;
                 }
 
                 protected override bool AddOrReplace_NoLock(WorkItem item)

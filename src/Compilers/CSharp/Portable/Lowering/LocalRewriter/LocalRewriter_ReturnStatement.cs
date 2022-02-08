@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitReturnStatement(BoundReturnStatement node)
         {
-            BoundStatement rewritten = (BoundStatement)base.VisitReturnStatement(node);
+            BoundStatement rewritten = (BoundStatement)base.VisitReturnStatement(node)!;
 
             // NOTE: we will apply sequence points to synthesized return 
             // statements if they are contained in lambdas and have expressions

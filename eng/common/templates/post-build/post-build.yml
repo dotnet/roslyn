@@ -1,43 +1,124 @@
 parameters:
-  enableSourceLinkValidation: false
-  enableSigningValidation: true
-  enableSymbolValidation: false
-  enableNugetValidation: true
-  publishInstallersAndChecksums: false
-  SDLValidationParameters:
-    enable: false
-    continueOnError: false
-    params: ''
-    artifactNames: ''
+  # Which publishing infra should be used. THIS SHOULD MATCH THE VERSION ON THE BUILD MANIFEST.
+  # Publishing V1 is no longer supported
+  # Publishing V2 is no longer supported
+  # Publishing V3 is the default
+  - name: publishingInfraVersion
+    displayName: Which version of publishing should be used to promote the build definition?
+    type: number
+    default: 3
+    values:
+    - 3
+
+  - name: BARBuildId
+    displayName: BAR Build Id
+    type: number
+    default: 0
+
+  - name: PromoteToChannelIds
+    displayName: Channel to promote BARBuildId to
+    type: string
+    default: ''
+
+  - name: enableSourceLinkValidation
+    displayName: Enable SourceLink validation
+    type: boolean
+    default: false
+
+  - name: enableSigningValidation
+    displayName: Enable signing validation
+    type: boolean
+    default: true
+
+  - name: enableSymbolValidation
+    displayName: Enable symbol validation
+    type: boolean
+    default: false
+
+  - name: enableNugetValidation
+    displayName: Enable NuGet validation
+    type: boolean
+    default: true
+    
+  - name: publishInstallersAndChecksums
+    displayName: Publish installers and checksums
+    type: boolean
+    default: true
+
+  - name: SDLValidationParameters
+    type: object
+    default:
+      enable: false
+      continueOnError: false
+      params: ''
+      artifactNames: ''
+      downloadArtifacts: true
 
   # These parameters let the user customize the call to sdk-task.ps1 for publishing
   # symbols & general artifacts as well as for signing validation
-  symbolPublishingAdditionalParameters: ''
-  artifactsPublishingAdditionalParameters: ''
-  signingValidationAdditionalParameters: ''
+  - name: symbolPublishingAdditionalParameters
+    displayName: Symbol publishing additional parameters
+    type: string
+    default: ''
+
+  - name: artifactsPublishingAdditionalParameters
+    displayName: Artifact publishing additional parameters
+    type: string
+    default: ''
+
+  - name: signingValidationAdditionalParameters
+    displayName: Signing validation additional parameters
+    type: string
+    default: ''
 
   # Which stages should finish execution before post-build stages start
-  validateDependsOn:
-  - build
-  publishDependsOn: 
-  - Validate
+  - name: validateDependsOn
+    type: object
+    default:
+    - build
+
+  - name: publishDependsOn
+    type: object
+    default:
+    - Validate
 
 stages:
-- stage: Validate
-  dependsOn: ${{ parameters.validateDependsOn }}
-  displayName: Validate
-  jobs:
-  - ${{ if eq(parameters.enableNugetValidation, 'true') }}:
+- ${{ if or(eq( parameters.enableNugetValidation, 'true'), eq(parameters.enableSigningValidation, 'true'), eq(parameters.enableSourceLinkValidation, 'true'), eq(parameters.SDLValidationParameters.enable, 'true')) }}:
+  - stage: Validate
+    dependsOn: ${{ parameters.validateDependsOn }}
+    displayName: Validate Build Assets
+    variables:
+      - template: common-variables.yml
+    jobs:
     - job:
       displayName: NuGet Validation
+      condition: eq( ${{ parameters.enableNugetValidation }}, 'true')
       pool:
-        vmImage: 'windows-2019'
+        # We don't use the collection uri here because it might vary (.visualstudio.com vs. dev.azure.com)
+        ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
+          name: VSEngSS-MicroBuild2022-1ES
+          demands: Cmd
+        # If it's not devdiv, it's dnceng
+        ${{ if ne(variables['System.TeamProject'], 'DevDiv') }}:
+          name: NetCore1ESPool-Internal
+          demands: ImageOverride -equals Build.Server.Amd64.VS2019
+
       steps:
+        - template: setup-maestro-vars.yml
+          parameters:
+            BARBuildId: ${{ parameters.BARBuildId }}
+            PromoteToChannelIds: ${{ parameters.PromoteToChannelIds }}
+
         - task: DownloadBuildArtifacts@0
           displayName: Download Package Artifacts
           inputs:
-            buildType: current
+            buildType: specific
+            buildVersionToDownload: specific
+            project: $(AzDOProjectName)
+            pipeline: $(AzDOPipelineId)
+            buildId: $(AzDOBuildId)
             artifactName: PackageArtifacts
+            checkDownloadedFiles: true
 
         - task: PowerShell@2
           displayName: Validate
@@ -46,19 +127,37 @@ stages:
             arguments: -PackagesPath $(Build.ArtifactStagingDirectory)/PackageArtifacts/ 
               -ToolDestinationPath $(Agent.BuildDirectory)/Extract/ 
 
-  - ${{ if eq(parameters.enableSigningValidation, 'true') }}:
     - job:
       displayName: Signing Validation
-      variables:
-        - template: common-variables.yml
+      condition: and( eq( ${{ parameters.enableSigningValidation }}, 'true'), ne( variables['PostBuildSign'], 'true'))
       pool:
-        vmImage: 'windows-2019'
+        # We don't use the collection uri here because it might vary (.visualstudio.com vs. dev.azure.com)
+        ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
+          name: VSEngSS-MicroBuild2022-1ES
+          demands: Cmd
+        # If it's not devdiv, it's dnceng
+        ${{ if ne(variables['System.TeamProject'], 'DevDiv') }}:
+          name: NetCore1ESPool-Internal
+          demands: ImageOverride -equals Build.Server.Amd64.VS2019
       steps:
+        - template: setup-maestro-vars.yml
+          parameters:
+            BARBuildId: ${{ parameters.BARBuildId }}
+            PromoteToChannelIds: ${{ parameters.PromoteToChannelIds }}
+
         - task: DownloadBuildArtifacts@0
           displayName: Download Package Artifacts
           inputs:
-            buildType: current
+            buildType: specific
+            buildVersionToDownload: specific
+            project: $(AzDOProjectName)
+            pipeline: $(AzDOPipelineId)
+            buildId: $(AzDOBuildId)
             artifactName: PackageArtifacts
+            checkDownloadedFiles: true
+            itemPattern: |
+              **
+              !**/Microsoft.SourceBuild.Intermediate.*.nupkg
 
         # This is necessary whenever we want to publish/restore to an AzDO private feed
         # Since sdk-task.ps1 tries to restore packages we need to do this authentication here
@@ -72,11 +171,13 @@ stages:
             filePath: eng\common\enable-cross-org-publishing.ps1
             arguments: -token $(dn-bot-dnceng-artifact-feeds-rw)
 
+        # Signing validation will optionally work with the buildmanifest file which is downloaded from
+        # Azure DevOps above.
         - task: PowerShell@2
           displayName: Validate
           inputs:
             filePath: eng\common\sdk-task.ps1
-            arguments: -task SigningValidation -restore -msbuildEngine dotnet
+            arguments: -task SigningValidation -restore -msbuildEngine vs
               /p:PackageBasePath='$(Build.ArtifactStagingDirectory)/PackageArtifacts'
               /p:SignCheckExclusionsFile='$(Build.SourcesDirectory)/eng/SignCheckExclusionsFile.txt'
               ${{ parameters.signingValidationAdditionalParameters }}
@@ -86,19 +187,34 @@ stages:
             StageLabel: 'Validation'
             JobLabel: 'Signing'
 
-  - ${{ if eq(parameters.enableSourceLinkValidation, 'true') }}:
     - job:
       displayName: SourceLink Validation
-      variables:
-        - template: common-variables.yml
+      condition: eq( ${{ parameters.enableSourceLinkValidation }}, 'true')
       pool:
-        vmImage: 'windows-2019'
+        # We don't use the collection uri here because it might vary (.visualstudio.com vs. dev.azure.com)
+        ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
+          name: VSEngSS-MicroBuild2022-1ES
+          demands: Cmd
+        # If it's not devdiv, it's dnceng
+        ${{ if ne(variables['System.TeamProject'], 'DevDiv') }}:
+          name: NetCore1ESPool-Internal
+          demands: ImageOverride -equals Build.Server.Amd64.VS2019
       steps:
+        - template: setup-maestro-vars.yml
+          parameters:
+            BARBuildId: ${{ parameters.BARBuildId }}
+            PromoteToChannelIds: ${{ parameters.PromoteToChannelIds }}
+
         - task: DownloadBuildArtifacts@0
           displayName: Download Blob Artifacts
           inputs:
-            buildType: current
+            buildType: specific
+            buildVersionToDownload: specific
+            project: $(AzDOProjectName)
+            pipeline: $(AzDOPipelineId)
+            buildId: $(AzDOBuildId)
             artifactName: BlobArtifacts
+            checkDownloadedFiles: true
 
         - task: PowerShell@2
           displayName: Validate
@@ -111,113 +227,51 @@ stages:
               -SourcelinkCliVersion $(SourceLinkCLIVersion)
           continueOnError: true
 
-  - ${{ if eq(parameters.SDLValidationParameters.enable, 'true') }}:
     - template: /eng/common/templates/job/execute-sdl.yml
       parameters:
+        enable: ${{ parameters.SDLValidationParameters.enable }}
         additionalParameters: ${{ parameters.SDLValidationParameters.params }}
         continueOnError: ${{ parameters.SDLValidationParameters.continueOnError }}
         artifactNames: ${{ parameters.SDLValidationParameters.artifactNames }}
+        downloadArtifacts: ${{ parameters.SDLValidationParameters.downloadArtifacts }}
 
-- template: \eng\common\templates\post-build\channels\generic-public-channel.yml
-  parameters:
-    artifactsPublishingAdditionalParameters: ${{ parameters.artifactsPublishingAdditionalParameters }}
+- stage: publish_using_darc
+  ${{ if or(eq(parameters.enableNugetValidation, 'true'), eq(parameters.enableSigningValidation, 'true'), eq(parameters.enableSourceLinkValidation, 'true'), eq(parameters.SDLValidationParameters.enable, 'true')) }}:
     dependsOn: ${{ parameters.publishDependsOn }}
-    publishInstallersAndChecksums: ${{ parameters.publishInstallersAndChecksums }}
-    symbolPublishingAdditionalParameters: ${{ parameters.symbolPublishingAdditionalParameters }}
-    stageName: 'NetCore_Dev5_Publish'
-    channelName: '.NET Core 5 Dev'
-    channelId: 131
-    transportFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet5-transport/nuget/v3/index.json'
-    shippingFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet5/nuget/v3/index.json'
-    symbolsFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet5-symbols/nuget/v3/index.json'
+  ${{ if and(ne(parameters.enableNugetValidation, 'true'), ne(parameters.enableSigningValidation, 'true'), ne(parameters.enableSourceLinkValidation, 'true'), ne(parameters.SDLValidationParameters.enable, 'true')) }}:
+    dependsOn: ${{ parameters.validateDependsOn }}
+  displayName: Publish using Darc
+  variables:
+    - template: common-variables.yml
+  jobs:
+  - job:
+    displayName: Publish Using Darc
+    timeoutInMinutes: 120
+    pool:
+      # We don't use the collection uri here because it might vary (.visualstudio.com vs. dev.azure.com)
+        ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
+          name: VSEngSS-MicroBuild2022-1ES
+          demands: Cmd
+        # If it's not devdiv, it's dnceng
+        ${{ if ne(variables['System.TeamProject'], 'DevDiv') }}:
+          name: NetCore1ESPool-Internal
+          demands: ImageOverride -equals Build.Server.Amd64.VS2019
+    steps:
+      - template: setup-maestro-vars.yml
+        parameters:
+          BARBuildId: ${{ parameters.BARBuildId }}
+          PromoteToChannelIds: ${{ parameters.PromoteToChannelIds }}
 
-- template: \eng\common\templates\post-build\channels\generic-public-channel.yml
-  parameters:
-    artifactsPublishingAdditionalParameters: ${{ parameters.artifactsPublishingAdditionalParameters }}
-    dependsOn: ${{ parameters.publishDependsOn }}
-    publishInstallersAndChecksums: ${{ parameters.publishInstallersAndChecksums }}
-    symbolPublishingAdditionalParameters: ${{ parameters.symbolPublishingAdditionalParameters }}
-    stageName: 'Net_Eng_Latest_Publish'
-    channelName: '.NET Eng - Latest'
-    channelId: 2
-    transportFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json'
-    shippingFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json'
-    symbolsFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng-symbols/nuget/v3/index.json'
+      - task: NuGetAuthenticate@0
 
-- template: \eng\common\templates\post-build\channels\generic-public-channel.yml
-  parameters:
-    artifactsPublishingAdditionalParameters: ${{ parameters.artifactsPublishingAdditionalParameters }}
-    dependsOn: ${{ parameters.publishDependsOn }}
-    publishInstallersAndChecksums: ${{ parameters.publishInstallersAndChecksums }}
-    symbolPublishingAdditionalParameters: ${{ parameters.symbolPublishingAdditionalParameters }}
-    stageName: 'Net_Eng_Validation_Publish'
-    channelName: '.NET Eng - Validation'
-    channelId: 9
-    transportFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json'
-    shippingFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json'
-    symbolsFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng-symbols/nuget/v3/index.json'
-
-- template: \eng\common\templates\post-build\channels\generic-public-channel.yml
-  parameters:
-    artifactsPublishingAdditionalParameters: ${{ parameters.artifactsPublishingAdditionalParameters }}
-    dependsOn: ${{ parameters.publishDependsOn }}
-    publishInstallersAndChecksums: ${{ parameters.publishInstallersAndChecksums }}
-    symbolPublishingAdditionalParameters: ${{ parameters.symbolPublishingAdditionalParameters }}
-    stageName: 'General_Testing_Publish'
-    channelName: 'General Testing'
-    channelId: 529
-    transportFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/general-testing/nuget/v3/index.json'
-    shippingFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/general-testing/nuget/v3/index.json'
-    symbolsFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/general-testing-symbols/nuget/v3/index.json'
-
-- template: \eng\common\templates\post-build\channels\generic-public-channel.yml
-  parameters:
-    artifactsPublishingAdditionalParameters: ${{ parameters.artifactsPublishingAdditionalParameters }}
-    dependsOn: ${{ parameters.publishDependsOn }}
-    publishInstallersAndChecksums: ${{ parameters.publishInstallersAndChecksums }}
-    symbolPublishingAdditionalParameters: ${{ parameters.symbolPublishingAdditionalParameters }}
-    stageName: 'NETCore_Tooling_Dev_Publishing'
-    channelName: '.NET Core Tooling Dev'
-    channelId: 548
-    transportFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json'
-    shippingFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json'
-    symbolsFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools-symbols/nuget/v3/index.json'
-
-- template: \eng\common\templates\post-build\channels\generic-public-channel.yml
-  parameters:
-    artifactsPublishingAdditionalParameters: ${{ parameters.artifactsPublishingAdditionalParameters }}
-    dependsOn: ${{ parameters.publishDependsOn }}
-    publishInstallersAndChecksums: ${{ parameters.publishInstallersAndChecksums }}
-    symbolPublishingAdditionalParameters: ${{ parameters.symbolPublishingAdditionalParameters }}
-    stageName: 'NETCore_Tooling_Release_Publishing'
-    channelName: '.NET Core Tooling Release'
-    channelId: 549
-    transportFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json'
-    shippingFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools/nuget/v3/index.json'
-    symbolsFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-tools-symbols/nuget/v3/index.json'
-
-- template: \eng\common\templates\post-build\channels\generic-internal-channel.yml
-  parameters:
-    artifactsPublishingAdditionalParameters: ${{ parameters.artifactsPublishingAdditionalParameters }}
-    dependsOn: ${{ parameters.publishDependsOn }}
-    publishInstallersAndChecksums: ${{ parameters.publishInstallersAndChecksums }}
-    symbolPublishingAdditionalParameters: ${{ parameters.symbolPublishingAdditionalParameters }}
-    stageName: 'NET_Internal_Tooling_Publishing'
-    channelName: '.NET Internal Tooling'
-    channelId: 551
-    transportFeed: 'https://pkgs.dev.azure.com/dnceng/internal/_packaging/dotnet-tools-internal/nuget/v3/index.json'
-    shippingFeed: 'https://pkgs.dev.azure.com/dnceng/internal/_packaging/dotnet-tools-internal/nuget/v3/index.json'
-    symbolsFeed: 'https://pkgs.dev.azure.com/dnceng/internal/_packaging/dotnet-tools-internal-symbols/nuget/v3/index.json'
-
-- template: \eng\common\templates\post-build\channels\generic-public-channel.yml
-  parameters:
-    artifactsPublishingAdditionalParameters: ${{ parameters.artifactsPublishingAdditionalParameters }}
-    dependsOn: ${{ parameters.publishDependsOn }}
-    publishInstallersAndChecksums: ${{ parameters.publishInstallersAndChecksums }}
-    symbolPublishingAdditionalParameters: ${{ parameters.symbolPublishingAdditionalParameters }}
-    stageName: 'NETCore_Experimental_Publishing'
-    channelName: '.NET Core Experimental'
-    channelId: 562
-    transportFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-experimental/nuget/v3/index.json'
-    shippingFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-experimental/nuget/v3/index.json'
-    symbolsFeed: 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-experimental-symbols/nuget/v3/index.json'
+      - task: PowerShell@2
+        displayName: Publish Using Darc
+        inputs:
+          filePath: $(Build.SourcesDirectory)/eng/common/post-build/publish-using-darc.ps1
+          arguments: -BuildId $(BARBuildId) 
+            -PublishingInfraVersion ${{ parameters.publishingInfraVersion }}
+            -AzdoToken '$(publishing-dnceng-devdiv-code-r-build-re)'
+            -MaestroToken '$(MaestroApiAccessToken)'
+            -WaitPublishingFinish true
+            -ArtifactsPublishingAdditionalParameters '${{ parameters.artifactsPublishingAdditionalParameters }}'
+            -SymbolPublishingAdditionalParameters '${{ parameters.symbolPublishingAdditionalParameters }}'

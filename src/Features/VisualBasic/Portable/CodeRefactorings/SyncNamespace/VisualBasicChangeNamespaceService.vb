@@ -17,6 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeNamespace
         Inherits AbstractChangeNamespaceService(Of NamespaceStatementSyntax, CompilationUnitSyntax, StatementSyntax)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -29,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeNamespace
                 Return False
             End If
 
-            If syntaxFacts.IsRightSideOfQualifiedName(nameRef) Then
+            If syntaxFacts.IsRightOfQualifiedName(nameRef) Then
                 old = nameRef.Parent
                 If IsGlobalNamespace(newNamespaceParts) Then
                     [new] = SyntaxFactory.QualifiedName(SyntaxFactory.GlobalName(), nameRef.WithoutTrivia())
@@ -40,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeNamespace
 
                 [new] = [new].WithTriviaFrom(old)
 
-            ElseIf syntaxFacts.IsNameOfMemberAccessExpression(nameRef) Then
+            ElseIf syntaxFacts.IsNameOfsimpleMemberAccessExpression(nameRef) Then
                 old = nameRef.Parent
                 If IsGlobalNamespace(newNamespaceParts) Then
                     [new] = SyntaxFactory.SimpleMemberAccessExpression(SyntaxFactory.GlobalName(), nameRef.WithoutTrivia())
@@ -57,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeNamespace
 
         ' TODO: Implement the service for VB
         Protected Overrides Function GetValidContainersFromAllLinkedDocumentsAsync(document As Document, container As SyntaxNode, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of (DocumentId, SyntaxNode)))
-            Return Task.FromResult(CType(Nothing, ImmutableArray(Of (DocumentId, SyntaxNode))))
+            Return SpecializedTasks.Default(Of ImmutableArray(Of (DocumentId, SyntaxNode)))()
         End Function
 
         ' This is only reachable when called from a VB service, which is not implemented yet.

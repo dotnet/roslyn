@@ -33,7 +33,9 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Show diagnostics for closed files;
+        <source>Underline reassigned variables;
+Display inline hints;
+Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
 Report invalid regular expressions;
@@ -78,19 +80,30 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
-Use enhanced colors;</source>
-        <target state="translated">Diagnoseinformationen für geschlossene Dateien anzeigen;
-Reguläre Ausdrücke farbig hervorheben; 
-Zugehörige Komponenten unter dem Cursor markieren; 
+Colorize regular expressions;
+Highlight related components under cursor;
+Report invalid regular expressions;
+JSON;
+Colorize JSON strings;
+Report invalid JSON strings;
+Detect and offer editor features for JSON strings;
+Use enhanced colors;
+Editor Color Scheme;
+Inheritance Margin;</source>
+        <target state="needs-review-translation">Neu zugewiesene Variablen unterstreichen;
+Inlinehinweise anzeigen;
+Diagnoseinformationen für geschlossene Dateien anzeigen;
+Reguläre Ausdrücke farbig hervorheben;
+Zugehörige Komponenten unter dem Cursor markieren;
 Ungültige reguläre Ausdrücke melden;
 Vollständige Lösungsanalyse aktivieren;
-Editor-Funktionsanalyse in externem Prozess ausführen ;
+Editor-Funktionsanalyse in externem Prozess ausführen;
 Navigation zu dekompilierten Quellen aktivieren;
-Using-Anweisungen;
-Systemanweisungen beim Sortieren von Using-Anweisungen an erster Stelle platzieren;
-Using-Anweisungsgruppen trennen;
-Using-Anweisungen für Typen in Verweisassemblys vorschlagen;
-Using-Anweisungen für Typen in NuGet-Paketen vorschlagen;
+using-Anweisungen;
+Systemanweisungen beim Sortieren von using-Anweisungen an erster Stelle platzieren;
+Gruppen von using-Anweisungen trennen;
+using-Anweisungen für Typen in Verweisassemblys vorschlagen;
+using-Anweisungen für Typen in NuGet-Paketen vorschlagen;
 Hervorhebung;
 Verweise auf Symbol unter Cursor hervorheben;
 Verwandte Schlüsselbegriffe unter Cursor anzeigen;
@@ -100,31 +113,33 @@ Zeilentrennzeichen in Prozeduren anzeigen;
 Gliederung für Konstrukte auf Deklarationsebene anzeigen;
 Gliederung für Konstrukte auf Codeebene anzeigen;
 Gliederung für Kommentare und Präprozessorregionen anzeigen;
-#regions beim Reduzieren auf Definitionen zuklappen;
+Regionen beim Reduzieren auf Definitionen zuklappen;
 Ausblenden;
-Nicht verwendete Using-Anweisungen ausblenden;
+Nicht verwendete using-Anweisungen ausblenden;
 Unerreichbaren Code ausblenden;
-Führungslinien für Blockstruktur;
+Führungslinien für Struktur blockieren;
 Führungslinien für Konstrukte auf Deklarationsebene anzeigen;
 Führungslinien für Konstrukte auf Codeebene anzeigen;
 Editor-Hilfe;
-XML-Dokumentationskommentare für /// eingeben;
+XML-Dokumentationskommentare für /// generieren;
 Beim Schreiben von Kommentaren (/* */) * am Beginn neuer Zeilen einfügen;
 Vorschau für Nachverfolgung beim Umbenennen anzeigen;
 Zeichenfolgenliterale bei Eingabe teilen;
 Ungültige Platzhalter in string.Format-Aufrufen melden;
 Methode extrahieren;
-ref oder out nicht auf benutzerdefinierte Struktur legen;
-Schnittstelle oder abstrakte Klasse implementieren;
-Eingefügte Eigenschaften, Ereignisse und Methoden hier ablegen;
-bei anderen Membern derselben Art;
-am Ende;
+ref oder out nicht in benutzerdefinierte Struktur platzieren;
+Schnittstellen- oder abstrakte Klasse implementieren;
+Eigenschaften, Ereignisse und Methoden beim Einfügen;
+bei anderen Membern derselben Art platzieren;
+am Ende platzieren;
 Beim Generieren von Eigenschaften;
 ausgelöste Eigenschaften bevorzugen;
 automatische Eigenschaften bevorzugen;
 regex;
 regulärer Ausdruck;
-Erweiterte Farben verwenden;</target>
+Erweiterte Farben verwenden;
+Editor-Farbschema;
+Vererbungsrand;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -136,7 +151,7 @@ Automatically format on paste;</source>
         <target state="translated">Automatisch während der Eingabe formatieren;
 Anweisung bei Semikolon automatisch formatieren;
 Block bei schließender geschweifter Klammer automatisch formatieren;
-Bei Verwendung der EINGABETASTE automatisch formatieren
+Bei Verwendung der EINGABETASTE automatisch formatieren;
 Beim Einfügen automatisch formatieren;</target>
         <note>C# Formatting &gt; General options page keywords</note>
       </trans-unit>
@@ -272,8 +287,10 @@ Leerzeichen vor und nach binären Operatoren einfügen;</target>
         <source>Change completion list settings;Pre-select most recently used member; Completion Lists;
 Show completion list after a character is typed;
 Show completion list after a character is deleted;
+Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
+Automatically complete statement on semicolon;
 Snippets behavior;
 Never include snippets;
 Always include snippets;
@@ -282,21 +299,25 @@ Enter key behavior;
 Never add new line on enter;
 Only add new line on enter after end of fully typed word;
 Always add new line on enter;
-Show name suggestions;</source>
+Show name suggestions;
+Show items from unimported namespaces (experimental);</source>
         <target state="translated">Einstellungen der Vervollständigungsliste ändern;Vorauswahl des zuletzt verwendeten Members; Vervollständigungslisten;
-Vervoll­ständigungsliste nach Eingabe eines Zeichens anzeigen;
+Vervollständigungsliste nach Eingabe eines Zeichens anzeigen;
 Vervollständigungsliste nach Löschen eines Zeichens anzeigen;
-Übereinstimmende Teile der Vervollständigungslistenelemente anzeigen;
+Vervollständigungsliste in Argumentlisten automatisch anzeigen (experimentell);
+\Übereinstimmende Teile der Vervollständigungslistenelemente anzeigen;
 Vervollständigungselementfilter anzeigen;
-Ausschnittverhalten;
-Ausschnitte nie einschließen;
-Ausschnitte immer einschließen;
-Ausschnitte einschließen, wenn ?-TAB nach einem Bezeichner eingegeben wird;
+Anweisung bei Semikolon automatisch abschließen;
+Schnipselverhalten;
+Schnipsel nie einschließen;
+Schnipsel immer einschließen;
+Schnipsel einschließen, wenn ?-TAB nach einem Bezeichner eingegeben wird;
 Verhalten der EINGABETASTE;
 Nie neue Zeile beim Drücken der EINGABETASTE einfügen;
 Neue Zeile beim Drücken der EINGABETASTE nur nach einem vollständig eingegebenen Wort einfügen;
 Immer neue Zeile beim Drücken der EINGABETASTE einfügen;
-Namensvorschläge anzeigen;</target>
+Namensvorschläge anzeigen;
+Elemente aus nicht importierten Namespaces anzeigen (experimentell);</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">

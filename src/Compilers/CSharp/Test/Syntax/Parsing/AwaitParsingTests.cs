@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Xunit;
 using Xunit.Abstractions;
 
@@ -1890,28 +1892,21 @@ async () => {
                 N(SyntaxKind.Block);
                 {
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.LocalDeclarationStatement);
+                    N(SyntaxKind.ExpressionStatement);
                     {
-                        N(SyntaxKind.VariableDeclaration);
+                        N(SyntaxKind.AwaitExpression);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.AwaitKeyword);
+                            N(SyntaxKind.InvocationExpression);
                             {
-                                N(SyntaxKind.IdentifierToken, "await");
-                            }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "goo");
-                                N(SyntaxKind.BracketedArgumentList);
+                                N(SyntaxKind.IdentifierName);
                                 {
-                                    M(SyntaxKind.OpenBracketToken);
-                                    M(SyntaxKind.Argument);
-                                    {
-                                        M(SyntaxKind.IdentifierName);
-                                        {
-                                            M(SyntaxKind.IdentifierToken);
-                                        }
-                                    }
-                                    N(SyntaxKind.CloseBracketToken);
+                                    N(SyntaxKind.IdentifierToken, "goo");
+                                }
+                                N(SyntaxKind.ArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    M(SyntaxKind.CloseParenToken);
                                 }
                             }
                         }
@@ -1943,28 +1938,21 @@ async () => {
                 N(SyntaxKind.Block);
                 {
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.LocalDeclarationStatement);
+                    N(SyntaxKind.ExpressionStatement);
                     {
-                        N(SyntaxKind.VariableDeclaration);
+                        N(SyntaxKind.AwaitExpression);
                         {
-                            N(SyntaxKind.IdentifierName);
+                            N(SyntaxKind.AwaitKeyword);
+                            N(SyntaxKind.InvocationExpression);
                             {
-                                N(SyntaxKind.IdentifierToken, "await");
-                            }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "goo");
-                                N(SyntaxKind.BracketedArgumentList);
+                                N(SyntaxKind.IdentifierName);
                                 {
-                                    M(SyntaxKind.OpenBracketToken);
-                                    M(SyntaxKind.Argument);
-                                    {
-                                        M(SyntaxKind.IdentifierName);
-                                        {
-                                            M(SyntaxKind.IdentifierToken);
-                                        }
-                                    }
-                                    N(SyntaxKind.CloseBracketToken);
+                                    N(SyntaxKind.IdentifierToken, "goo");
+                                }
+                                N(SyntaxKind.ArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    M(SyntaxKind.CloseParenToken);
                                 }
                             }
                         }

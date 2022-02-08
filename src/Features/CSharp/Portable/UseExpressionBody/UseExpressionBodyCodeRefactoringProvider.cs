@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +15,9 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
@@ -24,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = UseExpressionBodyHelper.Helpers;
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public UseExpressionBodyCodeRefactoringProvider()
         {
         }
@@ -32,17 +37,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         {
             var (document, textSpan, cancellationToken) = context;
             if (textSpan.Length > 0)
-            {
                 return;
-            }
 
             var position = textSpan.Start;
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var node = root.FindToken(position).Parent;
-            if (node == null)
-            {
-                return;
-            }
+            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var node = root.FindToken(position).Parent!;
 
             var containingLambda = node.FirstAncestorOrSelf<LambdaExpressionSyntax>();
             if (containingLambda != null &&
@@ -54,29 +53,45 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 return;
             }
 
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var helper in _helpers)
             {
-                var succeeded = TryComputeRefactoring(context, root, node, optionSet, helper);
+                var declaration = TryGetDeclaration(helper, text, node, position);
+                if (declaration == null)
+                    continue;
+
+                var succeeded = TryComputeRefactoring(context, root, declaration, optionSet, helper);
                 if (succeeded)
-                {
                     return;
-                }
             }
         }
 
-        private bool TryComputeRefactoring(
-            CodeRefactoringContext context,
-            SyntaxNode root, SyntaxNode node, OptionSet optionSet,
-            UseExpressionBodyHelper helper)
+        private static SyntaxNode? TryGetDeclaration(
+            UseExpressionBodyHelper helper, SourceText text, SyntaxNode node, int position)
         {
             var declaration = GetDeclaration(node, helper);
             if (declaration == null)
+                return null;
+
+            if (position < declaration.SpanStart)
             {
-                return false;
+                // The user is allowed to be before the starting point of this node, as long as
+                // they're only between the start of the node and the start of the same line the
+                // node starts on.  This prevents unnecessarily showing this feature in areas like
+                // the comment of a method.
+                if (!text.AreOnSameLine(position, declaration.SpanStart))
+                    return null;
             }
 
+            return declaration;
+        }
+
+        private static bool TryComputeRefactoring(
+            CodeRefactoringContext context, SyntaxNode root, SyntaxNode declaration,
+            OptionSet optionSet, UseExpressionBodyHelper helper)
+        {
             var document = context.Document;
 
             var succeeded = false;
@@ -91,8 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 succeeded = true;
             }
 
-            var (canOffer, _) = helper.CanOfferUseBlockBody(optionSet, declaration, forAnalyzer: false);
-            if (canOffer)
+            if (helper.CanOfferUseBlockBody(optionSet, declaration, forAnalyzer: false, out _, out _))
             {
                 context.RegisterRefactoring(
                     new MyCodeAction(
@@ -107,30 +121,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             return succeeded;
         }
 
-        private SyntaxNode GetDeclaration(SyntaxNode node, UseExpressionBodyHelper helper)
+        private static SyntaxNode? GetDeclaration(SyntaxNode node, UseExpressionBodyHelper helper)
         {
             for (var current = node; current != null; current = current.Parent)
             {
                 if (helper.SyntaxKinds.Contains(current.Kind()))
-                {
                     return current;
-                }
             }
 
             return null;
         }
 
-        private async Task<Document> UpdateDocumentAsync(
+        private static async Task<Document> UpdateDocumentAsync(
             Document document, SyntaxNode root, SyntaxNode declaration,
             UseExpressionBodyHelper helper, bool useExpressionBody,
             CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var updatedDeclaration = helper.Update(semanticModel, declaration, useExpressionBody);
 
             var parent = declaration is AccessorDeclarationSyntax
                 ? declaration.Parent
                 : declaration;
+            RoslynDebug.Assert(parent is object);
             var updatedParent = parent.ReplaceNode(declaration, updatedDeclaration)
                                       .WithAdditionalAnnotations(Formatter.Annotation);
 
@@ -141,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+                : base(title, createChangedDocument, title)
             {
             }
         }

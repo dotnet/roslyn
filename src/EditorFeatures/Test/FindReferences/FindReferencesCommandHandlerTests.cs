@@ -2,15 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindReferences;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
@@ -26,16 +30,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     {
         private class MockFindUsagesContext : FindUsagesContext
         {
-            public readonly List<DefinitionItem> Result = new List<DefinitionItem>();
+            public readonly List<DefinitionItem> Result = new();
 
-            public override Task OnDefinitionFoundAsync(DefinitionItem definition)
+            public MockFindUsagesContext(IGlobalOptionService globalOptions)
+                : base(globalOptions)
+            {
+            }
+
+            public override ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
             {
                 lock (Result)
                 {
                     Result.Add(definition);
                 }
 
-                return Task.CompletedTask;
+                return default;
             }
         }
 
@@ -44,32 +53,31 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             private readonly FindUsagesContext _context;
 
             public MockStreamingFindUsagesPresenter(FindUsagesContext context)
-            {
-                _context = context;
-            }
+                => _context = context;
 
-            public FindUsagesContext StartSearch(string title, bool supportsReferences)
-                => _context;
+            public (FindUsagesContext, CancellationToken) StartSearch(string title, bool supportsReferences)
+                => (_context, CancellationToken.None);
 
             public void ClearAll()
             {
             }
 
-            public FindUsagesContext StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
-                => _context;
+            public (FindUsagesContext, CancellationToken) StartSearchWithCustomColumns(string title, bool supportsReferences, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
+                => (_context, CancellationToken.None);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)]
         public async Task TestFindReferencesAsynchronousCall()
         {
             using var workspace = TestWorkspace.CreateCSharp("class C { C() { new C(); } }");
-            var context = new MockFindUsagesContext();
+            var context = new MockFindUsagesContext(workspace.GlobalOptions);
             var presenter = new MockStreamingFindUsagesPresenter(context);
 
             var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
             var handler = new FindReferencesCommandHandler(
                 presenter,
+                workspace.GlobalOptions,
                 listenerProvider);
 
             var textView = workspace.Documents[0].GetTextView();
@@ -79,11 +87,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 textView.TextBuffer), TestCommandExecutionContext.Create());
 
             var waiter = listenerProvider.GetWaiter(FeatureAttribute.FindReferences);
-            await waiter.CreateExpeditedWaitTask();
+            await waiter.ExpeditedWaitAsync();
             AssertResult(context.Result, "C.C()", "class C");
         }
 
-        private void AssertResult(
+        private static void AssertResult(
             List<DefinitionItem> result,
             params string[] definitions)
         {

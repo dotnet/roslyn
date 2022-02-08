@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -93,14 +94,14 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<PEModule> explicitModules,
             ImmutableArray<MetadataReference> explicitReferences,
             ImmutableArray<ResolvedReference> explicitReferenceMap,
-            MetadataReferenceResolver resolverOpt,
+            MetadataReferenceResolver? resolverOpt,
             MetadataImportOptions importOptions,
             bool supersedeLowerVersions,
             [In, Out] Dictionary<string, List<ReferencedAssemblyIdentity>> assemblyReferencesBySimpleName,
             out ImmutableArray<AssemblyData> allAssemblies,
             out ImmutableArray<MetadataReference> implicitlyResolvedReferences,
             out ImmutableArray<ResolvedReference> implicitlyResolvedReferenceMap,
-            ref ImmutableDictionary<AssemblyIdentity, PortableExecutableReference> implicitReferenceResolutions,
+            ref ImmutableDictionary<AssemblyIdentity, PortableExecutableReference?> implicitReferenceResolutions,
             [In, Out] DiagnosticBag resolutionDiagnostics,
             out bool hasCircularReference,
             out int corLibraryIndex)
@@ -205,7 +206,7 @@ namespace Microsoft.CodeAnalysis
             out ImmutableArray<AssemblyData> allAssemblies,
             out ImmutableArray<MetadataReference> metadataReferences,
             out ImmutableArray<ResolvedReference> resolvedReferences,
-            ref ImmutableDictionary<AssemblyIdentity, PortableExecutableReference> implicitReferenceResolutions,
+            ref ImmutableDictionary<AssemblyIdentity, PortableExecutableReference?> implicitReferenceResolutions,
             DiagnosticBag resolutionDiagnostics)
         {
             Debug.Assert(explicitAssemblies[0] is AssemblyDataForAssemblyBeingBuilt);
@@ -222,7 +223,7 @@ namespace Microsoft.CodeAnalysis
 
             var metadataReferencesBuilder = ArrayBuilder<MetadataReference>.GetInstance();
 
-            Dictionary<MetadataReference, MergedAliases> lazyAliasMap = null;
+            Dictionary<MetadataReference, MergedAliases>? lazyAliasMap = null;
 
             // metadata references and corresponding bindings of their references, used to calculate a fixed point:
             var referenceBindingsToProcess = ArrayBuilder<(MetadataReference, ArraySegment<AssemblyReferenceBinding>)>.GetInstance();
@@ -247,15 +248,16 @@ namespace Microsoft.CodeAnalysis
                             continue;
                         }
 
+                        Debug.Assert(binding.ReferenceIdentity is object);
                         if (!TryResolveMissingReference(
                             requestingReference,
                             binding.ReferenceIdentity,
                             ref implicitReferenceResolutions,
                             resolver,
                             resolutionDiagnostics,
-                            out AssemblyIdentity resolvedAssemblyIdentity,
-                            out AssemblyMetadata resolvedAssemblyMetadata,
-                            out PortableExecutableReference resolvedReference))
+                            out AssemblyIdentity? resolvedAssemblyIdentity,
+                            out AssemblyMetadata? resolvedAssemblyMetadata,
+                            out PortableExecutableReference? resolvedReference))
                         {
                             // Note the failure, but do not commit it to implicitReferenceResolutions until we are done with resolving all missing references.
                             resolutionFailures.Add(binding.ReferenceIdentity);
@@ -331,6 +333,7 @@ namespace Microsoft.CodeAnalysis
 
                         // We only need to resolve against implicitly resolved assemblies,
                         // since we already resolved against explicitly specified ones.
+                        Debug.Assert(binding.ReferenceIdentity is object);
                         referenceBinding[i] = ResolveReferencedAssembly(
                             binding.ReferenceIdentity,
                             allAssemblies,
@@ -359,7 +362,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<ResolvedReference> explicitReferenceMap,
             ArrayBuilder<AssemblyReferenceBinding[]> referenceBindings,
             int totalReferencedAssemblyCount,
-            [Out]ArrayBuilder<(MetadataReference, ArraySegment<AssemblyReferenceBinding>)> result)
+            [Out] ArrayBuilder<(MetadataReference, ArraySegment<AssemblyReferenceBinding>)> result)
         {
             Debug.Assert(result.Count == 0);
 
@@ -426,7 +429,7 @@ namespace Microsoft.CodeAnalysis
 
         private static ImmutableArray<ResolvedReference> ToResolvedAssemblyReferences(
             ImmutableArray<MetadataReference> references,
-            Dictionary<MetadataReference, MergedAliases> propertyMapOpt,
+            Dictionary<MetadataReference, MergedAliases>? propertyMapOpt,
             int explicitAssemblyCount)
         {
             var result = ArrayBuilder<ResolvedReference>.GetInstance(references.Length);
@@ -491,12 +494,12 @@ namespace Microsoft.CodeAnalysis
         private bool TryResolveMissingReference(
             MetadataReference requestingReference,
             AssemblyIdentity referenceIdentity,
-            ref ImmutableDictionary<AssemblyIdentity, PortableExecutableReference> implicitReferenceResolutions,
+            ref ImmutableDictionary<AssemblyIdentity, PortableExecutableReference?> implicitReferenceResolutions,
             MetadataReferenceResolver resolver,
             DiagnosticBag resolutionDiagnostics,
-            out AssemblyIdentity resolvedAssemblyIdentity,
-            out AssemblyMetadata resolvedAssemblyMetadata,
-            out PortableExecutableReference resolvedReference)
+            [NotNullWhen(true)] out AssemblyIdentity? resolvedAssemblyIdentity,
+            [NotNullWhen(true)] out AssemblyMetadata? resolvedAssemblyMetadata,
+            [NotNullWhen(true)] out PortableExecutableReference? resolvedReference)
         {
             resolvedAssemblyIdentity = null;
             resolvedAssemblyMetadata = null;
@@ -523,6 +526,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var resolvedAssembly = resolvedAssemblyMetadata.GetAssembly();
+            Debug.Assert(resolvedAssembly is object);
 
             // Allow reference and definition identities to differ in version, but not other properties.
             // Don't need to compare if we are reusing a previously resolved reference.
@@ -542,8 +546,10 @@ namespace Microsoft.CodeAnalysis
             PortableExecutableReference peReference,
             MetadataImportOptions importOptions)
         {
+            var assembly = assemblyMetadata.GetAssembly();
+            Debug.Assert(assembly is object);
             return CreateAssemblyDataForFile(
-                assemblyMetadata.GetAssembly(),
+                assembly,
                 assemblyMetadata.CachedSymbols,
                 peReference.DocumentationProvider,
                 SimpleAssemblyName,
@@ -690,6 +696,10 @@ namespace Microsoft.CodeAnalysis
             Queue<AssemblyReferenceCandidate> candidatesToExamine = new Queue<AssemblyReferenceCandidate>();
             int totalAssemblies = assemblies.Length;
 
+            // A reusable buffer to contain the AssemblySymbols a candidate symbol refers to
+            // ⚠ PERF: https://github.com/dotnet/roslyn/issues/47471
+            List<TAssemblySymbol?> candidateReferencedSymbols = new List<TAssemblySymbol?>(1024);
+
             for (int i = 1; i < totalAssemblies; i++)
             {
                 // We could have a match already
@@ -724,6 +734,7 @@ namespace Microsoft.CodeAnalysis
                         AssemblyReferenceCandidate candidate = candidatesToExamine.Dequeue();
 
                         Debug.Assert(candidate.DefinitionIndex >= 0);
+                        Debug.Assert(candidate.AssemblySymbol is object);
 
                         int candidateIndex = candidate.DefinitionIndex;
 
@@ -731,7 +742,7 @@ namespace Microsoft.CodeAnalysis
                         Debug.Assert(boundInputs[candidateIndex].AssemblySymbol == null ||
                                               candidateInputAssemblySymbols[candidateIndex] == null);
 
-                        TAssemblySymbol inputAssembly = boundInputs[candidateIndex].AssemblySymbol;
+                        TAssemblySymbol? inputAssembly = boundInputs[candidateIndex].AssemblySymbol;
                         if (inputAssembly == null)
                         {
                             inputAssembly = candidateInputAssemblySymbols[candidateIndex];
@@ -769,11 +780,13 @@ namespace Microsoft.CodeAnalysis
                         // how we bound the candidate references for this compilation:
                         var candidateReferenceBinding = boundInputs[candidateIndex].ReferenceBinding;
 
-                        // the AssemblySymbols the candidate symbol refers to:
-                        TAssemblySymbol[] candidateReferencedSymbols = GetActualBoundReferencesUsedBy(candidate.AssemblySymbol);
+                        // get the AssemblySymbols the candidate symbol refers to into candidateReferencedSymbols
+                        candidateReferencedSymbols.Clear();
+                        GetActualBoundReferencesUsedBy(candidate.AssemblySymbol, candidateReferencedSymbols);
 
-                        Debug.Assert(candidateReferenceBinding.Length == candidateReferencedSymbols.Length);
-                        int referencesCount = candidateReferencedSymbols.Length;
+                        Debug.Assert(candidateReferenceBinding is object);
+                        Debug.Assert(candidateReferenceBinding.Length == candidateReferencedSymbols.Count);
+                        int referencesCount = candidateReferencedSymbols.Count;
 
                         for (int k = 0; k < referencesCount; k++)
                         {
@@ -801,7 +814,8 @@ namespace Microsoft.CodeAnalysis
                             }
 
                             // We resolved the reference, candidate must have that reference resolved too.
-                            if (candidateReferencedSymbols[k] == null)
+                            var currentCandidateReferencedSymbol = candidateReferencedSymbols[k];
+                            if (currentCandidateReferencedSymbol == null)
                             {
                                 // can't use symbols 
                                 match = false;
@@ -817,7 +831,7 @@ namespace Microsoft.CodeAnalysis
                             }
 
                             // Make sure symbols represent the same assembly/binary
-                            if (!assemblies[definitionIndex].IsMatchingAssembly(candidateReferencedSymbols[k]))
+                            if (!assemblies[definitionIndex].IsMatchingAssembly(currentCandidateReferencedSymbol))
                             {
                                 // Mismatch between versions?
                                 match = false;
@@ -832,7 +846,7 @@ namespace Microsoft.CodeAnalysis
                                 break; // Stop processing references.
                             }
 
-                            if (IsLinked(candidateReferencedSymbols[k]) != assemblies[definitionIndex].IsLinked)
+                            if (IsLinked(currentCandidateReferencedSymbol) != assemblies[definitionIndex].IsLinked)
                             {
                                 // Mismatch between reference kind.
                                 match = false;
@@ -840,13 +854,13 @@ namespace Microsoft.CodeAnalysis
                             }
 
                             // Add this reference to the queue so that we consider it as a candidate too 
-                            candidatesToExamine.Enqueue(new AssemblyReferenceCandidate(definitionIndex, candidateReferencedSymbols[k]));
+                            candidatesToExamine.Enqueue(new AssemblyReferenceCandidate(definitionIndex, currentCandidateReferencedSymbol));
                         }
 
                         // Check that the COR library used by the candidate assembly symbol is the same as the one use by this compilation.
                         if (match)
                         {
-                            TAssemblySymbol candidateCorLibrary = GetCorLibrary(candidate.AssemblySymbol);
+                            TAssemblySymbol? candidateCorLibrary = GetCorLibrary(candidate.AssemblySymbol);
 
                             if (candidateCorLibrary == null)
                             {
@@ -926,13 +940,15 @@ namespace Microsoft.CodeAnalysis
 
         private static bool IsSuperseded(AssemblyIdentity identity, IReadOnlyDictionary<string, List<ReferencedAssemblyIdentity>> assemblyReferencesBySimpleName)
         {
-            return assemblyReferencesBySimpleName[identity.Name][0].Identity.Version != identity.Version;
+            var value = assemblyReferencesBySimpleName[identity.Name][0];
+            Debug.Assert(value.Identity is object);
+            return value.Identity.Version != identity.Version;
         }
 
         private static int IndexOfCorLibrary(ImmutableArray<AssemblyData> assemblies, IReadOnlyDictionary<string, List<ReferencedAssemblyIdentity>> assemblyReferencesBySimpleName, bool supersedeLowerVersions)
         {
             // Figure out COR library for this compilation.
-            ArrayBuilder<int> corLibraryCandidates = null;
+            ArrayBuilder<int>? corLibraryCandidates = null;
 
             for (int i = 1; i < assemblies.Length; i++)
             {
@@ -999,26 +1015,24 @@ namespace Microsoft.CodeAnalysis
         /// access to assembly <paramref name="compilationName"/>. It does not make a conclusive
         /// determination of visibility because the compilation's strong name key is not supplied.
         /// </summary>
-        static internal bool InternalsMayBeVisibleToAssemblyBeingCompiled(string compilationName, PEAssembly assembly)
+        internal static bool InternalsMayBeVisibleToAssemblyBeingCompiled(string compilationName, PEAssembly assembly)
         {
             return !assembly.GetInternalsVisibleToPublicKeys(compilationName).IsEmpty();
         }
 
-#nullable enable
         // https://github.com/dotnet/roslyn/issues/40751 It should not be necessary to annotate this method to annotate overrides
         /// <summary>
-        /// Return AssemblySymbols referenced by the input AssemblySymbol. The AssemblySymbols must correspond 
+        /// Compute AssemblySymbols referenced by the input AssemblySymbol and fill in <paramref name="referencedAssemblySymbols"/> with the result.
+        /// The AssemblySymbols must correspond 
         /// to the AssemblyNames returned by AssemblyData.AssemblyReferences property. If reference is not 
         /// resolved, null reference should be returned in the corresponding item. 
         /// </summary>
-        /// <param name="assemblySymbol"></param>
-        /// The target AssemblySymbol instance.
-        /// <returns>
-        /// An array of AssemblySymbols referenced by the input AssemblySymbol.
-        /// Implementers may return cached array, Binder does not mutate it.
-        /// </returns>
-        protected abstract TAssemblySymbol?[] GetActualBoundReferencesUsedBy(TAssemblySymbol assemblySymbol);
-#nullable restore
+        /// <param name="assemblySymbol">The target AssemblySymbol instance.</param>
+        /// <param name="referencedAssemblySymbols">A list which will be filled in with
+        /// AssemblySymbols referenced by the input AssemblySymbol. The caller is expected to clear
+        /// the list before calling this method.
+        /// Implementer may not cache the list; the caller may mutate it.</param>
+        protected abstract void GetActualBoundReferencesUsedBy(TAssemblySymbol assemblySymbol, List<TAssemblySymbol?> referencedAssemblySymbols);
 
         /// <summary>
         /// Return collection of assemblies involved in canonical type resolution of
@@ -1032,11 +1046,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected abstract bool IsLinked(TAssemblySymbol candidateAssembly);
 
-#nullable enable
         /// <summary>
         /// Get Assembly used as COR library for the candidate.
         /// </summary>
         protected abstract TAssemblySymbol? GetCorLibrary(TAssemblySymbol candidateAssembly);
-#nullable restore
     }
 }

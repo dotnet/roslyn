@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Linq;
@@ -25,11 +23,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         private static readonly Func<ITypeSymbol, bool> s_shouldInclude = t => t.TypeKind != TypeKind.Error && t.GetArity() > 0;
 
         public override void AddClassifications(
-            Workspace workspace,
             SyntaxToken lessThanToken,
             SemanticModel semanticModel,
-            ArrayBuilder<ClassifiedSpan> result,
-            CancellationToken cancellationToken)
+            ClassificationOptions options,
+            ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var syntaxTree = semanticModel.SyntaxTree;
             if (syntaxTree.IsInPartiallyWrittenGeneric(lessThanToken.Span.End, cancellationToken, out var identifier))
@@ -54,12 +51,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             }
         }
 
-        private bool CouldBeGenericType(SyntaxToken identifier)
+        private static bool CouldBeGenericType(SyntaxToken identifier)
         {
             // Look for patterns that indicate that this could never be a partially written 
             // generic *Type* (although it could be a partially written generic method).
 
-            if (!(identifier.Parent is IdentifierNameSyntax identifierName))
+            if (identifier.Parent is not IdentifierNameSyntax identifierName)
             {
                 // Definitely not a generic type if this isn't even an identifier name.
                 return false;
@@ -71,13 +68,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 return false;
             }
 
-            if (identifierName.IsMemberAccessExpressionName())
+            // ?.X.Identifier   or  ?.X.Y.Identifier  is never a generic type.
+            if (identifierName.IsSimpleMemberAccessExpressionName() ||
+                identifierName.IsMemberBindingExpressionName())
             {
-                // ?.X.Identifier   or  ?.X.Y.Identifier  is never a generic type.
                 if (identifier.Parent.IsParentKind(SyntaxKind.ConditionalAccessExpression))
-                {
                     return false;
-                }
             }
 
             // Add more cases as necessary.

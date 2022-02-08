@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,6 +11,8 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Differencing;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Projection;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
@@ -17,50 +21,26 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
     {
         private class SizeToFitHelper : ForegroundThreadAffinitizedObject
         {
-            private int _calculationStarted;
             private readonly IWpfDifferenceViewer _diffViewer;
-            private readonly TaskCompletionSource<object> _taskCompletion;
-
             private readonly double _minWidth;
+
             private double _width;
             private double _height;
 
             public SizeToFitHelper(IThreadingContext threadingContext, IWpfDifferenceViewer diffViewer, double minWidth)
                 : base(threadingContext)
             {
-                _calculationStarted = 0;
                 _diffViewer = diffViewer;
                 _minWidth = minWidth;
-                _taskCompletion = new TaskCompletionSource<object>();
             }
 
-            public async Task SizeToFitAsync()
+            public async Task SizeToFitAsync(CancellationToken cancellationToken)
             {
-                // The following work must always happen on UI thread.
-                AssertIsForeground();
+                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-                // We won't know how many lines there will be in the inline diff or how
-                // wide the widest line in the inline diff will be until the inline diff
-                // snapshot has been computed. We register an event handler here that will
-                // allow us to calculate the required width and height once the inline diff
-                // snapshot has been computed.
-                _diffViewer.DifferenceBuffer.SnapshotDifferenceChanged += SnapshotDifferenceChanged;
-
-                // The inline diff snapshot may already have been computed before we registered the
-                // above event handler. In this case, we can go ahead and calculate the required width
-                // and height.
-                CalculateSize();
-
-                // IDifferenceBuffer calculates the inline diff snapshot on the UI thread (on idle).
-                // Since we are already on the UI thread, we need to yield control so that the
-                // inline diff snapshot computation (and the event handler we registered above to
-                // calculate required width and height) get a chance to run and we need to wait until
-                // this computation is complete. Once computation is complete, the width and height
-                // need to be set from the UI thread. We use ConfigureAwait(true) to stay on the UI thread.
-                await _taskCompletion.Task.ConfigureAwait(true);
-
-                // The following work must always happen on UI thread.
-                AssertIsForeground();
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
+                await CalculateSizeAsync(cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
 
                 // We have the height and width required to display the inline diff snapshot now.
                 // Set the height and width of the IWpfDifferenceViewer accordingly.
@@ -68,34 +48,44 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 _diffViewer.VisualElement.Height = _height;
             }
 
-            private void SnapshotDifferenceChanged(object sender, SnapshotDifferenceChangeEventArgs args)
+            private async Task<IProjectionSnapshot> GetInlineBufferSnapshotAsync(CancellationToken cancellationToken)
             {
-                // The following work must always happen on UI thread.
-                AssertIsForeground();
+                cancellationToken.ThrowIfCancellationRequested();
 
-                // This event handler will only be called when the inline diff snapshot computation is complete.
-                Contract.ThrowIfNull(_diffViewer.DifferenceBuffer.CurrentInlineBufferSnapshot);
-
-                // We can go ahead and calculate the required height and width now.
-                CalculateSize();
-            }
-
-            private void CalculateSize()
-            {
-                // The following work must always happen on UI thread.
-                AssertIsForeground();
-
-                if ((_diffViewer.DifferenceBuffer.CurrentInlineBufferSnapshot == null) ||
-                    (Interlocked.CompareExchange(ref _calculationStarted, 1, 0) == 1))
+                if (_diffViewer.DifferenceBuffer.CurrentInlineBufferSnapshot is { } snapshot)
                 {
-                    // Return if inline diff snapshot is not yet ready or
-                    // if the size calculation is already in progress.
-                    return;
+                    return snapshot;
                 }
 
-                // Unregister the event handler - we don't need it anymore since the inline diff
-                // snapshot is available at this point.
-                _diffViewer.DifferenceBuffer.SnapshotDifferenceChanged -= SnapshotDifferenceChanged;
+                var completionSource = new TaskCompletionSource<IProjectionSnapshot>(TaskCreationOptions.RunContinuationsAsynchronously);
+                _diffViewer.DifferenceBuffer.SnapshotDifferenceChanged += HandleSnapshotDifferenceChanged;
+
+                // Handle cases where the snapshot was set between the previous check and the event registration
+                if (_diffViewer.DifferenceBuffer.CurrentInlineBufferSnapshot is { } snapshot2)
+                    completionSource.SetResult(snapshot2);
+
+                try
+                {
+                    return await completionSource.Task.WithCancellation(cancellationToken).ConfigureAwaitRunInline();
+                }
+                finally
+                {
+                    _diffViewer.DifferenceBuffer.SnapshotDifferenceChanged -= HandleSnapshotDifferenceChanged;
+                }
+
+                // Local function
+                void HandleSnapshotDifferenceChanged(object sender, SnapshotDifferenceChangeEventArgs e)
+                {
+                    // This event handler will only be called when the inline diff snapshot computation is complete.
+                    Contract.ThrowIfNull(_diffViewer.DifferenceBuffer.CurrentInlineBufferSnapshot);
+
+                    completionSource.SetResult(_diffViewer.DifferenceBuffer.CurrentInlineBufferSnapshot);
+                }
+            }
+
+            private async Task CalculateSizeAsync(CancellationToken cancellationToken)
+            {
+                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
                 IWpfTextView textView;
                 ITextSnapshot snapshot;
@@ -112,7 +102,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 else
                 {
                     textView = _diffViewer.InlineView;
-                    snapshot = _diffViewer.DifferenceBuffer.CurrentInlineBufferSnapshot;
+#pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task (containing method uses JTF)
+                    snapshot = await GetInlineBufferSnapshotAsync(cancellationToken);
+#pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
                 }
 
                 // Perform a layout without actually rendering the content on the screen so that
@@ -130,21 +122,16 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 _height = textView.LineHeight * (textView.ZoomLevel / 100) * // Height of each line.
                          snapshot.LineCount;                                // Number of lines.
                 Contract.ThrowIfFalse(IsNormal(_height));
-
-                // Calculation of required height and width is now complete.
-                _taskCompletion.SetResult(null);
             }
 
             private static bool IsNormal(double value)
-            {
-                return !double.IsNaN(value) && !double.IsInfinity(value) && value > 0.0;
-            }
+                => !double.IsNaN(value) && !double.IsInfinity(value) && value > 0.0;
         }
 
-        public static Task SizeToFitAsync(this IWpfDifferenceViewer diffViewer, IThreadingContext threadingContext, double minWidth = 400.0)
+        public static Task SizeToFitAsync(this IWpfDifferenceViewer diffViewer, IThreadingContext threadingContext, double minWidth = 400.0, CancellationToken cancellationToken = default)
         {
             var helper = new SizeToFitHelper(threadingContext, diffViewer, minWidth);
-            return helper.SizeToFitAsync();
+            return helper.SizeToFitAsync(cancellationToken);
         }
     }
 }

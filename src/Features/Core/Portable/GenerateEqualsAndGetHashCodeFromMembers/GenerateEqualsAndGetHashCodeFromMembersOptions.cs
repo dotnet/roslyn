@@ -8,16 +8,16 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 {
     internal static class GenerateEqualsAndGetHashCodeFromMembersOptions
     {
-        public static readonly PerLanguageOption<bool> GenerateOperators = new PerLanguageOption<bool>(
+        public static readonly PerLanguageOption2<bool> GenerateOperators = new(
             nameof(GenerateEqualsAndGetHashCodeFromMembersOptions),
             nameof(GenerateOperators), defaultValue: false,
-            storageLocations: new RoamingProfileStorageLocation(
+            storageLocation: new RoamingProfileStorageLocation(
                 $"TextEditor.%LANGUAGE%.Specific.{nameof(GenerateEqualsAndGetHashCodeFromMembersOptions)}.{nameof(GenerateOperators)}"));
 
-        public static readonly PerLanguageOption<bool> ImplementIEquatable = new PerLanguageOption<bool>(
+        public static readonly PerLanguageOption2<bool> ImplementIEquatable = new(
             nameof(GenerateEqualsAndGetHashCodeFromMembersOptions),
             nameof(ImplementIEquatable), defaultValue: false,
-            storageLocations: new RoamingProfileStorageLocation(
+            storageLocation: new RoamingProfileStorageLocation(
                 $"TextEditor.%LANGUAGE%.Specific.{nameof(GenerateEqualsAndGetHashCodeFromMembersOptions)}.{nameof(ImplementIEquatable)}"));
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
         internal override AbstractSyntaxStructureProvider CreateProvider() => new MethodDeclarationStructureProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
-        public async Task TestMethod()
+        public async Task TestMethod1()
         {
             const string code = @"
 class C
@@ -24,6 +26,60 @@ class C
     {|hint:$$public string Goo(){|textspan:
     {
     }|}|}
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestMethod2()
+        {
+            const string code = @"
+class C
+{
+    {|hint:$$public string Goo(){|textspan:
+    {
+    }|}|}
+    public string Goo2()
+    {
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestMethod3()
+        {
+            const string code = @"
+class C
+{
+    {|hint:$$public string Goo(){|textspan:
+    {
+    }|}|}
+
+    public string Goo2()
+    {
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestMethod4()
+        {
+            const string code = @"
+class C
+{
+    {|hint:$$public string Goo(){|textspan:
+    {
+    }|}|}
+
+    public string Goo2 => null;
 }";
 
             await VerifyBlockSpansAsync(code,

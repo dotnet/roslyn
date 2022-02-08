@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
 
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             string name,
             bool hasConstantValue,
             object constantValue)
-            : base(containingType, attributes, accessibility, modifiers, name)
+            : base(containingType?.ContainingAssembly, containingType, attributes, accessibility, modifiers, name)
         {
             this.Type = type;
             this.HasConstantValue = hasConstantValue;
@@ -52,14 +52,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override SymbolKind Kind => SymbolKind.Field;
 
         public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitField(this);
-        }
+            => visitor.VisitField(this);
 
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitField(this);
-        }
+            => visitor.VisitField(this);
 
         public bool IsConst
         {
@@ -81,6 +77,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public bool IsFixedSizeBuffer => false;
 
+        public int FixedSize => 0;
+
         public ImmutableArray<CustomModifier> CustomModifiers
         {
             get
@@ -90,5 +88,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         public ISymbol AssociatedSymbol => null;
+
+        public bool IsExplicitlyNamedTupleElement => false;
     }
 }

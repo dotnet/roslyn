@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +19,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -32,6 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             : base(CSharpCodeStyleOptions.PreferExpressionBodiedLambdas,
                    LanguageNames.CSharp,
                    IDEDiagnosticIds.UseExpressionBodyForLambdaExpressionsDiagnosticId,
+                   EnforceOnBuildValues.UseExpressionBodyForLambdaExpressions,
                    UseExpressionBodyTitle,
                    UseExpressionBodyTitle)
         {
@@ -43,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             => declaration.Body as ExpressionSyntax;
 
         private static bool CanOfferUseExpressionBody(
-            ExpressionBodyPreference preference, LambdaExpressionSyntax declaration)
+            ExpressionBodyPreference preference, LambdaExpressionSyntax declaration, LanguageVersion languageVersion)
         {
             var userPrefersExpressionBodies = preference != ExpressionBodyPreference.Never;
             if (!userPrefersExpressionBodies)
@@ -61,20 +64,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 
             // They don't have an expression body.  See if we could convert the block they 
             // have into one.
-            var options = declaration.SyntaxTree.Options;
-            return TryConvertToExpressionBody(declaration, options, preference, out _, out _);
+            return TryConvertToExpressionBody(declaration, languageVersion, preference, out _, out _);
         }
 
         private static bool TryConvertToExpressionBody(
             LambdaExpressionSyntax declaration,
-            ParseOptions options, ExpressionBodyPreference conversionPreference,
-            out ExpressionSyntax expression, out SyntaxToken semicolon)
+            LanguageVersion languageVersion,
+            ExpressionBodyPreference conversionPreference,
+            out ExpressionSyntax expression,
+            out SyntaxToken semicolon)
         {
             var body = declaration.Body as BlockSyntax;
 
-            return body.TryConvertToExpressionBody(
-                declaration.Kind(), options, conversionPreference,
-                out expression, out semicolon);
+            return body.TryConvertToExpressionBody(languageVersion, conversionPreference, out expression, out semicolon);
         }
 
         private static bool CanOfferUseBlockBody(
@@ -99,20 +101,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
             // able to create the right sort of block body (i.e. with a return-statement or
             // expr-statement).  So, if we can't figure out what lambda type this is, we should not
             // proceed.
-            if (!(semanticModel.GetTypeInfo(declaration, cancellationToken).ConvertedType is INamedTypeSymbol lambdaType) || lambdaType.DelegateInvokeMethod == null)
+            if (semanticModel.GetTypeInfo(declaration, cancellationToken).ConvertedType is not INamedTypeSymbol lambdaType || lambdaType.DelegateInvokeMethod == null)
             {
                 return false;
             }
 
             var canOffer = expressionBodyOpt.TryConvertToStatement(
-                semicolonTokenOpt: default, createReturnStatementForExpression: false, out _);
+                semicolonTokenOpt: null, createReturnStatementForExpression: false, out _);
             if (!canOffer)
             {
                 // Couldn't even convert the expression into statement form.
                 return false;
             }
 
-            var languageVersion = ((CSharpParseOptions)declaration.SyntaxTree.Options).LanguageVersion;
+            var languageVersion = declaration.SyntaxTree.Options.LanguageVersion();
             if (expressionBodyOpt.IsKind(SyntaxKind.ThrowExpression) &&
                 languageVersion < LanguageVersion.CSharp7)
             {
@@ -131,15 +133,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         {
             var expressionBody = GetBodyAsExpression(currentDeclaration);
             return expressionBody == null
-                ? WithExpressionBody(currentDeclaration)
+                ? WithExpressionBody(currentDeclaration, originalDeclaration.GetLanguageVersion())
                 : WithBlockBody(semanticModel, originalDeclaration, currentDeclaration);
         }
 
-        private static LambdaExpressionSyntax WithExpressionBody(LambdaExpressionSyntax declaration)
+        private static LambdaExpressionSyntax WithExpressionBody(LambdaExpressionSyntax declaration, LanguageVersion languageVersion)
         {
-            if (!TryConvertToExpressionBody(
-                    declaration, declaration.SyntaxTree.Options, ExpressionBodyPreference.WhenPossible,
-                    out var expressionBody, out _))
+            if (!TryConvertToExpressionBody(declaration, languageVersion, ExpressionBodyPreference.WhenPossible, out var expressionBody, out _))
             {
                 return declaration;
             }
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
                 semanticModel, originalDeclaration);
 
             if (!expressionBody.TryConvertToStatement(
-                    semicolonTokenOpt: default,
+                    semicolonTokenOpt: null,
                     createReturnStatementForExpression,
                     out var statement))
             {
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(title, createChangedDocument)
+                : base(title, createChangedDocument, title)
             {
             }
         }
@@ -226,14 +226,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda
 
     // Stub classes needed only for exporting purposes.
 
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(UseExpressionBodyForLambdaCodeFixProvider)), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseExpressionBodyForLambda), Shared]
     internal sealed class UseExpressionBodyForLambdaCodeFixProvider : UseExpressionBodyForLambdaCodeStyleProvider.CodeFixProvider
     {
+        [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        public UseExpressionBodyForLambdaCodeFixProvider()
+        {
+        }
     }
 
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(UseExpressionBodyForLambdaCodeRefactoringProvider)), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.UseExpressionBodyForLambda), Shared]
     internal sealed class UseExpressionBodyForLambdaCodeRefactoringProvider : UseExpressionBodyForLambdaCodeStyleProvider.CodeRefactoringProvider
     {
+        [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+        public UseExpressionBodyForLambdaCodeRefactoringProvider()
+        {
+        }
     }
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]

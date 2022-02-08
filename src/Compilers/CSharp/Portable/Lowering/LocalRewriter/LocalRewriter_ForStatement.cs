@@ -17,10 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node != null);
 
-            var rewrittenInitializer = (BoundStatement)Visit(node.Initializer);
-            var rewrittenCondition = (BoundExpression)Visit(node.Condition);
-            var rewrittenIncrement = (BoundStatement)Visit(node.Increment);
-            var rewrittenBody = (BoundStatement)Visit(node.Body);
+            var rewrittenInitializer = VisitStatement(node.Initializer);
+            var rewrittenCondition = VisitExpression(node.Condition);
+            var rewrittenIncrement = VisitStatement(node.Increment);
+            var rewrittenBody = VisitStatement(node.Body);
+            Debug.Assert(rewrittenBody is { });
 
             // EnC: We need to insert a hidden sequence point to handle function remapping in case 
             // the containing method is edited while methods invoked in the condition are being executed.
@@ -40,9 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundStatement RewriteForStatementWithoutInnerLocals(
             BoundLoopStatement original,
             ImmutableArray<LocalSymbol> outerLocals,
-            BoundStatement rewrittenInitializer,
-            BoundExpression rewrittenCondition,
-            BoundStatement rewrittenIncrement,
+            BoundStatement? rewrittenInitializer,
+            BoundExpression? rewrittenCondition,
+            BoundStatement? rewrittenIncrement,
             BoundStatement rewrittenBody,
             GeneratedLabelSymbol breakLabel,
             GeneratedLabelSymbol continueLabel,
@@ -109,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We do it to tell that this is not a part of previous statement.
                 // This jump may be a target of another jump (for example if loops are nested) and that will make 
                 // impression of the previous statement being re-executed
-                gotoEnd = new BoundSequencePoint(null, gotoEnd);
+                gotoEnd = BoundSequencePoint.CreateHidden(gotoEnd);
             }
 
             statementBuilder.Add(gotoEnd);
@@ -131,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // end:
             //   GotoIfTrue condition start;
             statementBuilder.Add(new BoundLabelStatement(syntax, endLabel));
-            BoundStatement branchBack = null;
+            BoundStatement? branchBack = null;
             if (rewrittenCondition != null)
             {
                 branchBack = new BoundConditionalGoto(rewrittenCondition.Syntax, rewrittenCondition, true, startLabel);
@@ -167,9 +168,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement RewriteForStatement(
             BoundForStatement node,
-            BoundStatement rewrittenInitializer,
-            BoundExpression rewrittenCondition,
-            BoundStatement rewrittenIncrement,
+            BoundStatement? rewrittenInitializer,
+            BoundExpression? rewrittenCondition,
+            BoundStatement? rewrittenIncrement,
             BoundStatement rewrittenBody)
         {
             if (node.InnerLocals.IsEmpty)
@@ -224,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (Instrument)
             {
-                startLabelStatement = new BoundSequencePoint(null, startLabelStatement);
+                startLabelStatement = BoundSequencePoint.CreateHidden(startLabelStatement);
             }
 
             statementBuilder.Add(startLabelStatement);

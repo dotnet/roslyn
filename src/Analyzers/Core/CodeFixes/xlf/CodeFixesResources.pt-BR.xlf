@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="pt-BR" original="../CodeFixesResources.resx">
+    <body>
+      <trans-unit id="Add_blank_line_after_block">
+        <source>Add blank line after block</source>
+        <target state="translated">Adicionar uma linha em branco após o bloco</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_both">
+        <source>Add both</source>
+        <target state="translated">Adicionar ambos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_default_case">
+        <source>Add default case</source>
+        <target state="translated">Adicionar caso padrão</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_file_header">
+        <source>Add file header</source>
+        <target state="translated">Adicionar cabeçalho de arquivo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_Name_Violation_colon_0">
+        <source>Fix Name Violation: {0}</source>
+        <target state="translated">Corrigir Violação de Nome: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_all_occurrences_in">
+        <source>Fix all occurrences in</source>
+        <target state="translated">Corrigir todas as ocorrências em</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_extra_blank_lines">
+        <source>Remove extra blank lines</source>
+        <target state="translated">Remover as linhas em branco extras</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_redundant_assignment">
+        <source>Remove redundant assignment</source>
+        <target state="translated">Remover a atribuição redundante</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suppress_or_Configure_issues">
+        <source>Suppress or Configure issues</source>
+        <target state="translated">Suprimir ou Configurar os problemas</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Update_suppression_format">
+        <source>Update suppression format</source>
+        <target state="translated">Atualizar o formato de supressão</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_discard_underscore">
+        <source>Use discard '_'</source>
+        <target state="translated">Usar o descarte de '_'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_discarded_local">
+        <source>Use discarded local</source>
+        <target state="translated">Usar local descartado</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

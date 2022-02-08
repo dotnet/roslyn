@@ -2,18 +2,11 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Diagnostics
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Partial Friend Class TriviaDataFactory
@@ -24,17 +17,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Private Class ComplexTrivia
             Inherits AbstractComplexTrivia
 
-            Public Sub New(optionSet As OptionSet, treeInfo As TreeData, token1 As SyntaxToken, token2 As SyntaxToken)
-                MyBase.New(optionSet, treeInfo, token1, token2)
+            Public Sub New(options As SyntaxFormattingOptions, treeInfo As TreeData, token1 As SyntaxToken, token2 As SyntaxToken)
+                MyBase.New(options, treeInfo, token1, token2)
                 Contract.ThrowIfNull(treeInfo)
             End Sub
 
             Protected Overrides Sub ExtractLineAndSpace(text As String, ByRef lines As Integer, ByRef spaces As Integer)
-                text.ProcessTextBetweenTokens(Me.TreeInfo, Me.Token1, Me.OptionSet.GetOption(FormattingOptions.TabSize, LanguageNames.VisualBasic), lines, spaces)
+                text.ProcessTextBetweenTokens(Me.TreeInfo, Me.Token1, Me.Options.TabSize, lines, spaces)
             End Sub
 
             Protected Overrides Function CreateComplexTrivia(line As Integer, space As Integer) As TriviaData
-                Return New ModifiedComplexTrivia(Me.OptionSet, Me, line, space)
+                Return New ModifiedComplexTrivia(Me.Options, Me, line, space)
             End Function
 
             Protected Overrides Function CreateComplexTrivia(line As Integer, space As Integer, indentation As Integer) As TriviaData
@@ -48,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
                 ' if given indentation is negative, and actual formatting shows that we can touch the last line (space == 0)
                 ' then, keep the negative indentation.
-                Return New ModifiedComplexTrivia(Me.OptionSet, Me, line, If(space = 0 AndAlso indentation < 0, indentation, space))
+                Return New ModifiedComplexTrivia(Me.Options, Me, line, If(space = 0 AndAlso indentation < 0, indentation, space))
             End Function
 
             Protected Overrides Function Format(context As FormattingContext,
@@ -83,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
                 Debug.Assert(Me.SecondTokenIsFirstTokenOnLine OrElse beginningOfNewLine)
 
-                If Me.OptionSet.GetOption(FormattingOptions.UseTabs, LanguageNames.VisualBasic) Then
+                If Me.Options.UseTabs Then
                     Return True
                 End If
 
@@ -106,7 +99,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Throw New NotImplementedException()
             End Function
 
-            Public Overrides Function GetTriviaList(cancellationToken As Threading.CancellationToken) As List(Of SyntaxTrivia)
+            Public Overrides Function GetTriviaList(cancellationToken As CancellationToken) As SyntaxTriviaList
                 Throw New NotImplementedException()
             End Function
         End Class

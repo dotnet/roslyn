@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.TaskStatusCenter;
 using Roslyn.Utilities;
@@ -29,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         /// Gate access to reporting sln crawler events so we cannot
         /// report UI changes concurrently.
         /// </summary>
-        private readonly object _lock = new object();
+        private readonly object _lock = new();
 
         /// <summary>
         /// Task used to trigger throttled UI updates in an interval
@@ -79,6 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         #endregion
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TaskCenterSolutionAnalysisProgressReporter(
             SVsTaskStatusCenterService taskStatusCenterService,
             IDiagnosticService diagnosticService,

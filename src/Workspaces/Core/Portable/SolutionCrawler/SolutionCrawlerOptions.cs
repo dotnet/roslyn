@@ -10,28 +10,76 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     internal static class SolutionCrawlerOptions
     {
         /// <summary>
-        /// Option to turn configure background analysis scope.
+        /// Option to turn configure background analysis scope for the current user.
         /// </summary>
-        public static readonly PerLanguageOption<BackgroundAnalysisScope> BackgroundAnalysisScopeOption = new PerLanguageOption<BackgroundAnalysisScope>(
+        public static readonly PerLanguageOption2<BackgroundAnalysisScope> BackgroundAnalysisScopeOption = new(
             nameof(SolutionCrawlerOptions), nameof(BackgroundAnalysisScopeOption), defaultValue: BackgroundAnalysisScope.Default,
-            storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.BackgroundAnalysisScopeOption"));
+            storageLocation: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.BackgroundAnalysisScopeOption"));
+
+        /// <summary>
+        /// Option to turn configure background analysis scope for the current solution.
+        /// </summary>
+        public static readonly Option2<BackgroundAnalysisScope?> SolutionBackgroundAnalysisScopeOption = new(
+            nameof(SolutionCrawlerOptions), nameof(SolutionBackgroundAnalysisScopeOption), defaultValue: null);
 
         /// <summary>
         /// This option is used by TypeScript and F#.
         /// </summary>
-        [Obsolete("Currently used by TypeScript and F# - should move to the new option SolutionCrawlerOptions.BackgroundAnalysisScopeOption")]
-        internal static readonly PerLanguageOption<bool?> ClosedFileDiagnostic = new PerLanguageOption<bool?>(
+        [Obsolete("Currently used by F# - should move to the new option SolutionCrawlerOptions.BackgroundAnalysisScopeOption")]
+        internal static readonly PerLanguageOption<bool?> ClosedFileDiagnostic = new(
             "ServiceFeaturesOnOff", "Closed File Diagnostic", defaultValue: null,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Closed File Diagnostic"));
+            storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Closed File Diagnostic"));
 
         /// <summary>
         /// Enables forced <see cref="BackgroundAnalysisScope.Minimal"/> scope when low VM is detected to improve performance.
         /// </summary>
         public static bool LowMemoryForcedMinimalBackgroundAnalysis = false;
 
+        /// <summary>
+        /// <para>Gets the background analysis scope configured through Tools → Options...</para>
+        ///
+        /// <para>This value is not affected by the solution-specific configuration set through
+        /// <see cref="SolutionBackgroundAnalysisScopeOption"/>.</para>
+        /// </summary>
+        public static BackgroundAnalysisScope GetDefaultBackgroundAnalysisScopeFromOptions(OptionSet options, string language)
+        {
+            switch (language)
+            {
+                case LanguageNames.FSharp:
+#pragma warning disable CS0618 // Type or member is obsolete - F# is still on the older ClosedFileDiagnostic option.
+                    var option = options.GetOption(ClosedFileDiagnostic, language);
+#pragma warning restore CS0618 // Type or member is obsolete
+
+                    // Note that the default value for this option is 'true' for this language.
+                    if (!option.HasValue || option.Value)
+                    {
+                        return BackgroundAnalysisScope.FullSolution;
+                    }
+
+                    return BackgroundAnalysisScope.Default;
+
+                default:
+                    return options.GetOption(BackgroundAnalysisScopeOption, language);
+            }
+        }
+
+        /// <summary>
+        /// <para>Gets the effective background analysis scope for the specified project.</para>
+        ///
+        /// <para>Gets the solution-specific analysis scope set through
+        /// <see cref="SolutionBackgroundAnalysisScopeOption"/>, or the default analysis scope if no solution-specific
+        /// scope is set.</para>
+        /// </summary>
         public static BackgroundAnalysisScope GetBackgroundAnalysisScope(Project project)
             => GetBackgroundAnalysisScope(project.Solution.Options, project.Language);
 
+        /// <summary>
+        /// <para>Gets the effective background analysis scope for the current solution.</para>
+        ///
+        /// <para>Gets the solution-specific analysis scope set through
+        /// <see cref="SolutionBackgroundAnalysisScopeOption"/>, or the default analysis scope if no solution-specific
+        /// scope is set.</para>
+        /// </summary>
         public static BackgroundAnalysisScope GetBackgroundAnalysisScope(OptionSet options, string language)
         {
             if (LowMemoryForcedMinimalBackgroundAnalysis)
@@ -39,25 +87,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 return BackgroundAnalysisScope.Minimal;
             }
 
-            switch (language)
+            if (options.GetOption(SolutionBackgroundAnalysisScopeOption) is { } scope)
             {
-                case LanguageNames.CSharp:
-                case LanguageNames.VisualBasic:
-                    return options.GetOption(BackgroundAnalysisScopeOption, language);
-
-                default:
-#pragma warning disable CS0618 // Type or member is obsolete - TypeScript and F# are still on the older ClosedFileDiagnostic option.
-                    var option = options.GetOption(ClosedFileDiagnostic, language);
-#pragma warning restore CS0618 // Type or member is obsolete
-
-                    // Note that the default value for this option is 'true' for these languages.
-                    if (!option.HasValue || option.Value)
-                    {
-                        return BackgroundAnalysisScope.FullSolution;
-                    }
-
-                    return BackgroundAnalysisScope.Default;
+                return scope;
             }
+
+            return GetDefaultBackgroundAnalysisScopeFromOptions(options, language);
         }
     }
 }

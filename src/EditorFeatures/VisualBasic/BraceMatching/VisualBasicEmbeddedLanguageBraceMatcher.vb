@@ -4,6 +4,7 @@
 
 Imports System.ComponentModel.Composition
 Imports Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
+Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.BraceMatching
     <ExportBraceMatcher(LanguageNames.VisualBasic)>
@@ -11,6 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.BraceMatching
         Inherits AbstractEmbeddedLanguageBraceMatcher
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
     End Class

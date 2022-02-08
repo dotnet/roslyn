@@ -1925,7 +1925,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {SystemCoreRef}).VerifyDiagnostics()
+            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {TestMetadata.Net40.SystemCore}).VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -3077,7 +3077,8 @@ BC30662: Attribute 'NonSerializedAttribute' cannot be applied to 'e2' because th
 ]]></expected>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NoUsedAssembliesValidation))> ' https://github.com/dotnet/roslyn/issues/40682: The test hook is blocked by this issue.
+        <WorkItem(40682, "https://github.com/dotnet/roslyn/issues/40682")>
         <WorkItem(3898, "https://github.com/dotnet/roslyn/issues/3898")>
         Public Sub TestIsSerializableProperty()
             Dim missing =
@@ -3554,7 +3555,7 @@ end structure
                     Assert.NotNull(hostProtectionAttr)
 
                     ' Verify type security attributes
-                    Dim type = DirectCast([module].GlobalNamespace.GetMember("EventDescriptor"), Microsoft.Cci.ITypeDefinition)
+                    Dim type = DirectCast([module].GlobalNamespace.GetMember("EventDescriptor").GetCciAdapter(), Microsoft.Cci.ITypeDefinition)
                     Debug.Assert(type.HasDeclarativeSecurity)
                     Dim typeSecurityAttributes As IEnumerable(Of Microsoft.Cci.SecurityAttribute) = type.SecurityAttributes
 
@@ -5814,6 +5815,413 @@ BC30657: 'sc1_method' has a return type that is not supported or parameter types
 
 #End Region
 
+#Region "ModuleInitializerAttribute"
+        <Fact>
+        Public Sub ModuleInitializerAttributeOnMethod()
+            Dim source =
+            <compilation>
+                <file name="attr.vb"><![CDATA[
+Namespace System.Runtime.CompilerServices
+    Public Class ModuleInitializerAttribute
+        Inherits Attribute
+    End Class
+End Namespace
+
+Class Program
+    <System.Runtime.CompilerServices.ModuleInitializerAttribute>
+    Sub S()
+    End Sub
+
+    <System.Runtime.CompilerServices.ModuleInitializerAttribute>
+    Function F() As Integer
+        Return 1
+    End Function
+End Class
+]]>
+                </file>
+            </compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib40(source)
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.ModuleInitializerAttribute' is not supported in VB.
+    <System.Runtime.CompilerServices.ModuleInitializerAttribute>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC42381: 'System.Runtime.CompilerServices.ModuleInitializerAttribute' is not supported in VB.
+    <System.Runtime.CompilerServices.ModuleInitializerAttribute>
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub ModuleInitializerAttributeOnClass()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class ModuleInitializerAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+<System.Runtime.CompilerServices.ModuleInitializerAttribute>
+Class C
+End Class
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertNoDiagnostics(comp)
+        End Sub
+
+        <Fact>
+        Public Sub ModuleInitializerAttributeOnProperty()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class ModuleInitializerAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Class C
+    <System.Runtime.CompilerServices.ModuleInitializerAttribute>
+    Property P As Integer
+        Get
+            Return 1
+        End Get
+
+        Set
+        End Set
+    End Property
+End Class
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertNoDiagnostics(comp)
+        End Sub
+
+        <Fact>
+        Public Sub ModuleInitializerAttributeOnAccessors()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class ModuleInitializerAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Class C
+    Property P As Integer
+        <System.Runtime.CompilerServices.ModuleInitializerAttribute>
+        Get
+            Return 1
+        End Get
+
+        <System.Runtime.CompilerServices.ModuleInitializerAttribute>
+        Set
+        End Set
+    End Property
+End Class
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
+<expected><![CDATA[
+BC42381: 'System.Runtime.CompilerServices.ModuleInitializerAttribute' is not supported in VB.
+        <System.Runtime.CompilerServices.ModuleInitializerAttribute>
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC42381: 'System.Runtime.CompilerServices.ModuleInitializerAttribute' is not supported in VB.
+        <System.Runtime.CompilerServices.ModuleInitializerAttribute>
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub ModuleInitializerAttributeOnModule()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+<Module: System.Runtime.CompilerServices.ModuleInitializerAttribute>
+
+Namespace System.Runtime.CompilerServices
+    Class ModuleInitializerAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertNoDiagnostics(comp)
+        End Sub
+
+        <Fact>
+        Public Sub ModuleInitializerAttributeOnAssembly()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+<Assembly: System.Runtime.CompilerServices.ModuleInitializerAttribute>
+
+Namespace System.Runtime.CompilerServices
+    Class ModuleInitializerAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertNoDiagnostics(comp)
+        End Sub
+
+        <Fact>
+        Public Sub ModuleInitializerAttributeOnEnum()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class ModuleInitializerAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+<System.Runtime.CompilerServices.ModuleInitializerAttribute>
+Enum E
+    Member
+End Enum
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertNoDiagnostics(comp)
+        End Sub
+
+        <Fact>
+        Public Sub ModuleInitializerAttributeOnEnumMember()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class ModuleInitializerAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Enum E
+    <System.Runtime.CompilerServices.ModuleInitializerAttribute>
+    Member1
+    <System.Runtime.CompilerServices.ModuleInitializerAttribute>
+    Member2
+End Enum
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertNoDiagnostics(comp)
+        End Sub
+
+        <Fact>
+        Public Sub ModuleInitializerAttributeOnEvent()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class ModuleInitializerAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Class C
+    <System.Runtime.CompilerServices.ModuleInitializerAttribute>
+    Event E(ByVal i As Integer)
+End Class
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertNoDiagnostics(comp)
+        End Sub
+
+        <Fact>
+        Public Sub ModuleInitializerAttributeOnDelegate()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class ModuleInitializerAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Class C
+    <System.Runtime.CompilerServices.ModuleInitializerAttribute>
+    Delegate Sub D()
+End Class
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertNoDiagnostics(comp)
+        End Sub
+
+        <Fact>
+        Public Sub ModuleInitializerAttributeOnInterface()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class ModuleInitializerAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+<System.Runtime.CompilerServices.ModuleInitializerAttribute>
+Interface I
+End Interface
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertNoDiagnostics(comp)
+        End Sub
+
+        <Fact>
+        Public Sub ModuleInitializerAttributeOnStructure()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class ModuleInitializerAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+<System.Runtime.CompilerServices.ModuleInitializerAttribute>
+Structure S
+End Structure
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertNoDiagnostics(comp)
+        End Sub
+
+        <Fact>
+        Public Sub ModuleInitializerAttributeOnReturnValue()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class ModuleInitializerAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Class C
+    Function F() As <System.Runtime.CompilerServices.ModuleInitializerAttribute> Integer
+        Return 1
+    End Function
+End Class
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertNoDiagnostics(comp)
+        End Sub
+
+        <Fact>
+        Public Sub ModuleInitializerAttributeOnParameter()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class ModuleInitializerAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Class C
+    Sub M(<System.Runtime.CompilerServices.ModuleInitializerAttribute> ByVal i As Integer)
+    End Sub
+End Class
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertNoDiagnostics(comp)
+        End Sub
+
+        <Fact>
+        Public Sub ModuleInitializerAttributeOnField()
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Namespace System.Runtime.CompilerServices
+    Class ModuleInitializerAttribute
+        Inherits System.Attribute
+    End Class
+End Namespace
+
+Class C
+    <System.Runtime.CompilerServices.ModuleInitializerAttribute>
+    Dim i As Integer
+End Class
+]]>
+
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlib40(source)
+
+            CompilationUtils.AssertNoDiagnostics(comp)
+        End Sub
+
+#End Region
+
         <Fact, WorkItem(807, "https://github.com/dotnet/roslyn/issues/807")>
         Public Sub TestAttributePropagationForAsyncAndIterators_01()
             Dim source =
@@ -6184,6 +6592,89 @@ second",
                         Assert.Equal([module].ContainingAssembly, attribute.AttributeClass.ContainingAssembly)
                         Assert.Equal("transformNames", attribute.AttributeConstructor.Parameters.Single().Name)
                     End Sub)
+        End Sub
+
+        <Fact>
+        <WorkItem(59003, "https://github.com/dotnet/roslyn/issues/59003")>
+        Public Sub ErrorInPropertyValue_01()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+class C
+    <System.Runtime.CompilerServices.MethodImpl(MethodCodeType := System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)>
+    public Function Count() as Integer
+        return 0
+    end function
+end class
+]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilation(source)
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30127: Attribute 'MethodImplAttribute' is not valid: Incorrect argument value.
+    <System.Runtime.CompilerServices.MethodImpl(MethodCodeType := System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)>
+                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>
+            )
+        End Sub
+
+        <Fact>
+        <WorkItem(59003, "https://github.com/dotnet/roslyn/issues/59003")>
+        Public Sub ErrorInPropertyValue_02()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+class C
+    <System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.Synchronized, MethodCodeType := System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)>
+    public Function Count() as Integer
+        return 0
+    end function
+end class
+]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilation(source)
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30127: Attribute 'MethodImplAttribute' is not valid: Incorrect argument value.
+    <System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.Synchronized, MethodCodeType := System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)>
+                                                                                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>
+            )
+        End Sub
+
+        <Fact()>
+        Public Sub ErrorInPropertyValue_03()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Imports System.Runtime.InteropServices
+
+<StructLayout(CharSet:=0)>
+public structure S1
+end structure
+
+<StructLayout(LayoutKind.Sequential, CharSet:=0)>
+public structure S2
+end structure
+]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilation(source)
+            compilation.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30516: Overload resolution failed because no accessible 'New' accepts this number of arguments.
+<StructLayout(CharSet:=0)>
+ ~~~~~~~~~~~~
+BC30127: Attribute 'StructLayoutAttribute' is not valid: Incorrect argument value.
+<StructLayout(LayoutKind.Sequential, CharSet:=0)>
+                                     ~~~~~~~~~~
+]]></expected>
+            )
         End Sub
     End Class
 End Namespace

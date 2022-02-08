@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -64,37 +66,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             }
 
             public async Task<RenameTrackingSolutionSet> RenameSymbolAsync(CancellationToken cancellationToken)
-            {
-                return await _renameSymbolResultGetter.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            }
+                => await _renameSymbolResultGetter.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
             private async Task<RenameTrackingSolutionSet> RenameSymbolWorkerAsync(CancellationToken cancellationToken)
             {
                 var document = _snapshotSpan.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
                 var newName = _snapshotSpan.GetText();
 
-                if (document == null)
-                {
-                    Contract.Fail("Invoked rename tracking smart tag but cannot find the document for the snapshot span.");
-                }
+                Contract.ThrowIfNull(document, "Invoked rename tracking smart tag but cannot find the document for the snapshot span.");
 
                 // Get copy of solution with the original name in the place of the renamed name
                 var solutionWithOriginalName = CreateSolutionWithOriginalName(document, cancellationToken);
 
                 var symbol = await TryGetSymbolAsync(solutionWithOriginalName, document.Id, cancellationToken).ConfigureAwait(false);
-                if (symbol == null)
-                {
-                    Contract.Fail("Invoked rename tracking smart tag but cannot find the symbol.");
-                }
+                Contract.ThrowIfNull(symbol, "Invoked rename tracking smart tag but cannot find the symbol.");
 
-                var optionSet = document.Project.Solution.Workspace.Options;
-
-                if (_stateMachine.TrackingSession.ForceRenameOverloads)
-                {
-                    optionSet = optionSet.WithChangedOption(RenameOptions.RenameOverloads, true);
-                }
-
-                var renamedSolution = await Renamer.RenameSymbolAsync(solutionWithOriginalName, symbol, newName, optionSet, cancellationToken).ConfigureAwait(false);
+                var options = new SymbolRenameOptions(RenameOverloads: _stateMachine.TrackingSession.ForceRenameOverloads);
+                var renamedSolution = await Renamer.RenameSymbolAsync(solutionWithOriginalName, symbol, options, newName, cancellationToken).ConfigureAwait(false);
                 return new RenameTrackingSolutionSet(symbol, solutionWithOriginalName, renamedSolution);
             }
 
@@ -171,7 +159,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 UpdateWorkspaceForGlobalIdentifierRename(
                     workspace,
                     finalSolution,
-                    workspace.CurrentSolution,
                     _displayText,
                     changedDocuments,
                     renameTrackingSolutionSet.Symbol,
@@ -249,7 +236,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
             private void UpdateWorkspaceForGlobalIdentifierRename(
                 Workspace workspace,
                 Solution newSolution,
-                Solution oldSolution,
                 string undoName,
                 IEnumerable<DocumentId> changedDocuments,
                 ISymbol symbol,

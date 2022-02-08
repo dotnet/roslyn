@@ -2,17 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal struct TokenSemanticInfo
     {
-        public static readonly TokenSemanticInfo Empty = new TokenSemanticInfo(
+        public static readonly TokenSemanticInfo Empty = new(
             null, null, ImmutableArray<ISymbol>.Empty, null, null, default);
 
         public readonly ISymbol DeclaredSymbol;
@@ -54,8 +55,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public ISymbol GetAnySymbol(bool includeType)
-        {
-            return GetSymbols(includeType).FirstOrDefault();
-        }
+            => GetSymbols(includeType).FirstOrDefault();
     }
 }

@@ -130,6 +130,11 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Formats the names of all types and namespaces in a fully qualified style (including the global alias).
         /// </summary>
+        /// <remarks>
+        /// The current behavior will not output the fully qualified style as expected for member symbols (such as properties) because memberOptions is not set.
+        /// For example, MyNamespace.MyClass.MyPublicProperty will return as MyPublicProperty.
+        /// The current behavior displayed here will be maintained for backwards compatibility.
+        /// </remarks>
         public static SymbolDisplayFormat FullyQualifiedFormat { get; } =
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
@@ -203,7 +208,7 @@ namespace Microsoft.CodeAnalysis
         /// A verbose format for displaying symbols (useful for testing).
         /// </summary>
         internal static readonly SymbolDisplayFormat TestFormatWithConstraints = TestFormat.WithGenericsOptions(TestFormat.GenericsOptions | SymbolDisplayGenericsOptions.IncludeTypeConstraints).
-                                                                                            AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNonNullableReferenceTypeModifier).
+                                                                                            AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNotNullableReferenceTypeModifier).
                                                                                             WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
 
         /// <summary>
@@ -374,7 +379,7 @@ namespace Microsoft.CodeAnalysis
             SymbolDisplayKindOptions kindOptions = default(SymbolDisplayKindOptions),
             SymbolDisplayMiscellaneousOptions miscellaneousOptions = default(SymbolDisplayMiscellaneousOptions))
             : this(
-                default(SymbolDisplayCompilerInternalOptions),
+                compilerInternalOptions: default,
                 globalNamespaceStyle,
                 typeQualificationStyle,
                 genericsOptions,

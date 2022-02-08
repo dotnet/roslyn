@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 using Microsoft.CodeAnalysis.SignatureHelp;
@@ -15,9 +13,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
         internal readonly SignatureHelpItem UnderlyingObject;
 
         public PythiaSignatureHelpItemWrapper(SignatureHelpItem underlyingObject)
-        {
-            UnderlyingObject = underlyingObject;
-        }
+            => UnderlyingObject = underlyingObject;
 
         public static SymbolDisplayPart CreateTextDisplayPart(string text)
             => new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, text);

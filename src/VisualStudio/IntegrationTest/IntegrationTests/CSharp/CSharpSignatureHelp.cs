@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -17,8 +19,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpSignatureHelp(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
-            : base(instanceFactory, testOutputHelper, nameof(CSharpSignatureHelp))
+        public CSharpSignatureHelp(VisualStudioInstanceFactory instanceFactory)
+            : base(instanceFactory, nameof(CSharpSignatureHelp))
         {
 
         }
@@ -177,6 +179,43 @@ class C
             VisualStudio.Editor.Verify.Parameters(
                 ("i", ""),
                 ("i2", ""));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(42484, "https://github.com/dotnet/roslyn/issues/42484")]
+        public void ExplicitSignatureHelpDismissesCompletion()
+        {
+            SetUpEditor(@"
+class C
+{
+    void M()
+    {
+       Test$$
+    }
+
+    void Test() { }
+    void Test(int x) { }
+    void Test(int x, int y) { }
+    void Test(int x, int y, int z) { }    
+}");
+
+            VisualStudio.Workspace.SetTriggerCompletionInArgumentLists(true);
+
+            VisualStudio.Editor.SendKeys("(");
+
+            Assert.True(VisualStudio.Editor.IsCompletionActive());
+            Assert.True(VisualStudio.Editor.IsSignatureHelpActive());
+
+            VisualStudio.Editor.InvokeSignatureHelp();
+
+            Assert.False(VisualStudio.Editor.IsCompletionActive());
+            Assert.True(VisualStudio.Editor.IsSignatureHelpActive());
+
+            VisualStudio.Editor.Verify.CurrentSignature("void C.Test()");
+
+            VisualStudio.Editor.SendKeys(VirtualKey.Down);
+
+            VisualStudio.Editor.Verify.CurrentSignature("void C.Test(int x)");
         }
     }
 }

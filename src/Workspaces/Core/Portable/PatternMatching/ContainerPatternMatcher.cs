@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.PatternMatching
 {
@@ -41,63 +44,55 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 }
             }
 
-            public override bool AddMatches(string container, ArrayBuilder<PatternMatch> matches)
+            public override bool AddMatches(string container, ref TemporaryArray<PatternMatch> matches)
             {
                 if (SkipMatch(container))
                 {
                     return false;
                 }
 
-                return AddMatches(container, matches, fuzzyMatch: false) ||
-                       AddMatches(container, matches, fuzzyMatch: true);
+                return AddMatches(container, ref matches, fuzzyMatch: false) ||
+                       AddMatches(container, ref matches, fuzzyMatch: true);
             }
 
-            private bool AddMatches(string container, ArrayBuilder<PatternMatch> matches, bool fuzzyMatch)
+            private bool AddMatches(string container, ref TemporaryArray<PatternMatch> matches, bool fuzzyMatch)
             {
                 if (fuzzyMatch && !_allowFuzzyMatching)
                 {
                     return false;
                 }
 
-                var tempContainerMatches = ArrayBuilder<PatternMatch>.GetInstance();
+                using var tempContainerMatches = TemporaryArray<PatternMatch>.Empty;
 
-                try
+                var containerParts = container.Split(_containerSplitCharacters, StringSplitOptions.RemoveEmptyEntries);
+
+                var relevantDotSeparatedSegmentLength = _patternSegments.Length;
+                if (_patternSegments.Length > containerParts.Length)
                 {
-                    var containerParts = container.Split(_containerSplitCharacters, StringSplitOptions.RemoveEmptyEntries);
+                    // There weren't enough container parts to match against the pattern parts.
+                    // So this definitely doesn't match.
+                    return false;
+                }
 
-                    var relevantDotSeparatedSegmentLength = _patternSegments.Length;
-                    if (_patternSegments.Length > containerParts.Length)
+                // So far so good.  Now break up the container for the candidate and check if all
+                // the dotted parts match up correctly.
+
+                for (int i = _patternSegments.Length - 1, j = containerParts.Length - 1;
+                        i >= 0;
+                        i--, j--)
+                {
+                    var containerName = containerParts[j];
+                    if (!MatchPatternSegment(containerName, _patternSegments[i], ref tempContainerMatches.AsRef(), fuzzyMatch))
                     {
-                        // There weren't enough container parts to match against the pattern parts.
-                        // So this definitely doesn't match.
+                        // This container didn't match the pattern piece.  So there's no match at all.
                         return false;
                     }
-
-                    // So far so good.  Now break up the container for the candidate and check if all
-                    // the dotted parts match up correctly.
-
-                    for (int i = _patternSegments.Length - 1, j = containerParts.Length - 1;
-                         i >= 0;
-                         i--, j--)
-                    {
-                        var segment = _patternSegments[i];
-                        var containerName = containerParts[j];
-                        if (!MatchPatternSegment(containerName, segment, tempContainerMatches, fuzzyMatch))
-                        {
-                            // This container didn't match the pattern piece.  So there's no match at all.
-                            return false;
-                        }
-                    }
-
-                    // Success, this symbol's full name matched against the dotted name the user was asking
-                    // about.
-                    matches.AddRange(tempContainerMatches);
-                    return true;
                 }
-                finally
-                {
-                    tempContainerMatches.Free();
-                }
+
+                // Success, this symbol's full name matched against the dotted name the user was asking
+                // about.
+                matches.AddRange(tempContainerMatches);
+                return true;
             }
         }
     }

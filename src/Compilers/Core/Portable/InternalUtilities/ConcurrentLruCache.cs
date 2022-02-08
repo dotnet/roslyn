@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -30,7 +28,7 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
         private readonly Dictionary<K, CacheValue> _cache;
         private readonly LinkedList<K> _nodeList;
         // This is a naive course-grained lock, it can probably be optimized
-        private readonly object _lockObject = new object();
+        private readonly object _lockObject = new();
 
         public ConcurrentLruCache(int capacity)
         {
@@ -89,7 +87,7 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
 
         private void MoveNodeToTop(LinkedListNode<K> node)
         {
-            if (!object.ReferenceEquals(_nodeList.First, node))
+            if (!ReferenceEquals(_nodeList.First, node))
             {
                 _nodeList.Remove(node);
                 _nodeList.AddFirst(node);
@@ -103,8 +101,8 @@ namespace Microsoft.CodeAnalysis.InternalUtilities
         {
             Debug.Assert(_capacity > 0);
             var lastNode = _nodeList.Last;
-            _nodeList.Remove(lastNode);
-            _cache.Remove(lastNode.Value);
+            _nodeList.Remove(lastNode!);
+            _cache.Remove(lastNode!.Value);
         }
 
         private void UnsafeAddNodeToTop(K key, V value)

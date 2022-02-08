@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -13,8 +14,7 @@ namespace Microsoft.CodeAnalysis
 {
 #pragma warning disable CA1200 // Avoid using cref tags with a prefix
     /// <summary>
-    /// Represents a trivia in the syntax tree. This is the language agnostic equivalent of <see
-    /// cref="T:Microsoft.CodeAnalysis.CSharp.SyntaxTrivia"/> and <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxTrivia"/>.
+    /// Represents a trivia in the syntax tree.
     /// </summary>
 #pragma warning restore CA1200 // Avoid using cref tags with a prefix
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
     {
         internal static readonly Func<SyntaxTrivia, bool> Any = t => true;
 
-        internal SyntaxTrivia(in SyntaxToken token, GreenNode triviaNode, int position, int index)
+        internal SyntaxTrivia(in SyntaxToken token, GreenNode? triviaNode, int position, int index)
         {
             Token = token;
             UnderlyingNode = triviaNode;
@@ -53,7 +53,17 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public SyntaxToken Token { get; }
 
-        internal GreenNode UnderlyingNode { get; }
+        internal GreenNode? UnderlyingNode { get; }
+
+        internal GreenNode RequiredUnderlyingNode
+        {
+            get
+            {
+                var node = UnderlyingNode;
+                Debug.Assert(node is object);
+                return node;
+            }
+        }
 
         internal int Position { get; }
 
@@ -156,7 +166,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Determines whether this trivia has the specific annotation.
         /// </summary>
-        public bool HasAnnotation(SyntaxAnnotation annotation)
+        public bool HasAnnotation([NotNullWhen(true)] SyntaxAnnotation? annotation)
         {
             return UnderlyingNode?.HasAnnotation(annotation) ?? false;
         }
@@ -194,9 +204,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <returns>The child non-terminal node representing the syntax tree structure under this structured
         /// trivia.</returns>
-        public SyntaxNode GetStructure()
+        public SyntaxNode? GetStructure()
         {
-            return HasStructure ? UnderlyingNode.GetStructure(this) : null;
+            return HasStructure ? UnderlyingNode!.GetStructure(this) : null;
+        }
+
+        internal bool TryGetStructure([NotNullWhen(true)] out SyntaxNode? structure)
+        {
+            structure = GetStructure();
+            return structure is object;
         }
 
         /// <summary> 
@@ -258,9 +274,9 @@ namespace Microsoft.CodeAnalysis
         /// Determines whether the supplied <see cref="SyntaxTrivia"/> is equal to this
         /// <see cref="SyntaxTrivia"/>.
         /// </summary>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
-            return obj is SyntaxTrivia && Equals((SyntaxTrivia)obj);
+            return obj is SyntaxTrivia trivia && Equals(trivia);
         }
 
         /// <summary>
@@ -379,7 +395,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// SyntaxTree which contains current SyntaxTrivia.
         /// </summary>
-        public SyntaxTree SyntaxTree
+        public SyntaxTree? SyntaxTree
         {
             get
             {
@@ -392,7 +408,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Location GetLocation()
         {
-            return this.SyntaxTree.GetLocation(this.Span);
+            // https://github.com/dotnet/roslyn/issues/40773
+            return this.SyntaxTree!.GetLocation(this.Span);
         }
 
         /// <summary>
@@ -402,7 +419,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<Diagnostic> GetDiagnostics()
         {
-            return this.SyntaxTree.GetDiagnostics(this);
+            // https://github.com/dotnet/roslyn/issues/40773
+            return this.SyntaxTree!.GetDiagnostics(this);
         }
 
         /// <summary>

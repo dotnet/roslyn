@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 
@@ -80,11 +81,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
 
         Protected Overridable Sub Dispose(disposing As Boolean)
             If Not disposing Then
-                Environment.FailFast("TestWorkspaceAndFileModelCodel GC'd without call to Dispose()!")
+                FailFast.Fail("TestWorkspaceAndFileModelCodel GC'd without call to Dispose()!")
             End If
 
             If Not Me._disposedValue Then
                 If disposing Then
+                    ' Ensure the existing project is removed from the ProjectCodeModelFactory; we otherwise later might try updating any state
+                    ' for it.
+                    Dim projectId = Workspace.CurrentSolution.ProjectIds.Single()
+                    Dim projectCodeModel = Workspace.ExportProvider.GetExportedValue(Of ProjectCodeModelFactory)().GetProjectCodeModel(projectId)
+                    projectCodeModel.OnProjectClosed()
+
                     Workspace.Dispose()
                 End If
             End If

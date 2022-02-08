@@ -3,16 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
 {
     /// <summary>
     /// This <see cref="CodeRefactoringProvider"/> gives users a way to generate constructors for
-    /// a derived type that delegate to a base type.  For all accessibly constructors in the base
+    /// a derived type that delegate to a base type.  For all accessible constructors in the base
     /// type, the user will be offered to create a constructor in the derived type with the same
     /// signature if they don't already have one.  This way, a user can override a type and easily
     /// create all the forwarding constructors.
@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
     internal class GenerateDefaultConstructorsCodeRefactoringProvider : CodeRefactoringProvider
     {
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public GenerateDefaultConstructorsCodeRefactoringProvider()
         {
         }
@@ -38,17 +39,14 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
             // TODO: https://github.com/dotnet/roslyn/issues/5778
             // Not supported in REPL for now.
             if (document.Project.IsSubmission)
-            {
                 return;
-            }
 
             if (document.Project.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
-            {
                 return;
-            }
 
-            var service = document.GetLanguageService<IGenerateDefaultConstructorsService>();
-            var actions = await service.GenerateDefaultConstructorsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var service = document.GetRequiredLanguageService<IGenerateDefaultConstructorsService>();
+            var actions = await service.GenerateDefaultConstructorsAsync(
+                document, textSpan, forRefactoring: true, cancellationToken).ConfigureAwait(false);
             context.RegisterRefactorings(actions);
         }
     }

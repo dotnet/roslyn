@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -147,7 +149,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private class TypeWithOneMember<T> : IObjectWritable, IEquatable<TypeWithOneMember<T>>
         {
-            private T _member;
+            private readonly T _member;
 
             public TypeWithOneMember(T value)
             {
@@ -205,8 +207,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private class TypeWithTwoMembers<T, S> : IObjectWritable, IEquatable<TypeWithTwoMembers<T, S>>
         {
-            private T _member1;
-            private S _member2;
+            private readonly T _member1;
+            private readonly S _member2;
 
             public TypeWithTwoMembers(T value1, S value2)
             {
@@ -262,7 +264,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         // it serializes each member individually, not as an array.
         private class TypeWithManyMembers<T> : IObjectWritable, IEquatable<TypeWithManyMembers<T>>
         {
-            private T[] _members;
+            private readonly T[] _members;
 
             public TypeWithManyMembers(T[] values)
             {
@@ -500,6 +502,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestRoundTrip(w => TestWritingPrimitiveArrays(w), r => TestReadingPrimitiveArrays(r));
         }
 
+        [Theory]
+        [CombinatorialData]
+        public void TestByteSpan([CombinatorialValues(0, 1, 2, 3, 1000, 1000000)] int size)
+        {
+            var data = new byte[size];
+            for (int i = 0; i < data.Length; i++)
+            {
+                data[i] = (byte)i;
+            }
+
+            TestRoundTrip(w => TestWritingByteSpan(data, w), r => TestReadingByteSpan(data, r));
+        }
+
         [Fact]
         public void TestPrimitiveArrayMembers()
         {
@@ -548,7 +563,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var inputString = new string[] { "h", "e", "l", "l", "o" };
 
             writer.WriteValue(inputBool);
-            writer.WriteValue(inputByte);
+            writer.WriteValue((object)inputByte);
             writer.WriteValue(inputChar);
             writer.WriteValue(inputDecimal);
             writer.WriteValue(inputDouble);
@@ -594,6 +609,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.True(Enumerable.SequenceEqual(inputULong, (ulong[])reader.ReadValue()));
             Assert.True(Enumerable.SequenceEqual(inputUShort, (ushort[])reader.ReadValue()));
             Assert.True(Enumerable.SequenceEqual(inputString, (string[])reader.ReadValue()));
+        }
+
+        private static void TestWritingByteSpan(byte[] data, ObjectWriter writer)
+        {
+            writer.WriteValue(data.AsSpan());
+        }
+
+        private static void TestReadingByteSpan(byte[] expected, ObjectReader reader)
+        {
+            Assert.True(Enumerable.SequenceEqual(expected, (byte[])reader.ReadValue()));
         }
 
         [Fact]
@@ -1106,6 +1131,64 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private void TestRoundTripArray<T>(T[] values)
         {
             TestRoundTripValue(values);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Encoding_UTF8(bool byteOrderMark)
+        {
+            TestRoundtripEncoding(new UTF8Encoding(byteOrderMark));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Encoding_UTF32(bool bigEndian, bool byteOrderMark)
+        {
+            TestRoundtripEncoding(new UTF32Encoding(bigEndian, byteOrderMark));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Encoding_Unicode(bool bigEndian, bool byteOrderMark)
+        {
+            TestRoundtripEncoding(new UnicodeEncoding(bigEndian, byteOrderMark));
+        }
+
+        [Fact]
+        public void Encoding_AllAvailable()
+        {
+            foreach (var info in Encoding.GetEncodings())
+            {
+                TestRoundtripEncoding(Encoding.GetEncoding(info.Name));
+            }
+        }
+
+        private static void TestRoundtripEncoding(Encoding encoding)
+        {
+            using var stream = new MemoryStream();
+
+            using (var writer = new ObjectWriter(stream, leaveOpen: true))
+            {
+                writer.WriteEncoding(encoding);
+            }
+
+            stream.Position = 0;
+
+            using var reader = ObjectReader.TryGetReader(stream);
+            Assert.NotNull(reader);
+            var actualEncoding = (Encoding)((Encoding)reader.ReadValue()).Clone();
+            var expectedEncoding = (Encoding)encoding.Clone();
+
+            // set the fallbacks to the same instance so that equality comparison does not take them into account:
+            actualEncoding.EncoderFallback = EncoderFallback.ExceptionFallback;
+            actualEncoding.DecoderFallback = DecoderFallback.ExceptionFallback;
+            expectedEncoding.EncoderFallback = EncoderFallback.ExceptionFallback;
+            expectedEncoding.DecoderFallback = DecoderFallback.ExceptionFallback;
+
+            Assert.Equal(expectedEncoding.GetPreamble(), actualEncoding.GetPreamble());
+            Assert.Equal(expectedEncoding.CodePage, actualEncoding.CodePage);
+            Assert.Equal(expectedEncoding.WebName, actualEncoding.WebName);
+            Assert.Equal(expectedEncoding, actualEncoding);
         }
 
         [Fact]

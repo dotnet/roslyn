@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
@@ -34,36 +37,45 @@ namespace Microsoft.CodeAnalysis.Recommendations
             _cancellationToken = cancellationToken;
         }
 
-        public abstract ImmutableArray<ISymbol> GetSymbols();
+        public abstract RecommendedSymbols GetRecommendedSymbols();
+
+        public abstract bool TryGetExplicitTypeOfLambdaParameter(SyntaxNode lambdaSyntax, int ordinalInLambda, [NotNullWhen(returnValue: true)] out ITypeSymbol explicitLambdaParameterType);
 
         // This code is to help give intellisense in the following case: 
         // query.Include(a => a.SomeProperty).ThenInclude(a => a.
         // where there are more than one overloads of ThenInclude accepting different types of parameters.
-        protected ImmutableArray<ISymbol> GetSymbols(IParameterSymbol parameter, int position)
+        private ImmutableArray<ISymbol> GetMemberSymbolsForParameter(IParameterSymbol parameter, int position, bool useBaseReferenceAccessibility, bool unwrapNullable)
         {
-            // Starting from a. in the example, looking for a => a.
-            if (!(parameter.ContainingSymbol is IMethodSymbol containingMethod &&
-                containingMethod.MethodKind == MethodKind.AnonymousFunction))
-            {
+            var symbols = TryGetMemberSymbolsForLambdaParameter(parameter, position);
+            return symbols.IsDefault
+                ? GetMemberSymbols(parameter.Type, position, excludeInstance: false, useBaseReferenceAccessibility, unwrapNullable)
+                : symbols;
+        }
+
+        private ImmutableArray<ISymbol> TryGetMemberSymbolsForLambdaParameter(IParameterSymbol parameter, int position)
+        {
+            // Use normal lookup path for this/base parameters.
+            if (parameter.IsThis)
                 return default;
-            }
+
+            // Starting from a. in the example, looking for a => a.
+            if (parameter.ContainingSymbol is not IMethodSymbol { MethodKind: MethodKind.AnonymousFunction } owningMethod)
+                return default;
 
             // Cannot proceed without DeclaringSyntaxReferences.
             // We expect that there is a single DeclaringSyntaxReferences in the scenario.
             // If anything changes on the compiler side, the approach should be revised.
-            if (containingMethod.DeclaringSyntaxReferences.Length != 1)
-            {
+            if (owningMethod.DeclaringSyntaxReferences.Length != 1)
                 return default;
-            }
 
-            var syntaxFactsService = _context.Workspace.Services.GetLanguageServices(_context.SemanticModel.Language).GetService<ISyntaxFactsService>();
+            var syntaxFactsService = _context.GetLanguageService<ISyntaxFactsService>();
 
             // Check that a => a. belongs to an invocation.
             // Find its' ordinal in the invocation, e.g. ThenInclude(a => a.Something, a=> a.
-            var lambdaSyntax = containingMethod.DeclaringSyntaxReferences.Single().GetSyntax(_cancellationToken);
-            if (!(syntaxFactsService.IsAnonymousFunction(lambdaSyntax) &&
-                syntaxFactsService.IsArgument(lambdaSyntax.Parent) &&
-                syntaxFactsService.IsInvocationExpression(lambdaSyntax.Parent.Parent.Parent)))
+            var lambdaSyntax = owningMethod.DeclaringSyntaxReferences.Single().GetSyntax(_cancellationToken);
+            if (!(syntaxFactsService.IsAnonymousFunctionExpression(lambdaSyntax) &&
+                  syntaxFactsService.IsArgument(lambdaSyntax.Parent) &&
+                  syntaxFactsService.IsInvocationExpression(lambdaSyntax.Parent.Parent.Parent)))
             {
                 return default;
             }
@@ -74,18 +86,74 @@ namespace Microsoft.CodeAnalysis.Recommendations
             var ordinalInInvocation = arguments.IndexOf(lambdaSyntax.Parent);
             var expressionOfInvocationExpression = syntaxFactsService.GetExpressionOfInvocationExpression(invocationExpression);
 
-            // Get all members potentially matching the invocation expression.
-            // We filter them out based on ordinality later.
-            var candidateSymbols = _context.SemanticModel.GetMemberGroup(expressionOfInvocationExpression, _cancellationToken);
+            var parameterTypeSymbols = ImmutableArray<ITypeSymbol>.Empty;
 
-            // parameter.Ordinal is the ordinal within (a,b,c) => b.
-            // For candidate symbols of (a,b,c) => b., get types of all possible b.
-            var parameterTypeSymbols = GetTypeSymbols(candidateSymbols, argumentName, ordinalInInvocation, ordinalInLambda: parameter.Ordinal);
+            if (TryGetExplicitTypeOfLambdaParameter(lambdaSyntax, parameter.Ordinal, out var explicitLambdaParameterType))
+            {
+                parameterTypeSymbols = ImmutableArray.Create(explicitLambdaParameterType);
+            }
+            else
+            {
+                // Get all members potentially matching the invocation expression.
+                // We filter them out based on ordinality later.
+                var candidateSymbols = _context.SemanticModel.GetMemberGroup(expressionOfInvocationExpression, _cancellationToken);
 
-            // For each type of b., return all suitable members.
+                // parameter.Ordinal is the ordinal within (a,b,c) => b.
+                // For candidate symbols of (a,b,c) => b., get types of all possible b.
+                parameterTypeSymbols = GetTypeSymbols(candidateSymbols, argumentName, ordinalInInvocation, ordinalInLambda: parameter.Ordinal);
+
+                // The parameterTypeSymbols may include type parameters, and we want their substituted types if available.
+                parameterTypeSymbols = SubstituteTypeParameters(parameterTypeSymbols, invocationExpression);
+            }
+
+            // For each type of b., return all suitable members. Also, ensure we consider the actual type of the
+            // parameter the compiler inferred as it may have made a completely suitable inference for it.
             return parameterTypeSymbols
-                .SelectMany(parameterTypeSymbol => GetSymbols(parameterTypeSymbol, position, excludeInstance: false, useBaseReferenceAccessibility: false))
+                .Concat(parameter.Type)
+                .SelectMany(parameterTypeSymbol => GetMemberSymbols(parameterTypeSymbol, position, excludeInstance: false, useBaseReferenceAccessibility: false, unwrapNullable: false))
                 .ToImmutableArray();
+        }
+
+        private ImmutableArray<ITypeSymbol> SubstituteTypeParameters(ImmutableArray<ITypeSymbol> parameterTypeSymbols, SyntaxNode invocationExpression)
+        {
+            if (!parameterTypeSymbols.Any(t => t.IsKind(SymbolKind.TypeParameter)))
+            {
+                return parameterTypeSymbols;
+            }
+
+            var invocationSymbols = _context.SemanticModel.GetSymbolInfo(invocationExpression).GetAllSymbols();
+            if (invocationSymbols.Length == 0)
+            {
+                return parameterTypeSymbols;
+            }
+
+            using var _ = ArrayBuilder<ITypeSymbol>.GetInstance(out var concreteTypes);
+            foreach (var invocationSymbol in invocationSymbols)
+            {
+                var typeParameters = invocationSymbol.GetTypeParameters();
+                var typeArguments = invocationSymbol.GetTypeArguments();
+
+                foreach (var parameterTypeSymbol in parameterTypeSymbols)
+                {
+                    if (parameterTypeSymbol.IsKind<ITypeParameterSymbol>(SymbolKind.TypeParameter, out var typeParameter))
+                    {
+                        // The typeParameter could be from the containing type, so it may not be
+                        // present in this method's list of typeParameters.
+                        var index = typeParameters.IndexOf(typeParameter);
+                        var concreteType = typeArguments.ElementAtOrDefault(index);
+
+                        // If we couldn't find the concrete type, still consider the typeParameter
+                        // as is to provide members of any types it is constrained to (including object)
+                        concreteTypes.Add(concreteType ?? typeParameter);
+                    }
+                    else
+                    {
+                        concreteTypes.Add(parameterTypeSymbol);
+                    }
+                }
+            }
+
+            return concreteTypes.ToImmutable();
         }
 
         /// <summary>
@@ -141,10 +209,8 @@ namespace Microsoft.CodeAnalysis.Recommendations
                             continue;
                         }
 
-                        type = parameters[ordinalInLambda].Type;
+                        builder.Add(parameters[ordinalInLambda].Type);
                     }
-
-                    builder.Add(type);
                 }
             }
 
@@ -188,11 +254,8 @@ namespace Microsoft.CodeAnalysis.Recommendations
             where TNamespaceDeclarationSyntax : SyntaxNode
         {
             var declarationSyntax = _context.TargetToken.GetAncestor<TNamespaceDeclarationSyntax>();
-
             if (declarationSyntax == null)
-            {
                 return ImmutableArray<ISymbol>.Empty;
-            }
 
             var semanticModel = _context.SemanticModel;
             var containingNamespaceSymbol = semanticModel.Compilation.GetCompilationNamespace(
@@ -229,15 +292,29 @@ namespace Microsoft.CodeAnalysis.Recommendations
                                               declarationSyntax.Span.IntersectsWith(candidateLocation.SourceSpan)));
         }
 
-        protected ImmutableArray<ISymbol> GetSymbols(
-            INamespaceOrTypeSymbol container,
+        protected ImmutableArray<ISymbol> GetMemberSymbols(
+            ISymbol container,
             int position,
             bool excludeInstance,
-            bool useBaseReferenceAccessibility)
+            bool useBaseReferenceAccessibility,
+            bool unwrapNullable)
         {
+            // For a normal parameter, we have a specialized codepath we use to ensure we properly get lambda parameter
+            // information that the compiler may fail to give.
+            if (container is IParameterSymbol parameter)
+                return GetMemberSymbolsForParameter(parameter, position, useBaseReferenceAccessibility, unwrapNullable);
+
+            if (container is not INamespaceOrTypeSymbol namespaceOrType)
+                return ImmutableArray<ISymbol>.Empty;
+
+            if (unwrapNullable && namespaceOrType is ITypeSymbol typeSymbol)
+            {
+                namespaceOrType = typeSymbol.RemoveNullableIfPresent();
+            }
+
             return useBaseReferenceAccessibility
                 ? _context.SemanticModel.LookupBaseMembers(position)
-                : LookupSymbolsInContainer(container, position, excludeInstance);
+                : LookupSymbolsInContainer(namespaceOrType, position, excludeInstance);
         }
 
         protected ImmutableArray<ISymbol> LookupSymbolsInContainer(

@@ -2,8 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -67,6 +70,33 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
 
+            // Original expression and current node being semantically equivalent isn't enough when the original expression 
+            // is a member access via instance reference (either implicit or explicit), the check only ensures that the expression
+            // and current node are both backed by the same member symbol. So in this case, in addition to SemanticEquivalence check, 
+            // we also check if expression and current node are both instance member access.
+            //
+            // For example, even though the first `c` binds to a field and we are introducing a local for it,
+            // we don't want other references to that field to be replaced as well (i.e. the second `c` in the expression).
+            //
+            //  class C
+            //  {
+            //      C c;
+            //      void Test()
+            //      {
+            //          var x = [|c|].c;
+            //      }
+            //  }
+            var originalOperation = semanticModel1.GetOperation(node1);
+            if (originalOperation != null && IsInstanceMemberReference(originalOperation))
+            {
+                var currentOperation = semanticModel2.GetOperation(node2);
+
+                if (currentOperation is null || !IsInstanceMemberReference(currentOperation))
+                {
+                    return false;
+                }
+            }
+
             var e1 = node1.ChildNodesAndTokens().GetEnumerator();
             var e2 = node2.ChildNodesAndTokens().GetEnumerator();
 
@@ -75,11 +105,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 var b1 = e1.MoveNext();
                 var b2 = e2.MoveNext();
 
-                if (b1 != b2)
-                {
-                    Contract.Fail();
-                    return false;
-                }
+                Contract.ThrowIfTrue(b1 != b2);
 
                 if (b1 == false)
                 {
@@ -98,6 +124,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
         }
+
+        private static bool IsInstanceMemberReference(IOperation operation)
+            => operation is IMemberReferenceOperation { Instance: { Kind: OperationKind.InstanceReference } };
 
         private static bool AreEquals(
             SemanticModel semanticModel1,

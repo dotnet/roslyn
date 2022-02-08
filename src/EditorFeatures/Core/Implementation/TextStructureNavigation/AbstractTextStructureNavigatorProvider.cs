@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Editor.Host;
+#nullable disable
+
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Operations;
@@ -15,28 +16,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
     {
         private readonly ITextStructureNavigatorSelectorService _selectorService;
         private readonly IContentTypeRegistryService _contentTypeService;
-        private readonly IWaitIndicator _waitIndicator;
+        private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
 
         protected AbstractTextStructureNavigatorProvider(
             ITextStructureNavigatorSelectorService selectorService,
             IContentTypeRegistryService contentTypeService,
-            IWaitIndicator waitIndicator)
+            IUIThreadOperationExecutor uIThreadOperationExecutor)
         {
             Contract.ThrowIfNull(selectorService);
             Contract.ThrowIfNull(contentTypeService);
 
             _selectorService = selectorService;
             _contentTypeService = contentTypeService;
-            _waitIndicator = waitIndicator;
+            _uiThreadOperationExecutor = uIThreadOperationExecutor;
         }
 
         protected abstract bool ShouldSelectEntireTriviaFromStart(SyntaxTrivia trivia);
         protected abstract bool IsWithinNaturalLanguage(SyntaxToken token, int position);
 
         protected virtual TextExtent GetExtentOfWordFromToken(SyntaxToken token, SnapshotPoint position)
-        {
-            return new TextExtent(token.Span.ToSnapshotSpan(position.Snapshot), isSignificant: true);
-        }
+            => new(token.Span.ToSnapshotSpan(position.Snapshot), isSignificant: true);
 
         public ITextStructureNavigator CreateTextStructureNavigator(ITextBuffer subjectBuffer)
         {
@@ -48,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 subjectBuffer,
                 naturalLanguageNavigator,
                 this,
-                _waitIndicator);
+                _uiThreadOperationExecutor);
         }
     }
 }

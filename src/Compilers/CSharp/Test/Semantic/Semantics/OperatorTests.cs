@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -9,10 +11,10 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using static Microsoft.CodeAnalysis.Test.Extensions.SymbolExtensions;
 using Xunit;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -2550,6 +2552,130 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void TestCompoundAssignment_Unchecked_IOperation()
+        {
+            string source = @"
+class C
+{
+    static void M(int a, int b, int c, int d, int e, int f, int g, int h, int i)
+    /*<bind>*/{
+        unchecked
+        {
+            a += b;
+            a -= c;
+            a *= d;
+            a /= e;
+            a %= f;
+            a <<= 10;
+            a >>= 20;
+            a &= g;
+            a |= h;
+            a ^= i;
+        }
+    }/*</bind>*/
+}
+";
+            string expectedOperationTree = @"
+IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  IBlockOperation (10 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a += b;')
+      Expression: 
+        ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'a += b')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Left: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
+          Right: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a -= c;')
+      Expression: 
+        ICompoundAssignmentOperation (BinaryOperatorKind.Subtract) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'a -= c')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Left: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
+          Right: 
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'c')
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a *= d;')
+      Expression: 
+        ICompoundAssignmentOperation (BinaryOperatorKind.Multiply) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'a *= d')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Left: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
+          Right: 
+            IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'd')
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a /= e;')
+      Expression: 
+        ICompoundAssignmentOperation (BinaryOperatorKind.Divide) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'a /= e')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Left: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
+          Right: 
+            IParameterReferenceOperation: e (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'e')
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a %= f;')
+      Expression: 
+        ICompoundAssignmentOperation (BinaryOperatorKind.Remainder) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'a %= f')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Left: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
+          Right: 
+            IParameterReferenceOperation: f (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'f')
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a <<= 10;')
+      Expression: 
+        ICompoundAssignmentOperation (BinaryOperatorKind.LeftShift) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'a <<= 10')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Left: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a >>= 20;')
+      Expression: 
+        ICompoundAssignmentOperation (BinaryOperatorKind.RightShift) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'a >>= 20')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Left: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a &= g;')
+      Expression: 
+        ICompoundAssignmentOperation (BinaryOperatorKind.And) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'a &= g')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Left: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
+          Right: 
+            IParameterReferenceOperation: g (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'g')
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a |= h;')
+      Expression: 
+        ICompoundAssignmentOperation (BinaryOperatorKind.Or) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'a |= h')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Left: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
+          Right: 
+            IParameterReferenceOperation: h (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'h')
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a ^= i;')
+      Expression: 
+        ICompoundAssignmentOperation (BinaryOperatorKind.ExclusiveOr) (OperationKind.CompoundAssignment, Type: System.Int32) (Syntax: 'a ^= i')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Left: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
+          Right: 
+            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
         [Fact]
         public void TestUserDefinedBinaryOperatorOverloadResolution()
         {
@@ -3074,7 +3200,7 @@ class C
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             var method = (SourceMemberMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
             var diagnostics = new DiagnosticBag();
-            var block = MethodCompiler.BindMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), diagnostics);
+            var block = MethodCompiler.BindMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), new BindingDiagnosticBag(diagnostics));
             var tree = BoundTreeDumperNodeProducer.MakeTree(block);
             var results = string.Join("\n",
                 query(tree.PreorderTraversal())
@@ -3086,7 +3212,7 @@ class C
                 .Select(x => x.Substring(x.IndexOf("//-", StringComparison.Ordinal) + 3).Trim())
                 .ToArray());
 
-            Assert.Equal(expected, results);
+            AssertEx.Equal(expected, results);
         }
 
         private void TestOperatorKinds(string source)
@@ -3115,7 +3241,21 @@ class C
                                               child.Text == "isDynamic" ||
                                               child.Text == "leftConversion" ||
                                               child.Text == "finalConversion"
-                                        select child.Text + ": " + (child.Text == "@operator" ? ((BinaryOperatorSignature)child.Value).Kind.ToString() : child.Value.ToString())));
+                                        select child.Text + ": " +
+                                               (child.Text switch
+                                               {
+                                                   "@operator" => ((BinaryOperatorSignature)child.Value).Kind.ToString(),
+                                                   "leftConversion" or "finalConversion" => (child.Children.SingleOrDefault() is TreeDumperNode node ?
+                                                                                                (node.Text switch
+                                                                                                {
+                                                                                                    "conversion" => node.Children.ElementAt(1).Value,
+                                                                                                    "valuePlaceholder" => Conversion.Identity,
+                                                                                                    _ => throw ExceptionUtilities.UnexpectedValue(node.Text)
+                                                                                                }) :
+                                                                                                Conversion.NoConversion
+                                                                                            ).ToString(),
+                                                   _ => child.Value.ToString()
+                                               })));
         }
 
         private void TestTypes(string source)
@@ -4851,7 +4991,7 @@ struct A
             CreateCompilation(source).VerifyDiagnostics(
                 // (8,18): error CS0457: Ambiguous user defined conversions 'B.implicit operator A(B)' and 'A.implicit operator A(B)' when converting from 'B' to 'A'
                 //         var c2 = b2 ?? a2;
-                Diagnostic(ErrorCode.ERR_AmbigUDConv, "b2").WithArguments("B.implicit operator A(B)", "A.implicit operator A(B)", "B", "A"));
+                Diagnostic(ErrorCode.ERR_AmbigUDConv, "b2 ?? a2").WithArguments("B.implicit operator A(B)", "A.implicit operator A(B)", "B", "A").WithLocation(8, 18));
         }
 
         [WorkItem(541343, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541343")]
@@ -5926,7 +6066,7 @@ namespace System
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,41): error CS0555: User-defined operator cannot take an object of the enclosing type and convert to an object of the enclosing type
+                // (6,41): error CS0555: User-defined operator cannot convert a type to itself
                 //         public static explicit operator (T1 fst, T2 snd)((T1 one, T2 two) s)
                 Diagnostic(ErrorCode.ERR_IdentityConversion, "(T1 fst, T2 snd)").WithLocation(6, 41));
         }
@@ -5947,7 +6087,7 @@ namespace System
 }
 ";
             CreateCompilation(text).GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify(
-                    // (6,41): error CS0553: '(T1, T2).explicit operator ValueType((T1, T2))': user-defined conversions to or from a base class are not allowed
+                    // (6,41): error CS0553: '(T1, T2).explicit operator ValueType((T1, T2))': user-defined conversions to or from a base type are not allowed
                     //         public static explicit operator ValueType(ValueTuple<T1, T2> s)
                     Diagnostic(ErrorCode.ERR_ConversionWithBase, "ValueType").WithArguments("(T1, T2).explicit operator System.ValueType((T1, T2))").WithLocation(6, 41));
         }
@@ -6948,6 +7088,119 @@ public class RubyTime
             CreateCompilation(source).VerifyDiagnostics();
         }
 
+        /// <summary>
+        /// Verify operators returned from BinaryOperatorEasyOut match
+        /// the operators found from overload resolution.
+        /// </summary>
+        [Fact]
+        public void BinaryOperators_EasyOut()
+        {
+            var source =
+@"class Program
+{
+    static T F<T>() => throw null;
+    static void Main()
+    {
+        F<object>();
+        F<string>();
+        F<bool>();
+        F<char>();
+        F<sbyte>();
+        F<short>();
+        F<int>();
+        F<long>();
+        F<byte>();
+        F<ushort>();
+        F<uint>();
+        F<ulong>();
+        F<nint>();
+        F<nuint>();
+        F<float>();
+        F<double>();
+        F<decimal>();
+        F<bool?>();
+        F<char?>();
+        F<sbyte?>();
+        F<short?>();
+        F<int?>();
+        F<long?>();
+        F<byte?>();
+        F<ushort?>();
+        F<uint?>();
+        F<ulong?>();
+        F<nint?>();
+        F<nuint?>();
+        F<float?>();
+        F<double?>();
+        F<decimal?>();
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var syntax = tree.GetRoot();
+            var methodBody = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Last().Body;
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(methodBody.SpanStart);
+            var diagnostics = DiagnosticBag.GetInstance();
+            var block = binder.BindEmbeddedBlock(methodBody, diagnostics);
+            diagnostics.Free();
+            var exprs = block.Statements.SelectAsArray(stmt => ((BoundExpressionStatement)stmt).Expression);
+            Assert.Equal(32, exprs.Length);
+
+            var operators = new[]
+            {
+                BinaryOperatorKind.Addition,
+                BinaryOperatorKind.Subtraction,
+                BinaryOperatorKind.Multiplication,
+                BinaryOperatorKind.Division,
+                BinaryOperatorKind.Remainder,
+                BinaryOperatorKind.LessThan,
+                BinaryOperatorKind.LessThanOrEqual,
+                BinaryOperatorKind.GreaterThan,
+                BinaryOperatorKind.GreaterThanOrEqual,
+                BinaryOperatorKind.LeftShift,
+                BinaryOperatorKind.RightShift,
+                BinaryOperatorKind.Equal,
+                BinaryOperatorKind.NotEqual,
+                BinaryOperatorKind.Or,
+                BinaryOperatorKind.And,
+                BinaryOperatorKind.Xor,
+            };
+
+            foreach (var op in operators)
+            {
+                foreach (var left in exprs)
+                {
+                    foreach (var right in exprs)
+                    {
+                        var signature1 = getBinaryOperator(binder, op, left, right, useEasyOut: true);
+                        var signature2 = getBinaryOperator(binder, op, left, right, useEasyOut: false);
+                        Assert.Equal(signature1, signature2);
+                    }
+                }
+            }
+
+            static BinaryOperatorKind getBinaryOperator(Binder binder, BinaryOperatorKind kind, BoundExpression left, BoundExpression right, bool useEasyOut)
+            {
+                var overloadResolution = new OverloadResolution(binder);
+                var result = BinaryOperatorOverloadResolutionResult.GetInstance();
+                if (useEasyOut)
+                {
+                    overloadResolution.BinaryOperatorOverloadResolution_EasyOut(kind, left, right, result);
+                }
+                else
+                {
+                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                    overloadResolution.BinaryOperatorOverloadResolution_NoEasyOut(kind, left, right, result, ref discardedUseSiteInfo);
+                }
+                var signature = result.Best.Signature.Kind;
+                result.Free();
+                return signature;
+            }
+        }
+
         [Fact()]
         public void UnaryIntrinsicSymbols1()
         {
@@ -7239,7 +7492,8 @@ public class RubyTime
             Assert.Null(symbol2);
         }
 
-        [Fact()]
+        [Fact]
+        [WorkItem(39975, "https://github.com/dotnet/roslyn/issues/39975")]
         public void CheckedUnaryIntrinsicSymbols()
         {
             var source =
@@ -7459,6 +7713,7 @@ class Module1
         }
 
         [ConditionalFact(typeof(NoIOperationValidation))]
+        [WorkItem(39975, "https://github.com/dotnet/roslyn/issues/39975")]
         public void BinaryIntrinsicSymbols2()
         {
             BinaryOperatorKind[] operators =
@@ -8329,7 +8584,7 @@ struct TestStr
             var op = visitor.FirstNode.Operator;
             Assert.Null(op.Method);
             // Equals and GetHashCode should support null Method.
-            Assert.Equal(op, new BinaryOperatorSignature(op.Kind, op.LeftType, op.RightType, op.ReturnType, op.Method));
+            Assert.Equal(op, new BinaryOperatorSignature(op.Kind, op.LeftType, op.RightType, op.ReturnType, op.Method, constrainedToTypeOpt: null));
             op.GetHashCode();
         }
 
@@ -10844,7 +11099,10 @@ public class C {
             Assert.True(type.IsErrorType());
         }
 
-        [Fact, WorkItem(529600, "DevDiv"), WorkItem(7398, "https://github.com/dotnet/roslyn/issues/7398")]
+        // Attempting to call `ConstantValue` on every constituent string component realizes every string, effectively
+        // replicating the original O(n^2) bug that this test is demonstrating is fixed.
+        [ConditionalFact(typeof(NoIOperationValidation))]
+        [WorkItem(43019, "https://github.com/dotnet/roslyn/issues/43019"), WorkItem(529600, "DevDiv"), WorkItem(7398, "https://github.com/dotnet/roslyn/issues/7398")]
         public void Bug529600()
         {
             // History of this bug:  When constant folding a long sequence of string concatentations, there is
@@ -10856,7 +11114,7 @@ public class C {
             // we produced a diagnostic.  However, the compiler still consumed O(n^2) memory for the
             // concatenation and this test used to consume so much memory that it would cause other tests running
             // in parallel to fail because they might not have enough memory to succeed.  So the test was
-            // disabled and eventually removed.  The compiler would still crash with programs constaining large
+            // disabled and eventually removed.  The compiler would still crash with programs containing large
             // string concatenations, so the underlying problem had not been addressed.  Now we have revised the
             // implementation of constant folding so that it requires O(n) memory. As a consequence this test now
             // runs very quickly and does not consume gobs of memory.
@@ -10900,11 +11158,42 @@ class M
                       C1;
 }}
 ";
-            CreateCompilation(source).VerifyDiagnostics(
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
                 // (28,68): error CS8095: Length of String constant resulting from concatenation exceeds System.Int32.MaxValue.  Try splitting the string into multiple constants.
                 //                       C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 + C1 +
                 Diagnostic(ErrorCode.ERR_ConstantStringTooLong, "C1").WithLocation(28, 68)
                 );
+
+            // If we realize every string constant value when each IOperation is created, then attempting to enumerate all
+            // IOperations will consume O(n^2) memory. This demonstrates that these values are not eagerly created, and the
+            // test runs quickly and without issue
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var fieldInitializerOperations = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>()
+                .Select(v => v.Initializer.Value)
+                .Select(i => model.GetOperation(i));
+
+            int numChildren = 0;
+
+            foreach (var initializerOp in fieldInitializerOperations)
+            {
+                enumerateChildren(initializerOp);
+            }
+
+            Assert.Equal(1203, numChildren);
+
+            void enumerateChildren(IOperation iop)
+            {
+                numChildren++;
+                Assert.NotNull(iop);
+                foreach (var child in iop.ChildOperations)
+                {
+                    enumerateChildren(child);
+                }
+            }
         }
 
         [Fact, WorkItem(39975, "https://github.com/dotnet/roslyn/issues/39975")]
@@ -10924,6 +11213,120 @@ class M
                 //         d += p;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "d += p").WithArguments("+=", "dynamic", "int*").WithLocation(5, 9)
                 );
+        }
+
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
+        public void LiftedUnaryOperator_InvalidTypeArgument01()
+        {
+            var code = @"
+S1? s1 = default;
+var s2 = +s1;
+
+struct S1
+{
+    public static S2 operator+(S1 s1) => throw null;
+}
+
+ref struct S2 {}
+";
+
+            var comp = CreateCompilation(code);
+            comp.VerifyDiagnostics(
+                // (3,10): error CS0023: Operator '+' cannot be applied to operand of type 'S1?'
+                // var s2 = +s1;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "+s1").WithArguments("+", "S1?").WithLocation(3, 10)
+            );
+        }
+
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
+        public void LiftedUnaryOperator_InvalidTypeArgument02()
+        {
+            var code = @"
+S1? s1 = default;
+var s2 = +s1;
+
+unsafe struct S1
+{
+    public static unsafe int* operator+(S1 s1) => throw null;
+}
+";
+
+            var comp = CreateCompilation(code, options: TestOptions.UnsafeReleaseExe);
+            comp.VerifyDiagnostics(
+                // (3,10): error CS0023: Operator '+' cannot be applied to operand of type 'S1?'
+                // var s2 = +s1;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "+s1").WithArguments("+", "S1?").WithLocation(3, 10)
+            );
+        }
+
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
+        public void LiftedBinaryOperator_InvalidTypeArgument01()
+        {
+            var code = @"
+var x = new S1();
+int? y = 1;
+(x + y)?.M();
+
+public readonly ref struct S1
+{
+    public static S1 operator+ (S1 x, int y) => throw null;
+    public void M() {}
+}
+";
+
+            var comp = CreateCompilation(code);
+            comp.VerifyDiagnostics(
+                // (4,2): error CS0019: Operator '+' cannot be applied to operands of type 'S1' and 'int?'
+                // (x + y)?.M();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + y").WithArguments("+", "S1", "int?").WithLocation(4, 2)
+            );
+        }
+
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
+        public void LiftedBinaryOperator_InvalidTypeArgument02()
+        {
+            var code = @"
+var x = new S1();
+int? y = 1;
+(y + x)?.M();
+
+public readonly ref struct S1
+{
+    public static S1 operator+ (int y, S1 x) => throw null;
+    public void M() {}
+}
+";
+
+            var comp = CreateCompilation(code);
+            comp.VerifyDiagnostics(
+                // (4,2): error CS0019: Operator '+' cannot be applied to operands of type 'int?' and 'S1'
+                // (y + x)?.M();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "y + x").WithArguments("+", "int?", "S1").WithLocation(4, 2)
+            );
+        }
+
+        [Fact, WorkItem(56646, "https://github.com/dotnet/roslyn/issues/56646")]
+        public void LiftedBinaryOperator_InvalidTypeArgument03()
+        {
+            var code = @"
+var x = new S1();
+int? y = 1;
+(y > x).ToString();
+
+public readonly ref struct S1
+{
+    public static bool operator >(int y, S1 x) => throw null;
+    public static bool operator <(int y, S1 x) => throw null;
+    public void M() {}
+}
+";
+
+            var comp = CreateCompilation(code);
+            comp.VerifyDiagnostics(
+                // (4,2): error CS0019: Operator '>' cannot be applied to operands of type 'int?' and 'S1'
+                // (y > x).ToString();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "y > x").WithArguments(">", "int?", "S1").WithLocation(4, 2)
+            );
         }
     }
 }

@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.FindReferences
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -37,9 +38,10 @@ class C
 
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
 
-                Dim context = New FindReferencesTests.TestContext()
+                Dim context = New FindReferencesTests.TestContext(workspace.GlobalOptions)
                 Dim commandHandler = New FindReferencesCommandHandler(
                     New MockStreamingFindReferencesPresenter(context),
+                    workspace.GlobalOptions,
                     listenerProvider)
 
                 Dim document = workspace.CurrentSolution.GetDocument(testDocument.Id)
@@ -47,7 +49,7 @@ class C
                     New FindReferencesCommandArgs(view, textBuffer), Utilities.TestCommandExecutionContext.Create())
 
                 ' Wait for the find refs to be done.
-                Await listenerProvider.GetWaiter(FeatureAttribute.FindReferences).CreateExpeditedWaitTask()
+                Await listenerProvider.GetWaiter(FeatureAttribute.FindReferences).ExpeditedWaitAsync()
 
                 Assert.Equal(1, context.Definitions.Count)
                 Assert.Equal(testDocument.AnnotatedSpans("Definition").Single(),
@@ -72,12 +74,12 @@ class C
             Public Sub ClearAll() Implements IStreamingFindUsagesPresenter.ClearAll
             End Sub
 
-            Public Function StartSearch(title As String, supportsReferences As Boolean) As FindUsagesContext Implements IStreamingFindUsagesPresenter.StartSearch
-                Return _context
+            Public Function StartSearch(title As String, supportsReferences As Boolean) As (FindUsagesContext, CancellationToken) Implements IStreamingFindUsagesPresenter.StartSearch
+                Return (_context, CancellationToken.None)
             End Function
 
-            Public Function StartSearchWithCustomColumns(title As String, supportsReferences As Boolean, includeContainingTypeAndMemberColumns As Boolean, includeKindColumn As Boolean) As FindUsagesContext Implements IStreamingFindUsagesPresenter.StartSearchWithCustomColumns
-                Return _context
+            Public Function StartSearchWithCustomColumns(title As String, supportsReferences As Boolean, includeContainingTypeAndMemberColumns As Boolean, includeKindColumn As Boolean) As (FindUsagesContext, CancellationToken) Implements IStreamingFindUsagesPresenter.StartSearchWithCustomColumns
+                Return (_context, CancellationToken.None)
             End Function
         End Class
     End Class

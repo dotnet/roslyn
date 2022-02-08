@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#pragma warning disable CA1416 // Validate platform compatibility (Windows only APIs)
+
 using System;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// <summary>
         /// The last RCW that was created for the current context.
         /// </summary>
-        private T _rcwForCurrentCtx;
+        private T? _rcwForCurrentCtx;
 
         /// <summary>
         /// Indicates if we created the RCW and therefore need to release it's com reference.
@@ -36,7 +38,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             // the caching behavior of the marshaled pointer. 
             // See RCW::GetComIPForMethodTableFromCache in ndp\clr\src\VM\RuntimeCallableWrapper.cpp
             IntPtr iunknownPtr = Marshal.GetIUnknownForObject(rcw);
-            Object objInCurrentCtx = null;
+            Object? objInCurrentCtx = null;
 
             try
             {

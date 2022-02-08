@@ -32,13 +32,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
     [TagType(typeof(ClassificationTag))]
     internal partial class DiagnosticsClassificationTaggerProvider : AbstractDiagnosticsTaggerProvider<ClassificationTag>
     {
-        private static readonly IEnumerable<Option<bool>> s_tagSourceOptions = new[] { EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Classification, ServiceComponentOnOffOptions.DiagnosticProvider };
+        private static readonly IEnumerable<Option2<bool>> s_tagSourceOptions = ImmutableArray.Create(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Classification);
 
         private readonly ClassificationTypeMap _typeMap;
         private readonly ClassificationTag _classificationTag;
         private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
 
-        protected override IEnumerable<Option<bool>> Options => s_tagSourceOptions;
+        protected override IEnumerable<Option2<bool>> Options => s_tagSourceOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -46,10 +46,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             IThreadingContext threadingContext,
             IDiagnosticService diagnosticService,
             ClassificationTypeMap typeMap,
-            IForegroundNotificationService notificationService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider)
-            : base(threadingContext, diagnosticService, notificationService, listenerProvider.GetListener(FeatureAttribute.Classification))
+            : base(threadingContext, diagnosticService, globalOptions, listenerProvider.GetListener(FeatureAttribute.Classification))
         {
             _typeMap = typeMap;
             _classificationTag = new ClassificationTag(_typeMap.GetClassificationType(ClassificationTypeDefinitions.UnnecessaryCode));
@@ -58,33 +58,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         // If we are under high contrast mode, the editor ignores classification tags that fade things out,
         // because that reduces contrast. Since the editor will ignore them, there's no reason to produce them.
-        protected internal override bool IsEnabled => !_editorOptionsFactoryService.GlobalOptions.GetOptionValue(DefaultTextViewHostOptions.IsInContrastModeId);
+        protected internal override bool IsEnabled
+            => !_editorOptionsFactoryService.GlobalOptions.GetOptionValue(DefaultTextViewHostOptions.IsInContrastModeId);
 
-        protected internal override bool IncludeDiagnostic(DiagnosticData data) =>
-            data.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
+        protected internal override bool IncludeDiagnostic(DiagnosticData data)
+            => data.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary);
 
-        protected internal override ITagSpan<ClassificationTag> CreateTagSpan(bool isLiveUpdate, SnapshotSpan span, DiagnosticData data) =>
-            new TagSpan<ClassificationTag>(span, _classificationTag);
+        protected internal override ITagSpan<ClassificationTag> CreateTagSpan(Workspace workspace, bool isLiveUpdate, SnapshotSpan span, DiagnosticData data)
+            => new TagSpan<ClassificationTag>(span, _classificationTag);
 
         protected internal override ImmutableArray<DiagnosticDataLocation> GetLocationsToTag(DiagnosticData diagnosticData)
         {
-            using var locationsToTagDisposer = PooledObjects.ArrayBuilder<DiagnosticDataLocation>.GetInstance(out var locationsToTag);
-
             // If there are 'unnecessary' locations specified in the property bag, use those instead of the main diagnostic location.
-            if (diagnosticData.AdditionalLocations?.Count > 0
+            if (diagnosticData.AdditionalLocations.Length > 0
                 && diagnosticData.Properties != null
-                && diagnosticData.Properties.TryGetValue(WellKnownDiagnosticTags.Unnecessary, out var unnecessaryIndices))
+                && diagnosticData.Properties.TryGetValue(WellKnownDiagnosticTags.Unnecessary, out var unnecessaryIndices)
+                && unnecessaryIndices is object)
             {
-                var additionalLocations = diagnosticData.AdditionalLocations.ToImmutableArray();
-                var indices = GetLocationIndices(unnecessaryIndices);
-                locationsToTag.AddRange(indices.Select(i => additionalLocations[i]).ToImmutableArray());
-            }
-            else
-            {
-                locationsToTag.Add(diagnosticData.DataLocation);
+                using var _ = PooledObjects.ArrayBuilder<DiagnosticDataLocation>.GetInstance(out var locationsToTag);
+
+                foreach (var index in GetLocationIndices(unnecessaryIndices))
+                    locationsToTag.Add(diagnosticData.AdditionalLocations[index]);
+
+                return locationsToTag.ToImmutable();
             }
 
-            return locationsToTag.ToImmutable();
+            // Default to the base implementation for the diagnostic data
+            return base.GetLocationsToTag(diagnosticData);
 
             static IEnumerable<int> GetLocationIndices(string indicesProperty)
             {
@@ -93,9 +93,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     using var stream = new MemoryStream(Encoding.UTF8.GetBytes(indicesProperty));
                     var serializer = new DataContractJsonSerializer(typeof(IEnumerable<int>));
                     var result = serializer.ReadObject(stream) as IEnumerable<int>;
-                    return result;
+                    return result ?? Array.Empty<int>();
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                catch (Exception e) when (FatalError.ReportAndCatch(e))
                 {
                     return ImmutableArray<int>.Empty;
                 }

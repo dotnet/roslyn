@@ -3,11 +3,11 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Remote.Testing
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
-
-        Dim tuple2 As XCData =
+        Private ReadOnly tuple2 As XCData =
         <![CDATA[
 namespace System
 {
@@ -50,7 +50,6 @@ namespace System
     }
 
         ]]>
-
             <%= tuple2 %>
         </Document>
     </Project>
@@ -103,7 +102,6 @@ namespace System
     }
 
         ]]>
-
             <%= tuple2 %>
         </Document>
     </Project>
@@ -134,7 +132,6 @@ namespace System
     }
 
         ]]>
-
             <%= tuple2 %>
         </Document>
         <Document><![CDATA[
@@ -176,7 +173,6 @@ namespace System
     }
 
         ]]>
-
             <%= tuple2 %>
         </Document>
     </Project>
@@ -203,7 +199,6 @@ namespace System
     }
 
         ]]>
-
             <%= tuple2 %>
         </Document>
     </Project>
@@ -231,7 +226,6 @@ namespace System
     }
 
         ]]>
-
             <%= tuple2 %>
         </Document>
     </Project>
@@ -258,7 +252,6 @@ namespace System
     }
 
         ]]>
-
             <%= tuple2 %>
         </Document>
     </Project>
@@ -285,7 +278,6 @@ namespace System
     }
 
         ]]>
-
             <%= tuple2 %>
         </Document>
     </Project>
@@ -313,7 +305,6 @@ namespace System
     }
 
         ]]>
-
             <%= tuple2 %>
         </Document>
     </Project>
@@ -341,9 +332,81 @@ namespace System
     }
 
         ]]>
-
             <%= tuple2 %>
         </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem(41598, "https://github.com/dotnet/roslyn/issues/41598")>
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestTuplesAcrossCoreAndStandard1(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferencesNetCoreApp="true">
+        <Document><![CDATA[
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+    }
+
+    public [|ValueTuple|]<int, int> Method() => default;
+}
+]]>
+        </Document>
+    </Project>
+    <Project Language="C#" CommonReferencesNetStandard20="true">
+        <Document><![CDATA[
+using System;
+
+class Program
+{
+    static void Test()
+    {
+        $$var a = (1, 1);
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestTuplesUseInSourceGeneratedDocument(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferencesNetCoreApp="true">
+        <Document><![CDATA[
+using System;
+
+partial class Program
+{
+    static void Main(string[] args)
+    {
+    }
+
+    public [|ValueTuple|]<int, int> Method() => default;
+}
+]]>
+        </Document>
+        <DocumentFromSourceGenerator><![CDATA[
+using System;
+
+partial class Program
+{
+    static void Test()
+    {
+        $$var a = (1, 1);
+    }
+}
+]]>
+        </DocumentFromSourceGenerator>
     </Project>
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)

@@ -45,32 +45,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return New AnonymousDelegatePublicSymbol(Me, delegateDescriptor)
         End Function
 
-        ''' <summary>
-        ''' Compares anonymous types
-        ''' </summary>
-        Public Shared Function IsSameType(left As TypeSymbol, right As TypeSymbol, compareKind As TypeCompareKind) As Boolean
-
-            If left.TypeKind <> right.TypeKind Then
-                Return False
-            End If
-
-            Dim leftDescr = DirectCast(left, AnonymousTypeOrDelegatePublicSymbol).TypeDescriptor
-            Dim rightDescr = DirectCast(right, AnonymousTypeOrDelegatePublicSymbol).TypeDescriptor
-
-            If leftDescr.Key <> rightDescr.Key Then
-                Return False
-            End If
-
-            Dim count As Integer = leftDescr.Fields.Length
-            Debug.Assert(count = rightDescr.Fields.Length)
-            For i = 0 To count - 1
-                If Not leftDescr.Fields(i).Type.IsSameType(rightDescr.Fields(i).Type, compareKind) Then
-                    Return False
-                End If
-            Next
-            Return True
-        End Function
-
     End Class
 
 End Namespace

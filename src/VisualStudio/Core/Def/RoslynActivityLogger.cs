@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -23,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices
     /// </summary>
     internal static class RoslynActivityLogger
     {
-        private static readonly object s_gate = new object();
+        private static readonly object s_gate = new();
 
         public static void SetLogger(TraceSource traceSource)
         {
@@ -53,21 +55,10 @@ namespace Microsoft.VisualStudio.LanguageServices
             private const int StartEventId = 1;
             private const int EndEventId = 2;
 
-            private static readonly ImmutableDictionary<FunctionId, string> s_functionIdCache;
-
             public readonly TraceSource TraceSource;
 
-            static TraceSourceLogger()
-            {
-                // build enum to string cache
-                s_functionIdCache =
-                    Enum.GetValues(typeof(FunctionId)).Cast<FunctionId>().ToImmutableDictionary(f => f, f => f.ToString());
-            }
-
             public TraceSourceLogger(TraceSource traceSource)
-            {
-                TraceSource = traceSource;
-            }
+                => TraceSource = traceSource;
 
             public bool IsEnabled(FunctionId functionId)
             {
@@ -76,19 +67,13 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
 
             public void Log(FunctionId functionId, LogMessage logMessage)
-            {
-                TraceSource.TraceData(TraceEventType.Verbose, LogEventId, s_functionIdCache[functionId], logMessage.GetMessage());
-            }
+                => TraceSource.TraceData(TraceEventType.Verbose, LogEventId, functionId.Convert(), logMessage.GetMessage());
 
             public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int uniquePairId, CancellationToken cancellationToken)
-            {
-                TraceSource.TraceData(TraceEventType.Verbose, StartEventId, s_functionIdCache[functionId], uniquePairId);
-            }
+                => TraceSource.TraceData(TraceEventType.Verbose, StartEventId, functionId.Convert(), uniquePairId);
 
             public void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int uniquePairId, int delta, CancellationToken cancellationToken)
-            {
-                TraceSource.TraceData(TraceEventType.Verbose, EndEventId, s_functionIdCache[functionId], uniquePairId, cancellationToken.IsCancellationRequested, delta, logMessage.GetMessage());
-            }
+                => TraceSource.TraceData(TraceEventType.Verbose, EndEventId, functionId.Convert(), uniquePairId, cancellationToken.IsCancellationRequested, delta, logMessage.GetMessage());
         }
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
@@ -11,14 +13,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library
     internal partial class AbstractLibraryManager : IOleCommandTarget
     {
         protected virtual bool TryQueryStatus(Guid commandGroup, uint commandId, ref OLECMDF commandFlags)
-        {
-            return false;
-        }
+            => false;
 
         protected virtual bool TryExec(Guid commandGroup, uint commandId)
-        {
-            return false;
-        }
+            => false;
 
         int IOleCommandTarget.Exec(ref Guid pguidCmdGroup, uint nCmdID, uint nCmdexecopt, IntPtr pvaIn, IntPtr pvaOut)
         {

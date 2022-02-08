@@ -2,28 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
+using System.Diagnostics;
 
 namespace Microsoft.VisualStudio.LanguageServices.Utilities
 {
     internal static class IServiceProviderExtensions
     {
-        /// <summary>
-        /// Returns the specified interface from the service. This is useful when the service and interface differ
-        /// </summary>
-        public static TInterfaceType GetService<TInterfaceType, TServiceType>(this IServiceProvider sp)
-            where TInterfaceType : class
-            where TServiceType : class
+        /// <inheritdoc cref="Shell.ServiceExtensions.GetService{TService, TInterface}(IServiceProvider, bool)"/>
+        public static TInterface GetService<TService, TInterface>(this IServiceProvider sp)
         {
-            return (TInterfaceType)sp.GetService(typeof(TServiceType));
+            var service = (TInterface)sp.GetService(typeof(TService));
+            Debug.Assert(service != null);
+            return service;
         }
 
         /// <summary>
         /// Returns the specified service type from the service.
         /// </summary>
         public static TServiceType GetService<TServiceType>(this IServiceProvider sp) where TServiceType : class
-        {
-            return sp.GetService<TServiceType, TServiceType>();
-        }
+            => sp.GetService<TServiceType, TServiceType>();
     }
 }

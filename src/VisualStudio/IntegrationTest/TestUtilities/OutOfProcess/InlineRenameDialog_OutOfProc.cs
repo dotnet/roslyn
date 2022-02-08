@@ -10,8 +10,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
     public class InlineRenameDialog_OutOfProc : OutOfProcComponent
     {
-        private const string ChangeSignatureDialogAutomationId = "InlineRenameDialog";
-
         public string ValidRenameTag => RenameFieldBackgroundAndBorderTag.TagId;
 
         public InlineRenameDialog_OutOfProc(VisualStudioInstance visualStudioInstance)

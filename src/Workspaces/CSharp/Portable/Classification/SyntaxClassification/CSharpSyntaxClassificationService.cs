@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -38,7 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                     new NameSyntaxClassifier(),
                     new OperatorOverloadSyntaxClassifier(),
                     new SyntaxTokenClassifier(),
-                    new UsingDirectiveSyntaxClassifier()
+                    new UsingDirectiveSyntaxClassifier(),
+                    new DiscardSyntaxClassifier()
                 });
         }
 
@@ -48,8 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         public override void AddLexicalClassifications(SourceText text, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
             => ClassificationHelpers.AddLexicalClassifications(text, textSpan, result, cancellationToken);
 
-        public override void AddSyntacticClassifications(SyntaxTree syntaxTree, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
-            => Worker.CollectClassifiedSpans(syntaxTree.GetRoot(cancellationToken), textSpan, result, cancellationToken);
+        public override void AddSyntacticClassifications(SyntaxNode root, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+            => Worker.CollectClassifiedSpans(root, textSpan, result, cancellationToken);
 
         public override ClassifiedSpan FixClassification(SourceText rawText, ClassifiedSpan classifiedSpan)
             => ClassificationHelpers.AdjustStaleClassification(rawText, classifiedSpan);

@@ -2,18 +2,22 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
-
     /// <summary>
     /// Base type for services that we want to delay running until certain criteria is met.
     /// For example, we don't want to run the <see cref="VisualStudioSymbolSearchService"/> core codepath
@@ -22,31 +26,37 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
     /// </summary>
     internal abstract class AbstractDelayStartedService : ForegroundThreadAffinitizedObject
     {
-        private readonly List<string> _registeredLanguageNames = new List<string>();
+        private readonly List<string> _registeredLanguageNames = new();
 
         protected readonly Workspace Workspace;
+        private readonly IGlobalOptionService _globalOptions;
 
         // Option that controls if this service is enabled or not (regardless of language).
-        private readonly Option<bool> _serviceOnOffOption;
+        private readonly Option2<bool> _globalSwitch;
 
         // Options that control if this service is enabled or not for a particular language.
-        private readonly ImmutableArray<PerLanguageOption<bool>> _perLanguageOptions;
+        private readonly ImmutableArray<PerLanguageOption2<bool>> _perLanguageOptions;
 
         private bool _enabled = false;
+
+        protected CancellationToken DisposalToken { get; }
 
         protected AbstractDelayStartedService(
             IThreadingContext threadingContext,
             Workspace workspace,
-            Option<bool> onOffOption,
-            params PerLanguageOption<bool>[] perLanguageOptions)
+            IGlobalOptionService globalOptions,
+            Option2<bool> globalSwitch,
+            params PerLanguageOption2<bool>[] perLanguageOptions)
             : base(threadingContext)
         {
             Workspace = workspace;
-            _serviceOnOffOption = onOffOption;
+            _globalOptions = globalOptions;
+            _globalSwitch = globalSwitch;
             _perLanguageOptions = perLanguageOptions.ToImmutableArray();
+            DisposalToken = threadingContext.DisposalToken;
         }
 
-        protected abstract void EnableService();
+        protected abstract Task EnableServiceAsync(CancellationToken cancellationToken);
 
         protected abstract void StartWorking();
 
@@ -54,15 +64,14 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         {
             this.AssertIsForeground();
 
-            var options = Workspace.Options;
-            if (!options.GetOption(_serviceOnOffOption))
+            if (!_globalOptions.GetOption(_globalSwitch))
             {
                 // Feature is totally disabled.  Do nothing.
                 return;
             }
 
-            this._registeredLanguageNames.Add(languageName);
-            if (this._registeredLanguageNames.Count == 1)
+            _registeredLanguageNames.Add(languageName);
+            if (_registeredLanguageNames.Count == 1)
             {
                 // Register to hear about option changing.
                 var optionsService = Workspace.Services.GetService<IOptionService>();
@@ -83,16 +92,23 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 return;
             }
 
-            // The first time we see that we're registered for a language, enable the
-            // service.
-            if (!_enabled)
+            var listenerProvider = Workspace.Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
+            var asyncToken = listenerProvider.GetListener().BeginAsyncOperation(nameof(AbstractDelayStartedService.EnableServiceAsync), tag: GetType());
+            var enableAsync = ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
-                _enabled = true;
-                EnableService();
-            }
+                // The first time we see that we're registered for a language, enable the
+                // service.
+                if (!_enabled)
+                {
+                    _enabled = true;
+                    await EnableServiceAsync(ThreadingContext.DisposalToken).ConfigureAwait(true);
+                }
 
-            // Then tell it to start work.
-            StartWorking();
+                // Then tell it to start work.
+                StartWorking();
+            });
+
+            enableAsync.Task.CompletesAsyncOperation(asyncToken);
         }
 
         private bool IsRegisteredForLanguage(string language)

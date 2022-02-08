@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -51,7 +53,6 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
@@ -59,12 +60,11 @@ namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
             var memberAccessNodes = diagnostics.Select(
                 d => (TMemberAccessExpressionSyntax)d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken)).ToSet();
 
-            var newRoot = Rewrite(semanticModel, root, memberAccessNodes);
+            var newRoot = Rewrite(root, memberAccessNodes);
             editor.ReplaceNode(root, newRoot);
         }
 
-        protected abstract SyntaxNode Rewrite(
-            SemanticModel semanticModel, SyntaxNode root, ISet<TMemberAccessExpressionSyntax> memberAccessNodes);
+        protected abstract SyntaxNode Rewrite(SyntaxNode root, ISet<TMemberAccessExpressionSyntax> memberAccessNodes);
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {

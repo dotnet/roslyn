@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -14,7 +12,7 @@ namespace Roslyn.Utilities
     {
         private static partial class Singleton
         {
-            internal sealed class List<T> : IList<T>, IReadOnlyCollection<T>
+            internal sealed class List<T> : IReadOnlyList<T>, IList<T>, IReadOnlyCollection<T>
             {
                 private readonly T _loneValue;
 

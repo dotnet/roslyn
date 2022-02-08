@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract CompilationReference WithPropertiesImpl(MetadataReferenceProperties properties);
 
-        public override string Display
+        public override string? Display
         {
             get
             {
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public bool Equals(CompilationReference other)
+        public bool Equals(CompilationReference? other)
         {
             if (other == null)
             {
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis
             return object.Equals(this.Compilation, other.Compilation) && object.Equals(this.Properties, other.Properties);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return Equals(obj as CompilationReference);
         }

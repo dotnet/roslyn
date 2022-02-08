@@ -27,12 +27,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         //we want to compute this lazily since it may be expensive for the underlying symbol
         private ImmutableArray<EventSymbol> _lazyExplicitInterfaceImplementations;
 
-        private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
+        private CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
 
         public RetargetingEventSymbol(RetargetingModuleSymbol retargetingModule, EventSymbol underlyingEvent)
             : base(underlyingEvent)
         {
-            Debug.Assert((object)retargetingModule != null);
+            RoslynDebug.Assert((object)retargetingModule != null);
             Debug.Assert(!(underlyingEvent is RetargetingEventSymbol));
 
             _retargetingModule = retargetingModule;
@@ -54,31 +54,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        public override MethodSymbol AddMethod
+        public override MethodSymbol? AddMethod
         {
             get
             {
-                return (object)_underlyingEvent.AddMethod == null
+                return (object?)_underlyingEvent.AddMethod == null
                     ? null
                     : this.RetargetingTranslator.Retarget(_underlyingEvent.AddMethod);
             }
         }
 
-        public override MethodSymbol RemoveMethod
+        public override MethodSymbol? RemoveMethod
         {
             get
             {
-                return (object)_underlyingEvent.RemoveMethod == null
+                return (object?)_underlyingEvent.RemoveMethod == null
                     ? null
                     : this.RetargetingTranslator.Retarget(_underlyingEvent.RemoveMethod);
             }
         }
 
-        internal override FieldSymbol AssociatedField
+        internal override FieldSymbol? AssociatedField
         {
             get
             {
-                return (object)_underlyingEvent.AssociatedField == null
+                return (object?)_underlyingEvent.AssociatedField == null
                     ? null
                     : this.RetargetingTranslator.Retarget(_underlyingEvent.AssociatedField);
             }
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             for (int i = 0; i < impls.Length; i++)
             {
                 var retargeted = this.RetargetingTranslator.Retarget(impls[i]);
-                if ((object)retargeted != null)
+                if ((object?)retargeted != null)
                 {
                     builder.Add(retargeted);
                 }
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return builder.ToImmutableAndFree();
         }
 
-        public override Symbol ContainingSymbol
+        public override Symbol? ContainingSymbol
         {
             get
             {
@@ -171,19 +171,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        internal override DiagnosticInfo GetUseSiteDiagnostic()
+        internal override UseSiteInfo<AssemblySymbol> GetUseSiteInfo()
         {
-            if (ReferenceEquals(_lazyUseSiteDiagnostic, CSDiagnosticInfo.EmptyErrorInfo))
+            if (!_lazyCachedUseSiteInfo.IsInitialized)
             {
-                DiagnosticInfo result = null;
+                AssemblySymbol primaryDependency = PrimaryDependency;
+                var result = new UseSiteInfo<AssemblySymbol>(primaryDependency);
                 CalculateUseSiteDiagnostic(ref result);
-                _lazyUseSiteDiagnostic = result;
+                _lazyCachedUseSiteInfo.Initialize(primaryDependency, result);
             }
 
-            return _lazyUseSiteDiagnostic;
+            return _lazyCachedUseSiteInfo.ToUseSiteInfo(PrimaryDependency);
         }
 
-        internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
+        internal sealed override CSharpCompilation? DeclaringCompilation // perf, not correctness
         {
             get { return null; }
         }

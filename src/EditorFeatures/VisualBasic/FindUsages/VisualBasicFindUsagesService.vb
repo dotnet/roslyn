@@ -4,7 +4,6 @@
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Editor.FindUsages
-Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.FindUsages
@@ -14,8 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.FindUsages
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(threadingContext As IThreadingContext)
-            MyBase.New(threadingContext)
+        Public Sub New()
         End Sub
     End Class
 End Namespace

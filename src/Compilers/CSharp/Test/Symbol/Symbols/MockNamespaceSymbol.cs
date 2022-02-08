@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -12,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     internal class MockNamespaceSymbol : NamespaceSymbol, IMockSymbol
     {
         private NamespaceSymbol _container;
-        private NamespaceExtent _extent;
+        private readonly NamespaceExtent _extent;
         private readonly IEnumerable<Symbol> _children;
         private readonly string _name;
 

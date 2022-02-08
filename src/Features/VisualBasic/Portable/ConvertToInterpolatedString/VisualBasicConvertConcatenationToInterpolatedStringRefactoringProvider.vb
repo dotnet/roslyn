@@ -5,24 +5,21 @@
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.ConvertToInterpolatedString
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertToInterpolatedString
-    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ExtractMethod), [Shared]>
+    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ConvertConcatenationToInterpolatedString), [Shared]>
     Friend Class VisualBasicConvertConcatenationToInterpolatedStringRefactoringProvider
         Inherits AbstractConvertConcatenationToInterpolatedStringRefactoringProvider(Of ExpressionSyntax)
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
-        Protected Overrides Function CreateInterpolatedStringStartToken(isVerbatim As Boolean) As SyntaxToken
-            Return SyntaxFactory.Token(SyntaxKind.DollarSignDoubleQuoteToken)
-        End Function
-
-        Protected Overrides Function CreateInterpolatedStringEndToken() As SyntaxToken
-            Return SyntaxFactory.Token(SyntaxKind.DoubleQuoteToken)
+        Protected Overrides Function SupportsConstantInterpolatedStrings(document As Document) As Boolean
+            Return False
         End Function
 
         Protected Overrides Function GetTextWithoutQuotes(text As String, isVerbatim As Boolean, isCharacterLiteral As Boolean) As String

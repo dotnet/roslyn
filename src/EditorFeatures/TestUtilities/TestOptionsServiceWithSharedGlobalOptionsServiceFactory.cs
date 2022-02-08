@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
-using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
@@ -20,16 +20,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     /// This mimics the real product scenarios where all workspaces share the same global options service.
     /// Note that majority of unit tests use <see cref="TestOptionsServiceFactory"/> instead of this factory to ensure options isolation between each test.
     /// </summary>
-    [ExportWorkspaceServiceFactory(typeof(IOptionService), TestWorkspaceName.NameWithSharedGlobalOptions), Shared]
+    [ExportWorkspaceServiceFactory(typeof(IOptionService), ServiceLayer.Test), Shared, PartNotDiscoverable]
     internal class TestOptionsServiceWithSharedGlobalOptionsServiceFactory : IWorkspaceServiceFactory
     {
         private readonly IGlobalOptionService _globalOptionService;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestOptionsServiceWithSharedGlobalOptionsServiceFactory(
+            [Import(AllowDefault = true)] IWorkspaceThreadingService? workspaceThreadingService,
             [ImportMany] IEnumerable<Lazy<IOptionProvider, LanguageMetadata>> optionProviders)
         {
-            _globalOptionService = new GlobalOptionService(optionProviders.ToImmutableArray(), SpecializedCollections.EmptyEnumerable<Lazy<IOptionPersister>>());
+            _globalOptionService = new GlobalOptionService(workspaceThreadingService, optionProviders.ToImmutableArray(), SpecializedCollections.EmptyEnumerable<Lazy<IOptionPersisterProvider>>());
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)

@@ -3,19 +3,21 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-
-#if CODE_STYLE
-using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
-#endif
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Options
 {
+    /// <inheritdoc cref="OptionKey2"/>
+    [NonDefaultable]
     public readonly struct OptionKey : IEquatable<OptionKey>
     {
+        /// <inheritdoc cref="OptionKey2.Option"/>
         public IOption Option { get; }
-        public string Language { get; }
 
-        public OptionKey(IOption option, string language = null)
+        /// <inheritdoc cref="OptionKey2.Language"/>
+        public string? Language { get; }
+
+        public OptionKey(IOption option, string? language = null)
         {
             if (language != null && !option.IsPerLanguage)
             {
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Options
             this.Language = language;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is OptionKey key &&
                    Equals(key);
@@ -38,7 +40,19 @@ namespace Microsoft.CodeAnalysis.Options
 
         public bool Equals(OptionKey other)
         {
-            return Option == other.Option && Language == other.Language;
+            return OptionEqual(Option, other.Option) && Language == other.Language;
+
+            static bool OptionEqual(IOption thisOption, IOption otherOption)
+            {
+                if (thisOption is not IOption2 thisOption2 ||
+                    otherOption is not IOption2 otherOption2)
+                {
+                    // Third party definition of 'IOption'.
+                    return thisOption.Equals(otherOption);
+                }
+
+                return thisOption2.Equals(otherOption2);
+            }
         }
 
         public override int GetHashCode()
@@ -68,13 +82,9 @@ namespace Microsoft.CodeAnalysis.Options
         }
 
         public static bool operator ==(OptionKey left, OptionKey right)
-        {
-            return left.Equals(right);
-        }
+            => left.Equals(right);
 
         public static bool operator !=(OptionKey left, OptionKey right)
-        {
-            return !left.Equals(right);
-        }
+            => !left.Equals(right);
     }
 }

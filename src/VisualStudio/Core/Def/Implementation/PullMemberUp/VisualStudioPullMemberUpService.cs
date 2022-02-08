@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.  
 
+#nullable disable
+
+using System;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -13,6 +16,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
@@ -21,13 +25,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
     internal class VisualStudioPullMemberUpService : IPullMemberUpOptionsService
     {
         private readonly IGlyphService _glyphService;
-        private readonly IWaitIndicator _waitIndicator;
+        private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
 
         [ImportingConstructor]
-        public VisualStudioPullMemberUpService(IGlyphService glyphService, IWaitIndicator waitIndicator)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VisualStudioPullMemberUpService(IGlyphService glyphService, IUIThreadOperationExecutor uiThreadOperationExecutor)
         {
             _glyphService = glyphService;
-            _waitIndicator = waitIndicator;
+            _uiThreadOperationExecutor = uiThreadOperationExecutor;
         }
 
         public PullMembersUpOptions GetPullMemberUpOptions(Document document, ISymbol selectedMember)
@@ -50,9 +55,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp
                 _glyphService,
                 document.Project.Solution,
                 selectedMember.ContainingType,
-                cancellationTokenSource.Token).BaseTypeNodes;
+                cancellationTokenSource.Token);
             var memberToDependentsMap = SymbolDependentsBuilder.FindMemberToDependentsMap(membersInType, document.Project, cancellationTokenSource.Token);
-            var viewModel = new PullMemberUpDialogViewModel(_waitIndicator, memberViewModels, baseTypeRootViewModel, memberToDependentsMap);
+            var viewModel = new PullMemberUpDialogViewModel(_uiThreadOperationExecutor, memberViewModels, baseTypeRootViewModel, memberToDependentsMap);
             var dialog = new PullMemberUpDialog(viewModel);
             var result = dialog.ShowModal();
 

@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             // identified after a short timeout, none is returned. This only impacts the ability of the test to restore
             // focus to a previous window, which is fine.
 
-            var foregroundWindow = IntPtr.Zero;
+            IntPtr foregroundWindow;
             var stopwatch = Stopwatch.StartNew();
 
             do
@@ -177,7 +177,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
         }
 
-        public static void SetForegroundWindow(IntPtr window)
+        public static bool TrySetForegroundWindow(IntPtr window)
         {
             var activeWindow = NativeMethods.GetLastActivePopup(window);
             activeWindow = NativeMethods.IsWindowVisible(activeWindow) ? activeWindow : window;
@@ -213,9 +213,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 if (!NativeMethods.SetForegroundWindow(activeWindow))
                 {
-                    throw new InvalidOperationException("Failed to set the foreground window.");
+                    return false;
                 }
             }
+
+            return true;
         }
 
         public static void SendInput(NativeMethods.INPUT[] inputs)
@@ -334,7 +336,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         private static void AppendPrintableChar(char ch, StringBuilder builder)
         {
-            string text = GetPrintableCharText(ch);
+            var text = GetPrintableCharText(ch);
 
             if (text != null)
             {
@@ -344,7 +346,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
         }
 
-        private static string GetPrintableCharText(char ch)
+        private static string? GetPrintableCharText(char ch)
         {
             switch (ch)
             {
@@ -402,10 +404,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         }
 
         /// <summary>Locates the DTE object for the specified process.</summary>
-        public static DTE TryLocateDteForProcess(Process process)
+        public static DTE? TryLocateDteForProcess(Process process)
         {
-            object dte = null;
-            var monikers = new IMoniker[1];
+            object? dte = null;
+            var monikers = new IMoniker?[1];
 
             NativeMethods.GetRunningObjectTable(0, out var runningObjectTable);
             runningObjectTable.EnumRunning(out var enumMoniker);
@@ -414,8 +416,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             do
             {
                 monikers[0] = null;
-
-                var hresult = enumMoniker.Next(1, monikers, out var monikersFetched);
+                var hresult = enumMoniker.Next(1, monikers, out _);
 
                 if (hresult == VSConstants.S_FALSE)
                 {
@@ -428,6 +429,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 }
 
                 var moniker = monikers[0];
+                Contract.ThrowIfNull(moniker);
+
                 moniker.GetDisplayName(bindContext, null, out var fullDisplayName);
 
                 // FullDisplayName will look something like: <ProgID>:<ProcessId>
@@ -449,6 +452,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         }
 
         public static async Task WaitForResultAsync<T>(Func<T> action, T expectedResult)
+            where T : notnull
         {
             while (!action().Equals(expectedResult))
             {
@@ -456,7 +460,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
         }
 
-        public static async Task<T> WaitForNotNullAsync<T>(Func<T> action) where T : class
+        public static async Task<T> WaitForNotNullAsync<T>(Func<T?> action) where T : class
         {
             var result = action();
 

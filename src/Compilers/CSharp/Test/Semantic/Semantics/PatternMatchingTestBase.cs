@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +14,8 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Roslyn.Utilities;
+using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -168,6 +172,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)declarator));
             Assert.NotEqual(symbol, model.LookupSymbols(declarator.SpanStart, name: declarator.Identifier.ValueText).Single());
             Assert.True(model.LookupNames(declarator.SpanStart).Contains(declarator.Identifier.ValueText));
+        }
+
+        internal static void VerifyModelForDuplicateVariableDeclarationInSameScope(
+            SemanticModel model,
+            SingleVariableDesignationSyntax designation,
+            LocalDeclarationKind kind = LocalDeclarationKind.PatternVariable)
+        {
+            var symbol = model.GetDeclaredSymbol(designation);
+            Assert.Equal(designation.Identifier.ValueText, symbol.Name);
+            Assert.Equal(designation, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
+            Assert.Equal(kind, symbol.GetSymbol<LocalSymbol>().DeclarationKind);
+            Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)designation));
+            Assert.NotEqual(symbol, model.LookupSymbols(designation.SpanStart, name: designation.Identifier.ValueText).Single());
+            Assert.True(model.LookupNames(designation.SpanStart).Contains(designation.Identifier.ValueText));
         }
 
         protected static void VerifyNotAPatternField(SemanticModel model, IdentifierNameSyntax reference)
@@ -403,10 +421,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         protected CSharpCompilation CreatePatternCompilation(string source, CSharpCompilationOptions options = null)
         {
-            return CreateCompilation(new[] { source, _iTupleSource }, options: options ?? TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            return CreateCompilation(new[] { source, _iTupleSource }, options: options ?? TestOptions.DebugExe, parseOptions: TestOptions.RegularWithPatternCombinators);
         }
 
-        private const string _iTupleSource = @"
+        protected const string _iTupleSource = @"
 namespace System.Runtime.CompilerServices
 {
     public interface ITuple
@@ -416,7 +434,32 @@ namespace System.Runtime.CompilerServices
     }
 }
 ";
+        protected static void AssertEmpty(SymbolInfo info)
+        {
+            Assert.NotEqual(default, info);
+            Assert.Null(info.Symbol);
+            Assert.Equal(CandidateReason.None, info.CandidateReason);
+        }
 
+        protected static void VerifyDecisionDagDump<T>(Compilation comp, string expectedDecisionDag, int index = 0)
+            where T : CSharpSyntaxNode
+        {
+#if DEBUG
+            var tree = comp.SyntaxTrees.First();
+            var node = tree.GetRoot().DescendantNodes().OfType<T>().ElementAt(index);
+            var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
+            var binder = model.GetEnclosingBinder(node.SpanStart);
+            var decisionDag = node switch
+            {
+                SwitchStatementSyntax n => ((BoundSwitchStatement)binder.BindStatement(n, BindingDiagnosticBag.Discarded)).ReachabilityDecisionDag,
+                SwitchExpressionSyntax n => ((BoundSwitchExpression)binder.BindExpression(n, BindingDiagnosticBag.Discarded)).ReachabilityDecisionDag,
+                IsPatternExpressionSyntax n => ((BoundIsPatternExpression)binder.BindExpression(n, BindingDiagnosticBag.Discarded)).ReachabilityDecisionDag,
+                var v => throw ExceptionUtilities.UnexpectedValue(v)
+            };
+
+            AssertEx.Equal(expectedDecisionDag, decisionDag.Dump());
+#endif
+        }
         #endregion helpers
     }
 }

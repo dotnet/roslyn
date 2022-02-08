@@ -3,21 +3,25 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
-    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicConvertAutoPropertyToFullPropertyCodeRefactoringProvider)), [Shared]>
+    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.ConvertAutoPropertyToFullProperty), [Shared]>
     Friend Class VisualBasicConvertAutoPropertyToFullPropertyCodeRefactoringProvider
-        Inherits AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider(Of PropertyStatementSyntax, TypeBlockSyntax)
+        Inherits AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider(Of PropertyStatementSyntax, TypeBlockSyntax, VisualBasicCodeGenerationPreferences)
 
         Private Const Underscore As String = "_"
 
         <ImportingConstructor>
+        <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
 
@@ -30,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
             Return Task.FromResult(Underscore + propertySymbol.Name)
         End Function
 
-        Friend Overrides Function GetNewAccessors(options As DocumentOptionSet, propertyNode As SyntaxNode,
+        Friend Overrides Function GetNewAccessors(preferences As VisualBasicCodeGenerationPreferences, propertyNode As SyntaxNode,
             fieldName As String, generator As SyntaxGenerator) _
             As (newGetAccessor As SyntaxNode, newSetAccessor As SyntaxNode)
 
@@ -57,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
             Return (getAccessor, setAccessor)
         End Function
 
-        Private Function IsReadOnly(propertySyntax As PropertyStatementSyntax) As Boolean
+        Private Shared Function IsReadOnly(propertySyntax As PropertyStatementSyntax) As Boolean
             Dim modifiers = propertySyntax.GetModifiers()
             For Each modifier In modifiers
                 If modifier.IsKind(SyntaxKind.ReadOnlyKeyword) Then
@@ -76,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
             Return DirectCast(propertyNode, PropertyStatementSyntax).Initializer?.Value
         End Function
 
-        Friend Overrides Function ConvertPropertyToExpressionBodyIfDesired(options As DocumentOptionSet, propertyNode As SyntaxNode) As SyntaxNode
+        Friend Overrides Function ConvertPropertyToExpressionBodyIfDesired(preferences As VisualBasicCodeGenerationPreferences, propertyNode As SyntaxNode) As SyntaxNode
             Return propertyNode
         End Function
 

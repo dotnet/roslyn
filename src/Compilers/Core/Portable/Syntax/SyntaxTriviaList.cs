@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
     {
         public static SyntaxTriviaList Empty => default(SyntaxTriviaList);
 
-        internal SyntaxTriviaList(in SyntaxToken token, GreenNode node, int position, int index = 0)
+        internal SyntaxTriviaList(in SyntaxToken token, GreenNode? node, int position, int index = 0)
         {
             Token = token;
             Node = node;
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis
             Index = index;
         }
 
-        internal SyntaxTriviaList(in SyntaxToken token, GreenNode node)
+        internal SyntaxTriviaList(in SyntaxToken token, GreenNode? node)
         {
             Token = token;
             Node = node;
@@ -60,12 +60,12 @@ namespace Microsoft.CodeAnalysis
         /// Creates a list of trivia.
         /// </summary>
         /// <param name="trivias">A sequence of trivia.</param>
-        public SyntaxTriviaList(IEnumerable<SyntaxTrivia> trivias)
+        public SyntaxTriviaList(IEnumerable<SyntaxTrivia>? trivias)
             : this(default, SyntaxTriviaListBuilder.Create(trivias).Node, 0, 0)
         {
         }
 
-        private static GreenNode CreateNode(SyntaxTrivia[] trivias)
+        private static GreenNode? CreateNode(SyntaxTrivia[]? trivias)
         {
             if (trivias == null)
             {
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis
 
         internal SyntaxToken Token { get; }
 
-        internal GreenNode Node { get; }
+        internal GreenNode? Node { get; }
 
         internal int Position { get; }
 
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis
 
             var list = this.ToList();
             list.RemoveAt(index);
-            return new SyntaxTriviaList(default(SyntaxToken), Node.CreateList(list.Select(n => n.UnderlyingNode)), 0, 0);
+            return new SyntaxTriviaList(default(SyntaxToken), GreenNode.CreateList(list, static n => n.RequiredUnderlyingNode), 0, 0);
         }
 
         /// <summary>
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis
                 var list = this.ToList();
                 list.RemoveAt(index);
                 list.InsertRange(index, newTrivia);
-                return new SyntaxTriviaList(default(SyntaxToken), Node.CreateList(list.Select(n => n.UnderlyingNode)), 0, 0);
+                return new SyntaxTriviaList(default(SyntaxToken), GreenNode.CreateList(list, static n => n.RequiredUnderlyingNode), 0, 0);
             }
 
             throw new ArgumentOutOfRangeException(nameof(triviaInList));
@@ -429,12 +429,13 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// get the green node at the specific slot
         /// </summary>
-        private GreenNode GetGreenNodeAt(int i)
+        private GreenNode? GetGreenNodeAt(int i)
         {
+            Debug.Assert(Node is object);
             return GetGreenNodeAt(Node, i);
         }
 
-        private static GreenNode GetGreenNodeAt(GreenNode node, int i)
+        private static GreenNode? GetGreenNodeAt(GreenNode node, int i)
         {
             Debug.Assert(node.IsList || (i == 0 && !node.IsList));
             return node.IsList ? node.GetSlot(i) : node;
@@ -455,9 +456,9 @@ namespace Microsoft.CodeAnalysis
             return !left.Equals(right);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
-            return (obj is SyntaxTriviaList) && Equals((SyntaxTriviaList)obj);
+            return (obj is SyntaxTriviaList list) && Equals(list);
         }
 
         public override int GetHashCode()

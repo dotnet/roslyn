@@ -33,7 +33,9 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Show diagnostics for closed files;
+        <source>Underline reassigned variables;
+Display inline hints;
+Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
 Report invalid regular expressions;
@@ -78,53 +80,66 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
-Use enhanced colors;</source>
-        <target state="translated">Mostrar diagnósticos de arquivos fechados;
+Colorize regular expressions;
+Highlight related components under cursor;
+Report invalid regular expressions;
+JSON;
+Colorize JSON strings;
+Report invalid JSON strings;
+Detect and offer editor features for JSON strings;
+Use enhanced colors;
+Editor Color Scheme;
+Inheritance Margin;</source>
+        <target state="needs-review-translation">Variáveis reatribuídas de sublinhado;
+Exibir as dicas embutidas;
+Mostrar os diagnósticos de arquivos fechados;
 Colorir a expressão regular; 
-Realçar os componentes relacionados sob o cursor; 
-Relatar expressões regulares inválidas;
+Realçar os componentes relacionados sob o cursor;
+Relatar as expressões regulares inválidas;
 Habilitar a análise completa da solução;
-Executar análise de recurso do editor em processo externo;
+Executar a análise de recurso do editor em processo externo;
 Habilitar a navegação para fontes decompiladas;
 Diretivas using;
 Colocar as diretivas do sistema primeiro ao classificar usings;
-Separar grupos de diretiva using;
+Separar grupos de diretivas using;
 Sugerir usings para tipos em assemblies de referência;
 Sugerir usings para tipos em pacotes NuGet;
 Realce;
-Realçar as referências a símbolo sob o cursor;
-Realçar as palavras-chave relacionadas sob o cursor;
+Realçar as referências ao símbolo sob o cursor
+;Realçar as palavras-chave relacionadas sob o cursor;
 Estrutura de tópicos;
-Inserir modo de estrutura de tópicos quando os arquivos são abertos;
+Entrar no modo de estrutura de tópicos quando os arquivos são abertos;
 Mostrar separadores de linha de procedimento;
-Mostrar estrutura de tópicos para constructos de nível de declaração;
-Mostrar estrutura de tópicos para constructos de nível de código;
-Mostrar estrutura de tópicos para comentários e regiões de pré-processador;
-Recolher regiões ao recolher definições;
-Esmaecendo;
-Esmaecer usings não usadas;
-Esmaecer código inacessível;
-Bloquear Guias de Estrutura;
-Mostrar guias para constructos de nível de declaração;
-Mostrar guias de constructos de nível de código;
+Mostrar a estrutura de tópicos para constructos no nível da declaração;
+Mostrar a estrutura de tópicos para constructos no nível do código;
+Mostrar a estrutura de tópicos para comentários e regiões de pré-processador;
+Recolher as regiões ao recolher as definições;
+Esmaecimento;
+Esmaecer as usings não usadas;
+Esmaecer o código inacessível;
+Bloquear as Guias de Estrutura;
+Mostrar as guias de constructos no nível da declaração;
+Mostrar as guias de constructos no nível do código;
 Ajuda do Editor;
 Gerar comentários da documentação XML para ///;
-Inserir * no início de novas linhas ao escrever /* */ comentários;
-Mostrar visualização para acompanhamento de renomeação;
-Dividir literais de cadeia de caracteres ao pressionar Enter;
-Relatar espaços reservados inválidos nas chamadas a string.Format;
-Extrair Método;
-Não colocar ref ou out na estrutura personalizada;
-Implementar a Classe Interface ou Abstrata;
+Inserir * no início de novas linhas ao escrever comentários de /* */;
+Mostrar a visualização para acompanhamento de renomeação;
+Dividir os literais de cadeia de caracteres ao pressionar Enter;
+Relatar os espaços reservados inválidos nas chamadas a string.Format;
+Extrair o Método;
+Não colocar ref nem out no struct personalizado;
+Implementar a Classe de Interface ou Abstrata;
 Ao inserir propriedades, eventos e métodos, colocá-los;
 com outros membros do mesmo tipo;
 no fim;
-Ao gerar propriedade;
+Ao gerar uma propriedade;
 preferir propriedades de lançamento;
 preferir propriedades automáticas;
 regex;
 expressão regular;
-Usar cores avançadas;</target>
+Usar cores avançadas;
+Esquema de Cores do Editor;
+Margem de herança;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -272,8 +287,10 @@ Inserir espaço antes e depois dos operadores binários;</target>
         <source>Change completion list settings;Pre-select most recently used member; Completion Lists;
 Show completion list after a character is typed;
 Show completion list after a character is deleted;
+Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
+Automatically complete statement on semicolon;
 Snippets behavior;
 Never include snippets;
 Always include snippets;
@@ -282,21 +299,25 @@ Enter key behavior;
 Never add new line on enter;
 Only add new line on enter after end of fully typed word;
 Always add new line on enter;
-Show name suggestions;</source>
-        <target state="translated">Alterar configurações da lista de conclusão;Pré-selecionar o membro usado mais recentemente; Listas de conclusão;
-Mostrar lista de conclusão após um caractere ser digitado;
-Mostrar lista de conclusão após um caractere ser excluído;
+Show name suggestions;
+Show items from unimported namespaces (experimental);</source>
+        <target state="translated">Alterar as configurações da lista de conclusão;Pré-selecionar o membro usado mais recentemente; Listas de Conclusão;
+Mostrar a lista de conclusão após a digitação de um caractere;
+Mostrar a lista de conclusão após a exclusão de um caractere;
+Mostrar automaticamente a lista de conclusão nas listas de argumentos (experimental);
 Realçar as partes correspondentes dos itens da lista de conclusão;
-Mostrar filtros de itens de conclusão;
-Comportamento de trechos;
-Nunca incluir trechos;
-Sempre incluir trechos;
-Incluir trechos quando? –Tab é digitado após um identificador;
-Inserir o comportamento chave;
-Nunca adicionar nova linha ao inserir;
-Apenas adicionar uma nova linha ao inserir após o final da palavra totalmente digitada;
-Sempre adicionar nova linha ao inserir;
-Mostrar sugestões de nomes;</target>
+Mostrar os filtros de itens de conclusão;
+Concluir a instrução automaticamente no ponto e vírgula;
+Comportamento de snippets;
+Nunca incluir snippets;
+Sempre incluir snippets;
+Incluir snippets quando ?-Tab é digitado após um identificador;
+Comportamento da tecla Enter;
+Nunca adicionar uma nova linha ao pressionar Enter;
+Apenas adicionar uma nova linha ao pressionar Enter depois que a palavra é digitada completamente;
+Sempre adicionar uma nova linha ao pressionar Enter;
+Mostrar sugestões de nomes;
+Mostrar itens de namespaces não importados (experimental);</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">

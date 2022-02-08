@@ -2,21 +2,38 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Immutable;
+using System.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.CodeAnalysis.Storage
 {
-    internal static class StorageOptions
+    [ExportSolutionOptionProvider, Shared]
+    internal sealed class StorageOptions : IOptionProvider
     {
-        public const string OptionName = "FeatureManager/Storage";
+        internal const string LocalRegistryPath = @"Roslyn\Internal\OnOff\Features\";
 
-        public static readonly Option<StorageDatabase> Database = new Option<StorageDatabase>(
-            OptionName, nameof(Database), defaultValue: StorageDatabase.SQLite);
+        private const string FeatureName = "FeatureManager/Storage";
 
-        /// <summary>
-        /// Solution size threshold to start to use a DB (Default: 50MB)
-        /// </summary>
-        public static readonly Option<int> SolutionSizeThreshold = new Option<int>(
-            OptionName, nameof(SolutionSizeThreshold), defaultValue: 50 * 1024 * 1024);
+        public static readonly Option2<StorageDatabase> Database = new(
+            FeatureName, nameof(Database), defaultValue: StorageDatabase.SQLite,
+            new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(Database)));
+
+        public static readonly Option2<bool> CloudCacheFeatureFlag = new(
+            FeatureName, nameof(CloudCacheFeatureFlag), defaultValue: false,
+            new FeatureFlagStorageLocation("Roslyn.CloudCache3"));
+
+        ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
+            Database,
+            CloudCacheFeatureFlag);
+
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public StorageOptions()
+        {
+        }
     }
 }

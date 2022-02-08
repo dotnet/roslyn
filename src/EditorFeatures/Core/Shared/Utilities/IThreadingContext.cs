@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
@@ -43,5 +46,29 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         {
             get;
         }
+
+        /// <summary>
+        /// Gets a <see cref="CancellationToken"/> indicating that disposal has been requested for the threading
+        /// context.
+        /// </summary>
+        CancellationToken DisposalToken
+        {
+            get;
+        }
+
+        /// <summary>
+        /// Runs an asynchronous operation. If the operation is not complete prior to the time the threading context is
+        /// disposed, the operation will block the shutdown.
+        /// </summary>
+        /// <remarks>
+        /// <para>The callback function <paramref name="func"/> is invoked synchronously prior to this method returning.
+        /// The entire asynchronous operation performed by <paramref name="func"/> will block shutdown of the threading
+        /// context.</para>
+        ///
+        /// <para>If the threading context is already disposed at the time this is called, the operation is cancelled
+        /// without calling <paramref name="func"/>.</para>
+        /// </remarks>
+        /// <param name="func">The callback function that performs an asynchronous operation.</param>
+        JoinableTask RunWithShutdownBlockAsync(Func<CancellationToken, Task> func);
     }
 }

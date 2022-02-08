@@ -2,14 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.GraphModel;
+using Microsoft.VisualStudio.GraphModel.CodeSchema;
 using Microsoft.VisualStudio.GraphModel.Schemas;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Progression;
@@ -23,6 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         private readonly IThreadingContext _threadingContext;
         private readonly IGlyphService _glyphService;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IAsynchronousOperationListener _asyncListener;
         private readonly Workspace _workspace;
         private readonly GraphQueryManager _graphQueryManager;
 
@@ -38,9 +43,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             _threadingContext = threadingContext;
             _glyphService = glyphService;
             _serviceProvider = serviceProvider;
-            var asyncListener = listenerProvider.GetListener(FeatureAttribute.GraphProvider);
+            _asyncListener = listenerProvider.GetListener(FeatureAttribute.GraphProvider);
             _workspace = workspace;
-            _graphQueryManager = new GraphQueryManager(workspace, asyncListener);
+            _graphQueryManager = new GraphQueryManager(workspace, _asyncListener);
         }
 
         private void EnsureInitialized()
@@ -55,7 +60,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             _initialized = true;
         }
 
-        internal static List<IGraphQuery> GetGraphQueries(IGraphContext context)
+        internal static List<IGraphQuery> GetGraphQueries(
+            IGraphContext context,
+            IThreadingContext threadingContext,
+            IAsynchronousOperationListener asyncListener)
         {
             var graphQueries = new List<IGraphQuery>();
 
@@ -129,10 +137,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 if (searchParameters != null)
                 {
-                    // WARNING: searchParameters.SearchQuery returns an IVsSearchQuery object, which
-                    // is a COM type. Therefore, it's probably best to grab the values we want now
-                    // rather than get surprised by COM marshalling later.
-                    graphQueries.Add(new SearchGraphQuery(searchParameters.SearchQuery.SearchString));
+                    // WARNING: searchParameters.SearchQuery returns an IVsSearchQuery object, which is a COM type.
+                    // Therefore, it's probably best to grab the values we want now rather than get surprised by COM
+                    // marshalling later.
+                    //
+                    // Create two queries.  One to find results in normal docs, and one to find results in generated
+                    // docs.  That way if the generated docs take a long time we can still report the regular doc
+                    // results immediately.
+                    graphQueries.Add(new SearchGraphQuery(searchParameters.SearchQuery.SearchString, NavigateToSearchScope.RegularDocuments, threadingContext, asyncListener));
+                    graphQueries.Add(new SearchGraphQuery(searchParameters.SearchQuery.SearchString, NavigateToSearchScope.GeneratedDocuments, threadingContext, asyncListener));
                 }
             }
 
@@ -143,7 +156,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         {
             EnsureInitialized();
 
-            var graphQueries = GetGraphQueries(context);
+            var graphQueries = GetGraphQueries(context, _threadingContext, _asyncListener);
 
             if (graphQueries.Count > 0)
             {
@@ -298,78 +311,66 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
         }
 
-        private bool IsOverridable(GraphNode node)
+        private static bool IsOverridable(GraphNode node)
         {
             var modifiers = GetModifiers(node);
             return (modifiers.IsVirtual || modifiers.IsAbstract || modifiers.IsOverride) &&
                 !modifiers.IsSealed;
         }
 
-        private DeclarationModifiers GetModifiers(GraphNode node)
-        {
-            return (DeclarationModifiers)node[RoslynGraphProperties.SymbolModifiers];
-        }
+        private static DeclarationModifiers GetModifiers(GraphNode node)
+            => (DeclarationModifiers)node[RoslynGraphProperties.SymbolModifiers];
 
-        private bool CheckAccessibility(GraphNode node, Accessibility accessibility)
-        {
-            return node[RoslynGraphProperties.DeclaredAccessibility].Equals(accessibility);
-        }
+        private static bool CheckAccessibility(GraphNode node, Accessibility accessibility)
+            => node[RoslynGraphProperties.DeclaredAccessibility].Equals(accessibility);
 
-        private bool HasExplicitInterfaces(GraphNode node)
-        {
-            return ((IList<SymbolKey>)node[RoslynGraphProperties.ExplicitInterfaceImplementations]).Count > 0;
-        }
+        private static bool HasExplicitInterfaces(GraphNode node)
+            => ((IList<SymbolKey>)node[RoslynGraphProperties.ExplicitInterfaceImplementations]).Count > 0;
 
-        private bool IsRoslynNode(GraphNode node)
+        private static bool IsRoslynNode(GraphNode node)
         {
             return node[RoslynGraphProperties.SymbolKind] != null
                 && node[RoslynGraphProperties.TypeKind] != null;
         }
 
-        private bool IsAnySymbolKind(GraphNode node, params SymbolKind[] symbolKinds)
-        {
-            return symbolKinds.Any(k => k.Equals(node[RoslynGraphProperties.SymbolKind]));
-        }
+        private static bool IsAnySymbolKind(GraphNode node, params SymbolKind[] symbolKinds)
+            => symbolKinds.Any(k => k.Equals(node[RoslynGraphProperties.SymbolKind]));
 
-        private bool IsAnyTypeKind(GraphNode node, params TypeKind[] typeKinds)
-        {
-            return typeKinds.Any(k => node[RoslynGraphProperties.TypeKind].Equals(k));
-        }
+        private static bool IsAnyTypeKind(GraphNode node, params TypeKind[] typeKinds)
+            => typeKinds.Any(k => node[RoslynGraphProperties.TypeKind].Equals(k));
 
         private static readonly GraphCommandDefinition s_overridesCommandDefinition =
-            new GraphCommandDefinition("Overrides", ServicesVSResources.Overrides_, GraphContextDirection.Target, 700);
+            new("Overrides", ServicesVSResources.Overrides_, GraphContextDirection.Target, 700);
 
         private static readonly GraphCommandDefinition s_overriddenByCommandDefinition =
-            new GraphCommandDefinition("OverriddenBy", ServicesVSResources.Overridden_By, GraphContextDirection.Source, 700);
+            new("OverriddenBy", ServicesVSResources.Overridden_By, GraphContextDirection.Source, 700);
 
         private static readonly GraphCommandDefinition s_implementsCommandDefinition =
-            new GraphCommandDefinition("Implements", ServicesVSResources.Implements_, GraphContextDirection.Target, 600);
+            new("Implements", ServicesVSResources.Implements_, GraphContextDirection.Target, 600);
 
         private static readonly GraphCommandDefinition s_implementedByCommandDefinition =
-            new GraphCommandDefinition("ImplementedBy", ServicesVSResources.Implemented_By, GraphContextDirection.Source, 600);
+            new("ImplementedBy", ServicesVSResources.Implemented_By, GraphContextDirection.Source, 600);
 
         public T GetExtension<T>(GraphObject graphObject, T previous) where T : class
         {
             if (graphObject is GraphNode graphNode)
             {
                 // If this is not a Roslyn node, bail out.
-                // TODO: The check here is to see if the SymbolId property exists on the node
-                // and if so, that's been created by us. However, eventually we'll want to extend
-                // this to other scenarios where C#\VB nodes that aren't created by us are passed in.
-                if (graphNode.GetValue<SymbolKey?>(RoslynGraphProperties.SymbolId) == null)
+                if (graphNode.GetValue(RoslynGraphProperties.ContextProjectId) == null)
+                    return null;
+
+                // Has to have at least a symbolid, or source location to navigate to.
+                if (graphNode.GetValue<SymbolKey?>(RoslynGraphProperties.SymbolId) == null &&
+                    graphNode.GetValue<SourceLocation>(CodeNodeProperties.SourceLocation).FileName == null)
                 {
                     return null;
                 }
 
                 if (typeof(T) == typeof(IGraphNavigateToItem))
-                {
                     return new GraphNavigatorExtension(_threadingContext, _workspace) as T;
-                }
 
                 if (typeof(T) == typeof(IGraphFormattedLabel))
-                {
                     return new GraphFormattedLabelExtension() as T;
-                }
             }
 
             return null;

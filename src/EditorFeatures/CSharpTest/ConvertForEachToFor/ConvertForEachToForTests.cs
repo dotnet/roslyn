@@ -2,7 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -10,7 +11,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -23,13 +24,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForEachToFor
             Workspace workspace, TestParameters parameters)
             => new CSharpConvertForEachToForCodeRefactoringProvider();
 
-        private readonly CodeStyleOption<bool> onWithSilent = new CodeStyleOption<bool>(true, NotificationOption.Silent);
+        private readonly CodeStyleOption2<bool> onWithSilent = new CodeStyleOption2<bool>(true, NotificationOption2.Silent);
 
-        private IDictionary<OptionKey, object> ImplicitTypeEverywhere => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithSilent),
-            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent),
-            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent));
+        private OptionsCollection ImplicitTypeEverywhere
+            => new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, onWithSilent },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent },
+            };
 
+        [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task EmptyBlockBody()
         {
@@ -53,6 +58,7 @@ class Test
         var array = new int[] { 1, 3, 4 };
         for (int {|Rename:i|} = 0; i < array.Length; i++)
         {
+            int a = array[i];
         }
     }
 }
@@ -149,6 +155,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
+        [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task Comment()
         {
@@ -174,6 +181,7 @@ class Test
         /* comment */
         for (int {|Rename:i|} = 0; i < array.Length; i++) /* comment */
         {
+            int a = array[i];
         }
     }
 }
@@ -181,6 +189,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
+        [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task Comment2()
         {
@@ -206,6 +215,7 @@ class Test
         for (int {|Rename:i|} = 0; i < array.Length; i++)
         /* comment */
         {
+            int a = array[i];
         }/* comment */
     }
 }
@@ -331,6 +341,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
+        [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task Comment7()
         {
@@ -355,6 +366,7 @@ class Test
         int[] {|Rename:array|} = new int[] { 1, 3, 4 };
         for (int {|Rename:i|} = 0; i < array.Length; i++)
         {
+            int a = array[i];
         }
     }
 }
@@ -679,6 +691,7 @@ class Test
             await TestMissingInRegularAndScriptAsync(text);
         }
 
+        [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task TestCaretBefore()
@@ -703,6 +716,7 @@ class Test
         var array = new int[] { 1, 3, 4 };
         for (int {|Rename:i|} = 0; i < array.Length; i++)
         {
+            int a = array[i];
         }
     }
 }
@@ -710,6 +724,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
+        [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task TestCaretAfter()
@@ -734,6 +749,7 @@ class Test
         var array = new int[] { 1, 3, 4 };
         for (int {|Rename:i|} = 0; i < array.Length; i++) 
         {
+            int a = array[i];
         }
     }
 }
@@ -741,6 +757,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
+        [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
         [WorkItem(35525, "https://github.com/dotnet/roslyn/issues/35525")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task TestSelection()
@@ -765,6 +782,7 @@ class Test
         var array = new int[] { 1, 3, 4 };
         for (int {|Rename:i|} = 0; i < array.Length; i++)
         {
+            int a = array[i];
         }
     }
 }
@@ -772,6 +790,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
+        [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task Field()
         {
@@ -797,6 +816,7 @@ class Test
     {
         for (int {|Rename:i|} = 0; i < array.Length; i++)
         {
+            int a = array[i];
         }
     }
 }
@@ -837,6 +857,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
+        [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task Parameter()
         {
@@ -858,6 +879,7 @@ class Test
     {
         for (int {|Rename:i|} = 0; i < array.Length; i++)
         {
+            int a = array[i];
         }
     }
 }
@@ -865,6 +887,7 @@ class Test
             await TestInRegularAndScriptAsync(text, expected);
         }
 
+        [WorkItem(31621, "https://github.com/dotnet/roslyn/issues/31621")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task Property()
         {
@@ -890,6 +913,7 @@ class Test
     {
         for (int {|Rename:i|} = 0; i < Prop.Length; i++)
         {
+            int a = Prop[i];
         }
     }
 }
@@ -1112,7 +1136,7 @@ class List : IList
         {
             var text = @"
 <Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"" CommonReferenceFacadeSystemRuntime = ""true"">
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
     <MetadataReference>" + typeof(ImmutableArray<>).Assembly.Location + @"</MetadataReference>
         <Document>
 using System;
@@ -1928,6 +1952,41 @@ class Test
 }
 ";
             await TestMissingAsync(text);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        [WorkItem(48950, "https://github.com/dotnet/roslyn/issues/48950")]
+        public async Task NullableReferenceVar()
+        {
+            var text = @"
+#nullable enable
+class Test
+{
+    void Method()
+    {
+        foreach [||] (var s in new string[10])
+        {
+            Console.WriteLine(s);
+        }
+    }
+}
+";
+            var expected = @"
+#nullable enable
+class Test
+{
+    void Method()
+    {
+        var {|Rename:array|} = new string[10];
+        for (var {|Rename:i|} = 0; i < array.Length; i++)
+        {
+            var s = array[i];
+            Console.WriteLine(s);
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected, options: ImplicitTypeEverywhere);
         }
     }
 }

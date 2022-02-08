@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Threading;
@@ -64,6 +66,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public string MetadataName => _symbol.MetadataName;
 
+            public int MetadataToken => _symbol.MetadataToken;
+
             public string Name => _symbol.Name;
 
             public ISymbol OriginalDefinition => _symbol.OriginalDefinition;
@@ -71,59 +75,37 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             public bool HasUnsupportedMetadata => _symbol.HasUnsupportedMetadata;
 
             public void Accept(SymbolVisitor visitor)
-            {
-                _symbol.Accept(visitor);
-            }
+                => _symbol.Accept(visitor);
 
             public TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-            {
-                return _symbol.Accept<TResult>(visitor);
-            }
+                => _symbol.Accept(visitor);
 
             public ImmutableArray<AttributeData> GetAttributes()
-            {
-                return _symbol.GetAttributes();
-            }
+                => _symbol.GetAttributes();
 
             public string GetDocumentationCommentId()
-            {
-                return _symbol.GetDocumentationCommentId();
-            }
+                => _symbol.GetDocumentationCommentId();
 
             public string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default)
-            {
-                return _symbol.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
-            }
+                => _symbol.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
 
             public ImmutableArray<SymbolDisplayPart> ToDisplayParts(SymbolDisplayFormat format = null)
-            {
-                return _symbol.ToDisplayParts(format);
-            }
+                => _symbol.ToDisplayParts(format);
 
             public string ToDisplayString(SymbolDisplayFormat format = null)
-            {
-                return _symbol.ToDisplayString(format);
-            }
+                => _symbol.ToDisplayString(format);
 
             public string ToMinimalDisplayString(SemanticModel semanticModel, int position, SymbolDisplayFormat format = null)
-            {
-                return _symbol.ToMinimalDisplayString(semanticModel, position, format);
-            }
+                => _symbol.ToMinimalDisplayString(semanticModel, position, format);
 
             public ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(SemanticModel semanticModel, int position, SymbolDisplayFormat format = null)
-            {
-                return _symbol.ToMinimalDisplayParts(semanticModel, position, format);
-            }
+                => _symbol.ToMinimalDisplayParts(semanticModel, position, format);
 
             public bool Equals(ISymbol other)
-            {
-                return Equals((object)other);
-            }
+                => Equals((object)other);
 
             public bool Equals(ISymbol other, SymbolEqualityComparer equalityComparer)
-            {
-                return Equals(other);
-            }
+                => Equals(other);
         }
     }
 }

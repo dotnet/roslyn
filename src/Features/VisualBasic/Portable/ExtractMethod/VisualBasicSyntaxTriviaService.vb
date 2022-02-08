@@ -3,15 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.ExtractMethod
-Imports Microsoft.CodeAnalysis.Host
-Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     Friend Class VisualBasicSyntaxTriviaService
         Inherits AbstractSyntaxTriviaService
 
-        Friend Sub New(provider As HostLanguageServices)
-            MyBase.New(provider.GetService(Of ISyntaxFactsService)(), SyntaxKind.EndOfLineTrivia)
+        Public Shared ReadOnly Instance As New VisualBasicSyntaxTriviaService
+
+        Private Sub New()
+            MyBase.New(SyntaxKind.EndOfLineTrivia)
         End Sub
     End Class
 End Namespace

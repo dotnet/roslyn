@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create("CS0127", "CS1997", "CS0201");
 
         [ImportingConstructor]
+        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpFixReturnTypeCodeFixProvider()
             : base(supportsFixAll: false)
         {
@@ -51,12 +53,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
                 return;
             }
 
+            if (IsVoid(analyzedTypes.declarationToFix) && IsVoid(analyzedTypes.fixedDeclaration))
+            {
+                // Don't offer a code fix if the return type is void and return is followed by a void expression.
+                // See https://github.com/dotnet/roslyn/issues/47089
+                return;
+            }
+
             context.RegisterCodeFix(
                new MyCodeAction(c => FixAsync(document, diagnostics.First(), c)),
                diagnostics);
+
+            return;
+
+            static bool IsVoid(TypeSyntax typeSyntax)
+                => typeSyntax is PredefinedTypeSyntax predefined && predefined.Keyword.IsKind(SyntaxKind.VoidKeyword);
         }
 
-        private async Task<(TypeSyntax declarationToFix, TypeSyntax fixedDeclaration)> TryGetOldAndNewReturnTypeAsync(
+        private static async Task<(TypeSyntax declarationToFix, TypeSyntax fixedDeclaration)> TryGetOldAndNewReturnTypeAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
         {
             Debug.Assert(diagnostics.Length == 1);
@@ -74,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.FixReturnType
                 return default;
             }
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var returnedType = semanticModel.GetTypeInfo(returnedValue, cancellationToken).Type;
             if (returnedType == null)
             {

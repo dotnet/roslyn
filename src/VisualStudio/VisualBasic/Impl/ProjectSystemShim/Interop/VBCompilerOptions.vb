@@ -131,8 +131,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.
         ''' <summary>
         ''' Preferred load address.
         ''' </summary>
-        ''' <remarks></remarks>
-        Public dwLoadAddress As UInteger
+        Public dwLoadAddress As UIntPtr
 
         Public WarningLevel As WarningLevel
 

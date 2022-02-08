@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -22,32 +24,37 @@ namespace Microsoft.CodeAnalysis.Options
             _language = language;
         }
 
-        public override object GetOption(OptionKey optionKey)
-        {
-            return _backingOptionSet.GetOption(optionKey);
-        }
+        private protected override object? GetOptionCore(OptionKey optionKey)
+            => _backingOptionSet.GetOption(optionKey);
 
         public T GetOption<T>(PerLanguageOption<T> option)
-        {
-            return _backingOptionSet.GetOption(option, _language);
-        }
+            => _backingOptionSet.GetOption(option, _language);
 
-        public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object value)
-        {
-            return new DocumentOptionSet(_backingOptionSet.WithChangedOption(optionAndLanguage, value), _language);
-        }
+        internal T GetOption<T>(PerLanguageOption2<T> option)
+            => _backingOptionSet.GetOption(option, _language);
+
+        public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object? value)
+            => new DocumentOptionSet(_backingOptionSet.WithChangedOption(optionAndLanguage, value), _language);
 
         /// <summary>
         /// Creates a new <see cref="DocumentOptionSet" /> that contains the changed value.
         /// </summary>
         public DocumentOptionSet WithChangedOption<T>(PerLanguageOption<T> option, T value)
+            => (DocumentOptionSet)WithChangedOption(option, _language, value);
+
+        /// <summary>
+        /// Creates a new <see cref="DocumentOptionSet" /> that contains the changed value.
+        /// </summary>
+        internal DocumentOptionSet WithChangedOption<T>(PerLanguageOption2<T> option, T value)
+            => (DocumentOptionSet)WithChangedOption(option, _language, value);
+
+        private protected override AnalyzerConfigOptions CreateAnalyzerConfigOptions(IOptionService optionService, string? language)
         {
-            return (DocumentOptionSet)WithChangedOption(option, _language, value);
+            Debug.Assert((language ?? _language) == _language, $"Use of a {nameof(DocumentOptionSet)} is not expected to differ from the language it was constructed with.");
+            return _backingOptionSet.AsAnalyzerConfigOptions(optionService, language ?? _language);
         }
 
         internal override IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet)
-        {
-            return _backingOptionSet.GetChangedOptions(optionSet);
-        }
+            => _backingOptionSet.GetChangedOptions(optionSet);
     }
 }

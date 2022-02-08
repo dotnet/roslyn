@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -16,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Notification
         private readonly IGlobalOperationNotificationService _singleton;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public GlobalOperationNotificationServiceFactory(IAsynchronousOperationListenerProvider listenerProvider)
         {
             _listener = listenerProvider.GetListener(FeatureAttribute.GlobalOperation);
@@ -23,8 +27,6 @@ namespace Microsoft.CodeAnalysis.Notification
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return _singleton;
-        }
+            => _singleton;
     }
 }

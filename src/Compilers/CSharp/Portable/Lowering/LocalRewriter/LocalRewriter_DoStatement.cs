@@ -16,8 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node != null);
 
-            var rewrittenCondition = (BoundExpression)Visit(node.Condition);
-            var rewrittenBody = (BoundStatement)Visit(node.Body);
+            var rewrittenCondition = VisitExpression(node.Condition);
+            var rewrittenBody = VisitStatement(node.Body);
+            Debug.Assert(rewrittenBody is { });
             var startLabel = new GeneratedLabelSymbol("start");
 
             var syntax = node.Syntax;

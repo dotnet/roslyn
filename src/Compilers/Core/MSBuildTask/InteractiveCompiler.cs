@@ -19,12 +19,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         internal readonly PropertyDictionary _store = new PropertyDictionary();
 
         public InteractiveCompiler()
+            : base(ErrorString.ResourceManager)
         {
-            TaskResources = ErrorString.ResourceManager;
         }
 
         #region Properties - Please keep these alphabetized.
-        public string[] AdditionalLibPaths
+        public string[]? AdditionalLibPaths
         {
             set
             {
@@ -33,11 +33,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             get
             {
-                return (string[])_store[nameof(AdditionalLibPaths)];
+                return (string[]?)_store[nameof(AdditionalLibPaths)];
             }
         }
 
-        public string[] AdditionalLoadPaths
+        public string[]? AdditionalLoadPaths
         {
             set
             {
@@ -46,12 +46,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             get
             {
-                return (string[])_store[nameof(AdditionalLoadPaths)];
+                return (string[]?)_store[nameof(AdditionalLoadPaths)];
             }
         }
 
         [Output]
-        public ITaskItem[] CommandLineArgs
+        public ITaskItem[]? CommandLineArgs
         {
             set
             {
@@ -60,11 +60,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             get
             {
-                return (ITaskItem[])_store[nameof(CommandLineArgs)];
+                return (ITaskItem[]?)_store[nameof(CommandLineArgs)];
             }
         }
 
-        public string Features
+        public string? Features
         {
             set
             {
@@ -73,11 +73,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             get
             {
-                return (string)_store[nameof(Features)];
+                return (string?)_store[nameof(Features)];
             }
         }
 
-        public ITaskItem[] Imports
+        public ITaskItem[]? Imports
         {
             set
             {
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             get
             {
-                return (ITaskItem[])_store[nameof(Imports)];
+                return (ITaskItem[]?)_store[nameof(Imports)];
             }
         }
 
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
         }
 
-        public ITaskItem[] References
+        public ITaskItem[]? References
         {
             set
             {
@@ -112,11 +112,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             get
             {
-                return (ITaskItem[])_store[nameof(References)];
+                return (ITaskItem[]?)_store[nameof(References)];
             }
         }
 
-        public ITaskItem[] ResponseFiles
+        public ITaskItem[]? ResponseFiles
         {
             set
             {
@@ -125,11 +125,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             get
             {
-                return (ITaskItem[])_store[nameof(ResponseFiles)];
+                return (ITaskItem[]?)_store[nameof(ResponseFiles)];
             }
         }
 
-        public string[] ScriptArguments
+        public string[]? ScriptArguments
         {
             set
             {
@@ -138,11 +138,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             get
             {
-                return (string[])_store[nameof(ScriptArguments)];
+                return (string[]?)_store[nameof(ScriptArguments)];
             }
         }
 
-        public ITaskItem[] ScriptResponseFiles
+        public ITaskItem[]? ScriptResponseFiles
         {
             set
             {
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             get
             {
-                return (ITaskItem[])_store[nameof(ScriptResponseFiles)];
+                return (ITaskItem[]?)_store[nameof(ScriptResponseFiles)];
             }
         }
 
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
         }
 
-        public ITaskItem Source
+        public ITaskItem? Source
         {
             set
             {
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             get
             {
-                return (ITaskItem)_store[nameof(Source)];
+                return (ITaskItem?)_store[nameof(Source)];
             }
         }
         #endregion
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
             }
 
-            if (ResponseFiles != null)
+            if (ScriptResponseFiles != null)
             {
                 foreach (var scriptResponse in ScriptResponseFiles)
                 {

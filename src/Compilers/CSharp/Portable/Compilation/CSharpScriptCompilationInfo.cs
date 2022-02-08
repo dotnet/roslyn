@@ -9,9 +9,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     public sealed class CSharpScriptCompilationInfo : ScriptCompilationInfo
     {
-        public new CSharpCompilation PreviousScriptCompilation { get; }
+        public new CSharpCompilation? PreviousScriptCompilation { get; }
 
-        internal CSharpScriptCompilationInfo(CSharpCompilation previousCompilationOpt, Type returnType, Type globalsType)
+        internal CSharpScriptCompilationInfo(CSharpCompilation? previousCompilationOpt, Type? returnType, Type? globalsType)
             : base(returnType, globalsType)
         {
             Debug.Assert(previousCompilationOpt == null || previousCompilationOpt.HostObjectType == globalsType);
@@ -19,12 +19,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             PreviousScriptCompilation = previousCompilationOpt;
         }
 
-        internal override Compilation CommonPreviousScriptCompilation => PreviousScriptCompilation;
+        internal override Compilation? CommonPreviousScriptCompilation => PreviousScriptCompilation;
 
-        public CSharpScriptCompilationInfo WithPreviousScriptCompilation(CSharpCompilation compilation) =>
+        public CSharpScriptCompilationInfo WithPreviousScriptCompilation(CSharpCompilation? compilation) =>
             (compilation == PreviousScriptCompilation) ? this : new CSharpScriptCompilationInfo(compilation, ReturnTypeOpt, GlobalsType);
 
-        internal override ScriptCompilationInfo CommonWithPreviousScriptCompilation(Compilation compilation) =>
-            WithPreviousScriptCompilation((CSharpCompilation)compilation);
+        internal override ScriptCompilationInfo CommonWithPreviousScriptCompilation(Compilation? compilation) =>
+            WithPreviousScriptCompilation((CSharpCompilation?)compilation);
     }
 }

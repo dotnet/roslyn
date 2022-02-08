@@ -33,7 +33,9 @@
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
-        <source>Show diagnostics for closed files;
+        <source>Underline reassigned variables;
+Display inline hints;
+Show diagnostics for closed files;
 Colorize regular expression; 
 Highlight related components under cursor; 
 Report invalid regular expressions;
@@ -78,22 +80,33 @@ prefer throwing properties;
 prefer auto properties;
 regex;
 regular expression;
-Use enhanced colors;</source>
-        <target state="translated">閉じているファイルの診断結果を表示する;
+Colorize regular expressions;
+Highlight related components under cursor;
+Report invalid regular expressions;
+JSON;
+Colorize JSON strings;
+Report invalid JSON strings;
+Detect and offer editor features for JSON strings;
+Use enhanced colors;
+Editor Color Scheme;
+Inheritance Margin;</source>
+        <target state="needs-review-translation">再割り当てされる変数に下線を引く;
+インラインのヒントを表示する;
+閉じているファイルの診断結果を表示する;
 正規表現をカラー化する;
-カーソルの下にある関連コンポーネントをハイライトする;
+カーソルの下にある関連コンポーネントを強調表示する;
 無効な正規表現を報告する;
 完全ソリューション解析を有効にする;
 外部プロセスでエディター機能解析を実行する;
 逆コンパイルされたソースへのナビゲーションを有効にする;
 ディレクティブを使用する;
 using を並べ替える際に、system ディレクティブを先頭に配置する;
-ディレクティブ グループを使用して分離する;
+using ディレクティブ グループを分離する;
 参照アセンブリの型に using を提案する;
 NuGet パッケージの型に using を提案する;
 強調表示;
-カーソルの下にあるシンボルへの参照をハイライトする;
-カーソルの下にあるキーワードの関連キーワードをハイライトする;
+カーソルの下にあるシンボルへの参照を強調表示する;
+カーソルの下にある関連キーワードを強調表示する;
 アウトライン;
 ファイルを開くときにアウトライン モードに入る;
 プロシージャ行の区切り記号を表示する;
@@ -122,9 +135,11 @@ string.Format の呼び出しで無効なプレースホルダーをレポート
 プロパティの生成時;
 スロー プロパティを優先する;
 自動プロパティを優先する;
+RegEx;
 正規表現;
-正規表現;
-拡張された色を使用する;</target>
+拡張された色を使用する;
+エディターの配色;
+継承余白;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -272,8 +287,10 @@ for ステートメントで、セミコロンの前にスペースを挿入す�
         <source>Change completion list settings;Pre-select most recently used member; Completion Lists;
 Show completion list after a character is typed;
 Show completion list after a character is deleted;
+Automatically show completion list in argument lists (experimental);
 Highlight matching portions of completion list items;
 Show completion item filters;
+Automatically complete statement on semicolon;
 Snippets behavior;
 Never include snippets;
 Always include snippets;
@@ -282,12 +299,15 @@ Enter key behavior;
 Never add new line on enter;
 Only add new line on enter after end of fully typed word;
 Always add new line on enter;
-Show name suggestions;</source>
+Show name suggestions;
+Show items from unimported namespaces (experimental);</source>
         <target state="translated">入力候補一覧の設定を変更する;最近使用されたメンバーをあらかじめ選択する; 入力候補一覧;
 文字が入力された後に入力候補一覧を表示する;
 文字が削除された後に入力候補一覧を表示する;
+引数リストに入力候補一覧を自動的に表示する (試験段階);
 入力候補一覧の項目の一致している部分を強調表示する;
 入力候補の項目フィルターを表示する;
+セミコロンでステートメントをオートコンプリートに設定する;
 スニペットの動作;
 スニペットを含めない;
 常にスニペットを含める;
@@ -296,7 +316,8 @@ Enter キー入力時動作;
 Enter キーで新しい行を追加しない;
 単語を完全に入力した後のみ、Enter キーで新しい行を追加する;
 Enter キーで常に新しい行を追加する;
-名前の提案を表示する;</target>
+名前の提案を表示する;
+未インポートの名前空間からの項目を表示する (試験段階);</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">

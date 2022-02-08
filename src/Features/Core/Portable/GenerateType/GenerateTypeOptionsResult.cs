@@ -2,13 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.GenerateType
 {
     internal class GenerateTypeOptionsResult
     {
-        public static readonly GenerateTypeOptionsResult Cancelled = new GenerateTypeOptionsResult(isCancelled: true);
+        public static readonly GenerateTypeOptionsResult Cancelled = new(isCancelled: true);
 
         public Accessibility Accessibility { get; }
         public Document ExistingDocument { get; }
@@ -52,8 +54,6 @@ namespace Microsoft.CodeAnalysis.GenerateType
         }
 
         private GenerateTypeOptionsResult(bool isCancelled)
-        {
-            IsCancelled = isCancelled;
-        }
+            => IsCancelled = isCancelled;
     }
 }

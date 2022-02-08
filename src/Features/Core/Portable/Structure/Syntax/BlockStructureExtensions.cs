@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 
@@ -15,15 +17,6 @@ namespace Microsoft.CodeAnalysis.Structure
             where TOutliner : AbstractSyntaxStructureProvider, new()
         {
             builder.Add(typeof(TType), ImmutableArray.Create<AbstractSyntaxStructureProvider>(new TOutliner()));
-        }
-
-        public static void Add<TType, TOutliner1, TOutliner2>(
-            this ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>>.Builder builder)
-            where TType : SyntaxNode
-            where TOutliner1 : AbstractSyntaxStructureProvider, new()
-            where TOutliner2 : AbstractSyntaxStructureProvider, new()
-        {
-            builder.Add(typeof(TType), ImmutableArray.Create<AbstractSyntaxStructureProvider>(new TOutliner1(), new TOutliner2()));
         }
     }
 }

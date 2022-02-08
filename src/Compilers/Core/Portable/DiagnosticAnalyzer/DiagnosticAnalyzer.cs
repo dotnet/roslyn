@@ -23,9 +23,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="context"></param>
         public abstract void Initialize(AnalysisContext context);
 
-        public sealed override bool Equals(object obj)
+        public sealed override bool Equals(object? obj)
         {
-            return (object)this == obj;
+            return (object?)this == obj;
         }
 
         public sealed override int GetHashCode()

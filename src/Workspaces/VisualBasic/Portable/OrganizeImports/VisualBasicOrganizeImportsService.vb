@@ -5,8 +5,10 @@
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editing
+Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.OrganizeImports
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.OrganizeImports
     <ExportLanguageService(GetType(IOrganizeImportsService), LanguageNames.VisualBasic), [Shared]>
@@ -14,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrganizeImports
         Implements IOrganizeImportsService
 
         <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
 
@@ -24,8 +27,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrganizeImports
 
             Dim placeSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst)
             Dim separateGroups = options.GetOption(GenerationOptions.SeparateImportDirectiveGroups)
+            Dim newLineTrivia = VisualBasicSyntaxGeneratorInternal.Instance.EndOfLine(options.GetOption(FormattingOptions2.NewLine))
 
-            Dim rewriter = New Rewriter(placeSystemNamespaceFirst, separateGroups)
+            Dim rewriter = New Rewriter(placeSystemNamespaceFirst, separateGroups, newLineTrivia)
             Dim newRoot = rewriter.Visit(root)
             Return document.WithSyntaxRoot(newRoot)
         End Function

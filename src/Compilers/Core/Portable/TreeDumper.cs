@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -91,14 +89,10 @@ namespace Microsoft.CodeAnalysis
             }
 
             _sb.AppendLine();
-            var children = node.Children.ToList();
+            var children = node.Children.Where(c => !skip(c)).ToList();
             for (int i = 0; i < children.Count; ++i)
             {
                 var child = children[i];
-                if (child == null)
-                {
-                    continue;
-                }
 
                 _sb.Append(indent);
                 _sb.Append(i == children.Count - 1 ? '\u2514' : '\u251C');
@@ -107,6 +101,28 @@ namespace Microsoft.CodeAnalysis
                 // First precondition met; now work out the string needed to indent 
                 // the child node's children:
                 DoDumpCompact(child, indent + (i == children.Count - 1 ? "  " : "\u2502 "));
+            }
+
+            static bool skip(TreeDumperNode node)
+            {
+                if (node is null)
+                {
+                    return true;
+                }
+
+                if (node.Text is "locals" or "localFunctions"
+                    && node.Value is IList { Count: 0 })
+                {
+                    return true;
+                }
+
+                if (node.Text is "hasErrors" or "isSuppressed" or "isRef"
+                    && node.Value is false)
+                {
+                    return true;
+                }
+
+                return false;
             }
         }
 
@@ -166,8 +182,13 @@ namespace Microsoft.CodeAnalysis
         private static bool IsDefaultImmutableArray(Object o)
         {
             var ti = o.GetType().GetTypeInfo();
-            return ti.IsGenericType && ti.GetGenericTypeDefinition() == typeof(ImmutableArray<>) &&
-                (bool)ti.GetDeclaredMethod("get_IsDefault").Invoke(o, Array.Empty<object>());
+            if (ti.IsGenericType && ti.GetGenericTypeDefinition() == typeof(ImmutableArray<>))
+            {
+                var result = ti?.GetDeclaredMethod("get_IsDefault")?.Invoke(o, Array.Empty<object>());
+                return result is bool b && b;
+            }
+
+            return false;
         }
 
         protected virtual string DumperString(object o)
@@ -200,7 +221,7 @@ namespace Microsoft.CodeAnalysis
                 return symbol.ToDisplayString(SymbolDisplayFormat.TestFormat);
             }
 
-            return o.ToString();
+            return o.ToString() ?? "";
         }
     }
 
@@ -220,7 +241,7 @@ namespace Microsoft.CodeAnalysis
         public object? Value { get; }
         public string Text { get; }
         public IEnumerable<TreeDumperNode> Children { get; }
-        public TreeDumperNode this[string child]
+        public TreeDumperNode? this[string child]
         {
             get
             {

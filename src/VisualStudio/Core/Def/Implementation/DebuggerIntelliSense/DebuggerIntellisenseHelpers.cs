@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense
@@ -9,18 +11,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
     internal static class DebuggerIntelliSenseHelpers
     {
         public static ITrackingSpan CreateTrackingSpanFromIndexToEnd(this ITextSnapshot textSnapshot, int index, SpanTrackingMode trackingMode)
-        {
-            return textSnapshot.CreateTrackingSpan(Span.FromBounds(index, textSnapshot.Length), trackingMode);
-        }
+            => textSnapshot.CreateTrackingSpan(Span.FromBounds(index, textSnapshot.Length), trackingMode);
 
         public static ITrackingSpan CreateTrackingSpanFromStartToIndex(this ITextSnapshot textSnapshot, int index, SpanTrackingMode trackingMode)
-        {
-            return textSnapshot.CreateTrackingSpan(Span.FromBounds(0, index), trackingMode);
-        }
+            => textSnapshot.CreateTrackingSpan(Span.FromBounds(0, index), trackingMode);
 
         public static ITrackingSpan CreateFullTrackingSpan(this ITextSnapshot textSnapshot, SpanTrackingMode trackingMode)
-        {
-            return textSnapshot.CreateTrackingSpan(Span.FromBounds(0, textSnapshot.Length), trackingMode);
-        }
+            => textSnapshot.CreateTrackingSpan(Span.FromBounds(0, textSnapshot.Length), trackingMode);
     }
 }

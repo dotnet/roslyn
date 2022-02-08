@@ -8,26 +8,24 @@ namespace Microsoft.CodeAnalysis
 {
     public sealed class WorkspaceRegistration
     {
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
 
         internal WorkspaceRegistration()
         {
         }
 
-        public Workspace Workspace { get; private set; }
+        public Workspace? Workspace { get; private set; }
 
-        public event EventHandler WorkspaceChanged;
+        public event EventHandler? WorkspaceChanged;
 
-        internal void SetWorkspaceAndRaiseEvents(Workspace workspace)
+        internal void SetWorkspaceAndRaiseEvents(Workspace? workspace)
         {
             SetWorkspace(workspace);
             RaiseEvents();
         }
 
-        internal void SetWorkspace(Workspace workspace)
-        {
-            Workspace = workspace;
-        }
+        internal void SetWorkspace(Workspace? workspace)
+            => Workspace = workspace;
 
         internal void RaiseEvents()
         {

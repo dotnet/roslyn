@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
 using System;
@@ -278,7 +276,8 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         {
             int code = (int)(flags) ^ kind;
             // the only child is never null
-            code = Hash.Combine(System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(child1), code);
+            // https://github.com/dotnet/roslyn/issues/41539
+            code = Hash.Combine(System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(child1!), code);
 
             // ensure nonnegative hash
             return code & Int32.MaxValue;

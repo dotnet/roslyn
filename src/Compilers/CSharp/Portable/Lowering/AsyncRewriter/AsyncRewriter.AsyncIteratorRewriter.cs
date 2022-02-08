@@ -2,8 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -34,16 +38,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AsyncStateMachine stateMachineType,
                 VariableSlotAllocator slotAllocatorOpt,
                 TypeCompilationState compilationState,
-                DiagnosticBag diagnostics)
+                BindingDiagnosticBag diagnostics)
                 : base(body, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
             {
                 Debug.Assert(!TypeSymbol.Equals(method.IteratorElementTypeWithAnnotations.Type, null, TypeCompareKind.ConsiderEverything2));
 
-                _isEnumerable = method.IsIAsyncEnumerableReturningAsync(method.DeclaringCompilation);
-                Debug.Assert(_isEnumerable != method.IsIAsyncEnumeratorReturningAsync(method.DeclaringCompilation));
+                _isEnumerable = method.IsAsyncReturningIAsyncEnumerable(method.DeclaringCompilation);
+                Debug.Assert(_isEnumerable != method.IsAsyncReturningIAsyncEnumerator(method.DeclaringCompilation));
             }
 
-            protected override void VerifyPresenceOfRequiredAPIs(DiagnosticBag bag)
+            protected override void VerifyPresenceOfRequiredAPIs(BindingDiagnosticBag bag)
             {
                 base.VerifyPresenceOfRequiredAPIs(bag);
 
@@ -134,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Add a field: bool disposeMode
                 _disposeModeField = F.StateMachineField(boolType, GeneratedNames.MakeDisposeModeFieldName());
 
-                if (_isEnumerable && this.method.Parameters.Any(p => p is SourceComplexParameterSymbol { HasEnumeratorCancellationAttribute: true }))
+                if (_isEnumerable && this.method.Parameters.Any(p => p.IsSourceParameterWithEnumeratorCancellationAttribute()))
                 {
                     // Add a field: CancellationTokenSource combinedTokens
                     _combinedTokensField = F.StateMachineField(
@@ -148,15 +152,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Produces:
                 // .ctor(int state)
                 // {
+                //     this.builder = System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create();
                 //     this.state = state;
                 //     this.initialThreadId = {managedThreadId};
-                //     this.builder = System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create();
                 // }
                 Debug.Assert(stateMachineType.Constructor is IteratorConstructor);
 
                 F.CurrentFunction = stateMachineType.Constructor;
                 var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
                 bodyBuilder.Add(F.BaseInitialization());
+
+                // this.builder = System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create();
+                bodyBuilder.Add(GenerateCreateAndAssignBuilder());
+
                 bodyBuilder.Add(F.Assignment(F.InstanceField(stateField), F.Parameter(F.CurrentFunction.Parameters[0]))); // this.state = state;
 
                 var managedThreadId = MakeCurrentThreadId();
@@ -166,8 +174,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bodyBuilder.Add(F.Assignment(F.InstanceField(initialThreadIdField), managedThreadId));
                 }
 
-                // this.builder = System.Runtime.CompilerServices.AsyncIteratorMethodBuilder.Create();
-                bodyBuilder.Add(GenerateCreateAndAssignBuilder());
 
                 bodyBuilder.Add(F.Return());
                 F.CloseMethod(F.Block(bodyBuilder.ToImmutableAndFree()));
@@ -199,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundStatement result;
                 if (_combinedTokensField is object &&
-                    parameter is SourceComplexParameterSymbol { HasEnumeratorCancellationAttribute: true } &&
+                    parameter.IsSourceParameterWithEnumeratorCancellationAttribute() &&
                     parameter.Type.Equals(F.Compilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken), TypeCompareKind.ConsiderEverything))
                 {
                     // For a parameter of type CancellationToken with [EnumeratorCancellation]
@@ -247,15 +253,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            protected override BoundStatement GenerateStateMachineCreation(LocalSymbol stateMachineVariable, NamedTypeSymbol frameType)
+            protected override BoundStatement GenerateStateMachineCreation(LocalSymbol stateMachineVariable, NamedTypeSymbol frameType, IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> proxies)
             {
+                var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
+
+                bodyBuilder.Add(GenerateParameterStorage(stateMachineVariable, proxies));
+
                 // return local;
-                return F.Block(F.Return(F.Local(stateMachineVariable)));
+                bodyBuilder.Add(
+                    F.Return(
+                        F.Local(stateMachineVariable)));
+
+                return F.Block(bodyBuilder.ToImmutableAndFree());
             }
 
             /// <summary>
             /// Generates the `ValueTask&lt;bool> MoveNextAsync()` method.
             /// </summary>
+            [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Standard naming convention for generating 'IAsyncEnumerator.MoveNextAsync'")]
             private void GenerateIAsyncEnumeratorImplementation_MoveNextAsync()
             {
                 // Produce:
@@ -384,6 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// Generates the `ValueTask IAsyncDisposable.DisposeAsync()` method.
             /// The DisposeAsync method should not be called from states -1 (running) or 0-and-up (awaits).
             /// </summary>
+            [SuppressMessage("Style", "VSTHRD200:Use \"Async\" suffix for async methods", Justification = "Standard naming convention for generating 'IAsyncDisposable.DisposeAsync'")]
             private void GenerateIAsyncDisposable_DisposeAsync()
             {
                 // Produce:
@@ -659,13 +675,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected override void GenerateMoveNext(SynthesizedImplementationMethod moveNextMethod)
             {
                 MethodSymbol setResultMethod = F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__SetResult, isOptional: true);
-                if ((object)setResultMethod != null)
+                if (setResultMethod is { })
                 {
                     setResultMethod = (MethodSymbol)setResultMethod.SymbolAsMember((NamedTypeSymbol)_promiseOfValueOrEndField.Type);
                 }
 
                 MethodSymbol setExceptionMethod = F.WellKnownMethod(WellKnownMember.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T__SetException, isOptional: true);
-                if ((object)setExceptionMethod != null)
+                if (setExceptionMethod is { })
                 {
                     setExceptionMethod = (MethodSymbol)setExceptionMethod.SymbolAsMember((NamedTypeSymbol)_promiseOfValueOrEndField.Type);
                 }

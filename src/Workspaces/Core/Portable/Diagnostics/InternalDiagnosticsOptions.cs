@@ -10,25 +10,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private const string LocalRegistryPath = @"Roslyn\Internal\Diagnostics\";
 
-        public static readonly Option<bool> CompilationEndCodeFix = new Option<bool>(nameof(InternalDiagnosticsOptions), "Enable Compilation End Code Fix", defaultValue: true,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Enable Compilation End Code Fix"));
+        public static readonly Option2<bool> PreferLiveErrorsOnOpenedFiles = new(nameof(InternalDiagnosticsOptions), "Live errors will be preferred over errors from build on opened files from same analyzer", defaultValue: true,
+            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Live errors will be preferred over errors from build on opened files from same analyzer"));
 
-        public static readonly Option<bool> UseCompilationEndCodeFixHeuristic = new Option<bool>(nameof(InternalDiagnosticsOptions), "Enable Compilation End Code Fix With Heuristic", defaultValue: true,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Enable Compilation End Code Fix With Heuristic"));
+        public static readonly Option2<bool> PreferBuildErrorsOverLiveErrors = new(nameof(InternalDiagnosticsOptions), "Errors from build will be preferred over live errors from same analyzer", defaultValue: true,
+            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Errors from build will be preferred over live errors from same analyzer"));
 
-        public static readonly Option<bool> PreferLiveErrorsOnOpenedFiles = new Option<bool>(nameof(InternalDiagnosticsOptions), "Live errors will be preferred over errors from build on opened files from same analyzer", defaultValue: true,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Live errors will be preferred over errors from build on opened files from same analyzer"));
+        public static readonly Option2<bool> CrashOnAnalyzerException = new(nameof(InternalDiagnosticsOptions), nameof(CrashOnAnalyzerException), defaultValue: false,
+            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "CrashOnAnalyzerException"));
 
-        public static readonly Option<bool> PreferBuildErrorsOverLiveErrors = new Option<bool>(nameof(InternalDiagnosticsOptions), "Errors from build will be preferred over live errors from same analyzer", defaultValue: true,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Errors from build will be preferred over live errors from same analyzer"));
+        public static readonly Option2<bool> ProcessHiddenDiagnostics = new(nameof(InternalDiagnosticsOptions), nameof(ProcessHiddenDiagnostics), defaultValue: false,
+            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "Process Hidden Diagnostics"));
 
-        public static readonly Option<bool> PutCustomTypeInBingSearch = new Option<bool>(nameof(InternalDiagnosticsOptions), nameof(PutCustomTypeInBingSearch), defaultValue: true,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "PutCustomTypeInBingSearch"));
+        public static readonly Option2<DiagnosticMode> NormalDiagnosticMode = new(nameof(InternalDiagnosticsOptions), nameof(NormalDiagnosticMode), defaultValue: DiagnosticMode.Default,
+            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "NormalDiagnosticMode"));
 
-        public static readonly Option<bool> CrashOnAnalyzerException = new Option<bool>(nameof(InternalDiagnosticsOptions), nameof(CrashOnAnalyzerException), defaultValue: false,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "CrashOnAnalyzerException"));
-
-        public static readonly Option<bool> ProcessHiddenDiagnostics = new Option<bool>(nameof(InternalDiagnosticsOptions), nameof(ProcessHiddenDiagnostics), defaultValue: false,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "Process Hidden Diagnostics"));
+        public static readonly Option2<bool> EnableFileLoggingForDiagnostics = new(nameof(InternalDiagnosticsOptions), nameof(EnableFileLoggingForDiagnostics), defaultValue: false,
+            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + "EnableFileLoggingForDiagnostics"));
     }
 }

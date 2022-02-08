@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -108,13 +110,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            var other = obj as SubstitutedFieldSymbol;
-            return (object)other != null && TypeSymbol.Equals(_containingType, other._containingType, compareKind) && OriginalDefinition == other.OriginalDefinition;
+            var other = obj as FieldSymbol;
+            return (object)other != null && TypeSymbol.Equals(_containingType, other.ContainingType, compareKind) && OriginalDefinition == other.OriginalDefinition;
         }
 
         public override int GetHashCode()
         {
-            return Hash.Combine(_containingType, OriginalDefinition.GetHashCode());
+            var code = this.OriginalDefinition.GetHashCode();
+
+            // If the containing type of the original definition is the same as our containing type
+            // it's possible that we will compare equal to the original definition under certain conditions 
+            // (e.g, ignoring nullability) and want to retain the same hashcode. As such only make
+            // the containing type part of the hashcode when we know equality isn't possible
+            var containingHashCode = _containingType.GetHashCode();
+            if (containingHashCode != this.OriginalDefinition.ContainingType.GetHashCode())
+            {
+                code = Hash.Combine(containingHashCode, code);
+            }
+
+            return code;
         }
     }
 }

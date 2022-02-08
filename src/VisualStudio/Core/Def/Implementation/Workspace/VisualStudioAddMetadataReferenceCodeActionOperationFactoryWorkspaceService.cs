@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Composition;
 using System.Threading;
@@ -20,6 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     internal sealed class VisualStudioAddMetadataReferenceCodeActionOperationFactoryWorkspaceService : IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioAddMetadataReferenceCodeActionOperationFactoryWorkspaceService()
         {
         }
@@ -58,7 +61,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     // We failed to add the reference, which means the project system wasn't able to bind.
                     // We'll pop up the Add Reference dialog to let the user figure this out themselves.
                     // This is the same approach done in CVBErrorFixApply::ApplyAddMetaReferenceFix
-
 
                     if (visualStudioWorkspace.GetHierarchy(_projectId) is IVsUIHierarchy uiHierarchy)
                     {

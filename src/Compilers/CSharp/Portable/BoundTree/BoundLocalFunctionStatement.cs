@@ -10,6 +10,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundLocalFunctionStatement
     {
-        public BoundBlock Body { get => BlockBody ?? ExpressionBody; }
+        public BoundBlock? Body { get => BlockBody ?? ExpressionBody; }
     }
 }

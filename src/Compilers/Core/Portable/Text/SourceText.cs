@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -181,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Text
                 throw new ArgumentNullException(nameof(stream));
             }
 
-            if (!stream.CanRead || !stream.CanSeek)
+            if (!stream.CanRead)
             {
                 throw new ArgumentException(CodeAnalysisResources.StreamMustSupportReadAndSeek, nameof(stream));
             }
@@ -190,10 +188,13 @@ namespace Microsoft.CodeAnalysis.Text
 
             encoding = encoding ?? s_utf8EncodingWithNoBOM;
 
-            // If the resulting string would end up on the large object heap, then use LargeEncodedText.
-            if (encoding.GetMaxCharCountOrThrowIfHuge(stream) >= LargeObjectHeapLimitInChars)
+            if (stream.CanSeek)
             {
-                return LargeText.Decode(stream, encoding, checksumAlgorithm, throwIfBinaryDetected, canBeEmbedded);
+                // If the resulting string would end up on the large object heap, then use LargeEncodedText.
+                if (encoding.GetMaxCharCountOrThrowIfHuge(stream) >= LargeObjectHeapLimitInChars)
+                {
+                    return LargeText.Decode(stream, encoding, checksumAlgorithm, throwIfBinaryDetected, canBeEmbedded);
+                }
             }
 
             string text = Decode(stream, encoding, out encoding);
@@ -280,14 +281,21 @@ namespace Microsoft.CodeAnalysis.Text
         {
             RoslynDebug.Assert(stream != null);
             RoslynDebug.Assert(encoding != null);
+            const int maxBufferSize = 4096;
+            int bufferSize = maxBufferSize;
 
-            stream.Seek(0, SeekOrigin.Begin);
-
-            int length = (int)stream.Length;
-            if (length == 0)
+            if (stream.CanSeek)
             {
-                actualEncoding = encoding;
-                return string.Empty;
+                stream.Seek(0, SeekOrigin.Begin);
+
+                int length = (int)stream.Length;
+                if (length == 0)
+                {
+                    actualEncoding = encoding;
+                    return string.Empty;
+                }
+
+                bufferSize = Math.Min(maxBufferSize, length);
             }
 
             // Note: We are setting the buffer size to 4KB instead of the default 1KB. That's
@@ -295,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Text
             // buffer allocations for small files, we may intentionally be using a FileStream
             // with a very small (1 byte) buffer. Using 4KB here matches the default buffer
             // size for FileStream and means we'll still be doing file I/O in 4KB chunks.
-            using (var reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, bufferSize: Math.Min(4096, length), leaveOpen: true))
+            using (var reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, bufferSize: bufferSize, leaveOpen: true))
             {
                 string text = reader.ReadToEnd();
                 actualEncoding = reader.CurrentEncoding;
@@ -459,7 +467,9 @@ namespace Microsoft.CodeAnalysis.Text
 
         internal void CheckSubSpan(TextSpan span)
         {
-            if (span.Start < 0 || span.Start > this.Length || span.End > this.Length)
+            Debug.Assert(0 <= span.Start && span.Start <= span.End);
+
+            if (span.End > this.Length)
             {
                 throw new ArgumentOutOfRangeException(nameof(span));
             }
@@ -525,13 +535,13 @@ namespace Microsoft.CodeAnalysis.Text
             var buffer = s_charArrayPool.Allocate();
             try
             {
-                int offset = Math.Min(this.Length, span.Start);
-                int length = Math.Min(this.Length, span.End) - offset;
-                while (offset < length)
+                int offset = span.Start;
+                int end = span.End;
+                while (offset < end)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    int count = Math.Min(buffer.Length, length - offset);
+                    int count = Math.Min(buffer.Length, end - offset);
                     this.CopyTo(offset, buffer, 0, count);
                     writer.Write(buffer, 0, count);
                     offset += count;
@@ -632,79 +642,95 @@ namespace Microsoft.CodeAnalysis.Text
 
             var segments = ArrayBuilder<SourceText>.GetInstance();
             var changeRanges = ArrayBuilder<TextChangeRange>.GetInstance();
-            int position = 0;
-
-            foreach (var change in changes)
+            try
             {
-                // there can be no overlapping changes
-                if (change.Span.Start < position)
+                int position = 0;
+
+                foreach (var change in changes)
                 {
-                    // Handle the case of unordered changes by sorting the input and retrying. This is inefficient, but
-                    // downstream consumers have been known to hit this case in the past and we want to avoid crashes.
-                    // https://github.com/dotnet/roslyn/pull/26339
-                    if (change.Span.End <= changeRanges.Last().Span.Start)
+                    if (change.Span.End > this.Length)
+                        throw new ArgumentException(CodeAnalysisResources.ChangesMustBeWithinBoundsOfSourceText, nameof(changes));
+
+                    // there can be no overlapping changes
+                    if (change.Span.Start < position)
                     {
-                        changes = (from c in changes
-                                   where !c.Span.IsEmpty || c.NewText?.Length > 0
-                                   orderby c.Span
-                                   select c).ToList();
-                        return WithChanges(changes);
+                        // Handle the case of unordered changes by sorting the input and retrying. This is inefficient, but
+                        // downstream consumers have been known to hit this case in the past and we want to avoid crashes.
+                        // https://github.com/dotnet/roslyn/pull/26339
+                        if (change.Span.End <= changeRanges.Last().Span.Start)
+                        {
+                            changes = (from c in changes
+                                       where !c.Span.IsEmpty || c.NewText?.Length > 0
+                                       orderby c.Span
+                                       select c).ToList();
+                            return WithChanges(changes);
+                        }
+
+                        throw new ArgumentException(CodeAnalysisResources.ChangesMustNotOverlap, nameof(changes));
                     }
 
-                    throw new ArgumentException(CodeAnalysisResources.ChangesMustNotOverlap, nameof(changes));
+                    var newTextLength = change.NewText?.Length ?? 0;
+
+                    // ignore changes that don't change anything
+                    if (change.Span.Length == 0 && newTextLength == 0)
+                        continue;
+
+                    // if we've skipped a range, add
+                    if (change.Span.Start > position)
+                    {
+                        var subText = this.GetSubText(new TextSpan(position, change.Span.Start - position));
+                        CompositeText.AddSegments(segments, subText);
+                    }
+
+                    if (newTextLength > 0)
+                    {
+                        var segment = SourceText.From(change.NewText!, this.Encoding, this.ChecksumAlgorithm);
+                        CompositeText.AddSegments(segments, segment);
+                    }
+
+                    position = change.Span.End;
+
+                    changeRanges.Add(new TextChangeRange(change.Span, newTextLength));
                 }
 
-                var newTextLength = change.NewText?.Length ?? 0;
-
-                // ignore changes that don't change anything
-                if (change.Span.Length == 0 && newTextLength == 0)
-                    continue;
-
-                // if we've skipped a range, add
-                if (change.Span.Start > position)
+                // no changes actually happened?
+                if (position == 0 && segments.Count == 0)
                 {
-                    var subText = this.GetSubText(new TextSpan(position, change.Span.Start - position));
+                    return this;
+                }
+
+                if (position < this.Length)
+                {
+                    var subText = this.GetSubText(new TextSpan(position, this.Length - position));
                     CompositeText.AddSegments(segments, subText);
                 }
 
-                if (newTextLength > 0)
+                var newText = CompositeText.ToSourceText(segments, this, adjustSegments: true);
+                if (newText != this)
                 {
-                    var segment = SourceText.From(change.NewText!, this.Encoding, this.ChecksumAlgorithm);
-                    CompositeText.AddSegments(segments, segment);
+                    return new ChangedText(this, newText, changeRanges.ToImmutable());
                 }
-
-                position = change.Span.End;
-
-                changeRanges.Add(new TextChangeRange(change.Span, newTextLength));
+                else
+                {
+                    return this;
+                }
             }
-
-            // no changes actually happened?
-            if (position == 0 && segments.Count == 0)
+            finally
             {
+                segments.Free();
                 changeRanges.Free();
-                return this;
-            }
-
-            if (position < this.Length)
-            {
-                var subText = this.GetSubText(new TextSpan(position, this.Length - position));
-                CompositeText.AddSegments(segments, subText);
-            }
-
-            var newText = CompositeText.ToSourceTextAndFree(segments, this, adjustSegments: true);
-            if (newText != this)
-            {
-                return new ChangedText(this, newText, changeRanges.ToImmutableAndFree());
-            }
-            else
-            {
-                return this;
             }
         }
 
         /// <summary>
         /// Constructs a new SourceText from this text with the specified changes.
+        /// <exception cref="ArgumentException">If any changes are not in bounds of this <see cref="SourceText"/>.</exception>
+        /// <exception cref="ArgumentException">If any changes overlap other changes.</exception>
         /// </summary>
+        /// <remarks>
+        /// Changes do not have to be in sorted order.  However, <see cref="WithChanges(IEnumerable{TextChange})"/> will
+        /// perform better if they are.
+        /// </remarks>
         public SourceText WithChanges(params TextChange[] changes)
         {
             return this.WithChanges((IEnumerable<TextChange>)changes);

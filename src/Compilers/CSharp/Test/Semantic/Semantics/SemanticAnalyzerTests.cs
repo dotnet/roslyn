@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -245,7 +247,7 @@ class P // : IEnumerable
 //        // error CS0245: Destructors and object.Finalize cannot be called directly. Consider
 //        // calling IDisposable.Dispose if available.
 //        base.Finalize();
-//        // error CS0250: Do not directly call your base class Finalize method. It is called
+//        // error CS0250: Do not directly call your base type Finalize method. It is called
 //        // automatically from your destructor.
 //    }
     public void GenericConstrained<T>(T t) where T : class { }

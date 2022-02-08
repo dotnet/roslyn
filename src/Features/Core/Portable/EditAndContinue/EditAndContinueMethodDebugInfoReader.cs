@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // for methods without custom debug info (https://github.com/dotnet/roslyn/issues/4138).
                     debugInfo = null;
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrash(e)) // likely a bug in the compiler/debugger
+                catch (Exception e) when (FatalError.ReportAndCatch(e)) // likely a bug in the compiler/debugger
                 {
                     throw new InvalidDataException(e.Message, e);
                 }
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                     return EditAndContinueMethodDebugInformation.Create(localSlots, lambdaMap);
                 }
-                catch (InvalidOperationException e) when (FatalError.ReportWithoutCrash(e)) // likely a bug in the compiler/debugger
+                catch (InvalidOperationException e) when (FatalError.ReportAndCatch(e)) // likely a bug in the compiler/debugger
                 {
                     // TODO: CustomDebugInfoReader should throw InvalidDataException
                     throw new InvalidDataException(e.Message, e);
@@ -109,9 +110,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             private readonly MetadataReader _pdbReader;
 
             public Portable(MetadataReader pdbReader)
-            {
-                _pdbReader = pdbReader;
-            }
+                => _pdbReader = pdbReader;
 
             public override bool IsPortable => true;
 
@@ -184,7 +183,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <remarks>
         /// Automatically detects the underlying PDB format and returns the appropriate reader.
         /// </remarks>
-        public unsafe static EditAndContinueMethodDebugInfoReader Create(ISymUnmanagedReader5 symReader, int version = 1)
+        public static unsafe EditAndContinueMethodDebugInfoReader Create(ISymUnmanagedReader5 symReader, int version = 1)
         {
             if (symReader == null)
             {
@@ -217,7 +216,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <returns>
         /// The resulting reader does not take ownership of the <paramref name="pdbReader"/> or the memory it reads.
         /// </returns>
-        public unsafe static EditAndContinueMethodDebugInfoReader Create(MetadataReader pdbReader)
+        public static unsafe EditAndContinueMethodDebugInfoReader Create(MetadataReader pdbReader)
            => new Portable(pdbReader ?? throw new ArgumentNullException(nameof(pdbReader)));
 
         internal static bool TryGetDocumentChecksum(ISymUnmanagedReader5 symReader, string documentPath, out ImmutableArray<byte> checksum, out Guid algorithmId)

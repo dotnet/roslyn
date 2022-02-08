@@ -285,7 +285,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' but the com event binder needs the event to exist on the local type. We'll poke the pia reference
             ' cache directly so that the event is embedded.
             If _emitModule IsNot Nothing Then
-                _emitModule.EmbeddedTypesManagerOpt.EmbedEventIfNeedTo([event], node.Syntax, _diagnostics, isUsedForComAwareEventBinding:=True)
+                _emitModule.EmbeddedTypesManagerOpt.EmbedEventIfNeedTo([event].GetCciAdapter(), node.Syntax, _diagnostics.DiagnosticBag, isUsedForComAwareEventBinding:=True)
             End If
 
             If result IsNot Nothing Then

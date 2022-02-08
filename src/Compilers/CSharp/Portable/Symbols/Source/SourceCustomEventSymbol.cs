@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -17,21 +18,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly TypeWithAnnotations _type;
         private readonly string _name;
-        private readonly SourceEventAccessorSymbol _addMethod;
-        private readonly SourceEventAccessorSymbol _removeMethod;
+        private readonly SourceEventAccessorSymbol? _addMethod;
+        private readonly SourceEventAccessorSymbol? _removeMethod;
         private readonly TypeSymbol _explicitInterfaceType;
         private readonly ImmutableArray<EventSymbol> _explicitInterfaceImplementations;
 
-        internal SourceCustomEventSymbol(SourceMemberContainerTypeSymbol containingType, Binder binder, EventDeclarationSyntax syntax, DiagnosticBag diagnostics) :
+        internal SourceCustomEventSymbol(SourceMemberContainerTypeSymbol containingType, Binder binder, EventDeclarationSyntax syntax, BindingDiagnosticBag diagnostics) :
             base(containingType, syntax, syntax.Modifiers, isFieldLike: false,
                  interfaceSpecifierSyntaxOpt: syntax.ExplicitInterfaceSpecifier,
                  nameTokenSyntax: syntax.Identifier, diagnostics: diagnostics)
         {
-            ExplicitInterfaceSpecifierSyntax interfaceSpecifier = syntax.ExplicitInterfaceSpecifier;
+            ExplicitInterfaceSpecifierSyntax? interfaceSpecifier = syntax.ExplicitInterfaceSpecifier;
             SyntaxToken nameToken = syntax.Identifier;
             bool isExplicitInterfaceImplementation = interfaceSpecifier != null;
 
-            string aliasQualifierOpt;
+            string? aliasQualifierOpt;
             _name = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(binder, interfaceSpecifier, nameToken.ValueText, diagnostics, out _explicitInterfaceType, out aliasQualifierOpt);
 
             _type = BindEventType(binder, syntax.Type, diagnostics);
@@ -60,8 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // return type without losing the appearance of immutability.
                 if (this.IsOverride)
                 {
-                    EventSymbol overriddenEvent = this.OverriddenEvent;
-                    if ((object)overriddenEvent != null)
+                    EventSymbol? overriddenEvent = this.OverriddenEvent;
+                    if ((object?)overriddenEvent != null)
                     {
                         CopyEventCustomModifiers(overriddenEvent, ref _type, ContainingAssembly);
                     }
@@ -72,8 +73,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CopyEventCustomModifiers(explicitlyImplementedEvent, ref _type, ContainingAssembly);
             }
 
-            AccessorDeclarationSyntax addSyntax = null;
-            AccessorDeclarationSyntax removeSyntax = null;
+            AccessorDeclarationSyntax? addSyntax = null;
+            AccessorDeclarationSyntax? removeSyntax = null;
 
             if (syntax.AccessorList != null)
             {
@@ -107,6 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             break;
                         case SyntaxKind.GetAccessorDeclaration:
                         case SyntaxKind.SetAccessorDeclaration:
+                        case SyntaxKind.InitAccessorDeclaration:
                             diagnostics.Add(ErrorCode.ERR_AddOrRemoveExpected, accessor.Keyword.GetLocation());
                             break;
 
@@ -158,12 +160,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                _addMethod = CreateAccessorSymbol(addSyntax, explicitlyImplementedEvent, aliasQualifierOpt, diagnostics);
-                _removeMethod = CreateAccessorSymbol(removeSyntax, explicitlyImplementedEvent, aliasQualifierOpt, diagnostics);
+                _addMethod = CreateAccessorSymbol(DeclaringCompilation, addSyntax, explicitlyImplementedEvent, aliasQualifierOpt, diagnostics);
+                _removeMethod = CreateAccessorSymbol(DeclaringCompilation, removeSyntax, explicitlyImplementedEvent, aliasQualifierOpt, diagnostics);
             }
 
             _explicitInterfaceImplementations =
-                (object)explicitlyImplementedEvent == null ?
+                (object?)explicitlyImplementedEvent == null ?
                     ImmutableArray<EventSymbol>.Empty :
                     ImmutableArray.Create<EventSymbol>(explicitlyImplementedEvent);
         }
@@ -178,12 +180,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _name; }
         }
 
-        public override MethodSymbol AddMethod
+        public override MethodSymbol? AddMethod
         {
             get { return _addMethod; }
         }
 
-        public override MethodSymbol RemoveMethod
+        public override MethodSymbol? RemoveMethod
         {
             get { return _removeMethod; }
         }
@@ -193,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return AttributeLocation.Event; }
         }
 
-        private ExplicitInterfaceSpecifierSyntax ExplicitInterfaceSpecifier
+        private ExplicitInterfaceSpecifierSyntax? ExplicitInterfaceSpecifier
         {
             get { return ((EventDeclarationSyntax)this.CSharpSyntaxNode).ExplicitInterfaceSpecifier; }
         }
@@ -208,14 +210,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _explicitInterfaceImplementations; }
         }
 
-        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
             if ((object)_explicitInterfaceType != null)
             {
                 var explicitInterfaceSpecifier = this.ExplicitInterfaceSpecifier;
-                Debug.Assert(explicitInterfaceSpecifier != null);
+                RoslynDebug.Assert(explicitInterfaceSpecifier != null);
                 _explicitInterfaceType.CheckAllConstraints(DeclaringCompilation, conversions, new SourceLocation(explicitInterfaceSpecifier.Name), diagnostics);
             }
 
@@ -227,15 +229,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private SourceCustomEventAccessorSymbol CreateAccessorSymbol(AccessorDeclarationSyntax syntaxOpt,
-            EventSymbol explicitlyImplementedEventOpt, string aliasQualifierOpt, DiagnosticBag diagnostics)
+        [return: NotNullIfNotNull(parameterName: "syntaxOpt")]
+        private SourceCustomEventAccessorSymbol? CreateAccessorSymbol(CSharpCompilation compilation, AccessorDeclarationSyntax? syntaxOpt,
+            EventSymbol? explicitlyImplementedEventOpt, string? aliasQualifierOpt, BindingDiagnosticBag diagnostics)
         {
             if (syntaxOpt == null)
             {
                 return null;
             }
 
-            return new SourceCustomEventAccessorSymbol(this, syntaxOpt, explicitlyImplementedEventOpt, aliasQualifierOpt, diagnostics);
+            return new SourceCustomEventAccessorSymbol(this, syntaxOpt, explicitlyImplementedEventOpt, aliasQualifierOpt, isNullableAnalysisEnabled: compilation.IsNullableAnalysisEnabledIn(syntaxOpt), diagnostics);
         }
     }
 }

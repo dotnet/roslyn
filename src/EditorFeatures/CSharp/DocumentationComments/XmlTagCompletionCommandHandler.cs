@@ -2,12 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
+using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
@@ -25,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
     internal class XmlTagCompletionCommandHandler : AbstractXmlTagCompletionCommandHandler
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public XmlTagCompletionCommandHandler(ITextUndoHistoryRegistry undoHistory)
             : base(undoHistory)
         {
@@ -37,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
 
             if (token.IsKind(SyntaxKind.GreaterThanToken))
             {
-                if (!(token.Parent is XmlElementStartTagSyntax parentStartTag))
+                if (token.Parent is not XmlElementStartTagSyntax parentStartTag)
                 {
                     return;
                 }
@@ -67,19 +72,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
                 // We need to check for non-trivia XML text tokens after $$ that match the expected end tag text.
 
                 if (token.Parent.IsKind(SyntaxKind.XmlElementEndTag) &&
-                    token.Parent.IsParentKind(SyntaxKind.XmlElement))
+                    token.Parent.IsParentKind(SyntaxKind.XmlElement, out XmlElementSyntax parentElement) &&
+                    !HasFollowingEndTagTrivia(parentElement, token))
                 {
-                    var parentElement = token.Parent.Parent as XmlElementSyntax;
-
-                    if (!HasFollowingEndTagTrivia(parentElement, token))
-                    {
-                        CheckNameAndInsertText(textView, subjectBuffer, position, parentElement.StartTag, null, "{0}>");
-                    }
+                    CheckNameAndInsertText(textView, subjectBuffer, position, parentElement.StartTag, null, "{0}>");
                 }
             }
         }
 
-        private bool HasFollowingEndTagTrivia(XmlElementSyntax parentElement, SyntaxToken lessThanSlashToken)
+        private static bool HasFollowingEndTagTrivia(XmlElementSyntax parentElement, SyntaxToken lessThanSlashToken)
         {
             var expectedEndTagText = "</" + parentElement.StartTag.Name.LocalName.ValueText + ">";
 
@@ -115,14 +116,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
             return false;
         }
 
-        private bool HasMatchingEndTag(XmlElementStartTagSyntax parentStartTag)
+        private static bool HasMatchingEndTag(XmlElementStartTagSyntax parentStartTag)
         {
             if (parentStartTag == null)
             {
                 return false;
             }
 
-            if (!(parentStartTag.Parent is XmlElementSyntax parentElement))
+            if (parentStartTag.Parent is not XmlElementSyntax parentElement)
             {
                 return false;
             }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -21,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects
         {
         }
 
-        public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+        public override Task<TextAndVersion> LoadTextAndVersionAsync(CodeAnalysis.Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
         {
             if (!File.Exists(Path))
             {

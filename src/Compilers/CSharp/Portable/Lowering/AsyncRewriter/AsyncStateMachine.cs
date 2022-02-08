@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -33,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var elementType = TypeMap.SubstituteType(asyncMethod.IteratorElementTypeWithAnnotations).Type;
                 this.IteratorElementType = elementType;
 
-                bool isEnumerable = asyncMethod.IsIAsyncEnumerableReturningAsync(compilation);
+                bool isEnumerable = asyncMethod.IsAsyncReturningIAsyncEnumerable(compilation);
                 if (isEnumerable)
                 {
                     // IAsyncEnumerable<TResult>
@@ -68,6 +70,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get { return _constructor; }
         }
+
+        internal override bool IsRecord => false;
+        internal override bool IsRecordStruct => false;
+        internal override bool HasPossibleWellKnownCloneMethod() => false;
 
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved)
         {

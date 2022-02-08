@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             protected abstract IReadOnlyList<DocumentId> GetDocumentIds(Project fromProject);
 
-            protected abstract TextDocument GetDocument(Solution currentSolution);
+            protected abstract TextDocument? GetDocument(Solution currentSolution);
 
             public override void Do(IOleUndoManager pUndoManager)
             {

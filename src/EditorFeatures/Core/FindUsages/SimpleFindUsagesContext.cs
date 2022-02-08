@@ -2,11 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
@@ -14,35 +16,33 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
     /// Simple implementation of a <see cref="FindUsagesContext"/> that just aggregates the results
     /// for consumers that just want the data once it is finally computed.
     /// </summary>
-    internal class SimpleFindUsagesContext : FindUsagesContext
+    internal sealed class SimpleFindUsagesContext : FindUsagesContext
     {
-        private readonly object _gate = new object();
+        private readonly object _gate = new();
         private readonly ImmutableArray<DefinitionItem>.Builder _definitionItems =
             ImmutableArray.CreateBuilder<DefinitionItem>();
 
         private readonly ImmutableArray<SourceReferenceItem>.Builder _referenceItems =
             ImmutableArray.CreateBuilder<SourceReferenceItem>();
 
-        public override CancellationToken CancellationToken { get; }
-
-        public SimpleFindUsagesContext(CancellationToken cancellationToken)
+        public SimpleFindUsagesContext(IGlobalOptionService globalOptions)
+            : base(globalOptions)
         {
-            CancellationToken = cancellationToken;
         }
 
         public string Message { get; private set; }
         public string SearchTitle { get; private set; }
 
-        public override Task ReportMessageAsync(string message)
+        public override ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken)
         {
             Message = message;
-            return Task.CompletedTask;
+            return default;
         }
 
-        public override Task SetSearchTitleAsync(string title)
+        public override ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)
         {
             SearchTitle = title;
-            return Task.CompletedTask;
+            return default;
         }
 
         public ImmutableArray<DefinitionItem> GetDefinitions()
@@ -61,24 +61,24 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             }
         }
 
-        public override Task OnDefinitionFoundAsync(DefinitionItem definition)
+        public override ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
         {
             lock (_gate)
             {
                 _definitionItems.Add(definition);
             }
 
-            return Task.CompletedTask;
+            return default;
         }
 
-        public override Task OnReferenceFoundAsync(SourceReferenceItem reference)
+        public override ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
         {
             lock (_gate)
             {
                 _referenceItems.Add(reference);
             }
 
-            return Task.CompletedTask;
+            return default;
         }
     }
 }

@@ -5,6 +5,7 @@
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
@@ -45,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Public Function GeneratePropertyDeclaration([property] As IPropertySymbol,
                                                            destination As CodeGenerationDestination,
                                                            options As CodeGenerationOptions) As StatementSyntax
-            Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of StatementSyntax)([property], options)
+            Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of DeclarationStatementSyntax)([property], options)
             If reusableSyntax IsNot Nothing Then
                 Return reusableSyntax
             End If
@@ -81,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 (setMethod IsNot Nothing AndAlso Not setMethod.IsAbstract)
 
             Dim hasNoBody =
-                Not options.GenerateMethodBodies OrElse
+                Not options.Context.GenerateMethodBodies OrElse
                 destination = CodeGenerationDestination.InterfaceType OrElse
                 [property].IsAbstract OrElse
                 Not hasStatements
@@ -161,63 +162,69 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Return New SyntaxTokenList()
             End If
 
-            Dim modifiers = New List(Of SyntaxToken)()
-            AddAccessibilityModifiers(accessor.DeclaredAccessibility, modifiers, destination, options, Accessibility.Public)
-            Return SyntaxFactory.TokenList(modifiers)
+            Dim modifiers As ArrayBuilder(Of SyntaxToken) = Nothing
+            Using x = ArrayBuilder(Of SyntaxToken).GetInstance(modifiers)
+
+                AddAccessibilityModifiers(accessor.DeclaredAccessibility, modifiers, destination, options, Accessibility.Public)
+                Return SyntaxFactory.TokenList(modifiers)
+            End Using
         End Function
 
-        Private Function GenerateModifiers([property] As IPropertySymbol,
-                                                  destination As CodeGenerationDestination,
-                                                  options As CodeGenerationOptions,
-                                                  parameterList As ParameterListSyntax) As SyntaxTokenList
-            Dim tokens = New List(Of SyntaxToken)()
+        Private Function GenerateModifiers(
+                [property] As IPropertySymbol,
+                destination As CodeGenerationDestination,
+                options As CodeGenerationOptions,
+                parameterList As ParameterListSyntax) As SyntaxTokenList
+            Dim tokens As ArrayBuilder(Of SyntaxToken) = Nothing
+            Using x = ArrayBuilder(Of SyntaxToken).GetInstance(tokens)
 
-            If [property].IsIndexer Then
-                Dim hasRequiredParameter = parameterList IsNot Nothing AndAlso parameterList.Parameters.Any(AddressOf IsRequired)
-                If hasRequiredParameter Then
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.DefaultKeyword))
-                End If
-            End If
-
-            If destination <> CodeGenerationDestination.InterfaceType Then
-                AddAccessibilityModifiers([property].DeclaredAccessibility, tokens, destination, options, Accessibility.Public)
-
-                If [property].IsStatic AndAlso destination <> CodeGenerationDestination.ModuleType Then
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.SharedKeyword))
+                If [property].IsIndexer Then
+                    Dim hasRequiredParameter = parameterList IsNot Nothing AndAlso parameterList.Parameters.Any(AddressOf IsRequired)
+                    If hasRequiredParameter Then
+                        tokens.Add(SyntaxFactory.Token(SyntaxKind.DefaultKeyword))
+                    End If
                 End If
 
-                If CodeGenerationPropertyInfo.GetIsNew([property]) Then
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.ShadowsKeyword))
+                If destination <> CodeGenerationDestination.InterfaceType Then
+                    AddAccessibilityModifiers([property].DeclaredAccessibility, tokens, destination, options, Accessibility.Public)
+
+                    If [property].IsStatic AndAlso destination <> CodeGenerationDestination.ModuleType Then
+                        tokens.Add(SyntaxFactory.Token(SyntaxKind.SharedKeyword))
+                    End If
+
+                    If CodeGenerationPropertyInfo.GetIsNew([property]) Then
+                        tokens.Add(SyntaxFactory.Token(SyntaxKind.ShadowsKeyword))
+                    End If
+
+                    If [property].IsVirtual Then
+                        tokens.Add(SyntaxFactory.Token(SyntaxKind.OverridableKeyword))
+                    End If
+
+                    If [property].IsOverride Then
+                        tokens.Add(SyntaxFactory.Token(SyntaxKind.OverridesKeyword))
+                    End If
+
+                    If [property].IsAbstract Then
+                        tokens.Add(SyntaxFactory.Token(SyntaxKind.MustOverrideKeyword))
+                    End If
+
+                    If [property].IsSealed Then
+                        tokens.Add(SyntaxFactory.Token(SyntaxKind.NotOverridableKeyword))
+                    End If
                 End If
 
-                If [property].IsVirtual Then
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.OverridableKeyword))
-                End If
-
-                If [property].IsOverride Then
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.OverridesKeyword))
-                End If
-
-                If [property].IsAbstract Then
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.MustOverrideKeyword))
-                End If
-
-                If [property].IsSealed Then
-                    tokens.Add(SyntaxFactory.Token(SyntaxKind.NotOverridableKeyword))
-                End If
-            End If
-
-            If [property].GetMethod Is Nothing AndAlso
+                If [property].GetMethod Is Nothing AndAlso
                [property].SetMethod IsNot Nothing Then
-                tokens.Add(SyntaxFactory.Token(SyntaxKind.WriteOnlyKeyword))
-            End If
+                    tokens.Add(SyntaxFactory.Token(SyntaxKind.WriteOnlyKeyword))
+                End If
 
-            If [property].SetMethod Is Nothing AndAlso
+                If [property].SetMethod Is Nothing AndAlso
                [property].GetMethod IsNot Nothing Then
-                tokens.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword))
-            End If
+                    tokens.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword))
+                End If
 
-            Return SyntaxFactory.TokenList(tokens)
+                Return SyntaxFactory.TokenList(tokens)
+            End Using
         End Function
 
         Private Function IsRequired(parameter As ParameterSyntax) As Boolean

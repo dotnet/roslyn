@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Shell;
 using Roslyn.VisualStudio.Services.Interactive;
 using System;
@@ -15,6 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
         : AbstractResetInteractiveCommand
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpVsResetInteractiveCommand(
             VisualStudioWorkspace workspace,
             CSharpVsInteractiveWindowProvider interactiveWindowProvider,
@@ -29,13 +33,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Interactive
         }
 
         protected override string CreateReference(string referenceName)
-        {
-            return string.Format("#r \"{0}\"", referenceName);
-        }
+            => string.Format("#r \"{0}\"", referenceName);
 
         protected override string CreateImport(string namespaceName)
-        {
-            return string.Format("using {0};", namespaceName);
-        }
+            => string.Format("using {0};", namespaceName);
     }
 }

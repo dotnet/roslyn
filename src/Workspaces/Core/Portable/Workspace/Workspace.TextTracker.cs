@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -37,14 +39,10 @@ namespace Microsoft.CodeAnalysis
             }
 
             public void Connect()
-            {
-                this.TextContainer.TextChanged += _weakOnTextChanged;
-            }
+                => this.TextContainer.TextChanged += _weakOnTextChanged;
 
             public void Disconnect()
-            {
-                this.TextContainer.TextChanged -= _weakOnTextChanged;
-            }
+                => this.TextContainer.TextChanged -= _weakOnTextChanged;
 
             private void OnTextChanged(object sender, TextChangeEventArgs e)
             {

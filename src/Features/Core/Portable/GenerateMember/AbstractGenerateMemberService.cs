@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -27,8 +29,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember
             TypeKind.Interface
         };
 
-        protected bool ValidateTypeToGenerateIn(
-            Solution solution,
+        protected static bool ValidateTypeToGenerateIn(
             INamedTypeSymbol typeToGenerateIn,
             bool isStatic,
             ISet<TypeKind> typeKinds)
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember
             return locations.Any(loc => loc.IsInSource);
         }
 
-        protected bool TryDetermineTypeToGenerateIn(
+        protected static bool TryDetermineTypeToGenerateIn(
             SemanticDocument document,
             INamedTypeSymbol containingType,
             TExpressionSyntax simpleNameOrMemberAccessExpression,
@@ -115,6 +116,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember
                 {
                     DetermineTypeToGenerateInWorker(
                         semanticModel, beforeDotExpression, out typeToGenerateIn, out isStatic, cancellationToken);
+                    if (typeToGenerateIn.IsNullable(out var underlyingType) &&
+                        underlyingType is INamedTypeSymbol underlyingNamedType)
+                    {
+                        typeToGenerateIn = underlyingNamedType;
+                    }
                 }
 
                 return;
@@ -148,7 +154,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember
                 return;
             }
 
-            if (syntaxFacts.IsObjectInitializerNamedAssignmentIdentifier(
+            if (syntaxFacts.IsMemberInitializerNamedAssignmentIdentifier(
                     expression, out var initializedObject))
             {
                 typeToGenerateIn = semanticModel.GetTypeInfo(initializedObject, cancellationToken).Type as INamedTypeSymbol;

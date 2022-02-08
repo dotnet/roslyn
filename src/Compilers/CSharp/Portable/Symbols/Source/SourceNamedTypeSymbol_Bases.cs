@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -43,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var tmp = ContainingType.BaseTypeNoUseSiteDiagnostics;
                     }
 
-                    var diagnostics = DiagnosticBag.GetInstance();
+                    var diagnostics = BindingDiagnosticBag.GetInstance();
                     var acyclicBase = this.MakeAcyclicBaseType(diagnostics);
                     if (ReferenceEquals(Interlocked.CompareExchange(ref _lazyBaseType, acyclicBase, ErrorTypeSymbol.UnknownResultType), ErrorTypeSymbol.UnknownResultType))
                     {
@@ -69,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return ImmutableArray<NamedTypeSymbol>.Empty;
                 }
 
-                var diagnostics = DiagnosticBag.GetInstance();
+                var diagnostics = BindingDiagnosticBag.GetInstance();
                 var acyclicInterfaces = MakeAcyclicInterfaces(basesBeingResolved, diagnostics);
                 if (ImmutableInterlocked.InterlockedCompareExchange(ref _lazyInterfaces, acyclicInterfaces, default(ImmutableArray<NamedTypeSymbol>)).IsDefault)
                 {
@@ -81,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyInterfaces;
         }
 
-        protected override void CheckBase(DiagnosticBag diagnostics)
+        protected override void CheckBase(BindingDiagnosticBag diagnostics)
         {
             var localBase = this.BaseTypeNoUseSiteDiagnostics;
 
@@ -91,14 +93,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            // you need to know all bases before you can ask this question... (asking this causes a cycle)
-            if (this.IsGenericType && !localBase.IsErrorType() && this.DeclaringCompilation.IsAttributeType(localBase))
-            {
-                var baseLocation = FindBaseRefSyntax(localBase);
-                Debug.Assert(baseLocation != null);
+            Location baseLocation = null;
+            bool baseContainsErrorTypes = localBase.ContainsErrorType();
 
-                // A generic type cannot derive from '{0}' because it is an attribute class
-                diagnostics.Add(ErrorCode.ERR_GenericDerivingFromAttribute, baseLocation, localBase);
+            if (!baseContainsErrorTypes)
+            {
+                baseLocation = FindBaseRefSyntax(localBase);
+                Debug.Assert(!this.IsClassType() || localBase.IsObjectType() || baseLocation != null);
+            }
+
+            // you need to know all bases before you can ask this question... (asking this causes a cycle)
+            if (this.IsGenericType && !baseContainsErrorTypes && this.DeclaringCompilation.IsAttributeType(localBase))
+            {
+                MessageID.IDS_FeatureGenericAttributes.CheckFeatureAvailability(diagnostics, this.DeclaringCompilation, baseLocation);
             }
 
             // Check constraints on the first declaration with explicit bases.
@@ -111,9 +118,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 localBase.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
             }
+
+            // Records can only inherit from other records or object
+            if (this.IsClassType() && !localBase.IsObjectType() && !baseContainsErrorTypes)
+            {
+                var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
+
+                if (declaration.Kind == DeclarationKind.Record)
+                {
+                    if (SynthesizedRecordClone.FindValidCloneMethod(localBase, ref useSiteInfo) is null)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_BadRecordBase, baseLocation);
+                    }
+                }
+                else if (SynthesizedRecordClone.FindValidCloneMethod(localBase, ref useSiteInfo) is object)
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadInheritanceFromRecord, baseLocation);
+                }
+
+                diagnostics.Add(baseLocation, useSiteInfo);
+            }
         }
 
-        protected override void CheckInterfaces(DiagnosticBag diagnostics)
+        protected override void CheckInterfaces(BindingDiagnosticBag diagnostics)
         {
             // Check declared interfaces and all base interfaces. This is necessary
             // since references to all interfaces will be emitted to metadata
@@ -154,7 +181,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 continue;
                             }
 
+                            // InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics populates the set with interfaces that match by CLR signature.
                             Debug.Assert(!other.Equals(@interface, TypeCompareKind.ConsiderEverything));
+                            Debug.Assert(other.Equals(@interface, TypeCompareKind.CLRSignatureCompareOptions));
 
                             if (other.Equals(@interface, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                             {
@@ -166,6 +195,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             else if (other.Equals(@interface, TypeCompareKind.IgnoreTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                             {
                                 diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceWithTupleNamesInBaseList, location, @interface, other, this);
+                            }
+                            else
+                            {
+                                diagnostics.Add(ErrorCode.ERR_DuplicateInterfaceWithDifferencesInBaseList, location, @interface, other, this);
                             }
                         }
                     }
@@ -189,9 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     foreach (var baseTypeSyntax in bases.Types)
                     {
                         var b = baseTypeSyntax.Type;
-                        var tmpDiag = DiagnosticBag.GetInstance();
-                        var curBaseSym = baseBinder.BindType(b, tmpDiag).Type;
-                        tmpDiag.Free();
+                        var curBaseSym = baseBinder.BindType(b, BindingDiagnosticBag.Discarded).Type;
 
                         if (baseSym.Equals(curBaseSym))
                         {
@@ -224,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (ReferenceEquals(_lazyDeclaredBases, null))
             {
-                var diagnostics = DiagnosticBag.GetInstance();
+                var diagnostics = BindingDiagnosticBag.GetInstance();
                 if (Interlocked.CompareExchange(ref _lazyDeclaredBases, MakeDeclaredBases(basesBeingResolved, diagnostics), null) == null)
                 {
                     AddDeclarationDiagnostics(diagnostics);
@@ -245,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return GetDeclaredBases(basesBeingResolved).Item2;
         }
 
-        private Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>> MakeDeclaredBases(ConsList<TypeSymbol> basesBeingResolved, DiagnosticBag diagnostics)
+        private Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>> MakeDeclaredBases(ConsList<TypeSymbol> basesBeingResolved, BindingDiagnosticBag diagnostics)
         {
             if (this.TypeKind == TypeKind.Enum)
             {
@@ -284,13 +315,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         baseType = partBase;
                         baseTypeLocation = decl.NameLocation;
                     }
-                    else if ((object)partBase != null && !TypeSymbol.Equals(partBase, baseType, TypeCompareKind.ConsiderEverything2) && partBase.TypeKind != TypeKind.Error)
+                    else if ((object)partBase != null && !TypeSymbol.Equals(partBase, baseType, TypeCompareKind.ConsiderEverything) && partBase.TypeKind != TypeKind.Error)
                     {
                         // the parts do not agree
+                        if (partBase.Equals(baseType, TypeCompareKind.ObliviousNullableModifierMatchesAny))
+                        {
+                            if (containsOnlyOblivious(baseType))
+                            {
+                                baseType = partBase;
+                                baseTypeLocation = decl.NameLocation;
+                                continue;
+                            }
+                            else if (containsOnlyOblivious(partBase))
+                            {
+                                continue;
+                            }
+                        }
+
                         var info = diagnostics.Add(ErrorCode.ERR_PartialMultipleBases, Locations[0], this);
                         baseType = new ExtendedErrorTypeSymbol(baseType, LookupResultKind.Ambiguous, info);
                         baseTypeLocation = decl.NameLocation;
                         reportedPartialConflict = true;
+
+                        static bool containsOnlyOblivious(TypeSymbol type)
+                        {
+                            return TypeWithAnnotations.Create(type).VisitType(
+                                type: null,
+                                static (type, arg, flag) => !type.Type.IsValueType && !type.NullableAnnotation.IsOblivious(),
+                                typePredicate: null,
+                                arg: (object)null) is null;
+                        }
                     }
                 }
 
@@ -304,7 +358,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
+
+            if (declaration.Kind is DeclarationKind.Record or DeclarationKind.RecordStruct)
+            {
+                var type = DeclaringCompilation.GetWellKnownType(WellKnownType.System_IEquatable_T).Construct(this);
+                if (baseInterfaces.IndexOf(type, SymbolEqualityComparer.AllIgnoreOptions) < 0)
+                {
+                    baseInterfaces.Add(type);
+                    type.AddUseSiteInfo(ref useSiteInfo);
+                }
+            }
 
             if ((object)baseType != null)
             {
@@ -315,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_StaticBaseClass, baseTypeLocation, baseType, this);
                 }
 
-                if (!this.IsNoMoreVisibleThan(baseType, ref useSiteDiagnostics))
+                if (!this.IsNoMoreVisibleThan(baseType, ref useSiteInfo))
                 {
                     // Inconsistent accessibility: base class '{1}' is less accessible than class '{0}'
                     diagnostics.Add(ErrorCode.ERR_BadVisBaseClass, baseTypeLocation, this, baseType);
@@ -327,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var i in baseInterfacesRO)
                 {
-                    if (!i.IsAtLeastAsVisibleAs(this, ref useSiteDiagnostics))
+                    if (!i.IsAtLeastAsVisibleAs(this, ref useSiteInfo))
                     {
                         // Inconsistent accessibility: base interface '{1}' is less accessible than interface '{0}'
                         diagnostics.Add(ErrorCode.ERR_BadVisBaseInterface, interfaceLocations[i], this, i);
@@ -337,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             interfaceLocations.Free();
 
-            diagnostics.Add(Locations[0], useSiteDiagnostics);
+            diagnostics.Add(Locations[0], useSiteInfo);
 
             return new Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>>(baseType, baseInterfacesRO);
         }
@@ -354,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // process the base list for one part of a partial class, or for the only part of any other type declaration.
-        private Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>> MakeOneDeclaredBases(ConsList<TypeSymbol> newBasesBeingResolved, SingleTypeDeclaration decl, DiagnosticBag diagnostics)
+        private Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>> MakeOneDeclaredBases(ConsList<TypeSymbol> newBasesBeingResolved, SingleTypeDeclaration decl, BindingDiagnosticBag diagnostics)
         {
             BaseListSyntax bases = GetBaseListOpt(decl);
             if (bases == null)
@@ -450,12 +514,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             var info = diagnostics.Add(ErrorCode.ERR_StaticDerivedFromNonObject, location, this, localBase);
                             localBase = new ExtendedErrorTypeSymbol(localBase, LookupResultKind.NotReferencable, info);
                         }
+                        checkPrimaryConstructorBaseType(baseTypeSyntax, localBase);
                         continue;
                     }
                 }
                 else
                 {
                     baseType = baseBinder.BindType(typeSyntax, diagnostics, newBasesBeingResolved).Type;
+                }
+
+                if (i == 0)
+                {
+                    checkPrimaryConstructorBaseType(baseTypeSyntax, baseType);
                 }
 
                 switch (baseType.TypeKind)
@@ -540,6 +610,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return new Tuple<NamedTypeSymbol, ImmutableArray<NamedTypeSymbol>>(localBase, localInterfaces.ToImmutableAndFree());
+
+            void checkPrimaryConstructorBaseType(BaseTypeSyntax baseTypeSyntax, TypeSymbol baseType)
+            {
+                if (baseTypeSyntax is PrimaryConstructorBaseTypeSyntax primaryConstructorBaseType &&
+                    (!IsRecord || TypeKind != TypeKind.Class || baseType.TypeKind == TypeKind.Interface || ((RecordDeclarationSyntax)decl.SyntaxReference.GetSyntax()).ParameterList is null))
+                {
+                    diagnostics.Add(ErrorCode.ERR_UnexpectedArgumentList, primaryConstructorBaseType.ArgumentList.Location);
+                }
+            }
         }
 
         /// <summary>
@@ -560,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        private ImmutableArray<NamedTypeSymbol> MakeAcyclicInterfaces(ConsList<TypeSymbol> basesBeingResolved, DiagnosticBag diagnostics)
+        private ImmutableArray<NamedTypeSymbol> MakeAcyclicInterfaces(ConsList<TypeSymbol> basesBeingResolved, BindingDiagnosticBag diagnostics)
         {
             var typeKind = this.TypeKind;
 
@@ -571,12 +650,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var declaredInterfaces = GetDeclaredInterfaces(basesBeingResolved: basesBeingResolved);
-            bool isClass = (typeKind == TypeKind.Class);
+            bool isInterface = (typeKind == TypeKind.Interface);
 
-            ArrayBuilder<NamedTypeSymbol> result = isClass ? null : ArrayBuilder<NamedTypeSymbol>.GetInstance();
+            ArrayBuilder<NamedTypeSymbol> result = isInterface ? ArrayBuilder<NamedTypeSymbol>.GetInstance() : null;
             foreach (var t in declaredInterfaces)
             {
-                if (!isClass)
+                if (isInterface)
                 {
                     if (BaseTypeAnalysis.TypeDependsOn(depends: t, on: this))
                     {
@@ -590,31 +669,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
 
                 if (t.DeclaringCompilation != this.DeclaringCompilation)
                 {
-                    t.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                    t.AddUseSiteInfo(ref useSiteInfo);
 
                     foreach (var @interface in t.AllInterfacesNoUseSiteDiagnostics)
                     {
                         if (@interface.DeclaringCompilation != this.DeclaringCompilation)
                         {
-                            @interface.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                            @interface.AddUseSiteInfo(ref useSiteInfo);
                         }
                     }
                 }
 
-                if (!useSiteDiagnostics.IsNullOrEmpty())
-                {
-                    diagnostics.Add(Locations[0], useSiteDiagnostics);
-                }
+                diagnostics.Add(Locations[0], useSiteInfo);
             }
 
-            return isClass ? declaredInterfaces : result.ToImmutableAndFree();
+            return isInterface ? result.ToImmutableAndFree() : declaredInterfaces;
         }
 
-        private NamedTypeSymbol MakeAcyclicBaseType(DiagnosticBag diagnostics)
+        private NamedTypeSymbol MakeAcyclicBaseType(BindingDiagnosticBag diagnostics)
         {
             var typeKind = this.TypeKind;
             var compilation = this.DeclaringCompilation;
@@ -667,7 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.SetKnownToHaveNoDeclaredBaseCycles();
 
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
             NamedTypeSymbol current = declaredBase;
 
             do
@@ -677,15 +753,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
                 }
 
-                current.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                current.AddUseSiteInfo(ref useSiteInfo);
                 current = current.BaseTypeNoUseSiteDiagnostics;
             }
             while ((object)current != null);
 
-            if (!useSiteDiagnostics.IsNullOrEmpty())
-            {
-                diagnostics.Add(FindBaseRefSyntax(declaredBase) ?? Locations[0], useSiteDiagnostics);
-            }
+            diagnostics.Add(useSiteInfo.Diagnostics.IsNullOrEmpty() ? Location.None : (FindBaseRefSyntax(declaredBase) ?? Locations[0]), useSiteInfo);
 
             return declaredBase;
         }

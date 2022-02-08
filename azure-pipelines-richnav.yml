@@ -1,0 +1,43 @@
+# Branches that trigger a build on commit
+trigger:
+- main
+- main-vs-deps
+- release/*
+- features/*
+- demos/*
+
+# Branches that trigger builds on PR
+pr: none
+# Temporarily disabling richnav job on PRs
+# pr:
+# - main
+# - main-vs-deps
+# - release/*
+# - features/*
+# - demos/*
+
+jobs:
+- job: RichCodeNav_Indexing
+  pool:
+    name: NetCore1ESPool-Public
+    demands: ImageOverride -equals Build.Windows.Amd64.VS2022.Pre.Open
+  variables:
+    EnableRichCodeNavigation: true
+  timeoutInMinutes: 200
+
+  steps:
+    - task: PowerShell@2
+      displayName: Build
+      inputs:
+        filePath: eng/build.ps1
+        arguments: -ci -restore -build -binaryLog -configuration Debug -prepareMachine
+
+    - task: RichCodeNavIndexer@0
+      displayName: RichCodeNav Upload
+      inputs:
+        languages: 'csharp'
+        environment: production
+        richNavLogOutputDirectory: $(Build.SourcesDirectory)/artifacts/bin
+      continueOnError: true
+      env:
+        DOTNET_ROOT: $(Build.SourcesDirectory)/.dotnet

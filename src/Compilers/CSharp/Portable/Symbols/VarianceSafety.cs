@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Accumulate diagnostics related to the variance safety of an interface.
         /// </summary>
-        internal static void CheckInterfaceVarianceSafety(this NamedTypeSymbol interfaceType, DiagnosticBag diagnostics)
+        internal static void CheckInterfaceVarianceSafety(this NamedTypeSymbol interfaceType, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert((object)interfaceType != null && interfaceType.IsInterface);
 
@@ -66,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Check for illegal nesting into a variant interface.
         /// </summary>
-        private static void CheckNestedTypeVarianceSafety(NamedTypeSymbol member, DiagnosticBag diagnostics)
+        private static void CheckNestedTypeVarianceSafety(NamedTypeSymbol member, BindingDiagnosticBag diagnostics)
         {
             switch (member.TypeKind)
             {
@@ -118,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Accumulate diagnostics related to the variance safety of a delegate.
         /// </summary>
-        internal static void CheckDelegateVarianceSafety(this SourceDelegateMethodSymbol method, DiagnosticBag diagnostics)
+        internal static void CheckDelegateVarianceSafety(this SourceDelegateMethodSymbol method, BindingDiagnosticBag diagnostics)
         {
             method.CheckMethodVarianceSafety(
                 returnTypeLocationProvider: m =>
@@ -132,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Accumulate diagnostics related to the variance safety of an interface method.
         /// </summary>
-        private static void CheckMethodVarianceSafety(this MethodSymbol method, DiagnosticBag diagnostics)
+        private static void CheckMethodVarianceSafety(this MethodSymbol method, BindingDiagnosticBag diagnostics)
         {
             method.CheckMethodVarianceSafety(
                 returnTypeLocationProvider: m =>
@@ -143,8 +145,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics: diagnostics);
         }
 
-        private static void CheckMethodVarianceSafety(this MethodSymbol method, LocationProvider<MethodSymbol> returnTypeLocationProvider, DiagnosticBag diagnostics)
+        private static void CheckMethodVarianceSafety(this MethodSymbol method, LocationProvider<MethodSymbol> returnTypeLocationProvider, BindingDiagnosticBag diagnostics)
         {
+            if (SkipVarianceSafetyChecks(method))
+            {
+                return;
+            }
+
             // Spec 13.2.1: "Furthermore, each class type constraint, interface type constraint and
             // type parameter constraint on any type parameter of the method must be input-safe."
             CheckTypeParametersVarianceSafety(method.TypeParameters, method, diagnostics);
@@ -162,11 +169,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckParametersVarianceSafety(method.Parameters, method, diagnostics);
         }
 
+        private static bool SkipVarianceSafetyChecks(Symbol member)
+        {
+            if (member.IsStatic && !member.IsAbstract)
+            {
+                return MessageID.IDS_FeatureVarianceSafetyForStaticInterfaceMembers.RequiredVersion() <= member.DeclaringCompilation.LanguageVersion;
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// Accumulate diagnostics related to the variance safety of an interface property.
         /// </summary>
-        private static void CheckPropertyVarianceSafety(PropertySymbol property, DiagnosticBag diagnostics)
+        private static void CheckPropertyVarianceSafety(PropertySymbol property, BindingDiagnosticBag diagnostics)
         {
+            if (SkipVarianceSafetyChecks(property))
+            {
+                return;
+            }
+
             bool hasGetter = (object)property.GetMethod != null;
             bool hasSetter = (object)property.SetMethod != null;
             if (hasGetter || hasSetter)
@@ -191,8 +213,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Accumulate diagnostics related to the variance safety of an interface event.
         /// </summary>
-        private static void CheckEventVarianceSafety(EventSymbol @event, DiagnosticBag diagnostics)
+        private static void CheckEventVarianceSafety(EventSymbol @event, BindingDiagnosticBag diagnostics)
         {
+            if (SkipVarianceSafetyChecks(@event))
+            {
+                return;
+            }
+
             IsVarianceUnsafe(
                 @event.Type,
                 requireOutputSafety: false,
@@ -206,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Accumulate diagnostics related to the variance safety of an interface method/property parameter.
         /// </summary>
-        private static void CheckParametersVarianceSafety(ImmutableArray<ParameterSymbol> parameters, Symbol context, DiagnosticBag diagnostics)
+        private static void CheckParametersVarianceSafety(ImmutableArray<ParameterSymbol> parameters, Symbol context, BindingDiagnosticBag diagnostics)
         {
             foreach (ParameterSymbol param in parameters)
             {
@@ -228,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Accumulate diagnostics related to the variance safety of an interface method type parameters.
         /// </summary>
-        private static void CheckTypeParametersVarianceSafety(ImmutableArray<TypeParameterSymbol> typeParameters, MethodSymbol context, DiagnosticBag diagnostics)
+        private static void CheckTypeParametersVarianceSafety(ImmutableArray<TypeParameterSymbol> typeParameters, MethodSymbol context, BindingDiagnosticBag diagnostics)
         {
             foreach (TypeParameterSymbol typeParameter in typeParameters)
             {
@@ -265,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Symbol context,
             LocationProvider<T> locationProvider,
             T locationArg,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
             where T : Symbol
         {
             Debug.Assert(requireOutputSafety || requireInputSafety);
@@ -333,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Symbol context,
             LocationProvider<T> locationProvider,
             T locationArg,
-            DiagnosticBag diagnostics)
+            BindingDiagnosticBag diagnostics)
             where T : Symbol
         {
             Debug.Assert(requireOutputSafety || requireInputSafety);
@@ -410,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="locationArg">Callback argument.</param>
         /// <param name="expectedVariance">Desired variance of type.</param>
         private static void AddVarianceError<T>(
-            this DiagnosticBag diagnostics,
+            this BindingDiagnosticBag diagnostics,
             TypeParameterSymbol unsafeTypeParameter,
             Symbol context,
             LocationProvider<T> locationProvider,
@@ -442,7 +469,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // "requires output-safe", and "requires input-safe and output-safe".  This would make the error codes much easier to document and
             // much more actionable.
             // UNDONE: related location for use is much more useful
-            diagnostics.Add(ErrorCode.ERR_UnexpectedVariance, location, context, unsafeTypeParameter, actualVariance.Localize(), expectedVariance.Localize());
+            if (!(context is TypeSymbol) && context.IsStatic && !context.IsAbstract)
+            {
+                diagnostics.Add(ErrorCode.ERR_UnexpectedVarianceStaticMember, location, context, unsafeTypeParameter, actualVariance.Localize(), expectedVariance.Localize(),
+                                new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureVarianceSafetyForStaticInterfaceMembers.RequiredVersion()));
+            }
+            else
+            {
+                diagnostics.Add(ErrorCode.ERR_UnexpectedVariance, location, context, unsafeTypeParameter, actualVariance.Localize(), expectedVariance.Localize());
+            }
         }
 
         private static T GetDeclaringSyntax<T>(this Symbol symbol) where T : SyntaxNode

@@ -29,34 +29,22 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         }
 
         public static bool operator !=(VirtualTreePoint left, VirtualTreePoint right)
-        {
-            return !(left == right);
-        }
+            => !(left == right);
 
         public static bool operator <(VirtualTreePoint left, VirtualTreePoint right)
-        {
-            return left.CompareTo(right) < 0;
-        }
+            => left.CompareTo(right) < 0;
 
         public static bool operator <=(VirtualTreePoint left, VirtualTreePoint right)
-        {
-            return left.CompareTo(right) <= 0;
-        }
+            => left.CompareTo(right) <= 0;
 
         public static bool operator ==(VirtualTreePoint left, VirtualTreePoint right)
-        {
-            return object.Equals(left, right);
-        }
+            => object.Equals(left, right);
 
         public static bool operator >(VirtualTreePoint left, VirtualTreePoint right)
-        {
-            return left.CompareTo(right) > 0;
-        }
+            => left.CompareTo(right) > 0;
 
         public static bool operator >=(VirtualTreePoint left, VirtualTreePoint right)
-        {
-            return left.CompareTo(right) >= 0;
-        }
+            => left.CompareTo(right) >= 0;
 
         public bool IsInVirtualSpace
         {
@@ -81,32 +69,22 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             return ComparerWithState.CompareTo(this, other, s_comparers);
         }
 
-        private readonly static ImmutableArray<Func<VirtualTreePoint, IComparable>> s_comparers =
+        private static readonly ImmutableArray<Func<VirtualTreePoint, IComparable>> s_comparers =
             ImmutableArray.Create<Func<VirtualTreePoint, IComparable>>(p => p.Position, prop => prop.VirtualSpaces);
 
         public bool Equals(VirtualTreePoint other)
-        {
-            return CompareTo(other) == 0;
-        }
+            => CompareTo(other) == 0;
 
-        public override bool Equals(object obj)
-        {
-            return (obj is VirtualTreePoint) && Equals((VirtualTreePoint)obj);
-        }
+        public override bool Equals(object? obj)
+            => (obj is VirtualTreePoint) && Equals((VirtualTreePoint)obj);
 
         public override int GetHashCode()
-        {
-            return Text.GetHashCode() ^ Position.GetHashCode() ^ VirtualSpaces.GetHashCode();
-        }
+            => Text.GetHashCode() ^ Position.GetHashCode() ^ VirtualSpaces.GetHashCode();
 
         public override string ToString()
-        {
-            return $"VirtualTreePoint {{ Tree: '{Tree}', Text: '{Text}', Position: '{Position}', VirtualSpaces '{VirtualSpaces}' }}";
-        }
+            => $"VirtualTreePoint {{ Tree: '{Tree}', Text: '{Text}', Position: '{Position}', VirtualSpaces '{VirtualSpaces}' }}";
 
         public TextLine GetContainingLine()
-        {
-            return Text.Lines.GetLineFromPosition(Position);
-        }
+            => Text.Lines.GetLineFromPosition(Position);
     }
 }

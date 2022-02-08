@@ -10,9 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
     internal static class RenameTrackingDismisser
     {
         internal static void DismissRenameTracking(Workspace workspace, DocumentId documentId)
-        {
-            RenameTrackingTaggerProvider.ResetRenameTrackingState(workspace, documentId);
-        }
+            => RenameTrackingTaggerProvider.ResetRenameTrackingState(workspace, documentId);
 
         internal static void DismissRenameTracking(Workspace workspace, IEnumerable<DocumentId> documentIds)
         {
@@ -23,8 +21,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         }
 
         internal static bool DismissVisibleRenameTracking(Workspace workspace, DocumentId documentId)
-        {
-            return RenameTrackingTaggerProvider.ResetVisibleRenameTrackingState(workspace, documentId);
-        }
+            => RenameTrackingTaggerProvider.ResetVisibleRenameTrackingState(workspace, documentId);
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis
 {
     public abstract partial class Workspace
     {
-        private readonly EventMap _eventMap = new EventMap();
+        private readonly EventMap _eventMap = new();
 
         private const string WorkspaceChangeEventName = "WorkspaceChanged";
         private const string WorkspaceFailedEventName = "WorkspaceFailed";
@@ -185,9 +187,7 @@ namespace Microsoft.CodeAnalysis
 
         [Obsolete("This member is obsolete. Use the RaiseDocumentActiveContextChangedEventAsync(SourceTextContainer, DocumentId, DocumentId) overload instead.", error: true)]
         protected Task RaiseDocumentActiveContextChangedEventAsync(Document document)
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         protected Task RaiseDocumentActiveContextChangedEventAsync(SourceTextContainer sourceTextContainer, DocumentId oldActiveContextDocumentId, DocumentId newActiveContextDocumentId)
         {

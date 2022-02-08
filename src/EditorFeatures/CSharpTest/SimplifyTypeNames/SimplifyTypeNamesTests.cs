@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -13,15 +15,21 @@ using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyTypeNames
 {
     public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
+        public SimplifyTypeNamesTests(ITestOutputHelper logger)
+            : base(logger)
+        {
+        }
+
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpSimplifyTypeNamesDiagnosticAnalyzer(), new SimplifyTypeNamesCodeFixProvider());
 
@@ -113,6 +121,30 @@ namespace Root
         MyType c;
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task UseAlias00_FileScopedNamespace()
+        {
+            await TestInRegularAndScriptAsync(
+@"namespace Root;
+
+using MyType = System.IO.File;
+
+class A
+{
+    [|System.IO.File|] c;
+}
+",
+@"namespace Root;
+
+using MyType = System.IO.File;
+
+class A
+{
+    MyType c;
+}
+");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -530,6 +562,288 @@ namespace Root
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoNotChangeToAliasIfConflict1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        public int MyType => 3;
+
+        void M()
+        {
+            var x = [|System.ConsoleColor|].Red;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoNotChangeToAliasIfConflict2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        public System.ConsoleColor MyType() => 3;
+
+        void M()
+        {
+            var x = [|System.ConsoleColor|].Red;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoChangeToAliasIfTypesMatch1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        public System.ConsoleColor MyType => 3;
+
+        void M()
+        {
+            var x = [|System.ConsoleColor|].Red;
+        }
+    }
+}",
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        public System.ConsoleColor MyType => 3;
+
+        void M()
+        {
+            var x = MyType.Red;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoChangeToAliasIfTypesMatch2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        public System.ConsoleColor MyType = 3;
+
+        void M()
+        {
+            var x = [|System.ConsoleColor|].Red;
+        }
+    }
+}",
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        public System.ConsoleColor MyType = 3;
+
+        void M()
+        {
+            var x = MyType.Red;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoChangeToAliasIfTypesMatch3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        void M(System.ConsoleColor MyType)
+        {
+            var x = [|System.ConsoleColor|].Red;
+        }
+    }
+}",
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        void M(System.ConsoleColor MyType)
+        {
+            var x = MyType.Red;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoNotChangeToNamespaceAliasIfConflict()
+        {
+            await TestInRegularAndScriptAsync(
+@"using MyType = Root.Inner.Inner2;
+
+namespace Root
+{
+    namespace Inner
+    {
+        namespace Inner2
+        {
+            public class Red
+            {
+                public static void Goo()
+                {
+                }
+            }
+        }
+    }
+
+    class A
+    {
+        public int MyType => 3;
+
+        void M()
+        {
+            [|Root.Inner.Inner2|].Red.Goo();
+        }
+    }
+}",
+@"using MyType = Root.Inner.Inner2;
+
+namespace Root
+{
+    namespace Inner
+    {
+        namespace Inner2
+        {
+            public class Red
+            {
+                public static void Goo()
+                {
+                }
+            }
+        }
+    }
+
+    class A
+    {
+        public int MyType => 3;
+
+        void M()
+        {
+            Inner.Inner2.Red.Goo();
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoChangeToNamespaceAliasIfNoConflict()
+        {
+            await TestInRegularAndScriptAsync(
+@"using MyType = Root.Inner.Inner2;
+
+namespace Root
+{
+    namespace Inner
+    {
+        namespace Inner2
+        {
+            public class Red
+            {
+                public static void Goo()
+                {
+                }
+            }
+        }
+    }
+
+    class A
+    {
+        void M()
+        {
+            [|Root.Inner.Inner2|].Red.Goo();
+        }
+    }
+}",
+@"using MyType = Root.Inner.Inner2;
+
+namespace Root
+{
+    namespace Inner
+    {
+        namespace Inner2
+        {
+            public class Red
+            {
+                public static void Goo()
+                {
+                }
+            }
+        }
+    }
+
+    class A
+    {
+        void M()
+        {
+            MyType.Red.Goo();
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task DoChangeToAliasIfConflictIsntType()
+        {
+            await TestInRegularAndScriptAsync(
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        public int MyType => 3;
+
+        [|System.ConsoleColor|] x;
+    }
+}",
+@"using MyType = System.ConsoleColor;
+
+namespace Root
+{
+    class A
+    {
+        public int MyType => 3;
+
+        MyType x;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TwoMissingOnAmbiguousCref1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -689,7 +1003,6 @@ namespace Root
 
             foreach (var pair in builtInTypeMap)
             {
-                var position = content.IndexOf(@"[||]", StringComparison.Ordinal);
                 var newContent = content.Replace(@"[||]", pair.Key);
                 var expected = content.Replace(@"[||]", pair.Value);
                 await TestWithPredefinedTypeOptionsAsync(newContent, expected);
@@ -744,6 +1057,40 @@ namespace Root
     {
         [|System|].Exception c;
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task SimplifyTypeName1_FileScopedNamespace()
+        {
+            var source =
+@"using System;
+
+namespace Root;
+
+class A
+{
+    [|System.Exception|] c;
+}";
+
+            await TestInRegularAndScriptAsync(source,
+@"using System;
+
+namespace Root;
+
+class A
+{
+    Exception c;
+}");
+            await TestActionCountAsync(source, 1);
+            await TestSpansAsync(
+@"using System;
+
+namespace Root;
+
+class A
+{
+    [|System|].Exception c;
 }");
         }
 
@@ -3682,7 +4029,7 @@ class Attribute : System.Attribute
     {
         [|this|].x = 4;
     }
-}", new TestParameters(options: Option(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Error)));
+}", new TestParameters(options: Option(CodeStyleOptions2.QualifyFieldAccess, true, NotificationOption2.Error)));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3814,7 +4161,7 @@ class C
     public void z()
     {
     }
-}", new TestParameters(options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error)));
+}", new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption2.Error)));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3857,7 +4204,7 @@ class C
     public void z()
     {
     }
-}", new TestParameters(options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error)));
+}", new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption2.Error)));
         }
 
         [WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
@@ -3897,7 +4244,7 @@ options: PreferIntrinsicTypeInMemberAccess);
     public void z()
     {
     }
-}", new TestParameters(options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error)));
+}", new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption2.Error)));
         }
 
         [WorkItem(954536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/954536")]
@@ -3949,7 +4296,7 @@ options: PreferIntrinsicTypeInMemberAccess);
     {
         System.Int32 z = 9;
     }
-}", new TestParameters(options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption.Error)));
+}", new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption2.Error)));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3965,7 +4312,7 @@ options: PreferIntrinsicTypeInMemberAccess);
     {
         System.Int32 z = 9;
     }
-}", new TestParameters(options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption.Error)));
+}", new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption2.Error)));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3981,7 +4328,7 @@ options: PreferIntrinsicTypeInMemberAccess);
     {
         [|System.Int32|] z = 9;
     }
-}", new TestParameters(options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption.Error)));
+}", new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, false, NotificationOption2.Error)));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -4064,7 +4411,7 @@ class C
     {
         var sss = [|Int32|].MaxValue;
     }
-}", new TestParameters(options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error)));
+}", new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption2.Error)));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -4078,7 +4425,7 @@ class C
     {
         var sss = [|System.Int32|].MaxValue;
     }
-}", new TestParameters(options: Option(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption.Error)));
+}", new TestParameters(options: Option(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, false, NotificationOption2.Error)));
         }
 
         [WorkItem(965208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/965208")]
@@ -4495,7 +4842,7 @@ namespace N
 /// </summary>
 class Base
 {
-}", OptionsSet(), IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
+}", new OptionsCollection(GetLanguage()), IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
         }
 
         [WorkItem(40639, "https://github.com/dotnet/roslyn/issues/40639")]
@@ -4509,7 +4856,7 @@ class Base
 class Base
 {
     public void Foo(string s) { }
-}", OptionsSet(), IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
+}", new OptionsCollection(GetLanguage()), IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId, DiagnosticSeverity.Hidden);
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -5780,6 +6127,62 @@ static class M
 }");
         }
 
+        [WorkItem(22493, "https://github.com/dotnet/roslyn/issues/22493")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestSimplifyCallWithDynamicArg()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class P
+{
+    public static void Main()
+    {
+        dynamic y = null;
+        [|System|].Console.WriteLine(y);
+    }
+}",
+@"
+using System;
+
+class P
+{
+    public static void Main()
+    {
+        dynamic y = null;
+        Console.WriteLine(y);
+    }
+}");
+        }
+
+        [WorkItem(22493, "https://github.com/dotnet/roslyn/issues/22493")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestDoSimplifyCallWithDynamicArgWhenCallingThroughDerivedClass()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class Base
+{
+    public static void Goo(int i) { }
+}
+
+class Derived
+{
+}
+
+class P
+{
+    public static void Main()
+    {
+        dynamic y = null;
+        [|Derived|].Goo(y);
+    }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
         public async Task TestNameofReportsSimplifyMemberAccess()
         {
@@ -5792,42 +6195,106 @@ class Base
     {
         var v = nameof([|System|].Int32);
     }
-}", OptionsSet(), IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, DiagnosticSeverity.Hidden);
+}", new OptionsCollection(GetLanguage()), IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, DiagnosticSeverity.Hidden);
+        }
+
+        [WorkItem(11380, "https://github.com/dotnet/roslyn/issues/11380")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestNotOnIllegalInstanceCall()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        [|Console.Equals|]("""");
+    }
+}");
+        }
+
+        [WorkItem(57767, "https://github.com/dotnet/roslyn/issues/57767")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestInvocationOffOfFunctionPointerInvocationResult1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System.Runtime.CompilerServices;
+
+public ref struct A
+{
+    private void Goo()
+    {
+    }
+
+    public readonly unsafe ref struct B
+    {
+        private readonly void* a;
+
+        public void Dispose()
+        {
+            [|((delegate*<ref byte, ref A>)(delegate*<ref byte, ref byte>)&Unsafe.As<byte, byte>)(ref *(byte*)a)|].Goo();
+        }
+    }
+}");
+        }
+
+        [WorkItem(57767, "https://github.com/dotnet/roslyn/issues/57767")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestInvocationOffOfFunctionPointerInvocationResult2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"public struct A
+{
+    private void Goo()
+    {
+    }
+
+    public readonly unsafe struct B
+    {
+        private readonly void* a;
+
+        public void Dispose()
+        {
+            [|((delegate*<ref byte, ref A>)&Unsafe.As<byte, A>)(ref *(byte*)a)|].Goo();
+        }
+    }
+}");
         }
 
         private async Task TestWithPredefinedTypeOptionsAsync(string code, string expected, int index = 0)
-        {
-            await TestInRegularAndScriptAsync(code, expected, index: index, options: PreferIntrinsicTypeEverywhere);
-        }
+            => await TestInRegularAndScript1Async(code, expected, index, new TestParameters(options: PreferIntrinsicTypeEverywhere));
 
-        private IDictionary<OptionKey, object> PreferIntrinsicTypeEverywhere => OptionsSet(
-            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption.Error),
-            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.onWithError, GetLanguage()));
+        private OptionsCollection PreferIntrinsicTypeEverywhere
+            => new OptionsCollection(GetLanguage())
+            {
+                { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption2.Error },
+                { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.onWithError },
+            };
 
-        private IDictionary<OptionKey, object> PreferIntrinsicTypeEverywhereAsWarning => OptionsSet(
-            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption.Warning),
-            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.onWithWarning, GetLanguage()));
+        private OptionsCollection PreferIntrinsicTypeInDeclaration
+            => new OptionsCollection(GetLanguage())
+            {
+                { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption2.Error },
+                { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.offWithSilent },
+            };
 
-        private IDictionary<OptionKey, object> PreferIntrinsicTypeInDeclaration => OptionsSet(
-            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption.Error),
-            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.offWithSilent, GetLanguage()));
+        private OptionsCollection PreferIntrinsicTypeInMemberAccess
+            => new OptionsCollection(GetLanguage())
+            {
+                { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, true, NotificationOption2.Error },
+                { CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, this.offWithSilent },
+            };
 
-        private IDictionary<OptionKey, object> PreferIntrinsicTypeInMemberAccess => OptionsSet(
-            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, true, NotificationOption.Error),
-            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, this.offWithSilent, GetLanguage()));
+        private OptionsCollection PreferImplicitTypeEverywhere
+            => new OptionsCollection(GetLanguage())
+            {
+                { CSharpCodeStyleOptions.VarElsewhere, onWithInfo },
+                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo },
+                { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo },
+            };
 
-        private IDictionary<OptionKey, object> PreferImplicitTypeEverywhere => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
-            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
-            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo));
-
-        private readonly CodeStyleOption<bool> onWithSilent = new CodeStyleOption<bool>(true, NotificationOption.Silent);
-        private readonly CodeStyleOption<bool> offWithSilent = new CodeStyleOption<bool>(false, NotificationOption.Silent);
-        private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
-        private readonly CodeStyleOption<bool> offWithInfo = new CodeStyleOption<bool>(false, NotificationOption.Suggestion);
-        private readonly CodeStyleOption<bool> onWithWarning = new CodeStyleOption<bool>(true, NotificationOption.Warning);
-        private readonly CodeStyleOption<bool> offWithWarning = new CodeStyleOption<bool>(false, NotificationOption.Warning);
-        private readonly CodeStyleOption<bool> onWithError = new CodeStyleOption<bool>(true, NotificationOption.Error);
-        private readonly CodeStyleOption<bool> offWithError = new CodeStyleOption<bool>(false, NotificationOption.Error);
+        private readonly CodeStyleOption2<bool> offWithSilent = new CodeStyleOption2<bool>(false, NotificationOption2.Silent);
+        private readonly CodeStyleOption2<bool> onWithInfo = new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion);
+        private readonly CodeStyleOption2<bool> onWithError = new CodeStyleOption2<bool>(true, NotificationOption2.Error);
     }
 }

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 
@@ -10,9 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     internal class TextBlockWithDataItemControlType : TextBlock
     {
         protected override AutomationPeer OnCreateAutomationPeer()
-        {
-            return new TextBlockWithDataItemControlTypeAutomationPeer(this);
-        }
+            => new TextBlockWithDataItemControlTypeAutomationPeer(this);
 
         private class TextBlockWithDataItemControlTypeAutomationPeer : TextBlockAutomationPeer
         {
@@ -21,9 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
 
             protected override AutomationControlType GetAutomationControlTypeCore()
-            {
-                return AutomationControlType.DataItem;
-            }
+                => AutomationControlType.DataItem;
         }
     }
 }

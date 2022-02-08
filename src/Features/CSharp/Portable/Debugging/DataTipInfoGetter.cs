@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Debugging;
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
 
                 var token = root.FindToken(position);
 
-                if (!(token.Parent is ExpressionSyntax expression))
+                if (token.Parent is not ExpressionSyntax expression)
                 {
                     return token.IsKind(SyntaxKind.IdentifierToken)
                         ? new DebugDataTipInfo(token.Span, text: null)
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
                     // literal they're hovering over.
                     // Partial semantics should always be sufficient because the (unconverted) type
                     // of a literal can always easily be determined.
-                    var semanticModel = await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    var (_, semanticModel) = await document.GetPartialSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                     var type = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
                     return type == null
                         ? default
@@ -52,18 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
 
                 if (expression.IsRightSideOfDotOrArrow())
                 {
-                    var curr = expression;
-                    while (true)
-                    {
-                        var conditionalAccess = curr.GetParentConditionalAccessExpression();
-                        if (conditionalAccess == null)
-                        {
-                            break;
-                        }
-
-                        curr = conditionalAccess;
-                    }
-
+                    var curr = expression.GetRootConditionalAccessExpression() ?? expression;
                     if (curr == expression)
                     {
                         // NB: Parent.Span, not Span as below.
@@ -77,9 +67,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
 
                 // NOTE(cyrusn): This behavior is to mimic what we did in Dev10, I'm not sure if it's
                 // necessary or not.
-                if (expression.IsKind(SyntaxKind.InvocationExpression))
+                if (expression.IsKind(SyntaxKind.InvocationExpression, out InvocationExpressionSyntax invocation))
                 {
-                    expression = ((InvocationExpressionSyntax)expression).Expression;
+                    expression = invocation.Expression;
                 }
 
                 string textOpt = null;
@@ -97,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Debugging
 
                 return new DebugDataTipInfo(expression.Span, textOpt);
             }
-            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
                 return default;
             }

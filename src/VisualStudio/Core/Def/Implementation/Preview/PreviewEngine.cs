@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,7 +18,6 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Text.Differencing;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
@@ -25,7 +26,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 {
     internal class PreviewEngine : ForegroundThreadAffinitizedObject, IVsPreviewChangesEngine
     {
-        private readonly ITextDifferencingSelectorService _diffSelector;
         private readonly IVsEditorAdaptersFactoryService _editorFactory;
         private readonly Solution _newSolution;
         private readonly Solution _oldSolution;
@@ -69,7 +69,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             _description = description ?? throw new ArgumentNullException(nameof(description));
             _newSolution = newSolution.WithMergedLinkedFileChangesAsync(oldSolution, cancellationToken: CancellationToken.None).Result;
             _oldSolution = oldSolution;
-            _diffSelector = componentModel.GetService<ITextDifferencingSelectorService>();
             _editorFactory = componentModel.GetService<IVsEditorAdaptersFactoryService>();
             _componentModel = componentModel;
             this.ShowCheckBoxes = showCheckBoxes;
@@ -113,12 +112,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             var changes = _newSolution.GetChanges(_oldSolution);
             var projectChanges = changes.GetProjectChanges();
 
-            _topLevelChange = new TopLevelChange(_topLevelName, _topLevelGlyph, _newSolution, _oldSolution, _componentModel, this);
+            _topLevelChange = new TopLevelChange(_topLevelName, _topLevelGlyph, _newSolution, this);
 
             var builder = ArrayBuilder<AbstractChange>.GetInstance();
 
             // Documents
-            var changedDocuments = projectChanges.SelectMany(p => p.GetChangedDocuments());
+            // (exclude unchangeable ones if they will be ignored when applied to workspace.)
+            var changedDocuments = projectChanges.SelectMany(p => p.GetChangedDocuments(onlyGetDocumentsWithTextChanges: true, _oldSolution.Workspace.IgnoreUnchangeableDocumentsWhenApplyingChanges));
             var addedDocuments = projectChanges.SelectMany(p => p.GetAddedDocuments());
             var removedDocuments = projectChanges.SelectMany(p => p.GetRemovedDocuments());
 
@@ -238,7 +238,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         private ITextView EnsureTextViewIsInitialized(object previewTextView)
         {
             // We pass in a regular ITextView in tests
-            if (previewTextView != null && previewTextView is ITextView)
+            if (previewTextView is not null and ITextView)
             {
                 return (ITextView)previewTextView;
             }
@@ -252,7 +252,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                 textView = _editorFactory.GetWpfTextView(adapter);
             }
 
+            UpdateTextViewOptions(textView);
+
             return textView;
+        }
+
+        private static void UpdateTextViewOptions(IWpfTextView textView)
+        {
+            // Do not show the IndentationCharacterMargin, which controls spaces vs. tabs etc.
+            textView.Options.SetOptionValue(DefaultTextViewHostOptions.IndentationCharacterMarginOptionId, false);
+
+            // Do not show LineEndingMargin, which determines EOL and EOF settings.
+            textView.Options.SetOptionValue(DefaultTextViewHostOptions.LineEndingMarginOptionId, false);
+
+            // Do not show the "no issues found" health indicator for previews. 
+            textView.Options.SetOptionValue(DefaultTextViewHostOptions.EnableFileHealthIndicatorOptionId, false);
         }
 
         // When the dialog is first instantiated, the IVsTextView it contains may 
@@ -268,15 +282,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
             var newText = "";
             var newTextPtr = Marshal.StringToHGlobalAuto(newText);
-            Marshal.ThrowExceptionForHR(adapter.GetBuffer(out var lines));
-            Marshal.ThrowExceptionForHR(lines.GetLastLineIndex(out var piLIne, out var piLineIndex));
-            Marshal.ThrowExceptionForHR(lines.GetLengthOfLine(piLineIndex, out var piLineLength));
 
-            Microsoft.VisualStudio.TextManager.Interop.TextSpan[] changes = default;
+            try
+            {
+                Marshal.ThrowExceptionForHR(adapter.GetBuffer(out var lines));
+                Marshal.ThrowExceptionForHR(lines.GetLastLineIndex(out _, out var piLineIndex));
+                Marshal.ThrowExceptionForHR(lines.GetLengthOfLine(piLineIndex, out var piLineLength));
 
-            piLineLength = piLineLength > 0 ? piLineLength - 1 : 0;
+                Microsoft.VisualStudio.TextManager.Interop.TextSpan[] changes = null;
 
-            Marshal.ThrowExceptionForHR(lines.ReplaceLines(0, 0, piLineIndex, piLineLength, newTextPtr, newText.Length, changes));
+                piLineLength = piLineLength > 0 ? piLineLength - 1 : 0;
+
+                Marshal.ThrowExceptionForHR(lines.ReplaceLines(0, 0, piLineIndex, piLineLength, newTextPtr, newText.Length, changes));
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(newTextPtr);
+            }
         }
 
         private class NoChange : AbstractChange
@@ -303,14 +325,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             public override int IsExpandable => 0;
 
             internal override void GetDisplayData(VSTREEDISPLAYDATA[] pData)
-            {
-                pData[0].Image = pData[0].SelectedImage = (ushort)StandardGlyphGroup.GlyphInformation;
-            }
+                => pData[0].Image = pData[0].SelectedImage = (ushort)StandardGlyphGroup.GlyphInformation;
 
             public override int OnRequestSource(object pIUnknownTextView)
-            {
-                return VSConstants.S_OK;
-            }
+                => VSConstants.S_OK;
 
             public override void UpdatePreview()
             {

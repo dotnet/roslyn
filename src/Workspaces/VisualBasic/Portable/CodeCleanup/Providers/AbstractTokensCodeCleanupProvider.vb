@@ -4,13 +4,11 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Shared.Collections
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
     Friend MustInherit Class AbstractTokensCodeCleanupProvider
@@ -19,25 +17,25 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
         Public MustOverride ReadOnly Property Name As String Implements ICodeCleanupProvider.Name
 
         Protected MustOverride Function GetRewriterAsync(
-            document As Document, root As SyntaxNode, spans As ImmutableArray(Of TextSpan), workspace As Workspace, cancellationToken As CancellationToken) As Task(Of Rewriter)
+            document As Document, root As SyntaxNode, spans As ImmutableArray(Of TextSpan), cancellationToken As CancellationToken) As Task(Of Rewriter)
 
-        Public Async Function CleanupAsync(document As Document, spans As ImmutableArray(Of TextSpan), Optional cancellationToken As CancellationToken = Nothing) As Task(Of Document) Implements ICodeCleanupProvider.CleanupAsync
+        Public Async Function CleanupAsync(document As Document, spans As ImmutableArray(Of TextSpan), options As SyntaxFormattingOptions, cancellationToken As CancellationToken) As Task(Of Document) Implements ICodeCleanupProvider.CleanupAsync
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim rewriter As Rewriter = Await GetRewriterAsync(document, root, spans, document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(False)
+            Dim rewriter As Rewriter = Await GetRewriterAsync(document, root, spans, cancellationToken).ConfigureAwait(False)
             Dim newRoot = rewriter.Visit(root)
 
             Return If(root Is newRoot, document, document.WithSyntaxRoot(newRoot))
         End Function
 
-        Public Async Function CleanupAsync(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), workspace As Workspace, Optional cancellationToken As CancellationToken = Nothing) As Task(Of SyntaxNode) Implements ICodeCleanupProvider.CleanupAsync
-            Dim rewriter As Rewriter = Await GetRewriterAsync(Nothing, root, spans, workspace, cancellationToken).ConfigureAwait(False)
+        Public Async Function CleanupAsync(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), options As SyntaxFormattingOptions, services As HostWorkspaceServices, cancellationToken As CancellationToken) As Task(Of SyntaxNode) Implements ICodeCleanupProvider.CleanupAsync
+            Dim rewriter As Rewriter = Await GetRewriterAsync(Nothing, root, spans, cancellationToken).ConfigureAwait(False)
             Return rewriter.Visit(root)
         End Function
 
         Protected MustInherit Class Rewriter
             Inherits VisualBasicSyntaxRewriter
 
-            Protected ReadOnly _spans As SimpleIntervalTree(Of TextSpan)
+            Protected ReadOnly _spans As SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector)
             Protected ReadOnly _cancellationToken As CancellationToken
 
             ' a global state indicating whether the visitor is visiting structured trivia or not
@@ -48,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 MyBase.New(visitIntoStructuredTrivia:=True)
 
                 _cancellationToken = cancellationToken
-                _spans = New SimpleIntervalTree(Of TextSpan)(TextSpanIntervalIntrospector.Instance, spans)
+                _spans = New SimpleIntervalTree(Of TextSpan, TextSpanIntervalIntrospector)(New TextSpanIntervalIntrospector(), spans)
                 _underStructuredTrivia = False
             End Sub
 
@@ -77,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 End Try
             End Function
 
-            Protected Function CreateToken(token As SyntaxToken, kind As SyntaxKind) As SyntaxToken
+            Protected Shared Function CreateToken(token As SyntaxToken, kind As SyntaxKind) As SyntaxToken
                 ' create a new token with valid token text and carries over annotations attached to original token to be a good citizen 
                 ' it might be replacing a token that has annotation injected by other code cleanups
                 Dim leading = If(token.LeadingTrivia.Count > 0, token.LeadingTrivia, SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker))
@@ -86,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Return token.CopyAnnotationsTo(SyntaxFactory.Token(leading, kind, trailing))
             End Function
 
-            Protected Function CreateIdentifierToken(token As SyntaxToken, newValueText As String) As SyntaxToken
+            Protected Shared Function CreateIdentifierToken(token As SyntaxToken, newValueText As String) As SyntaxToken
                 Debug.Assert(token.Kind = SyntaxKind.IdentifierToken)
 
                 ' create a new token with valid token text and carries over annotations attached to original token to be a good citizen 

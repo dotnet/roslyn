@@ -7,8 +7,9 @@
     <RootNamespace>Microsoft.CodeAnalysis.VisualBasic.CommandLine</RootNamespace>
     <LargeAddressAware>true</LargeAddressAware>
     <StartupObject>Microsoft.CodeAnalysis.VisualBasic.CommandLine.Program</StartupObject>
-    <TargetFrameworks>$(RoslynPortableTargetFrameworks)</TargetFrameworks>
+    <TargetFrameworks>net472;net6.0</TargetFrameworks>
     <ServerGarbageCollection>true</ServerGarbageCollection>
+    <UseAppHost>false</UseAppHost>
     <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -16,16 +17,14 @@
     <ProjectReference Include="..\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.1'" />
+    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="'$(TargetFramework)' == 'net6.0'" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Shared\RuntimeHostInfo.cs" />
     <Compile Include="..\..\Shared\NamedPipeUtil.cs" />
     <Compile Include="..\..\Shared\BuildClient.cs" />
     <Compile Include="..\..\Shared\BuildServerConnection.cs" />
-    <Compile Include="..\..\Shared\CoreClrAnalyzerAssemblyLoader.cs" />
     <Compile Include="..\..\Shared\ExitingTraceListener.cs" />
-    <Compile Include="..\..\Shared\DesktopAnalyzerAssemblyLoader.cs" />
     <Compile Include="..\..\Shared\Vbc.cs" />
   </ItemGroup>
   <ItemGroup>

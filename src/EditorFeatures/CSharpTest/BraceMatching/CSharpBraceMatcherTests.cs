@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.BraceMatching;
@@ -817,6 +819,15 @@ class Program
         {
             var code = @"public class C { var x = ((1, 1, 1)$$, 2, 3, 4, 5, 6, 7, 8); }";
             var expected = @"public class C { var x = ([|(|]1, 1, 1), 2, 3, 4, 5, 6, 7, 8); }";
+
+            await TestAsync(code, expected, TestOptions.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.BraceMatching)]
+        public async Task TestFunctionPointer()
+        {
+            var code = @"public unsafe class C { delegate*<$$int, int> functionPointer; }";
+            var expected = @"public unsafe class C { delegate*<int, int[|>|] functionPointer; }";
 
             await TestAsync(code, expected, TestOptions.Regular);
         }

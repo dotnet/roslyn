@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
@@ -67,7 +69,7 @@ class C
             CompileAndVerify(text, expectedOutput: "5").VerifyIL("C.Main", expectedIL);
         }
 
-        // The object to removal or concatenation could be create a new instance of a method  or an method name
+        // The object to removal or concatenation could be create a new instance of a method or a method name
         [Fact]
         public void ObjectOfCompAssignOperator()
         {

@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -46,12 +48,11 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 {
                     case MethodGenerationKind.Member:
                         var text = generateProperty ?
-                            isAbstract ? FeaturesResources.Generate_abstract_property_1_0 : FeaturesResources.Generate_property_1_0 :
-                            isAbstract ? FeaturesResources.Generate_abstract_method_1_0 : FeaturesResources.Generate_method_1_0;
+                            isAbstract ? FeaturesResources.Generate_abstract_property_0 : FeaturesResources.Generate_property_0 :
+                            isAbstract ? FeaturesResources.Generate_abstract_method_0 : FeaturesResources.Generate_method_0;
 
                         var name = state.IdentifierToken.ValueText;
-                        var destination = state.TypeToGenerateIn.Name;
-                        return string.Format(text, name, destination);
+                        return string.Format(text, name);
                     case MethodGenerationKind.ImplicitConversion:
                         return _service.GetImplicitConversionDisplayText(_state);
                     case MethodGenerationKind.ExplicitConversion:
@@ -63,18 +64,17 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
 
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                var syntaxTree = await _document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var syntaxFactory = _document.Project.Solution.Workspace.Services.GetLanguageServices(_state.TypeToGenerateIn.Language).GetService<SyntaxGenerator>();
 
                 if (_generateProperty)
                 {
-                    var property = _state.SignatureInfo.GenerateProperty(syntaxFactory, _isAbstract, _state.IsWrittenTo, cancellationToken);
+                    var property = await _state.SignatureInfo.GeneratePropertyAsync(syntaxFactory, _isAbstract, _state.IsWrittenTo, cancellationToken).ConfigureAwait(false);
 
                     var result = await CodeGenerator.AddPropertyDeclarationAsync(
                         _document.Project.Solution,
                         _state.TypeToGenerateIn,
                         property,
-                        new CodeGenerationOptions(
+                        new CodeGenerationContext(
                             afterThisLocation: _state.IdentifierToken.GetLocation(),
                             generateMethodBodies: _state.TypeToGenerateIn.TypeKind != TypeKind.Interface),
                         cancellationToken)
@@ -84,16 +84,15 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 }
                 else
                 {
-                    var method = _state.SignatureInfo.GenerateMethod(syntaxFactory, _isAbstract, cancellationToken);
+                    var method = await _state.SignatureInfo.GenerateMethodAsync(syntaxFactory, _isAbstract, cancellationToken).ConfigureAwait(false);
 
                     var result = await CodeGenerator.AddMethodDeclarationAsync(
                         _document.Project.Solution,
                         _state.TypeToGenerateIn,
                         method,
-                        new CodeGenerationOptions(
+                        new CodeGenerationContext(
                             afterThisLocation: _state.Location,
-                            generateMethodBodies: _state.TypeToGenerateIn.TypeKind != TypeKind.Interface,
-                            parseOptions: syntaxTree.Options),
+                            generateMethodBodies: _state.TypeToGenerateIn.TypeKind != TypeKind.Interface),
                         cancellationToken)
                         .ConfigureAwait(false);
 

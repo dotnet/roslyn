@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,9 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
         }
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
-        {
-            return new Tagger(buffer, _key, _tagInstance) as ITagger<T>;
-        }
+            => new Tagger(buffer, _key, _tagInstance) as ITagger<T>;
 
         private class Tagger : ITagger<TTag>
         {

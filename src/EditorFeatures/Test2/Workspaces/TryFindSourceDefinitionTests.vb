@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     Public Class TryFindSourceDefinitionTests
         Private ReadOnly _outputHelper As ITestOutputHelper
 
-        Private Function GetProject(snapshot As Solution, assemblyName As String) As Project
+        Private Shared Function GetProject(snapshot As Solution, assemblyName As String) As Project
             Return snapshot.Projects.Single(Function(p) p.AssemblyName = assemblyName)
         End Function
 
@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         </Document>
     </Project>
-    <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true" CommonReferenceFacadeSystemRuntime="true">
+    <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true">
         <ProjectReference>CSharpAssembly</ProjectReference>
         <Document>
         </Document>
@@ -227,7 +227,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 Assert.True(mappedMember.Locations.All(Function(Loc) Loc.IsInSource))
             End Using
         End Function
-
 
         <Fact>
         Public Async Function TestFindRetargetedClass() As Task
