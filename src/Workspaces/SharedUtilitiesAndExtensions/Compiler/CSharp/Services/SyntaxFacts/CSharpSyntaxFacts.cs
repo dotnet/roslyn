@@ -1583,6 +1583,12 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             };
         }
 
+        public bool IsObjectMemberInitializer([NotNullWhen(true)] SyntaxNode? node)
+            => node is InitializerExpressionSyntax(SyntaxKind.ObjectInitializerExpression);
+
+        public bool IsObjectCollectionInitializer([NotNullWhen(true)] SyntaxNode? node)
+            => node is InitializerExpressionSyntax(SyntaxKind.CollectionInitializerExpression);
+
         #endregion
 
         #region GetPartsOfXXX members

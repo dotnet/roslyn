@@ -1791,6 +1791,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return TypeOf node Is NamedFieldInitializerSyntax
         End Function
 
+        Public Function IsObjectMemberInitializer(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsObjectMemberInitializer
+            Return TypeOf node Is ObjectMemberInitializerSyntax
+        End Function
+
+        Public Function IsObjectCollectionInitializer(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsObjectCollectionInitializer
+            Return TypeOf node Is ObjectCollectionInitializerSyntax
+        End Function
+
 #End Region
 
 #Region "GetPartsOfXXX members"

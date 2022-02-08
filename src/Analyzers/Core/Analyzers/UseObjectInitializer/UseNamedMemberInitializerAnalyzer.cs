@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -14,7 +13,7 @@ using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
 namespace Microsoft.CodeAnalysis.UseObjectInitializer
 {
-    internal class ObjectCreationExpressionAnalyzer<
+    internal class UseNamedMemberInitializerAnalyzer<
         TExpressionSyntax,
         TStatementSyntax,
         TObjectCreationExpressionSyntax,
@@ -30,8 +29,8 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         where TAssignmentStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
     {
-        private static readonly ObjectPool<ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>> s_pool
-            = SharedPools.Default<ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>>();
+        private static readonly ObjectPool<UseNamedMemberInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>> s_pool
+            = SharedPools.Default<UseNamedMemberInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>>();
 
         public static ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>>? Analyze(
             SemanticModel semanticModel,
@@ -50,6 +49,12 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 analyzer.Clear();
                 s_pool.Free(analyzer);
             }
+        }
+
+        protected override bool ShouldAnalyze()
+        {
+            // Can't add member initializers if the object already has a collection initializer attached to it.
+            return !_syntaxFacts.IsObjectCollectionInitializer(_syntaxFacts.GetInitializerOfObjectCreationExpression(_objectCreationExpression));
         }
 
         protected override void AddMatches(ArrayBuilder<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches)
@@ -177,8 +182,6 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             typeMember = member;
             return false;
         }
-
-        protected override bool ShouldAnalyze() => true;
 
         private bool ImplicitMemberAccessWouldBeAffected(SyntaxNode node)
         {

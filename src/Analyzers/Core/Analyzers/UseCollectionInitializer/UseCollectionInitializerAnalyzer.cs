@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 {
-    internal class ObjectCreationExpressionAnalyzer<
+    internal class UseCollectionInitializerAnalyzer<
         TExpressionSyntax,
         TStatementSyntax,
         TObjectCreationExpressionSyntax,
@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
         where TExpressionStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
     {
-        private static readonly ObjectPool<ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>> s_pool
-            = SharedPools.Default<ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>>();
+        private static readonly ObjectPool<UseCollectionInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>> s_pool
+            = SharedPools.Default<UseCollectionInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>>();
 
         public static ImmutableArray<TExpressionStatementSyntax>? Analyze(
             SemanticModel semanticModel,
@@ -104,11 +104,12 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         protected override bool ShouldAnalyze()
         {
+            if (_syntaxFacts.IsNamedMemberInitializer(_syntaxFacts.GetInitializerOfObjectCreationExpression(_objectCreationExpression)))
+                return false;
+
             var type = _semanticModel.GetTypeInfo(_objectCreationExpression, _cancellationToken).Type;
             if (type == null)
-            {
                 return false;
-            }
 
             var addMethods = _semanticModel.LookupSymbols(
                 _objectCreationExpression.SpanStart,

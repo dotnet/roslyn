@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
                 var originalObjectCreation = originalObjectCreationNodes.Pop();
                 var objectCreation = currentRoot.GetCurrentNodes(originalObjectCreation).Single();
 
-                var matches = ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
+                var matches = UseCollectionInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
                     semanticModel, syntaxFacts, objectCreation, cancellationToken);
 
                 if (matches == null || matches.Value.Length == 0)

@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             }
 
             var syntaxFacts = GetSyntaxFacts();
-            var matches = ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
+            var matches = UseNamedMemberInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
                 context.SemanticModel, syntaxFacts, objectCreationExpression, context.CancellationToken);
 
             if (matches == null || matches.Value.Length == 0)

@@ -151,7 +151,7 @@ class C
 {
     void M()
     {
-        var c = [|new|] List<int>();
+        var c = [|new|] List<object>();
         c[1] = 2;
         c[2] = """";
     }
@@ -162,7 +162,7 @@ class C
 {
     void M()
     {
-        var c = new List<int>
+        var c = new List<object>
         {
             [1] = 2,
             [2] = """"
@@ -545,9 +545,8 @@ class C
 
 class C
 {
-    void M()
+    void M(List<int>[] array)
     {
-        List<int>[] array;
         array[0] = [|new|] List<int>();
         array[0].Add(1);
         array[0].Add(2);
@@ -560,9 +559,8 @@ class C
 
 class C
 {
-    void M()
+    void M(List<int>[] array)
     {
-        List<int>[] array;
         array[0] = new List<int>
         {
             1,

@@ -535,6 +535,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);
         bool IsSimpleName([NotNullWhen(true)] SyntaxNode? node);
         bool IsNamedMemberInitializer([NotNullWhen(true)] SyntaxNode? node);
+        bool IsObjectMemberInitializer([NotNullWhen(true)] SyntaxNode? node);
+        bool IsObjectCollectionInitializer([NotNullWhen(true)] SyntaxNode? node);
 
         #endregion
 

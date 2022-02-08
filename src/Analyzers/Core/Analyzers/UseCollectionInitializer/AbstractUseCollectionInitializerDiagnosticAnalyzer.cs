@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             if (objectType.Type == null || !objectType.Type.AllInterfaces.Contains(ienumerableType))
                 return;
 
-            var matches = ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
+            var matches = UseCollectionInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
                 semanticModel, GetSyntaxFacts(), objectCreationExpression, cancellationToken);
 
             if (matches == null || matches.Value.Length == 0)
