@@ -835,6 +835,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Odsadit všechny argumenty</target>
         <note />
       </trans-unit>
+      <trans-unit id="Indent_all_elements">
+        <source>Indent all elements</source>
+        <target state="new">Indent all elements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indent_all_parameters">
         <source>Indent all parameters</source>
         <target state="translated">Odsadit všechny parametry</target>
@@ -2620,6 +2625,11 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <target state="translated">Zrušit zalomení všech argumentů</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unwrap_all_elements">
+        <source>Unwrap all elements</source>
+        <target state="new">Unwrap all elements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unwrap_all_parameters">
         <source>Unwrap all parameters</source>
         <target state="translated">Zrušit zalomení všech parametrů</target>
@@ -2648,6 +2658,11 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       <trans-unit id="Unwrap_expression">
         <source>Unwrap expression</source>
         <target state="translated">Zrušit zalomení výrazu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_initializer">
+        <source>Unwrap initializer</source>
+        <target state="new">Unwrap initializer</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_parameter_list">
@@ -2825,6 +2840,11 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <target state="translated">Zalomit výraz</target>
         <note />
       </trans-unit>
+      <trans-unit id="Wrap_initializer">
+        <source>Wrap initializer</source>
+        <target state="new">Wrap initializer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_long_argument_list">
         <source>Wrap long argument list</source>
         <target state="translated">Zalomit dlouhý seznam argumentů</target>
@@ -2833,6 +2853,11 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
       <trans-unit id="Wrap_long_call_chain">
         <source>Wrap long call chain</source>
         <target state="translated">Zalomit dlouhou posloupnost volání</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_initializer">
+        <source>Wrap long initializer</source>
+        <target state="new">Wrap long initializer</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_parameter_list">

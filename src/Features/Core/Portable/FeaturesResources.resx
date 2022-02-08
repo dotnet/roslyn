@@ -3109,4 +3109,19 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Invalid_JSON_pattern" xml:space="preserve">
     <value>Invalid JSON pattern</value>
   </data>
+  <data name="Unwrap_initializer" xml:space="preserve">
+    <value>Unwrap initializer</value>
+  </data>
+  <data name="Wrap_initializer" xml:space="preserve">
+    <value>Wrap initializer</value>
+  </data>
+  <data name="Wrap_long_initializer" xml:space="preserve">
+    <value>Wrap long initializer</value>
+  </data>
+  <data name="Indent_all_elements" xml:space="preserve">
+    <value>Indent all elements</value>
+  </data>
+  <data name="Unwrap_all_elements" xml:space="preserve">
+    <value>Unwrap all elements</value>
+  </data>
 </root>

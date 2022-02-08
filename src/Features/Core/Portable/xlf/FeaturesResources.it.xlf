@@ -835,6 +835,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Imposta rientro per tutti gli argomenti</target>
         <note />
       </trans-unit>
+      <trans-unit id="Indent_all_elements">
+        <source>Indent all elements</source>
+        <target state="new">Indent all elements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indent_all_parameters">
         <source>Indent all parameters</source>
         <target state="translated">Imposta rientro per tutti i parametri</target>
@@ -2620,6 +2625,11 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">Annulla il ritorno a capo per tutti gli argomenti</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unwrap_all_elements">
+        <source>Unwrap all elements</source>
+        <target state="new">Unwrap all elements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unwrap_all_parameters">
         <source>Unwrap all parameters</source>
         <target state="translated">Annulla il ritorno a capo per tutti i parametri</target>
@@ -2648,6 +2658,11 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       <trans-unit id="Unwrap_expression">
         <source>Unwrap expression</source>
         <target state="translated">Annulla il ritorno a capo per l'espressione</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_initializer">
+        <source>Unwrap initializer</source>
+        <target state="new">Unwrap initializer</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_parameter_list">
@@ -2825,6 +2840,11 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">Imposta il ritorno a capo all'espressione</target>
         <note />
       </trans-unit>
+      <trans-unit id="Wrap_initializer">
+        <source>Wrap initializer</source>
+        <target state="new">Wrap initializer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_long_argument_list">
         <source>Wrap long argument list</source>
         <target state="translated">Imposta il ritorno a capo all'elenco di argomenti lungo</target>
@@ -2833,6 +2853,11 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       <trans-unit id="Wrap_long_call_chain">
         <source>Wrap long call chain</source>
         <target state="translated">Imposta il ritorno a capo alla catena di chiamate lunga</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_initializer">
+        <source>Wrap long initializer</source>
+        <target state="new">Wrap long initializer</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_parameter_list">

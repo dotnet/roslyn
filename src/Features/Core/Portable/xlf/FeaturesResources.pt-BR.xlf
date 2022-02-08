@@ -835,6 +835,11 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Recuar todos os argumentos</target>
         <note />
       </trans-unit>
+      <trans-unit id="Indent_all_elements">
+        <source>Indent all elements</source>
+        <target state="new">Indent all elements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indent_all_parameters">
         <source>Indent all parameters</source>
         <target state="translated">Recuar todos os parâmetros</target>
@@ -2620,6 +2625,11 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">Desencapsular todos os argumentos</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unwrap_all_elements">
+        <source>Unwrap all elements</source>
+        <target state="new">Unwrap all elements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unwrap_all_parameters">
         <source>Unwrap all parameters</source>
         <target state="translated">Desencapsular todos os parâmetros</target>
@@ -2648,6 +2658,11 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       <trans-unit id="Unwrap_expression">
         <source>Unwrap expression</source>
         <target state="translated">Desencapsular a expressão</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_initializer">
+        <source>Unwrap initializer</source>
+        <target state="new">Unwrap initializer</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_parameter_list">
@@ -2825,6 +2840,11 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">Encapsular a expressão</target>
         <note />
       </trans-unit>
+      <trans-unit id="Wrap_initializer">
+        <source>Wrap initializer</source>
+        <target state="new">Wrap initializer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_long_argument_list">
         <source>Wrap long argument list</source>
         <target state="translated">Encapsular a lista de argumentos longa</target>
@@ -2833,6 +2853,11 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
       <trans-unit id="Wrap_long_call_chain">
         <source>Wrap long call chain</source>
         <target state="translated">Encapsular cadeia longa de chamadas</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_initializer">
+        <source>Wrap long initializer</source>
+        <target state="new">Wrap long initializer</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_parameter_list">

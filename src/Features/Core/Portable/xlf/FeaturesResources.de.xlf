@@ -835,6 +835,11 @@ Stellen Sie sicher, dass Sie den Bezeichner "tt" für Sprachen verwenden, für d
         <target state="translated">Alle Argumente einrücken</target>
         <note />
       </trans-unit>
+      <trans-unit id="Indent_all_elements">
+        <source>Indent all elements</source>
+        <target state="new">Indent all elements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indent_all_parameters">
         <source>Indent all parameters</source>
         <target state="translated">Alle Parameter einrücken</target>
@@ -2620,6 +2625,11 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
         <target state="translated">Umbruch für alle Argumente aufheben</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unwrap_all_elements">
+        <source>Unwrap all elements</source>
+        <target state="new">Unwrap all elements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unwrap_all_parameters">
         <source>Unwrap all parameters</source>
         <target state="translated">Umbruch für alle Parameter aufheben</target>
@@ -2648,6 +2658,11 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
       <trans-unit id="Unwrap_expression">
         <source>Unwrap expression</source>
         <target state="translated">Umbruch für Ausdruck aufheben</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_initializer">
+        <source>Unwrap initializer</source>
+        <target state="new">Unwrap initializer</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_parameter_list">
@@ -2825,6 +2840,11 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
         <target state="translated">Ausdruck umbrechen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Wrap_initializer">
+        <source>Wrap initializer</source>
+        <target state="new">Wrap initializer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_long_argument_list">
         <source>Wrap long argument list</source>
         <target state="translated">Lange Argumentliste umbrechen</target>
@@ -2833,6 +2853,11 @@ Positive Lookbehindassertionen mit Nullbreite werden normalerweise am Anfang reg
       <trans-unit id="Wrap_long_call_chain">
         <source>Wrap long call chain</source>
         <target state="translated">Lange Aufrufkette umbrechen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_initializer">
+        <source>Wrap long initializer</source>
+        <target state="new">Wrap long initializer</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_parameter_list">

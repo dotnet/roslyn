@@ -8,14 +8,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping.SeparatedSyntaxList
     Friend Class VisualBasicCollectionCreationExpressionWrapper
         Inherits AbstractVisualBasicSeparatedSyntaxListWrapper(Of CollectionInitializerSyntax, ExpressionSyntax)
 
-        Protected Overrides ReadOnly Property Align_wrapped_items As String = FeaturesResources.Align_wrapped_arguments
-        Protected Overrides ReadOnly Property Indent_all_items As String = FeaturesResources.Indent_all_arguments
-        Protected Overrides ReadOnly Property Indent_wrapped_items As String = FeaturesResources.Indent_wrapped_arguments
-        Protected Overrides ReadOnly Property Unwrap_all_items As String = FeaturesResources.Unwrap_all_arguments
-        Protected Overrides ReadOnly Property Unwrap_and_indent_all_items As String = FeaturesResources.Unwrap_and_indent_all_arguments
-        Protected Overrides ReadOnly Property Unwrap_list As String = FeaturesResources.Unwrap_argument_list
-        Protected Overrides ReadOnly Property Wrap_every_item As String = FeaturesResources.Wrap_every_argument
-        Protected Overrides ReadOnly Property Wrap_long_list As String = FeaturesResources.Wrap_long_argument_list
+        Protected Overrides ReadOnly Property Indent_all_items As String = FeaturesResources.Indent_all_elements
+        Protected Overrides ReadOnly Property Unwrap_all_items As String = FeaturesResources.Unwrap_all_elements
+        Protected Overrides ReadOnly Property Unwrap_list As String = FeaturesResources.Unwrap_initializer
+        Protected Overrides ReadOnly Property Wrap_every_item As String = FeaturesResources.Wrap_initializer
+        Protected Overrides ReadOnly Property Wrap_long_list As String = FeaturesResources.Wrap_long_initializer
+
+        Protected Overrides ReadOnly Property Align_wrapped_items As String
+            Get
+                Throw ExceptionUtilities.Unreachable
+            End Get
+        End Property
+
+        Protected Overrides ReadOnly Property Indent_wrapped_items As String
+            Get
+                Throw ExceptionUtilities.Unreachable
+            End Get
+        End Property
+
+        Protected Overrides ReadOnly Property Unwrap_and_indent_all_items As String
+            Get
+                Throw ExceptionUtilities.Unreachable
+            End Get
+        End Property
 
         Public Overrides ReadOnly Property Supports_UnwrapGroup_WrapFirst_IndentRest As Boolean = False
         Public Overrides ReadOnly Property Supports_WrapEveryGroup_UnwrapFirst As Boolean = False
