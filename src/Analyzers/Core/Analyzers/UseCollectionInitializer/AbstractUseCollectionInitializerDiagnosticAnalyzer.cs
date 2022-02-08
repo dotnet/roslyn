@@ -82,30 +82,22 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             // implements the IEnumerable type.
             var objectType = context.SemanticModel.GetTypeInfo(objectCreationExpression, cancellationToken);
             if (objectType.Type == null || !objectType.Type.AllInterfaces.Contains(ienumerableType))
-            {
                 return;
-            }
 
             var matches = ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TInvocationExpressionSyntax, TExpressionStatementSyntax, TVariableDeclaratorSyntax>.Analyze(
                 semanticModel, GetSyntaxFacts(), objectCreationExpression, cancellationToken);
 
             if (matches == null || matches.Value.Length == 0)
-            {
                 return;
-            }
 
             var containingStatement = objectCreationExpression.FirstAncestorOrSelf<TStatementSyntax>();
             if (containingStatement == null)
-            {
                 return;
-            }
 
             var nodes = ImmutableArray.Create<SyntaxNode>(containingStatement).AddRange(matches.Value);
             var syntaxFacts = GetSyntaxFacts();
             if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))
-            {
                 return;
-            }
 
             var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
 
