@@ -381,6 +381,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected BoundExpression MakeValueTest(SyntaxNode syntax, BoundExpression input, ConstantValue value)
             {
+                if (value.IsString && input.Type.IsSpanOrReadOnlySpanChar())
+                {
+                    return MakeSpanStringTest(input, value);
+                }
+
                 TypeSymbol comparisonType = input.Type.EnumUnderlyingTypeOrSelf();
                 var operatorType = Binder.RelationalOperatorType(comparisonType);
                 Debug.Assert(operatorType != BinaryOperatorKind.Error);
@@ -416,6 +421,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return this._localRewriter.MakeBinaryOperator(_factory.Syntax, operatorKind, input, literal, _factory.SpecialType(SpecialType.System_Boolean), method: null, constrainedToTypeOpt: null);
+            }
+
+            private BoundExpression MakeSpanStringTest(BoundExpression input, ConstantValue value)
+            {
+                var isReadOnlySpan = input.Type.IsReadOnlySpanChar();
+                var sequenceEqual =
+                    (_factory.WellKnownMember(isReadOnlySpan
+                        ? WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T
+                        : WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T) as MethodSymbol)
+                    ?.Construct(_factory.SpecialType(SpecialType.System_Char));
+                var asSpan = _factory.WellKnownMember(WellKnownMember.System_MemoryExtensions__AsSpanString) as MethodSymbol;
+
+                Debug.Assert(sequenceEqual != null && asSpan != null);
+
+                return _factory.Call(null, sequenceEqual, input, _factory.Call(null, asSpan, _factory.StringLiteral(value)));
             }
 
             /// <summary>

@@ -3689,7 +3689,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundSwitchDispatch : BoundStatement
     {
-        public BoundSwitchDispatch(SyntaxNode syntax, BoundExpression expression, ImmutableArray<(ConstantValue value, LabelSymbol label)> cases, LabelSymbol defaultLabel, MethodSymbol? equalityMethod, bool hasErrors = false)
+        public BoundSwitchDispatch(SyntaxNode syntax, BoundExpression expression, ImmutableArray<(ConstantValue value, LabelSymbol label)> cases, LabelSymbol defaultLabel, bool hasErrors = false)
             : base(BoundKind.SwitchDispatch, syntax, hasErrors || expression.HasErrors())
         {
 
@@ -3700,7 +3700,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Expression = expression;
             this.Cases = cases;
             this.DefaultLabel = defaultLabel;
-            this.EqualityMethod = equalityMethod;
         }
 
 
@@ -3709,16 +3708,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<(ConstantValue value, LabelSymbol label)> Cases { get; }
 
         public LabelSymbol DefaultLabel { get; }
-
-        public MethodSymbol? EqualityMethod { get; }
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitSwitchDispatch(this);
 
-        public BoundSwitchDispatch Update(BoundExpression expression, ImmutableArray<(ConstantValue value, LabelSymbol label)> cases, LabelSymbol defaultLabel, MethodSymbol? equalityMethod)
+        public BoundSwitchDispatch Update(BoundExpression expression, ImmutableArray<(ConstantValue value, LabelSymbol label)> cases, LabelSymbol defaultLabel)
         {
-            if (expression != this.Expression || cases != this.Cases || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(defaultLabel, this.DefaultLabel) || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(equalityMethod, this.EqualityMethod))
+            if (expression != this.Expression || cases != this.Cases || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(defaultLabel, this.DefaultLabel))
             {
-                var result = new BoundSwitchDispatch(this.Syntax, expression, cases, defaultLabel, equalityMethod, this.HasErrors);
+                var result = new BoundSwitchDispatch(this.Syntax, expression, cases, defaultLabel, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -11153,7 +11150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitSwitchDispatch(BoundSwitchDispatch node)
         {
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
-            return node.Update(expression, node.Cases, node.DefaultLabel, node.EqualityMethod);
+            return node.Update(expression, node.Cases, node.DefaultLabel);
         }
         public override BoundNode? VisitIfStatement(BoundIfStatement node)
         {
@@ -13039,13 +13036,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDecisionDag decisionDag = node.DecisionDag;
             BoundSwitchLabel? defaultLabel = (BoundSwitchLabel?)this.Visit(node.DefaultLabel);
             return node.Update(expression, innerLocals, innerLocalFunctions, switchSections, decisionDag, defaultLabel, node.BreakLabel);
-        }
-
-        public override BoundNode? VisitSwitchDispatch(BoundSwitchDispatch node)
-        {
-            MethodSymbol? equalityMethod = GetUpdatedSymbol(node, node.EqualityMethod);
-            BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
-            return node.Update(expression, node.Cases, node.DefaultLabel, equalityMethod);
         }
 
         public override BoundNode? VisitDoStatement(BoundDoStatement node)
@@ -15318,7 +15308,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("cases", node.Cases, null),
             new TreeDumperNode("defaultLabel", node.DefaultLabel, null),
-            new TreeDumperNode("equalityMethod", node.EqualityMethod, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }
         );

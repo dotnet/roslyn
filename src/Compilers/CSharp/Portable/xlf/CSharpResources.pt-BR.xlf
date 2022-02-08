@@ -1412,6 +1412,11 @@
         <target state="translated">parâmetro de verificação nula</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureSpanCharConstantPattern">
+        <source>pattern matching ReadOnly/Span&lt;char&gt; on constant string</source>
+        <target state="new">pattern matching ReadOnly/Span&lt;char&gt; on constant string</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
         <source>The assembly '{0}' containing type '{1}' references .NET Framework, which is not supported.</source>
         <target state="translated">O assembly '{0}' contendo o tipo '{1}' referencia o .NET Framework, mas não há suporte para isso.</target>

@@ -417,5 +417,38 @@ namespace System.Runtime.CompilerServices
         object this[int index] { get; }
     }
 }";
+
+        public const string MemoryExtensions = @"
+namespace System
+{
+    public static class MemoryExtensions
+    {
+        public static bool SequenceEqual<T> (this ReadOnlySpan<T> span, ReadOnlySpan<T> other) where T : IEquatable<T>
+        {
+            // unoptimized implementation for testing purposes
+            if (span.Length != other.Length) return false;
+            for(var i = 0; i < span.Length; i++)
+            {
+                if (!span[i].Equals(other[i]))
+                    return false;
+            }
+            return true;
+        }
+
+        public static bool SequenceEqual<T> (this Span<T> span, ReadOnlySpan<T> other) where T : IEquatable<T>
+        {
+            // unoptimized implementation for testing purposes
+            if (span.Length != other.Length) return false;
+            for(var i = 0; i < span.Length; i++)
+            {
+                if (!span[i].Equals(other[i]))
+                    return false;
+            }
+            return true;
+        }
+
+        public static ReadOnlySpan<char> AsSpan(this string text) => string.IsNullOrEmpty(text) ? default : new ReadOnlySpan<char>(text.ToCharArray());
+    }
+}";
     }
 }

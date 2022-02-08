@@ -517,6 +517,10 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear,
 
+        System_MemoryExtensions__SequenceEqual_Span_T,
+        System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T,
+        System_MemoryExtensions__AsSpanString,
+
         Count
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here
