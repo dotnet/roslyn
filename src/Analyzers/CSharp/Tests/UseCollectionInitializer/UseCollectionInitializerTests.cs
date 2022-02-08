@@ -462,17 +462,67 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
-        public async Task TestMissingWithExistingInitializer()
+        [WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")]
+        public async Task TestWithExistingInitializer()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"using System.Collections.Generic;
 
 class C
 {
     void M()
     {
-        var c = [||]new List<int>() { 1 };
+        var c = [||]new List<int>()
+        {
+            1
+        };
         c.Add(1);
+    }
+}",
+@"using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var c = [||]new List<int>
+        {
+            1,
+            1
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [WorkItem(39146, "https://github.com/dotnet/roslyn/issues/39146")]
+        public async Task TestWithExistingInitializerWithComma()
+        {
+            await TestInRegularAndScript1Async(
+@"using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var c = [||]new List<int>()
+        {
+            1,
+        };
+        c.Add(1);
+    }
+}",
+@"using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var c = [||]new List<int>
+        {
+            1,
+            1
+        };
     }
 }");
         }
