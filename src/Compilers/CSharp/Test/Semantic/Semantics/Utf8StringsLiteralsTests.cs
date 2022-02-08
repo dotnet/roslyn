@@ -1750,13 +1750,13 @@ class C
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics(
-                // (8,44): error CS9101: An expression tree may not contain UTF-8 string conversion or literal.
+                // (8,44): error CS9101: An expression tree may not contain UTF8 string conversion or literal.
                 //         Expression<Func<byte[]>> x = () => "hello";
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsUTF8StringLiterals, @"""hello""").WithLocation(8, 44),
-                // (9,46): error CS9101: An expression tree may not contain UTF-8 string conversion or literal.
+                // (9,46): error CS9101: An expression tree may not contain UTF8 string conversion or literal.
                 //         Expression<FuncSpanOfByte> y = () => "dog";
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsUTF8StringLiterals, @"""dog""").WithLocation(9, 46),
-                // (10,54): error CS9101: An expression tree may not contain UTF-8 string conversion or literal.
+                // (10,54): error CS9101: An expression tree may not contain UTF8 string conversion or literal.
                 //         Expression<FuncReadOnlySpanOfByte> z = () => "cat";
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsUTF8StringLiterals, @"""cat""").WithLocation(10, 54)
                 );
@@ -1821,7 +1821,7 @@ class C3
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void ExpressionTree_03()
         {
             var source = @"
@@ -1839,7 +1839,7 @@ class C
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics(
-                // (8,44): error CS9101: An expression tree may not contain UTF-8 string conversion or literal.
+                // (8,44): error CS9101: An expression tree may not contain UTF8 string conversion or literal.
                 //         Expression<Func<byte[]>> x = () => "hello"u8;
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsUTF8StringLiterals, @"""hello""u8").WithLocation(8, 44)
                 );
@@ -1955,6 +1955,13 @@ class C
 
             // PROTOTYPE(UTF8StringLiterals) : Add an entry in "docs/compilers/CSharp/Compiler Breaking Changes - DotNet 7.md"?
             CompileAndVerify(comp, expectedOutput: @"array").VerifyDiagnostics();
+
+            comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (7,39): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         System.Console.WriteLine(Test("s", (int)1));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""s""").WithArguments("Utf8 String Literals").WithLocation(7, 39)
+                );
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -2841,6 +2848,13 @@ class C
 
             // PROTOTYPE(UTF8StringLiterals) : Add an entry in "docs/compilers/CSharp/Compiler Breaking Changes - DotNet 7.md"?
             CompileAndVerify(comp, expectedOutput: @"array").VerifyDiagnostics();
+
+            comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (6,40): error CS8652: The feature 'Utf8 String Literals' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         System.Console.WriteLine(Test(("s", 1)));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""s""").WithArguments("Utf8 String Literals").WithLocation(6, 40)
+                );
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]

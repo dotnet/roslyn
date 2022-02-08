@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Errors_01()
         {
-            // The behavior is consistent with how type suffixes are handled on numeric literals, see Errors_07.
+            // The behavior is consistent with how type suffixes are handled on numeric literals, see Errors_06.
             UsingExpression(@"@""hello"" u8",
                 // (1,1): error CS1073: Unexpected token 'u8'
                 // @"hello" u8
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Errors_04()
         {
-            // The behavior is consistent with how type suffixes are handled on numeric literals, see Errors_06.
+            // The behavior is consistent with how type suffixes are handled on numeric literals, see Errors_05.
             UsingExpression(@"@""hello""u80",
                 // (1,1): error CS1073: Unexpected token '0'
                 // @"hello"u80
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Errors_07()
         {
-            // The behavior is consistent with how type suffixes are handled on numeric literals, see Errors_07.
+            // The behavior is consistent with how type suffixes are handled on numeric literals, see Errors_06.
             UsingExpression(@"""hello"" u8",
                 // (1,1): error CS1073: Unexpected token 'u8'
                 // "hello" u8
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Errors_10()
         {
-            // The behavior is consistent with how type suffixes are handled on numeric literals, see Errors_06.
+            // The behavior is consistent with how type suffixes are handled on numeric literals, see Errors_05.
             UsingExpression(@"""hello""u80",
                 // (1,1): error CS1073: Unexpected token '0'
                 // "hello"u80
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Errors_11()
         {
-            // The behavior is consistent with how type suffixes are handled on numeric literals, see Errors_07.
+            // The behavior is consistent with how type suffixes are handled on numeric literals, see Errors_06.
             UsingExpression(@"@""hello"" U8",
                 // (1,1): error CS1073: Unexpected token 'U8'
                 // @"hello" U8
@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Errors_13()
         {
-            // The behavior is consistent with how type suffixes are handled on numeric literals, see Errors_06.
+            // The behavior is consistent with how type suffixes are handled on numeric literals, see Errors_05.
             UsingExpression(@"@""hello""U80",
                 // (1,1): error CS1073: Unexpected token '0'
                 // @"hello"U80
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Errors_14()
         {
-            // The behavior is consistent with how type suffixes are handled on numeric literals, see Errors_07.
+            // The behavior is consistent with how type suffixes are handled on numeric literals, see Errors_06.
             UsingExpression(@"""hello"" U8",
                 // (1,1): error CS1073: Unexpected token 'U8'
                 // "hello" U8
@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Errors_16()
         {
-            // The behavior is consistent with how type suffixes are handled on numeric literals, see Errors_06.
+            // The behavior is consistent with how type suffixes are handled on numeric literals, see Errors_05.
             UsingExpression(@"""hello""U80",
                 // (1,1): error CS1073: Unexpected token '0'
                 // "hello"U80
