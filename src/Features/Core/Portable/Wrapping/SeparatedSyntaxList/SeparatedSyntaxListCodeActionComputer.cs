@@ -187,6 +187,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 }
 
                 result.Add(Edit.DeleteBetween(_listItems.Last(), _listSyntax.GetLastToken()));
+
                 return result.ToImmutable();
             }
 
@@ -291,12 +292,23 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                         }
                     }
 
-                    // Get rid of any spaces between the list item and the following token (a
-                    // comma or close token).
-                    var nextToken = item.GetLastToken().GetNextToken();
+                    // Get rid of any spaces between the list item and the following comma token
+                    if (i + 1 < itemsAndSeparators.Count)
+                    {
+                        var comma = itemsAndSeparators[i + 1];
+                        Contract.ThrowIfFalse(comma.IsToken);
+                        result.Add(Edit.DeleteBetween(item, comma));
+                        currentOffset += comma.Span.Length;
+                    }
+                }
 
-                    result.Add(Edit.DeleteBetween(item, nextToken));
-                    currentOffset += nextToken.Span.Length;
+                if (_doMoveOpenBraceToNewLine)
+                {
+                    result.Add(Edit.UpdateBetween(_listItems.Last(), NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetLastToken()));
+                }
+                else
+                {
+                    result.Add(Edit.DeleteBetween(_listItems.Last(), _listSyntax.GetLastToken()));
                 }
 
                 return result.ToImmutable();
@@ -392,8 +404,15 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                     }
                 }
 
-                // last item.  Delete whatever is between it and the close token of the list.
-                result.Add(Edit.DeleteBetween(_listItems.Last(), _listSyntax.GetLastToken()));
+                if (_doMoveOpenBraceToNewLine)
+                {
+                    result.Add(Edit.UpdateBetween(_listItems.Last(), NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetLastToken()));
+                }
+                else
+                {
+                    // last item.  Delete whatever is between it and the close token of the list.
+                    result.Add(Edit.DeleteBetween(_listItems.Last(), _listSyntax.GetLastToken()));
+                }
 
                 return result.ToImmutable();
             }
