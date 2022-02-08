@@ -36,6 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
             if (objectCreation.Initializer != null)
                 nodesAndTokens.AddRange(objectCreation.Initializer.Expressions.GetWithSeparators());
 
+            // If we have an odd number of elements already, add a comma at the end so that we can add the rest of the
+            // items afterwards without a syntax issue.
             if (nodesAndTokens.Count % 2 == 1)
             {
                 var last = nodesAndTokens.Last();
