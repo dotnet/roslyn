@@ -811,10 +811,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var annotations = parameter.FlowAnalysisAnnotations;
-            if ((annotations & FlowAnalysisAnnotations.AllowNull) != 0
-                || ((annotations & (FlowAnalysisAnnotations.DisallowNull | FlowAnalysisAnnotations.NotNull)) == 0
-                    && (parameter.TypeWithAnnotations.NullableAnnotation.IsAnnotated()
-                        || parameter.Type.IsNullableTypeOrTypeParameter())))
+            if ((annotations & FlowAnalysisAnnotations.NotNull) == 0
+                && !NullableWalker.GetParameterState(parameter.TypeWithAnnotations, annotations, applyParameterNullCheck: false).IsNotNull
+                && (!parameter.Type.IsTypeParameter() || parameter.TypeWithAnnotations.NullableAnnotation.IsAnnotated() || (annotations & FlowAnalysisAnnotations.AllowNull) != 0))
             {
                 diagnostics.Add(ErrorCode.WRN_NullCheckingOnNullableType, location, parameter);
             }
