@@ -282,6 +282,7 @@ namespace Microsoft.CodeAnalysis
             where TCompilation : Compilation
         {
             // Verify suppressed diagnostics are filtered when reportSuppressedDiagnostics is false.
+            // The actual verification is handled in GetCompilationWithAnalyzerDiagnostics.
             c = c.GetCompilationWithAnalyzerDiagnostics(analyzers, options, onAnalyzerException, reportSuppressedDiagnostics: false, includeCompilerDiagnostics: true, cancellationToken, out var diagnostics);
             return c; // note this is a new compilation
         }
