@@ -65,6 +65,12 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             /// depending on if a particular option is set (like the collection initializer brace in C#).
             /// </summary>
             private readonly bool _shouldMoveOpenBraceToNewLine;
+
+            /// <summary>
+            /// Whether or not we should move the close brace of this separated list to a new line.  Some lists will
+            /// never move the close brace (like a parameter list), while some will always move it (like a collection
+            /// initializer in both C# or VB).
+            /// </summary>
             private readonly bool _shouldMoveCloseBraceToNewLine;
 
             public SeparatedSyntaxListCodeActionComputer(
