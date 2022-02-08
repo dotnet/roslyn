@@ -373,32 +373,26 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             }).ToArray();
         }
 
-        public void GoToDefinition(string? expectedNavigateWindowName)
+        public void GoToDefinition(string expectedWindowName)
         {
             _editorInProc.GoToDefinition();
-            if (expectedNavigateWindowName is not null)
-            {
-                _editorInProc.WaitForActiveWindow(expectedNavigateWindowName);
-            }
+            _editorInProc.WaitForActiveWindow(expectedWindowName);
         }
 
-        public void GoToImplementation(string? expectedNavigateWindowName)
+        public void GoToImplementation(string expectedWindowName)
         {
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
             _editorInProc.GoToImplementation();
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.GoToImplementation);
-            if (expectedNavigateWindowName is not null)
-            {
-                _editorInProc.WaitForActiveWindow(expectedNavigateWindowName);
-            }
+            _editorInProc.WaitForActiveWindow(expectedWindowName);
         }
 
-        public void GoToBase(string expectedNavigateWindowName)
+        public void GoToBase(string expectedWindowName)
         {
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
             _editorInProc.GoToBase();
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.GoToBase);
-            _editorInProc.WaitForActiveWindow(expectedNavigateWindowName);
+            _editorInProc.WaitForActiveWindow(expectedWindowName);
         }
 
         public void SendExplicitFocus()

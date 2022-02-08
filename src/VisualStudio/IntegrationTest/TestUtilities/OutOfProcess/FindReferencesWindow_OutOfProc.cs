@@ -24,23 +24,24 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         /// <summary>
         /// Waits for any in-progress Find Reference operations to complete and returns the set of displayed results.
         /// </summary>
+        /// <param name="windowCaption">The name of the window. Generally this will be something like
+        /// "'Alpha' references" or "'Beta' implementations".</param>
         /// <returns>An array of <see cref="Reference"/> items capturing the current contents of the 
         /// Find References window.</returns>
-        public Reference[] GetContents()
+        public Reference[] GetContents(string windowCaption)
         {
-            // Wait for any pending FindReferences or Implementations operation to complete.
-            // Go to Definition/Go to Base are synchronous so we don't need to wait for them
+            // Wait for any pending FindReferences operation to complete.
+            // Go to Definition/Go to Implementation are synchronous so we don't need to wait for them
             // (and currently can't, anyway); if they are made asynchronous we will need to wait for
             // them here as well.
             VisualStudioInstance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.FindReferences);
-            VisualStudioInstance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.GoToImplementation);
 
-            return _inProc.GetContents();
+            return _inProc.GetContents(windowCaption);
         }
 
-        public void NavigateTo(Reference reference, bool isPreview, bool shouldActivate)
+        public void NavigateTo(string windowCaption, Reference reference, bool isPreview, bool shouldActivate)
         {
-            _inProc.NavigateTo(reference, isPreview, shouldActivate);
+            _inProc.NavigateTo(windowCaption, reference, isPreview, shouldActivate);
             WaitForNavigate();
         }
 

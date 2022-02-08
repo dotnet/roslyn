@@ -1915,10 +1915,4 @@ Additional information: {1}</value>
   <data name="Prefer_method_group_conversion" xml:space="preserve">
     <value>Prefer method group conversion</value>
   </data>
-  <data name="Entire_solution_and_external_sources" xml:space="preserve">
-    <value>Entire Solution and External Sources</value>
-  </data>
-  <data name="External_sources" xml:space="preserve">
-    <value>External Sources</value>
-  </data>
 </root>

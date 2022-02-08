@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             foreach (var linkedSymbol in linkedSymbols)
             {
-                var implementations = await FindImplementationsWorkerAsync(
+                var implementations = await FindSourceImplementationsWorkerAsync(
                     solution, linkedSymbol, cancellationToken).ConfigureAwait(false);
                 foreach (var implementation in implementations)
                 {
@@ -125,7 +125,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             {
                 foreach (var location in implementation.Locations)
                 {
-                    if (location.IsInSource && !seenLocations.Add((location.SourceTree.FilePath, location.SourceSpan)))
+                    Contract.ThrowIfFalse(location.IsInSource);
+                    if (!seenLocations.Add((location.SourceTree.FilePath, location.SourceSpan)))
                         return false;
                 }
 
@@ -133,26 +134,26 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             }
         }
 
-        private static async Task<ImmutableArray<ISymbol>> FindImplementationsWorkerAsync(
+        private static async Task<ImmutableArray<ISymbol>> FindSourceImplementationsWorkerAsync(
             Solution solution, ISymbol symbol, CancellationToken cancellationToken)
         {
             var implementations = await FindSourceAndMetadataImplementationsAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
-            var result = new HashSet<ISymbol>(implementations.Select(s => s.OriginalDefinition));
+            var sourceImplementations = new HashSet<ISymbol>(implementations.Where(s => s.IsFromSource()).Select(s => s.OriginalDefinition));
 
             // For members, if we've found overrides of the original symbol, then filter out any abstract
             // members these inherit from.  The user has asked for literal implementations, and in the case
             // of an override, including the abstract as well isn't helpful.
-            var overrides = result.Where(s => s.IsOverride).ToImmutableArray();
+            var overrides = sourceImplementations.Where(s => s.IsOverride).ToImmutableArray();
             foreach (var ov in overrides)
             {
                 for (var overridden = ov.GetOverriddenMember(); overridden != null; overridden = overridden.GetOverriddenMember())
                 {
                     if (overridden.IsAbstract)
-                        result.Remove(overridden.OriginalDefinition);
+                        sourceImplementations.Remove(overridden.OriginalDefinition);
                 }
             }
 
-            return result.ToImmutableArray();
+            return sourceImplementations.ToImmutableArray();
         }
 
         private static async Task<ImmutableArray<ISymbol>> FindSourceAndMetadataImplementationsAsync(
