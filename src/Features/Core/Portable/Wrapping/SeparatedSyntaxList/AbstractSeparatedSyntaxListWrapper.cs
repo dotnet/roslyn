@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 {
     using Microsoft.CodeAnalysis.Indentation;
+    using Microsoft.CodeAnalysis.Options;
     using Microsoft.CodeAnalysis.Shared.Extensions;
 
     /// <summary>
@@ -44,6 +45,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
         {
         }
 
+        protected abstract bool GetDoMoveOpenBraceToNewLine(OptionSet options);
         protected abstract TListSyntax? TryGetApplicableList(SyntaxNode node);
         protected abstract SeparatedSyntaxList<TListItemSyntax> GetListItems(TListSyntax listSyntax);
         protected abstract bool PositionIsApplicable(
@@ -54,15 +56,11 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
         {
             var listSyntax = TryGetApplicableList(declaration);
             if (listSyntax == null)
-            {
                 return null;
-            }
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             if (!PositionIsApplicable(root, position, declaration, listSyntax))
-            {
                 return null;
-            }
 
             var listItems = GetListItems(listSyntax);
             if (listItems.Count <= 1)
@@ -77,14 +75,12 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 document, listItems.GetWithSeparators(), cancellationToken).ConfigureAwait(false);
 
             if (containsUnformattableContent)
-            {
                 return null;
-            }
 
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             return new SeparatedSyntaxListCodeActionComputer(
-                this, document, sourceText, options, listSyntax, listItems, cancellationToken);
+                this, document, sourceText, options, listSyntax, listItems, GetDoMoveOpenBraceToNewLine(options), cancellationToken);
         }
     }
 }

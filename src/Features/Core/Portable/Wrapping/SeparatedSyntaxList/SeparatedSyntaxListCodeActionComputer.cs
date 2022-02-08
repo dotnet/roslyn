@@ -50,20 +50,36 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             /// </summary>
             private readonly SyntaxTrivia _singleIndentationTrivia;
 
+            /// <summary>
+            /// Indentation to use when placing brace.  e.g.:
+            /// 
+            ///     var v = new List {
+            ///     ^
+            ///     |
+            /// </summary>
+            private readonly SyntaxTrivia _braceIndentationTrivia;
+            private readonly bool _doMoveOpenBraceToNewLine;
+
             public SeparatedSyntaxListCodeActionComputer(
                 AbstractSeparatedSyntaxListWrapper<TListSyntax, TListItemSyntax> service,
-                Document document, SourceText sourceText, DocumentOptionSet options,
-                TListSyntax listSyntax, SeparatedSyntaxList<TListItemSyntax> listItems,
+                Document document,
+                SourceText sourceText,
+                DocumentOptionSet options,
+                TListSyntax listSyntax,
+                SeparatedSyntaxList<TListItemSyntax> listItems,
+                bool doMoveOpenBraceToNewLine,
                 CancellationToken cancellationToken)
                 : base(service, document, sourceText, options, cancellationToken)
             {
                 _listSyntax = listSyntax;
                 _listItems = listItems;
+                _doMoveOpenBraceToNewLine = doMoveOpenBraceToNewLine;
 
                 var generator = SyntaxGenerator.GetGenerator(OriginalDocument);
 
                 _afterOpenTokenIndentationTrivia = generator.Whitespace(GetAfterOpenTokenIdentation());
                 _singleIndentationTrivia = generator.Whitespace(GetSingleIdentation());
+                _braceIndentationTrivia = generator.Whitespace(GetBraceTokenIndentation());
             }
 
             private void AddTextChangeBetweenOpenAndFirstItem(
@@ -98,6 +114,14 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 return wrappingStyle == WrappingStyle.UnwrapFirst_AlignRest
                     ? _afterOpenTokenIndentationTrivia
                     : _singleIndentationTrivia;
+            }
+
+            private string GetBraceTokenIndentation()
+            {
+                var previousToken = _listSyntax.GetFirstToken().GetPreviousToken();
+
+                // Block indentation is the only style that correctly indents across all initializer expressions
+                return GetIndentationAfter(previousToken, Formatting.FormattingOptions.IndentStyle.Block);
             }
 
             protected override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync()
@@ -150,6 +174,9 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             private ImmutableArray<Edit> GetUnwrapAllEdits(WrappingStyle wrappingStyle)
             {
                 using var _ = ArrayBuilder<Edit>.GetInstance(out var result);
+
+                if (_doMoveOpenBraceToNewLine)
+                    result.Add(Edit.DeleteBetween(_listSyntax.GetFirstToken().GetPreviousToken(), _listSyntax.GetFirstToken()));
 
                 AddTextChangeBetweenOpenAndFirstItem(wrappingStyle, result);
 
@@ -227,6 +254,9 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 WrappingStyle wrappingStyle, SyntaxTrivia indentationTrivia)
             {
                 using var _ = ArrayBuilder<Edit>.GetInstance(out var result);
+
+                if (_doMoveOpenBraceToNewLine)
+                    result.Add(Edit.UpdateBetween(_listSyntax.GetFirstToken().GetPreviousToken(), NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetFirstToken()));
 
                 AddTextChangeBetweenOpenAndFirstItem(wrappingStyle, result);
 
@@ -339,6 +369,9 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 WrappingStyle wrappingStyle, SyntaxTrivia indentationTrivia)
             {
                 using var _ = ArrayBuilder<Edit>.GetInstance(out var result);
+
+                if (_doMoveOpenBraceToNewLine)
+                    result.Add(Edit.UpdateBetween(_listSyntax.GetFirstToken().GetPreviousToken(), NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetFirstToken()));
 
                 AddTextChangeBetweenOpenAndFirstItem(wrappingStyle, result);
 
