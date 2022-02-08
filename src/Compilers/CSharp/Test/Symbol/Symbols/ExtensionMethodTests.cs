@@ -290,6 +290,7 @@ static class Program
         Console.WriteLine(x);
     }
 }";
+            // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 21 }
             CompileAndVerify(source, expectedOutput:
 @"ABC
 123
@@ -376,6 +377,7 @@ static class Program
     static void Goo<T>(this T x) { }
 }
 ";
+            // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 7 }
             CompileAndVerify(source, expectedOutput: "2", verify: Verification.FailsIlVerify);
         }
 
@@ -873,6 +875,7 @@ static class B
     internal static void F(this object x, object y) { }
     internal static void G(this object x, object y) { }
 }";
+            // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 8 }
             var compilation = CompileAndVerify(source, verify: Verification.FailsIlVerify);
             compilation.VerifyIL("N.C.M",
 @"{
@@ -939,6 +942,7 @@ static class S2
     internal static void F3(this object x, int y) { }
     internal static void F4(this object x, object y) { }
 }";
+            // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 8 }
             var compilation = CompileAndVerify(source, verify: Verification.FailsIlVerify);
             compilation.VerifyIL("N.C.M",
 @"
@@ -1923,6 +1927,7 @@ static class S
         System.Console.Write(c.P * i);
     }
 }";
+            // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 11 }
             CompileAndVerify(source, expectedOutput: "6", verify: Verification.FailsIlVerify);
         }
 
@@ -2374,6 +2379,7 @@ static class E
         Console.WriteLine(""{0}"", o.GetType());
     }
 }";
+            // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 12 }
             var compilation = CompileAndVerify(source, expectedOutput:
 @"System.Object
 System.Object

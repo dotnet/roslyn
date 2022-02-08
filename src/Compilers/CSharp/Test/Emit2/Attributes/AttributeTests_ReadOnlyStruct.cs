@@ -431,10 +431,11 @@ public class Test
             // ILVerify: The format of a DLL or executable being loaded is invalid
             CompileAndVerify(code, verify: Verification.Fails, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
             {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
-                Assert.True(type.IsReadOnly);
-                Assert.Empty(type.GetAttributes());
                 AssertNoIsReadOnlyAttributeExists(module.ContainingAssembly);
+
+                var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("M").GetParameters().Single();
+                Assert.Equal(RefKind.In, parameter.RefKind);
+                Assert.Empty(parameter.GetAttributes());
             });
         }
 

@@ -7,22 +7,20 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Xml.Linq;
 using ICSharpCode.Decompiler.Metadata;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.DiaSymReader.Tools;
 using Roslyn.Test.Utilities;
 using Xunit;
-using System.Reflection.PortableExecutable;
-using System.Reflection;
-using System.Reflection.Metadata;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -236,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 foreach (var module in allModuleData)
                 {
                     string name = module.SimpleName;
-                    if (_imagesByName.ContainsKey(module.SimpleName))
+                    if (_imagesByName.ContainsKey(name))
                     {
                         throw new Exception($"Multiple modules named '{name}' were found");
                     }

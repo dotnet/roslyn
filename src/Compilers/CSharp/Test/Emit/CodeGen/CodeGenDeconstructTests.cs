@@ -101,6 +101,7 @@ class C
                 var right = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
                 Assert.Equal(@"new C()", right.ToString());
                 Assert.Equal("C", model.GetTypeInfo(right).Type.ToTestDisplayString());
+                Assert.Equal("C", model.GetTypeInfo(right).ConvertedType.ToTestDisplayString());
                 Assert.Equal(ConversionKind.Identity, model.GetConversion(right).Kind);
             };
 
