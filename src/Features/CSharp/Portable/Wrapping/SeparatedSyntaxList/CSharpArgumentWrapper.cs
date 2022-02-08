@@ -24,6 +24,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
         protected override string Wrap_every_item => FeaturesResources.Wrap_every_argument;
         protected override string Wrap_long_list => FeaturesResources.Wrap_long_argument_list;
 
+        public override bool Supports_UnwrapGroup_WrapFirst_IndentRest => true;
+        public override bool Supports_WrapEveryGroup_UnwrapFirst => true;
+        public override bool Supports_WrapLongGroup_UnwrapFirst => true;
+
         protected override SeparatedSyntaxList<ArgumentSyntax> GetListItems(BaseArgumentListSyntax listSyntax)
             => listSyntax.Arguments;
 

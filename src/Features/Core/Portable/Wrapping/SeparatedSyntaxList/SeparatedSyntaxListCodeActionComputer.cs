@@ -125,9 +125,12 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 // MethodName(int a, int b, int c, int d, int e, int f, int g, int h, int i, int j)
                 unwrapActions.Add(await GetUnwrapAllCodeActionAsync(parentTitle, WrappingStyle.UnwrapFirst_IndentRest).ConfigureAwait(false));
 
-                // MethodName(
-                //      int a, int b, int c, int d, int e, int f, int g, int h, int i, int j)
-                unwrapActions.Add(await GetUnwrapAllCodeActionAsync(parentTitle, WrappingStyle.WrapFirst_IndentRest).ConfigureAwait(false));
+                if (this.Wrapper.Supports_UnwrapGroup_WrapFirst_IndentRest)
+                {
+                    // MethodName(
+                    //      int a, int b, int c, int d, int e, int f, int g, int h, int i, int j)
+                    unwrapActions.Add(await GetUnwrapAllCodeActionAsync(parentTitle, WrappingStyle.WrapFirst_IndentRest).ConfigureAwait(false));
+                }
 
                 // The 'unwrap' title strings are unique and do not collide with any other code
                 // actions we're computing.  So they can be inlined if possible.
@@ -169,12 +172,15 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 var parentTitle = Wrapper.Wrap_long_list;
                 using var _ = ArrayBuilder<WrapItemsAction>.GetInstance(out var codeActions);
 
-                // MethodName(int a, int b, int c,
-                //            int d, int e, int f,
-                //            int g, int h, int i,
-                //            int j)
-                codeActions.Add(await GetWrapLongLineCodeActionAsync(
-                    parentTitle, WrappingStyle.UnwrapFirst_AlignRest).ConfigureAwait(false));
+                if (this.Wrapper.Supports_WrapLongGroup_UnwrapFirst)
+                {
+                    // MethodName(int a, int b, int c,
+                    //            int d, int e, int f,
+                    //            int g, int h, int i,
+                    //            int j)
+                    codeActions.Add(await GetWrapLongLineCodeActionAsync(
+                        parentTitle, WrappingStyle.UnwrapFirst_AlignRest).ConfigureAwait(false));
+                }
 
                 // MethodName(
                 //     int a, int b, int c, int d, int e,
@@ -182,11 +188,14 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 codeActions.Add(await GetWrapLongLineCodeActionAsync(
                     parentTitle, WrappingStyle.WrapFirst_IndentRest).ConfigureAwait(false));
 
-                // MethodName(int a, int b, int c, 
-                //     int d, int e, int f, int g,
-                //     int h, int i, int j)
-                codeActions.Add(await GetWrapLongLineCodeActionAsync(
+                if (this.Wrapper.Supports_WrapLongGroup_UnwrapFirst)
+                {
+                    // MethodName(int a, int b, int c, 
+                    //     int d, int e, int f, int g,
+                    //     int h, int i, int j)
+                    codeActions.Add(await GetWrapLongLineCodeActionAsync(
                     parentTitle, WrappingStyle.UnwrapFirst_IndentRest).ConfigureAwait(false));
+                }
 
                 // The wrap-all and wrap-long code action titles are not unique.  i.e. we show them
                 // as:
@@ -273,12 +282,15 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 
                 using var _ = ArrayBuilder<WrapItemsAction>.GetInstance(out var codeActions);
 
-                // MethodName(int a,
-                //            int b,
-                //            ...
-                //            int j);
-                codeActions.Add(await GetWrapEveryNestedCodeActionAsync(
-                    parentTitle, WrappingStyle.UnwrapFirst_AlignRest).ConfigureAwait(false));
+                if (this.Wrapper.Supports_WrapEveryGroup_UnwrapFirst)
+                {
+                    // MethodName(int a,
+                    //            int b,
+                    //            ...
+                    //            int j);
+                    codeActions.Add(await GetWrapEveryNestedCodeActionAsync(
+                        parentTitle, WrappingStyle.UnwrapFirst_AlignRest).ConfigureAwait(false));
+                }
 
                 // MethodName(
                 //     int a,
@@ -288,12 +300,15 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 codeActions.Add(await GetWrapEveryNestedCodeActionAsync(
                     parentTitle, WrappingStyle.WrapFirst_IndentRest).ConfigureAwait(false));
 
-                // MethodName(int a,
-                //     int b,
-                //     ...
-                //     int j)
-                codeActions.Add(await GetWrapEveryNestedCodeActionAsync(
-                    parentTitle, WrappingStyle.UnwrapFirst_IndentRest).ConfigureAwait(false));
+                if (this.Wrapper.Supports_WrapEveryGroup_UnwrapFirst)
+                {
+                    // MethodName(int a,
+                    //     int b,
+                    //     ...
+                    //     int j)
+                    codeActions.Add(await GetWrapEveryNestedCodeActionAsync(
+                        parentTitle, WrappingStyle.UnwrapFirst_IndentRest).ConfigureAwait(false));
+                }
 
                 // See comment in GetWrapLongTopLevelCodeActionAsync for explanation of why we're
                 // not inlinable.

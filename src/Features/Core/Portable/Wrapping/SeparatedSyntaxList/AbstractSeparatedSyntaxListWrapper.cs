@@ -35,6 +35,10 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 
         protected abstract string Wrap_every_item { get; }
 
+        public abstract bool Supports_WrapEveryGroup_UnwrapFirst { get; }
+        public abstract bool Supports_UnwrapGroup_WrapFirst_IndentRest { get; }
+        public abstract bool Supports_WrapLongGroup_UnwrapFirst { get; }
+
         protected AbstractSeparatedSyntaxListWrapper(IIndentationService indentationService)
             : base(indentationService)
         {
