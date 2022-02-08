@@ -33,18 +33,8 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 
         public abstract bool IsTriggerCharacter(char ch);
         public abstract bool IsRetriggerCharacter(char ch);
-        public abstract SignatureHelpState? GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken);
 
         protected abstract Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken);
-
-        /// <remarks>
-        /// This overload is required for compatibility with existing extensions.
-        /// </remarks>
-        protected static SignatureHelpItems? CreateSignatureHelpItems(
-            IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState state)
-        {
-            return CreateSignatureHelpItems(items, applicableSpan, state, selectedItem: null);
-        }
 
         protected static SignatureHelpItems? CreateSignatureHelpItems(
             IList<SignatureHelpItem>? items, TextSpan applicableSpan, SignatureHelpState? state, int? selectedItem)
@@ -105,6 +95,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             // adjust the selected item
             var selection = items[selectedItem.Value];
             selectedItem = filteredList.IndexOf(selection);
+
             return (filteredList, selectedItem);
         }
 
@@ -112,12 +103,6 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         {
             var itemParameterNames = item.Parameters.Select(p => p.Name).ToSet();
             return parameterNames.All(itemParameterNames.Contains);
-        }
-
-        public async Task<SignatureHelpState?> GetCurrentArgumentStateAsync(Document document, int position, TextSpan currentSpan, CancellationToken cancellationToken)
-        {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return GetCurrentArgumentState(root, position, document.GetRequiredLanguageService<ISyntaxFactsService>(), currentSpan, cancellationToken);
         }
 
         // TODO: remove once Pythia moves to ExternalAccess APIs

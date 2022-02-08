@@ -131,13 +131,15 @@ namespace Microsoft.CodeAnalysis.Completion
             CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Gets the completions available at the caret position, with additional info indicates 
-        /// whether expander items are available.
+        /// Gets the completions available at the caret position.
         /// </summary>
-        /// <remarks>
-        /// expandItemsAvailable is true when expanded items are returned or can be provided upon request.
-        /// </remarks>
-        internal virtual async Task<(CompletionList? completionList, bool expandItemsAvailable)> GetCompletionsInternalAsync(
+        /// <param name="document">The document that completion is occurring within.</param>
+        /// <param name="caretPosition">The position of the caret after the triggering action.</param>
+        /// <param name="options">The CompletionOptions that override the default options.</param>
+        /// <param name="trigger">The triggering action.</param>
+        /// <param name="roles">Optional set of roles associated with the editor state.</param>
+        /// <param name="cancellationToken"></param>
+        internal virtual async Task<CompletionList> GetCompletionsAsync(
              Document document,
              int caretPosition,
              CompletionOptions options,
@@ -146,8 +148,8 @@ namespace Microsoft.CodeAnalysis.Completion
              CancellationToken cancellationToken = default)
         {
 #pragma warning disable RS0030 // Do not use banned APIs
-            var completionList = await GetCompletionsAsync(document, caretPosition, trigger, roles, options.ToSet(document.Project.Language), cancellationToken).ConfigureAwait(false);
-            return (completionList, false);
+            return await GetCompletionsAsync(document, caretPosition, trigger, roles,
+                options.ToSet(document.Project.Language), cancellationToken).ConfigureAwait(false) ?? CompletionList.Empty;
 #pragma warning restore
         }
 
@@ -162,7 +164,12 @@ namespace Microsoft.CodeAnalysis.Completion
             Document document,
             CompletionItem item,
             CancellationToken cancellationToken = default)
-            => GetDescriptionAsync(document, item, CompletionOptions.From(document.Project), SymbolDescriptionOptions.From(document.Project), cancellationToken);
+        {
+            Debug.Fail("For backwards API compat only, should not be called");
+
+            // Publicly available options do not affect this API.
+            return GetDescriptionAsync(document, item, CompletionOptions.Default, SymbolDescriptionOptions.Default, cancellationToken);
+        }
 
         /// <summary>
         /// Gets the description of the item.

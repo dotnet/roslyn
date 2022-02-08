@@ -8,11 +8,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Roslyn.Test.Utilities;
@@ -27,8 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         public ExtensionMethodImportCompletionProviderTests()
         {
             ShowImportCompletionItemsOptionValue = true;
-            TimeoutInMilliseconds = -1; // -1 disables timeout
-            IsExpandedCompletion = true;
+            ForceExpandedCompletionIndexCreation = true;
         }
 
         internal override Type GetCompletionProviderType()
@@ -1931,44 +1928,6 @@ namespace BB
     }}
 }}";
             await VerifyProviderCommitAsync(markup, "ToInt", expected, commitChar: commitChar, sourceCodeKind: SourceCodeKind.Regular);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestTimeBox()
-        {
-            var file1 = @"
-using System;
-
-namespace Foo
-{
-    public static class ExtensionClass
-    {
-        public static bool ExtentionMethod(this int x)
-            => true;
-    }
-}";
-            var file2 = @"
-using System;
-
-namespace Baz
-{
-    public class Bat
-    {
-        public void M(int x)
-        {
-            x.$$
-        }
-    }
-}";
-
-            IsExpandedCompletion = false;
-            TimeoutInMilliseconds = 0; //timeout immediately
-            var markup = GetMarkup(file2, file1, ReferenceType.None);
-
-            await VerifyImportItemIsAbsentAsync(
-                 markup,
-                 "ExtentionMethod",
-                 inlineDescription: "Foo");
         }
 
         [InlineData("int", true, "int a")]
