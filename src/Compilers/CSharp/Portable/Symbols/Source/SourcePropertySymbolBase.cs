@@ -7,10 +7,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -319,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => (_propertyFlags & Flags.IsExpressionBodied) != 0;
 
         private void CheckInitializer(
-            bool isAutoProperty,
+            bool allowsInitializer,
             bool isInterface,
             bool isStatic,
             Location location,
@@ -329,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_InstancePropertyInitializerInInterface, location, this);
             }
-            else if (!isAutoProperty)
+            else if (!allowsInitializer)
             {
                 diagnostics.Add(ErrorCode.ERR_InitializerOnNonAutoProperty, location, this);
             }
@@ -783,6 +781,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
         }
+
+        private bool AllowInitializer
+        {
+            get
+            {
+                // PROTOTYPE(semi-auto-props): Fix implementation for semi auto properties.
+                return (_setMethod is null && _getMethod?.BodyShouldBeSynthesized == true) ||
+                    _setMethod?.BodyShouldBeSynthesized == true;
+            }
+        }
+
+        private bool AllowFieldAttributeTarget
+        {
+            get
+            {
+                // PROTOTYPE(semi-auto-props): Fix implementation for semi auto properties.
+                return _getMethod?.BodyShouldBeSynthesized == true ||
+                    _setMethod?.BodyShouldBeSynthesized == true;
+            }
+        }
+
+        private bool DisallowRefLikeTypes
+        {
+            get
+            {
+                // PROTOTYPE(semi-auto-props): Fix implementation for semi auto properties.
+                return _getMethod?.BodyShouldBeSynthesized == true ||
+                    _setMethod?.BodyShouldBeSynthesized == true;
+            }
+        }
 #nullable disable
 
         internal override bool MustCallMethodsDirectly
@@ -824,7 +852,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasInitializer = (_propertyFlags & Flags.HasInitializer) != 0;
             if (hasInitializer)
             {
-                CheckInitializer(IsAutoProperty, ContainingType.IsInterface, IsStatic, Location, diagnostics);
+                CheckInitializer(AllowInitializer, ContainingType.IsInterface, IsStatic, Location, diagnostics);
             }
 
             if (IsAutoPropertyWithGetAccessor)
@@ -1196,7 +1224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => AttributeLocation.Property;
 
         AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations
-            => IsAutoPropertyWithGetAccessor // PROTOTYPE(semi-auto-props): Adjust this and add tests.
+            => AllowFieldAttributeTarget
                 ? AttributeLocation.Property | AttributeLocation.Field
                 : AttributeLocation.Property;
 
@@ -1647,7 +1675,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeLocation, type);
             }
-            else if (this.IsAutoPropertyWithGetAccessor && type.IsRefLikeType && (this.IsStatic || !this.ContainingType.IsRefLikeType))
+            else if (DisallowRefLikeTypes && type.IsRefLikeType && (this.IsStatic || !this.ContainingType.IsRefLikeType))
             {
                 diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeLocation, type);
             }
