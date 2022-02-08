@@ -14,6 +14,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping.SeparatedSyntaxList
         Protected Overrides ReadOnly Property Wrap_every_item As String = FeaturesResources.Wrap_initializer
         Protected Overrides ReadOnly Property Wrap_long_list As String = FeaturesResources.Wrap_long_initializer
 
+        Public Overrides ReadOnly Property Supports_UnwrapGroup_WrapFirst_IndentRest As Boolean = False
+        Public Overrides ReadOnly Property Supports_WrapEveryGroup_UnwrapFirst As Boolean = False
+        Public Overrides ReadOnly Property Supports_WrapLongGroup_UnwrapFirst As Boolean = False
+
+        ' unreachable as we explicitly declare that we don't support these scenarios.
+
         Protected Overrides ReadOnly Property Align_wrapped_items As String
             Get
                 Throw ExceptionUtilities.Unreachable
@@ -31,10 +37,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping.SeparatedSyntaxList
                 Throw ExceptionUtilities.Unreachable
             End Get
         End Property
-
-        Public Overrides ReadOnly Property Supports_UnwrapGroup_WrapFirst_IndentRest As Boolean = False
-        Public Overrides ReadOnly Property Supports_WrapEveryGroup_UnwrapFirst As Boolean = False
-        Public Overrides ReadOnly Property Supports_WrapLongGroup_UnwrapFirst As Boolean = False
 
         Protected Overrides ReadOnly Property ShouldMoveCloseBraceToNewLine As Boolean = True
 

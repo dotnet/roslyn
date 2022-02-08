@@ -18,13 +18,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
         protected override string Wrap_every_item => FeaturesResources.Wrap_initializer;
         protected override string Wrap_long_list => FeaturesResources.Wrap_long_initializer;
 
-        protected override string Align_wrapped_items => throw ExceptionUtilities.Unreachable;
-        protected override string Indent_wrapped_items => throw ExceptionUtilities.Unreachable;
-        protected override string Unwrap_and_indent_all_items => throw ExceptionUtilities.Unreachable;
-
         public override bool Supports_UnwrapGroup_WrapFirst_IndentRest => false;
         public override bool Supports_WrapEveryGroup_UnwrapFirst => false;
         public override bool Supports_WrapLongGroup_UnwrapFirst => false;
+
+        // unreachable as we explicitly declare that we don't support these scenarios.
+
+        protected override string Align_wrapped_items => throw ExceptionUtilities.Unreachable;
+        protected override string Indent_wrapped_items => throw ExceptionUtilities.Unreachable;
+        protected override string Unwrap_and_indent_all_items => throw ExceptionUtilities.Unreachable;
 
         protected override bool ShouldMoveOpenBraceToNewLine(OptionSet options)
             => options.GetOption(CSharpFormattingOptions.NewLinesForBracesInObjectCollectionArrayInitializers);
