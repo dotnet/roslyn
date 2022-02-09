@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
@@ -98,10 +99,28 @@ namespace Microsoft.CodeAnalysis
 
                 try
                 {
+#if DEBUG
+                    for (int i = 0; i < _messageArgs.Length; i++)
+                    {
+                        if (!localizedMessageFormat.Contains($"{{{i}}}"))
+                        {
+                            // This happens when the number of _messageArgs is larger than the placeholders.
+                            Debug.Fail($"Descriptor '{Id}' is passing an argument with index '{i}', but no corresponding placeholder was found.");
+                        }
+                    }
+#endif
                     return string.Format(formatProvider, localizedMessageFormat, _messageArgs);
                 }
-                catch (Exception)
+                catch (FormatException)
                 {
+#if DEBUG
+                    // AnalyzerReportingMisformattedDiagnostic used for unit testing.
+                    if (Id != "ID1")
+                    {
+                        // This happens when the number of _messageArgs is less than the placeholders.
+                        Debug.Fail($"Descriptor '{Id}' is reporting diagnostic with incorrect number of arguments.");
+                    }
+#endif
                     // Analyzer reported diagnostic with invalid format arguments, so just return the unformatted message.
                     return localizedMessageFormat;
                 }
