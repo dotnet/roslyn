@@ -360,8 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
         {
             // Add synthesized properties for record primary constructors that are not backed by an existing field
             // or property.
-            if (memberDeclaration is RecordDeclarationSyntax { ParameterList: { } parameterList } recordDeclaration &&
-                parameterList.Parameters.Count > 0)
+            if (memberDeclaration is RecordDeclarationSyntax { ParameterList: { Parameters.Count: > 0 } parameterList } recordDeclaration)
             {
                 using var _ = PooledHashSet<string>.GetInstance(out var existingFieldPropNames);
 
