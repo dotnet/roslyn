@@ -39,24 +39,20 @@ namespace Microsoft.CodeAnalysis
 
             public Stream ReadStream(CancellationToken cancellationToken = default)
             {
-                if (_stream == null)
+                var stream = _stream;
+                if (stream is null)
                 {
                     throw new InvalidOperationException();
                 }
 
-                _stream.Position = 0;
-                return _stream;
+                // Return a read-only view of the underlying buffer to prevent users from overwriting or directly
+                // disposing the backing storage.
+                return new MemoryStream(stream.GetBuffer(), 0, (int)stream.Length, writable: false);
             }
 
             public Task<Stream> ReadStreamAsync(CancellationToken cancellationToken = default)
             {
-                if (_stream == null)
-                {
-                    throw new InvalidOperationException();
-                }
-
-                _stream.Position = 0;
-                return Task.FromResult((Stream)_stream);
+                return Task.FromResult(ReadStream(cancellationToken));
             }
 
             public void WriteStream(Stream stream, CancellationToken cancellationToken = default)
