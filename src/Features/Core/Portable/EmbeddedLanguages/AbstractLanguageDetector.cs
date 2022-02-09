@@ -251,6 +251,11 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
             return argument.Kind == TypedConstantKind.Primitive && argument.Value is string argString && argString == _stringSyntaxAttributeName;
         }
 
+        /// <summary>
+        /// Attempts to parse the string-literal-like <paramref name="token"/> into an embedded language tree.  The
+        /// token must either be in a location semantically known to accept this language, or it must have an
+        /// appropriate comment on it stating that it should be interpreted as this language.
+        /// </summary>
         public TTree? TryParseString(SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             if (!this.IsEmbeddedLanguageToken(token, semanticModel, cancellationToken, out var options))
