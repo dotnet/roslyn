@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -14,7 +13,7 @@ using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
 namespace Microsoft.CodeAnalysis.UseObjectInitializer
 {
-    internal class ObjectCreationExpressionAnalyzer<
+    internal class UseNamedMemberInitializerAnalyzer<
         TExpressionSyntax,
         TStatementSyntax,
         TObjectCreationExpressionSyntax,
@@ -30,8 +29,8 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         where TAssignmentStatementSyntax : TStatementSyntax
         where TVariableDeclaratorSyntax : SyntaxNode
     {
-        private static readonly ObjectPool<ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>> s_pool
-            = SharedPools.Default<ObjectCreationExpressionAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>>();
+        private static readonly ObjectPool<UseNamedMemberInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>> s_pool
+            = SharedPools.Default<UseNamedMemberInitializerAnalyzer<TExpressionSyntax, TStatementSyntax, TObjectCreationExpressionSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax, TVariableDeclaratorSyntax>>();
 
         public static ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>>? Analyze(
             SemanticModel semanticModel,
@@ -52,12 +51,31 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             }
         }
 
+        protected override bool ShouldAnalyze()
+        {
+            // Can't add member initializers if the object already has a collection initializer attached to it.
+            return !_syntaxFacts.IsObjectCollectionInitializer(_syntaxFacts.GetInitializerOfObjectCreationExpression(_objectCreationExpression));
+        }
+
         protected override void AddMatches(ArrayBuilder<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches)
         {
             var containingBlock = _containingStatement.Parent;
             var foundStatement = false;
 
-            HashSet<string> seenNames = null;
+            using var _1 = PooledHashSet<string>.GetInstance(out var seenNames);
+
+            var initializer = _syntaxFacts.GetInitializerOfObjectCreationExpression(_objectCreationExpression);
+            if (initializer != null)
+            {
+                foreach (var init in _syntaxFacts.GetInitializersOfObjectMemberInitializer(initializer))
+                {
+                    if (_syntaxFacts.IsNamedMemberInitializer(init))
+                    {
+                        _syntaxFacts.GetPartsOfNamedMemberInitializer(init, out var name, out _);
+                        seenNames.Add(_syntaxFacts.GetIdentifierOfIdentifierName(name).ValueText);
+                    }
+                }
+            }
 
             foreach (var child in containingBlock.ChildNodesAndTokens())
             {
@@ -73,19 +91,13 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 }
 
                 if (child.IsToken)
-                {
                     break;
-                }
 
                 if (child.AsNode() is not TAssignmentStatementSyntax statement)
-                {
                     break;
-                }
 
                 if (!_syntaxFacts.IsSimpleAssignmentStatement(statement))
-                {
                     break;
-                }
 
                 _syntaxFacts.GetPartsOfAssignmentStatement(
                     statement, out var left, out var right);
@@ -94,15 +106,11 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 var leftMemberAccess = left as TMemberAccessExpressionSyntax;
 
                 if (!_syntaxFacts.IsSimpleMemberAccessExpression(leftMemberAccess))
-                {
                     break;
-                }
 
                 var expression = (TExpressionSyntax)_syntaxFacts.GetExpressionOfMemberAccessExpression(leftMemberAccess);
                 if (!ValuePatternMatches(expression))
-                {
                     break;
-                }
 
                 var leftSymbol = _semanticModel.GetSymbolInfo(leftMemberAccess, _cancellationToken).GetAnySymbol();
                 if (leftSymbol?.IsStatic == true)
@@ -113,9 +121,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
                 var type = _semanticModel.GetSymbolInfo(_syntaxFacts.GetTypeOfObjectCreationExpression(_objectCreationExpression), _cancellationToken).Symbol as INamedTypeSymbol;
                 if (IsExplicitlyImplemented(type, leftSymbol, out var typeMember))
-                {
                     break;
-                }
 
                 // Don't offer this fix if the value we're initializing is itself referenced
                 // on the RHS of the assignment.  For example:
@@ -134,9 +140,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 // In the second case we'd change semantics because we'd access the old value 
                 // before the new value got written.
                 if (ExpressionContainsValuePatternOrReferencesInitializedSymbol(rightExpression))
-                {
                     break;
-                }
 
                 // If we have code like "x.v = .Length.ToString()"
                 // then we don't want to change this into:
@@ -146,21 +150,16 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 // The problem here is that .Length will change it's meaning to now refer to the 
                 // object that we're creating in our object-creation expression.
                 if (ImplicitMemberAccessWouldBeAffected(rightExpression))
-                {
                     break;
-                }
 
                 // found a match!
-                seenNames ??= new HashSet<string>();
-
+                //
                 // If we see an assignment to the same property/field, we can't convert it
                 // to an initializer.
                 var name = _syntaxFacts.GetNameOfMemberAccessExpression(leftMemberAccess);
                 var identifier = _syntaxFacts.GetIdentifierOfSimpleName(name);
                 if (!seenNames.Add(identifier.ValueText))
-                {
                     break;
-                }
 
                 matches.Add(new Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>(
                     statement, leftMemberAccess, rightExpression, typeMember?.Name ?? identifier.ValueText));
@@ -183,8 +182,6 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
             typeMember = member;
             return false;
         }
-
-        protected override bool ShouldAnalyze() => true;
 
         private bool ImplicitMemberAccessWouldBeAffected(SyntaxNode node)
         {

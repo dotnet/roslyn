@@ -1641,7 +1641,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Private Shared Function GetDeclarationCount(nodes As IReadOnlyList(Of SyntaxNode)) As Integer
             Dim count As Integer = 0
             For i = 0 To nodes.Count - 1
-                count = count + GetDeclarationCount(nodes(i))
+                count += GetDeclarationCount(nodes(i))
             Next
 
             Return count
@@ -1795,6 +1795,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return TypeOf node Is NamedFieldInitializerSyntax
         End Function
 
+        Public Function IsElementAccessInitializer(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsElementAccessInitializer
+            Return False
+        End Function
+
+        Public Function IsObjectMemberInitializer(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsObjectMemberInitializer
+            Return TypeOf node Is ObjectMemberInitializerSyntax
+        End Function
+
+        Public Function IsObjectCollectionInitializer(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsObjectCollectionInitializer
+            Return TypeOf node Is ObjectCollectionInitializerSyntax
+        End Function
+
 #End Region
 
 #Region "GetPartsOfXXX members"
@@ -1899,13 +1911,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Throw New NotImplementedException()
         End Function
 
-        Public Function GetMemberInitializersofInitializer(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetMemberInitializersOfInitializer
+        Public Function GetInitializersOfObjectMemberInitializer(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetInitializersOfObjectMemberInitializer
             Dim initializer = TryCast(node, ObjectMemberInitializerSyntax)
             If initializer Is Nothing Then
                 Return Nothing
             End If
 
             Return initializer.Initializers
+        End Function
+
+        Public Function GetExpressionsOfObjectCollectionInitializer(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetExpressionsOfObjectCollectionInitializer
+            Dim initializer = TryCast(node, ObjectCollectionInitializerSyntax)
+            If initializer Is Nothing Then
+                Return Nothing
+            End If
+
+            Return initializer.Initializer.Initializers
         End Function
 
 #End Region
