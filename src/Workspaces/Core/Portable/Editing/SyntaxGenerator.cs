@@ -1072,19 +1072,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Inserts the parameters at the specified index into the declaration.
         /// </summary>
-        public SyntaxNode InsertParameters(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> parameters)
-        {
-            if (parameters is null)
-                return declaration;
-
-            var editor = new SyntaxEditor(declaration, this);
-            var syntaxFacts = this.SyntaxFacts;
-
-            foreach (var parameter in parameters.Reverse())
-                AddParameterEditor.AddParameter(syntaxFacts, editor, declaration, index, parameter, CancellationToken.None);
-
-            return editor.GetChangedRoot();
-        }
+        public abstract SyntaxNode InsertParameters(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> parameters);
 
         /// <summary>
         /// Adds the parameters to the declaration.

@@ -1,6 +1,5 @@
 Microsoft.CodeAnalysis.Editing.SyntaxEditor.SyntaxEditor(Microsoft.CodeAnalysis.SyntaxNode root, Microsoft.CodeAnalysis.Host.HostWorkspaceServices services) -> void
 *REMOVED*static Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultRemoveOptions -> Microsoft.CodeAnalysis.SyntaxRemoveOptions
-Microsoft.CodeAnalysis.Editing.SyntaxGenerator.InsertParameters(Microsoft.CodeAnalysis.SyntaxNode declaration, int index, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> parameters) -> Microsoft.CodeAnalysis.SyntaxNode
 static readonly Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultRemoveOptions -> Microsoft.CodeAnalysis.SyntaxRemoveOptions
 Microsoft.CodeAnalysis.Rename.SymbolRenameOptions
 Microsoft.CodeAnalysis.Rename.SymbolRenameOptions.SymbolRenameOptions() -> void

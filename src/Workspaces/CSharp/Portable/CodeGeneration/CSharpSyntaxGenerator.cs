@@ -2003,6 +2003,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     : SpecializedCollections.EmptyReadOnlyList<SyntaxNode>();
         }
 
+        public override SyntaxNode InsertParameters(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> parameters)
+        {
+            var newParameters = AsParameterList(parameters);
+
+            var currentList = declaration.GetParameterList();
+            currentList ??= declaration.IsKind(SyntaxKind.IndexerDeclaration)
+                ? SyntaxFactory.BracketedParameterList()
+                : SyntaxFactory.ParameterList();
+
+            var newList = currentList.WithParameters(currentList.Parameters.InsertRange(index, newParameters.Parameters));
+            return WithParameterList(declaration, newList);
+        }
+
         public override IReadOnlyList<SyntaxNode> GetSwitchSections(SyntaxNode switchStatement)
         {
             var statement = switchStatement as SwitchStatementSyntax;
@@ -2061,6 +2074,49 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override SyntaxNode? GetParameterListNode(SyntaxNode declaration)
             => declaration.GetParameterList();
+
+        private static SyntaxNode WithParameterList(SyntaxNode declaration, BaseParameterListSyntax list)
+        {
+            switch (declaration.Kind())
+            {
+                case SyntaxKind.DelegateDeclaration:
+                    return ((DelegateDeclarationSyntax)declaration).WithParameterList(list);
+                case SyntaxKind.MethodDeclaration:
+                    return ((MethodDeclarationSyntax)declaration).WithParameterList(list);
+                case SyntaxKind.OperatorDeclaration:
+                    return ((OperatorDeclarationSyntax)declaration).WithParameterList(list);
+                case SyntaxKind.ConversionOperatorDeclaration:
+                    return ((ConversionOperatorDeclarationSyntax)declaration).WithParameterList(list);
+                case SyntaxKind.ConstructorDeclaration:
+                    return ((ConstructorDeclarationSyntax)declaration).WithParameterList(list);
+                case SyntaxKind.DestructorDeclaration:
+                    return ((DestructorDeclarationSyntax)declaration).WithParameterList(list);
+                case SyntaxKind.IndexerDeclaration:
+                    return ((IndexerDeclarationSyntax)declaration).WithParameterList(list);
+                case SyntaxKind.LocalFunctionStatement:
+                    return ((LocalFunctionStatementSyntax)declaration).WithParameterList((ParameterListSyntax)list);
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                    return ((ParenthesizedLambdaExpressionSyntax)declaration).WithParameterList((ParameterListSyntax)list);
+                case SyntaxKind.SimpleLambdaExpression:
+                    var lambda = (SimpleLambdaExpressionSyntax)declaration;
+                    var parameters = list.Parameters;
+                    if (parameters.Count == 1 && IsSimpleLambdaParameter(parameters[0]))
+                    {
+                        return lambda.WithParameter(parameters[0]);
+                    }
+                    else
+                    {
+                        return SyntaxFactory.ParenthesizedLambdaExpression(AsParameterList(parameters), lambda.Body)
+                            .WithLeadingTrivia(lambda.GetLeadingTrivia())
+                            .WithTrailingTrivia(lambda.GetTrailingTrivia());
+                    }
+                case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
+                    return ((RecordDeclarationSyntax)declaration).WithParameterList((ParameterListSyntax)list);
+                default:
+                    return declaration;
+            }
+        }
 
         public override SyntaxNode? GetExpression(SyntaxNode declaration)
         {

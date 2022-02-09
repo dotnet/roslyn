@@ -2834,6 +2834,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                       SpecializedCollections.EmptyReadOnlyList(Of SyntaxNode))
         End Function
 
+        Public Overrides Function InsertParameters(declaration As SyntaxNode, index As Integer, parameters As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Dim currentList = declaration.GetParameterList()
+            Dim newList = GetParameterList(parameters)
+            If currentList IsNot Nothing Then
+                Return WithParameterList(declaration, currentList.WithParameters(currentList.Parameters.InsertRange(index, newList.Parameters)))
+            Else
+                Return WithParameterList(declaration, newList)
+            End If
+        End Function
+
         Public Overrides Function GetSwitchSections(switchStatement As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
             Dim statement = TryCast(switchStatement, SelectBlockSyntax)
             If statement Is Nothing Then
@@ -2855,6 +2865,54 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Overrides Function GetParameterListNode(declaration As SyntaxNode) As SyntaxNode
             Return declaration.GetParameterList()
+        End Function
+
+        Private Function WithParameterList(declaration As SyntaxNode, list As ParameterListSyntax) As SyntaxNode
+            Select Case declaration.Kind
+                Case SyntaxKind.DelegateFunctionStatement,
+                    SyntaxKind.DelegateSubStatement
+                    Return DirectCast(declaration, DelegateStatementSyntax).WithParameterList(list)
+                Case SyntaxKind.SubBlock,
+                    SyntaxKind.FunctionBlock
+                    Return DirectCast(declaration, MethodBlockSyntax).WithBlockStatement(DirectCast(declaration, MethodBlockSyntax).BlockStatement.WithParameterList(list))
+                Case SyntaxKind.ConstructorBlock
+                    Return DirectCast(declaration, ConstructorBlockSyntax).WithBlockStatement(DirectCast(declaration, ConstructorBlockSyntax).BlockStatement.WithParameterList(list))
+                Case SyntaxKind.OperatorBlock
+                    Return DirectCast(declaration, OperatorBlockSyntax).WithBlockStatement(DirectCast(declaration, OperatorBlockSyntax).BlockStatement.WithParameterList(list))
+                Case SyntaxKind.SubStatement,
+                    SyntaxKind.FunctionStatement
+                    Return DirectCast(declaration, MethodStatementSyntax).WithParameterList(list)
+                Case SyntaxKind.SubNewStatement
+                    Return DirectCast(declaration, SubNewStatementSyntax).WithParameterList(list)
+                Case SyntaxKind.OperatorStatement
+                    Return DirectCast(declaration, OperatorStatementSyntax).WithParameterList(list)
+                Case SyntaxKind.DeclareSubStatement,
+                    SyntaxKind.DeclareFunctionStatement
+                    Return DirectCast(declaration, DeclareStatementSyntax).WithParameterList(list)
+                Case SyntaxKind.DelegateSubStatement,
+                    SyntaxKind.DelegateFunctionStatement
+                    Return DirectCast(declaration, DelegateStatementSyntax).WithParameterList(list)
+                Case SyntaxKind.PropertyBlock
+                    If GetDeclarationKind(declaration) = DeclarationKind.Indexer Then
+                        Return DirectCast(declaration, PropertyBlockSyntax).WithPropertyStatement(DirectCast(declaration, PropertyBlockSyntax).PropertyStatement.WithParameterList(list))
+                    End If
+                Case SyntaxKind.PropertyStatement
+                    If GetDeclarationKind(declaration) = DeclarationKind.Indexer Then
+                        Return DirectCast(declaration, PropertyStatementSyntax).WithParameterList(list)
+                    End If
+                Case SyntaxKind.EventBlock
+                    Return DirectCast(declaration, EventBlockSyntax).WithEventStatement(DirectCast(declaration, EventBlockSyntax).EventStatement.WithParameterList(list))
+                Case SyntaxKind.EventStatement
+                    Return DirectCast(declaration, EventStatementSyntax).WithParameterList(list)
+                Case SyntaxKind.MultiLineFunctionLambdaExpression,
+                     SyntaxKind.MultiLineSubLambdaExpression
+                    Return DirectCast(declaration, MultiLineLambdaExpressionSyntax).WithSubOrFunctionHeader(DirectCast(declaration, MultiLineLambdaExpressionSyntax).SubOrFunctionHeader.WithParameterList(list))
+                Case SyntaxKind.SingleLineFunctionLambdaExpression,
+                     SyntaxKind.SingleLineSubLambdaExpression
+                    Return DirectCast(declaration, SingleLineLambdaExpressionSyntax).WithSubOrFunctionHeader(DirectCast(declaration, SingleLineLambdaExpressionSyntax).SubOrFunctionHeader.WithParameterList(list))
+            End Select
+
+            Return declaration
         End Function
 
         Public Overrides Function GetExpression(declaration As SyntaxNode) As SyntaxNode
