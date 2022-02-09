@@ -203,6 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 builder.Add(new CompletionFilterWithState(Expander, isAvailable: true, isSelected: isSelected));
             }
 
+            // Make sure filters are kept in the relative order of their declaration above. 
             foreach (var filterWithMask in s_filters)
             {
                 if (filterStateMap.TryGetValue(filterWithMask.Filter, out isSelected))

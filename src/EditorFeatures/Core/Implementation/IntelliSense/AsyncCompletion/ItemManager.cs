@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // There is a `CompletionContext.IsIncomplete` flag, which is only supported in LSP mode at the moment. Therefore we opt to handle the checking
             // and combining the items in Roslyn until the `IsIncomplete` flag is fully supported in classic mode.
 
-            if (session.Properties.TryGetProperty<Task<(CompletionContext, RoslynCompletionList)>>(CompletionSource.ExpandedItemsTask, out var task)
+            if (session.Properties.TryGetProperty(CompletionSource.ExpandedItemsTask, out Task<(CompletionContext, RoslynCompletionList)> task)
                 && task.Status == TaskStatus.RanToCompletion)
             {
                 // Make sure the task is removed when Adding expanded items,
@@ -75,10 +75,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 if (expandedContext.Items.Length > 0)
                 {
                     // Here we rely on the implementation detail of `CompletionItem.CompareTo`, which always put expand items after regular ones.
-                    var _ = ArrayBuilder<VSCompletionItem>.GetInstance(expandedContext.Items.Length + data.InitialSortedList.Length, out var itemsBuilder);
+                    var itemsBuilder = ImmutableArray.CreateBuilder<VSCompletionItem>(expandedContext.Items.Length + data.InitialSortedList.Length);
                     itemsBuilder.AddRange(data.InitialSortedList);
                     itemsBuilder.AddRange(expandedContext.Items);
-                    var combinedList = itemsBuilder.ToImmutable();
+                    var combinedList = itemsBuilder.MoveToImmutable();
 
                     // Add expanded items into a combined list, and save it to be used for future updates during the same session.
                     session.Properties[CombinedSortedList] = combinedList;

@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 {
                     // the task of expanded item is completed, get the result and combine it with result of non-expanded items.
                     var (expandedContext, expandedCompletionList) = await expandedItemsTask.ConfigureAwait(false);
-                    AddPropertiesToSession(session, expandedCompletionList, triggerLocation: null);
+                    AddPropertiesToSession(session, expandedCompletionList, triggerLocation);
                     AsyncCompletionLogger.LogImportCompletionGetContext(isBlocking: false, delayed: false);
 
                     return CombineCompletionContext(nonExpandedContext, expandedContext);
@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     // so duplicated items won't be added in subsequent list updates.
                     session.Properties.RemoveProperty(ExpandedItemsTask);
                     var (expandedContext, expandedCompletionList) = await expandedItemsTask.ConfigureAwait(false);
-                    AddPropertiesToSession(session, expandedCompletionList, triggerLocation: null);
+                    AddPropertiesToSession(session, expandedCompletionList, initialTriggerLocation);
                     return expandedContext;
                 }
 
@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     };
 
                     var (context, completionList) = await GetCompletionContextWorkerAsync(document, intialTrigger, initialTriggerLocation, options, cancellationToken).ConfigureAwait(false);
-                    AddPropertiesToSession(session, completionList, triggerLocation: null);
+                    AddPropertiesToSession(session, completionList, initialTriggerLocation);
 
                     return context;
                 }
@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return (new(items, suggestionItemOptions, selectionHint: AsyncCompletionData.InitialSelectionHint.SoftSelection, filters), completionList);
         }
 
-        private static void AddPropertiesToSession(IAsyncCompletionSession session, CompletionList completionList, SnapshotPoint? triggerLocation)
+        private static void AddPropertiesToSession(IAsyncCompletionSession session, CompletionList completionList, SnapshotPoint triggerLocation)
         {
             // Store around the span this completion list applies to.  We'll use this later
             // to pass this value in when we're committing a completion list item.
@@ -476,9 +476,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // so when they are requested via expander later, we can retrieve it.
             // Technically we should save the trigger location for each individual service that made such claim, but in reality only Roslyn's
             // completion service uses expander, so we can get away with not making such distinction.
-            if (triggerLocation.HasValue && !session.Properties.ContainsProperty(ExpandedItemTriggerLocation))
+            if (!session.Properties.ContainsProperty(ExpandedItemTriggerLocation))
             {
-                session.Properties[ExpandedItemTriggerLocation] = triggerLocation.Value;
+                session.Properties[ExpandedItemTriggerLocation] = triggerLocation;
             }
         }
 
