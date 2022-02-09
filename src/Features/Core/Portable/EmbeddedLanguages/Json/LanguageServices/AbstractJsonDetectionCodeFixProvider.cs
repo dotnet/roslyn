@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
         public void Fix(SyntaxEditor editor, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var stringLiteral = diagnostic.Location.FindToken(cancellationToken);
-            Debug.Assert(_info.SyntaxFacts.SyntaxKinds.StringLiteralToken == stringLiteral.RawKind);
+            Debug.Assert(_info.IsAnyStringLiteral(stringLiteral.RawKind));
 
             var commentContents = diagnostic.Properties.ContainsKey(AbstractJsonDetectionAnalyzer.StrictKey)
                 ? "lang=json,strict"

@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             SyntaxToken token,
             CancellationToken cancellationToken)
         {
-            if (token.RawKind == _info.StringLiteralTokenKind)
+            if (_info.IsAnyStringLiteral(token.RawKind))
             {
                 var tree = detector.TryParseString(token, context.SemanticModel, cancellationToken);
                 if (tree != null)

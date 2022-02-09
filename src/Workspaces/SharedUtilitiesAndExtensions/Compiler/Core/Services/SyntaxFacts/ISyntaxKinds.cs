@@ -53,6 +53,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         int CharacterLiteralToken { get; }
         int StringLiteralToken { get; }
+        int? SingleLineRawStringLiteralToken { get; }
+        int? MultiLineRawStringLiteralToken { get; }
 
         #endregion
 

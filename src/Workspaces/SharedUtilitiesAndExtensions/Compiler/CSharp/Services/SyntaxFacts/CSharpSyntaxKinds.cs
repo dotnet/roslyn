@@ -36,6 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public int InterpolatedStringTextToken => (int)SyntaxKind.InterpolatedStringTextToken;
         public int QuestionToken => (int)SyntaxKind.QuestionToken;
         public int StringLiteralToken => (int)SyntaxKind.StringLiteralToken;
+        public int? SingleLineRawStringLiteralToken => (int)SyntaxKind.SingleLineRawStringLiteralToken;
+        public int? MultiLineRawStringLiteralToken => (int)SyntaxKind.MultiLineRawStringLiteralToken;
 
         public int DelegateKeyword => (int)SyntaxKind.DelegateKeyword;
         public int IfKeyword => (int)SyntaxKind.IfKeyword;

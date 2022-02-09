@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
         public JsonEmbeddedClassifier(EmbeddedLanguageInfo info)
         {
             _info = info;
-            SyntaxTokenKinds = ImmutableArray.Create(info.StringLiteralTokenKind);
+            SyntaxTokenKinds = info.AllStringLiteralKinds;
         }
 
         public override void AddClassifications(
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
             ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
-            if (_info.StringLiteralTokenKind != token.RawKind)
+            if (!_info.IsAnyStringLiteral(token.RawKind))
                 return;
 
             if (!options.ColorizeJsonPatterns)
