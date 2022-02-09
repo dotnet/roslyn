@@ -52,14 +52,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
                 return;
             }
 
-            // type is apparent if we the object creation location is closely tied (spatially) to the explicit type.  Specifically:
+            // type is apparent if the object creation location is closely tied (spatially) to the explicit type.  Specifically:
             //
             // 1. Variable declarations.    i.e. `List<int> list = new ...`.  Note: we will suppress ourselves if this
             //    is a field and the 'var' preferences would lead to preferring this as `var list = ...`
             // 2. Expression-bodied constructs with an explicit return type.  i.e. `List<int> Prop => new ...` or
             //    `List<int> GetValue(...) => ...` The latter doesn't necessarily have the object creation spatially next to
             //    the type.  However, the type is always in a very easy to ascertain location in C#, so it is treated as
-            //    apparent. 
+            //    apparent.
+            // 3. Array initializer.  i.e. `new Foo[] { new ... }`
+            // 4. Simple collection initializer.  i.e `new List<Foo> { new ... }`
 
             var objectCreation = (ObjectCreationExpressionSyntax)context.Node;
 
@@ -93,9 +95,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
                     _ => null,
                 };
             }
+            else if (objectCreation.Parent.IsKind(SyntaxKind.ArrayInitializerExpression) &&
+                objectCreation.Parent.Parent is ArrayCreationExpressionSyntax arrayCreation)
+            {
+                typeNode = arrayCreation.Type.ElementType;
+            }
+            else if (objectCreation.Parent.IsKind(SyntaxKind.CollectionInitializerExpression) &&
+                objectCreation.Parent.Parent is ObjectCreationExpressionSyntax collectionObjectCreation &&
+                collectionObjectCreation.Type is QualifiedNameSyntax qualifiedNameSyntax &&
+                qualifiedNameSyntax.Right is GenericNameSyntax genericNameSyntax &&
+                genericNameSyntax.TypeArgumentList.Arguments.Count == 1)
+            {
+                typeNode = genericNameSyntax.TypeArgumentList.Arguments[0];
+            }
             else
             {
-                // more cases can be added here if we discover more cases we think the type is readily apparent from context.
+                // More cases can be added here if we discover more cases we think the type is readily apparent from context.
                 return;
             }
 
@@ -113,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation
             if (leftType.IsErrorType() || rightType.IsErrorType())
                 return;
 
-            // The default SymbolEquivalenceComparer will ignore tuple name differences, which is advantageous here
+            // The default SymbolEquivalenceComparer will ignore tuple name differences, which is advantageous here.
             if (!SymbolEquivalenceComparer.Instance.Equals(leftType, rightType))
             {
                 return;
