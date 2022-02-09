@@ -69,7 +69,7 @@ Friend Class GoToHelpers
                     metadataDefinitions = {}
                 End If
 
-                AssertEx.Equal(metadataDefinitions, actualDefintionsWithoutSpans)
+                Assert.Equal(actualDefintionsWithoutSpans, metadataDefinitions)
             End If
         End Using
     End Function

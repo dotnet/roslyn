@@ -4,12 +4,12 @@
 
 #nullable disable
 
-using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -70,6 +70,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.True(VisualStudio.Shell.IsActiveTabProvisional());
         }
 
+        // TODO: Enable this once the GoToDefinition tests are merged
         [WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
         public void GoToImplementationFromMetadataAsSource()
         {
@@ -90,55 +91,6 @@ class Implementation : IDisposable
             VisualStudio.Editor.GoToDefinition("IDisposable [from metadata]");
             VisualStudio.Editor.GoToImplementation("FileImplementation.cs");
             VisualStudio.Editor.Verify.TextContains(@"class Implementation$$ : IDisposable", assertCaretPosition: true);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
-        public void GoToImplementationFromSourceAndMetadata()
-        {
-            var project = new ProjectUtils.Project(ProjectName);
-            VisualStudio.SolutionExplorer.AddFile(project, "FileImplementation.cs");
-            VisualStudio.SolutionExplorer.OpenFile(project, "FileImplementation.cs");
-            VisualStudio.Editor.SetText(
-@"using System;
-
-class Implementation : IDisposable
-{
-    public void Dispose()
-    {
-    }
-}");
-            VisualStudio.SolutionExplorer.CloseCodeFile(project, "FileImplementation.cs", saveFile: true);
-
-            VisualStudio.SolutionExplorer.AddFile(project, "FileUsage.cs");
-            VisualStudio.SolutionExplorer.OpenFile(project, "FileUsage.cs");
-            VisualStudio.Editor.SetText(
-@"using System;
-
-class C
-{
-    void M()
-    {
-        IDisposable c;
-        try
-        {
-            c = new Implementation();
-        }
-        finally
-        {
-            c.Dispose();
-        }
-    }
-}");
-
-            VisualStudio.Editor.PlaceCaret("Dispose", charsOffset: -1);
-
-            VisualStudio.Editor.GoToImplementation(expectedNavigateWindowName: null);
-
-            var results = VisualStudio.FindReferencesWindow.GetContents();
-
-            // There are a lot of results, no point transcribing them all into a test
-            Assert.Contains(results, r => r.Code == "public void Dispose()" && Path.GetFileName(r.FilePath) == "FileImplementation.cs");
-            Assert.Contains(results, r => r.Code == "void Stream.Dispose()" && r.FilePath == "Stream");
         }
     }
 }
