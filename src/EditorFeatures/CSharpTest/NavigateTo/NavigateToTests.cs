@@ -1526,6 +1526,7 @@ testHost, composition, @"class Goo
 
         [Theory]
         [CombinatorialData]
+        [WorkItem(57873, "https://github.com/dotnet/roslyn/issues/57873")]
         public async Task FindRecordMember1(TestHost testHost, Composition composition)
         {
             await TestAsync(
@@ -1540,6 +1541,7 @@ testHost, composition, @"record Goo(int Member)
 
         [Theory]
         [CombinatorialData]
+        [WorkItem(57873, "https://github.com/dotnet/roslyn/issues/57873")]
         public async Task FindRecordMember2(TestHost testHost, Composition composition)
         {
             await TestAsync(
@@ -1555,6 +1557,7 @@ testHost, composition, @"record Goo(int Member)
 
         [Theory]
         [CombinatorialData]
+        [WorkItem(57873, "https://github.com/dotnet/roslyn/issues/57873")]
         public async Task FindRecordMember3(TestHost testHost, Composition composition)
         {
             await TestAsync(
