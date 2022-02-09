@@ -140,7 +140,8 @@ dotnet_naming_rule.members_should_be_pascal_case.severity = suggestion
 dotnet_naming_rule.members_should_be_pascal_case.symbols = all_members
 dotnet_naming_rule.members_should_be_pascal_case.style = pascal_case_style
 
-dotnet_naming_symbols.all_members.applicable_kinds = *
+# All except local_function, field, parameter, and local, which are covered by other rules
+dotnet_naming_symbols.all_members.applicable_kinds = namespace, class, struct, interface, enum, property, method, event, delegate, type_parameter
 
 dotnet_naming_style.pascal_case_style.capitalization = pascal_case
 
