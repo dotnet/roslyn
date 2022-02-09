@@ -363,9 +363,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             public bool MatchesSymbol(ISymbol symbol)
                 => SymbolKind.HasValue ? symbol.IsKind(SymbolKind.Value) :
-                   TypeKind.HasValue ? symbol is ITypeSymbol type && type.TypeKind == TypeKind.Value :
+                   TypeKind.HasValue ? symbol is ITypeSymbol type && MatchesTypeSymbolKind(type.TypeKind, TypeKind.Value) :
                    MethodKind.HasValue ? symbol is IMethodSymbol method && method.MethodKind == MethodKind.Value :
                    throw ExceptionUtilities.Unreachable;
+
+            private bool MatchesTypeSymbolKind(TypeKind kind1, TypeKind kind2)
+            {
+                if (kind1 == CodeAnalysis.TypeKind.Module && kind2 == CodeAnalysis.TypeKind.Class)
+                {
+                    return true;
+                }
+
+                if (kind1 == CodeAnalysis.TypeKind.Class && kind2 == CodeAnalysis.TypeKind.Module)
+                {
+                    return true;
+                }
+
+                return kind1 == kind2;
+            }
 
             internal XElement CreateXElement()
                 => SymbolKind.HasValue ? new XElement(nameof(SymbolKind), SymbolKind) :

@@ -123,6 +123,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         private static readonly SymbolKindOrTypeKind _namespace = new(SymbolKind.Namespace);
         private static readonly SymbolKindOrTypeKind _class = new(TypeKind.Class);
+        private static readonly SymbolKindOrTypeKind _module = new(TypeKind.Module);
         private static readonly SymbolKindOrTypeKind _struct = new(TypeKind.Struct);
         private static readonly SymbolKindOrTypeKind _interface = new(TypeKind.Interface);
         private static readonly SymbolKindOrTypeKind _enum = new(TypeKind.Enum);
@@ -139,6 +140,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             ImmutableArray.Create(
                 _namespace,
                 _class,
+                _module,
                 _struct,
                 _interface,
                 _enum,
@@ -171,6 +173,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 {
                     case "class":
                         builder.Add(_class);
+                        builder.Add(_module);
                         break;
                     case "struct":
                         builder.Add(_struct);
