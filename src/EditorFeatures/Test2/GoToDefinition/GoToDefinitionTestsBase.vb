@@ -43,8 +43,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
                 Dim presenter = New MockStreamingFindUsagesPresenter(workspace.GlobalOptions, Sub() presenterCalled = True)
 
                 Dim goToDefService = If(document.Project.Language = LanguageNames.CSharp,
-                    DirectCast(New CSharpGoToDefinitionService(threadingContext, presenter, workspace.GlobalOptions), IGoToDefinitionService),
-                    New VisualBasicGoToDefinitionService(threadingContext, presenter, workspace.GlobalOptions))
+                    DirectCast(New CSharpGoToDefinitionService(threadingContext, presenter), IGoToDefinitionService),
+                    New VisualBasicGoToDefinitionService(threadingContext, presenter))
 
                 Dim actualResult = goToDefService.TryGoToDefinition(document, cursorPosition, CancellationToken.None)
 

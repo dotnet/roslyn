@@ -18,9 +18,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GoToDefinition
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New(threadingContext As IThreadingContext,
-                       streamingPresenter As IStreamingFindUsagesPresenter,
-                       globalOptions As IGlobalOptionService)
-            MyBase.New(threadingContext, streamingPresenter, globalOptions)
+                       streamingPresenter As IStreamingFindUsagesPresenter)
+            MyBase.New(threadingContext, streamingPresenter)
         End Sub
     End Class
 End Namespace

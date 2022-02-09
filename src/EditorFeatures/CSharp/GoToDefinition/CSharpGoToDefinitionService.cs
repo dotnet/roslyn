@@ -19,9 +19,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpGoToDefinitionService(
             IThreadingContext threadingContext,
-            IStreamingFindUsagesPresenter streamingPresenter,
-            IGlobalOptionService globalOptions)
-            : base(threadingContext, streamingPresenter, globalOptions)
+            IStreamingFindUsagesPresenter streamingPresenter)
+            : base(threadingContext, streamingPresenter)
         {
         }
     }
