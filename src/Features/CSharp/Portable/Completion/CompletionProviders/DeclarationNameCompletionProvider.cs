@@ -286,6 +286,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                     result.Add((uniqueName.Text, symbolKind));
                             }
                         }
+
+                        // Only consider the first matching specification for each potential symbol or type kind.
+                        // https://github.com/dotnet/roslyn/issues/36248
+                        break;
                     }
                 }
             }
