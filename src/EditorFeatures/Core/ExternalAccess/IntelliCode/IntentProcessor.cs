@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.IntelliCode.Api;
 using Microsoft.CodeAnalysis.Features.Intents;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -91,14 +92,32 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode
             CancellationToken cancellationToken)
         {
             var newSolution = processorResult.Solution;
-
             // Merge linked file changes so all linked files have the same text changes.
             newSolution = await newSolution.WithMergedLinkedFileChangesAsync(originalDocument.Project.Solution, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            // For now we only support changes to the current document.  Everything else is dropped.
-            var changedDocument = newSolution.GetRequiredDocument(currentDocument.Id);
+            var results = new Dictionary<Uri, ImmutableArray<TextChange>>();
+            foreach (var changedDocumentId in processorResult.ChangedDocuments)
+            {
+                // Calculate the text changes by comparing the solution with intent applied to the current solution (not to be confused with the original solution, the one prior to intent detection).
+                var docChanges = await GetTextChangesForDocumentAsync(newSolution, currentDocument.Project.Solution, changedDocumentId, cancellationToken).ConfigureAwait(false);
+                if (docChanges != null)
+                {
+                    var (uri, textChanges) = docChanges.Value;
+                    results[uri] = textChanges;
+                }
+            }
 
-            var textDiffService = newSolution.Workspace.Services.GetRequiredService<IDocumentTextDifferencingService>();
+            return new IntentSource(processorResult.Title, results[originalDocument.GetURI()], processorResult.ActionName, results.ToImmutableDictionary());
+        }
+
+        private static async Task<(Uri, ImmutableArray<TextChange>)?> GetTextChangesForDocumentAsync(Solution changedSolution, Solution currentSolution, DocumentId changedDocumentId, CancellationToken cancellationToken)
+        {
+            var changedDocument = changedSolution.GetRequiredDocument(changedDocumentId);
+            var currentDocument = currentSolution.GetRequiredDocument(changedDocumentId);
+
+            Contract.ThrowIfNull(changedDocument.FilePath, $"{changedDocumentId} missing file path");
+
+            var textDiffService = changedSolution.Workspace.Services.GetRequiredService<IDocumentTextDifferencingService>();
             // Compute changes against the current version of the document.
             var textDiffs = await textDiffService.GetTextChangesAsync(currentDocument, changedDocument, cancellationToken).ConfigureAwait(false);
             if (textDiffs.IsEmpty)
@@ -106,7 +125,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode
                 return null;
             }
 
-            return new IntentSource(processorResult.Title, textDiffs, processorResult.ActionName);
+            return (changedDocument.GetURI(), textDiffs);
         }
     }
 }

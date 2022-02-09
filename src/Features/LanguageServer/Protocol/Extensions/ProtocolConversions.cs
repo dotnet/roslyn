@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -146,7 +147,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             if (filePath is null)
                 throw new ArgumentNullException(nameof(filePath));
 
-            return new Uri(filePath, UriKind.Absolute);
+            if (Path.IsPathRooted(filePath))
+            {
+                return new Uri(filePath, UriKind.Absolute);
+            }
+            else if (Uri.TryCreate(filePath, UriKind.Relative, out var uri))
+            {
+                return uri;
+            }
+            else
+            {
+                throw new ArgumentException($"Failed to create URI for {filePath}");
+            }
         }
 
         public static Uri? TryGetUriFromFilePath(string? filePath, RequestContext? context = null)
