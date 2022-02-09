@@ -63,7 +63,11 @@ namespace Microsoft.CodeAnalysis
             {
                 var newStream = new MemoryStream();
                 stream.CopyTo(newStream);
-                _stream = newStream;
+                var existingValue = Interlocked.CompareExchange(ref _stream, newStream, null);
+                if (existingValue is not null)
+                {
+                    throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
+                }
             }
 
             public async Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default)
@@ -74,7 +78,11 @@ namespace Microsoft.CodeAnalysis
 # else
                 await stream.CopyToAsync(newStream).ConfigureAwait(false);
 #endif
-                _stream = newStream;
+                var existingValue = Interlocked.CompareExchange(ref _stream, newStream, null);
+                if (existingValue is not null)
+                {
+                    throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
+                }
             }
         }
 
@@ -96,7 +104,11 @@ namespace Microsoft.CodeAnalysis
                 // This is a trivial implementation, indeed. Note, however, that we retain a strong
                 // reference to the source text, which defeats the intent of RecoverableTextAndVersion, but
                 // is appropriate for this trivial implementation.
-                _sourceText = text;
+                var existingValue = Interlocked.CompareExchange(ref _sourceText, text, null);
+                if (existingValue is not null)
+                {
+                    throw new InvalidOperationException(WorkspacesResources.Temporary_storage_cannot_be_written_more_than_once);
+                }
             }
 
             public Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default)
