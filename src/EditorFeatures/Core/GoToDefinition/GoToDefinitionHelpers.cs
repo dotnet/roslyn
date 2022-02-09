@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -107,6 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             Solution solution,
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingPresenter,
+            IGlobalOptionService globalOptions,
             CancellationToken cancellationToken,
             bool thirdPartyNavigationAllowed = true)
         {

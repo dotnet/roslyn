@@ -6,15 +6,19 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
     // Ctrl+Click (GoToSymbol)
     internal abstract class AbstractGoToSymbolService : ForegroundThreadAffinitizedObject, IGoToSymbolService
     {
-        protected AbstractGoToSymbolService(IThreadingContext threadingContext, bool assertIsForeground = false)
+        private readonly IGlobalOptionService _globalOptions;
+
+        protected AbstractGoToSymbolService(IThreadingContext threadingContext, IGlobalOptionService globalOptions, bool assertIsForeground = false)
             : base(threadingContext, assertIsForeground)
         {
+            _globalOptions = globalOptions;
         }
 
         public async Task GetSymbolsAsync(GoToSymbolContext context)

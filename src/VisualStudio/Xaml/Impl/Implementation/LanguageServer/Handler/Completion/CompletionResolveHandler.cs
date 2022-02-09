@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -29,6 +31,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     [ProvidesMethod(LSP.Methods.TextDocumentCompletionResolveName)]
     internal class CompletionResolveHandler : AbstractStatelessRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
     {
+        private readonly IGlobalOptionService _globalOptions;
+
         public override string Method => LSP.Methods.TextDocumentCompletionResolveName;
 
         public override bool MutatesSolutionState => false;
@@ -36,8 +40,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CompletionResolveHandler()
+        public CompletionResolveHandler(IGlobalOptionService globalOptions)
         {
+            _globalOptions = globalOptions;
         }
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(CompletionItem request) => null;
@@ -77,7 +82,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 return completionItem;
             }
 
-            var description = await symbol.GetDescriptionAsync(document, cancellationToken).ConfigureAwait(false);
+            var options = _globalOptions.GetSymbolDescriptionOptions(document.Project.Language);
+            var description = await symbol.GetDescriptionAsync(document, options, cancellationToken).ConfigureAwait(false);
 
             vsCompletionItem.Description = new ClassifiedTextElement(description.Select(tp => new ClassifiedTextRun(tp.Tag.ToClassificationTypeName(), tp.Text)));
             return vsCompletionItem;

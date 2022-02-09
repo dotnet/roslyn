@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -24,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
     internal abstract class AbstractGoToDefinitionService : AbstractFindDefinitionService, IGoToDefinitionService
     {
         private readonly IThreadingContext _threadingContext;
+        private readonly IGlobalOptionService _globalOptions;
 
         /// <summary>
         /// Used to present go to definition results in <see cref="TryGoToDefinition(Document, int, CancellationToken)"/>
@@ -32,10 +34,12 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
         protected AbstractGoToDefinitionService(
             IThreadingContext threadingContext,
-            IStreamingFindUsagesPresenter streamingPresenter)
+            IStreamingFindUsagesPresenter streamingPresenter,
+            IGlobalOptionService globalOptions)
         {
             _threadingContext = threadingContext;
             _streamingPresenter = streamingPresenter;
+            _globalOptions = globalOptions;
         }
 
         async Task<IEnumerable<INavigableItem>?> IGoToDefinitionService.FindDefinitionsAsync(Document document, int position, CancellationToken cancellationToken)
@@ -78,6 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 document.Project.Solution,
                 _threadingContext,
                 _streamingPresenter,
+                _globalOptions,
                 thirdPartyNavigationAllowed: isThirdPartyNavigationAllowed,
                 cancellationToken: cancellationToken);
         }

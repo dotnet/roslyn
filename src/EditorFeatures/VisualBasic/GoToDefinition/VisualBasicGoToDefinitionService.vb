@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.GoToDefinition
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GoToDefinition
     <ExportLanguageService(GetType(IGoToDefinitionService), LanguageNames.VisualBasic), [Shared]>
@@ -17,8 +18,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GoToDefinition
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New(threadingContext As IThreadingContext,
-                       streamingPresenter As IStreamingFindUsagesPresenter)
-            MyBase.New(threadingContext, streamingPresenter)
+                       streamingPresenter As IStreamingFindUsagesPresenter,
+                       globalOptions As IGlobalOptionService)
+            MyBase.New(threadingContext, streamingPresenter, globalOptions)
         End Sub
     End Class
 End Namespace

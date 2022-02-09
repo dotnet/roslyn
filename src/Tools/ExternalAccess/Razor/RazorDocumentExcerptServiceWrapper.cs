@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         public RazorDocumentExcerptServiceWrapper(IRazorDocumentExcerptServiceImplementation impl)
             => _impl = impl;
 
-        public async Task<ExcerptResult?> TryExcerptAsync(Document document, TextSpan span, ExcerptMode mode, CancellationToken cancellationToken)
+        public async Task<ExcerptResult?> TryExcerptAsync(Document document, TextSpan span, ExcerptMode mode, ClassificationOptions classificationOptions, CancellationToken cancellationToken)
         {
             var razorMode = mode switch
             {

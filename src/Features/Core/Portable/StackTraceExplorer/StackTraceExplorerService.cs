@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
 
@@ -19,10 +20,13 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
     [ExportWorkspaceService(typeof(IStackTraceExplorerService)), Shared]
     internal class StackTraceExplorerService : IStackTraceExplorerService
     {
+        private readonly IGlobalOptionService _globalOptions;
+
         [ImportingConstructor]
         [System.Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public StackTraceExplorerService()
+        public StackTraceExplorerService(IGlobalOptionService globalOptions)
         {
+            _globalOptions = globalOptions;
         }
 
         public (Document? document, int line) GetDocumentAndLine(Solution solution, ParsedFrame frame)

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
 {
@@ -18,8 +19,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public CSharpGoToDefinitionService(
             IThreadingContext threadingContext,
-            IStreamingFindUsagesPresenter streamingPresenter)
-            : base(threadingContext, streamingPresenter)
+            IStreamingFindUsagesPresenter streamingPresenter,
+            IGlobalOptionService globalOptions)
+            : base(threadingContext, streamingPresenter, globalOptions)
         {
         }
     }

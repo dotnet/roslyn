@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
         AbstractNavigationCommandHandler<FindMemberOverloadsCommandArgs>
     {
         private readonly IAsynchronousOperationListener _asyncListener;
+        private readonly IGlobalOptionService _globalOptions;
 
         public override string DisplayName => nameof(FindMemberOverloadsCommandHandler);
 
@@ -36,12 +37,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FindMemberOverloadsCommandHandler(
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            IAsynchronousOperationListenerProvider listenerProvider,
+            IGlobalOptionService globalOptions)
             : base(streamingPresenters)
         {
             Contract.ThrowIfNull(listenerProvider);
 
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.FindReferences);
+            _globalOptions = globalOptions;
         }
 
         protected override bool TryExecuteCommand(int caretPosition, Document document, CommandExecutionContext context)

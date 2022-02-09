@@ -6,16 +6,17 @@ Imports System.Composition
 Imports Microsoft.CodeAnalysis.Editor.GoToDefinition
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GoToDefinition
     <ExportLanguageService(GetType(IGoToSymbolService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicGoToSymbolService
+    Friend NotInheritable Class VisualBasicGoToSymbolService
         Inherits AbstractGoToSymbolService
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(threadingContext As IThreadingContext)
-            MyBase.New(threadingContext)
+        Public Sub New(threadingContext As IThreadingContext, globalOptions As IGlobalOptionService)
+            MyBase.New(threadingContext, globalOptions)
         End Sub
     End Class
 End Namespace
