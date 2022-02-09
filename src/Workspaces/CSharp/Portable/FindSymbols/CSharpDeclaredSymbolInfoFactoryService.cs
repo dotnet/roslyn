@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                             SyntaxKind.RecordStructDeclaration => DeclaredSymbolInfoKind.RecordStruct,
                             _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
                         },
-                        GetAccessibility(container, node.Modifiers),
+                        GetAccessibility(container, typeDecl.Modifiers),
                         typeDecl.Identifier.Span,
                         GetInheritanceNames(stringTable, typeDecl.BaseList),
                         IsNestedType(typeDecl)));
