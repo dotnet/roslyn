@@ -268,43 +268,31 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return;
             }
 
-            try
+            var resolver = new Resolver(_allModuleData);
+            var verifier = new ILVerify.Verifier(resolver);
+
+            var mscorlibModule = _allModuleData.Single(m => m.IsCorLib);
+            verifier.SetSystemModuleName(new AssemblyName(mscorlibModule.SimpleName));
+
+            // Main module is the first one
+            var result = verifier.Verify(resolver.Resolve(_allModuleData[0].SimpleName));
+            if (result.Count() == 0)
             {
-                var resolver = new Resolver(_allModuleData);
-                var verifier = new ILVerify.Verifier(resolver);
-
-                var mscorlibModule = _allModuleData.Single(m => m.IsCorLib);
-                verifier.SetSystemModuleName(new AssemblyName(mscorlibModule.SimpleName));
-
-                // Main module is the first one
-                var result = verifier.Verify(resolver.Resolve(_allModuleData[0].SimpleName));
-                if (result.Count() == 0)
-                {
-                    if ((verification & Verification.FailsILVerify) == 0)
-                    {
-                        return;
-                    }
-
-                    throw new Exception("IL Verify succeeded unexpectedly");
-                }
-
-                if ((verification & Verification.FailsILVerify) != 0)
+                if ((verification & Verification.FailsILVerify) == 0)
                 {
                     return;
                 }
 
-                string message = printVerificationResult(result);
-                throw new Exception("IL Verify failed unexpectedly: \r\n" + message);
+                throw new Exception("IL Verify succeeded unexpectedly");
             }
-            catch (Exception)
-            {
-                if ((verification & Verification.FailsILVerify) != 0)
-                {
-                    return;
-                }
 
-                throw;
+            if ((verification & Verification.FailsILVerify) != 0)
+            {
+                return;
             }
+
+            string message = printVerificationResult(result);
+            throw new Exception("IL Verify failed unexpectedly: \r\n" + message);
 
             static string printVerificationResult(IEnumerable<ILVerify.VerificationResult> result)
             {
