@@ -39,8 +39,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             RazorExcerptResult? result;
             if (_impl != null)
             {
-                var options = ClassificationOptions.From(document.Project);
-                result = await _impl.TryExcerptAsync(document, span, razorMode, new RazorClassificationOptionsWrapper(options), cancellationToken).ConfigureAwait(false);
+                result = await _impl.TryExcerptAsync(document, span, razorMode, new RazorClassificationOptionsWrapper(classificationOptions), cancellationToken).ConfigureAwait(false);
             }
             else
             {
