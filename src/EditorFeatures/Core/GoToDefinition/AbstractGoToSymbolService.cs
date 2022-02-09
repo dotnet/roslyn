@@ -13,12 +13,9 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
     // Ctrl+Click (GoToSymbol)
     internal abstract class AbstractGoToSymbolService : ForegroundThreadAffinitizedObject, IGoToSymbolService
     {
-        private readonly IGlobalOptionService _globalOptions;
-
         protected AbstractGoToSymbolService(IThreadingContext threadingContext, IGlobalOptionService globalOptions, bool assertIsForeground = false)
             : base(threadingContext, assertIsForeground)
         {
-            _globalOptions = globalOptions;
         }
 
         public async Task GetSymbolsAsync(GoToSymbolContext context)

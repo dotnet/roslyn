@@ -108,7 +108,6 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             Solution solution,
             IThreadingContext threadingContext,
             IStreamingFindUsagesPresenter streamingPresenter,
-            IGlobalOptionService globalOptions,
             CancellationToken cancellationToken,
             bool thirdPartyNavigationAllowed = true)
         {

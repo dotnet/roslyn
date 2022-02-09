@@ -14,13 +14,11 @@ using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTracking;
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Writing;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.QuickInfo;
 using Roslyn.Utilities;
 using Methods = Microsoft.VisualStudio.LanguageServer.Protocol.Methods;
 
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 {
-
     internal sealed class Generator
     {
         // LSIF generator capabilities. See https://github.com/microsoft/lsif-node/blob/main/protocol/src/protocol.ts#L925 for details.

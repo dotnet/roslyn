@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.InlineHints
 
         private const string FeatureName = "InlineHintsOptions";
 
-        //  Parameter hinds
+        //  Parameter hints
 
         public static readonly PerLanguageOption2<bool> EnabledForParameters =
             new(FeatureName,

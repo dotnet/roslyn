@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
             }
         }
 
-        private async Task InspectInterfaceAsync(
+        private static async Task InspectInterfaceAsync(
             IFindUsagesContext context, INamedTypeSymbol interfaceSymbol, INamedTypeSymbol namedTypeSymbol, Project project, CancellationToken cancellationToken)
         {
             foreach (var interfaceMember in interfaceSymbol.GetMembers())
