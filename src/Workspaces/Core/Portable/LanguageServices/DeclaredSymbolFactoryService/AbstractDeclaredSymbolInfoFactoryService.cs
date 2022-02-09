@@ -64,6 +64,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         protected abstract void AddDeclaredSymbolInfosWorker(
             SyntaxNode container, TMemberDeclarationSyntax memberDeclaration, StringTable stringTable, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, Dictionary<string, string?> aliases, Dictionary<string, ArrayBuilder<int>> extensionMethodInfo, string containerDisplayName, string fullyQualifiedContainerName, CancellationToken cancellationToken);
+        protected abstract void AddSynthesizedDeclaredSymbolInfos(
+            SyntaxNode container, TMemberDeclarationSyntax memberDeclaration, StringTable stringTable, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, string containerDisplayName, string fullyQualifiedContainerName, CancellationToken cancellationToken);
+
         /// <summary>
         /// Get the name of the target type of specified extension method declaration. The node provided must be an
         /// extension method declaration,  i.e. calling `TryGetDeclaredSymbolInfo()` on `node` should return a
@@ -205,6 +208,15 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         memberDeclaration, child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo,
                         innerContainerDisplayName, innerFullyQualifiedContainerName, cancellationToken);
                 }
+
+                AddSynthesizedDeclaredSymbolInfos(
+                    container,
+                    memberDeclaration,
+                    stringTable,
+                    declaredSymbolInfos,
+                    innerContainerDisplayName,
+                    innerFullyQualifiedContainerName,
+                    cancellationToken);
             }
             else if (memberDeclaration is TEnumDeclarationSyntax enumDeclaration)
             {

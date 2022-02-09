@@ -183,10 +183,10 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             switch (node.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
-                case SyntaxKind.RecordDeclaration:
-                case SyntaxKind.RecordStructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.StructDeclaration:
+                case SyntaxKind.RecordDeclaration:
+                case SyntaxKind.RecordStructDeclaration:
                     var typeDecl = (TypeDeclarationSyntax)node;
                     declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
                         stringTable,
@@ -198,30 +198,16 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         node.Kind() switch
                         {
                             SyntaxKind.ClassDeclaration => DeclaredSymbolInfoKind.Class,
-                            SyntaxKind.RecordDeclaration => DeclaredSymbolInfoKind.Record,
                             SyntaxKind.InterfaceDeclaration => DeclaredSymbolInfoKind.Interface,
                             SyntaxKind.StructDeclaration => DeclaredSymbolInfoKind.Struct,
+                            SyntaxKind.RecordDeclaration => DeclaredSymbolInfoKind.Record,
                             SyntaxKind.RecordStructDeclaration => DeclaredSymbolInfoKind.RecordStruct,
                             _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
                         },
-                        GetAccessibility(container, typeDecl.Modifiers),
+                        GetAccessibility(container, node.Modifiers),
                         typeDecl.Identifier.Span,
                         GetInheritanceNames(stringTable, typeDecl.BaseList),
                         IsNestedType(typeDecl)));
-                    return;
-                case SyntaxKind.EnumDeclaration:
-                    var enumDecl = (EnumDeclarationSyntax)node;
-                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
-                        stringTable,
-                        enumDecl.Identifier.ValueText, null,
-                        containerDisplayName,
-                        fullyQualifiedContainerName,
-                        enumDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
-                        DeclaredSymbolInfoKind.Enum,
-                        GetAccessibility(container, enumDecl.Modifiers),
-                        enumDecl.Identifier.Span,
-                        inheritanceNames: ImmutableArray<string>.Empty,
-                        isNestedType: IsNestedType(enumDecl)));
                     return;
                 case SyntaxKind.ConstructorDeclaration:
                     var ctorDecl = (ConstructorDeclarationSyntax)node;
@@ -346,6 +332,55 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                     }
 
                     return;
+            }
+        }
+
+        protected override void AddSynthesizedDeclaredSymbolInfos(
+            SyntaxNode container,
+            MemberDeclarationSyntax memberDeclaration,
+            StringTable stringTable,
+            ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos,
+            string containerDisplayName,
+            string fullyQualifiedContainerName,
+            CancellationToken cancellationToken)
+        {
+            // Add synthesized properties for record primary constructors that are not backed by an existing field
+            // or property.
+            if (memberDeclaration is RecordDeclarationSyntax { ParameterList: { } parameterList } recordDeclaration &&
+                parameterList.Parameters.Count > 0)
+            {
+                using var _ = PooledHashSet<string>.GetInstance(out var existingFieldPropNames);
+
+                foreach (var member in recordDeclaration.Members)
+                {
+                    switch (member)
+                    {
+                        case PropertyDeclarationSyntax property:
+                            existingFieldPropNames.Add(property.Identifier.ValueText);
+                            continue;
+                        case FieldDeclarationSyntax fieldDeclaration:
+                            foreach (var variable in fieldDeclaration.Declaration.Variables)
+                                existingFieldPropNames.Add(variable.Identifier.ValueText);
+                            continue;
+                    }
+                }
+
+                foreach (var parameter in parameterList.Parameters)
+                {
+                    if (!existingFieldPropNames.Contains(parameter.Identifier.ValueText))
+                    {
+                        declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
+                            stringTable,
+                            parameter.Identifier.ValueText, null,
+                            containerDisplayName,
+                            fullyQualifiedContainerName,
+                            isPartial: false,
+                            DeclaredSymbolInfoKind.Parameter,
+                            Accessibility.Public,
+                            parameter.Identifier.Span,
+                            inheritanceNames: ImmutableArray<string>.Empty));
+                    }
+                }
             }
         }
 
