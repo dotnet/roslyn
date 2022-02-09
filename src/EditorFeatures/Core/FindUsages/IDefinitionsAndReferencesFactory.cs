@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         {
             return ToDefinitionItemAsync(
                 definition, solution, isPrimary: false, includeHiddenLocations, includeClassifiedSpans: false,
-                options: FindReferencesSearchOptions.Default.With(unidirectionalHierarchyCascade: true), cancellationToken: cancellationToken);
+                options: FindReferencesSearchOptions.Default with { UnidirectionalHierarchyCascade = true }, cancellationToken);
         }
 
         public static Task<DefinitionItem> ToClassifiedDefinitionItemAsync(
@@ -226,6 +227,9 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
         public static async Task<SourceReferenceItem?> TryCreateSourceReferenceItemAsync(
             this ReferenceLocation referenceLocation,
+#pragma warning disable IDE0060 // Remove unused parameter TODO
+            IFindUsagesContext context,
+#pragma warning restore IDE0060 // Remove unused parameter
             DefinitionItem definitionItem,
             bool includeHiddenLocations,
             CancellationToken cancellationToken)
@@ -241,10 +245,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             var document = referenceLocation.Document;
             var sourceSpan = location.SourceSpan;
-            var options = ClassificationOptions.From(document.Project);
+
+            // TODO:
+            // var options = await context.GetOptionsAsync(document.Project.Language, cancellationToken).ConfigureAwait(false);
+            var classificationOptions = ClassificationOptions.From(document.Project);
 
             var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
-                document, sourceSpan, options, cancellationToken).ConfigureAwait(false);
+                document, sourceSpan, classificationOptions, cancellationToken).ConfigureAwait(false);
 
             return new SourceReferenceItem(definitionItem, documentSpan, referenceLocation.SymbolUsageInfo, referenceLocation.AdditionalProperties);
         }

@@ -1183,6 +1183,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode argumentList)
             => ((BaseArgumentListSyntax)argumentList).Arguments;
 
+        public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfAttributeArgumentList(SyntaxNode argumentList)
+            => ((AttributeArgumentListSyntax)argumentList).Arguments;
+
         public bool IsRegularComment(SyntaxTrivia trivia)
             => trivia.IsRegularComment();
 
@@ -1576,12 +1579,16 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             => node is SimpleNameSyntax;
 
         public bool IsNamedMemberInitializer([NotNullWhen(true)] SyntaxNode? node)
-        {
-            return node is AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression)
-            {
-                Left: IdentifierNameSyntax
-            };
-        }
+            => node is AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression) { Left: IdentifierNameSyntax };
+
+        public bool IsElementAccessInitializer([NotNullWhen(true)] SyntaxNode? node)
+            => node is AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression) { Left: ImplicitElementAccessSyntax };
+
+        public bool IsObjectMemberInitializer([NotNullWhen(true)] SyntaxNode? node)
+            => node is InitializerExpressionSyntax(SyntaxKind.ObjectInitializerExpression);
+
+        public bool IsObjectCollectionInitializer([NotNullWhen(true)] SyntaxNode? node)
+            => node is InitializerExpressionSyntax(SyntaxKind.CollectionInitializerExpression);
 
         #endregion
 
@@ -1699,8 +1706,11 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SyntaxNode GetExpressionOfThrowExpression(SyntaxNode node)
             => ((ThrowExpressionSyntax)node).Expression;
 
-        public SeparatedSyntaxList<SyntaxNode> GetMemberInitializersOfInitializer(SyntaxNode node)
-            => ((InitializerExpressionSyntax)node).Expressions;
+        public SeparatedSyntaxList<SyntaxNode> GetInitializersOfObjectMemberInitializer(SyntaxNode node)
+            => node is InitializerExpressionSyntax(SyntaxKind.ObjectInitializerExpression) initExpr ? initExpr.Expressions : default;
+
+        public SeparatedSyntaxList<SyntaxNode> GetExpressionsOfObjectCollectionInitializer(SyntaxNode node)
+            => node is InitializerExpressionSyntax(SyntaxKind.CollectionInitializerExpression) initExpr ? initExpr.Expressions : default;
 
         #endregion
     }

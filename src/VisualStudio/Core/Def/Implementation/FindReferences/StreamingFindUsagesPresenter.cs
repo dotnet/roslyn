@@ -198,7 +198,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             // We need this because we disable the Definition column when we're not showing references
             // (i.e. GoToImplementation/GoToDef).  However, we want to restore the user's choice if they
             // then do another FindAllReferences.
-            var desiredGroupingPriority = _globalOptions.GetOption(FindUsagesOptions.DefinitionGroupingPriority);
+            var desiredGroupingPriority = _globalOptions.GetOption(FindUsagesPresentationOptionsStorage.DefinitionGroupingPriority);
             if (desiredGroupingPriority < 0)
             {
                 StoreCurrentGroupingPriority(window);
@@ -225,7 +225,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             var tableControl = (IWpfTableControl2)window.TableControl;
             tableControl.GroupingsChanged += (s, e) => StoreCurrentGroupingPriority(window);
 
-            return new WithReferencesFindUsagesContext(this, window, _customColumns, includeContainingTypeAndMemberColumns, includeKindColumn);
+            return new WithReferencesFindUsagesContext(this, window, _customColumns, _globalOptions, includeContainingTypeAndMemberColumns, includeKindColumn);
         }
 
         private AbstractTableDataSourceFindUsagesContext StartSearchWithoutReferences(
@@ -235,12 +235,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             // just lead to a poor experience.  i.e. we'll have the definition entry buckets, 
             // with the same items showing underneath them.
             SetDefinitionGroupingPriority(window, 0);
-            return new WithoutReferencesFindUsagesContext(this, window, _customColumns, includeContainingTypeAndMemberColumns, includeKindColumn);
+            return new WithoutReferencesFindUsagesContext(this, window, _customColumns, _globalOptions, includeContainingTypeAndMemberColumns, includeKindColumn);
         }
 
         private void StoreCurrentGroupingPriority(IFindAllReferencesWindow window)
         {
-            _globalOptions.SetGlobalOption(new OptionKey(FindUsagesOptions.DefinitionGroupingPriority), window.GetDefinitionColumn().GroupingPriority);
+            _globalOptions.SetGlobalOption(new OptionKey(FindUsagesPresentationOptionsStorage.DefinitionGroupingPriority), window.GetDefinitionColumn().GroupingPriority);
         }
 
         private void SetDefinitionGroupingPriority(IFindAllReferencesWindow window, int priority)

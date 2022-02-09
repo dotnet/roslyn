@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
                 // follows the usings.
                 if (finalTrivia.Count > 0)
                 {
-                    var nextToken = compilationUnit.Usings.Last().GetLastToken().GetNextToken();
+                    var nextToken = compilationUnit.Usings.Last().GetLastToken().GetNextTokenOrEndOfFile();
                     compilationUnit = compilationUnit.ReplaceToken(nextToken, nextToken.WithPrependedLeadingTrivia(finalTrivia));
                 }
 

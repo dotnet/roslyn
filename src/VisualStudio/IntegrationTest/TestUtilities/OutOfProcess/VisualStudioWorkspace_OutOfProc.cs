@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 value: value);
         }
 
-        public void SetFeatureOption(string feature, string optionName, string language, string? valueString)
+        public void SetFeatureOption(string feature, string optionName, string? language, string? valueString)
             => _inProc.SetFeatureOption(feature, optionName, language, valueString);
 
         public object? GetGlobalOption(WellKnownGlobalOption option, string? language)

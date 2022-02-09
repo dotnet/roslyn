@@ -220,7 +220,7 @@
       "version": "4.2.*",
       "packageFeeds": "default",
       "channels": [],
-      "vsBranch": "main",
+      "vsBranch": "rel/d17.2",
       "vsMajorVersion": 17,
       "insertionTitlePrefix": "[d17.2p1]"
     },
