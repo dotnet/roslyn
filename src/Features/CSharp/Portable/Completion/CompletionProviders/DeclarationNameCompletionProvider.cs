@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -245,13 +246,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             ArrayBuilder<(string name, SymbolKind kind)> result,
             CancellationToken cancellationToken)
         {
-            var rules = await document.GetNamingRulesAsync(FallbackNamingRules.CompletionOfferingRules, cancellationToken).ConfigureAwait(false);
+            var rules = await document.GetNamingRulesAsync(FallbackNamingRules.CompletionFallbackRules, cancellationToken).ConfigureAwait(false);
+            var supplementaryRules = FallbackNamingRules.CompletionSupplementaryRules;
             var semanticFactsService = context.GetLanguageService<ISemanticFactsService>();
 
             using var _1 = PooledHashSet<string>.GetInstance(out var seenBaseNames);
             using var _2 = PooledHashSet<string>.GetInstance(out var seenUniqueNames);
 
             foreach (var kind in declarationInfo.PossibleSymbolKinds)
+            {
+                ProcessRules(rules, firstMatchOnly: true, kind, baseNames, declarationInfo, context, result, semanticFactsService, seenBaseNames, seenUniqueNames, cancellationToken);
+                ProcessRules(supplementaryRules, firstMatchOnly: false, kind, baseNames, declarationInfo, context, result, semanticFactsService, seenBaseNames, seenUniqueNames, cancellationToken);
+            }
+
+            static void ProcessRules(
+                ImmutableArray<NamingRule> rules,
+                bool firstMatchOnly,
+                SymbolSpecification.SymbolKindOrTypeKind kind,
+                ImmutableArray<ImmutableArray<string>> baseNames,
+                NameDeclarationInfo declarationInfo,
+                CSharpSyntaxContext context,
+                ArrayBuilder<(string name, SymbolKind kind)> result,
+                ISemanticFactsService semanticFactsService,
+                PooledHashSet<string> seenBaseNames,
+                PooledHashSet<string> seenUniqueNames,
+                CancellationToken cancellationToken)
             {
                 // There's no special glyph for local functions.
                 // We don't need to differentiate them at this point.
@@ -285,6 +304,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                                 if (seenUniqueNames.Add(uniqueName.Text))
                                     result.Add((uniqueName.Text, symbolKind));
                             }
+                        }
+
+                        if (firstMatchOnly)
+                        {
+                            // Only consider the first matching specification for each potential symbol or type kind.
+                            // https://github.com/dotnet/roslyn/issues/36248
+                            break;
                         }
                     }
                 }
