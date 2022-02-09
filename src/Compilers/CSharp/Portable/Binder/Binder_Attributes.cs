@@ -629,8 +629,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             int argsConsumedCount = 0;
 
             bool hasNamedCtorArguments = !constructorArgumentNamesOpt.IsDefault;
-            Debug.Assert(!hasNamedCtorArguments ||
-                constructorArgumentNamesOpt.Length == argumentsCount);
 
             ImmutableArray<ParameterSymbol> parameters = attributeConstructor.Parameters;
             int parameterCount = parameters.Length;
@@ -657,7 +655,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (argsConsumedCount < argumentsCount)
                 {
                     if (!hasNamedCtorArguments ||
-                        constructorArgumentNamesOpt[argsConsumedCount] == null)
+                        (argsConsumedCount < constructorArgumentNamesOpt.Length && constructorArgumentNamesOpt[argsConsumedCount] == null))
                     {
                         // positional constructor argument
                         reorderedArgument = constructorArgsArray[argsConsumedCount];
