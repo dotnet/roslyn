@@ -13,31 +13,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class IOperationTests_IAttributeOperation : SemanticModelTestBase
     {
         [Fact]
-        public void TestDirectConstructorCall()
+        public void TestCallerInfoImplicitCall()
         {
             string source = @"
 using System;
-public class C
-{
-    public void M()
-    {
-        var x = /*<bind>*/new MyAttribute()/*</bind>*/;
-    }
-}
+using System.Runtime.CompilerServices;
 
 class MyAttribute : Attribute
 {
-    public MyAttribute(string value = """") { }
+    public MyAttribute([CallerLineNumber] int lineNumber = -1)
+    {
+        Console.WriteLine(lineNumber);
+    }
 }
 
-
+[/*<bind>*/My/*</bind>*/]
+class Test { }
 ";
             string expectedOperationTree = @"
-
+IAttributeOperation (OperationKind.Attribute, Type: MyAttribute) (Syntax: 'My')
+  Arguments(1):
+      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: lineNumber) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'My')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 13, IsImplicit) (Syntax: 'My')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  NamedArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact]
