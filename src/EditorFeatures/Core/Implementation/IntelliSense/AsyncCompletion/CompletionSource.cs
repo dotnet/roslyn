@@ -295,11 +295,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     // Record how long it takes for the background task to complete *after* core providers returned.
                     // If telemetry shows that a short wait is all it takes for ExpandedItemsTask to complete in
                     // majority of the sessions, then we might consider doing that instead of return immediately.
-                    lock (stopwatch)
-                    {
-                        if (stopwatch.IsRunning)
-                            AsyncCompletionLogger.LogAdditionalTicksToCompleteDelayedImportCompletionDataPoint((int)stopwatch.ElapsedMilliseconds);
-                    }
+                    var elapsedMs = (int)stopwatch.ElapsedMilliseconds;
+                    if (elapsedMs > 0)
+                        AsyncCompletionLogger.LogAdditionalTicksToCompleteDelayedImportCompletionDataPoint(elapsedMs);
 
                     return result;
                 }, cancellationToken);
@@ -323,8 +321,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     // Expanded item task still running. Save it to the session and return non-expanded items immediately.
                     // Also start the stopwatch since we'd like to know how long it takes for the expand task to finish
                     // after core providers completed (instead of how long it takes end-to-end).
-                    lock (stopwatch)
-                        Stopwatch.StartNew();
+                    stopwatch.Start();
 
                     session.Properties[ExpandedItemsTask] = expandedItemsTask;
                     AsyncCompletionLogger.LogImportCompletionGetContext(isBlocking: false, delayed: true);
