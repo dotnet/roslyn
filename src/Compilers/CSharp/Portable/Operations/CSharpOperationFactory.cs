@@ -488,8 +488,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             if (boundAttribute.Constructor is null)
             {
-                // PROTOTYPE: write a test that reaches this and see whether I should return NoneOperation, or InvalidOperation or something else.
-                throw new System.NotImplementedException();
+                return OperationFactory.CreateInvalidOperation(_semanticModel, boundAttribute.Syntax, ImmutableArray<IOperation>.Empty, isImplicit: false);
             }
 
             var arguments = DeriveArguments(

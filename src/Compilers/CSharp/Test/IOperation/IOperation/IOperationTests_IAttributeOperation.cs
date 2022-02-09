@@ -45,6 +45,34 @@ IAttributeOperation (OperationKind.Attribute, Type: MyAttribute) (Syntax: 'My')
         }
 
         [Fact]
+        public void TestNonExistingAttribute()
+        {
+            string source = @"
+using System;
+
+[/*<bind>*/My/*</bind>*/]
+class C
+{
+}
+";
+            string expectedOperationTree = @"
+IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'My')
+  Children(0)
+";
+            var expectedDiagnostics = new[]
+            {
+                // (4,12): error CS0246: The type or namespace name 'MyAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                // [/*<bind>*/My/*</bind>*/]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "My").WithArguments("MyAttribute").WithLocation(4, 12),
+                // (4,12): error CS0246: The type or namespace name 'My' could not be found (are you missing a using directive or an assembly reference?)
+                // [/*<bind>*/My/*</bind>*/]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "My").WithArguments("My").WithLocation(4, 12),
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
         public void TestAttributeWithoutArguments()
         {
             string source = @"
