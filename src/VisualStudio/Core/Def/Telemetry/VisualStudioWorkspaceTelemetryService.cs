@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
             => AggregateLogger.Create(
                 CodeMarkerLogger.Instance,
                 new EtwLogger(FunctionIdOptions.CreateFunctionIsEnabledPredicate(_globalOptions)),
-                new TelemetryLogger(telemetrySession),
+                TelemetryLogger.Create(telemetrySession),
                 new FileLogger(_globalOptions),
                 Logger.GetLogger());
 

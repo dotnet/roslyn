@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class TelemetryLoggerTests
     {
-        private class TestLogger : AbstractTelemetryLogger
+        private class TestLogger : TelemetryLogger
         {
             public class TestScope
             {

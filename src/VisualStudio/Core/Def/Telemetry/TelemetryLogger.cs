@@ -14,8 +14,48 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Telemetry
 {
-    internal abstract class AbstractTelemetryLogger : ILogger
+    internal abstract class TelemetryLogger : ILogger
     {
+        private sealed class Implementation : TelemetryLogger
+        {
+            private readonly TelemetrySession _session;
+
+            public Implementation(TelemetrySession session)
+                => _session = session;
+
+            public override bool IsEnabled(FunctionId functionId)
+                => _session.IsOptedIn;
+
+            protected override void PostEvent(TelemetryEvent telemetryEvent)
+                => _session.PostEvent(telemetryEvent);
+
+            protected override object Start(string eventName, LogType type)
+                => type switch
+                {
+                    LogType.Trace => _session.StartOperation(eventName),
+                    LogType.UserAction => _session.StartUserTask(eventName),
+                    _ => throw ExceptionUtilities.UnexpectedValue(type),
+                };
+
+            protected override TelemetryEvent GetEndEvent(object scope)
+                => scope switch
+                {
+                    TelemetryScope<OperationEvent> operation => operation.EndEvent,
+                    TelemetryScope<UserTaskEvent> userTask => userTask.EndEvent,
+                    _ => throw ExceptionUtilities.UnexpectedValue(scope)
+                };
+
+            protected override void End(object scope, TelemetryResult result)
+            {
+                if (scope is TelemetryScope<OperationEvent> operation)
+                    operation.End(result);
+                else if (scope is TelemetryScope<UserTaskEvent> userTask)
+                    userTask.End(result);
+                else
+                    throw ExceptionUtilities.UnexpectedValue(scope);
+            }
+        }
+
         private readonly ConcurrentDictionary<int, object> _pendingScopes = new(concurrencyLevel: 2, capacity: 10);
 
         private const string EventPrefix = "vs/ide/vbcs/";
@@ -34,6 +74,9 @@ namespace Microsoft.CodeAnalysis.Telemetry
 
         private static string GetTelemetryName(FunctionId id, char separator)
             => Enum.GetName(typeof(FunctionId), id)!.Replace('_', separator).ToLowerInvariant();
+
+        public static TelemetryLogger Create(TelemetrySession session)
+            => new Implementation(session);
 
         public abstract bool IsEnabled(FunctionId functionId);
         protected abstract void PostEvent(TelemetryEvent telemetryEvent);
@@ -150,43 +193,5 @@ namespace Microsoft.CodeAnalysis.Telemetry
         }
     }
 
-    internal sealed class TelemetryLogger : AbstractTelemetryLogger
-    {
-        private readonly TelemetrySession _session;
-
-        public TelemetryLogger(TelemetrySession session)
-            => _session = session;
-
-        public override bool IsEnabled(FunctionId functionId)
-            => _session.IsOptedIn;
-
-        protected override void PostEvent(TelemetryEvent telemetryEvent)
-            => _session.PostEvent(telemetryEvent);
-
-        protected override object Start(string eventName, LogType type)
-            => type switch
-            {
-                LogType.Trace => _session.StartOperation(eventName),
-                LogType.UserAction => _session.StartUserTask(eventName),
-                _ => throw ExceptionUtilities.UnexpectedValue(type),
-            };
-
-        protected override TelemetryEvent GetEndEvent(object scope)
-            => scope switch
-            {
-                TelemetryScope<OperationEvent> operation => operation.EndEvent,
-                TelemetryScope<UserTaskEvent> userTask => userTask.EndEvent,
-                _ => throw ExceptionUtilities.UnexpectedValue(scope)
-            };
-
-        protected override void End(object scope, TelemetryResult result)
-        {
-            if (scope is TelemetryScope<OperationEvent> operation)
-                operation.End(result);
-            else if (scope is TelemetryScope<UserTaskEvent> userTask)
-                userTask.End(result);
-            else
-                throw ExceptionUtilities.UnexpectedValue(scope);
-        }
-    }
+    
 }

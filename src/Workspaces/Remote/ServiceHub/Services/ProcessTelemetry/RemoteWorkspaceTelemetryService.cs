@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 
         protected override ILogger CreateLogger(TelemetrySession telemetrySession)
             => AggregateLogger.Create(
-                new TelemetryLogger(telemetrySession),
+                TelemetryLogger.Create(telemetrySession),
                 Logger.GetLogger());
     }
 }
