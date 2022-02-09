@@ -16,8 +16,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal static class ImportCompletionProviderHelper
     {
-        private record class CacheEntry(Checksum Checksum, ImmutableArray<string> GlobalUsings);
-        private static readonly ConcurrentDictionary<DocumentId, CacheEntry> _sdkGlobalUsingsCache = new();
+        private record class CacheEntry(DocumentId? GlobalUsingsDocumentId, Checksum GlobalUsingsDocumentChecksum, ImmutableArray<string> GlobalUsings)
+        {
+            public static CacheEntry Default { get; } = new(null, Checksum.Null, ImmutableArray<string>.Empty);
+        }
+
+        private static readonly ConcurrentDictionary<ProjectId, CacheEntry> _sdkGlobalUsingsCache = new();
 
         public static async Task<ImmutableArray<string>> GetImportedNamespacesAsync(SyntaxContext context, CancellationToken cancellationToken)
         {
@@ -26,49 +30,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var location = context.LeftToken.Parent ?? context.SyntaxTree.GetRoot(cancellationToken);
             var usingsFromCurrentDocument = context.SemanticModel.GetUsingNamespacesInScope(location).SelectAsArray(GetNamespaceName);
 
-            // Since we don't have a compiler API to easily get all global usings yet, hardcode the the name of SDK auto-generated
-            // global using file (which is a constant) for now as a temporary workaround.
-            // https://github.com/dotnet/sdk/blob/main/src/Tasks/Microsoft.NET.Build.Tasks/targets/Microsoft.NET.GenerateGlobalUsings.targets
-            var fileName = context.Document.Project.Name + ".GlobalUsings.g.cs";
-            var globalUsingDocument = context.Document.Project.Documents.FirstOrDefault(d => d.Name.Equals(fileName));
-
-            if (globalUsingDocument is null)
-                return usingsFromCurrentDocument;
-
-            ImmutableArray<string> globalUsings;
-            if (_sdkGlobalUsingsCache.TryGetValue(globalUsingDocument.Id, out var cacheEntry))
+            if (_sdkGlobalUsingsCache.TryGetValue(context.Document.Project.Id, out var cacheEntry))
             {
                 // Just return whatever was cached last time. It'd be very rare for this file to change. To minimize impact on completion perf,
                 // we'd tolerate temporarily staled results. A background task is created to refresh it if necessary.
-                _ = GetGlobalUsingsAsync(globalUsingDocument, cacheEntry, CancellationToken.None);
-                globalUsings = cacheEntry.GlobalUsings;
+                _ = GetGlobalUsingsAsync(context.Document.Project, cacheEntry, CancellationToken.None);
+                return usingsFromCurrentDocument.Concat(cacheEntry.GlobalUsings);
             }
             else
             {
                 // cache miss, we have to calculate it now.
-                globalUsings = await GetGlobalUsingsAsync(globalUsingDocument, cacheEntry: null, cancellationToken).ConfigureAwait(false);
+                var globalUsings = await GetGlobalUsingsAsync(context.Document.Project, CacheEntry.Default, cancellationToken).ConfigureAwait(false);
+                return usingsFromCurrentDocument.Concat(globalUsings);
             }
 
-            return usingsFromCurrentDocument.Concat(globalUsings);
-
-            static async Task<ImmutableArray<string>> GetGlobalUsingsAsync(Document document, CacheEntry? cacheEntry, CancellationToken cancellationToken)
+            static async Task<ImmutableArray<string>> GetGlobalUsingsAsync(Project project, CacheEntry cacheEntry, CancellationToken cancellationToken)
             {
+                // Since we don't have a compiler API to easily get all global usings yet, hardcode the the name of SDK auto-generated
+                // global using file (which is a constant) for now as a temporary workaround.
+                // https://github.com/dotnet/sdk/blob/main/src/Tasks/Microsoft.NET.Build.Tasks/targets/Microsoft.NET.GenerateGlobalUsings.targets
+                var fileName = project.Name + ".GlobalUsings.g.cs";
+
+                var globalUsingDocument = cacheEntry.GlobalUsingsDocumentId is null
+                    ? project.Documents.FirstOrDefault(d => d.Name.Equals(fileName))
+                    : await project.GetDocumentAsync(cacheEntry.GlobalUsingsDocumentId, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                if (globalUsingDocument is null)
+                {
+                    _sdkGlobalUsingsCache[project.Id] = CacheEntry.Default;
+                    return CacheEntry.Default.GlobalUsings;
+                }
+
                 // We only checksum off of the contents of the file.
-                var checksum = await document.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
-                if (cacheEntry != null && checksum == cacheEntry.Checksum)
+                var checksum = await globalUsingDocument.State.GetChecksumAsync(cancellationToken).ConfigureAwait(false);
+                if (checksum == cacheEntry.GlobalUsingsDocumentChecksum)
                     return cacheEntry.GlobalUsings;
 
-                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var root = await globalUsingDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var model = await globalUsingDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var globalUsings = model.GetUsingNamespacesInScope(root).SelectAsArray(GetNamespaceName);
 
-                _sdkGlobalUsingsCache[document.Id] = new(checksum, globalUsings);
+                _sdkGlobalUsingsCache[project.Id] = new(globalUsingDocument.Id, checksum, globalUsings);
                 return globalUsings;
             }
 
             static string GetNamespaceName(INamespaceSymbol symbol)
                 => symbol.ToDisplayString(SymbolDisplayFormats.NameFormat);
         }
-
     }
 }
