@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -15,14 +13,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
     internal sealed class RazorDocumentExcerptServiceWrapper : IDocumentExcerptService
     {
-        [Obsolete]
-        private readonly IRazorDocumentExcerptService? _legacyRazorDocumentExcerptService;
-
-        private readonly IRazorDocumentExcerptServiceImplementation? _impl;
-
-        [Obsolete]
-        public RazorDocumentExcerptServiceWrapper(IRazorDocumentExcerptService razorDocumentExcerptService)
-            => _legacyRazorDocumentExcerptService = razorDocumentExcerptService;
+        private readonly IRazorDocumentExcerptServiceImplementation _impl;
 
         public RazorDocumentExcerptServiceWrapper(IRazorDocumentExcerptServiceImplementation impl)
             => _impl = impl;
@@ -36,19 +27,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                 _ => throw ExceptionUtilities.UnexpectedValue(mode),
             };
 
-            RazorExcerptResult? result;
-            if (_impl != null)
-            {
-                result = await _impl.TryExcerptAsync(document, span, razorMode, new RazorClassificationOptionsWrapper(classificationOptions), cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-#pragma warning disable CS0612 // Type or member is obsolete
-                Contract.ThrowIfNull(_legacyRazorDocumentExcerptService);
-                result = await _legacyRazorDocumentExcerptService.TryExcerptAsync(document, span, razorMode, cancellationToken).ConfigureAwait(false);
-#pragma warning restore
-            }
-
+            var result = await _impl.TryExcerptAsync(document, span, razorMode, new RazorClassificationOptionsWrapper(classificationOptions), cancellationToken).ConfigureAwait(false);
             var razorExcerpt = result.Value;
             return new ExcerptResult(razorExcerpt.Content, razorExcerpt.MappedSpan, razorExcerpt.ClassifiedSpans, razorExcerpt.Document, razorExcerpt.Span);
         }
