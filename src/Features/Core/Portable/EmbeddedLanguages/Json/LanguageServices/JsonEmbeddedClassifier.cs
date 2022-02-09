@@ -47,6 +47,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
                 return;
 
             var detector = JsonLanguageDetector.GetOrCreate(semanticModel.Compilation, _info);
+
+            // We do support json classification in strings that look very likely to be json, even if we aren't 100%
+            // certain if it truly is json.
             var tree = detector.TryParseString(token, semanticModel, includeProbableStrings: true, cancellationToken);
             if (tree == null)
                 return;
