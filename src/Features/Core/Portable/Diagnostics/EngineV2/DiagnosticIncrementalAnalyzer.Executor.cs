@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 // Perf optimization: Check whether analyzer is suppressed for project or document and avoid getting diagnostics if suppressed.
-                if (AnalyzerHelper.IsAnalyzerSuppressedForProject(stateSet.Analyzer, document.Project) ||
-                    IsAnalyzerSuppressedForDocument(stateSet.Analyzer, analysisScope, isActiveDocument, isOpenDocument, isGeneratedRazorDocument))
+                if (!AnalyzerHelper.IsAnalyzerEnabledForProject(stateSet.Analyzer, document.Project) ||
+                    !IsAnalyzerEnabledForDocument(stateSet.Analyzer, analysisScope, isActiveDocument, isOpenDocument, isGeneratedRazorDocument))
                 {
                     return new DocumentAnalysisData(version, existingData.Items, ImmutableArray<DiagnosticData>.Empty);
                 }
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 throw ExceptionUtilities.Unreachable;
             }
 
-            static bool IsAnalyzerSuppressedForDocument(
+            static bool IsAnalyzerEnabledForDocument(
                 DiagnosticAnalyzer analyzer,
                 BackgroundAnalysisScope analysisScope,
                 bool isActiveDocument,
@@ -71,20 +71,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (isGeneratedRazorDocument)
                 {
                     // This is a generated Razor document, and they always want all analyzer diagnostics.
-                    return false;
+                    return true;
                 }
 
-                bool analyzerEnabled;
                 if (analyzer.IsCompilerAnalyzer())
                 {
                     // Compiler analyzer is treated specially.
                     // It is executed for all documents (open and closed) for 'BackgroundAnalysisScope.FullSolution'
                     // and executed for just open documents for other analysis scopes.
-                    analyzerEnabled = analysisScope == BackgroundAnalysisScope.FullSolution || isOpenDocument;
+                    return analysisScope == BackgroundAnalysisScope.FullSolution || isOpenDocument;
                 }
                 else
                 {
-                    analyzerEnabled = analysisScope switch
+                    return analysisScope switch
                     {
                         // Analyzers are disabled for all documents.
                         BackgroundAnalysisScope.None => false,
@@ -101,8 +100,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         _ => throw ExceptionUtilities.UnexpectedValue(analysisScope)
                     };
                 }
-
-                return !analyzerEnabled;
             }
         }
 

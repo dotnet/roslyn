@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private bool ShouldIncludeStateSet(Project project, StateSet stateSet)
             {
-                if (AnalyzerHelper.IsAnalyzerSuppressedForProject(stateSet.Analyzer, project))
+                if (!AnalyzerHelper.IsAnalyzerEnabledForProject(stateSet.Analyzer, project))
                 {
                     return false;
                 }

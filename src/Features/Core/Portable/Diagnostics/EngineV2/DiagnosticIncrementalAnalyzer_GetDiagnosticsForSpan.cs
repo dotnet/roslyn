@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                  CancellationToken cancellationToken)
             {
                 var stateSets = owner._stateManager
-                                     .GetOrCreateStateSets(document.Project).Where(s => !AnalyzerHelper.IsAnalyzerSuppressedForProject(s.Analyzer, document.Project));
+                                     .GetOrCreateStateSets(document.Project).Where(s => AnalyzerHelper.IsAnalyzerEnabledForProject(s.Analyzer, document.Project));
 
                 var compilationWithAnalyzers = await GetOrCreateCompilationWithAnalyzersAsync(document.Project, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
