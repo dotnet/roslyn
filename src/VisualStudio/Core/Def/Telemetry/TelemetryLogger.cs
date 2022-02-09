@@ -192,6 +192,4 @@ namespace Microsoft.CodeAnalysis.Telemetry
             }
         }
     }
-
-    
 }
