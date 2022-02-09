@@ -237,17 +237,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             private readonly Dictionary<string, ImmutableArray<byte>> _imagesByName = new Dictionary<string, ImmutableArray<byte>>(StringComparer.OrdinalIgnoreCase);
 
-            internal Resolver(IList<ModuleData> allModuleData)
+            internal Resolver(Dictionary<string, ImmutableArray<byte>> imagesByName)
             {
-                foreach (var module in allModuleData)
-                {
-                    string name = module.SimpleName;
-                    if (_imagesByName.ContainsKey(name))
-                    {
-                        throw new Exception($"Multiple modules named '{name}' were found");
-                    }
-                    _imagesByName.Add(name, module.Image);
-                }
+                _imagesByName = imagesByName;
             }
 
             protected override PEReader ResolveCore(string simpleName)
@@ -268,42 +260,61 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return;
             }
 
-            try
+            var imagesByName = new Dictionary<string, ImmutableArray<byte>>(StringComparer.OrdinalIgnoreCase);
+            foreach (var module in _allModuleData)
             {
-                var resolver = new Resolver(_allModuleData);
-                var verifier = new ILVerify.Verifier(resolver);
-
-                var mscorlibModule = _allModuleData.Single(m => m.IsCorLib);
-                verifier.SetSystemModuleName(new AssemblyName(mscorlibModule.SimpleName));
-
-                // Main module is the first one
-                var result = verifier.Verify(resolver.Resolve(_allModuleData[0].SimpleName));
-                if (result.Count() == 0)
+                string name = module.SimpleName;
+                if (imagesByName.ContainsKey(name))
                 {
-                    if ((verification & Verification.FailsILVerify) == 0)
+                    if ((verification & Verification.FailsILVerify) != 0)
                     {
                         return;
                     }
 
-                    throw new Exception("IL Verify succeeded unexpectedly");
+                    throw new Exception($"Multiple modules named '{name}' were found");
                 }
-
-                if ((verification & Verification.FailsILVerify) != 0)
-                {
-                    return;
-                }
-
-                string message = printVerificationResult(result);
-                throw new Exception("IL Verify failed unexpectedly: \r\n" + message);
+                imagesByName.Add(name, module.Image);
             }
-            catch (Exception)
+
+            var resolver = new Resolver(imagesByName);
+            var verifier = new ILVerify.Verifier(resolver);
+            var mscorlibModule = _allModuleData.Single(m => m.IsCorLib);
+            verifier.SetSystemModuleName(new AssemblyName(mscorlibModule.SimpleName));
+
+            // Main module is the first one
+            var mainModuleReader = resolver.Resolve(_allModuleData[0].SimpleName);
+
+            var (succeeded, errorMessage) = verify(verifier, mainModuleReader);
+
+            switch (succeeded, (verification & Verification.FailsILVerify) == 0)
             {
-                if ((verification & Verification.FailsILVerify) != 0)
-                {
+                case (true, true):
                     return;
+                case (true, false):
+                    throw new Exception("IL Verify succeeded unexpectedly");
+                case (false, false):
+                    return;
+                case (false, true):
+                    throw new Exception("IL Verify failed unexpectedly: \r\n" + errorMessage);
+            }
+
+            static (bool, string) verify(ILVerify.Verifier verifier, PEReader mainModule)
+            {
+                try
+                {
+                    var result = verifier.Verify(mainModule);
+
+                    if (result.Count() != 0)
+                    {
+                        return (false, printVerificationResult(result));
+                    }
+                }
+                catch (Exception e)
+                {
+                    return (false, e.Message);
                 }
 
-                throw;
+                return (true, string.Empty);
             }
 
             static string printVerificationResult(IEnumerable<ILVerify.VerificationResult> result)

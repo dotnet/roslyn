@@ -2687,8 +2687,7 @@ End Class
 </compilation>
             ''//All on same FX - should result in No Errors
             Dim referenceLibrary_Compilation = DirectCast(CompileAndVerify(sourceLibV1, options:=TestOptions.ReleaseDll).Compilation, VisualBasicCompilation)
-            ' ILVerify: Multiple modules named 'mscorlib' were found
-            Dim main_NoRetarget = CompileAndVerify(sourceMain, references:={referenceLibrary_Compilation.ToMetadataReference}, verify:=Verification.FailsILVerify)
+            Dim main_NoRetarget = CompileAndVerify(sourceMain, references:={referenceLibrary_Compilation.ToMetadataReference})
             main_NoRetarget.VerifyDiagnostics()
 
             ''//Retargetted - should result in No Errors also
