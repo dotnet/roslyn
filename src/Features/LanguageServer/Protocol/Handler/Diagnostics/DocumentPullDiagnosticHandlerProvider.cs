@@ -13,14 +13,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
     [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
     [ProvidesMethod(VSInternalMethods.DocumentPullDiagnosticName)]
-    internal class DocumentPullDiagonsticHandlerProvider : AbstractRequestHandlerProvider
+    internal class DocumentPullDiagnosticHandlerProvider : AbstractRequestHandlerProvider
     {
         private readonly IDiagnosticService _diagnosticService;
         private readonly IDiagnosticAnalyzerService _analyzerService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DocumentPullDiagonsticHandlerProvider(
+        public DocumentPullDiagnosticHandlerProvider(
             IDiagnosticService diagnosticService,
             IDiagnosticAnalyzerService analyzerService)
         {
