@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var currentParameterList = destination.GetParameterList();
 
             var parameterCount = currentParameterList != null ? currentParameterList.Parameters.Count : 0;
-            var seenOptional = currentParameterList != null && currentParameterList.Parameters[^1].Default != null;
+            var seenOptional = currentParameterList != null && parameterCount > 0 && currentParameterList.Parameters[^1].Default != null;
             var isFirstParam = parameterCount == 0;
 
             var editor = new SyntaxEditor(destination, CSharpSyntaxGenerator.Instance);

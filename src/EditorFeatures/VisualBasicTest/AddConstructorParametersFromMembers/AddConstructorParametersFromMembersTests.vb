@@ -42,6 +42,115 @@ End Class",
 End Class", title:=String.Format(FeaturesResources.Add_parameters_to_0, "Program(Integer)"))
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <WorkItem(58040, "https://github.com/dotnet/roslyn/issues/58040")>
+        Public Async Function TestProperlyWrapParameters1() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Program
+    [|Private i As Integer
+    Private s As String|]
+    Public Sub New(
+            i As Integer)
+        Me.i = i
+    End Sub
+End Class",
+"Class Program
+    Private i As Integer
+    Private s As String
+    Public Sub New(
+            i As Integer, s As String)
+        Me.i = i
+        Me.s = s
+    End Sub
+End Class", title:=String.Format(FeaturesResources.Add_parameters_to_0, "Program(Integer)"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <WorkItem(58040, "https://github.com/dotnet/roslyn/issues/58040")>
+        Public Async Function TestProperlyWrapParameters2() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Program
+    [|Private i As Integer
+    Private s As String
+    Private b As Boolean|]
+    Public Sub New(
+            i As Integer,
+            s As String)
+        Me.i = i
+        Me.s = s
+    End Sub
+End Class",
+"Class Program
+    Private i As Integer
+    Private s As String
+    Private b As Boolean
+    Public Sub New(
+            i As Integer,
+            s As String,
+            b As Boolean)
+        Me.i = i
+        Me.s = s
+        Me.b = b
+    End Sub
+End Class", title:=String.Format(FeaturesResources.Add_parameters_to_0, "Program(Integer, String)"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <WorkItem(58040, "https://github.com/dotnet/roslyn/issues/58040")>
+        Public Async Function TestProperlyWrapParameters3() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Program
+    [|Private i As Integer
+    Private s As String
+    Private b As Boolean|]
+    Public Sub New(i As Integer,
+            s As String)
+        Me.i = i
+        Me.s = s
+    End Sub
+End Class",
+"Class Program
+    Private i As Integer
+    Private s As String
+    Private b As Boolean
+    Public Sub New(i As Integer,
+            s As String,
+            b As Boolean)
+        Me.i = i
+        Me.s = s
+        Me.b = b
+    End Sub
+End Class", title:=String.Format(FeaturesResources.Add_parameters_to_0, "Program(Integer, String)"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        <WorkItem(58040, "https://github.com/dotnet/roslyn/issues/58040")>
+        Public Async Function TestProperlyWrapParameters4() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Program
+    [|Private i As Integer
+    Private s As String
+    Private b As Boolean|]
+    Public Sub New(i As Integer,
+                   s As String)
+        Me.i = i
+        Me.s = s
+    End Sub
+End Class",
+"Class Program
+    Private i As Integer
+    Private s As String
+    Private b As Boolean
+    Public Sub New(i As Integer,
+                   s As String,
+                   b As Boolean)
+        Me.i = i
+        Me.s = s
+        Me.b = b
+    End Sub
+End Class", title:=String.Format(FeaturesResources.Add_parameters_to_0, "Program(Integer, String)"))
+        End Function
+
         <WorkItem(530592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530592")>
         <WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>

@@ -88,8 +88,7 @@ class Program
     string s;
 
     public Program(
-        int i,
-        string s)
+        int i, string s)
     {
         this.i = i;
         this.s = s;
@@ -124,6 +123,7 @@ class Program
 {
     int i;
     string s;
+    bool b;
 
     public Program(
         int i,
@@ -134,7 +134,7 @@ class Program
         this.s = s;
         this.b = b;
     }
-}", title: string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"));
+}", title: string.Format(FeaturesResources.Add_parameters_to_0, "Program(int, string)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
@@ -163,6 +163,7 @@ class Program
 {
     int i;
     string s;
+    bool b;
 
     public Program(int i,
         string s,
@@ -172,7 +173,7 @@ class Program
         this.s = s;
         this.b = b;
     }
-}", title: string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"));
+}", title: string.Format(FeaturesResources.Add_parameters_to_0, "Program(int, string)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
@@ -201,6 +202,7 @@ class Program
 {
     int i;
     string s;
+    bool b;
 
     public Program(int i,
                    string s,
@@ -210,7 +212,7 @@ class Program
         this.s = s;
         this.b = b;
     }
-}", title: string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"));
+}", title: string.Format(FeaturesResources.Add_parameters_to_0, "Program(int, string)"));
         }
 
         [WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
