@@ -181,7 +181,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
                 telemetryEvent.Properties.Add(functionId.GetPropertyName(key), value switch
                 {
                     PiiValue pii => new TelemetryPiiProperty(pii.Value),
-                    IEnumerable<object> items => new TelemetryComplexProperty(items.Select(item => (item is PiiValue pii) ? pii.Value : item)),
+                    IEnumerable<object> items => new TelemetryComplexProperty(items.Select(item => (item is PiiValue pii) ? new TelemetryPiiProperty(pii.Value) : item)),
                     _ => value
                 });
             }
