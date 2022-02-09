@@ -89,19 +89,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
             return true;
         }
 
-        private static ExpressionSyntax TryGetInvokedName(ExpressionSyntax expr)
+        private static ExpressionSyntax? TryGetInvokedName(ExpressionSyntax expr)
         {
             // `Foo(...)`.  Allow up through the 'Foo' portion
             if (expr is NameSyntax name)
-            {
                 return name;
-            }
 
             // `this[...]`. Allow up through the 'this' token.
             if (expr is ThisExpressionSyntax or BaseExpressionSyntax)
-            {
                 return expr;
-            }
 
             // expr.Foo(...) or expr?.Foo(...)
             // All up through the 'Foo' portion.
