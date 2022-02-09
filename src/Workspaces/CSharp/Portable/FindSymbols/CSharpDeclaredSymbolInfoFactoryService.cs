@@ -209,6 +209,20 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         GetInheritanceNames(stringTable, typeDecl.BaseList),
                         IsNestedType(typeDecl)));
                     return;
+                case SyntaxKind.EnumDeclaration:
+                    var enumDecl = (EnumDeclarationSyntax)node;
+                    declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
+                        stringTable,
+                        enumDecl.Identifier.ValueText, null,
+                        containerDisplayName,
+                        fullyQualifiedContainerName,
+                        enumDecl.Modifiers.Any(SyntaxKind.PartialKeyword),
+                        DeclaredSymbolInfoKind.Enum,
+                        GetAccessibility(container, enumDecl.Modifiers),
+                        enumDecl.Identifier.Span,
+                        inheritanceNames: ImmutableArray<string>.Empty,
+                        isNestedType: IsNestedType(enumDecl)));
+                    return;
                 case SyntaxKind.ConstructorDeclaration:
                     var ctorDecl = (ConstructorDeclarationSyntax)node;
                     declaredSymbolInfos.Add(DeclaredSymbolInfo.Create(
