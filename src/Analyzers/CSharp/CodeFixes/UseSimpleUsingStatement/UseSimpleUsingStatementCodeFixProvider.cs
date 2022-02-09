@@ -170,8 +170,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement
         private static LocalDeclarationStatementSyntax Convert(UsingStatementSyntax usingStatement)
         {
             return LocalDeclarationStatement(
-                usingStatement.AwaitKeyword.WithTrailingTrivia(ElasticSpace),
-                usingStatement.UsingKeyword.WithTrailingTrivia(ElasticSpace),
+                usingStatement.AwaitKeyword,
+                usingStatement.UsingKeyword.WithAppendedTrailingTrivia(ElasticMarker),
                 modifiers: default,
                 usingStatement.Declaration,
                 Token(SyntaxKind.SemicolonToken)).WithTrailingTrivia(usingStatement.CloseParenToken.TrailingTrivia);
