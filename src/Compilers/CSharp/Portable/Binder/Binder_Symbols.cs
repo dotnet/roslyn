@@ -1497,7 +1497,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal Symbol GetSpecialTypeMember(SpecialMember member, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
         {
-            return TryGetSpecialTypeMember<Symbol>(this.Compilation, member, syntax, diagnostics, out var memberSymbol)
+            Symbol memberSymbol;
+            return TryGetSpecialTypeMember(this.Compilation, member, syntax, diagnostics, out memberSymbol)
                 ? memberSymbol
                 : null;
         }
@@ -1523,41 +1524,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // doesn't have any dependencies.
             return true;
         }
-
-#nullable enable
-
-        /// <summary>
-        /// This is a layer on top of the Compilation version that generates a diagnostic if the well known
-        /// member isn't found.
-        /// </summary>
-        internal Symbol? GetWellKnownTypeMember(WellKnownMember member, BindingDiagnosticBag diagnostics, SyntaxNode syntax)
-        {
-            return TryGetWellKnownTypeMember<Symbol>(this.Compilation, member, syntax, diagnostics, out var memberSymbol)
-                ? memberSymbol
-                : null;
-        }
-
-        internal static bool TryGetWellKnownTypeMember<TSymbol>(CSharpCompilation compilation, WellKnownMember wellKnownMember, SyntaxNode syntax, BindingDiagnosticBag diagnostics, [MaybeNullWhen(false)] out TSymbol symbol)
-            where TSymbol : Symbol
-        {
-            symbol = (TSymbol?)compilation.GetWellKnownTypeMember(wellKnownMember);
-            if (symbol is null)
-            {
-                MemberDescriptor descriptor = WellKnownMembers.GetDescriptor(wellKnownMember);
-                diagnostics.Add(ErrorCode.ERR_MissingPredefinedMember, syntax.Location, descriptor.DeclaringTypeMetadataName, descriptor.Name);
-                return false;
-            }
-
-            var useSiteInfo = GetUseSiteInfoForWellKnownMemberOrContainingType(symbol);
-            if (useSiteInfo.DiagnosticInfo != null)
-            {
-                diagnostics.ReportUseSiteDiagnostic(useSiteInfo.DiagnosticInfo, new SourceLocation(syntax));
-            }
-
-            return true;
-        }
-
-#nullable disable
 
         private static UseSiteInfo<AssemblySymbol> GetUseSiteInfoForWellKnownMemberOrContainingType(Symbol symbol)
         {

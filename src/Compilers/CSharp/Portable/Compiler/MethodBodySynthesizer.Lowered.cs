@@ -149,7 +149,7 @@ start:
                 LabelSymbol start = F.GenerateLabel("start");
 
 
-                //  This method should be kept consistent with SynthesizedStringSwitchHashMethod.ConstructStringHash
+                //  This method should be kept consistent with SynthesizedStringSwitchHashMethod.ComputeStringHash
 
                 //  uint hashCode = unchecked((uint)2166136261);
 

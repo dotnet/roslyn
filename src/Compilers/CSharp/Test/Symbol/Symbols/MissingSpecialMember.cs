@@ -967,7 +967,7 @@ namespace System
                     case WellKnownMember.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear:
                     case WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T:
                     case WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T:
-                    case WellKnownMember.System_MemoryExtensions__AsSpanString:
+                    case WellKnownMember.System_MemoryExtensions__AsSpan_String:
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:

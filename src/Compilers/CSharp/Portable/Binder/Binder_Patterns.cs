@@ -590,15 +590,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (MessageID.IDS_FeatureSpanCharConstantPattern.CheckFeatureAvailability(diagnostics, Compilation, node.Location))
                     {
                         // report missing member and use site diagnostics
-                        if (inputType.IsReadOnlySpanChar())
-                        {
-                            _ = GetWellKnownTypeMember(WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T, diagnostics, node);
-                        }
-                        else
-                        {
-                            _ = GetWellKnownTypeMember(WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T, diagnostics, node);
-                        }
-                        _ = GetWellKnownTypeMember(WellKnownMember.System_MemoryExtensions__AsSpanString, diagnostics, node);
+                        bool isReadOnlySpan = inputType.IsReadOnlySpanChar();
+                        _ = GetWellKnownTypeMember(
+                            isReadOnlySpan ? WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T : WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T,
+                            diagnostics,
+                            syntax: node);
+                        _ = GetWellKnownTypeMember(WellKnownMember.System_MemoryExtensions__AsSpan_String, diagnostics, syntax: node);
+                        _ = GetWellKnownTypeMember(isReadOnlySpan ? WellKnownMember.System_ReadOnlySpan_T__get_Length : WellKnownMember.System_Span_T__get_Length,
+                            diagnostics,
+                            syntax: node);
                     }
 
                     constantValue = expression.ConstantValue;
