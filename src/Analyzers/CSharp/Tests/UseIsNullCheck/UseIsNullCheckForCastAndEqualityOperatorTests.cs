@@ -53,6 +53,62 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        [WorkItem(58483, "https://github.com/dotnet/roslyn/issues/58483")]
+        public async Task TestIsNullTitle()
+        {
+            await TestExactActionSetOfferedAsync(
+@"using System;
+
+class C
+{
+    void M(string s)
+    {
+        if ([||](object)s == null)
+            return;
+    }
+}",
+new[] { CSharpAnalyzersResources.Use_is_null_check });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        [WorkItem(58483, "https://github.com/dotnet/roslyn/issues/58483")]
+        public async Task TestIsObjectTitle()
+        {
+            await TestExactActionSetOfferedAsync(
+@"using System;
+
+class C
+{
+    void M(string s)
+    {
+        if ([||](object)s != null)
+            return;
+    }
+}",
+new[] { CSharpAnalyzersResources.Use_is_object_check },
+new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        [WorkItem(58483, "https://github.com/dotnet/roslyn/issues/58483")]
+        public async Task TestIsNotNullTitle()
+        {
+            await TestExactActionSetOfferedAsync(
+@"using System;
+
+class C
+{
+    void M(string s)
+    {
+        if ([||](object)s != null)
+            return;
+    }
+}",
+new[] { CSharpAnalyzersResources.Use_is_not_null_check },
+new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestEqualitySwapped()
         {
             await TestInRegularAndScriptAsync(
@@ -79,7 +135,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
-        public async Task TestNotEquality()
+        public async Task TestNotEquality_CSharp8()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
@@ -101,11 +157,37 @@ class C
         if (s is object)
             return;
     }
-}");
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
-        public async Task TestNotEqualitySwapped()
+        public async Task TestNotEquality_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M(string s)
+    {
+        if ([||](object)s != null)
+            return;
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(string s)
+    {
+        if (s is not null)
+            return;
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestNotEqualitySwapped_CSharp8()
         {
             await TestInRegularAndScriptAsync(
 @"using System;
@@ -127,7 +209,33 @@ class C
         if (s is object)
             return;
     }
-}");
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestNotEqualitySwapped_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M(string s)
+    {
+        if ([||]null != (object)s)
+            return;
+    }
+}",
+@"using System;
+
+class C
+{
+    void M(string s)
+    {
+        if (s is not null)
+            return;
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]

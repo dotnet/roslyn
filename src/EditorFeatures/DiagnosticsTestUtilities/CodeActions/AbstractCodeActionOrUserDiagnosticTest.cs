@@ -347,15 +347,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             IEnumerable<string> expectedActionSet,
             TestParameters parameters = default)
         {
-            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
-            {
-                var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
+            using var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters);
+            var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
 
-                var actualActionSet = actions.Select(a => a.Title);
-                Assert.True(actualActionSet.SequenceEqual(expectedActionSet),
-                    "Expected: " + string.Join(", ", expectedActionSet) +
-                    "\nActual: " + string.Join(", ", actualActionSet));
-            }
+            var actualActionSet = actions.Select(a => a.Title);
+            Assert.True(actualActionSet.SequenceEqual(expectedActionSet),
+                "Expected: " + string.Join(", ", expectedActionSet) +
+                "\nActual: " + string.Join(", ", actualActionSet));
         }
 
         protected async Task TestActionCountAsync(
