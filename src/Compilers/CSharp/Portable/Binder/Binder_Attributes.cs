@@ -201,6 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(boundConstructorArguments.All(a => !a.NeedsToBeConverted()));
             diagnostics.Add(node, useSiteInfo);
 
+            BitVector defaultArguments = default;
             if (attributeConstructor is object)
             {
                 ReportDiagnosticsIfObsolete(diagnostics, attributeConstructor, node, hasBaseReceiver: false);
@@ -209,28 +210,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(diagnostics, ErrorCode.ERR_AttributeCtorInParameter, node, attributeConstructor.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
                 }
+
+                BindDefaultArguments(node, attributeConstructor.Parameters, analyzedArguments.ConstructorArguments.Arguments, analyzedArguments.ConstructorArguments.RefKinds, ref argsToParamsOpt, out defaultArguments, expanded, enableCallerInfo: true, diagnostics);
             }
 
             ImmutableArray<string?> boundConstructorArgumentNamesOpt = analyzedArguments.ConstructorArguments.GetNames();
             ImmutableArray<BoundAssignmentOperator> boundNamedArguments = analyzedArguments.NamedArguments?.ToImmutableAndFree() ?? ImmutableArray<BoundAssignmentOperator>.Empty;
             Debug.Assert(boundNamedArguments.All(arg => !arg.Right.NeedsToBeConverted()));
 
-            analyzedArguments.ConstructorArguments.Free();
-
-            BitVector defaultArguments = default;
-            if (argsToParamsOpt != default && attributeConstructor is not null)
-            {
-                defaultArguments = BitVector.Create(attributeConstructor.ParameterCount);
-                for (int i = 0; i < attributeConstructor.ParameterCount; i++)
-                {
-                    if (!argsToParamsOpt.Contains(i))
-                    {
-                        defaultArguments[i] = true;
-                    }
-                }
-            }
-
-            return new BoundAttribute(node, attributeConstructor, boundConstructorArguments, boundConstructorArgumentNamesOpt, argsToParamsOpt, expanded,
+            return new BoundAttribute(node, attributeConstructor, analyzedArguments.ConstructorArguments.Arguments.ToImmutableAndFree(), boundConstructorArgumentNamesOpt, argsToParamsOpt, expanded,
                 boundNamedArguments, resultKind, defaultArguments, attributeType, hasErrors: resultKind != LookupResultKind.Viable);
         }
 

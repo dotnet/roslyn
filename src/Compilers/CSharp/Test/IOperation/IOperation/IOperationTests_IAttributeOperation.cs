@@ -13,6 +13,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class IOperationTests_IAttributeOperation : SemanticModelTestBase
     {
         [Fact]
+        public void TestDirectConstructorCall()
+        {
+            string source = @"
+using System;
+public class C
+{
+    public void M()
+    {
+        var x = /*<bind>*/new MyAttribute()/*</bind>*/;
+    }
+}
+
+class MyAttribute : Attribute
+{
+    public MyAttribute(string value = """") { }
+}
+
+
+";
+            string expectedOperationTree = @"
+
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
         public void TestAttributeWithoutArguments()
         {
             string source = @"
@@ -26,9 +54,9 @@ class C
 }
 ";
             string expectedOperationTree = @"
-    IAttributeOperation (OperationKind.Attribute, Type: MyAttribute) (Syntax: 'My')
-      Arguments(0)
-      NamedArguments(0)
+IAttributeOperation (OperationKind.Attribute, Type: MyAttribute) (Syntax: 'My')
+  Arguments(0)
+  NamedArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -51,15 +79,82 @@ class C
 {
 }
 ";
-            // PROTOTYPE: Why IArgumentOperation is implicit here? Need to confirm whether this is correct or not.
             string expectedOperationTree = @"
-    IAttributeOperation (OperationKind.Attribute, Type: MyAttribute) (Syntax: 'My(""Value"")')
-      Arguments(1):
-          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '""Value""')
-            ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""Value"") (Syntax: '""Value""')
-            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      NamedArguments(0)
+IAttributeOperation (OperationKind.Attribute, Type: MyAttribute) (Syntax: 'My(""Value"")')
+  Arguments(1):
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '""Value""')
+        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""Value"") (Syntax: '""Value""')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  NamedArguments(0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void TestAttributeWithExplicitArgumentOptionalParameter()
+        {
+            string source = @"
+using System;
+
+class MyAttribute : Attribute
+{
+    public MyAttribute(string value = """") { }
+}
+
+[/*<bind>*/My(""Value"")/*</bind>*/]
+class C
+{
+}
+";
+            string expectedOperationTree = @"
+IAttributeOperation (OperationKind.Attribute, Type: MyAttribute) (Syntax: 'My(""Value"")')
+  Arguments(1):
+      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '""Value""')
+        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""Value"") (Syntax: '""Value""')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  NamedArguments(0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void TestAttributeWithOptionalParameterNotPassed(bool withParentheses)
+        {
+            string attribute = withParentheses switch
+            {
+                true => "My()",
+                false => "My",
+            };
+
+            string attributeListSyntax = $"[/*<bind>*/{attribute}/*</bind>*/]";
+
+            string source = @"
+using System;
+
+class MyAttribute : Attribute
+{
+    public MyAttribute(string value = """") { }
+}
+" + attributeListSyntax + @"
+class C
+{
+}
+";
+            string expectedOperationTree = $@"
+IAttributeOperation (OperationKind.Attribute, Type: MyAttribute) (Syntax: '{attribute}')
+  Arguments(1):
+      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: value) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{attribute}')
+        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """", IsImplicit) (Syntax: '{attribute}')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  NamedArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
