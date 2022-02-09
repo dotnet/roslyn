@@ -1329,7 +1329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(parameter.IsOptional || !assertMissingParametersAreOptional);
 
                     defaultArguments[argumentsBuilder.Count] = true;
-                    argumentsBuilder.Add(bindDefaultArgument(node, parameter, containingMember, enableCallerInfo, diagnostics, argumentsBuilder, argumentsCount, argsToParamsOpt));
+                    argumentsBuilder.Add(bindDefaultArgument(node, parameter, containingMember, true, diagnostics, argumentsBuilder, argumentsCount, argsToParamsOpt));
 
                     if (argumentRefKindsBuilder is { Count: > 0 })
                     {
