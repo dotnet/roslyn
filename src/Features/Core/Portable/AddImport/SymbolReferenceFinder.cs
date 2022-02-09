@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 _options = options;
                 _packageSources = packageSources;
 
-                if (options.SearchReferenceAssemblies || packageSources.Length > 0)
+                if (options.SearchOptions.SearchReferenceAssemblies || packageSources.Length > 0)
                 {
                     Contract.ThrowIfNull(symbolSearchService);
                 }

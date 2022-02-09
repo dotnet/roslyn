@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
     {
         internal static CodeActionOptions GetCodeActionOptions(this IGlobalOptionService globalOptions, string language, bool isBlocking)
             => new(
-                IsBlocking: isBlocking,
-                SearchReferenceAssemblies: globalOptions.GetOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, language),
-                HideAdvancedMembers: globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, language));
+                SearchOptions: globalOptions.GetSymbolSearchOptions(language),
+                HideAdvancedMembers: globalOptions.GetOption(CompletionOptionsStorage.HideAdvancedMembers, language),
+                IsBlocking: isBlocking);
     }
 }

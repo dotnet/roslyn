@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal static partial class AnalyzerHelper
     {
-
         // These are the error codes of the compiler warnings. 
         // Keep the ids the same so that de-duplication against compiler errors
         // works in the error list (after a build).

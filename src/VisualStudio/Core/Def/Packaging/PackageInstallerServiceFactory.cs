@@ -105,12 +105,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             [Import(AllowDefault = true)] Lazy<IVsPackageInstaller2>? packageInstaller,
             [Import(AllowDefault = true)] Lazy<IVsPackageUninstaller>? packageUninstaller,
             [Import(AllowDefault = true)] Lazy<IVsPackageSourceProvider>? packageSourceProvider)
-            : base(threadingContext,
-                   workspace,
-                   globalOptions,
-                   SymbolSearchGlobalOptions.Enabled,
-                   SymbolSearchOptions.SuggestForTypesInReferenceAssemblies,
-                   SymbolSearchOptions.SuggestForTypesInNuGetPackages)
+            : base(globalOptions,
+                  listenerProvider,
+                  threadingContext,
+                  featureEnabledOption: SymbolSearchGlobalOptions.Enabled,
+                  perLanguageOptions: ImmutableArray.Create(SymbolSearchOptionsStorage.SearchReferenceAssemblies, SymbolSearchOptionsStorage.SearchNuGetPackages))
         {
             _operationExecutor = operationExecutor;
             _workspace = workspace;

@@ -60,21 +60,19 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             var solution = document.Project.Solution;
 
-            var searchNuGetPackages = solution.Options.GetOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, document.Project.Language);
-
             var placement = await AddImportPlacementOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
 
             var options = new AddImportOptions(
-                context.Options.SearchReferenceAssemblies,
+                context.Options.SearchOptions,
                 context.Options.HideAdvancedMembers,
                 placement);
 
-            var symbolSearchService = options.SearchReferenceAssemblies || searchNuGetPackages
+            var symbolSearchService = options.SearchOptions.SearchReferenceAssemblies
                 ? _symbolSearchService ?? solution.Workspace.Services.GetService<ISymbolSearchService>()
                 : null;
 
             var installerService = GetPackageInstallerService(document);
-            var packageSources = searchNuGetPackages && symbolSearchService != null && installerService?.IsEnabled(document.Project.Id) == true
+            var packageSources = options.SearchOptions.SearchNuGetPackages && symbolSearchService != null && installerService?.IsEnabled(document.Project.Id) == true
                 ? installerService.TryGetPackageSources()
                 : ImmutableArray<PackageSource>.Empty;
 
