@@ -218,8 +218,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundAssignmentOperator> boundNamedArguments = analyzedArguments.NamedArguments?.ToImmutableAndFree() ?? ImmutableArray<BoundAssignmentOperator>.Empty;
             Debug.Assert(boundNamedArguments.All(arg => !arg.Right.NeedsToBeConverted()));
 
-            return new BoundAttribute(node, attributeConstructor, analyzedArguments.ConstructorArguments.Arguments.ToImmutableAndFree(), boundConstructorArgumentNamesOpt, argsToParamsOpt, expanded,
+            var boundAttribute = new BoundAttribute(node, attributeConstructor, analyzedArguments.ConstructorArguments.Arguments.ToImmutableArray(), boundConstructorArgumentNamesOpt, argsToParamsOpt, expanded,
                 boundNamedArguments, resultKind, defaultArguments, attributeType, hasErrors: resultKind != LookupResultKind.Viable);
+            analyzedArguments.ConstructorArguments.Free();
+            return boundAttribute;
         }
 
         private CSharpAttributeData GetAttribute(BoundAttribute boundAttribute, BindingDiagnosticBag diagnostics)
