@@ -77,8 +77,7 @@ internal static class Program
 
             VisualStudio.Editor.SendKeys(Shift(VirtualKey.F12));
 
-            var programReferencesCaption = $"'{HelloWorldGenerator.GeneratedEnglishClassName}' references";
-            var results = VisualStudio.FindReferencesWindow.GetContents(programReferencesCaption).OrderBy(r => r.Line).ToArray();
+            var results = VisualStudio.FindReferencesWindow.GetContents().OrderBy(r => r.Line).ToArray();
 
             Assert.Collection(
                 results,
@@ -120,10 +119,9 @@ internal static class Program
             VisualStudio.Editor.PlaceCaret(HelloWorldGenerator.GeneratedEnglishClassName);
             VisualStudio.Editor.SendKeys(Shift(VirtualKey.F12));
 
-            var programReferencesCaption = $"'{HelloWorldGenerator.GeneratedEnglishClassName}' references";
-            var results = VisualStudio.FindReferencesWindow.GetContents(programReferencesCaption);
+            var results = VisualStudio.FindReferencesWindow.GetContents();
             var referenceInGeneratedFile = results.Single(r => r.Code.Contains("<summary>"));
-            VisualStudio.FindReferencesWindow.NavigateTo(programReferencesCaption, referenceInGeneratedFile, isPreview: isPreview, shouldActivate: true);
+            VisualStudio.FindReferencesWindow.NavigateTo(referenceInGeneratedFile, isPreview: isPreview, shouldActivate: true);
 
             // Assert we are in the right file now
             Assert.Equal($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs {ServicesVSResources.generated_suffix}", VisualStudio.Shell.GetActiveWindowCaption());
