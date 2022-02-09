@@ -23,11 +23,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             => CreateWorkspace(new[]
             {
                 typeof(TestProjectCacheService),
-                typeof(TestTemporaryStorageService)
+                typeof(TestTemporaryStorageServiceFactory)
             });
 
         public static Workspace CreateWorkspaceWithPartialSemanticsAndWeakCompilations()
-            => WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics(new[] { typeof(TestProjectCacheService), typeof(TestTemporaryStorageService) });
+            => WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics(new[] { typeof(TestProjectCacheService), typeof(TestTemporaryStorageServiceFactory) });
 
 #nullable disable
 
