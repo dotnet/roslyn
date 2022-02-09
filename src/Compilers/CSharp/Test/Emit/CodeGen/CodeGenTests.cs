@@ -12288,7 +12288,8 @@ struct MyManagedStruct
         n.n.num = x;
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: @"42", parseOptions: TestOptions.Regular7_2, verify: Verification.Fails);
+            // PEVerify: Cannot change initonly field outside its .ctor.
+            var comp = CompileAndVerify(source, expectedOutput: @"42", parseOptions: TestOptions.Regular7_2, verify: Verification.FailsPEVerify);
 
             comp.VerifyIL("Program.Main",
 @"
@@ -12441,7 +12442,8 @@ struct MyManagedStruct
             return null;
         }
     }";
-            var comp = CompileAndVerify(source, expectedOutput: @"-10", verify: Verification.Fails);
+            // PEVerify: Cannot change initonly field outside its .ctor.
+            var comp = CompileAndVerify(source, expectedOutput: @"-10", verify: Verification.FailsPEVerify);
 
             comp.VerifyIL("Program.Main",
 @"

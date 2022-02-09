@@ -278,13 +278,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             var resolver = new Resolver(imagesByName);
             var verifier = new ILVerify.Verifier(resolver);
-            var mscorlibModule = _allModuleData.Single(m => m.IsCorLib);
-            verifier.SetSystemModuleName(new AssemblyName(mscorlibModule.SimpleName));
+            var mscorlibModule = _allModuleData.SingleOrDefault(m => m.IsCorLib);
+            if (mscorlibModule is null &&
+                (verification & Verification.FailsILVerify) != 0)
+            {
+                return;
+            }
 
             // Main module is the first one
             var mainModuleReader = resolver.Resolve(_allModuleData[0].SimpleName);
 
-            var (succeeded, errorMessage) = verify(verifier, mainModuleReader);
+            var (succeeded, errorMessage) = verify(verifier, mscorlibModule.SimpleName, mainModuleReader);
 
             switch (succeeded, (verification & Verification.FailsILVerify) == 0)
             {
@@ -298,10 +302,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     throw new Exception("IL Verify failed unexpectedly: \r\n" + errorMessage);
             }
 
-            static (bool, string) verify(ILVerify.Verifier verifier, PEReader mainModule)
+            static (bool, string) verify(ILVerify.Verifier verifier, string corlibName, PEReader mainModule)
             {
                 try
                 {
+                    verifier.SetSystemModuleName(new AssemblyName(corlibName));
+
                     var result = verifier.Verify(mainModule);
 
                     if (result.Count() != 0)

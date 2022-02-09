@@ -3982,7 +3982,7 @@ public class Test
 
             var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
 
-            var verifier = CompileAndVerify(compilation, expectedOutput: "0011", verify: Verification.Fails);
+            var verifier = CompileAndVerify(compilation, expectedOutput: "0011", verify: Verification.Passes);
 
             verifier.VerifyIL("Test..ctor()", @"
 {

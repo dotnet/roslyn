@@ -749,7 +749,8 @@ True").VerifyDiagnostics();
             Assert.Equal(1, ctor.ParameterCount);
             Assert.True(ctor.Parameters[0].Type.Equals(c, TypeCompareKind.ConsiderEverything));
 
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics();
+            // PEVerify: Cannot change initonly field outside its .ctor.
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify).VerifyDiagnostics();
             verifier.VerifyIL("C." + WellKnownMemberNames.CloneMethodName, @"
 {
   // Code size        7 (0x7)
@@ -801,7 +802,8 @@ record C(int x, int y)
             Assert.Equal(1, ctor.ParameterCount);
             Assert.True(ctor.Parameters[0].Type.Equals(c, TypeCompareKind.ConsiderEverything));
 
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics();
+            // PEVerify: Cannot change initonly field outside its .ctor.
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify).VerifyDiagnostics();
             verifier.VerifyIL("C." + WellKnownMemberNames.CloneMethodName, @"
 {
   // Code size        7 (0x7)
@@ -897,7 +899,8 @@ public record C(int x, int y)
             Assert.Equal(1, ctor.ParameterCount);
             Assert.True(ctor.Parameters[0].Type.Equals(c, TypeCompareKind.ConsiderEverything));
 
-            var verifier = CompileAndVerify(comp, verify: Verification.Fails).VerifyDiagnostics(
+            // PEVerify: Cannot change initonly field outside its .ctor.
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify).VerifyDiagnostics(
                 // (5,25): warning CS0067: The event 'C.E' is never used
                 //     public event Action E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(5, 25)

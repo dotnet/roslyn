@@ -1203,7 +1203,8 @@ End Class
 
             ' VB seems to allow methods that return TypedReference, likely for compat reasons
             ' that is technically not verifiable, but it is not relevant to this test
-            Dim verifier = CompileAndVerify(compilation, verify:=Verification.Fails, expectedOutput:=
+            ' PEVerify: [ : C1::F][mdToken=0x6000003][offset 0x00000013] Return type is ByRef, TypedReference, ArgHandle, or ArgIterator.
+            Dim verifier = CompileAndVerify(compilation, verify:=Verification.FailsPEVerify, expectedOutput:=
             <![CDATA[
 hi
 ]]>)
