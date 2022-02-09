@@ -85,10 +85,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
                             ? s_strictProperties
                             : ImmutableDictionary<string, string?>.Empty;
 
+                        // Show this as a hidden diagnostic so the user can enable json features explicitly if they
+                        // want, but do not spam them with a ... notification if they don't want it.
                         context.ReportDiagnostic(DiagnosticHelper.Create(
                             this.Descriptor,
                             token.GetLocation(),
-                            ReportDiagnostic.Info,
+                            ReportDiagnostic.Hidden,
                             additionalLocations: null,
                             properties));
                     }
