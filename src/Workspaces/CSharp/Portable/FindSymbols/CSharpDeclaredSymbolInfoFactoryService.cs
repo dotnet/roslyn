@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                             containerDisplayName,
                             fullyQualifiedContainerName,
                             isPartial: false,
-                            DeclaredSymbolInfoKind.Parameter,
+                            DeclaredSymbolInfoKind.Property,
                             Accessibility.Public,
                             parameter.Identifier.Span,
                             inheritanceNames: ImmutableArray<string>.Empty));

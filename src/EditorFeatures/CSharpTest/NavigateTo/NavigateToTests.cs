@@ -1523,6 +1523,50 @@ testHost, composition, @"class Goo
     VerifyNavigateToResultItem(item, "Method", "[|Method|]((int x, Dictionary<int,string> y), (bool b, global::System.Int32 c))", PatternMatchKind.Exact, NavigateToItemKind.Method, Glyph.MethodPublic, string.Format(FeaturesResources.in_0_project_1, "Goo", "Test"));
 });
         }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task FindRecordMember1(TestHost testHost, Composition composition)
+        {
+            await TestAsync(
+testHost, composition, @"record Goo(int Member)
+{
+}", async w =>
+{
+    var item = (await _aggregator.GetItemsAsync("Member")).Single(x => x.Kind == NavigateToItemKind.Property);
+    VerifyNavigateToResultItem(item, "Member", "[|Member|]", PatternMatchKind.Exact, NavigateToItemKind.Property, Glyph.PropertyPublic);
+});
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task FindRecordMember2(TestHost testHost, Composition composition)
+        {
+            await TestAsync(
+testHost, composition, @"record Goo(int Member)
+{
+    public int Member { get; } = Member;
+}", async w =>
+{
+    var item = (await _aggregator.GetItemsAsync("Member")).Single(x => x.Kind == NavigateToItemKind.Property);
+    VerifyNavigateToResultItem(item, "Member", "[|Member|]", PatternMatchKind.Exact, NavigateToItemKind.Property, Glyph.PropertyPublic);
+});
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task FindRecordMember3(TestHost testHost, Composition composition)
+        {
+            await TestAsync(
+testHost, composition, @"record Goo(int Member)
+{
+    public int Member = Member;
+}", async w =>
+{
+    var item = (await _aggregator.GetItemsAsync("Member")).Single(x => x.Kind == NavigateToItemKind.Field);
+    VerifyNavigateToResultItem(item, "Member", "[|Member|]", PatternMatchKind.Exact, NavigateToItemKind.Field, Glyph.FieldPublic);
+});
+        }
     }
 }
 #pragma warning restore CS0618 // MatchKind is obsolete
