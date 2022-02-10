@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -836,6 +837,108 @@ $@"class C
         }}
     }}
 }}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestIsCheck_CSharp8()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M()
+    {
+        [||]if (c is object)
+        {
+            return 1;
+        }
+        else
+        {
+            return 2;
+        }
+    }
+}",
+@"class C
+{
+    int M()
+    {
+        if (!(c is object))
+        {
+            return 2;
+        }
+        else
+        {
+            return 1;
+        }
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestIsCheck_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M()
+    {
+        [||]if (c is object)
+        {
+            return 1;
+        }
+        else
+        {
+            return 2;
+        }
+    }
+}",
+@"class C
+{
+    int M()
+    {
+        if (c is not object)
+        {
+            return 2;
+        }
+        else
+        {
+            return 1;
+        }
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestIsNotCheck_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M()
+    {
+        [||]if (c is not object)
+        {
+            return 1;
+        }
+        else
+        {
+            return 2;
+        }
+    }
+}",
+@"class C
+{
+    int M()
+    {
+        if (c is object)
+        {
+            return 2;
+        }
+        else
+        {
+            return 1;
+        }
+    }
+}");
         }
     }
 }

@@ -49,7 +49,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             bool negateBinary,
             CancellationToken cancellationToken)
         {
+            var options = semanticModel.SyntaxTree.Options;
             var syntaxFacts = generatorInternal.SyntaxFacts;
+
             if (syntaxFacts.IsParenthesizedExpression(expressionOrPattern))
             {
                 return generatorInternal.AddParentheses(
@@ -96,6 +98,22 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (syntaxFacts.IsUnaryPattern(expressionOrPattern))
                 return GetNegationOfUnaryPattern(expressionOrPattern, generatorInternal, syntaxFacts);
 
+            if (syntaxFacts.IsIsTypeExpression(expressionOrPattern))
+            {
+                syntaxFacts.GetPartsOfAnyIsTypeExpression(expressionOrPattern, out var expression, out var type);
+                if (syntaxFacts.SupportsNotPattern(options))
+                    return generatorInternal.IsPatternExpression(expression, generatorInternal.NotPattern(type));
+
+                if (syntaxFacts.SupportsIsNotTypeExpression(options))
+                    return generatorInternal.IsNotTypeExpression(expression, type);
+            }
+
+            if (syntaxFacts.IsIsNotTypeExpression(expressionOrPattern))
+            {
+                syntaxFacts.GetPartsOfAnyIsTypeExpression(expressionOrPattern, out var expression, out var type);
+                return generator.IsTypeExpression(expression, type);
+            }
+
             // TODO(cyrusn): We could support negating relational patterns in the future.  i.e.
             //
             //      not >= 0   ->    < 0
@@ -119,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (operation is not IBinaryOperation binaryOperation)
             {
                 // x is y   ->    x is not y
-                if (syntaxFacts.IsIsExpression(expressionNode) && syntaxFacts.SupportsNotPattern(semanticModel.SyntaxTree.Options))
+                if (syntaxFacts.IsIsTypeExpression(expressionNode) && syntaxFacts.SupportsNotPattern(semanticModel.SyntaxTree.Options))
                     return generatorInternal.IsPatternExpression(leftOperand, operatorToken, generatorInternal.NotPattern(generatorInternal.TypePattern(rightOperand)));
 
                 // Apply the logical not operator if it is not a binary operation.
