@@ -31,7 +31,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestAdd1()
         {
-            await VerifyCS.VerifyRefactoringAsync(
+            await new VerifyCS.Test
+            {
+                TestCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -44,6 +46,7 @@ class Program
         this.i = i;
     }
 }",
+                FixedCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -56,7 +59,9 @@ class Program
         this.i = i;
         this.s = s;
     }
-}");
+}",
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"), codeAction.Title)
+            }.RunAsync();
         }
 
         [WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
@@ -93,7 +98,8 @@ class Program
         this.s = s;
     }
 }",
-                CodeActionIndex = 1
+                CodeActionIndex = 1,
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_optional_parameters_to_0, "Program(int)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -144,7 +150,8 @@ class Program
         this.b = b;
     }
 }",
-                CodeActionIndex = 1
+                CodeActionIndex = 1,
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_to_0, "Program(int, string)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -195,7 +202,8 @@ class Program
         this.b = b;
     }
 }",
-                CodeActionIndex = 3
+                CodeActionIndex = 3,
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_to_0, "Program(int, string)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -841,7 +849,9 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestMultipleConstructors_FirstofThree()
         {
-            await VerifyCS.VerifyRefactoringAsync(
+            await new VerifyCS.Test
+            {
+                TestCode =
 @"
 class C
 {
@@ -856,6 +866,7 @@ class C
     {
     }
 }",
+                FixedCode =
 @"
 class C
 {
@@ -870,7 +881,9 @@ class C
     public C(int i, int j, int k)
     {
     }
-}");
+}",
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_to_0, "C(int)"), codeAction.Title)
+            }.RunAsync();
         }
 
         [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
@@ -912,7 +925,8 @@ class C
             {
                 TestCode = source,
                 FixedCode = expected,
-                CodeActionIndex = 1
+                CodeActionIndex = 1,
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_to_0, "C(int, int)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -956,7 +970,8 @@ class C
             {
                 TestCode = source,
                 FixedCode = expected,
-                CodeActionIndex = 2
+                CodeActionIndex = 2,
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_to_0, "C(int, int, int)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -999,7 +1014,8 @@ class C
             {
                 TestCode = source,
                 FixedCode = expected,
-                CodeActionIndex = 3
+                CodeActionIndex = 3,
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_to_0, "C(int)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -1043,7 +1059,8 @@ class C
             {
                 TestCode = source,
                 FixedCode = expected,
-                CodeActionIndex = 4
+                CodeActionIndex = 4,
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_to_0, "C(int, int)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -1086,7 +1103,8 @@ class C
             {
                 TestCode = source,
                 FixedCode = expected,
-                CodeActionIndex = 5
+                CodeActionIndex = 5,
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_to_0, "C(int, int, int)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -1145,7 +1163,8 @@ class C
             {
                 TestCode = source,
                 FixedCode = expected,
-                CodeActionIndex = 1
+                CodeActionIndex = 1,
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_to_0, "C(int, double, int)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -1200,7 +1219,8 @@ class C
             {
                 TestCode = source,
                 FixedCode = expected,
-                CodeActionIndex = 3
+                CodeActionIndex = 3,
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_to_0, "C(int, double)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -1208,7 +1228,9 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestMultipleConstructors_AllMustBeOptional()
         {
-            await VerifyCS.VerifyRefactoringAsync(
+            await new VerifyCS.Test
+            {
+                TestCode =
  @"
 class C
 {
@@ -1223,6 +1245,7 @@ class C
     {
     }
 }",
+                FixedCode =
 @"
 class C
 {
@@ -1237,7 +1260,9 @@ class C
     public C(int l, double m, int n = 0)
     {
     }
-}");
+}",
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_to_0, "C(int)"), codeAction.Title)
+            }.RunAsync();
         }
 
         [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
@@ -1279,7 +1304,8 @@ class C
             {
                 TestCode = source,
                 FixedCode = expected,
-                CodeActionIndex = 2
+                CodeActionIndex = 2,
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_to_0, "C(int, double, int)"), codeAction.Title)
             }.RunAsync();
         }
 
@@ -1590,7 +1616,9 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestNonSelection1()
         {
-            await VerifyCS.VerifyRefactoringAsync(
+            await new VerifyCS.Test
+            {
+                TestCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -1603,6 +1631,7 @@ class Program
         this.i = i;
     }
 }",
+                FixedCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -1615,14 +1644,18 @@ class Program
         this.i = i;
         this.s = s;
     }
-}");
+}",
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"), codeAction.Title)
+            }.RunAsync();
         }
 
         [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestNonSelection2()
         {
-            await VerifyCS.VerifyRefactoringAsync(
+            await new VerifyCS.Test
+            {
+                TestCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -1635,6 +1668,7 @@ class Program
         this.i = i;
     }
 }",
+                FixedCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -1647,14 +1681,18 @@ class Program
         this.i = i;
         this.s = s;
     }
-}");
+}",
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"), codeAction.Title)
+            }.RunAsync();
         }
 
         [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestNonSelection3()
         {
-            await VerifyCS.VerifyRefactoringAsync(
+            await new VerifyCS.Test
+            {
+                TestCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -1667,6 +1705,7 @@ class Program
         this.i = i;
     }
 }",
+                FixedCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -1679,14 +1718,18 @@ class Program
         this.i = i;
         this.s = s;
     }
-}");
+}",
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"), codeAction.Title)
+            }.RunAsync();
         }
 
         [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestNonSelection4()
         {
-            await VerifyCS.VerifyRefactoringAsync(
+            await new VerifyCS.Test
+            {
+                TestCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -1699,6 +1742,7 @@ class Program
         this.i = i;
     }
 }",
+                FixedCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -1711,14 +1755,18 @@ class Program
         this.i = i;
         this.s = s;
     }
-}");
+}",
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"), codeAction.Title)
+            }.RunAsync();
         }
 
         [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestNonSelection5()
         {
-            await VerifyCS.VerifyRefactoringAsync(
+            await new VerifyCS.Test
+            {
+                TestCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -1731,6 +1779,7 @@ class Program
         this.i = i;
     }
 }",
+                FixedCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -1743,14 +1792,18 @@ class Program
         this.i = i;
         this.s = s;
     }
-}");
+}",
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"), codeAction.Title)
+            }.RunAsync();
         }
 
         [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestNonSelection6()
         {
-            await VerifyCS.VerifyRefactoringAsync(
+            await new VerifyCS.Test
+            {
+                TestCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -1763,6 +1816,7 @@ class Program
         this.i = i;
     }
 }",
+                FixedCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -1775,14 +1829,18 @@ class Program
         this.i = i;
         this.s = s;
     }
-}");
+}",
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"), codeAction.Title)
+            }.RunAsync();
         }
 
         [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestNonSelectionMultiVar1()
         {
-            await VerifyCS.VerifyRefactoringAsync(
+            await new VerifyCS.Test
+            {
+                TestCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -1795,6 +1853,7 @@ class Program
         this.i = i;
     }
 }",
+                FixedCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -1808,15 +1867,16 @@ class Program
         this.s = s;
         this.t = t;
     }
-}");
+}",
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"), codeAction.Title)
+            }.RunAsync();
         }
 
         [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestNonSelectionMultiVar2()
         {
-            await VerifyCS.VerifyRefactoringAsync(
-@"using System.Collections.Generic;
+            await new VerifyCS.Test { TestCode = @"using System.Collections.Generic;
 
 class Program
 {
@@ -1827,8 +1887,7 @@ class Program
     {
         this.i = i;
     }
-}",
-@"using System.Collections.Generic;
+}", FixedCode = @"using System.Collections.Generic;
 
 class Program
 {
@@ -1841,7 +1900,7 @@ class Program
         this.s = s;
         this.t = t;
     }
-}");
+}", CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"), codeAction.Title) }.RunAsync();
         }
 
         [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
@@ -1880,7 +1939,9 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestNonSelectionMultiVar4()
         {
-            await VerifyCS.VerifyRefactoringAsync(
+            await new VerifyCS.Test
+            {
+                TestCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -1893,6 +1954,7 @@ class Program
         this.i = i;
     }
 }",
+                FixedCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -1905,14 +1967,18 @@ class Program
         this.i = i;
         this.s = s;
     }
-}");
+}",
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"), codeAction.Title)
+            }.RunAsync();
         }
 
         [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestNonSelectionMultiVar5()
         {
-            await VerifyCS.VerifyRefactoringAsync(
+            await new VerifyCS.Test
+            {
+                TestCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -1925,6 +1991,7 @@ class Program
         this.i = i;
     }
 }",
+                FixedCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -1937,14 +2004,18 @@ class Program
         this.i = i;
         this.t = t;
     }
-}");
+}",
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"), codeAction.Title)
+            }.RunAsync();
         }
 
         [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestNonSelectionMultiVar6()
         {
-            await VerifyCS.VerifyRefactoringAsync(
+            await new VerifyCS.Test
+            {
+                TestCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -1957,6 +2028,7 @@ class Program
         this.i = i;
     }
 }",
+                FixedCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -1969,7 +2041,9 @@ class Program
         this.i = i;
         this.t = t;
     }
-}");
+}",
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"), codeAction.Title)
+            }.RunAsync();
         }
 
         [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
