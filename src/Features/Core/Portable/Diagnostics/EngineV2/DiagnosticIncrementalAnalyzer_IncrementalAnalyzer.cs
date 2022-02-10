@@ -271,6 +271,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             // When the analysis scope is set to 'ActiveFile' and the active document is switched,
             // we retrigger analysis of newly active document.
+            // For the remaining analysis scopes, we always analyze all the open files, so switching active
+            // documents between two open files doesn't require us to retrigger analysis of the newly active document.
             if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(document.Project) != BackgroundAnalysisScope.ActiveFile)
             {
                 return;

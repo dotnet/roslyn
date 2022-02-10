@@ -174,7 +174,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     var reasons = workItem.InvocationReasons;
                     if (workItem.MustRefresh || reasons.Contains(PredefinedInvocationReasons.SyntaxChanged))
                     {
-                        await RunAnalyzersAsync(analyzers, textDocument, workItem, (a, d, c) => AnalyzeSyntaxAsync(a, d, reasons, c), cancellationToken).ConfigureAwait(false);
+                        await RunAnalyzersAsync(analyzers, textDocument, workItem, (analyzer, document, cancellationToken) =>
+                            AnalyzeSyntaxAsync(analyzer, document, reasons, cancellationToken), cancellationToken).ConfigureAwait(false);
                     }
 
                     if (textDocument is not Document document)
@@ -185,7 +186,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     if (workItem.MustRefresh || reasons.Contains(PredefinedInvocationReasons.SemanticChanged))
                     {
-                        await RunAnalyzersAsync(analyzers, document, workItem, (a, d, c) => a.AnalyzeDocumentAsync(d, null, reasons, c), cancellationToken).ConfigureAwait(false);
+                        await RunAnalyzersAsync(analyzers, document, workItem, (analyzer, document, cancellationToken) =>
+                            analyzer.AnalyzeDocumentAsync(document, null, reasons, cancellationToken), cancellationToken).ConfigureAwait(false);
                     }
                     else
                     {
@@ -216,7 +218,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 return false;
                             }
 
-                            await RunAnalyzersAsync(analyzers, document, workItem, (a, d, c) => a.ActiveDocumentSwitchedAsync(d, c), cancellationToken).ConfigureAwait(false);
+                            await RunAnalyzersAsync(analyzers, document, workItem, (analyzer, document, cancellationToken) =>
+                                analyzer.ActiveDocumentSwitchedAsync(document, cancellationToken), cancellationToken).ConfigureAwait(false);
                             return true;
                         }
                         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
@@ -270,7 +273,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         if (root == null || syntaxFactsService == null)
                         {
                             // as a fallback mechanism, if we can't run one method body due to some missing service, run whole document analyzer.
-                            await RunAnalyzersAsync(analyzers, document, workItem, (a, d, c) => a.AnalyzeDocumentAsync(d, null, reasons, c), cancellationToken).ConfigureAwait(false);
+                            await RunAnalyzersAsync(analyzers, document, workItem, (analyzer, document, cancellationToken) =>
+                                analyzer.AnalyzeDocumentAsync(document, null, reasons, cancellationToken), cancellationToken).ConfigureAwait(false);
                             return;
                         }
 
@@ -281,12 +285,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         {
                             // no active member means, change is out side of a method body, but it didn't affect semantics (such as change in comment)
                             // in that case, we update whole document (just this document) so that we can have updated locations.
-                            await RunAnalyzersAsync(analyzers, document, workItem, (a, d, c) => a.AnalyzeDocumentAsync(d, null, reasons, c), cancellationToken).ConfigureAwait(false);
+                            await RunAnalyzersAsync(analyzers, document, workItem, (analyzer, document, cancellationToken) =>
+                                analyzer.AnalyzeDocumentAsync(document, null, reasons, cancellationToken), cancellationToken).ConfigureAwait(false);
                             return;
                         }
 
                         // re-run just the body
-                        await RunAnalyzersAsync(analyzers, document, workItem, (a, d, c) => a.AnalyzeDocumentAsync(d, activeMember, reasons, c), cancellationToken).ConfigureAwait(false);
+                        await RunAnalyzersAsync(analyzers, document, workItem, (analyzer, document, cancellationToken) =>
+                            analyzer.AnalyzeDocumentAsync(document, activeMember, reasons, cancellationToken), cancellationToken).ConfigureAwait(false);
                     }
                     catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
                     {
