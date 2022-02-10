@@ -1876,7 +1876,9 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestNonSelectionMultiVar2()
         {
-            await new VerifyCS.Test { TestCode = @"using System.Collections.Generic;
+            await new VerifyCS.Test { 
+                TestCode = 
+@"using System.Collections.Generic;
 
 class Program
 {
@@ -1887,7 +1889,9 @@ class Program
     {
         this.i = i;
     }
-}", FixedCode = @"using System.Collections.Generic;
+}", 
+                FixedCode = 
+@"using System.Collections.Generic;
 
 class Program
 {
@@ -1900,14 +1904,18 @@ class Program
         this.s = s;
         this.t = t;
     }
-}", CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"), codeAction.Title) }.RunAsync();
+}", 
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"), codeAction.Title) 
+            }.RunAsync();
         }
 
         [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestNonSelectionMultiVar3()
         {
-            await VerifyCS.VerifyRefactoringAsync(
+            await new VerifyCS.Test
+            {
+                TestCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -1920,6 +1928,7 @@ class Program
         this.i = i;
     }
 }",
+                FixedCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -1932,7 +1941,9 @@ class Program
         this.i = i;
         this.s = s;
     }
-}");
+}",
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"), codeAction.Title)
+            }.RunAsync();
         }
 
         [WorkItem(23271, "https://github.com/dotnet/roslyn/issues/23271")]
