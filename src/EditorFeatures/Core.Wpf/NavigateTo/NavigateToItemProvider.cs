@@ -123,7 +123,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             {
                 await searcher.SearchAsync(searchCurrentDocument, cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General))
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.General))
             {
             }
         }
