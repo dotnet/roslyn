@@ -82,14 +82,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
 partial class PartialClass { int i = 0; }");
 
-            var declarationWindowName = VisualStudio.IsUsingLspEditor ? "'PartialClass' references" : "'PartialClass' declarations";
+            VisualStudio.Editor.GoToDefinition(expectedNavigateWindowName: null);
 
-            VisualStudio.Editor.GoToDefinition(declarationWindowName);
-
-            var results = VisualStudio.FindReferencesWindow.GetContents(declarationWindowName);
-
-            var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
-            Assert.Equal(expected: declarationWindowName, actual: activeWindowCaption);
+            var results = VisualStudio.FindReferencesWindow.GetContents();
 
             Assert.Collection(
                 results,

@@ -152,7 +152,9 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             var classificationFormatMap = _classificationFormatMapService.GetClassificationFormatMap(textView);
 
             var childItems = await valueTrackingService.TrackValueSourceAsync(solution, item, cancellationToken).ConfigureAwait(false);
-            var childViewModels = childItems.SelectAsArray(child => CreateViewModel(child));
+
+            var childViewModels = await childItems.SelectAsArrayAsync((item, cancellationToken) =>
+                ValueTrackedTreeItemViewModel.CreateAsync(solution, item, toolWindow.ViewModel, _glyphService, valueTrackingService, _threadingContext, cancellationToken), cancellationToken).ConfigureAwait(false);
 
             RoslynDebug.AssertNotNull(location.SourceTree);
             var document = solution.GetRequiredDocument(location.SourceTree);
@@ -173,7 +175,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 _glyphService,
                 _threadingContext,
                 solution.Workspace,
-                children: childViewModels);
+                childViewModels);
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -181,22 +183,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             toolWindow.ViewModel.Roots.Add(root);
 
             await ShowToolWindowAsync(cancellationToken).ConfigureAwait(true);
-
-            TreeItemViewModel CreateViewModel(ValueTrackedItem valueTrackedItem, ImmutableArray<TreeItemViewModel> children = default)
-            {
-                var document = solution.GetRequiredDocument(valueTrackedItem.DocumentId);
-                var fileName = document.FilePath ?? document.Name;
-
-                return new ValueTrackedTreeItemViewModel(
-                   valueTrackedItem,
-                   solution,
-                   toolWindow.ViewModel,
-                   _glyphService,
-                   valueTrackingService,
-                   _threadingContext,
-                   fileName,
-                   children);
-            }
         }
 
         private async Task ShowToolWindowAsync(CancellationToken cancellationToken)

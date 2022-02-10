@@ -129,9 +129,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
                 syntaxFacts.IsImplicitObjectCreationExpression(expr))
             {
                 syntaxFacts.GetPartsOfBaseObjectCreationExpression(expr, out var argumentList, out var objectInitializer);
-                if (objectInitializer != null)
+                if (syntaxFacts.IsObjectMemberInitializer(objectInitializer))
                 {
-                    var initializers = syntaxFacts.GetMemberInitializersOfInitializer(objectInitializer);
+                    var initializers = syntaxFacts.GetInitializersOfObjectMemberInitializer(objectInitializer);
                     foreach (var initializer in initializers)
                     {
                         if (syntaxFacts.IsNamedMemberInitializer(initializer))
