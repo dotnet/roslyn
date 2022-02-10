@@ -7,6 +7,7 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.Editing
 {
@@ -90,6 +91,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// what will happen if that tree is passed to any other components.
         /// </remarks>
         internal abstract SyntaxNode Type(ITypeSymbol typeSymbol, bool typeContext);
+
+        public abstract SyntaxNode NegateEquality(SyntaxGenerator generator, SyntaxNode binaryExpression, SyntaxNode left, BinaryOperatorKind negatedKind, SyntaxNode right);
 
         #region Patterns
 

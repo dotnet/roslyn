@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -46,25 +47,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
             Solution solution, DefinitionItem definitionItem, CancellationToken cancellationToken)
         {
             var symbolNavigationService = solution.Workspace.Services.GetRequiredService<ISymbolNavigationService>();
-            var result = await symbolNavigationService.WouldNavigateToSymbolAsync(definitionItem, cancellationToken).ConfigureAwait(false);
-            if (result is not var (filePath, lineNumber, charOffset))
+            var result = await symbolNavigationService.GetExternalNavigationSymbolLocationAsync(definitionItem, cancellationToken).ConfigureAwait(false);
+            if (result is not var (filePath, linePosition))
                 return null;
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            var displayParts = GetDisplayParts_MustCallOnUIThread(filePath, lineNumber, charOffset);
+            var displayParts = GetDisplayParts_MustCallOnUIThread(filePath, linePosition);
             return new ExternalDefinitionItem(
                 definitionItem.Tags, displayParts,
                 _serviceProvider, _threadingContext,
-                filePath, lineNumber, charOffset);
+                filePath, linePosition);
         }
 
         private ImmutableArray<TaggedText> GetDisplayParts_MustCallOnUIThread(
-            string filePath, int lineNumber, int charOffset)
+            string filePath, LinePosition linePosition)
         {
-            var sourceLine = GetSourceLine_MustCallOnUIThread(filePath, lineNumber).Trim(' ', '\t');
+            var sourceLine = GetSourceLine_MustCallOnUIThread(filePath, linePosition.Line).Trim(' ', '\t');
 
             // Put the line in 1-based for the presentation of this item.
-            var formatted = $"{filePath} - ({lineNumber + 1}, {charOffset + 1}) : {sourceLine}";
+            var formatted = $"{filePath} - ({linePosition.Line + 1}, {linePosition.Character + 1}) : {sourceLine}";
 
             return ImmutableArray.Create(new TaggedText(TextTags.Text, formatted));
         }
@@ -88,8 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
             private readonly IServiceProvider _serviceProvider;
             private readonly IThreadingContext _threadingContext;
             private readonly string _filePath;
-            private readonly int _lineNumber;
-            private readonly int _charOffset;
+            private readonly LinePosition _linePosition;
 
             internal override bool IsExternal => true;
 
@@ -99,8 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 IServiceProvider serviceProvider,
                 IThreadingContext threadingContext,
                 string filePath,
-                int lineNumber,
-                int charOffset)
+                LinePosition linePosition)
                 : base(tags,
                        displayParts,
                        nameDisplayParts: ImmutableArray<TaggedText>.Empty,
@@ -113,8 +112,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 _serviceProvider = serviceProvider;
                 _threadingContext = threadingContext;
                 _filePath = filePath;
-                _lineNumber = lineNumber;
-                _charOffset = charOffset;
+                _linePosition = linePosition;
             }
 
             public override Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken)
@@ -173,8 +171,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
 
                     return textManager.NavigateToLineAndColumn(
                         lines, VSConstants.LOGVIEWID.TextView_guid,
-                        _lineNumber, _charOffset,
-                        _lineNumber, _charOffset) == VSConstants.S_OK;
+                        _linePosition.Line, _linePosition.Character,
+                        _linePosition.Line, _linePosition.Character) == VSConstants.S_OK;
                 }
                 finally
                 {

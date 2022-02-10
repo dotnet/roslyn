@@ -135,15 +135,15 @@ namespace Roslyn.Utilities
         {
             if (ch is >= '0' and <= '9')
             {
-                return (int)ch - (int)'0';
+                return ch - '0';
             }
             else if (ch is >= 'A' and <= 'F')
             {
-                return ((int)ch - (int)'A') + 10;
+                return (ch - 'A') + 10;
             }
             else if (ch is >= 'a' and <= 'f')
             {
-                return ((int)ch - (int)'a') + 10;
+                return (ch - 'a') + 10;
             }
             else
             {

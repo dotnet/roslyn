@@ -19,7 +19,8 @@ namespace Microsoft.CodeAnalysis
                                       ImmutableArray<GeneratorState> generatorStates,
                                       DriverStateTable stateTable,
                                       IncrementalGeneratorOutputKind disabledOutputs,
-                                      TimeSpan runtime)
+                                      TimeSpan runtime,
+                                      bool trackIncrementalGeneratorSteps)
         {
             Generators = sourceGenerators;
             IncrementalGenerators = incrementalGenerators;
@@ -30,6 +31,7 @@ namespace Microsoft.CodeAnalysis
             StateTable = stateTable;
             DisabledOutputs = disabledOutputs;
             RunTime = runtime;
+            TrackIncrementalSteps = trackIncrementalGeneratorSteps;
             Debug.Assert(Generators.Length == GeneratorStates.Length);
             Debug.Assert(IncrementalGenerators.Length == GeneratorStates.Length);
         }
@@ -85,6 +87,8 @@ namespace Microsoft.CodeAnalysis
 
         internal readonly TimeSpan RunTime;
 
+        internal readonly bool TrackIncrementalSteps;
+
         internal GeneratorDriverState With(
             ImmutableArray<ISourceGenerator>? sourceGenerators = null,
             ImmutableArray<IIncrementalGenerator>? incrementalGenerators = null,
@@ -105,7 +109,8 @@ namespace Microsoft.CodeAnalysis
                 generatorStates ?? this.GeneratorStates,
                 stateTable ?? this.StateTable,
                 disabledOutputs ?? this.DisabledOutputs,
-                runTime ?? this.RunTime
+                runTime ?? this.RunTime,
+                this.TrackIncrementalSteps
                 );
         }
     }

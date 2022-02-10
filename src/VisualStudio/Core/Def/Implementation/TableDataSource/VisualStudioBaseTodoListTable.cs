@@ -2,20 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.TodoComments;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
@@ -27,16 +24,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
     internal class VisualStudioBaseTodoListTable : AbstractTable
     {
-        private static readonly string[] s_columns = new string[]
-        {
-            StandardTableColumnDefinitions.Priority,
-            StandardTableColumnDefinitions.Text,
-            StandardTableColumnDefinitions.ProjectName,
-            StandardTableColumnDefinitions.DocumentName,
-            StandardTableColumnDefinitions.Line,
-            StandardTableColumnDefinitions.Column
-        };
-
         private readonly TableDataSource _source;
 
         protected VisualStudioBaseTodoListTable(Workspace workspace, ITodoListProvider todoListProvider, string identifier, ITableManagerProvider provider)
@@ -46,7 +33,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             AddInitialTableSource(workspace.CurrentSolution, _source);
         }
 
-        internal override IReadOnlyCollection<string> Columns => s_columns;
+        internal override ImmutableArray<string> Columns { get; } = ImmutableArray.Create(
+            StandardTableColumnDefinitions.Priority,
+            StandardTableColumnDefinitions.Text,
+            StandardTableColumnDefinitions.ProjectName,
+            StandardTableColumnDefinitions.DocumentName,
+            StandardTableColumnDefinitions.Line,
+            StandardTableColumnDefinitions.Column);
 
         protected override void AddTableSourceIfNecessary(Solution solution)
         {
@@ -167,7 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             public override AbstractTableEntriesSource<TodoTableItem> CreateTableEntriesSource(object data)
             {
-                var item = (UpdatedEventArgs)data;
+                var item = (TodoItemsUpdatedArgs)data;
                 return new TableEntriesSource(this, item.Workspace, item.DocumentId);
             }
 
@@ -204,14 +197,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 {
                 }
 
-                public override bool TryGetValue(int index, string columnName, out object content)
+                public override bool TryGetValue(int index, string columnName, [NotNullWhen(true)] out object? content)
                 {
                     // REVIEW: this method is too-chatty to make async, but otherwise, how one can implement it async?
                     //         also, what is cancellation mechanism?
                     var item = GetItem(index);
 
-                    var data = item?.Data;
-                    if (data == null)
+                    if (item is not { Data: var data })
                     {
                         content = null;
                         return false;
@@ -220,13 +212,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     switch (columnName)
                     {
                         case StandardTableKeyNames.Priority:
-                            content = ValueTypeCache.GetOrCreate((VSTASKPRIORITY)data.Value.Priority);
+                            content = ValueTypeCache.GetOrCreate((VSTASKPRIORITY)data.Priority);
                             return content != null;
                         case StandardTableKeyNames.Text:
-                            content = data.Value.Message;
+                            content = data.Message;
                             return content != null;
                         case StandardTableKeyNames.DocumentName:
-                            content = DiagnosticDataLocation.GetFilePath(data.Value.OriginalFilePath, data.Value.MappedFilePath);
+                            content = DiagnosticDataLocation.GetFilePath(data.OriginalFilePath, data.MappedFilePath);
                             return content != null;
                         case StandardTableKeyNames.Line:
                             content = GetLineColumn(item).Line;

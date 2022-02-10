@@ -1870,11 +1870,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task DisabledByOption()
         {
-            using var workspaceFixture = GetOrCreateWorkspaceFixture();
-
-            var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.
-                WithChangedOption(CompletionOptions.ShowNameSuggestions, LanguageNames.CSharp, false)));
+            ShowNameSuggestions = false;
 
             var markup = @"
 class Test

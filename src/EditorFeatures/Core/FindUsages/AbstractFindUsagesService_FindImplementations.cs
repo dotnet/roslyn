@@ -67,6 +67,11 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         private static async Task FindImplementationsInCurrentProcessAsync(
             ISymbol symbol, Project project, IFindUsagesContext context, CancellationToken cancellationToken)
         {
+            await context.SetSearchTitleAsync(
+                string.Format(EditorFeaturesResources._0_implementations,
+                FindUsagesHelpers.GetDisplayName(symbol)),
+                cancellationToken).ConfigureAwait(false);
+
             var solution = project.Solution;
             var implementations = await FindSourceImplementationsAsync(solution, symbol, cancellationToken).ConfigureAwait(false);
 
@@ -75,11 +80,6 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 await context.ReportMessageAsync(EditorFeaturesResources.The_symbol_has_no_implementations, cancellationToken).ConfigureAwait(false);
                 return;
             }
-
-            await context.SetSearchTitleAsync(
-                string.Format(EditorFeaturesResources._0_implementations,
-                FindUsagesHelpers.GetDisplayName(symbol)),
-                cancellationToken).ConfigureAwait(false);
 
             foreach (var implementation in implementations)
             {

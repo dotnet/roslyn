@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Navigation
 {
@@ -27,8 +28,9 @@ namespace Microsoft.CodeAnalysis.Navigation
         /// perform the navigation.</returns>
         Task<bool> TrySymbolNavigationNotifyAsync(ISymbol symbol, Project project, CancellationToken cancellationToken);
 
+        /// <summary>Returns the location file and position we would navigate to for the given <see cref="DefinitionItem"/>.</summary>
         /// <returns>Non-null if the navigation would be handled.</returns>
-        Task<(string filePath, int lineNumber, int charOffset)?> WouldNavigateToSymbolAsync(
+        Task<(string filePath, LinePosition linePosition)?> GetExternalNavigationSymbolLocationAsync(
             DefinitionItem definitionItem, CancellationToken cancellationToken);
     }
 }

@@ -8,8 +8,9 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition.Hosting;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -18,11 +19,15 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text.Classification;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -44,18 +49,23 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         public readonly IClassificationFormatMap ClassificationFormatMap;
 
         private readonly Workspace _workspace;
-        private readonly IGlobalOptionService _optionService;
+        private readonly IGlobalOptionService _globalOptions;
 
-        private readonly HashSet<AbstractTableDataSourceFindUsagesContext> _currentContexts =
-            new();
+        private readonly HashSet<AbstractTableDataSourceFindUsagesContext> _currentContexts = new();
         private readonly ImmutableArray<ITableColumnDefinition> _customColumns;
+
+        /// <summary>
+        /// Optional info bar that can be shown in the FindRefs window.  Useful, for example, for letting the user know
+        /// if the results are incomplete because the solution is loading.  Only valid to read/write on the UI thread.
+        /// </summary>
+        private IVsInfoBarUIElement? _infoBar;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public StreamingFindUsagesPresenter(
             IThreadingContext threadingContext,
             VisualStudioWorkspace workspace,
-            IGlobalOptionService optionService,
+            IGlobalOptionService globalOptions,
             Shell.SVsServiceProvider serviceProvider,
             ClassificationTypeMap typeMap,
             IEditorFormatMapService formatMapService,
@@ -65,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             : this(workspace,
                    threadingContext,
                    serviceProvider,
-                   optionService,
+                   globalOptions,
                    typeMap,
                    formatMapService,
                    classificationFormatMapService,
@@ -105,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             : base(threadingContext, assertIsForeground: false)
         {
             _workspace = workspace;
-            _optionService = optionService;
+            _globalOptions = optionService;
             _serviceProvider = serviceProvider;
             TypeMap = typeMap;
             FormatMapService = formatMapService;
@@ -177,14 +187,18 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             this.AssertIsForeground();
 
             var vsFindAllReferencesService = (IFindAllReferencesService)_serviceProvider.GetService(typeof(SVsFindAllReferences));
+
             // Get the appropriate window for FAR results to go into.
             var window = vsFindAllReferencesService.StartSearch(title);
+
+            // If there is an info bar on our tool window, clear it out.
+            RemoveExistingInfoBar();
 
             // Keep track of the users preference for grouping by definition if we don't already know it.
             // We need this because we disable the Definition column when we're not showing references
             // (i.e. GoToImplementation/GoToDef).  However, we want to restore the user's choice if they
             // then do another FindAllReferences.
-            var desiredGroupingPriority = _optionService.GetOption(FindUsagesOptions.DefinitionGroupingPriority);
+            var desiredGroupingPriority = _globalOptions.GetOption(FindUsagesOptions.DefinitionGroupingPriority);
             if (desiredGroupingPriority < 0)
             {
                 StoreCurrentGroupingPriority(window);
@@ -226,7 +240,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
         private void StoreCurrentGroupingPriority(IFindAllReferencesWindow window)
         {
-            _optionService.SetGlobalOption(FindUsagesOptions.DefinitionGroupingPriority, window.GetDefinitionColumn().GroupingPriority);
+            _globalOptions.SetGlobalOption(FindUsagesOptions.DefinitionGroupingPriority, window.GetDefinitionColumn().GroupingPriority);
         }
 
         private void SetDefinitionGroupingPriority(IFindAllReferencesWindow window, int priority)
@@ -274,6 +288,59 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             var guid = vsWorkspace?.GetProjectGuid(document.Project.Id) ?? Guid.Empty;
 
             return (guid, projectName, projectFlavor);
+        }
+
+        private void RemoveExistingInfoBar()
+        {
+            Contract.ThrowIfFalse(this.ThreadingContext.HasMainThread);
+
+            var infoBar = _infoBar;
+            _infoBar = null;
+            if (infoBar != null)
+            {
+                var infoBarHost = GetInfoBarHost();
+                infoBarHost?.RemoveInfoBar(infoBar);
+            }
+        }
+
+        private IVsInfoBarHost? GetInfoBarHost()
+        {
+            Contract.ThrowIfFalse(this.ThreadingContext.HasMainThread);
+
+            // Guid of the FindRefs window.  Defined here:
+            // https://devdiv.visualstudio.com/DevDiv/_git/VS?path=/src/env/ErrorList/Pkg/Guids.cs&version=GBmain&line=24
+            var guid = new Guid("a80febb4-e7e0-4147-b476-21aaf2453969");
+
+            if (_serviceProvider.GetService(typeof(SVsUIShell)) is not IVsUIShell uiShell ||
+                uiShell.FindToolWindow((uint)__VSFINDTOOLWIN.FTW_fFindFirst, ref guid, out var windowFrame) != VSConstants.S_OK ||
+                windowFrame == null ||
+                windowFrame.GetProperty((int)__VSFPROPID7.VSFPROPID_InfoBarHost, out var infoBarHostObj) != VSConstants.S_OK ||
+                infoBarHostObj is not IVsInfoBarHost infoBarHost)
+            {
+                return null;
+            }
+
+            return infoBarHost;
+        }
+
+        private async Task ReportInformationalMessageAsync(string message, CancellationToken cancellationToken)
+        {
+            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            RemoveExistingInfoBar();
+
+            if (_serviceProvider.GetService(typeof(SVsInfoBarUIFactory)) is not IVsInfoBarUIFactory factory)
+                return;
+
+            var infoBarHost = GetInfoBarHost();
+            if (infoBarHost == null)
+                return;
+
+            _infoBar = factory.CreateInfoBar(new InfoBarModel(
+                message,
+                KnownMonikers.StatusInformation,
+                isCloseButtonVisible: false));
+
+            infoBarHost.AddInfoBar(_infoBar);
         }
     }
 }

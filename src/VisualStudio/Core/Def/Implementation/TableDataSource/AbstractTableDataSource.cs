@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -21,6 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
     /// </summary>
     internal abstract class AbstractTableDataSource<TItem, TData> : ITableDataSource
         where TItem : TableItem
+        where TData : notnull
     {
         private readonly object _gate;
 
@@ -114,15 +114,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             using var _1 = ArrayBuilder<string>.GetInstance(out var projectNames);
             using var _2 = ArrayBuilder<Guid>.GetInstance(out var projectGuids);
 
-            string[] stringArrayCache = null;
-            Guid[] guidArrayCache = null;
+            string[]? stringArrayCache = null;
+            Guid[]? guidArrayCache = null;
 
-            static T[] GetOrCreateArray<T>(ref T[] cache, ArrayBuilder<T> value)
+            static T[] GetOrCreateArray<T>([NotNull] ref T[]? cache, ArrayBuilder<T> value)
                 => (cache != null && Enumerable.SequenceEqual(cache, value)) ? cache : (cache = value.ToArray());
 
             foreach (var (_, items) in groupedItems)
             {
-                TItem firstItem = null;
+                TItem? firstItem = null;
                 var hasSingle = true;
 
                 foreach (var item in items)
@@ -146,6 +146,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         projectGuids.Add(item.ProjectGuid);
                     }
                 }
+
+                // firstItem could only be null if a group was empty, which is not allowed
+                RoslynDebug.AssertNotNull(firstItem);
 
                 if (hasSingle)
                 {
@@ -306,7 +309,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         protected void AddAggregateKey(TData data, object aggregateKey)
             => _aggregateKeyMap.Add(GetItemKey(data), aggregateKey);
 
-        protected object TryGetAggregateKey(TData data)
+        protected object? TryGetAggregateKey(TData data)
         {
             var key = GetItemKey(data);
             if (_aggregateKeyMap.TryGetValue(key, out var aggregateKey))

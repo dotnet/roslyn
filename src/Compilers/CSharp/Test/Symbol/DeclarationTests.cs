@@ -318,6 +318,49 @@ public class B
             Assert.Equal(1, countedTree.AccessCount);
         }
 
+        [ConditionalFact(typeof(NoIOperationValidation), typeof(NoUsedAssembliesValidation))]
+        public void OnlyOneParse_WithReservedTypeName()
+        {
+            var underlyingTree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+
+class c
+{
+    public b X(b b1) { return b1; }
+    c(){}
+}
+");
+            var foreignType = SyntaxFactory.ParseSyntaxTree(@"
+public class b
+{
+  public int member(string s) { return s.Length; }
+  b(){}
+}
+");
+
+            var countedTree = new CountedSyntaxTree(foreignType);
+
+            var compilation = CreateCompilation(new SyntaxTree[] { underlyingTree, countedTree }, skipUsesIsNullable: true, options: TestOptions.ReleaseDll);
+
+            var type = compilation.Assembly.GlobalNamespace.GetTypeMembers().First();
+            Assert.Equal(1, countedTree.AccessCount);
+
+            var memberNames = type.MemberNames;
+            Assert.Equal(1, countedTree.AccessCount);
+
+            var interfaces = type.Interfaces();
+            Assert.Equal(1, countedTree.AccessCount);
+
+            var method = (MethodSymbol)type.GetMembers().First();
+            Assert.Equal(1, countedTree.AccessCount);
+
+            var returnType = method.ReturnTypeWithAnnotations;
+            Assert.Equal(1, countedTree.AccessCount);
+
+            var parameterType = method.Parameters.Single();
+            Assert.Equal(1, countedTree.AccessCount);
+        }
+
         /// <remarks>
         /// When using this type, make sure to pass an explicit CompilationOptions to CreateCompilation, as the check
         /// to see whether the syntax tree has top-level statements will increment the counter.
@@ -352,10 +395,9 @@ public class B
                 {
                     // Note: It's important for us to maintain identity of nodes/trees, so we find
                     // the equivalent node in our CountedSyntaxTree.
-                    _countedSyntaxTree.AccessCount++;
                     var nodeInUnderlying = _underlyingSyntaxReference.GetSyntax(cancellationToken);
 
-
+                    // Note: GetCompilationUnitRoot increments AccessCount
                     var token = _countedSyntaxTree.GetCompilationUnitRoot(cancellationToken).FindToken(nodeInUnderlying.SpanStart);
                     for (var node = token.Parent; node != null; node = node.Parent)
                     {

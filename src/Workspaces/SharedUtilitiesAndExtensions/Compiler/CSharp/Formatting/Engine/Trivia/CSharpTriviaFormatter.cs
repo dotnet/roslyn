@@ -354,5 +354,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             return GetLineColumnDelta(lineColumn, docComment);
         }
+
+        protected override bool LineContinuationFollowedByWhitespaceComment(SyntaxTrivia trivia, SyntaxTrivia nextTrivia)
+        {
+            return false;
+        }
+
+        /// <summary>
+        /// C# never passes a VB Comment
+        /// </summary>
+        /// <param name="trivia"></param>
+        protected override bool IsVisualBasicComment(SyntaxTrivia trivia)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
     }
 }

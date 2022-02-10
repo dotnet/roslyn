@@ -3326,7 +3326,7 @@ class A
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null) (Syntax: '*p2')
+IOperation:  (OperationKind.None, Type: System.Int32) (Syntax: '*p2')
   Children(1):
       ILocalReferenceOperation: p2 (OperationKind.LocalReference, Type: System.Int32*) (Syntax: 'p2')
 ";

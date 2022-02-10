@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             SyntaxToken? target = null)
         {
             using var context = await TestContext.CreateAsync(initial, expected);
-            var attr = CodeGenerationSymbolFactory.CreateAttributeData((INamedTypeSymbol)GetTypeSymbol(attributeClass)(context.SemanticModel));
+            var attr = CodeGenerationSymbolFactory.CreateAttributeData(GetTypeSymbol(attributeClass)(context.SemanticModel));
             var oldNode = context.GetDestinationNode();
             var newNode = CodeGenerator.AddAttributes(oldNode, context.Document.Project.Solution.Workspace, new[] { attr }, target)
                                        .WithAdditionalAnnotations(Formatter.Annotation);
@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             Type attributeClass) where T : SyntaxNode
         {
             using var context = await TestContext.CreateAsync(initial, expected);
-            var attributeType = (INamedTypeSymbol)GetTypeSymbol(attributeClass)(context.SemanticModel);
+            var attributeType = GetTypeSymbol(attributeClass)(context.SemanticModel);
             var taggedNode = context.GetDestinationNode();
             var attributeTarget = context.SemanticModel.GetDeclaredSymbol(taggedNode);
             var attribute = attributeTarget.GetAttributes().Single(attr => Equals(attr.AttributeClass, attributeType));
@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
 
         private static ITypeSymbol GetTypeSymbol(Compilation compilation, string typeFullName, int arrayRank = 0)
         {
-            return arrayRank == 0 ? (ITypeSymbol)compilation.GetTypeByMetadataName(typeFullName)
+            return arrayRank == 0 ? compilation.GetTypeByMetadataName(typeFullName)
                 : compilation.CreateArrayTypeSymbol(compilation.GetTypeByMetadataName(typeFullName), arrayRank);
         }
 

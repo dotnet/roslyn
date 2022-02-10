@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         }
 
         public static async Task<ImmutableArray<IMethodSymbol>> GetCollectionInitializerAddMethodsAsync(
-            Document document, SyntaxNode initializer, CancellationToken cancellationToken)
+            Document document, SyntaxNode initializer, SignatureHelpOptions options, CancellationToken cancellationToken)
         {
             if (initializer == null || initializer.Parent == null)
             {
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             var addMethods = addSymbols.OfType<IMethodSymbol>()
                                        .Where(m => m.Parameters.Length >= 1)
                                        .ToImmutableArray()
-                                       .FilterToVisibleAndBrowsableSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation)
+                                       .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation)
                                        .Sort(semanticModel, position);
 
             return addMethods;

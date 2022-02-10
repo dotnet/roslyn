@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
 
             return hierarchy.IsCapabilityMatch("CPS")
                 ? new BuildPropertyStorage((IVsBuildPropertyStorage)hierarchy)
-                : new PerConfigurationPropertyStorage(project.ConfigurationManager) as ProjectPropertyStorage;
+                : new PerConfigurationPropertyStorage(project.ConfigurationManager);
         }
 
         public abstract void SetProperty(string buildPropertyName, string configurationPropertyName, string value);

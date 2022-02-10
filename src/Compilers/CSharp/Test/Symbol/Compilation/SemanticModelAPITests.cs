@@ -1699,7 +1699,7 @@ class C
         public void AliasCalledVar()
         {
             var source = @"
-using var = Q;
+using @var = Q;
 
 class Q
 {

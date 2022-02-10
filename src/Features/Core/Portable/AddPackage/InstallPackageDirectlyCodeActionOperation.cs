@@ -7,9 +7,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddPackage
 {
@@ -67,13 +69,12 @@ namespace Microsoft.CodeAnalysis.AddPackage
 
         internal override bool ApplyDuringTests => true;
 
-        internal override bool TryApply(
+        internal override Task<bool> TryApplyAsync(
             Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            return _installerService.TryInstallPackage(
+            return _installerService.TryInstallPackageAsync(
                 workspace, _document.Id, _source, _packageName,
-                _versionOpt, _includePrerelease,
-                progressTracker, cancellationToken);
+                _versionOpt, _includePrerelease, progressTracker, cancellationToken);
         }
     }
 }

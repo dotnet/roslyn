@@ -262,6 +262,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// </remarks>
         protected abstract bool AreEquivalentActiveStatements(SyntaxNode oldStatement, SyntaxNode newStatement, int statementPart);
 
+        protected abstract bool IsCompilationUnitWithGlobalStatements(SyntaxNode node);
+        protected abstract bool IsGlobalStatement(SyntaxNode node);
         protected abstract TextSpan GetGlobalStatementDiagnosticSpan(SyntaxNode node);
 
         /// <summary>
@@ -397,8 +399,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         protected abstract List<SyntaxNode> GetExceptionHandlingAncestors(SyntaxNode node, bool isNonLeaf);
         protected abstract void GetStateMachineInfo(SyntaxNode body, out ImmutableArray<SyntaxNode> suspensionPoints, out StateMachineKinds kinds);
         protected abstract TextSpan GetExceptionHandlingRegion(SyntaxNode node, out bool coversAllChildren);
-
-        protected abstract void ReportLocalFunctionsDeclarationRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> bodyMatch);
 
         internal abstract void ReportTopLevelSyntacticRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, Edit<SyntaxNode> edit, Dictionary<SyntaxNode, EditKind> editMap);
         internal abstract void ReportEnclosingExceptionHandlingRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, IEnumerable<Edit<SyntaxNode>> exceptionHandlingEdits, SyntaxNode oldStatement, TextSpan newStatementSpan);
@@ -719,7 +719,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        internal static Dictionary<SyntaxNode, EditKind> BuildEditMap(EditScript<SyntaxNode> editScript)
+        internal Dictionary<SyntaxNode, EditKind> BuildEditMap(EditScript<SyntaxNode> editScript)
         {
             var map = new Dictionary<SyntaxNode, EditKind>(editScript.Edits.Length);
 
@@ -736,6 +736,17 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     map.Add(edit.NewNode, edit.Kind);
                 }
+            }
+
+            // When a global statement is updated, inserted or deleted it means that the containing
+            // compilation unit has been updated. This update is not recorded in the edit script
+            // since compilation unit contains other items then global statements as well and 
+            // we only want it to be updated in presence of changed global statements.
+            if ((IsCompilationUnitWithGlobalStatements(editScript.Match.OldRoot) || IsCompilationUnitWithGlobalStatements(editScript.Match.NewRoot)) &&
+                map.Any(entry => IsGlobalStatement(entry.Key)))
+            {
+                map.Add(editScript.Match.OldRoot, EditKind.Update);
+                map.Add(editScript.Match.NewRoot, EditKind.Update);
             }
 
             return map;
@@ -1430,7 +1441,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             if (IsLocalFunction(match.OldRoot) && IsLocalFunction(match.NewRoot))
             {
-                ReportLocalFunctionsDeclarationRudeEdits(diagnostics, match);
+                ReportMemberBodyUpdateRudeEdits(diagnostics, match.NewRoot, match.NewRoot.Span);
             }
 
             if (lazyRudeEdits != null)
@@ -2255,7 +2266,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 if (documentLineEdits.Count > 0 && segment.oldStartLine > previousOldEndLine + 1)
                 {
                     Debug.Assert(previousOldEndLine >= 0);
-                    documentLineEdits.Add(CreateZeroDeltaSourceLineUpdate(previousOldEndLine + 1));
+                    documentLineEdits.Add(new SourceLineUpdate(previousOldEndLine + 1, previousOldEndLine + 1));
                     previousLineDelta = 0;
                 }
 
@@ -2276,22 +2287,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 lineEdits.Add(new SequencePointUpdates(currentDocumentPath, documentLineEdits.ToImmutable()));
             }
-        }
-
-        // TODO: Currently the constructor SourceLineUpdate does not allow update with zero delta.
-        // Workaround until the debugger updates.
-        internal static SourceLineUpdate CreateZeroDeltaSourceLineUpdate(int line)
-        {
-            var result = new SourceLineUpdate();
-
-            // TODO: Currently the constructor SourceLineUpdate does not allow update with zero delta.
-            // Workaround until the debugger updates.
-            unsafe
-            {
-                Unsafe.Write(&result, ((long)line << 32) | (long)line);
-            }
-
-            return result;
         }
 
         #endregion

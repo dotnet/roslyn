@@ -26,7 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         //      [return: A2]
         //      public delegate void Goo();
         // attributesToBind will only contain first attribute syntax.
-        internal static void BindAttributeTypes(ImmutableArray<Binder> binders, ImmutableArray<AttributeSyntax> attributesToBind, Symbol ownerSymbol, NamedTypeSymbol[] boundAttributeTypes, BindingDiagnosticBag diagnostics)
+        internal static void BindAttributeTypes(
+            ImmutableArray<Binder> binders, ImmutableArray<AttributeSyntax> attributesToBind, Symbol ownerSymbol, NamedTypeSymbol[] boundAttributeTypes,
+            Action<AttributeSyntax>? beforeAttributePartBound,
+            Action<AttributeSyntax>? afterAttributePartBound,
+            BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(binders.Any());
             Debug.Assert(attributesToBind.Any());
@@ -40,11 +44,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (boundAttributeTypes[i] is null)
                 {
                     var binder = binders[i];
+                    AttributeSyntax attributeToBind = attributesToBind[i];
+
+                    beforeAttributePartBound?.Invoke(attributeToBind);
 
                     // BindType for AttributeSyntax's name is handled specially during lookup, see Binder.LookupAttributeType.
                     // When looking up a name in attribute type context, we generate a diagnostic + error type if it is not an attribute type, i.e. named type deriving from System.Attribute.
                     // Hence we can assume here that BindType returns a NamedTypeSymbol.
-                    boundAttributeTypes[i] = (NamedTypeSymbol)binder.BindType(attributesToBind[i].Name, diagnostics).Type;
+                    boundAttributeTypes[i] = (NamedTypeSymbol)binder.BindType(attributeToBind.Name, diagnostics).Type;
+
+                    afterAttributePartBound?.Invoke(attributeToBind);
                 }
             }
         }
@@ -56,6 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<NamedTypeSymbol> boundAttributeTypes,
             CSharpAttributeData?[] attributeDataArray,
             BoundAttribute?[]? boundAttributeArray,
+            Action<AttributeSyntax>? beforeAttributePartBound,
+            Action<AttributeSyntax>? afterAttributePartBound,
             BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(binders.Any());
@@ -74,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var attribute = (SourceAttributeData?)attributeDataArray[i];
                 if (attribute == null)
                 {
-                    (attributeDataArray[i], var boundAttribute) = binder.GetAttribute(attributeSyntax, boundAttributeType, diagnostics);
+                    (attributeDataArray[i], var boundAttribute) = binder.GetAttribute(attributeSyntax, boundAttributeType, beforeAttributePartBound, afterAttributePartBound, diagnostics);
                     if (boundAttributeArray is not null)
                     {
                         boundAttributeArray[i] = boundAttribute;
@@ -103,10 +114,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region Bind Single Attribute
 
-        internal (CSharpAttributeData, BoundAttribute) GetAttribute(AttributeSyntax node, NamedTypeSymbol boundAttributeType, BindingDiagnosticBag diagnostics)
+        internal (CSharpAttributeData, BoundAttribute) GetAttribute(
+            AttributeSyntax node, NamedTypeSymbol boundAttributeType,
+            Action<AttributeSyntax>? beforeAttributePartBound,
+            Action<AttributeSyntax>? afterAttributePartBound,
+            BindingDiagnosticBag diagnostics)
         {
+            beforeAttributePartBound?.Invoke(node);
             var boundAttribute = new ExecutableCodeBinder(node, this.ContainingMemberOrLambda, this).BindAttribute(node, boundAttributeType, diagnostics);
-
+            afterAttributePartBound?.Invoke(node);
             return (GetAttribute(boundAttribute, diagnostics), boundAttribute);
         }
 

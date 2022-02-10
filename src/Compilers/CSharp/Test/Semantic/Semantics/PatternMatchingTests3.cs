@@ -6531,7 +6531,7 @@ class C
 42");
             verifier.VerifyIL("C.M",
 @"{
-  // Code size       41 (0x29)
+  // Code size       38 (0x26)
   .maxstack  1
   .locals init (C V_0, //c1
                 C V_1) //c2
@@ -6539,20 +6539,18 @@ class C
   IL_0001:  isinst     ""C""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
-  IL_0008:  brfalse.s  IL_0011
+  IL_0008:  brfalse.s  IL_000e
   IL_000a:  ldloc.0
-  IL_000b:  brfalse.s  IL_0011
-  IL_000d:  ldloc.0
-  IL_000e:  stloc.1
-  IL_000f:  br.s       IL_0012
-  IL_0011:  ret
-  IL_0012:  ldloc.0
-  IL_0013:  ldfld      ""object C.F""
-  IL_0018:  call       ""void System.Console.WriteLine(object)""
-  IL_001d:  ldloc.1
-  IL_001e:  ldfld      ""object C.F""
-  IL_0023:  call       ""void System.Console.WriteLine(object)""
-  IL_0028:  ret
+  IL_000b:  stloc.1
+  IL_000c:  br.s       IL_000f
+  IL_000e:  ret
+  IL_000f:  ldloc.0
+  IL_0010:  ldfld      ""object C.F""
+  IL_0015:  call       ""void System.Console.WriteLine(object)""
+  IL_001a:  ldloc.1
+  IL_001b:  ldfld      ""object C.F""
+  IL_0020:  call       ""void System.Console.WriteLine(object)""
+  IL_0025:  ret
 }");
         }
 
@@ -7508,6 +7506,45 @@ $@"class Circle
                 // (5,13): error CS0103: The name 'shape' does not exist in the current context
                 //         if (shape is Circle { Radius: >= 100 })
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "shape").WithArguments("shape").WithLocation(5, 13));
+        }
+
+        [Fact]
+        [WorkItem(56199, "https://github.com/dotnet/roslyn/issues/56199")]
+        public void ArrayLength()
+        {
+            var source = @"using System;
+class C
+{
+    static void Main()
+    {
+        Console.Write(M(new int[1]) ? 1 : 0);
+        Console.Write(M(new int[2]) ? 1 : 0);
+    }
+
+    static bool M(int[] a)
+    {
+        return a is {Length:1};
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: "10");
+            compVerifier.VerifyIL("C.M",
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_000a
+  IL_0003:  ldarg.0
+  IL_0004:  ldlen
+  IL_0005:  conv.i4
+  IL_0006:  ldc.i4.1
+  IL_0007:  ceq
+  IL_0009:  ret
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
+}
+");
         }
     }
 }
