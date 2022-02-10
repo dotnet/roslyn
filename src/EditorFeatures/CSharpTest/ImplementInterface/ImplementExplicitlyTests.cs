@@ -623,5 +623,98 @@ class Repro : IRepro
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(52020, "https://github.com/dotnet/roslyn/issues/52020")]
+        public async Task TestWithMismatchedDefaultParameterValues()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+interface IRepro
+{
+    void A(int value = 0);
+}
+
+class Repro : IRepro
+{
+    public void [||]A(int value = 1)
+    {
+    }
+}",
+@"
+interface IRepro
+{
+    void A(int value = 0);
+}
+
+class Repro : IRepro
+{
+    void IRepro.A(int value = 1)
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(52020, "https://github.com/dotnet/roslyn/issues/52020")]
+        public async Task TestWithMismatchedDefault1()
+        {
+            await TestInRegularAndScriptAsync(
+    @"
+interface IRepro
+{
+    void A(int value);
+}
+
+class Repro : IRepro
+{
+    public void [||]A(int value = 1)
+    {
+    }
+}",
+    @"
+interface IRepro
+{
+    void A(int value);
+}
+
+class Repro : IRepro
+{
+    void IRepro.A(int value = 1)
+    {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        [WorkItem(52020, "https://github.com/dotnet/roslyn/issues/52020")]
+        public async Task TestWithMismatchedDefault2()
+        {
+            await TestInRegularAndScriptAsync(
+    @"
+interface IRepro
+{
+    void A(int value = 0);
+}
+
+class Repro : IRepro
+{
+    public void [||]A(int value)
+    {
+    }
+}",
+    @"
+interface IRepro
+{
+    void A(int value = 0);
+}
+
+class Repro : IRepro
+{
+    void IRepro.A(int value)
+    {
+    }
+}");
+        }
     }
 }

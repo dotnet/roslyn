@@ -1683,11 +1683,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             };
         }
 
-        internal override SyntaxNode WithExplicitInterfaceImplementations(SyntaxNode declaration, ImmutableArray<ISymbol> explicitInterfaceImplementations)
+        internal override SyntaxNode WithExplicitInterfaceImplementations(
+                SyntaxNode declaration,
+                ImmutableArray<ISymbol> explicitInterfaceImplementations,
+                bool removeDefaults)
             => WithAccessibility(declaration switch
             {
                 MethodDeclarationSyntax method
-                    => WithoutContraints(method.ReplaceNodes(method.ParameterList.Parameters, (_, p) => RemoveDefaultValue(p))
+                    => WithoutContraints(method.ReplaceNodes(method.ParameterList.Parameters, (_, p) => RemoveDefaultValue(p, removeDefaults))
                                                .WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations))),
                 PropertyDeclarationSyntax member
                     => member.WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations)),
@@ -1706,8 +1709,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                             method.ParameterList.GetTrailingTrivia().Add(SyntaxFactory.ElasticMarker).AddRange(method.ConstraintClauses.Last().GetTrailingTrivia())));
         }
 
-        private static SyntaxNode RemoveDefaultValue(ParameterSyntax parameter)
+        private static SyntaxNode RemoveDefaultValue(ParameterSyntax parameter, bool removeDefaults)
         {
+            if (!removeDefaults)
+                return parameter;
+
             if (parameter.Default == null)
                 return parameter;
 
