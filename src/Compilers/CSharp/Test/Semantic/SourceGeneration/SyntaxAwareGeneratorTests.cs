@@ -1288,6 +1288,79 @@ class F
         }
 
         [Fact]
+        public void IncrementalGenerator_With_Syntax_Filter_Doesnt_Run_When_Compilation_Is_Unchanged()
+        {
+            var source1 = @"
+#pragma warning disable CS0414
+class C 
+{
+    string fieldA = null; 
+}";
+            var source2 = @"
+#pragma warning disable CS0414
+class D 
+{
+    string fieldB = null; 
+}";
+            var source3 = @"
+#pragma warning disable CS0414
+class E 
+{
+    string fieldC = null; 
+}";
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(new[] { source1, source2, source3 }, options: TestOptions.DebugDll, parseOptions: parseOptions);
+            compilation.VerifyDiagnostics();
+
+            List<string> fieldsCalledFor = new List<string>();
+            var testGenerator = new PipelineCallbackGenerator(context =>
+            {
+                var source = context.SyntaxProvider.CreateSyntaxProvider((c, _) => c is FieldDeclarationSyntax fds, (c, _) => ((FieldDeclarationSyntax)c.Node).Declaration.Variables[0].Identifier.ValueText).WithTrackingName("Fields");
+                context.RegisterSourceOutput(source, (spc, fieldName) =>
+                {
+                    spc.AddSource(fieldName, "");
+                    fieldsCalledFor.Add(fieldName);
+                });
+            });
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: false));
+            driver = driver.RunGenerators(compilation);
+
+            var results = driver.GetRunResult();
+            Assert.Empty(results.Diagnostics);
+            Assert.EndsWith("fieldA.cs", results.GeneratedTrees[0].FilePath);
+            Assert.EndsWith("fieldB.cs", results.GeneratedTrees[1].FilePath);
+            Assert.EndsWith("fieldC.cs", results.GeneratedTrees[2].FilePath);
+            Assert.Equal(new[] { "fieldA", "fieldB", "fieldC" }, fieldsCalledFor);
+
+            // now re-run the drivers with the same compilation
+            fieldsCalledFor.Clear();
+            driver = driver.RunGenerators(compilation);
+            results = driver.GetRunResult();
+            Assert.Empty(results.Diagnostics);
+            Assert.Equal(3, results.GeneratedTrees.Length);
+
+            // we produced the expected modified sources, but didn't call for any of the trees
+            Assert.EndsWith("fieldA.cs", results.GeneratedTrees[0].FilePath);
+            Assert.EndsWith("fieldB.cs", results.GeneratedTrees[1].FilePath);
+            Assert.EndsWith("fieldC.cs", results.GeneratedTrees[2].FilePath);
+            Assert.Empty(fieldsCalledFor);
+
+            // now re-run the drivers with the same compilation again to ensure we cached the trees correctly
+            fieldsCalledFor.Clear();
+            driver = driver.RunGenerators(compilation);
+            results = driver.GetRunResult();
+            Assert.Empty(results.Diagnostics);
+            Assert.Equal(3, results.GeneratedTrees.Length);
+
+            // we produced the expected modified sources, but didn't call for any of the trees
+            Assert.EndsWith("fieldA.cs", results.GeneratedTrees[0].FilePath);
+            Assert.EndsWith("fieldB.cs", results.GeneratedTrees[1].FilePath);
+            Assert.EndsWith("fieldC.cs", results.GeneratedTrees[2].FilePath);
+            Assert.Empty(fieldsCalledFor);
+        }
+
+        [Fact]
         public void IncrementalGenerator_With_Syntax_Filter_And_Changed_Tree_Order()
         {
             var source1 = @"
@@ -1334,7 +1407,10 @@ class E
                 });
             });
 
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(
+                new[] { new IncrementalGeneratorWrapper(testGenerator) },
+                parseOptions: parseOptions,
+                driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
             driver = driver.RunGenerators(compilation);
 
             var results = driver.GetRunResult();
@@ -1452,7 +1528,10 @@ class C
                 });
             });
 
-            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new IncrementalGeneratorWrapper(testGenerator) }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(
+                new[] { new IncrementalGeneratorWrapper(testGenerator) },
+                parseOptions: parseOptions,
+                driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
             driver = driver.RunGenerators(compilation);
             var results = driver.GetRunResult();
             Assert.Collection(results.Results[0].TrackedSteps["Fields"],

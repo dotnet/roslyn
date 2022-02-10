@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     internal sealed class LanguageSettingsPersister : ForegroundThreadAffinitizedObject, IVsTextManagerEvents4, IOptionPersister
     {
         private readonly IVsTextManager4 _textManager;
-        private readonly IGlobalOptionService _optionService;
+        private readonly IGlobalOptionService _globalOptions;
 
 #pragma warning disable IDE0052 // Remove unread private members - https://github.com/dotnet/roslyn/issues/46167
         private readonly ComEventSink _textManagerEvents2Sink;
@@ -51,11 +51,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public LanguageSettingsPersister(
             IThreadingContext threadingContext,
             IVsTextManager4 textManager,
-            IGlobalOptionService optionService)
+            IGlobalOptionService globalOptions)
             : base(threadingContext, assertIsForeground: true)
         {
             _textManager = textManager;
-            _optionService = optionService;
+            _globalOptions = globalOptions;
 
             var languageMap = BidirectionalMap<string, Tuple<Guid>>.Empty;
 
@@ -92,8 +92,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             FormattingOptions.TabSize,
             FormattingOptions.SmartIndent,
             FormattingOptions.IndentationSize,
-            CompletionOptions.Metadata.HideAdvancedMembers,
-            CompletionOptions.Metadata.TriggerOnTyping,
+            CompletionOptionsStorage.HideAdvancedMembers,
+            CompletionOptionsStorage.TriggerOnTyping,
             SignatureHelpViewOptions.ShowSignatureHelp,
             NavigationBarViewOptions.ShowNavigationBar
         };
@@ -129,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 var keyWithLanguage = new OptionKey(option, languageName);
                 var newValue = GetValueForOption(option, langPrefs[0]);
 
-                _optionService.RefreshOption(keyWithLanguage, newValue);
+                _globalOptions.RefreshOption(keyWithLanguage, newValue);
             }
         }
 
@@ -159,11 +159,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                         return FormattingOptions.IndentStyle.Smart;
                 }
             }
-            else if (option == CompletionOptions.Metadata.HideAdvancedMembers)
+            else if (option == CompletionOptionsStorage.HideAdvancedMembers)
             {
                 return languagePreference.fHideAdvancedAutoListMembers != 0;
             }
-            else if (option == CompletionOptions.Metadata.TriggerOnTyping)
+            else if (option == CompletionOptionsStorage.TriggerOnTyping)
             {
                 return languagePreference.fAutoListMembers != 0;
             }
@@ -210,11 +210,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                         break;
                 }
             }
-            else if (option == CompletionOptions.Metadata.HideAdvancedMembers)
+            else if (option == CompletionOptionsStorage.HideAdvancedMembers)
             {
                 languagePreference.fHideAdvancedAutoListMembers = Convert.ToUInt32((bool)value ? 1 : 0);
             }
-            else if (option == CompletionOptions.Metadata.TriggerOnTyping)
+            else if (option == CompletionOptionsStorage.TriggerOnTyping)
             {
                 languagePreference.fAutoListMembers = Convert.ToUInt32((bool)value ? 1 : 0);
             }

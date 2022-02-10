@@ -11722,7 +11722,13 @@ System.NotImplementedException: 28
    at TestAnalyzer.get_SupportedDiagnostics()
    at Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.AnalyzerExecutionContext.<>c__DisplayClass20_0.<ComputeDiagnosticDescriptors>b__0(Object _)
    at Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteAndCatchIfThrows_NoLock[TArg](DiagnosticAnalyzer analyzer, Action`1 analyze, TArg argument, Nullable`1 info)
------", outputWithoutPaths);
+-----
+Analyzer 'TestAnalyzer' threw the following exception:
+'System.NotImplementedException: 28
+   at TestAnalyzer.get_SupportedDiagnostics()
+   at Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.CreateDisablingMessage(DiagnosticAnalyzer analyzer, String analyzerName)
+-----
+'.", outputWithoutPaths);
 
             Assert.Equal(0, result.ExitCode);
         }

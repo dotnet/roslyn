@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.Editor.ColorSchemes;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
@@ -123,14 +121,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => CSharpVSResources.Editor_Help;
 
         public static string Option_EnableHighlightKeywords
-        {
-            get { return CSharpVSResources.Highlight_related_keywords_under_cursor; }
-        }
+            => CSharpVSResources.Highlight_related_keywords_under_cursor;
 
         public static string Option_EnableHighlightReferences
-        {
-            get { return CSharpVSResources.Highlight_references_to_symbol_under_cursor; }
-        }
+            => CSharpVSResources.Highlight_references_to_symbol_under_cursor;
 
         public static string Option_EnterOutliningMode
             => CSharpVSResources.Enter_outlining_mode_when_files_open;
@@ -312,6 +306,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Combine_inheritance_margin_with_indicator_margin
             => ServicesVSResources.Combine_inheritance_margin_with_indicator_margin;
+
+        public static string Option_JSON_strings =>
+            ServicesVSResources.JSON_strings;
+
+        public static string Option_Detect_and_offer_editor_features_for_likely_JSON_strings =>
+            ServicesVSResources.Detect_and_offer_editor_features_for_likely_JSON_strings;
+
+        public static string Option_Colorize_JSON_strings =>
+            ServicesVSResources.Colorize_JSON_strings;
+
+        public static string Option_Report_invalid_JSON_strings =>
+            ServicesVSResources.Report_invalid_JSON_strings;
 
         public static string Inheritance_Margin
             => ServicesVSResources.Inheritance_Margin;

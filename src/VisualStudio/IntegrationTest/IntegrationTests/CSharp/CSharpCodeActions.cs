@@ -149,10 +149,10 @@ class C
 
             SetUpEditor(markup);
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Delegate invocation can be simplified.", applyFix: true, ensureExpectedItemsAreOrdered: true, blockUntilComplete: true);
+            VisualStudio.Editor.Verify.CodeAction("Simplify delegate invocation", applyFix: true, ensureExpectedItemsAreOrdered: true, blockUntilComplete: true);
             VisualStudio.Editor.PlaceCaret("temp2", 0, 0, extendSelection: false, selectBlock: false);
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction("Delegate invocation can be simplified.", applyFix: true, ensureExpectedItemsAreOrdered: true, blockUntilComplete: true);
+            VisualStudio.Editor.Verify.CodeAction("Simplify delegate invocation", applyFix: true, ensureExpectedItemsAreOrdered: true, blockUntilComplete: true);
             VisualStudio.Editor.Verify.TextContains("First?.");
             VisualStudio.Editor.Verify.TextContains("Second?.");
         }

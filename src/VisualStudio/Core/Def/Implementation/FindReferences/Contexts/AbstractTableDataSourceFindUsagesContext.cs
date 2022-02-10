@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -113,8 +114,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                  StreamingFindUsagesPresenter presenter,
                  IFindAllReferencesWindow findReferencesWindow,
                  ImmutableArray<ITableColumnDefinition> customColumns,
+                 IGlobalOptionService globalOptions,
                  bool includeContainingTypeAndMemberColumns,
                  bool includeKindColumn)
+                : base(globalOptions)
             {
                 presenter.AssertIsForeground();
 

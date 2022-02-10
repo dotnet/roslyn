@@ -464,13 +464,18 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.CharacterLiteralToken:
                 case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.SingleLineRawStringLiteralToken:
+                case SyntaxKind.MultiLineRawStringLiteralToken:
                 case SyntaxKind.NullKeyword:
                 case SyntaxKind.TrueKeyword:
                 case SyntaxKind.FalseKeyword:
                 case SyntaxKind.InterpolatedStringStartToken:
                 case SyntaxKind.InterpolatedStringEndToken:
+                case SyntaxKind.InterpolatedRawStringEndToken:
                 case SyntaxKind.InterpolatedVerbatimStringStartToken:
                 case SyntaxKind.InterpolatedStringTextToken:
+                case SyntaxKind.InterpolatedSingleLineRawStringStartToken:
+                case SyntaxKind.InterpolatedMultiLineRawStringStartToken:
                     return true;
                 default:
                     return false;
@@ -1178,6 +1183,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode argumentList)
             => ((BaseArgumentListSyntax)argumentList).Arguments;
 
+        public SeparatedSyntaxList<SyntaxNode> GetArgumentsOfAttributeArgumentList(SyntaxNode argumentList)
+            => ((AttributeArgumentListSyntax)argumentList).Arguments;
+
         public bool IsRegularComment(SyntaxTrivia trivia)
             => trivia.IsRegularComment();
 
@@ -1335,10 +1343,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public bool IsIsExpression([NotNullWhen(true)] SyntaxNode? node)
             => node.IsKind(SyntaxKind.IsExpression);
-
-        [return: NotNullIfNotNull("node")]
-        public SyntaxNode? WalkDownParentheses(SyntaxNode? node)
-            => (node as ExpressionSyntax)?.WalkDownParentheses() ?? node;
 
         public void GetPartsOfTupleExpression<TArgumentSyntax>(SyntaxNode node,
             out SyntaxToken openParen, out SeparatedSyntaxList<TArgumentSyntax> arguments, out SyntaxToken closeParen) where TArgumentSyntax : SyntaxNode
@@ -1574,9 +1578,28 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsSimpleName([NotNullWhen(true)] SyntaxNode? node)
             => node is SimpleNameSyntax;
 
+        public bool IsNamedMemberInitializer([NotNullWhen(true)] SyntaxNode? node)
+            => node is AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression) { Left: IdentifierNameSyntax };
+
+        public bool IsElementAccessInitializer([NotNullWhen(true)] SyntaxNode? node)
+            => node is AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression) { Left: ImplicitElementAccessSyntax };
+
+        public bool IsObjectMemberInitializer([NotNullWhen(true)] SyntaxNode? node)
+            => node is InitializerExpressionSyntax(SyntaxKind.ObjectInitializerExpression);
+
+        public bool IsObjectCollectionInitializer([NotNullWhen(true)] SyntaxNode? node)
+            => node is InitializerExpressionSyntax(SyntaxKind.CollectionInitializerExpression);
+
         #endregion
 
         #region GetPartsOfXXX members
+
+        public void GetPartsOfBaseObjectCreationExpression(SyntaxNode node, out SyntaxNode? argumentList, out SyntaxNode? initializer)
+        {
+            var objectCreationExpression = (BaseObjectCreationExpressionSyntax)node;
+            argumentList = objectCreationExpression.ArgumentList;
+            initializer = objectCreationExpression.Initializer;
+        }
 
         public void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
         {
@@ -1634,6 +1657,13 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             members = namespaceDeclaration.Members;
         }
 
+        public void GetPartsOfNamedMemberInitializer(SyntaxNode node, out SyntaxNode identifier, out SyntaxNode expression)
+        {
+            var assignment = (AssignmentExpressionSyntax)node;
+            identifier = assignment.Left;
+            expression = assignment.Right;
+        }
+
         public void GetPartsOfObjectCreationExpression(SyntaxNode node, out SyntaxNode type, out SyntaxNode? argumentList, out SyntaxNode? initializer)
         {
             var objectCreationExpression = (ObjectCreationExpressionSyntax)node;
@@ -1675,6 +1705,12 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public SyntaxNode GetExpressionOfThrowExpression(SyntaxNode node)
             => ((ThrowExpressionSyntax)node).Expression;
+
+        public SeparatedSyntaxList<SyntaxNode> GetInitializersOfObjectMemberInitializer(SyntaxNode node)
+            => node is InitializerExpressionSyntax(SyntaxKind.ObjectInitializerExpression) initExpr ? initExpr.Expressions : default;
+
+        public SeparatedSyntaxList<SyntaxNode> GetExpressionsOfObjectCollectionInitializer(SyntaxNode node)
+            => node is InitializerExpressionSyntax(SyntaxKind.CollectionInitializerExpression) initExpr ? initExpr.Expressions : default;
 
         #endregion
     }

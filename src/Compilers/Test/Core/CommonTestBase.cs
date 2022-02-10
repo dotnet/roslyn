@@ -46,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Action<IModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
+            bool trimOutput = true,
             int? expectedReturnCode = null,
             string[] args = null,
             EmitOptions emitOptions = null,
@@ -70,6 +71,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 manifestResources,
                                 expectedSignatures,
                                 expectedOutput,
+                                trimOutput,
                                 expectedReturnCode,
                                 args ?? Array.Empty<string>(),
                                 assemblyValidator,
@@ -142,6 +144,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             IEnumerable<ResourceDescription> manifestResources,
             SignatureDescription[] expectedSignatures,
             string expectedOutput,
+            bool trimOutput,
             int? expectedReturnCode,
             string[] args,
             Action<PEAssembly> assemblyValidator,
@@ -151,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var verifier = new CompilationVerifier(compilation, VisualizeRealIL, dependencies);
 
-            verifier.Emit(expectedOutput, expectedReturnCode, args, manifestResources, emitOptions, verify, expectedSignatures);
+            verifier.Emit(expectedOutput, trimOutput, expectedReturnCode, args, manifestResources, emitOptions, verify, expectedSignatures);
 
             if (assemblyValidator != null || symbolValidator != null)
             {

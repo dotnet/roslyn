@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 return GetSymbolsOffOfExpression(name);
 
             if (name.ShouldNameExpressionBeTreatedAsExpressionInsteadOfType(_context.SemanticModel, out var nameBinding, out var container))
-                return GetSymbolsOffOfBoundExpression(name, name, nameBinding, container, unwrapNullable: false);
+                return GetSymbolsOffOfBoundExpression(name, name, nameBinding, container, unwrapNullable: false, isForDereference: false);
 
             // We're in a name-only context, since if we were an expression we'd be a
             // MemberAccessExpressionSyntax. Thus, let's do other namespaces and types.
@@ -307,14 +307,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             var leftHandBinding = _context.SemanticModel.GetSymbolInfo(expression, _cancellationToken);
             var container = _context.SemanticModel.GetTypeInfo(expression, _cancellationToken).Type;
 
-            var result = GetSymbolsOffOfBoundExpression(originalExpression, expression, leftHandBinding, container, unwrapNullable: false);
+            var result = GetSymbolsOffOfBoundExpression(originalExpression, expression, leftHandBinding, container, unwrapNullable: false, isForDereference: false);
 
             // Check for the Color Color case.
             if (originalExpression.CanAccessInstanceAndStaticMembersOffOf(_context.SemanticModel, _cancellationToken))
             {
                 var speculativeSymbolInfo = _context.SemanticModel.GetSpeculativeSymbolInfo(expression.SpanStart, expression, SpeculativeBindingOption.BindAsTypeOrNamespace);
 
-                var typeMembers = GetSymbolsOffOfBoundExpression(originalExpression, expression, speculativeSymbolInfo, container, unwrapNullable: false);
+                var typeMembers = GetSymbolsOffOfBoundExpression(originalExpression, expression, speculativeSymbolInfo, container, unwrapNullable: false, isForDereference: false);
 
                 result = new RecommendedSymbols(
                     result.NamedSymbols.Concat(typeMembers.NamedSymbols),
@@ -328,14 +328,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
         {
             var expression = originalExpression.WalkDownParentheses();
             var leftHandBinding = _context.SemanticModel.GetSymbolInfo(expression, _cancellationToken);
-
             var container = _context.SemanticModel.GetTypeInfo(expression, _cancellationToken).Type;
-            if (container is IPointerTypeSymbol pointerType)
-            {
-                container = pointerType.PointedAtType;
-            }
 
-            return GetSymbolsOffOfBoundExpression(originalExpression, expression, leftHandBinding, container, unwrapNullable: false);
+            return GetSymbolsOffOfBoundExpression(originalExpression, expression, leftHandBinding, container, unwrapNullable: false, isForDereference: true);
         }
 
         private RecommendedSymbols GetSymbolsOffOfConditionalReceiver(ExpressionSyntax originalExpression)
@@ -353,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             if (leftHandBinding.GetBestOrAllSymbols().FirstOrDefault().MatchesKind(SymbolKind.NamedType, SymbolKind.Namespace, SymbolKind.Alias))
                 return default;
 
-            return GetSymbolsOffOfBoundExpression(originalExpression, expression, leftHandBinding, container, unwrapNullable: true);
+            return GetSymbolsOffOfBoundExpression(originalExpression, expression, leftHandBinding, container, unwrapNullable: true, isForDereference: false);
         }
 
         private RecommendedSymbols GetSymbolsOffOfBoundExpression(
@@ -361,7 +356,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             ExpressionSyntax expression,
             SymbolInfo leftHandBinding,
             ITypeSymbol? containerType,
-            bool unwrapNullable)
+            bool unwrapNullable,
+            bool isForDereference)
         {
             var abstractsOnly = false;
             var excludeInstance = false;
@@ -448,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             }
 
             var useBaseReferenceAccessibility = symbol is IParameterSymbol { IsThis: true } p && !p.Type.Equals(containerType);
-            var symbols = GetMemberSymbols(containerSymbol, position: originalExpression.SpanStart, excludeInstance, useBaseReferenceAccessibility, unwrapNullable);
+            var symbols = GetMemberSymbols(containerSymbol, position: originalExpression.SpanStart, excludeInstance, useBaseReferenceAccessibility, unwrapNullable, isForDereference);
 
             // If we're showing instance members, don't include nested types
             var namedSymbols = excludeStatic

@@ -655,6 +655,7 @@ namespace System.Runtime.CompilerServices
             Action<ModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
+            bool trimOutput = true,
             int? expectedReturnCode = null,
             string[] args = null,
             CSharpCompilationOptions options = null,
@@ -671,6 +672,7 @@ namespace System.Runtime.CompilerServices
                 symbolValidator,
                 expectedSignatures,
                 expectedOutput,
+                trimOutput,
                 expectedReturnCode,
                 args,
                 options,
@@ -689,6 +691,7 @@ namespace System.Runtime.CompilerServices
             Action<ModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
+            bool trimOutput = true,
             int? expectedReturnCode = null,
             string[] args = null,
             CSharpCompilationOptions options = null,
@@ -705,6 +708,7 @@ namespace System.Runtime.CompilerServices
                 symbolValidator,
                 expectedSignatures,
                 expectedOutput,
+                trimOutput,
                 expectedReturnCode,
                 args,
                 options,
@@ -724,6 +728,7 @@ namespace System.Runtime.CompilerServices
             Action<ModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
+            bool trimOutput = true,
             int? expectedReturnCode = null,
             string[] args = null,
             CSharpCompilationOptions options = null,
@@ -744,6 +749,7 @@ namespace System.Runtime.CompilerServices
                 symbolValidator,
                 expectedSignatures,
                 expectedOutput,
+                trimOutput,
                 expectedReturnCode,
                 args,
                 options,
@@ -763,6 +769,7 @@ namespace System.Runtime.CompilerServices
             Action<ModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
+            bool trimOutput = true,
             int? expectedReturnCode = null,
             string[] args = null,
             CSharpCompilationOptions options = null,
@@ -779,6 +786,7 @@ namespace System.Runtime.CompilerServices
                 symbolValidator,
                 expectedSignatures,
                 expectedOutput,
+                trimOutput,
                 expectedReturnCode,
                 args,
                 options,
@@ -797,6 +805,7 @@ namespace System.Runtime.CompilerServices
             Action<ModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
+            bool trimOutput = true,
             int? expectedReturnCode = null,
             string[] args = null,
             CSharpCompilationOptions options = null,
@@ -813,6 +822,7 @@ namespace System.Runtime.CompilerServices
                 symbolValidator,
                 expectedSignatures,
                 expectedOutput,
+                trimOutput,
                 expectedReturnCode,
                 args,
                 options,
@@ -831,6 +841,7 @@ namespace System.Runtime.CompilerServices
             Action<ModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
+            bool trimOutput = true,
             int? expectedReturnCode = null,
             string[] args = null,
             CSharpCompilationOptions options = null,
@@ -850,6 +861,7 @@ namespace System.Runtime.CompilerServices
                 symbolValidator,
                 expectedSignatures,
                 expectedOutput,
+                trimOutput,
                 expectedReturnCode,
                 args,
                 emitOptions,
@@ -865,6 +877,7 @@ namespace System.Runtime.CompilerServices
             Action<ModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
+            bool trimOutput = true,
             int? expectedReturnCode = null,
             string[] args = null,
             EmitOptions emitOptions = null,
@@ -891,6 +904,7 @@ namespace System.Runtime.CompilerServices
                 translate(symbolValidator),
                 expectedSignatures,
                 expectedOutput,
+                trimOutput,
                 expectedReturnCode,
                 args,
                 emitOptions,
@@ -1439,6 +1453,12 @@ namespace System.Runtime.CompilerServices
             {
                 string exprFullText = node.ToFullString();
                 exprFullText = exprFullText.Trim();
+
+                // Account for comments being added as leading trivia for this node.
+                while (exprFullText.StartsWith("//"))
+                {
+                    exprFullText = exprFullText[exprFullText.IndexOf('\n')..].Trim();
+                }
 
                 if (exprFullText.StartsWith(StartString, StringComparison.Ordinal))
                 {

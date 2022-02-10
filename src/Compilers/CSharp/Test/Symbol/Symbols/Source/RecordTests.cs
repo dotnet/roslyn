@@ -1804,22 +1804,5 @@ class Test
             CompileAndVerify(src1 + src2 + src3, expectedOutput: "C { Y = 22, X = 11, U = 44, Z = 33 }").VerifyDiagnostics();
             CompileAndVerify(new[] { src1, src2, src3 }, expectedOutput: "C { Y = 22, X = 11, U = 44, Z = 33 }").VerifyDiagnostics();
         }
-
-        [Fact]
-        public void EqualityContractGetter_CompilerGeneratedAttribute()
-        {
-            var verifier = CompileAndVerify(@"
-using System;
-
-record C;
-", symbolValidator: validate);
-
-            static void validate(ModuleSymbol module)
-            {
-                var member = module.GlobalNamespace.GetTypeMember("C").GetMember("get_EqualityContract");
-                var attributes = member.GetAttributes();
-                Assert.Equal(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(attributes));
-            }
-        }
     }
 }

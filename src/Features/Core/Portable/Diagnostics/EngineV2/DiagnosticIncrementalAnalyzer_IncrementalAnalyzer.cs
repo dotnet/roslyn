@@ -374,6 +374,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 stateSets = stateSets.Where(s => !s.FromBuild(project.Id));
             }
 
+            // include all analyzers if option is on
+            if (project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.ProcessHiddenDiagnostics))
+            {
+                return stateSets.ToList();
+            }
+
             // Compute analyzer config options for computing effective severity.
             // Note that these options are not cached onto the project, so we compute it once upfront. 
             var analyzerConfigOptions = project.GetAnalyzerConfigOptions();
