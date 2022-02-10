@@ -37,6 +37,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public ReadOnly Property InterpolatedStringTextToken As Integer = SyntaxKind.InterpolatedStringTextToken Implements ISyntaxKinds.InterpolatedStringTextToken
         Public ReadOnly Property QuestionToken As Integer = SyntaxKind.QuestionToken Implements ISyntaxKinds.QuestionToken
         Public ReadOnly Property StringLiteralToken As Integer = SyntaxKind.StringLiteralToken Implements ISyntaxKinds.StringLiteralToken
+        Public ReadOnly Property SingleLineRawStringLiteralToken As Integer? = Nothing Implements ISyntaxKinds.SingleLineRawStringLiteralToken
+        Public ReadOnly Property MultiLineRawStringLiteralToken As Integer? = Nothing Implements ISyntaxKinds.MultiLineRawStringLiteralToken
 
         Public ReadOnly Property DelegateKeyword As Integer = SyntaxKind.DelegateKeyword Implements ISyntaxKinds.DelegateKeyword
         Public ReadOnly Property IfKeyword As Integer = SyntaxKind.IfKeyword Implements ISyntaxKinds.IfKeyword
@@ -98,6 +100,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public ReadOnly Property Attribute As Integer = SyntaxKind.Attribute Implements ISyntaxKinds.Attribute
         Public ReadOnly Property ClassDeclaration As Integer = SyntaxKind.ClassBlock Implements ISyntaxKinds.ClassDeclaration
+        Public ReadOnly Property RecordDeclaration As Integer? = Nothing Implements ISyntaxKinds.RecordDeclaration
+        Public ReadOnly Property RecordStructDeclaration As Integer? = Nothing Implements ISyntaxKinds.RecordStructDeclaration
         Public ReadOnly Property Parameter As Integer = SyntaxKind.Parameter Implements ISyntaxKinds.Parameter
         Public ReadOnly Property TypeConstraint As Integer = SyntaxKind.TypeConstraint Implements ISyntaxKinds.TypeConstraint
         Public ReadOnly Property VariableDeclarator As Integer = SyntaxKind.VariableDeclarator Implements ISyntaxKinds.VariableDeclarator

@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
 
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 }
 
                 var faultEvent = new FaultEvent(
-                    eventName: FunctionId.NonFatalWatson.GetEventName(),
+                    eventName: TelemetryLogger.GetEventName(FunctionId.NonFatalWatson),
                     description: GetDescription(exception),
                     severity,
                     exceptionObject: exception,

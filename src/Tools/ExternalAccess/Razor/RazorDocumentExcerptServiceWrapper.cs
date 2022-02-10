@@ -6,19 +6,26 @@ using System;
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
     internal sealed class RazorDocumentExcerptServiceWrapper : IDocumentExcerptService
     {
-        private readonly IRazorDocumentExcerptService _razorDocumentExcerptService;
+        [Obsolete]
+        private readonly IRazorDocumentExcerptService? _legacyRazorDocumentExcerptService;
 
+        private readonly IRazorDocumentExcerptServiceImplementation? _impl;
+
+        [Obsolete]
         public RazorDocumentExcerptServiceWrapper(IRazorDocumentExcerptService razorDocumentExcerptService)
-        {
-            _razorDocumentExcerptService = razorDocumentExcerptService ?? throw new ArgumentNullException(nameof(razorDocumentExcerptService));
-        }
+            => _legacyRazorDocumentExcerptService = razorDocumentExcerptService;
+
+        public RazorDocumentExcerptServiceWrapper(IRazorDocumentExcerptServiceImplementation impl)
+            => _impl = impl;
 
         public async Task<ExcerptResult?> TryExcerptAsync(Document document, TextSpan span, ExcerptMode mode, CancellationToken cancellationToken)
         {
@@ -26,17 +33,25 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             {
                 ExcerptMode.SingleLine => RazorExcerptMode.SingleLine,
                 ExcerptMode.Tooltip => RazorExcerptMode.Tooltip,
-                _ => throw new InvalidEnumArgumentException($"Unsupported enum type {mode}."),
+                _ => throw ExceptionUtilities.UnexpectedValue(mode),
             };
-            var nullableRazorExcerpt = await _razorDocumentExcerptService.TryExcerptAsync(document, span, razorMode, cancellationToken).ConfigureAwait(false);
-            if (nullableRazorExcerpt == null)
+
+            RazorExcerptResult? result;
+            if (_impl != null)
             {
-                return null;
+                var options = ClassificationOptions.From(document.Project);
+                result = await _impl.TryExcerptAsync(document, span, razorMode, new RazorClassificationOptionsWrapper(options), cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+#pragma warning disable CS0612 // Type or member is obsolete
+                Contract.ThrowIfNull(_legacyRazorDocumentExcerptService);
+                result = await _legacyRazorDocumentExcerptService.TryExcerptAsync(document, span, razorMode, cancellationToken).ConfigureAwait(false);
+#pragma warning restore
             }
 
-            var razorExcerpt = nullableRazorExcerpt.Value;
-            var roslynExcerpt = new ExcerptResult(razorExcerpt.Content, razorExcerpt.MappedSpan, razorExcerpt.ClassifiedSpans, razorExcerpt.Document, razorExcerpt.Span);
-            return roslynExcerpt;
+            var razorExcerpt = result.Value;
+            return new ExcerptResult(razorExcerpt.Content, razorExcerpt.MappedSpan, razorExcerpt.ClassifiedSpans, razorExcerpt.Document, razorExcerpt.Span);
         }
     }
 }
