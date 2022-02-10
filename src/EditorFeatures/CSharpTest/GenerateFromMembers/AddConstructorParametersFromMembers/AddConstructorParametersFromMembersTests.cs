@@ -1976,7 +1976,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestNonSelectionMissing1()
         {
-            string source =
+            var source =
 @"using System.Collections.Generic;
 
 class Program
