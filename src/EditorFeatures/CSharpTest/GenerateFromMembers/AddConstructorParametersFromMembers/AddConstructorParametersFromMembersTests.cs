@@ -2052,5 +2052,153 @@ class Program
 }";
             await VerifyCS.VerifyRefactoringAsync(source, source);
         }
+
+        [WorkItem(59292, "https://github.com/dotnet/roslyn/issues/59292")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestPartialClass1()
+        {
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@"
+partial class C
+{
+    private int [|_v|];
+}",
+@"
+partial class C
+{
+    public C()
+    {
+    }
+}"
+                    }
+                },
+                FixedState =
+                {
+                    Sources =
+                    {
+@"
+partial class C
+{
+    private int _v;
+}",
+@"
+partial class C
+{
+    public C(int v)
+    {
+        _v = v;
+    }
+}"
+                    }
+                }
+            }.RunAsync();
+        }
+
+        [WorkItem(59292, "https://github.com/dotnet/roslyn/issues/59292")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestPartialClass2()
+        {
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@"
+partial class C
+{
+    private int [|_v|];
+
+    public C()
+    {
+    }
+}",
+@"
+partial class C
+{
+    public C(object goo)
+    {
+    }
+}"
+                    }
+                },
+                FixedState =
+                {
+                    Sources =
+                    {
+@"
+partial class C
+{
+    private int _v;
+
+    public C()
+    {
+    }
+}",
+@"
+partial class C
+{
+    public C(object goo, int v)
+    {
+        _v = v;
+    }
+}"
+                    }
+                },
+                CodeActionIndex = 1
+            }.RunAsync();
+        }
+
+        [WorkItem(59292, "https://github.com/dotnet/roslyn/issues/59292")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestPartialClass3()
+        {
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources =
+                    {
+@"
+partial class C
+{
+    private int [|_v|];
+}",
+@"
+partial class C
+{
+    public C()
+    {
+    }
+}"
+                    }
+                },
+                FixedState =
+                {
+                    Sources =
+                    {
+@"
+partial class C
+{
+    private int _v;
+}",
+@"
+partial class C
+{
+    public C(int v = 0)
+    {
+        _v = v;
+    }
+}"
+                    }
+                },
+                CodeActionIndex = 1
+            }.RunAsync();
+        }
     }
 }
