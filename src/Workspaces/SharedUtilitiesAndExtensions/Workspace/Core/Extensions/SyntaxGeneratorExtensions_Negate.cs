@@ -120,8 +120,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 // x is y   ->    x is not y
                 //
-                // special case `x is object` to `x is null`
-                 
+                // special case `x is not object` to `x is null`
                 if (syntaxFacts.IsIsExpression(expressionNode) && syntaxFacts.SupportsNotPattern(semanticModel.SyntaxTree.Options))
                 {
                     return syntaxFacts.IsPredefinedType(rightOperand, PredefinedType.Object)
