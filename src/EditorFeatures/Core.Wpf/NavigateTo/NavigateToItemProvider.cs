@@ -114,21 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 kinds,
                 _threadingContext.DisposalToken);
 
-            _ = SearchAsync(searcher, searchCurrentDocument, _cancellationTokenSource.Token);
-        }
-
-        private async Task SearchAsync(NavigateToSearcher searcher, bool searchCurrentDocument, CancellationToken cancellationToken)
-        {
-            try
-            {
-                await searcher.SearchAsync(searchCurrentDocument, cancellationToken).ConfigureAwait(false);
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.General))
-            {
-            }
+            _ = searcher.SearchAsync(searchCurrentDocument, _cancellationTokenSource.Token).ReportNonFatalErrorUnlessCancelledAsync(_cancellationTokenSource.Token);
         }
     }
 }
