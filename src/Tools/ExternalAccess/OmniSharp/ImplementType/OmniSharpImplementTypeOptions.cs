@@ -7,7 +7,9 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType
 {
-    internal static class OmniSharpImplementTypeOptions
+    internal readonly record struct OmniSharpImplementTypeOptions(
+        OmniSharpImplementTypeInsertionBehavior InsertionBehavior,
+        OmniSharpImplementTypePropertyGenerationBehavior PropertyGenerationBehavior)
     {
         public static OmniSharpImplementTypeInsertionBehavior GetInsertionBehavior(OptionSet options, string language)
             => (OmniSharpImplementTypeInsertionBehavior)options.GetOption(ImplementTypeOptions.Metadata.InsertionBehavior, language);
