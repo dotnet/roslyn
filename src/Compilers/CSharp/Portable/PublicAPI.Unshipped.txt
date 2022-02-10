@@ -29,6 +29,8 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.TryStatement(Microsoft.CodeAn
 *REMOVED*static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.TryStatement(Microsoft.CodeAnalysis.SyntaxToken tryKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax! block, Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.CatchClauseSyntax!> catches, Microsoft.CodeAnalysis.CSharp.Syntax.FinallyClauseSyntax! finally) -> Microsoft.CodeAnalysis.CSharp.Syntax.TryStatementSyntax!
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.InterpolatedStringExpression(Microsoft.CodeAnalysis.SyntaxToken stringStartToken, Microsoft.CodeAnalysis.SyntaxToken stringEndToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.InterpolatedStringExpressionSyntax!
 
-Microsoft.CodeAnalysis.CSharp.Conversion.IsUtf8StringLiteral.get -> bool
+Microsoft.CodeAnalysis.CSharp.Conversion.IsUTF8StringLiteral.get -> bool
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.UTF8StringLiteralExpression = 8756 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.UTF8StringLiteralToken = 8518 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.UTF8SingleLineRawStringLiteralToken = 8519 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.UTF8MultiLineRawStringLiteralToken = 8520 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind

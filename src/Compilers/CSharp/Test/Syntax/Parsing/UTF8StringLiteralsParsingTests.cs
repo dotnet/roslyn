@@ -18,13 +18,81 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public UTF8StringLiteralsParsingTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
-        public void RegularStringLiteral()
+        public void RegularStringLiteral_01()
         {
             UsingExpression(@"""hello""");
 
             N(SyntaxKind.StringLiteralExpression);
             {
                 N(SyntaxKind.StringLiteralToken, "\"hello\"");
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RegularStringLiteral_02()
+        {
+            UsingExpression(@"@""hello""");
+
+            N(SyntaxKind.StringLiteralExpression);
+            {
+                N(SyntaxKind.StringLiteralToken, "@\"hello\"");
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RawStringLiteral_01()
+        {
+            UsingExpression(@"""""""hello""""""");
+
+            N(SyntaxKind.StringLiteralExpression);
+            {
+                N(SyntaxKind.SingleLineRawStringLiteralToken, "\"\"\"hello\"\"\"");
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RawStringLiteral_02()
+        {
+            UsingExpression(@"""""""
+hello
+""""""");
+
+            N(SyntaxKind.StringLiteralExpression);
+            {
+                N(SyntaxKind.MultiLineRawStringLiteralToken, "\"\"\"" + @"
+hello
+" + "\"\"\"");
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RawStringLiteral_03()
+        {
+            UsingExpression(@"@""""""hello""""""");
+
+            N(SyntaxKind.StringLiteralExpression);
+            {
+                N(SyntaxKind.StringLiteralToken, "@\"\"\"hello\"\"\"");
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RawStringLiteral_04()
+        {
+            UsingExpression(@"@""""""
+hello
+""""""");
+
+            N(SyntaxKind.StringLiteralExpression);
+            {
+                N(SyntaxKind.StringLiteralToken, "@\"\"\"" + @"
+hello
+" + "\"\"\"");
             }
             EOF();
         }
@@ -507,6 +575,354 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (1,1): error CS1073: Unexpected token 'U8'
                 // $@"hello"U8
                 Diagnostic(ErrorCode.ERR_UnexpectedToken, @"$@""hello""").WithArguments("U8").WithLocation(1, 1)
+                );
+
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedVerbatimStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.InterpolatedStringEndToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void UTF8StringLiteral_13()
+        {
+            foreach (var options in new[] { TestOptions.RegularDefault, TestOptions.RegularNext, TestOptions.Regular10 })
+            {
+                foreach (var suffix in new[] { "u8", "U8" })
+                {
+                    UsingExpression(@"""""""hello""""""" + suffix, options: options);
+
+                    N(SyntaxKind.UTF8StringLiteralExpression);
+                    {
+                        N(SyntaxKind.UTF8SingleLineRawStringLiteralToken, "\"\"\"hello\"\"\"" + suffix);
+                    }
+                    EOF();
+                }
+            }
+        }
+
+        [Fact]
+        public void UTF8StringLiteral_14()
+        {
+            foreach (var options in new[] { TestOptions.RegularDefault, TestOptions.RegularNext, TestOptions.Regular10 })
+            {
+                foreach (var suffix in new[] { "u8", "U8" })
+                {
+                    UsingExpression(@"@""""""hello""""""" + suffix, options: options);
+
+                    N(SyntaxKind.UTF8StringLiteralExpression);
+                    {
+                        N(SyntaxKind.UTF8StringLiteralToken, "@\"\"\"hello\"\"\"" + suffix);
+                    }
+                    EOF();
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData("u8")]
+        [InlineData("U8")]
+        public void Errors_17(string suffix)
+        {
+            // The behavior is consistent with how type suffixes are handled on numeric literals, see Errors_06.
+            UsingExpression(@"""""""hello"""""" " + suffix,
+                // (1,1): error CS1073: Unexpected token 'u8'
+                // """hello""" u8
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, @"""""""hello""""""").WithArguments(suffix).WithLocation(1, 1)
+                );
+
+            N(SyntaxKind.StringLiteralExpression);
+            {
+                N(SyntaxKind.SingleLineRawStringLiteralToken, "\"\"\"hello\"\"\"");
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData("u")]
+        [InlineData("U")]
+        public void Errors_18(string suffix)
+        {
+            UsingExpression(@"""""""hello""""""" + suffix,
+                // (1,1): error CS1073: Unexpected token 'u'
+                // """hello"""u
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, @"""""""hello""""""").WithArguments(suffix).WithLocation(1, 1)
+                );
+
+            N(SyntaxKind.StringLiteralExpression);
+            {
+                N(SyntaxKind.SingleLineRawStringLiteralToken, "\"\"\"hello\"\"\"");
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Errors_19()
+        {
+            UsingExpression(@"""""""hello""""""8",
+                // (1,1): error CS1073: Unexpected token '8'
+                // """hello"""8
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, @"""""""hello""""""").WithArguments("8").WithLocation(1, 1)
+                );
+
+            N(SyntaxKind.StringLiteralExpression);
+            {
+                N(SyntaxKind.SingleLineRawStringLiteralToken, "\"\"\"hello\"\"\"");
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData("u80")]
+        [InlineData("U80")]
+        public void Errors_20(string suffix)
+        {
+            // The behavior is consistent with how type suffixes are handled on numeric literals, see Errors_05.
+            UsingExpression(@"""""""hello""""""" + suffix,
+                // (1,1): error CS1073: Unexpected token '0'
+                // """hello"""U80
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, @"""""""hello""""""" + suffix.Substring(0, 2)).WithArguments("0").WithLocation(1, 1)
+                );
+
+            N(SyntaxKind.UTF8StringLiteralExpression);
+            {
+                N(SyntaxKind.UTF8SingleLineRawStringLiteralToken, "\"\"\"hello\"\"\"" + suffix.Substring(0, 2));
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData("u8")]
+        [InlineData("U8")]
+        public void Interpolation_05(string suffix)
+        {
+            UsingExpression(@"$""""""hello""""""" + suffix,
+                // (1,1): error CS1073: Unexpected token 'u8'
+                // $"""hello"""u8
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, @"$""""""hello""""""").WithArguments(suffix).WithLocation(1, 1)
+                );
+
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedSingleLineRawStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.InterpolatedRawStringEndToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData("u8")]
+        [InlineData("U8")]
+        public void Interpolation_06(string suffix)
+        {
+            UsingExpression(@"$@""""""hello""""""" + suffix,
+                // (1,1): error CS1073: Unexpected token 'u8'
+                // $@"""hello"""u8
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, @"$@""""""hello""""""").WithArguments(suffix).WithLocation(1, 1)
+                );
+
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedVerbatimStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.InterpolatedStringEndToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void UTF8StringLiteral_15()
+        {
+            foreach (var options in new[] { TestOptions.RegularDefault, TestOptions.RegularNext, TestOptions.Regular10 })
+            {
+                foreach (var suffix in new[] { "u8", "U8" })
+                {
+                    UsingExpression(@"""""""
+hello
+""""""" + suffix, options: options);
+
+                    N(SyntaxKind.UTF8StringLiteralExpression);
+                    {
+                        N(SyntaxKind.UTF8MultiLineRawStringLiteralToken, "\"\"\"" + @"
+hello
+" + "\"\"\"" + suffix);
+                    }
+                    EOF();
+                }
+            }
+        }
+
+        [Fact]
+        public void UTF8StringLiteral_16()
+        {
+            foreach (var options in new[] { TestOptions.RegularDefault, TestOptions.RegularNext, TestOptions.Regular10 })
+            {
+                foreach (var suffix in new[] { "u8", "U8" })
+                {
+                    UsingExpression(@"@""""""
+hello
+""""""" + suffix, options: options);
+
+                    N(SyntaxKind.UTF8StringLiteralExpression);
+                    {
+                        N(SyntaxKind.UTF8StringLiteralToken, "@\"\"\"" + @"
+hello
+" + "\"\"\"" + suffix);
+                    }
+                    EOF();
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData("u8")]
+        [InlineData("U8")]
+        public void Errors_21(string suffix)
+        {
+            // The behavior is consistent with how type suffixes are handled on numeric literals, see Errors_06.
+            UsingExpression(@"""""""
+hello
+"""""" " + suffix,
+                // (1,1): error CS1073: Unexpected token 'u8'
+                // """hello""" u8
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, @"""""""
+hello
+""""""").WithArguments(suffix).WithLocation(1, 1)
+                );
+
+            N(SyntaxKind.StringLiteralExpression);
+            {
+                N(SyntaxKind.MultiLineRawStringLiteralToken, "\"\"\"" + @"
+hello
+" + "\"\"\"");
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData("u")]
+        [InlineData("U")]
+        public void Errors_22(string suffix)
+        {
+            UsingExpression(@"""""""
+hello
+""""""" + suffix,
+                // (1,1): error CS1073: Unexpected token 'u'
+                // """hello"""u
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, @"""""""
+hello
+""""""").WithArguments(suffix).WithLocation(1, 1)
+                );
+
+            N(SyntaxKind.StringLiteralExpression);
+            {
+                N(SyntaxKind.MultiLineRawStringLiteralToken, "\"\"\"" + @"
+hello
+" + "\"\"\"");
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void Errors_23()
+        {
+            UsingExpression(@"""""""
+hello
+""""""8",
+                // (1,1): error CS1073: Unexpected token '8'
+                // """hello"""8
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, @"""""""
+hello
+""""""").WithArguments("8").WithLocation(1, 1)
+                );
+
+            N(SyntaxKind.StringLiteralExpression);
+            {
+                N(SyntaxKind.MultiLineRawStringLiteralToken, "\"\"\"" + @"
+hello
+" + "\"\"\"");
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData("u80")]
+        [InlineData("U80")]
+        public void Errors_24(string suffix)
+        {
+            // The behavior is consistent with how type suffixes are handled on numeric literals, see Errors_05.
+            UsingExpression(@"""""""
+hello
+""""""" + suffix,
+                // (1,1): error CS1073: Unexpected token '0'
+                // """hello"""U80
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, @"""""""
+hello
+""""""" + suffix.Substring(0, 2)).WithArguments("0").WithLocation(1, 1)
+                );
+
+            N(SyntaxKind.UTF8StringLiteralExpression);
+            {
+                N(SyntaxKind.UTF8MultiLineRawStringLiteralToken, "\"\"\"" + @"
+hello
+" + "\"\"\"" + suffix.Substring(0, 2));
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData("u8")]
+        [InlineData("U8")]
+        public void Interpolation_07(string suffix)
+        {
+            UsingExpression(@"$""""""
+hello
+""""""" + suffix,
+                // (1,1): error CS1073: Unexpected token 'u8'
+                // $"""hello"""u8
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, @"$""""""
+hello
+""""""").WithArguments(suffix).WithLocation(1, 1)
+                );
+
+            N(SyntaxKind.InterpolatedStringExpression);
+            {
+                N(SyntaxKind.InterpolatedMultiLineRawStringStartToken);
+                N(SyntaxKind.InterpolatedStringText);
+                {
+                    N(SyntaxKind.InterpolatedStringTextToken);
+                }
+                N(SyntaxKind.InterpolatedRawStringEndToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [InlineData("u8")]
+        [InlineData("U8")]
+        public void Interpolation_08(string suffix)
+        {
+            UsingExpression(@"$@""""""
+hello
+""""""" + suffix,
+                // (1,1): error CS1073: Unexpected token 'u8'
+                // $@"""hello"""u8
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, @"$@""""""
+hello
+""""""").WithArguments(suffix).WithLocation(1, 1)
                 );
 
             N(SyntaxKind.InterpolatedStringExpression);

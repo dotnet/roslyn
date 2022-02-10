@@ -492,6 +492,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         InterpolatedStringTextToken = 8517,             // literal text that is part of an interpolated string
 
         UTF8StringLiteralToken = 8518,
+        UTF8SingleLineRawStringLiteralToken = 8519,
+        UTF8MultiLineRawStringLiteralToken = 8520,
 
         // trivia
         EndOfLineTrivia = 8539,

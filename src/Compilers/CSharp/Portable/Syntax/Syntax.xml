@@ -875,9 +875,11 @@
       <Kind Name="ArgListKeyword"/>
       <Kind Name="NumericLiteralToken"/>
       <Kind Name="StringLiteralToken"/>
-      <Kind Name="MultiLineRawStringLiteralToken"/>
-      <Kind Name="SingleLineRawStringLiteralToken"/>
       <Kind Name="UTF8StringLiteralToken"/>
+      <Kind Name="MultiLineRawStringLiteralToken"/>
+      <Kind Name="UTF8MultiLineRawStringLiteralToken"/>
+      <Kind Name="SingleLineRawStringLiteralToken"/>
+      <Kind Name="UTF8SingleLineRawStringLiteralToken"/>
       <Kind Name="CharacterLiteralToken"/>
       <Kind Name="TrueKeyword"/>
       <Kind Name="FalseKeyword"/>

@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         .WithSuppression(source.IsSuppressed);
                 }
 
-                if (conversion.IsUtf8StringLiteral)
+                if (conversion.IsUTF8StringLiteral)
                 {
                     CheckFeatureAvailability(syntax, MessageID.IDS_FeatureUTF8StringLiterals, diagnostics);
                 }
