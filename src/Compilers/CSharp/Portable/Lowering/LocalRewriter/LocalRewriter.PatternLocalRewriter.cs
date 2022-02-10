@@ -363,6 +363,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private BoundExpression MakeNullCheck(SyntaxNode syntax, BoundExpression rewrittenExpr, BinaryOperatorKind operatorKind)
             {
+                if (rewrittenExpr.Type.IsSpanOrReadOnlySpanChar())
+                {
+                    return MakeSpanStringTest(rewrittenExpr, ConstantValue.Null);
+                }
+
                 if (rewrittenExpr.Type.IsPointerOrFunctionPointer())
                 {
                     TypeSymbol objectType = _factory.SpecialType(SpecialType.System_Object);

@@ -8172,13 +8172,13 @@ class C
 @"using System;
 class C
 {
-    static bool M(ReadOnlySpan<char> chars) => chars is (string)null;
+    static bool M(ReadOnlySpan<char> chars) => chars is (object)null;
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics(
-                // (4,57): error CS0150: A constant value is expected
-                //     static bool M(ReadOnlySpan<char> chars) => chars is (string)null;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(string)null").WithLocation(4, 57));
+                // (4,57): error CS0266: Cannot implicitly convert type 'object' to 'System.ReadOnlySpan<char>'. An explicit conversion exists (are you missing a cast?)
+                //     static bool M(ReadOnlySpan<char> chars) => chars is (object)null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "System.ReadOnlySpan<char>").WithLocation(4, 57));
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -8188,14 +8188,68 @@ class C
 @"using System;
 class C
 {
+    static bool M(ReadOnlySpan<char> chars) => chars is (string)null;
+    static void Main()
+    {
+        Console.WriteLine(M(new ReadOnlySpan<char>(null)));
+        Console.WriteLine(M((string)null));
+        Console.WriteLine(M(""""));
+        Console.WriteLine(M(""str""));
+    }
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"True
+True
+True
+False");
+            verifier.VerifyIL("C.M",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0007:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_000c:  ret
+}");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void PatternMatchReadOnlySpanCharOnNull_04()
+        {
+            var source =
+@"using System;
+class C
+{
     const string NullString = null;
     static bool M(ReadOnlySpan<char> chars) => chars is NullString;
+    static void Main()
+    {
+        Console.WriteLine(M(new ReadOnlySpan<char>(null)));
+        Console.WriteLine(M((string)null));
+        Console.WriteLine(M(""""));
+        Console.WriteLine(M(""str""));
+    }
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyEmitDiagnostics(
-                // (5,57): error CS0150: A constant value is expected
-                //     static bool M(ReadOnlySpan<char> chars) => chars is NullString;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "NullString").WithLocation(5, 57));
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"True
+True
+True
+False");
+            verifier.VerifyIL("C.M",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0007:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_000c:  ret
+}");
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -8222,13 +8276,13 @@ class C
 @"using System;
 class C
 {
-    static bool M(ReadOnlySpan<char> chars) => chars switch { (string)null => true, _ => false };
+    static bool M(ReadOnlySpan<char> chars) => chars switch { (object)null => true, _ => false };
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics(
-                // (4,63): error CS0150: A constant value is expected
-                //     static bool M(ReadOnlySpan<char> chars) => chars switch { (string)null => true, _ => false };
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(string)null").WithLocation(4, 63));
+                // (4,63): error CS0266: Cannot implicitly convert type 'object' to 'System.ReadOnlySpan<char>'. An explicit conversion exists (are you missing a cast?)
+                //     static bool M(ReadOnlySpan<char> chars) => chars switch { (object)null => true, _ => false };
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "System.ReadOnlySpan<char>").WithLocation(4, 63));
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -8238,14 +8292,84 @@ class C
 @"using System;
 class C
 {
-    const string NullString = null;
     static bool M(ReadOnlySpan<char> chars) => chars switch { (string)null => true, _ => false };
+    static void Main()
+    {
+        Console.WriteLine(M(new ReadOnlySpan<char>(null)));
+        Console.WriteLine(M((string)null));
+        Console.WriteLine(M(""""));
+        Console.WriteLine(M(""str""));
+    }
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyEmitDiagnostics(
-                // (5,63): error CS0150: A constant value is expected
-                //     static bool M(ReadOnlySpan<char> chars) => chars switch { (string)null => true, _ => false };
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(string)null").WithLocation(5, 63));
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"True
+True
+True
+False");
+            verifier.VerifyIL("C.M",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  2
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0007:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_000c:  brfalse.s  IL_0012
+  IL_000e:  ldc.i4.1
+  IL_000f:  stloc.0
+  IL_0010:  br.s       IL_0014
+  IL_0012:  ldc.i4.0
+  IL_0013:  stloc.0
+  IL_0014:  ldloc.0
+  IL_0015:  ret
+}");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SwitchReadOnlySpanCharOnNull_04()
+        {
+            var source =
+@"using System;
+class C
+{
+    const string NullString = null;
+    static bool M(ReadOnlySpan<char> chars) => chars switch { NullString => true, _ => false };
+    static void Main()
+    {
+        Console.WriteLine(M(new ReadOnlySpan<char>(null)));
+        Console.WriteLine(M((string)null));
+        Console.WriteLine(M(""""));
+        Console.WriteLine(M(""str""));
+    }
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"True
+True
+True
+False");
+            verifier.VerifyIL("C.M",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  2
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0007:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_000c:  brfalse.s  IL_0012
+  IL_000e:  ldc.i4.1
+  IL_000f:  stloc.0
+  IL_0010:  br.s       IL_0014
+  IL_0012:  ldc.i4.0
+  IL_0013:  stloc.0
+  IL_0014:  ldloc.0
+  IL_0015:  ret
+}");
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -9214,13 +9338,13 @@ class C
 @"using System;
 class C
 {
-    static bool M(Span<char> chars) => chars is (string)null;
+    static bool M(Span<char> chars) => chars is (object)null;
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics(
-                // (4,49): error CS0029: Cannot implicitly convert type 'string' to 'System.Span<char>'
-                //     static bool M(Span<char> chars) => chars is (string)null;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(string)null").WithArguments("string", "System.Span<char>").WithLocation(4, 49));
+                // (4,49): error CS0266: Cannot implicitly convert type 'object' to 'System.Span<char>'. An explicit conversion exists (are you missing a cast?)
+                //     static bool M(Span<char> chars) => chars is (object)null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "System.Span<char>").WithLocation(4, 49));
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -9228,16 +9352,68 @@ class C
         {
             var source =
 @"using System;
+using System.Linq;
+class C
+{
+    static bool M(Span<char> chars) => chars is (string)null;
+    static void Main()
+    {
+        Console.WriteLine(M(new Span<char>(null)));
+        Console.WriteLine(M("""".ToArray()));
+        Console.WriteLine(M(""str"".ToArray()));
+    }
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"True
+True
+False");
+            verifier.VerifyIL("C.M",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0007:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_000c:  ret
+}");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void PatternMatchSpanCharOnNull_04()
+        {
+            var source =
+@"using System;
+using System.Linq;
 class C
 {
     const string NullString = null;
     static bool M(Span<char> chars) => chars is NullString;
+    static void Main()
+    {
+        Console.WriteLine(M(new Span<char>(null)));
+        Console.WriteLine(M("""".ToArray()));
+        Console.WriteLine(M(""str"".ToArray()));
+    }
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyEmitDiagnostics(
-                // (5,49): error CS0029: Cannot implicitly convert type 'string' to 'System.Span<char>'
-                //     static bool M(Span<char> chars) => chars is NullString;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "NullString").WithArguments("string", "System.Span<char>").WithLocation(5, 49));
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"True
+True
+False");
+            verifier.VerifyIL("C.M",
+@"{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0007:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_000c:  ret
+}");
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -9264,13 +9440,13 @@ class C
 @"using System;
 class C
 {
-    static bool M(Span<char> chars) => chars switch { (string)null => true, _ => false };
+    static bool M(Span<char> chars) => chars switch { (object)null => true, _ => false };
 }";
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics(
-                // (4,55): error CS0029: Cannot implicitly convert type 'string' to 'System.Span<char>'
-                //     static bool M(Span<char> chars) => chars switch { (string)null => true, _ => false };
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(string)null").WithArguments("string", "System.Span<char>").WithLocation(4, 55));
+                // (4,55): error CS0266: Cannot implicitly convert type 'object' to 'System.Span<char>'. An explicit conversion exists (are you missing a cast?)
+                //     static bool M(Span<char> chars) => chars switch { (object)null => true, _ => false };
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "System.Span<char>").WithLocation(4, 55));
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -9278,16 +9454,84 @@ class C
         {
             var source =
 @"using System;
+using System.Linq;
+class C
+{
+    static bool M(Span<char> chars) => chars switch { (string)null => true, _ => false };
+    static void Main()
+    {
+        Console.WriteLine(M(new Span<char>(null)));
+        Console.WriteLine(M("""".ToArray()));
+        Console.WriteLine(M(""str"".ToArray()));
+    }
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"True
+True
+False");
+            verifier.VerifyIL("C.M",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  2
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0007:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_000c:  brfalse.s  IL_0012
+  IL_000e:  ldc.i4.1
+  IL_000f:  stloc.0
+  IL_0010:  br.s       IL_0014
+  IL_0012:  ldc.i4.0
+  IL_0013:  stloc.0
+  IL_0014:  ldloc.0
+  IL_0015:  ret
+}");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SwitchSpanCharOnNull_04()
+        {
+            var source =
+@"using System;
+using System.Linq;
 class C
 {
     const string NullString = null;
     static bool M(Span<char> chars) => chars switch { NullString => true, _ => false };
+    static void Main()
+    {
+        Console.WriteLine(M(new Span<char>(null)));
+        Console.WriteLine(M("""".ToArray()));
+        Console.WriteLine(M(""str"".ToArray()));
+    }
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyEmitDiagnostics(
-                // (5,55): error CS0029: Cannot implicitly convert type 'string' to 'System.Span<char>'
-                //     static bool M(Span<char> chars) => chars switch { NullString => true, _ => false };
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "NullString").WithArguments("string", "System.Span<char>").WithLocation(5, 55));
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"True
+True
+False");
+            verifier.VerifyIL("C.M",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  2
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_0007:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_000c:  brfalse.s  IL_0012
+  IL_000e:  ldc.i4.1
+  IL_000f:  stloc.0
+  IL_0010:  br.s       IL_0014
+  IL_0012:  ldc.i4.0
+  IL_0013:  stloc.0
+  IL_0014:  ldloc.0
+  IL_0015:  ret
+}");
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
