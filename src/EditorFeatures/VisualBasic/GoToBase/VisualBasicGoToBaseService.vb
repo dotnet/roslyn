@@ -14,8 +14,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GoToBase
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(globalOptions As IGlobalOptionService)
-            MyBase.New(globalOptions)
+        Public Sub New()
+            MyBase.New()
         End Sub
     End Class
 End Namespace

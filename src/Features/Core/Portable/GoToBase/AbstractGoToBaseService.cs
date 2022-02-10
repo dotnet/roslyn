@@ -13,11 +13,8 @@ namespace Microsoft.CodeAnalysis.GoToBase
 {
     internal abstract class AbstractGoToBaseService : IGoToBaseService
     {
-        private readonly IGlobalOptionService _globalOptions;
-
-        protected AbstractGoToBaseService(IGlobalOptionService globalOptions)
+        protected AbstractGoToBaseService()
         {
-            _globalOptions = globalOptions;
         }
 
         public async Task FindBasesAsync(IFindUsagesContext context, Document document, int position, CancellationToken cancellationToken)
