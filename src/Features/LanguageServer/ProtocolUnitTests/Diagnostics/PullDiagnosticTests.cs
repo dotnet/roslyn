@@ -562,8 +562,9 @@ class B {";
 
             var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
-            // Project.GetSourceGeneratedDocumentsAsync does not return documents in a deterministic order, so we sort
-            // the results here to ensure subsequent assertions are successful.
+            // Project.GetSourceGeneratedDocumentsAsync may not return documents in a deterministic order, so we sort
+            // the results here to ensure subsequent assertions are not dependent on the order of items provided by the
+            // project.
             results = results.Sort((x, y) => x.Uri.ToString().CompareTo(y.Uri.ToString()));
 
             Assert.Equal(2, results.Length);
