@@ -636,7 +636,7 @@ class C
                               showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
 
                 state.SendTypeChars("w")
-                Await state.AssertSelectedCompletionItem(displayText:="with", isHardSelected:=False)
+                Await state.AssertSelectedCompletionItem(displayText:="with", isHardSelected:=True)
                 state.SendTab()
                 state.SendTypeChars(" { ")
                 Await state.AssertSelectedCompletionItem(displayText:="Property", isHardSelected:=False)
