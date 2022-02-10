@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(hintName));
             }
 
-            // allow any identifier character or [.,-_ ()[]{}]
+            // allow any identifier character or [.,-+`_ ()[]{}]
             for (int i = 0; i < hintName.Length; i++)
             {
                 char c = hintName[i];
@@ -44,6 +44,8 @@ namespace Microsoft.CodeAnalysis
                     && c != '.'
                     && c != ','
                     && c != '-'
+                    && c != '+'
+                    && c != '`'
                     && c != '_'
                     && c != ' '
                     && c != '('

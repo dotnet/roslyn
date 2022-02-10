@@ -339,7 +339,6 @@ class B {";
             {
                 Assert.All(results.Single().Diagnostics, d => Assert.Equal("CSProj1", ((VSDiagnostic)d).Projects.Single().ProjectName));
             }
-            
         }
 
         [Theory, CombinatorialData]
@@ -434,6 +433,54 @@ class B {";
             Assert.Single(results);
             Assert.Null(results.Single().Diagnostics);
             Assert.Equal(originalResultId, results.Single().ResultId);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestDocumentDiagnosticsFromRazorServer(bool useVSDiagnostics)
+        {
+            var markup =
+@"class A {";
+
+            // Turn off pull diagnostics by default, but send a request to the razor LSP server which is always pull.
+            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFilesAndProjects, DiagnosticMode.Push, useVSDiagnostics, serverKind: WellKnownLspServerKinds.RazorLspServer);
+
+            // Calling GetTextBuffer will effectively open the file.
+            testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
+
+            var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+
+            await OpenDocumentAsync(testLspServer, document);
+
+            var results = await RunGetDocumentPullDiagnosticsAsync(
+                testLspServer, document.GetURI(), useVSDiagnostics);
+
+            // Assert that we have diagnostics even though the option is set to push.
+            Assert.Equal("CS1513", results.Single().Diagnostics.Single().Code);
+            Assert.NotNull(results.Single().Diagnostics.Single().CodeDescription!.Href);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestDocumentDiagnosticsFromLiveShareServer(bool useVSDiagnostics)
+        {
+            var markup =
+@"class A {";
+
+            // Turn off pull diagnostics by default, but send a request to the razor LSP server which is always pull.
+            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFilesAndProjects, DiagnosticMode.Push, useVSDiagnostics, serverKind: WellKnownLspServerKinds.LiveShareLspServer);
+
+            // Calling GetTextBuffer will effectively open the file.
+            testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
+
+            var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+
+            await OpenDocumentAsync(testLspServer, document);
+
+            var results = await RunGetDocumentPullDiagnosticsAsync(
+                testLspServer, document.GetURI(), useVSDiagnostics);
+
+            // Assert that we have diagnostics even though the option is set to push.
+            Assert.Equal("CS1513", results.Single().Diagnostics.Single().Code);
+            Assert.NotNull(results.Single().Diagnostics.Single().CodeDescription!.Href);
         }
 
         #endregion
@@ -1208,9 +1255,9 @@ class A {";
         private Task<TestLspServer> CreateTestWorkspaceWithDiagnosticsAsync(string markup, BackgroundAnalysisScope scope, bool useVSDiagnostics, bool pullDiagnostics = true)
             => CreateTestWorkspaceWithDiagnosticsAsync(markup, scope, pullDiagnostics ? DiagnosticMode.Pull : DiagnosticMode.Push, useVSDiagnostics);
 
-        private async Task<TestLspServer> CreateTestWorkspaceWithDiagnosticsAsync(string markup, BackgroundAnalysisScope scope, DiagnosticMode mode, bool useVSDiagnostics)
+        private async Task<TestLspServer> CreateTestWorkspaceWithDiagnosticsAsync(string markup, BackgroundAnalysisScope scope, DiagnosticMode mode, bool useVSDiagnostics, WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer)
         {
-            var testLspServer = await CreateTestLspServerAsync(markup, useVSDiagnostics ? CapabilitiesWithVSExtensions : new LSP.ClientCapabilities());
+            var testLspServer = await CreateTestLspServerAsync(markup, useVSDiagnostics ? CapabilitiesWithVSExtensions : new LSP.ClientCapabilities(), serverKind);
             InitializeDiagnostics(scope, testLspServer.TestWorkspace, mode);
             return testLspServer;
         }

@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -36,7 +33,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private int _assemblyDirectoryId;
 
-        public ShadowCopyAnalyzerAssemblyLoader(string baseDirectory = null)
+        public ShadowCopyAnalyzerAssemblyLoader(string? baseDirectory = null)
         {
             if (baseDirectory != null)
             {
@@ -72,7 +69,7 @@ namespace Microsoft.CodeAnalysis
             foreach (var subDirectory in subDirectories)
             {
                 string name = Path.GetFileName(subDirectory).ToLowerInvariant();
-                Mutex mutex = null;
+                Mutex? mutex = null;
                 try
                 {
                     // We only want to try deleting the directory if no-one else is currently
@@ -98,14 +95,12 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-#nullable enable
         protected override string GetPathToLoad(string fullPath)
         {
             string assemblyDirectory = CreateUniqueDirectoryForAssembly();
             string shadowCopyPath = CopyFileAndResources(fullPath, assemblyDirectory);
             return shadowCopyPath;
         }
-#nullable disable
 
         private static string CopyFileAndResources(string fullPath, string assemblyDirectory)
         {
@@ -114,7 +109,7 @@ namespace Microsoft.CodeAnalysis
 
             CopyFile(fullPath, shadowCopyPath);
 
-            string originalDirectory = Path.GetDirectoryName(fullPath);
+            string originalDirectory = Path.GetDirectoryName(fullPath)!;
             string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileNameWithExtension);
             string resourcesNameWithoutExtension = fileNameWithoutExtension + ".resources";
             string resourcesNameWithExtension = resourcesNameWithoutExtension + ".dll";

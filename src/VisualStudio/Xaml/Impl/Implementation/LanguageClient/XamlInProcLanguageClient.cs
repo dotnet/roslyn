@@ -34,22 +34,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         public XamlInProcLanguageClient(
             XamlRequestDispatcherFactory xamlDispatcherFactory,
             IGlobalOptionService globalOptions,
-            IDiagnosticService diagnosticService,
             IAsynchronousOperationListenerProvider listenerProvider,
             LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
             ILspLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext)
-            : base(xamlDispatcherFactory, globalOptions, diagnosticService, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, diagnosticsClientName: null)
+            : base(xamlDispatcherFactory, globalOptions, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, diagnosticsClientName: null)
         {
         }
 
         protected override ImmutableArray<string> SupportedLanguages => ImmutableArray.Create(StringConstants.XamlLanguageName);
-
-        /// <summary>
-        /// Gets the name of the language client (displayed in yellow bars).
-        /// When updating the string of Name, please make sure to update the same string in Microsoft.VisualStudio.LanguageServer.Client.ExperimentalSnippetSupport.AllowList
-        /// </summary>
-        public override string Name => "XAML Language Server Client (Experimental)";
 
         public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
@@ -62,6 +55,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
         /// Failures are only catastrophic when this server is providing intellisense features.
         /// </summary>
         public override bool ShowNotificationOnInitializeFailed => IsXamlLspIntelliSenseEnabled();
+
+        public override WellKnownLspServerKinds ServerKind => WellKnownLspServerKinds.XamlLspServer;
 
         private bool IsXamlLspIntelliSenseEnabled()
             => GlobalOptions.GetOption(XamlOptions.EnableLspIntelliSenseFeatureFlag);

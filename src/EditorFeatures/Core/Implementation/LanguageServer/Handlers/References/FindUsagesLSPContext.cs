@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -27,7 +28,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 {
-    internal class FindUsagesLSPContext : FindUsagesContext
+    internal sealed class FindUsagesLSPContext : FindUsagesContext
     {
         private readonly IProgress<VSInternalReferenceItem[]> _progress;
         private readonly Document _document;
@@ -75,7 +76,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             int position,
             IMetadataAsSourceFileService metadataAsSourceFileService,
             IAsynchronousOperationListener asyncListener,
+            IGlobalOptionService globalOptions,
             CancellationToken cancellationToken)
+            : base(globalOptions)
         {
             _progress = progress;
             _document = document;
@@ -281,10 +284,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 // General case
                 if (documentSpan != null)
                 {
+                    var document = documentSpan.Value.Document;
+                    var classificationOptions = ClassificationOptions.From(document.Project);
+
                     var classifiedSpansAndHighlightSpan = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
-                        documentSpan.Value, cancellationToken).ConfigureAwait(false);
+                        documentSpan.Value, classificationOptions, cancellationToken).ConfigureAwait(false);
+
                     var classifiedSpans = classifiedSpansAndHighlightSpan.ClassifiedSpans;
-                    var docText = await documentSpan.Value.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var docText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                     var classifiedTextRuns = GetClassifiedTextRuns(id, definitionId, documentSpan.Value, isWrittenTo, classifiedSpans, docText);
 
                     return new ClassifiedTextElement(classifiedTextRuns.ToArray());

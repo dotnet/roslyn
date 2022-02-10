@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 
 namespace Microsoft.CodeAnalysis.StackTraceExplorer
 {
@@ -19,13 +20,13 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
         /// take the result from the first parser that returns 
         /// success.
         /// </summary>
-        private static readonly ImmutableArray<IStackFrameParser> Parsers = ImmutableArray.Create<IStackFrameParser>(
+        private static readonly ImmutableArray<IStackFrameParser> s_parsers = ImmutableArray.Create<IStackFrameParser>(
             new DotnetStackFrameParser(),
             new VSDebugCallstackParser(),
             new DefaultStackParser()
         );
 
-        internal static Task<StackTraceAnalysisResult> AnalyzeAsync(string callstack, CancellationToken cancellationToken)
+        public static Task<StackTraceAnalysisResult> AnalyzeAsync(string callstack, CancellationToken cancellationToken)
         {
             var parsedFrames = Parse(callstack, cancellationToken);
             return Task.FromResult(new StackTraceAnalysisResult(parsedFrames.ToImmutableArray()));
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
 
                 var trimmedLine = line.Trim();
 
-                foreach (var parser in Parsers)
+                foreach (var parser in s_parsers)
                 {
                     if (parser.TryParseLine(trimmedLine, out var parsedFrame))
                     {
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
             }
         }
 
-        private static readonly char[] _lineSplit = new[] { '\n' };
+        private static readonly char[] s_lineSplit = new[] { '\n' };
 
         private static IEnumerable<string> SplitLines(string callstack)
         {
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
             // equivalents ">" and "<" so we can parse correctly
             callstack = WebUtility.HtmlDecode(callstack);
 
-            return callstack.Split(_lineSplit, StringSplitOptions.RemoveEmptyEntries);
+            return callstack.Split(s_lineSplit, StringSplitOptions.RemoveEmptyEntries);
         }
     }
 }

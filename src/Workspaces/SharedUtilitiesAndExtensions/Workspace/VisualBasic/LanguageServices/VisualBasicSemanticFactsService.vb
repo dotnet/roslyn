@@ -50,10 +50,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return semanticModel.SyntaxTree.IsExpressionContext(position, token, cancellationToken, semanticModel)
         End Function
 
-        Public Function IsInExpressionTree(semanticModel As SemanticModel, node As SyntaxNode, expressionTypeOpt As INamedTypeSymbol, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsInExpressionTree
-            Return node.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken)
-        End Function
-
         Public Function IsMemberDeclarationContext(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsMemberDeclarationContext
             Dim token = semanticModel.SyntaxTree.GetTargetToken(position, cancellationToken)
             Return semanticModel.SyntaxTree.IsInterfaceMemberDeclarationKeywordContext(position, token, cancellationToken) OrElse

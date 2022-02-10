@@ -18,8 +18,19 @@
         <note />
       </trans-unit>
       <trans-unit id="10160">
-        <source>Underline reassigned variables;Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions;regex;regular expression;Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
-        <target state="translated">다시 할당된 변수에 밑줄 긋기;인라인 힌트 표시; 맺음 구문 자동 삽입; 자동 서식 지정 설정 변경; 개요 모드 변경; 인터페이스 및 MustOverride 멤버 자동 삽입; 프로시저 줄 구분 기호 표시/숨기기; 오류 수정 제안 설정/해제; 참조 및 키워드 강조 표시 설정/해제; Regex; 정규식 색 지정; 커서 아래의 관련 구성 요소 강조 표시; 잘못된 정규식 보고; regex; 정규식; 향상된 색 사용; 편집기 색 구성표;상속 여백;가져오기 지시문</target>
+        <source>Underline reassigned variables;Display inline hints;Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;
+Regex;
+regular expressions;
+related components under cursor;
+Report invalid regular expressions;
+regex;
+regular expression;
+JSON;
+Colorize JSON strings;
+Report invalid JSON strings;
+Detect and offer editor features for JSON strings;
+Use enhanced colors;Editor Color Scheme;Inheritance Margin;Import Directives;</source>
+        <target state="needs-review-translation">다시 할당된 변수에 밑줄 긋기;인라인 힌트 표시; 맺음 구문 자동 삽입; 자동 서식 지정 설정 변경; 개요 모드 변경; 인터페이스 및 MustOverride 멤버 자동 삽입; 프로시저 줄 구분 기호 표시/숨기기; 오류 수정 제안 설정/해제; 참조 및 키워드 강조 표시 설정/해제; Regex; 정규식 색 지정; 커서 아래의 관련 구성 요소 강조 표시; 잘못된 정규식 보고; regex; 정규식; 향상된 색 사용; 편집기 색 구성표;상속 여백;가져오기 지시문</target>
         <note>Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="102">

@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var updates = new ManagedModuleUpdates(ManagedModuleUpdateStatus.Blocked, ImmutableArray<ManagedModuleUpdate>.Empty);
                     var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.CannotApplyChangesUnexpectedError);
                     var diagnostic = Diagnostic.Create(descriptor, Location.None, new[] { e.Message });
-                    var diagnostics = ImmutableArray.Create(DiagnosticData.Create(diagnostic, solution.Options));
+                    var diagnostics = ImmutableArray.Create(DiagnosticData.Create(diagnostic, project: null));
 
                     return new EmitSolutionUpdateResults.Data(updates, diagnostics, ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty, syntaxError: null);
                 }

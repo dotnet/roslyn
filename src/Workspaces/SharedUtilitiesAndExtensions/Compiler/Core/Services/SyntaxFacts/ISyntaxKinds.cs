@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         int AwaitKeyword { get; }
         int AsyncKeyword { get; }
+        int DelegateKeyword { get; }
         int GlobalKeyword { get; }
         int IfKeyword { get; }
         int? GlobalStatement { get; }
@@ -52,6 +53,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         int CharacterLiteralToken { get; }
         int StringLiteralToken { get; }
+        int? SingleLineRawStringLiteralToken { get; }
+        int? MultiLineRawStringLiteralToken { get; }
 
         #endregion
 
@@ -137,6 +140,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         int Attribute { get; }
         int ClassDeclaration { get; }
+        int? RecordDeclaration { get; }
+        int? RecordStructDeclaration { get; }
         int Parameter { get; }
         int TypeConstraint { get; }
         int VariableDeclarator { get; }

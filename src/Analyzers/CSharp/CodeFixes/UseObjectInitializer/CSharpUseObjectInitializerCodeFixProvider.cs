@@ -2,12 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.UseObjectInitializer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
@@ -43,13 +43,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
             ImmutableArray<Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>> matches)
         {
             return UseInitializerHelpers.GetNewObjectCreation(
-                objectCreation, CreateExpressions(matches));
+                objectCreation, CreateExpressions(objectCreation, matches));
         }
 
         private static SeparatedSyntaxList<ExpressionSyntax> CreateExpressions(
-            ImmutableArray<Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>> matches)
+                ObjectCreationExpressionSyntax objectCreation,
+                ImmutableArray<Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>> matches)
         {
-            var nodesAndTokens = new List<SyntaxNodeOrToken>();
+            using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
+
+            UseInitializerHelpers.AddExistingItems(objectCreation, nodesAndTokens);
+
             for (var i = 0; i < matches.Length; i++)
             {
                 var match = matches[i];

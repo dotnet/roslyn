@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor
             Workspace workspace, ImmutableArray<CodeActionOperation> operations, CancellationToken cancellationToken);
 
         Task<bool> ApplyAsync(
-            Workspace workspace, Document fromDocument,
+            Workspace workspace, Document? fromDocument,
             ImmutableArray<CodeActionOperation> operations,
             string title, IProgressTracker progressTracker,
             CancellationToken cancellationToken);

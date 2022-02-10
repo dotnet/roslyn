@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Utilities;
@@ -100,11 +101,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             // build text for RelatedSpan
             if (quickInfoItem.RelatedSpans.Any() && context?.Document is Document document)
             {
+                var classificationOptions = ClassificationOptions.From(document.Project);
+
                 var textRuns = new List<ClassifiedTextRun>();
                 var spanSeparatorNeededBefore = false;
                 foreach (var span in quickInfoItem.RelatedSpans)
                 {
-                    var classifiedSpans = await ClassifierHelper.GetClassifiedSpansAsync(document, span, cancellationToken).ConfigureAwait(false);
+                    var classifiedSpans = await ClassifierHelper.GetClassifiedSpansAsync(document, span, classificationOptions, cancellationToken).ConfigureAwait(false);
 
                     var tabSize = document.Project.Solution.Options.GetOption(FormattingOptions.TabSize, document.Project.Language);
                     var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);

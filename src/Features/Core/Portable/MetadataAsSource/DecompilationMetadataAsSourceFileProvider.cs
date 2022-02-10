@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                             useDecompiler = false;
                         }
                     }
-                    catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+                    catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
                     {
                         useDecompiler = false;
                     }

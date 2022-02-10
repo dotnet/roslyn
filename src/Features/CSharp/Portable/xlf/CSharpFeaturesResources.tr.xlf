@@ -97,6 +97,16 @@
         <target state="translated">Yönteme dönüştür</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_raw_string">
+        <source>Convert to raw string</source>
+        <target state="new">Convert to raw string</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_raw_string_no_indent">
+        <source>Convert to raw string (no indent)</source>
+        <target state="new">Convert to raw string (no indent)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_regular_string">
         <source>Convert to regular string</source>
         <target state="translated">Normal dizeye dönüştür</target>
@@ -124,7 +134,7 @@
       </trans-unit>
       <trans-unit id="Enable_nullable_reference_types_in_project">
         <source>Enable nullable reference types in project</source>
-        <target state="new">Enable nullable reference types in project</target>
+        <target state="translated">Projedeki null atanabilir başvuru türlerini etkinleştir</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_return_type">
@@ -169,12 +179,12 @@
       </trans-unit>
       <trans-unit id="Selection_cannot_include_global_statements">
         <source>Selection cannot include global statements</source>
-        <target state="new">Selection cannot include global statements</target>
+        <target state="translated">Seçim genel deyimleri içeremez</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_cannot_include_top_level_statements">
         <source>Selection cannot include top-level statements</source>
-        <target state="new">Selection cannot include top-level statements</target>
+        <target state="translated">Seçim en üst düzey deyimleri içeremez</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_lambda_expression">
@@ -204,7 +214,7 @@
       </trans-unit>
       <trans-unit id="Warning_Expression_may_change_code_meaning">
         <source>Warning: Expression may have side effects. Code meaning may change.</source>
-        <target state="new">Warning: Expression may have side effects. Code meaning may change.</target>
+        <target state="translated">Uyarı: İfadenin yan etkileri olabilir. Kod anlamı değişebilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">
@@ -234,7 +244,7 @@
       </trans-unit>
       <trans-unit id="lambda_expression">
         <source>&lt;lambda expression&gt;</source>
-        <target state="translated">&lt; lambda ifadesi &gt;</target>
+        <target state="translated">&lt;lambda ifadesi&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_potential_lambda_declaration">
@@ -249,7 +259,7 @@
       </trans-unit>
       <trans-unit id="member_name">
         <source>&lt;member name&gt; = </source>
-        <target state="translated">&lt; üye adı &gt; = </target>
+        <target state="translated">&lt;üye adı&gt; = </target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_possible_explicitly_named_anonymous_type_member_creation">
@@ -259,7 +269,7 @@
       </trans-unit>
       <trans-unit id="element_name">
         <source>&lt;element name&gt; : </source>
-        <target state="translated">&lt; öğe adı &gt;: </target>
+        <target state="translated">&lt;öğe adı&gt;: </target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_possible_tuple_type_element_creation">
@@ -274,7 +284,7 @@
       </trans-unit>
       <trans-unit id="range_variable">
         <source>&lt;range variable&gt;</source>
-        <target state="translated">&lt; Aralık değişkeni &gt;</target>
+        <target state="translated">&lt;Aralık değişkeni&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_potential_range_variable_declaration">
@@ -669,7 +679,7 @@
       </trans-unit>
       <trans-unit id="namespace_name">
         <source>&lt;namespace name&gt;</source>
-        <target state="translated">&lt; ad alanı adı &gt;</target>
+        <target state="translated">&lt;ad alanı adı&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_type_declaration">
@@ -694,22 +704,22 @@
       </trans-unit>
       <trans-unit id="class_name">
         <source>&lt;class name&gt;</source>
-        <target state="translated">&lt; sınıf adı &gt;</target>
+        <target state="translated">&lt;sınıf adı&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="interface_name">
         <source>&lt;interface name&gt;</source>
-        <target state="translated">&lt; arabirim adı &gt;</target>
+        <target state="translated">&lt;arabirim adı&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="designation_name">
         <source>&lt;designation name&gt;</source>
-        <target state="translated">&lt; atama adı &gt;</target>
+        <target state="translated">&lt;atama adı&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="struct_name">
         <source>&lt;struct name&gt;</source>
-        <target state="translated">&lt; yapı adı &gt;</target>
+        <target state="translated">&lt;yapı adı&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_method_async">
@@ -724,7 +734,7 @@
       </trans-unit>
       <trans-unit id="Name">
         <source>&lt;Name&gt;</source>
-        <target state="translated">&lt; ad &gt;</target>
+        <target state="translated">&lt;ad&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_member_declaration">

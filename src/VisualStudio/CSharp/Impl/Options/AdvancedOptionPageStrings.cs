@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.Editor.ColorSchemes;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
@@ -107,14 +105,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             => CSharpVSResources.Editor_Help;
 
         public static string Option_EnableHighlightKeywords
-        {
-            get { return CSharpVSResources.Highlight_related_keywords_under_cursor; }
-        }
+            => CSharpVSResources.Highlight_related_keywords_under_cursor;
 
         public static string Option_EnableHighlightReferences
-        {
-            get { return CSharpVSResources.Highlight_references_to_symbol_under_cursor; }
-        }
+            => CSharpVSResources.Highlight_references_to_symbol_under_cursor;
 
         public static string Option_EnterOutliningMode
             => CSharpVSResources.Enter_outlining_mode_when_files_open;
@@ -176,6 +170,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_OptimizeForSolutionSize_Small
             => CSharpVSResources.Small;
+
+        public static string Option_Quick_Actions
+            => ServicesVSResources.Quick_Actions;
+
+        public static string Option_Compute_Quick_Actions_asynchronously_experimental
+            => ServicesVSResources.Compute_Quick_Actions_asynchronously_experimental;
 
         public static string Option_Outlining
             => ServicesVSResources.Outlining;
@@ -291,7 +291,25 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Combine_inheritance_margin_with_indicator_margin
             => ServicesVSResources.Combine_inheritance_margin_with_indicator_margin;
 
+        public static string Option_JSON_strings =>
+            ServicesVSResources.JSON_strings;
+
+        public static string Option_Detect_and_offer_editor_features_for_likely_JSON_strings =>
+            ServicesVSResources.Detect_and_offer_editor_features_for_likely_JSON_strings;
+
+        public static string Option_Colorize_JSON_strings =>
+            ServicesVSResources.Colorize_JSON_strings;
+
+        public static string Option_Report_invalid_JSON_strings =>
+            ServicesVSResources.Report_invalid_JSON_strings;
+
         public static string Inheritance_Margin
             => ServicesVSResources.Inheritance_Margin;
+
+        public static string Stack_Trace_Explorer
+            => ServicesVSResources.Stack_Trace_Explorer;
+
+        public static string Option_Automatically_open_stack_trace_explorer_on_focus
+            => ServicesVSResources.Automatically_open_stack_trace_explorer_on_focus;
     }
 }

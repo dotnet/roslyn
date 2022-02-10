@@ -2120,7 +2120,7 @@ offeredWhenRequireForClarityIsEnabled: true);
 {
     void M()
     {
-#ifA || B
+#if A || B
 #endif
     }
 }",
@@ -2149,6 +2149,32 @@ offeredWhenRequireForClarityIsEnabled: true);
     }
 }",
 offeredWhenRequireForClarityIsEnabled: true, index: 1);
+        }
+
+        [WorkItem(57768, "https://github.com/dotnet/roslyn/issues/57768")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestParensAroundPPDirective3()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+#if C
+#elif$$(A || B)
+#endif
+    }
+}",
+@"class C
+{
+    void M()
+    {
+#if C
+#elif A || B
+#endif
+    }
+}",
+offeredWhenRequireForClarityIsEnabled: true);
         }
 
         [WorkItem(29454, "https://github.com/dotnet/roslyn/issues/29454")]
@@ -2672,6 +2698,58 @@ public class C
     {
         if (o is Goo) M(1);
     }    
+}
+", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestElementAccessOfSuppressedExpression1()
+        {
+            await TestAsync(
+@"
+public class C
+{
+    public void M(string[] Strings)
+    {
+        var v = $$(Strings!)[Strings.Count - 1];
+    }
+}
+",
+@"
+public class C
+{
+    public void M(string[] Strings)
+    {
+        var v = Strings![Strings.Count - 1];
+    }
+}
+", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestElementAccessOfSuppressedExpression2()
+        {
+            await TestAsync(
+@"
+public class C
+{
+    string[] Strings;
+
+    public void M()
+    {
+        var v = $$(this.Strings!)[Strings.Count - 1];
+    }
+}
+",
+@"
+public class C
+{
+    string[] Strings;
+
+    public void M()
+    {
+        var v = this.Strings![Strings.Count - 1];
+    }
 }
 ", offeredWhenRequireForClarityIsEnabled: true);
         }

@@ -36,7 +36,10 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public int InterpolatedStringTextToken => (int)SyntaxKind.InterpolatedStringTextToken;
         public int QuestionToken => (int)SyntaxKind.QuestionToken;
         public int StringLiteralToken => (int)SyntaxKind.StringLiteralToken;
+        public int? SingleLineRawStringLiteralToken => (int)SyntaxKind.SingleLineRawStringLiteralToken;
+        public int? MultiLineRawStringLiteralToken => (int)SyntaxKind.MultiLineRawStringLiteralToken;
 
+        public int DelegateKeyword => (int)SyntaxKind.DelegateKeyword;
         public int IfKeyword => (int)SyntaxKind.IfKeyword;
         public int TrueKeyword => (int)SyntaxKind.TrueKeyword;
         public int FalseKeyword => (int)SyntaxKind.FalseKeyword;
@@ -95,6 +98,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public int Attribute => (int)SyntaxKind.Attribute;
         public int ClassDeclaration => (int)SyntaxKind.ClassDeclaration;
+        public int? RecordDeclaration => (int)SyntaxKind.RecordDeclaration;
+        public int? RecordStructDeclaration => (int)SyntaxKind.RecordStructDeclaration;
         public int Parameter => (int)SyntaxKind.Parameter;
         public int TypeConstraint => (int)SyntaxKind.TypeConstraint;
         public int VariableDeclarator => (int)SyntaxKind.VariableDeclarator;

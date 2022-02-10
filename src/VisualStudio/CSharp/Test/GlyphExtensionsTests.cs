@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
                 isWithEvents: true);
         }
 
-        private void TestGlyph(
+        private static void TestGlyph(
             StandardGlyphGroup expectedGlyphGroup,
             SymbolKind kind = SymbolKind.Method,
             Accessibility declaredAccessibility = Accessibility.NotApplicable,

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         {
         }
 
-        public override ImmutableArray<IRequestHandler> CreateRequestHandlers() => ImmutableArray.Create<IRequestHandler>(new LongRunningNonMutatingRequestHandler());
+        public override ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind) => ImmutableArray.Create<IRequestHandler>(new LongRunningNonMutatingRequestHandler());
     }
 
     internal class LongRunningNonMutatingRequestHandler : IRequestHandler<TestRequest, TestResponse>

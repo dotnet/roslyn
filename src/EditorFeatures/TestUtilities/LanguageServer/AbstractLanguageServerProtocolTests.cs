@@ -97,7 +97,7 @@ namespace Roslyn.Test.Utilities
 
         protected virtual TestComposition Composition => s_composition;
 
-        protected LSP.ClientCapabilities CapabilitiesWithVSExtensions => new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true };
+        protected static LSP.ClientCapabilities CapabilitiesWithVSExtensions => new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true };
 
         /// <summary>
         /// Asserts two objects are equivalent by converting to JSON and ignoring whitespace.
@@ -290,7 +290,7 @@ namespace Roslyn.Test.Utilities
             => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.VisualBasic, clientCapabilities);
 
         protected Task<TestLspServer> CreateMultiProjectLspServerAsync(string xmlMarkup, LSP.ClientCapabilities? clientCapabilities = null)
-            => CreateTestLspServerAsync(TestWorkspace.Create(xmlMarkup, composition: Composition), clientCapabilities);
+            => CreateTestLspServerAsync(TestWorkspace.Create(xmlMarkup, composition: Composition), clientCapabilities, WellKnownLspServerKinds.AlwaysActiveVSLspServer);
 
         /// <summary>
         /// Creates an LSP server backed by a workspace instance with a solution containing the specified documents.
@@ -298,7 +298,10 @@ namespace Roslyn.Test.Utilities
         protected Task<TestLspServer> CreateTestLspServerAsync(string[] markups, LSP.ClientCapabilities? clientCapabilities = null)
             => CreateTestLspServerAsync(markups, LanguageNames.CSharp, clientCapabilities);
 
-        private Task<TestLspServer> CreateTestLspServerAsync(string[] markups, string languageName, LSP.ClientCapabilities? clientCapabilities)
+        private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, LSP.ClientCapabilities clientCapabilities, WellKnownLspServerKinds serverKind)
+            => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.CSharp, clientCapabilities, serverKind);
+
+        private Task<TestLspServer> CreateTestLspServerAsync(string[] markups, string languageName, LSP.ClientCapabilities? clientCapabilities, WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer)
         {
             var workspace = languageName switch
             {
@@ -307,10 +310,10 @@ namespace Roslyn.Test.Utilities
                 _ => throw new ArgumentException($"language name {languageName} is not valid for a test workspace"),
             };
 
-            return CreateTestLspServerAsync(workspace, clientCapabilities);
+            return CreateTestLspServerAsync(workspace, clientCapabilities, serverKind);
         }
 
-        private static async Task<TestLspServer> CreateTestLspServerAsync(TestWorkspace workspace, LSP.ClientCapabilities? clientCapabilities)
+        private static async Task<TestLspServer> CreateTestLspServerAsync(TestWorkspace workspace, LSP.ClientCapabilities? clientCapabilities, WellKnownLspServerKinds serverKind)
         {
             var solution = workspace.CurrentSolution;
 
@@ -326,10 +329,14 @@ namespace Roslyn.Test.Utilities
             // created by the initial test steps. This can interfere with the expected test state.
             await WaitForWorkspaceOperationsAsync(workspace);
 
-            return await TestLspServer.CreateAsync(workspace, clientCapabilities);
+            return await TestLspServer.CreateAsync(workspace, clientCapabilities ?? new LSP.ClientCapabilities(), serverKind);
         }
 
-        protected async Task<TestLspServer> CreateXmlTestLspServerAsync(string xmlContent, string? workspaceKind = null, LSP.ClientCapabilities? clientCapabilities = null)
+        private protected async Task<TestLspServer> CreateXmlTestLspServerAsync(
+            string xmlContent,
+            string? workspaceKind = null,
+            LSP.ClientCapabilities? clientCapabilities = null,
+            WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer)
         {
             var workspace = TestWorkspace.Create(XElement.Parse(xmlContent), openDocuments: false, composition: Composition, workspaceKind: workspaceKind);
 
@@ -337,7 +344,7 @@ namespace Roslyn.Test.Utilities
             // Otherwise we could have a race where workspace change events triggered by creation are changing the state
             // created by the initial test steps. This can interfere with the expected test state.
             await WaitForWorkspaceOperationsAsync(workspace);
-            return await TestLspServer.CreateAsync(workspace, clientCapabilities);
+            return await TestLspServer.CreateAsync(workspace, clientCapabilities ?? new LSP.ClientCapabilities(), serverKind);
         }
 
         /// <summary>
@@ -450,14 +457,14 @@ namespace Roslyn.Test.Utilities
 
             public LSP.ClientCapabilities ClientCapabilities { get; }
 
-            private TestLspServer(TestWorkspace testWorkspace, LSP.ClientCapabilities clientCapabilities)
+            internal TestLspServer(TestWorkspace testWorkspace, LSP.ClientCapabilities clientCapabilities, WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer)
             {
                 TestWorkspace = testWorkspace;
                 ClientCapabilities = clientCapabilities;
                 _locations = GetAnnotatedLocations(testWorkspace, testWorkspace.CurrentSolution);
 
                 var (clientStream, serverStream) = FullDuplexStream.CreatePair();
-                _languageServer = CreateLanguageServer(serverStream, serverStream, TestWorkspace);
+                _languageServer = CreateLanguageServer(serverStream, serverStream, TestWorkspace, serverKind);
 
                 _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientStream, clientStream, CreateJsonMessageFormatter()))
                 {
@@ -481,10 +488,9 @@ namespace Roslyn.Test.Utilities
                 return messageFormatter;
             }
 
-            public static async Task<TestLspServer> CreateAsync(TestWorkspace testWorkspace, LSP.ClientCapabilities? clientCapabilities)
+            internal static async Task<TestLspServer> CreateAsync(TestWorkspace testWorkspace, LSP.ClientCapabilities clientCapabilities, WellKnownLspServerKinds serverKind)
             {
-                clientCapabilities ??= new LSP.ClientCapabilities();
-                var server = new TestLspServer(testWorkspace, clientCapabilities);
+                var server = new TestLspServer(testWorkspace, clientCapabilities, serverKind);
 
                 await server.ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(LSP.Methods.InitializeName, new LSP.InitializeParams
                 {
@@ -494,7 +500,7 @@ namespace Roslyn.Test.Utilities
                 return server;
             }
 
-            private static VisualStudioInProcLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace)
+            private static VisualStudioInProcLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace, WellKnownLspServerKinds serverKind)
             {
                 var dispatcherFactory = workspace.ExportProvider.GetExportedValue<RequestDispatcherFactory>();
                 var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
@@ -516,11 +522,9 @@ namespace Roslyn.Test.Utilities
                     globalOptions,
                     listenerProvider,
                     NoOpLspLogger.Instance,
-                    null,
                     ProtocolConstants.RoslynLspLanguages,
                     clientName: null,
-                    userVisibleServerName: "Test LSP Server",
-                    telemetryServerTypeName: nameof(TestLspServer),
+                    serverKind,
                     new LspMiscellaneousFilesWorkspace(NoOpLspLogger.Instance));
 
                 jsonRpc.StartListening();
@@ -600,6 +604,7 @@ namespace Roslyn.Test.Utilities
                 {
                     _languageServer.GetTestAccessor().ShutdownServer();
                 }
+
                 _languageServer.GetTestAccessor().ExitServer();
                 TestWorkspace.Dispose();
                 _clientRpc.Dispose();

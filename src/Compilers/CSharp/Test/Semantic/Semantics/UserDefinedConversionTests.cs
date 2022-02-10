@@ -1538,7 +1538,7 @@ class InArgument<T>
     public static implicit operator InArgument<T>(T t) { return default(InArgument<T>); }
 }
 
-public struct start
+public struct @start
 {
     static public void Main()
     {

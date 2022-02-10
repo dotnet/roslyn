@@ -7963,5 +7963,33 @@ End Class";
                 SymbolDisplayPartKind.ParameterName,
                 SymbolDisplayPartKind.Punctuation);
         }
+
+        [Fact]
+        public void TestNullCheckedParameter()
+        {
+            var source = @"
+class C
+{
+    void M(string s!!)
+    {
+    }
+}
+";
+
+            var comp = CreateCompilation(source);
+            var methodSymbol = comp.GetMember<MethodSymbol>("C.M").GetPublicSymbol();
+
+            Verify(methodSymbol.ToDisplayParts(s_memberSignatureDisplayFormat), "void C.M(string s)",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Punctuation);
+        }
     }
 }

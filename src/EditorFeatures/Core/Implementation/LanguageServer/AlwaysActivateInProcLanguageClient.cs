@@ -43,14 +43,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             DefaultCapabilitiesProvider defaultCapabilitiesProvider,
             ILspLoggerFactory lspLoggerFactory,
             IThreadingContext threadingContext)
-            : base(csharpVBRequestDispatcherFactory, globalOptions, diagnosticService: null, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, diagnosticsClientName: null)
+            : base(csharpVBRequestDispatcherFactory, globalOptions, listenerProvider, lspWorkspaceRegistrationService, lspLoggerFactory, threadingContext, diagnosticsClientName: null)
         {
             _defaultCapabilitiesProvider = defaultCapabilitiesProvider;
         }
 
         protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
-
-        public override string Name => CSharpVisualBasicLanguageServerFactory.UserVisibleName;
 
         public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
@@ -72,7 +70,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
                 };
             }
 
-            serverCapabilities.SupportsDiagnosticRequests = GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
+            serverCapabilities.ProjectContextProvider = true;
+
+            var isPullDiagnostics = GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
+            if (isPullDiagnostics)
+            {
+                serverCapabilities.SupportsDiagnosticRequests = true;
+                serverCapabilities.MultipleContextSupportProvider = new VSInternalMultipleContextFeatures { SupportsMultipleContextsDiagnostics = true };
+            }
 
             // This capability is always enabled as we provide cntrl+Q VS search only via LSP in ever scenario.
             serverCapabilities.WorkspaceSymbolProvider = true;
@@ -85,9 +90,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             var isLspSemanticTokensEnabled = GlobalOptions.GetOption(LspOptions.LspSemanticTokensFeatureFlag);
             if (isLspSemanticTokensEnabled)
             {
+                // Using only range handling has shown to be more performant than using a combination of full/edits/range handling,
+                // especially for larger files. With range handling, we only need to compute tokens for whatever is in view, while
+                // with full/edits handling we need to compute tokens for the entire file and then potentially run a diff between
+                // the old and new tokens.
                 serverCapabilities.SemanticTokensOptions = new SemanticTokensOptions
                 {
-                    Full = new SemanticTokensFullOptions { Delta = true },
+                    Full = false,
                     Range = true,
                     Legend = new SemanticTokensLegend
                     {
@@ -106,5 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
         /// as the failure is not catastrophic.
         /// </summary>
         public override bool ShowNotificationOnInitializeFailed => GlobalOptions.IsPullDiagnostics(InternalDiagnosticsOptions.NormalDiagnosticMode);
+
+        public override WellKnownLspServerKinds ServerKind => WellKnownLspServerKinds.AlwaysActiveVSLspServer;
     }
 }

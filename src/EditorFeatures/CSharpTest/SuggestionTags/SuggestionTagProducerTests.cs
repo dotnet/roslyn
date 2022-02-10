@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SuggestionTags
                 { LanguageNames.CSharp, ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpUseObjectInitializerDiagnosticAnalyzer()) }
             };
 
-            var spans = (await TestDiagnosticTagProducer<DiagnosticsSuggestionTaggerProvider>.GetDiagnosticsAndErrorSpans(workspace, analyzerMap)).Item2;
+            var spans = (await TestDiagnosticTagProducer<DiagnosticsSuggestionTaggerProvider, IErrorTag>.GetDiagnosticsAndErrorSpans(workspace, analyzerMap)).Item2;
             return (spans, workspace.Documents.Single().SelectedSpans.Single());
         }
     }

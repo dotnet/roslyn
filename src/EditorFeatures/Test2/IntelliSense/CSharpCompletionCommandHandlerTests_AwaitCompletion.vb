@@ -358,6 +358,76 @@ public class C
         End Function
 
         <WpfFact>
+        Public Async Function AwaitCompletionAddsAsync_ParenthesizedLambdaExpression_ExpressionBody() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+using System.Threading.Tasks;
+
+public class C
+{
+    public void F()
+    {        
+        Task.Run(() => $$);
+    }
+}
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
+
+                state.SendTab()
+                Assert.Equal("
+using System;
+using System.Threading.Tasks;
+
+public class C
+{
+    public void F()
+    {        
+        Task.Run(async () => await);
+    }
+}
+", state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfFact>
+        Public Async Function AwaitCompletionDoesNotAddAsync_AsyncParenthesizedLambdaExpression_ExpressionBody() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document><![CDATA[
+using System;
+using System.Threading.Tasks;
+
+public class C
+{
+    public void F()
+    {        
+        Task.Run(async () => $$);
+    }
+}
+]]>
+                </Document>)
+                state.SendTypeChars("aw")
+                Await state.AssertSelectedCompletionItem(displayText:="await", isHardSelected:=True)
+
+                state.SendTab()
+                Assert.Equal("
+using System;
+using System.Threading.Tasks;
+
+public class C
+{
+    public void F()
+    {        
+        Task.Run(async () => await);
+    }
+}
+", state.GetDocumentText())
+            End Using
+        End Function
+
+        <WpfFact>
         Public Async Function AwaitCompletionDoesNotAddAsync_NotTask() As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[

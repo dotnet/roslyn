@@ -22,6 +22,17 @@ namespace Microsoft.CodeAnalysis.Structure
         int MaximumBannerLength,
         bool IsMetadataAsSource)
     {
+        public static readonly BlockStructureOptions Default =
+            new(ShowBlockStructureGuidesForCommentsAndPreprocessorRegions: Metadata.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions.DefaultValue,
+                ShowBlockStructureGuidesForDeclarationLevelConstructs: Metadata.ShowBlockStructureGuidesForDeclarationLevelConstructs.DefaultValue,
+                ShowBlockStructureGuidesForCodeLevelConstructs: Metadata.ShowBlockStructureGuidesForCodeLevelConstructs.DefaultValue,
+                ShowOutliningForCommentsAndPreprocessorRegions: Metadata.ShowOutliningForCommentsAndPreprocessorRegions.DefaultValue,
+                ShowOutliningForDeclarationLevelConstructs: Metadata.ShowOutliningForDeclarationLevelConstructs.DefaultValue,
+                ShowOutliningForCodeLevelConstructs: Metadata.ShowOutliningForCodeLevelConstructs.DefaultValue,
+                CollapseRegionsWhenCollapsingToDefinitions: Metadata.CollapseRegionsWhenCollapsingToDefinitions.DefaultValue,
+                MaximumBannerLength: Metadata.MaximumBannerLength.DefaultValue,
+                IsMetadataAsSource: false);
+
         public static BlockStructureOptions From(Project project)
             => From(project.Solution.Options, project.Language, isMetadataAsSource: project.Solution.Workspace.Kind == WorkspaceKind.MetadataAsSource);
 

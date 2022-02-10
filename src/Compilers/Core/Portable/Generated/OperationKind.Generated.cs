@@ -269,5 +269,11 @@ namespace Microsoft.CodeAnalysis
         InterpolatedStringHandlerArgumentPlaceholder = 0x77,
         /// <summary>Indicates an <see cref="IFunctionPointerInvocationOperation"/>.</summary>
         FunctionPointerInvocation = 0x78,
+        /// <summary>Indicates an <see cref="IListPatternOperation"/>.</summary>
+        ListPattern = 0x79,
+        /// <summary>Indicates an <see cref="ISlicePatternOperation"/>.</summary>
+        SlicePattern = 0x7a,
+        /// <summary>Indicates an <see cref="IImplicitIndexerReferenceOperation"/>.</summary>
+        ImplicitIndexerReference = 0x7b,
     }
 }

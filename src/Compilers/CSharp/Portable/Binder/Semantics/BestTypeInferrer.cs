@@ -51,7 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static TypeSymbol? InferBestType(
             ImmutableArray<BoundExpression> exprs,
             ConversionsBase conversions,
-            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
+            out bool inferredFromFunctionType)
         {
             // SPEC:    7.5.2.14 Finding the best common type of a set of expressions
             // SPEC:    In some cases, a common type needs to be inferred for a set of expressions. In particular, the element types of implicitly typed arrays and
@@ -74,6 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (type.IsErrorType())
                     {
+                        inferredFromFunctionType = false;
                         return type;
                     }
 
@@ -87,7 +89,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = GetBestType(builder, conversions, ref useSiteInfo);
             builder.Free();
 
-            return (result as FunctionTypeSymbol)?.GetInternalDelegateType() ?? result;
+            if (result is FunctionTypeSymbol functionType)
+            {
+                result = functionType.GetInternalDelegateType();
+                inferredFromFunctionType = result is { };
+                return result;
+            }
+
+            inferredFromFunctionType = false;
+            return result;
         }
 
         /// <remarks>
@@ -173,14 +183,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case 0:
                     return null;
                 case 1:
-                    return types[0];
+                    return checkType(types[0]);
             }
 
             TypeSymbol? best = null;
             int bestIndex = -1;
             for (int i = 0; i < types.Count; i++)
             {
-                TypeSymbol type = types[i];
+                TypeSymbol? type = checkType(types[i]);
+                if (type is null)
+                {
+                    continue;
+                }
                 if (best is null)
                 {
                     best = type;
@@ -211,7 +225,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // that every type *before* best was also worse.
             for (int i = 0; i < bestIndex; i++)
             {
-                TypeSymbol type = types[i];
+                TypeSymbol? type = checkType(types[i]);
+                if (type is null)
+                {
+                    continue;
+                }
                 TypeSymbol? better = Better(best, type, conversions, ref useSiteInfo);
                 if (!best.Equals(better, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                 {
@@ -220,6 +238,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return best;
+
+            static TypeSymbol? checkType(TypeSymbol type) =>
+                type is FunctionTypeSymbol functionType && functionType.GetInternalDelegateType() is null ?
+                null :
+                type;
         }
 
         /// <summary>

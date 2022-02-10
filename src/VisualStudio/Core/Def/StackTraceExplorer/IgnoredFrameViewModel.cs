@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
         protected override IEnumerable<Inline> CreateInlines()
         {
-            var run = MakeClassifiedRun(ClassificationTypeNames.ExcludedCode, _frame.OriginalText);
+            var run = MakeClassifiedRun(ClassificationTypeNames.ExcludedCode, _frame.ToString());
             yield return run;
         }
     }
