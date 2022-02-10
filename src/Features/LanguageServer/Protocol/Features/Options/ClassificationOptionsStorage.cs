@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
-    // TODO: Move to EditorFeatures https://github.com/dotnet/roslyn/issues/59184
     internal static class ClassificationOptionsStorage
     {
         public static ClassificationOptions GetClassificationOptions(this IGlobalOptionService globalOptions, string language)
