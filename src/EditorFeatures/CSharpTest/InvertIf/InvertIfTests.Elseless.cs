@@ -840,6 +840,7 @@ $@"class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
         public async Task TestIsCheck_CSharp8()
         {
             await TestInRegularAndScriptAsync(
@@ -874,6 +875,7 @@ $@"class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
         public async Task TestIsCheck_CSharp9()
         {
             await TestInRegularAndScriptAsync(
@@ -908,7 +910,8 @@ $@"class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestIsNotCheck_CSharp9()
+        [WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
+        public async Task TestIsNotCheck()
         {
             await TestInRegularAndScriptAsync(
 @"class C

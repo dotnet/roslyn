@@ -735,6 +735,7 @@ end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")>
         Public Async Function TestMultiLineTypeOfIs_VB12() As Task
             Await TestFixOneAsync(
 "
@@ -754,6 +755,7 @@ end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")>
         Public Async Function TestMultiLineTypeOfIs_VB14() As Task
             Await TestFixOneAsync(
 "
@@ -773,6 +775,7 @@ end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
+        <WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")>
         Public Async Function TestMultiLineTypeOfIsNot() As Task
             Await TestFixOneAsync(
 "
