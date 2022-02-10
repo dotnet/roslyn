@@ -51,11 +51,7 @@ class SomeOtherClass
 
             VisualStudio.Editor.SendKeys(Shift(VirtualKey.F12));
 
-            const string programReferencesCaption = "'Program' references";
-            var results = VisualStudio.FindReferencesWindow.GetContents(programReferencesCaption);
-
-            var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
-            Assert.Equal(expected: programReferencesCaption, actual: activeWindowCaption);
+            var results = VisualStudio.FindReferencesWindow.GetContents();
 
             Assert.Collection(
                 results,
@@ -75,7 +71,7 @@ class SomeOtherClass
                     }
                 });
 
-            VisualStudio.FindReferencesWindow.NavigateTo(activeWindowCaption, results[0], isPreview: false, shouldActivate: true);
+            VisualStudio.FindReferencesWindow.NavigateTo(results[0], isPreview: false, shouldActivate: true);
             // Assert we are in the right file now
             Assert.Equal("Class1.cs", VisualStudio.Shell.GetActiveWindowCaption());
             Assert.Equal("Program", VisualStudio.Editor.GetLineTextAfterCaret());
@@ -98,11 +94,7 @@ class Program
 
             VisualStudio.Editor.SendKeys(Shift(VirtualKey.F12));
 
-            const string localReferencesCaption = "'local' references";
-            var results = VisualStudio.FindReferencesWindow.GetContents(localReferencesCaption);
-
-            var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
-            Assert.Equal(expected: localReferencesCaption, actual: activeWindowCaption);
+            var results = VisualStudio.FindReferencesWindow.GetContents();
 
             Assert.Collection(
                 results,
@@ -140,11 +132,7 @@ class Program
 
             VisualStudio.Editor.SendKeys(Shift(VirtualKey.F12));
 
-            const string findReferencesCaption = "'\"1\"' references";
-            var results = VisualStudio.FindReferencesWindow.GetContents(findReferencesCaption);
-
-            var activeWindowCaption = VisualStudio.Shell.GetActiveWindowCaption();
-            Assert.Equal(expected: findReferencesCaption, actual: activeWindowCaption);
+            var results = VisualStudio.FindReferencesWindow.GetContents();
 
             Assert.Collection(
                 results,
