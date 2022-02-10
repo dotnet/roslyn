@@ -5043,6 +5043,111 @@ class C<T>
             });
         }
 
+        [Fact]
+        public void TestMainAttributes()
+        {
+            var source = CreateCompilation(@"
+using System;
+
+[main: My(""one"")]
+Console.WriteLine(""Hello World"");
+
+public class MyAttribute : Attribute { public MyAttribute(string name) {} }
+");
+
+            var mainAttrs = source.GetEntryPoint(default).GetAttributes();
+
+            var attribute = Assert.Single(mainAttrs);
+            attribute.VerifyValue(0, TypedConstantKind.Primitive, "one");
+            Assert.Equal(@"MyAttribute(""one"")", attribute.ToString());
+
+            CompileAndVerify(source, expectedOutput: "Hello World");
+        }
+
+        [Fact]
+        public void TestMultipleMainAttributes()
+        {
+            var source = CreateCompilation(@"
+using System;
+
+[main: My(""one"")]
+[main: My(""two"")]
+[main: My(""three"")]
+Console.WriteLine(""Hello World"");
+
+[AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+public class MyAttribute : Attribute { public MyAttribute(string name) {} }
+");
+
+            var mainAttrs = source.GetEntryPoint(default).GetAttributes();
+
+            Assert.Collection(mainAttrs,
+                verifyAttribute("one"),
+                verifyAttribute("two"),
+                verifyAttribute("three"));
+
+            CompileAndVerify(source, expectedOutput: "Hello World");
+
+            static Action<CSharpAttributeData> verifyAttribute(string expectedValue) => (attribute) =>
+            {
+                attribute.VerifyValue(0, TypedConstantKind.Primitive, expectedValue);
+                Assert.Equal($@"MyAttribute(""{expectedValue}"")", attribute.ToString());
+            };
+        }
+
+        [Fact]
+        public void TestMainAttributesWithAssemblyAndModuleAttributes()
+        {
+            var source = CreateCompilation(@"
+using System;
+
+[main: My(""one"")]
+[assembly: My(""two"")]
+[module: My(""three"")]
+Console.WriteLine(""Hello World"");
+
+[AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+public class MyAttribute : Attribute { public MyAttribute(string name) {} }
+");
+
+            verifySingleAttribute(source.GetEntryPoint(default), "one");
+            verifySingleAttribute(source.Assembly, "two");
+            verifySingleAttribute(source.Assembly.Modules[0], "three");
+
+            CompileAndVerify(source, expectedOutput: "Hello World");
+
+            static void verifySingleAttribute(Symbol symbol, string expectedValue)
+            {
+                var attributes = symbol.GetAttributes();
+                var attribute = Assert.Single(attributes);
+
+                attribute.VerifyValue(0, TypedConstantKind.Primitive, expectedValue);
+                Assert.Equal($@"MyAttribute(""{expectedValue}"")", attribute.ToString());
+            };
+        }
+
+        [Fact]
+        public void TestMainAttributesInADifferentFile()
+        {
+            var source = CreateCompilation(new[] { @"
+using System;
+Console.WriteLine(""Hello World"");
+
+public class MyAttribute : Attribute { public MyAttribute(string name) {} }
+",
+@" 
+[main: My(""one"")]
+" }
+            );
+
+            var mainAttrs = source.GetEntryPoint(default).GetAttributes();
+
+            var attribute = Assert.Single(mainAttrs);
+            attribute.VerifyValue(0, TypedConstantKind.Primitive, "one");
+            Assert.Equal(@"MyAttribute(""one"")", attribute.ToString());
+
+            CompileAndVerify(source, expectedOutput: "Hello World");
+        }
 
         #endregion
 

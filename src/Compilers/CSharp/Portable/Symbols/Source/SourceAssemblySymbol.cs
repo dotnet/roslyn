@@ -2322,7 +2322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return IsInteractive ? AttributeLocation.None : AttributeLocation.Assembly | AttributeLocation.Module;
+                return IsInteractive ? AttributeLocation.None : AttributeLocation.Assembly | AttributeLocation.Module | AttributeLocation.Main;
             }
         }
 

@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SynthesizedSimpleProgramEntryPointSymbol : SourceMemberMethodSymbol
+    internal sealed class SynthesizedSimpleProgramEntryPointSymbol : SourceMemberMethodSymbol, IAttributeTargetSymbol
     {
         /// <summary>
         /// The corresponding <see cref="SingleTypeDeclaration"/>. 
@@ -280,6 +280,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public SyntaxNode ReturnTypeSyntax => CompilationUnit.Members.First(m => m.Kind() == SyntaxKind.GlobalStatement);
+
+        /// <summary>
+        /// Returns a bag of applied custom attributes and data decoded from well-known attributes. Returns null if there are no attributes applied on the symbol.
+        /// </summary>
+        /// <remarks>
+        /// Forces binding and decoding of attributes.
+        /// </remarks>
+        internal override CustomAttributesBag<CSharpAttributeData> GetAttributesBag()
+        {
+            if (_lazyCustomAttributesBag == null || !_lazyCustomAttributesBag.IsSealed)
+            {
+                var mergedAttributes = ((SourceAssemblySymbol)this.ContainingAssembly).GetAttributeDeclarations();
+                if (LoadAndValidateAttributes(OneOrMany.Create(mergedAttributes), ref _lazyCustomAttributesBag))
+                {
+                    NoteAttributesComplete(forReturnType: false);
+                }
+            }
+
+            // PROTOTYPE: nullability
+            return _lazyCustomAttributesBag!;
+        }
+
+        AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => AttributeLocation.Main;
+
+        IAttributeTargetSymbol IAttributeTargetSymbol.AttributesOwner => (IAttributeTargetSymbol)this.ContainingAssembly;
 
         private static bool IsNullableAnalysisEnabled(CSharpCompilation compilation, CompilationUnitSyntax syntax)
         {
