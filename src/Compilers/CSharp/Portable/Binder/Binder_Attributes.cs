@@ -123,8 +123,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             beforeAttributePartBound?.Invoke(node);
             var boundAttribute = new ExecutableCodeBinder(node, this.ContainingMemberOrLambda, this).BindAttribute(node, boundAttributeType, diagnostics);
             afterAttributePartBound?.Invoke(node);
-            Debug.Assert(!boundAttribute.HasAnyErrors || boundAttribute.AttributeData.HasErrors);
-            return (boundAttribute.AttributeData, boundAttribute);
+            Debug.Assert(!boundAttribute.HasAnyErrors || boundAttribute.AttributeData!.HasErrors);
+            return (boundAttribute.AttributeData!, boundAttribute);
         }
 
         internal BoundAttribute BindAttribute(AttributeSyntax node, NamedTypeSymbol attributeType, BindingDiagnosticBag diagnostics)
