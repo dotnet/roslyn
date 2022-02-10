@@ -123,6 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             beforeAttributePartBound?.Invoke(node);
             var boundAttribute = new ExecutableCodeBinder(node, this.ContainingMemberOrLambda, this).BindAttribute(node, boundAttributeType, diagnostics);
             afterAttributePartBound?.Invoke(node);
+            Debug.Assert(!boundAttribute.HasAnyErrors || boundAttribute.AttributeData.HasErrors);
             return (boundAttribute.AttributeData, boundAttribute);
         }
 
@@ -226,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundNamedArguments, resultKind, attributeData, attributeType, hasErrors: resultKind != LookupResultKind.Viable);
         }
 
-        internal CSharpAttributeData GetAttribute(
+        private CSharpAttributeData GetAttribute(
             NamedTypeSymbol attributeType,
             MethodSymbol? attributeConstructor,
             ImmutableArray<BoundExpression> boundConstructorArguments,
@@ -240,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             RoslynDebug.Assert((object)attributeType != null);
             Debug.Assert(node.Kind() == SyntaxKind.Attribute);
 
-            hasErrors = hasErrors || node.HasErrors || attributeType.IsErrorType();
+            hasErrors = hasErrors || node.HasErrors || attributeType.IsErrorType() || boundConstructorArguments.HasErrors() || boundNamedArguments.HasErrors();
 
             if (attributeType.IsErrorType() || attributeType.IsAbstract || attributeConstructor is null)
             {
