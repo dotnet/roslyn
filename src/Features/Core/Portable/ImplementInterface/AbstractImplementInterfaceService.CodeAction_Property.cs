@@ -81,9 +81,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 INamedTypeSymbol[] attributesToRemove)
             {
                 if (property.SetMethod == null)
-                {
                     return null;
-                }
 
                 if (property.GetMethod == null)
                 {
@@ -91,12 +89,8 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     propertyGenerationBehavior = ImplementTypePropertyGenerationBehavior.PreferThrowingProperties;
                 }
 
-                var setMethod = property.SetMethod.RemoveInaccessibleAttributesAndAttributesOfTypes(
-                     State.ClassOrStructType,
-                     attributesToRemove);
-
                 return CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                    setMethod,
+                    property.SetMethod.RemoveUndesirableAttributes(State.ClassOrStructType, attributesToRemove),
                     attributes: default,
                     accessibility: accessibility,
                     explicitInterfaceImplementations: useExplicitInterfaceSymbol ? ImmutableArray.Create(property.SetMethod) : default,
@@ -114,16 +108,10 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 INamedTypeSymbol[] attributesToRemove)
             {
                 if (property.GetMethod == null)
-                {
                     return null;
-                }
-
-                var getMethod = property.GetMethod.RemoveInaccessibleAttributesAndAttributesOfTypes(
-                     State.ClassOrStructType,
-                     attributesToRemove);
 
                 return CodeGenerationSymbolFactory.CreateAccessorSymbol(
-                    getMethod,
+                    property.GetMethod.RemoveUndesirableAttributes(State.ClassOrStructType, attributesToRemove),
                     attributes: default,
                     accessibility: accessibility,
                     explicitInterfaceImplementations: useExplicitInterfaceSymbol ? ImmutableArray.Create(property.GetMethod) : default,

@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
             }
 
             var syntaxFactory = semanticDocument.Document.GetLanguageService<SyntaxGenerator>();
-            var delegateInvokeMethod = delegateType.DelegateInvokeMethod.RemoveInaccessibleAttributesAndAttributesOfTypes(semanticDocument.SemanticModel.Compilation.Assembly);
+            var delegateInvokeMethod = delegateType.DelegateInvokeMethod.RemoveUndesirableAttributes(semanticDocument.SemanticModel.Compilation.Assembly);
 
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
                 attributes: default,

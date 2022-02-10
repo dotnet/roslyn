@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
@@ -198,37 +199,57 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return updatedMethod.RenameParameters(parameterNames);
         }
 
-        public static IMethodSymbol RemoveInaccessibleAttributesAndAttributesOfTypes(
-            this IMethodSymbol method, ISymbol accessibleWithin,
+        public static IMethodSymbol RemoveUndesirableAttributes(
+            this IMethodSymbol method,
+            ISymbol accessibleWithin,
             params INamedTypeSymbol[] removeAttributeTypes)
         {
-            var methodHasAttribute = method.GetAttributes().Any(shouldRemoveAttribute);
+            var methodHasAttribute = method.GetAttributes().Any(a => ShouldRemoveAttribute(a, type: null));
 
             var someParameterHasAttribute = method.Parameters
-                .Any(m => m.GetAttributes().Any(shouldRemoveAttribute));
+                .Any(p => p.GetAttributes().Any(a => ShouldRemoveAttribute(a, p.Type)));
 
-            var returnTypeHasAttribute = method.GetReturnTypeAttributes().Any(shouldRemoveAttribute);
-
+            var returnTypeHasAttribute = method.GetReturnTypeAttributes().Any(a => ShouldRemoveAttribute(a, method.ReturnType));
             if (!methodHasAttribute && !someParameterHasAttribute && !returnTypeHasAttribute)
-            {
                 return method;
-            }
 
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
                 method,
                 containingType: method.ContainingType,
                 explicitInterfaceImplementations: method.ExplicitInterfaceImplementations,
-                attributes: method.GetAttributes().WhereAsArray(a => !shouldRemoveAttribute(a)),
+                attributes: method.GetAttributes().WhereAsArray(a => !ShouldRemoveAttribute(a, type: null)),
                 parameters: method.Parameters.SelectAsArray(p =>
                     CodeGenerationSymbolFactory.CreateParameterSymbol(
-                        p.GetAttributes().WhereAsArray(a => !shouldRemoveAttribute(a)),
+                        p.GetAttributes().WhereAsArray(a => !ShouldRemoveAttribute(a, p.Type)),
                         p.RefKind, p.IsParams, p.Type, p.Name, p.IsOptional,
                         p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null)),
-                returnTypeAttributes: method.GetReturnTypeAttributes().WhereAsArray(a => !shouldRemoveAttribute(a)));
+                returnTypeAttributes: method.GetReturnTypeAttributes().WhereAsArray(a => !ShouldRemoveAttribute(a, method.ReturnType)));
 
-            bool shouldRemoveAttribute(AttributeData a) =>
-                removeAttributeTypes.Any(attr => attr.Equals(a.AttributeClass)) ||
-                a.AttributeClass?.IsAccessibleWithin(accessibleWithin) == false;
+            bool ShouldRemoveAttribute(AttributeData attribute, ITypeSymbol? type)
+            {
+                if (removeAttributeTypes.Any(attr => attr.Equals(attribute.AttributeClass)))
+                    return true;
+
+                if (attribute.AttributeClass?.IsAccessibleWithin(accessibleWithin) == false)
+                    return true;
+
+                if (type != null &&
+                    type.IsValueType &&
+                    !type.IsNullable() &&
+                    attribute.AttributeClass?.ContainingNamespace.IsSystemDiagnosticsCodeAnalysis() is true)
+                {
+                    // Strip [NotNull] (and it's ilk) attribute from value types.
+                    if (attribute.AttributeClass.IsNotNullAttribute() ||
+                        attribute.AttributeClass.IsDisallowNullAttribute() ||
+                        attribute.AttributeClass.IsAllowNullAttribute() ||
+                        attribute.AttributeClass.IsMaybeNullAttribute())
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
 
         public static bool? IsMoreSpecificThan(this IMethodSymbol method1, IMethodSymbol method2)

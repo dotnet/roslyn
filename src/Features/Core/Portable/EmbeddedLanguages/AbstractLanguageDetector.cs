@@ -226,23 +226,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
             if (attribute.ConstructorArguments.Length == 0)
                 return false;
 
-            if (attribute.AttributeClass is not
-                {
-                    Name: "StringSyntaxAttribute",
-                    ContainingNamespace:
-                    {
-                        Name: nameof(CodeAnalysis),
-                        ContainingNamespace:
-                        {
-                            Name: nameof(Diagnostics),
-                            ContainingNamespace:
-                            {
-                                Name: nameof(System),
-                                ContainingNamespace.IsGlobalNamespace: true,
-                            }
-                        }
-                    }
-                })
+            if (attribute.AttributeClass?.Name != "StringSyntaxAttribute" ||
+                !attribute.AttributeClass.ContainingNamespace.IsSystemDiagnosticsCodeAnalysis())
             {
                 return false;
             }

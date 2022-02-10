@@ -172,7 +172,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 explicitInterfaceImplementations:=Nothing,
                 name:=methodName,
                 typeParameters:=Nothing,
-                parameters:=delegateInvokeMethod.RemoveInaccessibleAttributesAndAttributesOfTypes(destinationType).Parameters,
+                parameters:=delegateInvokeMethod.RemoveUndesirableAttributes(destinationType).Parameters,
                 handlesExpressions:=ImmutableArray.Create(Of SyntaxNode)(handlesSyntax))
             methodSymbol = GeneratedSymbolAnnotation.AddAnnotationToSymbol(methodSymbol)
 
@@ -231,7 +231,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
             Dim codeGenerationSymbol = GeneratedSymbolAnnotation.AddAnnotationToSymbol(
                 CodeGenerationSymbolFactory.CreateMethodSymbol(
-                    methodToReplicate.RemoveInaccessibleAttributesAndAttributesOfTypes(destinationType)))
+                    methodToReplicate.RemoveUndesirableAttributes(destinationType)))
 
             Return Await CodeGenerator.AddMethodDeclarationAsync(document.Project.Solution,
                                                                  destinationType,

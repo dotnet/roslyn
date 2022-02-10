@@ -8867,14 +8867,220 @@ interface IFoo<T>
 
 class A : IFoo<int>
 {
+    public int Bar(int bar)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public int Baz(int bar)
+    {
+        throw new System.NotImplementedException();
+    }
+}",
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task GenericInterfaceNotNull2()
+        {
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+                TestCode = @"#nullable enable 
+
+using System.Diagnostics.CodeAnalysis;
+
+interface IFoo<T>
+{
     [return: NotNull]
-    public int Bar([DisallowNull] int bar)
+    T Bar([DisallowNull] T bar);
+
+    [return: MaybeNull]
+    T Baz([AllowNull] T bar);
+}
+
+class A : {|CS0535:{|CS0535:IFoo<string>|}|}
+{
+}",
+                FixedCode = @"#nullable enable 
+
+using System.Diagnostics.CodeAnalysis;
+
+interface IFoo<T>
+{
+    [return: NotNull]
+    T Bar([DisallowNull] T bar);
+
+    [return: MaybeNull]
+    T Baz([AllowNull] T bar);
+}
+
+class A : IFoo<string>
+{
+    [return: NotNull]
+    public string Bar([DisallowNull] string bar)
     {
         throw new System.NotImplementedException();
     }
 
     [return: MaybeNull]
-    public int Baz([AllowNull] int bar)
+    public string Baz([AllowNull] string bar)
+    {
+        throw new System.NotImplementedException();
+    }
+}",
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task GenericInterfaceNotNull3()
+        {
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+                TestCode = @"#nullable enable 
+
+using System.Diagnostics.CodeAnalysis;
+
+interface IFoo<T>
+{
+    [return: NotNull]
+    T Bar([DisallowNull] T bar);
+
+    [return: MaybeNull]
+    T Baz([AllowNull] T bar);
+}
+
+class A : {|CS0535:{|CS0535:IFoo<int?>|}|}
+{
+}",
+                FixedCode = @"#nullable enable 
+
+using System.Diagnostics.CodeAnalysis;
+
+interface IFoo<T>
+{
+    [return: NotNull]
+    T Bar([DisallowNull] T bar);
+
+    [return: MaybeNull]
+    T Baz([AllowNull] T bar);
+}
+
+class A : IFoo<int?>
+{
+    [return: NotNull]
+    public int? Bar([DisallowNull] int? bar)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    [return: MaybeNull]
+    public int? Baz([AllowNull] int? bar)
+    {
+        throw new System.NotImplementedException();
+    }
+}",
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task GenericInterfaceNotNull4()
+        {
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+                TestCode = @"#nullable enable 
+
+using System.Diagnostics.CodeAnalysis;
+
+interface IFoo<T>
+{
+    [return: NotNull]
+    T Bar([DisallowNull] T bar);
+
+    [return: MaybeNull]
+    T Baz([AllowNull] T bar);
+}
+
+class A<T> : {|CS0535:{|CS0535:IFoo<T>|}|}
+{
+}",
+                FixedCode = @"#nullable enable 
+
+using System.Diagnostics.CodeAnalysis;
+
+interface IFoo<T>
+{
+    [return: NotNull]
+    T Bar([DisallowNull] T bar);
+
+    [return: MaybeNull]
+    T Baz([AllowNull] T bar);
+}
+
+class A<T> : IFoo<T>
+{
+    [return: NotNull]
+    public T Bar([DisallowNull] T bar)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    [return: MaybeNull]
+    public T Baz([AllowNull] T bar)
+    {
+        throw new System.NotImplementedException();
+    }
+}",
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task GenericInterfaceNotNull5()
+        {
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+                TestCode = @"#nullable enable 
+
+using System.Diagnostics.CodeAnalysis;
+
+interface IFoo<T>
+{
+    [return: NotNull]
+    T Bar([DisallowNull] T bar);
+
+    [return: MaybeNull]
+    T Baz([AllowNull] T bar);
+}
+
+class A<T> : {|CS0535:{|CS0535:IFoo<T>|}|}
+    where T : struct
+{
+}",
+                FixedCode = @"#nullable enable 
+
+using System.Diagnostics.CodeAnalysis;
+
+interface IFoo<T>
+{
+    [return: NotNull]
+    T Bar([DisallowNull] T bar);
+
+    [return: MaybeNull]
+    T Baz([AllowNull] T bar);
+}
+
+class A<T> : IFoo<T>
+    where T : struct
+{
+    public T Bar(T bar)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public T Baz(T bar)
     {
         throw new System.NotImplementedException();
     }

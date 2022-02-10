@@ -209,5 +209,22 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return false;
         }
+
+        public static bool IsSystemDiagnosticsCodeAnalysis(this INamespaceSymbol ns)
+        {
+            return ns is
+            {
+                Name: nameof(CodeAnalysis),
+                ContainingNamespace:
+                {
+                    Name: nameof(Diagnostics),
+                    ContainingNamespace:
+                    {
+                        Name: nameof(System),
+                        ContainingNamespace.IsGlobalNamespace: true,
+                    },
+                },
+            };
+        }
     }
 }

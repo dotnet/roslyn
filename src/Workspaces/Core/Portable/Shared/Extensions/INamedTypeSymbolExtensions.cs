@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -18,6 +19,30 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
 
             return currentSymbol;
+        }
+
+        public static bool IsNotNullAttribute([NotNullWhen(true)] this INamedTypeSymbol? namedType)
+        {
+            return namedType?.Name == nameof(NotNullAttribute) &&
+                namedType.ContainingNamespace.IsSystemDiagnosticsCodeAnalysis();
+        }
+
+        public static bool IsDisallowNullAttribute([NotNullWhen(true)] this INamedTypeSymbol? namedType)
+        {
+            return namedType?.Name == nameof(DisallowNullAttribute) &&
+                namedType.ContainingNamespace.IsSystemDiagnosticsCodeAnalysis();
+        }
+
+        public static bool IsAllowNullAttribute([NotNullWhen(true)] this INamedTypeSymbol? namedType)
+        {
+            return namedType?.Name == nameof(AllowNullAttribute) &&
+                namedType.ContainingNamespace.IsSystemDiagnosticsCodeAnalysis();
+        }
+
+        public static bool IsMaybeNullAttribute([NotNullWhen(true)] this INamedTypeSymbol? namedType)
+        {
+            return namedType?.Name == nameof(MaybeNullAttribute) &&
+                namedType.ContainingNamespace.IsSystemDiagnosticsCodeAnalysis();
         }
     }
 }
