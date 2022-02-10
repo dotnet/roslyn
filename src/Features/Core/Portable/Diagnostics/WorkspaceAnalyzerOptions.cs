@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 language,
                 static (language, solution) => new IdeAnalyzerOptions(
                     FadeOutUnusedImports: solution.Options.GetOption(Fading.FadingOptions.Metadata.FadeOutUnusedImports, language),
-                    FadeOutUnreachableCode: solution.Options.GetOption(Fading.FadingOptions.Metadata.FadeOutUnusedImports, language),
+                    FadeOutUnreachableCode: solution.Options.GetOption(Fading.FadingOptions.Metadata.FadeOutUnreachableCode, language),
                     ReportInvalidPlaceholdersInStringDotFormatCalls: solution.Options.GetOption(ValidateFormatString.ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, language),
                     ReportInvalidRegexPatterns: solution.Options.GetOption(Features.EmbeddedLanguages.RegularExpressions.LanguageServices.RegularExpressionsOptions.ReportInvalidRegexPatterns, language)),
                 _solution);
