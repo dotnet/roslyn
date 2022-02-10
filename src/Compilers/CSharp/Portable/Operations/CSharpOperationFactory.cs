@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 if (!seenParameters.Contains(parameter))
                 {
                     var typedConstant = attributeData.CommonConstructorArguments[parameter.Ordinal];
-                    builder.Add(CreateArgumentOperation(ArgumentKind.DefaultValue, parameter.GetPublicSymbol(), new BoundLiteral(boundAttribute.Syntax, ConstantValue.Create(typedConstant.Value, typedConstant.Type.SpecialType), parameter.Type) { WasCompilerGenerated = true }));
+                    builder.Add(CreateArgumentOperation(ArgumentKind.DefaultValue, parameter.GetPublicSymbol(), new BoundLiteral(boundAttribute.Syntax, ConstantValue.Create(typedConstant.Value!, typedConstant.Type!.SpecialType), parameter.Type) { WasCompilerGenerated = true }));
                 }
             }
 
