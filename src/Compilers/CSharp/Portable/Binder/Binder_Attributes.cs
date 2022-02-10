@@ -210,19 +210,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(diagnostics, ErrorCode.ERR_AttributeCtorInParameter, node, attributeConstructor.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
                 }
-
-                //BindDefaultArguments(node, attributeConstructor.Parameters, analyzedArguments.ConstructorArguments.Arguments, analyzedArguments.ConstructorArguments.RefKinds, ref argsToParamsOpt, out defaultArguments, expanded, enableCallerInfo: true, diagnostics);
             }
 
             ImmutableArray<string?> boundConstructorArgumentNamesOpt = analyzedArguments.ConstructorArguments.GetNames();
             ImmutableArray<BoundAssignmentOperator> boundNamedArguments = analyzedArguments.NamedArguments?.ToImmutableAndFree() ?? ImmutableArray<BoundAssignmentOperator>.Empty;
             Debug.Assert(boundNamedArguments.All(arg => !arg.Right.NeedsToBeConverted()));
 
-            // var boundAttribute = new BoundAttribute(node, attributeConstructor, analyzedArguments.ConstructorArguments.Arguments.ToImmutableArray(), boundConstructorArgumentNamesOpt, argsToParamsOpt, expanded,
-            //     boundNamedArguments, resultKind, defaultArguments, attributeType, hasErrors: resultKind != LookupResultKind.Viable);
             analyzedArguments.ConstructorArguments.Free();
-            //return boundAttribute;
-            var attributeData = GetAttribute(attributeType, attributeConstructor, boundConstructorArguments, boundNamedArguments, boundConstructorArgumentNamesOpt, argsToParamsOpt, node, hasErrors: resultKind != LookupResultKind.Viable, diagnostics);
+
+            var binder = this;
+            while (binder is not null && binder is not ContextualAttributeBinder)
+            {
+                binder = binder.Next;
+            }
+
+            Debug.Assert(binder is ContextualAttributeBinder);
+
+            var attributeData = binder.GetAttribute(attributeType, attributeConstructor, boundConstructorArguments, boundNamedArguments, boundConstructorArgumentNamesOpt, argsToParamsOpt, node, hasErrors: resultKind != LookupResultKind.Viable, diagnostics);
             return new BoundAttribute(node, attributeConstructor, boundConstructorArguments, boundConstructorArgumentNamesOpt, argsToParamsOpt, expanded,
                 boundNamedArguments, resultKind, attributeData, attributeType, hasErrors: resultKind != LookupResultKind.Viable);
         }
