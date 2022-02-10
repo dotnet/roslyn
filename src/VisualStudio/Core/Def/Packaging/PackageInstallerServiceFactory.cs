@@ -108,6 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             : base(globalOptions,
                   listenerProvider,
                   threadingContext,
+                  workspace,
                   featureEnabledOption: SymbolSearchGlobalOptions.Enabled,
                   perLanguageOptions: ImmutableArray.Create(SymbolSearchOptionsStorage.SearchReferenceAssemblies, SymbolSearchOptionsStorage.SearchNuGetPackages))
         {

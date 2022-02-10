@@ -29,6 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
     {
         private readonly List<string> _registeredLanguageNames = new();
 
+        private readonly Workspace _workspace;
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly IGlobalOptionService _globalOptions;
 
@@ -46,10 +47,12 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
             IThreadingContext threadingContext,
+            Workspace workspace,
             Option2<bool> featureEnabledOption,
             ImmutableArray<PerLanguageOption2<bool>> perLanguageOptions)
             : base(threadingContext)
         {
+            _workspace = workspace;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.Workspace);
             _globalOptions = globalOptions;
             _featureEnabledOption = featureEnabledOption;
@@ -75,7 +78,8 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             if (_registeredLanguageNames.Count == 1)
             {
                 // Register to hear about option changing.
-                _globalOptions.OptionChanged += OnOptionChanged;
+                var optionsService = _workspace.Services.GetRequiredService<IOptionService>();
+                optionsService.OptionChanged += OnOptionChanged;
             }
 
             // Kick things off.
