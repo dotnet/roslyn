@@ -486,13 +486,12 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IOperation CreateBoundAttributeOperation(BoundAttribute boundAttribute)
         {
-            if (boundAttribute.Constructor is null)
+            if (boundAttribute.HasAnyErrors || boundAttribute.Constructor is null || boundAttribute.AttributeData is null)
             {
                 return OperationFactory.CreateInvalidOperation(_semanticModel, boundAttribute.Syntax, ImmutableArray<IOperation>.Empty, isImplicit: false);
             }
 
             var attributeData = boundAttribute.AttributeData;
-
             var builder = ImmutableArray.CreateBuilder<IArgumentOperation>(boundAttribute.Constructor.ParameterCount);
             var seenParameters = ImmutableHashSet.CreateBuilder<ParameterSymbol>();
 

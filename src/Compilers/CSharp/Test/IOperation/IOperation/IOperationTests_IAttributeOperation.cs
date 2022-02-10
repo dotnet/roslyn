@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -294,7 +295,42 @@ IAttributeOperation (OperationKind.Attribute, Type: MyAttribute) (Syntax: 'My(0.
   NamedArguments(0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
 
+        [Fact]
+        public void TargetTypedSwitch_Attribute()
+        {
+            string source = @"
+using System;
+class Program
+{
+    [/*<bind>*/My(1 switch { 1 => 1, _ => 2 })/*</bind>*/]
+    public static void M1() { }
+}
+public class MyAttribute : Attribute
+{
+    public MyAttribute(int Value) { }
+}
+public class A
+{
+    public static implicit operator int(A a) => 4;
+}
+public class B
+{
+    public static implicit operator int(B b) => 2;
+}
+";
+            var expectedDiagnostics = new DiagnosticDescription[]
+            {
+                // (5,19): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [/*<bind>*/My(1 switch { 1 => 1, _ => 2 })/*</bind>*/]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "1 switch { 1 => 1, _ => 2 }").WithLocation(5, 19),
+            };
+            string expectedOperationTree = @"
+IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'My(1 switch ... , _ => 2 })')
+  Children(0)
+";
             VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
     }
