@@ -1855,7 +1855,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var file = Temp.CreateFile().WriteAllText(text1, Encoding.UTF8);
 
             // create a solution that evicts from the cache immediately.
-            using var workspace = CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations();
+            using var workspace = CreateWorkspaceWithRecoverableTextAndSyntaxTreesAndWeakCompilations();
             var sol = workspace.CurrentSolution;
 
             var pid = ProjectId.CreateNewId();
@@ -1872,7 +1872,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(text2, textOnDisk);
 
             // stop observing it and let GC reclaim it
-            observedText.AssertReleased();
+            if (PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono)
+            {
+                Assert.IsType<TemporaryStorageServiceFactory.TemporaryStorageService>(workspace.Services.GetService<ITemporaryStorageService>());
+                observedText.AssertReleased();
+            }
+            else
+            {
+                // If this assertion fails, it means a new target supports the true temporary storage service, and the
+                // condition above should be updated to ensure 'AssertReleased' is called for this target.
+                Assert.IsType<TrivialTemporaryStorageService>(workspace.Services.GetService<ITemporaryStorageService>());
+            }
 
             // if we ask for the same text again we should get the original content
             var observedText2 = sol.GetDocument(did).GetTextAsync().Result;
