@@ -9,9 +9,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
 {
     internal static class FindUsagesOptionsStorage
     {
-#pragma warning disable IDE0060 // Remove unused parameter -- TODO
         public static FindUsagesOptions GetFindUsagesOptions(this IGlobalOptionService globalOptions, string language)
-            => throw new NotImplementedException();
-#pragma warning restore IDE0060 // Remove unused parameter
+            => globalOptions.GetFindUsagesOptions(language);
     }
 }
