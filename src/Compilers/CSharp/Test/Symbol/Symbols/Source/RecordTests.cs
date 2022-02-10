@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 expectedOutput: expectedOutput,
                 parseOptions: TestOptions.Regular9,
                 // init-only fails verification
-                verify: Verification.Skipped);
+                verify: Verification.FailsPEVerify);
 
         [Fact]
         public void GeneratedConstructor()
@@ -968,7 +968,7 @@ record C
         Console.WriteLine(c.Equals(c2));
         Console.WriteLine(c.Equals((object)c2));
     }
-}", expectedOutput: @"False
+}", verify: Verification.Passes, expectedOutput: @"False
 False
 True
 True").VerifyDiagnostics(
@@ -1052,7 +1052,7 @@ record C
     public int X { get; }
     public string Y { get; }
     public event Action E;
-}").VerifyDiagnostics(
+}", verify: Verification.Passes).VerifyDiagnostics(
                 // (7,25): warning CS0067: The event 'C.E' is never used
                 //     public event Action E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(7, 25)

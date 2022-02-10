@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private sealed class Resolver : ILVerify.ResolverBase
         {
-            private readonly Dictionary<string, ImmutableArray<byte>> _imagesByName = new Dictionary<string, ImmutableArray<byte>>(StringComparer.OrdinalIgnoreCase);
+            private readonly Dictionary<string, ImmutableArray<byte>> _imagesByName;
 
             internal Resolver(Dictionary<string, ImmutableArray<byte>> imagesByName)
             {
@@ -279,10 +279,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var resolver = new Resolver(imagesByName);
             var verifier = new ILVerify.Verifier(resolver);
             var mscorlibModule = _allModuleData.SingleOrDefault(m => m.IsCorLib);
-            if (mscorlibModule is null &&
-                (verification & Verification.FailsILVerify) != 0)
+            if (mscorlibModule is null)
             {
-                return;
+                if ((verification & Verification.FailsILVerify) != 0)
+                {
+                    return;
+                }
+
+                throw new Exception("No corlib found");
             }
 
             // Main module is the first one
@@ -304,20 +308,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             static (bool, string) verify(ILVerify.Verifier verifier, string corlibName, PEReader mainModule)
             {
+                IEnumerable<ILVerify.VerificationResult> result = null;
+                int errorCount = 0;
                 try
                 {
                     verifier.SetSystemModuleName(new AssemblyName(corlibName));
-
-                    var result = verifier.Verify(mainModule);
-
-                    if (result.Count() != 0)
-                    {
-                        return (false, printVerificationResult(result));
-                    }
+                    result = verifier.Verify(mainModule);
+                    errorCount = result.Count();
                 }
                 catch (Exception e)
                 {
                     return (false, e.Message);
+                }
+
+                if (errorCount > 0)
+                {
+                    return (false, printVerificationResult(result));
                 }
 
                 return (true, string.Empty);
