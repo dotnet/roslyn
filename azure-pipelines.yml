@@ -132,15 +132,15 @@ jobs:
     testArguments: --testCoreClr --helixQueueName Ubuntu.1804.Amd64.Open
 
 - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-- template: eng/pipelines/test-unix-job-single-machine.yml
-  parameters:
-    testRunName: 'Test Linux Debug Single Machine'
-    jobName: Test_Linux_Debug_Single_Machine
-    buildJobName: Build_Unix_Debug
-    testArtifactName: Transport_Artifacts_Unix_Debug
-    configuration: Debug
-    testArguments: --testCoreClr
-    queueName: Build.Ubuntu.1804.Amd64.Open
+  - template: eng/pipelines/test-unix-job-single-machine.yml
+    parameters:
+      testRunName: 'Test Linux Debug Single Machine'
+      jobName: Test_Linux_Debug_Single_Machine
+      buildJobName: Build_Unix_Debug
+      testArtifactName: Transport_Artifacts_Unix_Debug
+      configuration: Debug
+      testArguments: --testCoreClr
+      queueName: Build.Ubuntu.1804.Amd64.Open
 
 - template: eng/pipelines/test-unix-job.yml
   parameters:
