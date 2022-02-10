@@ -22,9 +22,9 @@
         <target state="translated">Dateiheader hinzufügen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_Name_Violation_colon_0">
-        <source>Fix Name Violation: {0}</source>
-        <target state="translated">Namensverletzung beheben: {0}</target>
+      <trans-unit id="Fix_Name_Violation">
+        <source>Fix Name Violation</source>
+        <target state="new">Fix Name Violation</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_all_occurrences_in">

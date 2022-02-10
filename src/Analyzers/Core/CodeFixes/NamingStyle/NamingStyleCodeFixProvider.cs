@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
                     // NOTE:
                     // This depends on how https://github.com/dotnet/roslyn/pull/55033 would call IVsRefactorNotify correctly
                     var codeAction = new CustomCodeActions.SolutionChangeAction(
-                        string.Format(CodeFixesResources.Fix_Name_Violation_colon_0, fixedName),
+                        CodeFixesResources.Fix_Name_Violation,
                         c => FixAsync(document, symbol, fixedName, c),
                         nameof(NamingStyleCodeFixProvider));
 
