@@ -223,5 +223,27 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
     }
 }", parameters: new TestParameters(options: UseBlockBody));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [WorkItem(53532, "https://github.com/dotnet/roslyn/issues/53532")]
+        public async Task TestTriviaOnArrow1()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M()
+        // Test
+         [||]=> Console.WriteLine();
+}",
+@"class C
+{
+    void M()
+    {
+        // Test
+        Console.WriteLine();
+    }
+}", parameters: new TestParameters(options: UseExpressionBody));
+        }
+
     }
 }
