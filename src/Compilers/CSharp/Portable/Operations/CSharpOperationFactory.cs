@@ -491,17 +491,44 @@ namespace Microsoft.CodeAnalysis.Operations
                 return OperationFactory.CreateInvalidOperation(_semanticModel, boundAttribute.Syntax, ImmutableArray<IOperation>.Empty, isImplicit: false);
             }
 
-            var arguments = DeriveArguments(
-                methodOrIndexer: boundAttribute.Constructor,
-                boundArguments: boundAttribute.ConstructorArguments,
-                argumentsToParametersOpt: boundAttribute.ConstructorArgumentsToParamsOpt,
-                defaultArguments: boundAttribute.DefaultArguments,
-                boundAttribute.ConstructorExpanded,
-                boundAttribute.Syntax);
+            var attributeData = boundAttribute.AttributeData;
+
+            var builder = ImmutableArray.CreateBuilder<IArgumentOperation>(boundAttribute.Constructor.ParameterCount);
+            var seenParameters = ImmutableHashSet.CreateBuilder<ParameterSymbol>();
+
+            for (int i = 0; i < boundAttribute.ConstructorArguments.Length; i++)
+            {
+                int parameterIndex = boundAttribute.ConstructorArgumentsToParamsOpt.IsDefaultOrEmpty switch
+                {
+                    true => i,
+                    false => boundAttribute.ConstructorArgumentsToParamsOpt[i],
+                };
+
+                var parameter = boundAttribute.Constructor.Parameters[parameterIndex];
+                seenParameters.Add(parameter);
+                builder.Add(CreateArgumentOperation(ArgumentKind.Explicit, parameter.GetPublicSymbol(), boundAttribute.ConstructorArguments[i]));
+            }
+
+            foreach (var parameter in boundAttribute.Constructor.Parameters)
+            {
+                if (!seenParameters.Contains(parameter))
+                {
+                    var typedConstant = attributeData.CommonConstructorArguments[parameter.Ordinal];
+                    builder.Add(CreateArgumentOperation(ArgumentKind.DefaultValue, parameter.GetPublicSymbol(), new BoundLiteral(boundAttribute.Syntax, ConstantValue.Create(typedConstant.Value, typedConstant.Type.SpecialType), parameter.Type) { WasCompilerGenerated = true }));
+                }
+            }
+
+            // var arguments = DeriveArguments(
+            //     methodOrIndexer: boundAttribute.Constructor,
+            //     boundArguments: boundAttribute.ConstructorArguments,
+            //     argumentsToParametersOpt: boundAttribute.ConstructorArgumentsToParamsOpt,
+            //     defaultArguments: boundAttribute.DefaultArguments,
+            //     boundAttribute.ConstructorExpanded,
+            //     boundAttribute.Syntax);
 
             var namedArguments = CreateFromArray<BoundAssignmentOperator, ISimpleAssignmentOperation>(boundAttribute.NamedArguments);
 
-            return new AttributeOperation(arguments, namedArguments, _semanticModel, boundAttribute.Syntax, boundAttribute.GetPublicTypeSymbol(), boundAttribute.WasCompilerGenerated);
+            return new AttributeOperation(builder.ToImmutable(), namedArguments, _semanticModel, boundAttribute.Syntax, boundAttribute.GetPublicTypeSymbol(), boundAttribute.WasCompilerGenerated);
         }
 
         internal ImmutableArray<IOperation> CreateIgnoredDimensions(BoundNode declaration, SyntaxNode declarationSyntax)
