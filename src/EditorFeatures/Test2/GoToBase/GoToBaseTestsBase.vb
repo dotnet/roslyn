@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToBase
                 testHost:=TestHost.InProcess,
                 Async Function(document As Document, position As Integer, context As SimpleFindUsagesContext)
                     Dim gotoBaseService = document.GetLanguageService(Of IGoToBaseService)
-                    Await gotoBaseService.FindBasesAsync(document, position, context, CancellationToken.None)
+                    Await gotoBaseService.FindBasesAsync(context, document, position, CancellationToken.None)
                 End Function,
                 shouldSucceed, metadataDefinitions)
         End Function

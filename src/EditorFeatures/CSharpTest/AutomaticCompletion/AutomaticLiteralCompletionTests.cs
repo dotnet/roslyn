@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AutomaticCompletion
 }";
             using var session = CreateSessionDoubleQuote(code);
             Assert.NotNull(session);
-            CheckStart(session.Session);
+            CheckStart(session.Session, expectValidSession: false);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]

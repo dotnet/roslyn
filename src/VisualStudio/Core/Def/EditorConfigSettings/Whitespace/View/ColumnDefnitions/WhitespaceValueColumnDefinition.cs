@@ -9,6 +9,7 @@ using System.Windows;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common;
+using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespace.ViewModel;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Utilities;
@@ -32,7 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespac
 
         public override string Name => Value;
         public override string DisplayName => ServicesVSResources.Value;
-        public override double MinWidth => 80;
+        public override double MinWidth => 260;
         public override bool DefaultVisible => false;
         public override bool IsFilterable => false;
         public override bool IsSortable => false;
@@ -48,7 +49,8 @@ namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Whitespac
 
             if (setting.Type == typeof(bool))
             {
-                content = new WhitespaceBoolSettingView(setting);
+                var viewModel = new WhitespaceSettingBoolViewModel(setting);
+                content = new WhitespaceBoolSettingView(viewModel);
                 return true;
             }
 

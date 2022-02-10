@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             {
                 // "x is not Type y" is only available in C# 9.0 and above. Don't offer this refactoring
                 // in projects targeting a lesser version.
-                if (!((CSharpCompilation)context.Compilation).LanguageVersion.IsCSharp9OrAbove())
+                if (context.Compilation.LanguageVersion() < LanguageVersion.CSharp9)
                     return;
 
                 context.RegisterSyntaxNodeAction(n => SyntaxNodeAction(n), SyntaxKind.LogicalNotExpression);

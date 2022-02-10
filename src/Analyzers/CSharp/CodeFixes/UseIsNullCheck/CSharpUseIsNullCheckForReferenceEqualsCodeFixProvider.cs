@@ -46,8 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 
         private static SyntaxNode CreateIsNotNullCheck(ExpressionSyntax argument)
         {
-            var parseOptions = (CSharpParseOptions)argument.SyntaxTree.Options;
-            if (parseOptions.LanguageVersion.IsCSharp9OrAbove())
+            if (argument.SyntaxTree.Options.LanguageVersion() >= LanguageVersion.CSharp9)
             {
                 return IsPatternExpression(
                     argument,

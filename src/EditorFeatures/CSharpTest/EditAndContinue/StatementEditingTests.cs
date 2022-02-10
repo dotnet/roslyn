@@ -7154,6 +7154,51 @@ class Program
         }
 
         [Fact]
+        public void LocalFunctions_Update()
+        {
+            var src1 = @"
+using System;
+
+class C
+{
+    void M()
+    {
+        N(3);
+        
+        void N(int x)
+        {
+            if (x > 3)
+            {
+                x.ToString();
+            }
+            else
+            {
+                N(x - 1);
+            }
+        }
+    }
+}";
+            var src2 = @"
+using System;
+
+class C
+{
+    void M()
+    {
+        N(3);
+        
+        void N(int x)
+        {
+            Console.WriteLine(""Hello"");
+        }
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifySemantics(SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M"), preserveLocalVariables: true));
+        }
+
+        [Fact]
         public void LocalFunction_In_Parameter_InsertWhole()
         {
             var src1 = @"class Test { void M() { } }";
@@ -7727,7 +7772,6 @@ interface I
                 "Reorder [B]@11 -> @9");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "B", FeaturesResources.type_parameter),
                 Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
         }
 
@@ -7743,7 +7787,6 @@ interface I
                 "Update [A]@9 -> [C]@11");
 
             GetTopEdits(edits).VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Move, "B", FeaturesResources.type_parameter),
                 Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
         }
 

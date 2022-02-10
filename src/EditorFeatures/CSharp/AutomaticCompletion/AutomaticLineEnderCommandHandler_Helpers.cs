@@ -10,9 +10,8 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
@@ -28,9 +27,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             SyntaxNode newNode,
             SyntaxNode anchorNode,
             ImmutableArray<StatementSyntax> nodesToInsert,
+            DocumentOptionSet documentOptions,
             CancellationToken cancellationToken)
         {
-            var rootEditor = new SyntaxEditor(root, document.Project.Solution.Workspace);
+            var services = document.Project.Solution.Workspace.Services;
+            var rootEditor = new SyntaxEditor(root, services);
 
             // 1. Insert the node before anchor node
             rootEditor.InsertAfter(anchorNode, nodesToInsert);
@@ -41,11 +42,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
 
             // 4. Format the new node so that the inserted braces/blocks would have correct indentation and formatting.
             var newNodeAfterInsertion = newRoot.GetAnnotatedNodes(s_replacementNodeAnnotation).Single();
+
+            var options = SyntaxFormattingOptions.Create(documentOptions, services, root.Language);
+
             var formattedNewRoot = Formatter.Format(
                 newRoot,
                 newNodeAfterInsertion.Span,
-                document.Project.Solution.Workspace,
-                cancellationToken: cancellationToken);
+                services,
+                options,
+                cancellationToken);
 
             // 4. Use the annotation to find the end of the open brace, it would be the new caret position
             var nextCaretPosition = formattedNewRoot.GetAnnotatedTokens(s_openBracePositionAnnotation).Single().Span.End;
@@ -71,11 +76,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             var newNodeAfterInsertion = newRoot.GetAnnotatedNodes(s_replacementNodeAnnotation).Single();
 
             // 4. Format the new node so that the inserted braces/blocks would have correct indentation and formatting.
-            var options = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var options = SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
             var formattedNewRoot = Formatter.Format(
                 newRoot,
                 newNodeAfterInsertion.Span,
-                document.Project.Solution.Workspace,
+                document.Project.Solution.Workspace.Services,
                 options,
                 cancellationToken: cancellationToken);
             return formattedNewRoot;
@@ -89,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             Document document,
             SyntaxNode root,
             SyntaxNode embeddedStatementOwner,
-            IEditorOptions editorOptions,
+            DocumentOptionSet documentOptions,
             CancellationToken cancellationToken)
         {
             // If there is no inner statement, just add an empty block to it.
@@ -112,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                     document,
                     root,
                     embeddedStatementOwner,
-                    WithBraces(embeddedStatementOwner, editorOptions), cancellationToken);
+                    WithBraces(embeddedStatementOwner, documentOptions), cancellationToken);
                 // Locate the open brace token, and move the caret after it.
                 var nextCaretPosition = GetOpenBraceSpanEnd(newRoot);
                 return (newRoot, nextCaretPosition);
@@ -143,13 +148,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                           document,
                           root,
                           oldNode: embeddedStatementOwner,
-                          newNode: AddBlockToEmbeddedStatementOwner(embeddedStatementOwner, editorOptions),
+                          newNode: AddBlockToEmbeddedStatementOwner(embeddedStatementOwner, documentOptions),
                           anchorNode: embeddedStatementOwner,
                           nodesToInsert: ImmutableArray<StatementSyntax>.Empty.Add(statement),
+                          documentOptions,
                           cancellationToken),
-                DoStatementSyntax doStatementNode => AddBraceToDoStatement(document, root, doStatementNode, editorOptions, statement, cancellationToken),
-                IfStatementSyntax ifStatementNode => AddBraceToIfStatement(document, root, ifStatementNode, editorOptions, statement, cancellationToken),
-                ElseClauseSyntax elseClauseNode => AddBraceToElseClause(document, root, elseClauseNode, editorOptions, statement, cancellationToken),
+                DoStatementSyntax doStatementNode => AddBraceToDoStatement(document, root, doStatementNode, documentOptions, statement, cancellationToken),
+                IfStatementSyntax ifStatementNode => AddBraceToIfStatement(document, root, ifStatementNode, documentOptions, statement, cancellationToken),
+                ElseClauseSyntax elseClauseNode => AddBraceToElseClause(document, root, elseClauseNode, documentOptions, statement, cancellationToken),
                 _ => throw ExceptionUtilities.UnexpectedValue(embeddedStatementOwner),
             };
         }
@@ -158,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             Document document,
             SyntaxNode root,
             DoStatementSyntax doStatementNode,
-            IEditorOptions editorOptions,
+            DocumentOptionSet documentOptions,
             StatementSyntax innerStatement,
             CancellationToken cancellationToken)
         {
@@ -182,9 +188,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                     document,
                     root,
                     oldNode: doStatementNode,
-                    newNode: AddBlockToEmbeddedStatementOwner(doStatementNode, editorOptions),
+                    newNode: AddBlockToEmbeddedStatementOwner(doStatementNode, documentOptions),
                     anchorNode: doStatementNode,
                     nodesToInsert: ImmutableArray<StatementSyntax>.Empty.Add(innerStatement),
+                    documentOptions,
                     cancellationToken);
             }
 
@@ -204,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 document,
                 root,
                 doStatementNode,
-                AddBlockToEmbeddedStatementOwner(doStatementNode, editorOptions, innerStatement),
+                AddBlockToEmbeddedStatementOwner(doStatementNode, documentOptions, innerStatement),
                 cancellationToken);
             var nextCaretPosition = GetOpenBraceSpanEnd(newRoot);
             return (newRoot, nextCaretPosition);
@@ -214,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             Document document,
             SyntaxNode root,
             IfStatementSyntax ifStatementNode,
-            IEditorOptions editorOptions,
+            DocumentOptionSet documentOptions,
             StatementSyntax innerStatement,
             CancellationToken cancellationToken)
         {
@@ -234,9 +241,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 return ReplaceStatementOwnerAndInsertStatement(document,
                     root,
                     ifStatementNode,
-                    AddBlockToEmbeddedStatementOwner(ifStatementNode, editorOptions),
+                    AddBlockToEmbeddedStatementOwner(ifStatementNode, documentOptions),
                     ifStatementNode,
                     ImmutableArray<StatementSyntax>.Empty.Add(innerStatement),
+                    documentOptions,
                     cancellationToken);
             }
 
@@ -257,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 document,
                 root,
                 ifStatementNode,
-                AddBlockToEmbeddedStatementOwner(ifStatementNode, editorOptions, innerStatement),
+                AddBlockToEmbeddedStatementOwner(ifStatementNode, documentOptions, innerStatement),
                 cancellationToken);
             var nextCaretPosition = GetOpenBraceSpanEnd(newRoot);
             return (newRoot, nextCaretPosition);
@@ -267,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             Document document,
             SyntaxNode root,
             ElseClauseSyntax elseClauseNode,
-            IEditorOptions editorOptions,
+            DocumentOptionSet documentOptions,
             StatementSyntax innerStatement,
             CancellationToken cancellationToken)
         {
@@ -275,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             // then treat it as the selected node is the nested if statement
             if (elseClauseNode.Statement is IfStatementSyntax)
             {
-                return AddBraceToEmbeddedStatementOwner(document, root, elseClauseNode.Statement, editorOptions, cancellationToken);
+                return AddBraceToEmbeddedStatementOwner(document, root, elseClauseNode.Statement, documentOptions, cancellationToken);
             }
 
             // Otherwise, it is just an ending else clause.
@@ -298,9 +306,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 return ReplaceStatementOwnerAndInsertStatement(document,
                     root,
                     elseClauseNode,
-                    WithBraces(elseClauseNode, editorOptions),
+                    WithBraces(elseClauseNode, documentOptions),
                     elseClauseNode.Parent!,
                     ImmutableArray<StatementSyntax>.Empty.Add(innerStatement),
+                    documentOptions,
                     cancellationToken);
             }
 
@@ -327,7 +336,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 document,
                 root,
                 elseClauseNode,
-                AddBlockToEmbeddedStatementOwner(elseClauseNode, editorOptions, innerStatement),
+                AddBlockToEmbeddedStatementOwner(elseClauseNode, documentOptions, innerStatement),
                 cancellationToken);
 
             var nextCaretPosition = formattedNewRoot.GetAnnotatedTokens(s_openBracePositionAnnotation).Single().Span.End;
@@ -341,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         private static (SyntaxNode newNode, SyntaxNode oldNode) ModifyObjectCreationExpressionNode(
             ObjectCreationExpressionSyntax objectCreationExpressionNode,
             bool addOrRemoveInitializer,
-            IEditorOptions editorOptions)
+            DocumentOptionSet documentOptions)
         {
             // 1. Add '()' after the type.
             // e.g. var c = new Bar => var c = new Bar()
@@ -350,7 +359,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
             // 2. Add or remove initializer
             // e.g. var c = new Bar() => var c = new Bar() { }
             var objectCreationNodeWithCorrectInitializer = addOrRemoveInitializer
-                ? WithBraces(objectCreationNodeWithArgumentList, editorOptions)
+                ? WithBraces(objectCreationNodeWithArgumentList, documentOptions)
                 : WithoutBraces(objectCreationNodeWithArgumentList);
 
             // 3. Handler the semicolon.
@@ -785,32 +794,32 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
 
         #region AddBrace
 
-        private static AccessorListSyntax GetAccessorListNode(IEditorOptions editorOptions)
-            => SyntaxFactory.AccessorList().WithOpenBraceToken(GetOpenBrace(editorOptions)).WithCloseBraceToken(GetCloseBrace(editorOptions));
+        private static AccessorListSyntax GetAccessorListNode(DocumentOptionSet documentOptions)
+            => SyntaxFactory.AccessorList().WithOpenBraceToken(GetOpenBrace(documentOptions)).WithCloseBraceToken(GetCloseBrace(documentOptions));
 
-        private static InitializerExpressionSyntax GetInitializerExpressionNode(IEditorOptions editorOptions)
+        private static InitializerExpressionSyntax GetInitializerExpressionNode(DocumentOptionSet documentOptions)
             => SyntaxFactory.InitializerExpression(SyntaxKind.ObjectInitializerExpression)
-                .WithOpenBraceToken(GetOpenBrace(editorOptions));
+                .WithOpenBraceToken(GetOpenBrace(documentOptions));
 
-        private static BlockSyntax GetBlockNode(IEditorOptions editorOptions)
-            => SyntaxFactory.Block().WithOpenBraceToken(GetOpenBrace(editorOptions)).WithCloseBraceToken(GetCloseBrace(editorOptions));
+        private static BlockSyntax GetBlockNode(DocumentOptionSet documentOptions)
+            => SyntaxFactory.Block().WithOpenBraceToken(GetOpenBrace(documentOptions)).WithCloseBraceToken(GetCloseBrace(documentOptions));
 
-        private static SyntaxToken GetOpenBrace(IEditorOptions editorOptions)
+        private static SyntaxToken GetOpenBrace(DocumentOptionSet documentOptions)
             => SyntaxFactory.Token(
                     leading: SyntaxTriviaList.Empty,
                     kind: SyntaxKind.OpenBraceToken,
-                    trailing: SyntaxTriviaList.Create(GetNewLineTrivia(editorOptions)))
+                    trailing: SyntaxTriviaList.Create(GetNewLineTrivia(documentOptions)))
                 .WithAdditionalAnnotations(s_openBracePositionAnnotation);
 
-        private static SyntaxToken GetCloseBrace(IEditorOptions editorOptions)
+        private static SyntaxToken GetCloseBrace(DocumentOptionSet documentOptions)
             => SyntaxFactory.Token(
                 leading: SyntaxTriviaList.Empty,
                 kind: SyntaxKind.CloseBraceToken,
-                trailing: SyntaxTriviaList.Create(GetNewLineTrivia(editorOptions)));
+                trailing: SyntaxTriviaList.Create(GetNewLineTrivia(documentOptions)));
 
-        private static SyntaxTrivia GetNewLineTrivia(IEditorOptions editorOptions)
+        private static SyntaxTrivia GetNewLineTrivia(DocumentOptionSet documentOptions)
         {
-            var newLineString = editorOptions.GetNewLineCharacter();
+            var newLineString = documentOptions.GetOption(FormattingOptions2.NewLine);
             return SyntaxFactory.EndOfLine(newLineString);
         }
 
@@ -818,18 +827,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         /// Add braces to the <param name="node"/>.
         /// For FieldDeclaration and EventFieldDeclaration, it will change them to PropertyDeclaration and EventDeclaration
         /// </summary>
-        private static SyntaxNode WithBraces(SyntaxNode node, IEditorOptions editorOptions)
+        private static SyntaxNode WithBraces(SyntaxNode node, DocumentOptionSet documentOptions)
             => node switch
             {
-                BaseTypeDeclarationSyntax baseTypeDeclarationNode => WithBracesForBaseTypeDeclaration(baseTypeDeclarationNode, editorOptions),
-                ObjectCreationExpressionSyntax objectCreationExpressionNode => GetObjectCreationExpressionWithInitializer(objectCreationExpressionNode, editorOptions),
+                BaseTypeDeclarationSyntax baseTypeDeclarationNode => WithBracesForBaseTypeDeclaration(baseTypeDeclarationNode, documentOptions),
+                ObjectCreationExpressionSyntax objectCreationExpressionNode => GetObjectCreationExpressionWithInitializer(objectCreationExpressionNode, documentOptions),
                 FieldDeclarationSyntax fieldDeclarationNode when fieldDeclarationNode.Declaration.Variables.IsSingle()
-                    => ConvertFieldDeclarationToPropertyDeclaration(fieldDeclarationNode, editorOptions),
-                EventFieldDeclarationSyntax eventFieldDeclarationNode => ConvertEventFieldDeclarationToEventDeclaration(eventFieldDeclarationNode, editorOptions),
-                BaseMethodDeclarationSyntax baseMethodDeclarationNode => AddBlockToBaseMethodDeclaration(baseMethodDeclarationNode, editorOptions),
-                LocalFunctionStatementSyntax localFunctionStatementNode => AddBlockToLocalFunctionDeclaration(localFunctionStatementNode, editorOptions),
-                AccessorDeclarationSyntax accessorDeclarationNode => AddBlockToAccessorDeclaration(accessorDeclarationNode, editorOptions),
-                _ when node.IsEmbeddedStatementOwner() => AddBlockToEmbeddedStatementOwner(node, editorOptions),
+                    => ConvertFieldDeclarationToPropertyDeclaration(fieldDeclarationNode, documentOptions),
+                EventFieldDeclarationSyntax eventFieldDeclarationNode => ConvertEventFieldDeclarationToEventDeclaration(eventFieldDeclarationNode, documentOptions),
+                BaseMethodDeclarationSyntax baseMethodDeclarationNode => AddBlockToBaseMethodDeclaration(baseMethodDeclarationNode, documentOptions),
+                LocalFunctionStatementSyntax localFunctionStatementNode => AddBlockToLocalFunctionDeclaration(localFunctionStatementNode, documentOptions),
+                AccessorDeclarationSyntax accessorDeclarationNode => AddBlockToAccessorDeclaration(accessorDeclarationNode, documentOptions),
+                _ when node.IsEmbeddedStatementOwner() => AddBlockToEmbeddedStatementOwner(node, documentOptions),
                 _ => throw ExceptionUtilities.UnexpectedValue(node),
             };
 
@@ -838,8 +847,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         /// </summary>
         private static BaseTypeDeclarationSyntax WithBracesForBaseTypeDeclaration(
             BaseTypeDeclarationSyntax baseTypeDeclarationNode,
-            IEditorOptions editorOptions)
-            => baseTypeDeclarationNode.WithOpenBraceToken(GetOpenBrace(editorOptions))
+            DocumentOptionSet documentOptions)
+            => baseTypeDeclarationNode.WithOpenBraceToken(GetOpenBrace(documentOptions))
                 .WithCloseBraceToken(SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
 
         /// <summary>
@@ -847,22 +856,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         /// </summary>
         private static ObjectCreationExpressionSyntax GetObjectCreationExpressionWithInitializer(
             ObjectCreationExpressionSyntax objectCreationExpressionNode,
-            IEditorOptions editorOptions)
-            => objectCreationExpressionNode.WithInitializer(GetInitializerExpressionNode(editorOptions));
+            DocumentOptionSet documentOptions)
+            => objectCreationExpressionNode.WithInitializer(GetInitializerExpressionNode(documentOptions));
 
         /// <summary>
         /// Convert <param name="fieldDeclarationNode"/> to a property declarations.
         /// </summary>
         private static PropertyDeclarationSyntax ConvertFieldDeclarationToPropertyDeclaration(
             FieldDeclarationSyntax fieldDeclarationNode,
-            IEditorOptions editorOptions)
+            DocumentOptionSet documentOptions)
             => SyntaxFactory.PropertyDeclaration(
                 fieldDeclarationNode.AttributeLists,
                 fieldDeclarationNode.Modifiers,
                 fieldDeclarationNode.Declaration.Type,
                 explicitInterfaceSpecifier: null,
                 identifier: fieldDeclarationNode.Declaration.Variables[0].Identifier,
-                accessorList: GetAccessorListNode(editorOptions),
+                accessorList: GetAccessorListNode(documentOptions),
                 expressionBody: null,
                 initializer: null,
                 semicolonToken: SyntaxFactory.Token(SyntaxKind.None)).WithTriviaFrom(fieldDeclarationNode);
@@ -872,7 +881,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         /// </summary>
         private static EventDeclarationSyntax ConvertEventFieldDeclarationToEventDeclaration(
             EventFieldDeclarationSyntax eventFieldDeclarationNode,
-            IEditorOptions editorOptions)
+            DocumentOptionSet documentOptions)
             => SyntaxFactory.EventDeclaration(
                 eventFieldDeclarationNode.AttributeLists,
                 eventFieldDeclarationNode.Modifiers,
@@ -880,7 +889,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
                 eventFieldDeclarationNode.Declaration.Type,
                 explicitInterfaceSpecifier: null,
                 identifier: eventFieldDeclarationNode.Declaration.Variables[0].Identifier,
-                accessorList: GetAccessorListNode(editorOptions),
+                accessorList: GetAccessorListNode(documentOptions),
                 semicolonToken: SyntaxFactory.Token(SyntaxKind.None)).WithTriviaFrom(eventFieldDeclarationNode);
 
         /// <summary>
@@ -888,8 +897,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         /// </summary>
         private static BaseMethodDeclarationSyntax AddBlockToBaseMethodDeclaration(
             BaseMethodDeclarationSyntax baseMethodDeclarationNode,
-            IEditorOptions editorOptions)
-            => baseMethodDeclarationNode.WithBody(GetBlockNode(editorOptions))
+            DocumentOptionSet documentOptions)
+            => baseMethodDeclarationNode.WithBody(GetBlockNode(documentOptions))
                 // When the method declaration with no body is parsed, it has an invisible trailing semicolon. Make sure it is removed.
                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None));
 
@@ -898,8 +907,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         /// </summary>
         private static LocalFunctionStatementSyntax AddBlockToLocalFunctionDeclaration(
             LocalFunctionStatementSyntax localFunctionStatementNode,
-            IEditorOptions editorOptions)
-            => localFunctionStatementNode.WithBody(GetBlockNode(editorOptions))
+            DocumentOptionSet documentOptions)
+            => localFunctionStatementNode.WithBody(GetBlockNode(documentOptions))
                 // When the local method declaration with no body is parsed, it has an invisible trailing semicolon. Make sure it is removed.
                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None));
 
@@ -908,8 +917,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         /// </summary>
         private static AccessorDeclarationSyntax AddBlockToAccessorDeclaration(
             AccessorDeclarationSyntax accessorDeclarationNode,
-            IEditorOptions editorOptions)
-            => accessorDeclarationNode.WithBody(GetBlockNode(editorOptions))
+            DocumentOptionSet documentOptions)
+            => accessorDeclarationNode.WithBody(GetBlockNode(documentOptions))
                 // When the accessor with no body is parsed, it has an invisible trailing semicolon. Make sure it is removed.
                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None));
 
@@ -918,12 +927,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion
         /// </summary>
         private static SyntaxNode AddBlockToEmbeddedStatementOwner(
             SyntaxNode embeddedStatementOwner,
-            IEditorOptions editorOptions,
+            DocumentOptionSet documentOptions,
             StatementSyntax? extraNodeInsertedBetweenBraces = null)
         {
             var block = extraNodeInsertedBetweenBraces != null
-                ? GetBlockNode(editorOptions).WithStatements(new SyntaxList<StatementSyntax>(extraNodeInsertedBetweenBraces))
-                : GetBlockNode(editorOptions);
+                ? GetBlockNode(documentOptions).WithStatements(new SyntaxList<StatementSyntax>(extraNodeInsertedBetweenBraces))
+                : GetBlockNode(documentOptions);
 
             return embeddedStatementOwner switch
             {

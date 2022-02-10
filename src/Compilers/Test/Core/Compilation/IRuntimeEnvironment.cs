@@ -242,6 +242,7 @@ namespace Roslyn.Test.Utilities
             var assembly = default(ImmutableArray<byte>);
             var pdbStream = (emitOptions.DebugInformationFormat != DebugInformationFormat.Embedded) ? new MemoryStream() : null;
 
+            // Note: don't forget to name the source inputs to get them embedded for debugging
             var embeddedTexts = compilation.SyntaxTrees
                 .Select(t => (filePath: t.FilePath, text: t.GetText()))
                 .Where(t => t.text.CanBeEmbedded && !string.IsNullOrEmpty(t.filePath))
@@ -386,7 +387,7 @@ namespace Roslyn.Test.Utilities
     public interface IRuntimeEnvironment : IDisposable
     {
         void Emit(Compilation mainCompilation, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, bool usePdbForDebugging = false);
-        int Execute(string moduleName, string[] args, string expectedOutput);
+        int Execute(string moduleName, string[] args, string expectedOutput, bool trimOutput = true);
         ImmutableArray<byte> GetMainImage();
         ImmutableArray<byte> GetMainPdb();
         ImmutableArray<Diagnostic> GetDiagnostics();

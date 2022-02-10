@@ -13,9 +13,11 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -68,6 +70,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             private bool _cleared;
 
             /// <summary>
+            /// Message we show if we find no definitions.  Consumers of the streaming presenter can set their own title.
+            /// </summary>
+            protected string NoDefinitionsFoundMessage = ServicesVSResources.Search_found_no_results;
+
+            /// <summary>
             /// The list of all definitions we've heard about.  This may be a superset of the
             /// keys in <see cref="_definitionToBucket"/> because we may encounter definitions
             /// we don't create definition buckets for.  For example, if the definition asks
@@ -107,8 +114,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                  StreamingFindUsagesPresenter presenter,
                  IFindAllReferencesWindow findReferencesWindow,
                  ImmutableArray<ITableColumnDefinition> customColumns,
+                 IGlobalOptionService globalOptions,
                  bool includeContainingTypeAndMemberColumns,
                  bool includeKindColumn)
+                : base(globalOptions)
             {
                 presenter.AssertIsForeground();
 
@@ -313,12 +322,19 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             public sealed override ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
             {
-                lock (Gate)
+                try
                 {
-                    Definitions.Add(definition);
-                }
+                    lock (Gate)
+                    {
+                        Definitions.Add(definition);
+                    }
 
-                return OnDefinitionFoundWorkerAsync(definition, cancellationToken);
+                    return OnDefinitionFoundWorkerAsync(definition, cancellationToken);
+                }
+                catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
             }
 
             protected abstract ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition, CancellationToken cancellationToken);
@@ -332,8 +348,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 CancellationToken cancellationToken)
             {
                 var document = documentSpan.Document;
+                var options = ClassificationOptions.From(document.Project);
                 var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var (excerptResult, lineText) = await ExcerptAsync(sourceText, documentSpan, cancellationToken).ConfigureAwait(false);
+                var (excerptResult, lineText) = await ExcerptAsync(sourceText, documentSpan, options, cancellationToken).ConfigureAwait(false);
 
                 var mappedDocumentSpan = await AbstractDocumentSpanEntry.TryMapAndGetFirstAsync(documentSpan, sourceText, cancellationToken).ConfigureAwait(false);
                 if (mappedDocumentSpan == null)
@@ -360,8 +377,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     additionalProperties);
             }
 
-            private async Task<(ExcerptResult, SourceText)> ExcerptAsync(
-                SourceText sourceText, DocumentSpan documentSpan, CancellationToken cancellationToken)
+            private static async Task<(ExcerptResult, SourceText)> ExcerptAsync(
+                SourceText sourceText, DocumentSpan documentSpan, ClassificationOptions options, CancellationToken cancellationToken)
             {
                 var excerptService = documentSpan.Document.Services.GetService<IDocumentExcerptService>();
                 if (excerptService != null)
@@ -373,7 +390,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     }
                 }
 
-                var classificationResult = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(documentSpan, cancellationToken).ConfigureAwait(false);
+                var classificationResult = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(documentSpan, options, cancellationToken).ConfigureAwait(false);
 
                 // need to fix the span issue tracking here - https://github.com/dotnet/roslyn/issues/31001
                 var excerptResult = new ExcerptResult(
@@ -406,7 +423,19 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             }
 
             public sealed override ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken)
-                => throw new InvalidOperationException("This should never be called in the streaming case.");
+            {
+                lock (Gate)
+                {
+                    NoDefinitionsFoundMessage = message;
+                }
+
+                return ValueTaskFactory.CompletedTask;
+            }
+
+            public sealed override async ValueTask ReportInformationalMessageAsync(string message, CancellationToken cancellationToken)
+            {
+                await this.Presenter.ReportInformationalMessageAsync(message, cancellationToken).ConfigureAwait(false);
+            }
 
             protected sealed override ValueTask ReportProgressAsync(int current, int maximum, CancellationToken cancellationToken)
             {
@@ -436,6 +465,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 return ValueTaskFactory.CompletedTask;
             }
+
+            protected static DefinitionItem CreateNoResultsDefinitionItem(string message)
+                => DefinitionItem.CreateNonNavigableItem(
+                    GlyphTags.GetTags(Glyph.StatusInformation),
+                    ImmutableArray.Create(new TaggedText(TextTags.Text, message)));
 
             #endregion
 

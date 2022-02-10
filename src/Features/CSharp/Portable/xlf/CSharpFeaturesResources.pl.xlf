@@ -97,6 +97,16 @@
         <target state="translated">Konwertuj na metodę</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_raw_string">
+        <source>Convert to raw string</source>
+        <target state="new">Convert to raw string</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_raw_string_no_indent">
+        <source>Convert to raw string (no indent)</source>
+        <target state="new">Convert to raw string (no indent)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Convert_to_regular_string">
         <source>Convert to regular string</source>
         <target state="translated">Konwertuj na zwykły ciąg</target>
@@ -120,6 +130,11 @@
       <trans-unit id="Declare_as_nullable">
         <source>Declare as nullable</source>
         <target state="translated">Zadeklaruj jako dopuszczający wartość null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Enable_nullable_reference_types_in_project">
+        <source>Enable nullable reference types in project</source>
+        <target state="translated">Włącz typy referencyjne dopuszczające wartości null w projekcie</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_return_type">
@@ -162,6 +177,16 @@
         <target state="translated">Odwróć instrukcję „for”</target>
         <note>{Locked="for"} "for" is a C# keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Selection_cannot_include_global_statements">
+        <source>Selection cannot include global statements</source>
+        <target state="translated">Zaznaczenie nie może zawierać instrukcji globalnych</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Selection_cannot_include_top_level_statements">
+        <source>Selection cannot include top-level statements</source>
+        <target state="translated">Zaznaczenie nie może zawierać instrukcji najwyższego poziomu</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Simplify_lambda_expression">
         <source>Simplify lambda expression</source>
         <target state="translated">Uprość wyrażenie lambda</target>
@@ -185,6 +210,11 @@
       <trans-unit id="Use_recursive_patterns">
         <source>Use recursive patterns</source>
         <target state="translated">Używanie wzorców rekursywnych</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Warning_Expression_may_change_code_meaning">
+        <source>Warning: Expression may have side effects. Code meaning may change.</source>
+        <target state="translated">Ostrzeżenie: wyrażenie może mieć efekty uboczne. Znaczenie kodu może ulec zmianie.</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_Inlining_temporary_into_conditional_method_call">

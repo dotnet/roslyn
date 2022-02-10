@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
     internal class NameSyntaxClassifier : AbstractNameSyntaxClassifier
     {
         public override void AddClassifications(
-            Workspace workspace,
             SyntaxNode syntax,
             SemanticModel semanticModel,
+            ClassificationOptions options,
             ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
@@ -69,7 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
-            if (symbolInfo.CandidateReason is CandidateReason.Ambiguous or
+            if (symbolInfo.CandidateReason is
+                CandidateReason.Ambiguous or
                 CandidateReason.MemberGroup)
             {
                 return TryClassifyAmbiguousSymbol(name, symbolInfo, semanticModel, result, cancellationToken);
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 
             // Only classify if we get one good symbol back, or if it bound to a constructor symbol with
             // overload resolution/accessibility errors, or bound to type/constructor and type wasn't creatable.
-            var symbol = TryGetSymbol(name, symbolInfo, semanticModel);
+            var symbol = TryGetSymbol(name, symbolInfo);
             if (TryClassifySymbol(name, symbol, semanticModel, cancellationToken, out var classifiedSpan))
             {
                 result.Add(classifiedSpan);

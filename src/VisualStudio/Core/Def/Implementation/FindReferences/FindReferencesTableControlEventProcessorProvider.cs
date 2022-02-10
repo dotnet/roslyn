@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         allowCancellation: true,
                         showProgress: false);
 
-                    await supportsNavigation.NavigateToAsync(e.IsPreview, context.UserCancellationToken).ConfigureAwait(false);
+                    await supportsNavigation.NavigateToAsync(e.IsPreview, e.ShouldActivate, context.UserCancellationToken).ConfigureAwait(false);
                 }
             }
         }

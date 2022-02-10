@@ -46,3 +46,17 @@ The change affects compatibility in two ways:
 - DateTimeConstant(-1) will still count when we check that you don’t specify two default values. The compiler will produce an error, instead of succeeding (and producing IL with two attributes).
 
 PR: https://github.com/dotnet/roslyn/pull/11536
+
+# Version 4.1.0
+
+### Can no longer inherit from CompletionService and CompletionServiceWithProviders
+
+The constructors of Microsoft.CodeAnalysis.Completion and Microsoft.CodeAnalysis.Completion.CompletionServiceWithProviders are now internal.
+Roslyn does not support implementing completion for arbitrary languages.
+
+# Version 4.2.0
+
+### Can no longer inherit from QuickInfoService
+
+The constructors of Microsoft.CodeAnalysis.QuickInfoService are now internal.
+Roslyn does not support implementing completion for arbitrary languages.

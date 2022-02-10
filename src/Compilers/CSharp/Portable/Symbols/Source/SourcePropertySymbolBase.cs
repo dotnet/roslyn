@@ -1188,7 +1188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.IndexerNameAttribute))
             {
                 bool hasAnyDiagnostics;
-                (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
+                (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, beforeAttributePartBound: null, afterAttributePartBound: null, out hasAnyDiagnostics);
                 if (!attributeData.HasErrors)
                 {
                     string? indexerName = attributeData.CommonConstructorArguments[0].DecodeValue<string>(SpecialType.System_String);

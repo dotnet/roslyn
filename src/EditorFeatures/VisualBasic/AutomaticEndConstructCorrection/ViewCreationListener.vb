@@ -6,6 +6,7 @@ Imports System.Collections.ObjectModel
 Imports System.ComponentModel.Composition
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Utilities
@@ -21,11 +22,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
         Implements ITextViewConnectionListener
 
         Private ReadOnly _uiThreadOperationExecutor As IUIThreadOperationExecutor
+        Private ReadOnly _globalOptions As IGlobalOptionService
 
         <ImportingConstructor()>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(uiThreadOperationExecutor As IUIThreadOperationExecutor)
+        Public Sub New(uiThreadOperationExecutor As IUIThreadOperationExecutor,
+                       globalOptions As IGlobalOptionService)
             _uiThreadOperationExecutor = uiThreadOperationExecutor
+            _globalOptions = globalOptions
         End Sub
 
         Public Sub SubjectBuffersConnected(
@@ -33,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
             reason As ConnectionReason,
             subjectBuffers As IReadOnlyCollection(Of ITextBuffer)) Implements ITextViewConnectionListener.SubjectBuffersConnected
 
-            If Not subjectBuffers(0).GetFeatureOnOffOption(FeatureOnOffOptions.EndConstruct) Then
+            If Not _globalOptions.GetOption(FeatureOnOffOptions.EndConstruct, LanguageNames.VisualBasic) Then
                 Return
             End If
 

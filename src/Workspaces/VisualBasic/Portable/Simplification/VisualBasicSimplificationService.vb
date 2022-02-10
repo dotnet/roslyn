@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Return NodesAndTokensToReduceComputer.Compute(root, isNodeOrTokenOutsideSimplifySpans)
         End Function
 
-        Protected Overrides Function CanNodeBeSimplifiedWithoutSpeculation(node As SyntaxNode) As Boolean
+        Protected Overrides Function NodeRequiresNonSpeculativeSemanticModel(node As SyntaxNode) As Boolean
             Return node IsNot Nothing AndAlso node.Parent IsNot Nothing AndAlso
                 TypeOf node Is VariableDeclaratorSyntax AndAlso
                 TypeOf node.Parent Is FieldDeclarationSyntax

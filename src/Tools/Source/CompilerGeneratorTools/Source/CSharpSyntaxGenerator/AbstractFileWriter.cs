@@ -385,7 +385,7 @@ namespace CSharpSyntaxGenerator
                 }).Single(f => f.Name == field.Name);
             }
 
-            return field.Kinds;
+            return field.Kinds.Distinct().ToList();
         }
 
         #endregion Node helpers

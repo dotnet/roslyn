@@ -122,6 +122,11 @@ namespace Microsoft.VisualStudio.LanguageServices
         public const string ValueTrackingToolWindowIdString = "60a19d42-2dd7-43f3-be90-c7a9cb7d28f4";
         public static readonly Guid ValueTrackingToolWindowId = new(ValueTrackingToolWindowIdString);
 
+        public const string StackTraceExplorerToolWindowIdString = "7FF2AB69-0A20-4BF5-BAEF-24D9EB6969E1";
+        public static readonly Guid StackTraceExplorerToolWindowId = new(StackTraceExplorerToolWindowIdString);
+        public const string StackTraceExplorerCommandIdString = "FB190424-4DFF-43DB-8CCA-E32D1CE8A5CA";
+        public static readonly Guid StackTraceExplorerCommandId = new(StackTraceExplorerCommandIdString);
+
         // TODO: Remove pending https://github.com/dotnet/roslyn/issues/8927 .
         // Interactive guids
         public const string InteractiveCommandSetIdString = "00B8868B-F9F5-4970-A048-410B05508506";

@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -15,8 +16,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
 {
     internal abstract class PythiaCompletionProviderBase : CommonCompletionProvider, INotifyCommittingItemCompletionProvider
     {
-        public static PerLanguageOption2<bool> HideAdvancedMembersOption => CompletionOptions.HideAdvancedMembers;
-
         public static CompletionItem CreateCommonCompletionItem(
             string displayText,
             string displayTextSuffix,
@@ -48,8 +47,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
         public static ImmutableArray<SymbolDisplayPart> CreateRecommendedKeywordDisplayParts(string keyword, string toolTip)
             => RecommendedKeyword.CreateDisplayParts(keyword, toolTip);
 
-        public static Task<CompletionDescription> GetDescriptionAsync(CompletionItem item, Document document, CancellationToken cancellationToken)
-            => SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
+        public static Task<CompletionDescription> GetDescriptionAsync(CompletionItem item, Document document, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
+            => SymbolCompletionItem.GetDescriptionAsync(item, document, displayOptions, cancellationToken);
 
         public static CompletionDescription GetDescription(CompletionItem item)
             => CommonCompletionItem.GetDescription(item);

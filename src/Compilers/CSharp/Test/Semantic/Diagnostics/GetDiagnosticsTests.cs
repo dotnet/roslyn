@@ -493,10 +493,10 @@ class C
             verifyDiagnostics(analyzerDiagnostics);
 
             // Verify CS0168 reported by CSharpCompilerDiagnosticAnalyzer is not affected by "dotnet_analyzer_diagnostic = none"
-            var analyzerConfigOptions = new CompilerAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("dotnet_analyzer_diagnostic.severity", "none"));
+            var analyzerConfigOptions = new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add("dotnet_analyzer_diagnostic.severity", "none"));
             var analyzerConfigOptionsProvider = new CompilerAnalyzerConfigOptionsProvider(
                 ImmutableDictionary<object, AnalyzerConfigOptions>.Empty.Add(compilation.SyntaxTrees.Single(), analyzerConfigOptions),
-                CompilerAnalyzerConfigOptions.Empty);
+                DictionaryAnalyzerConfigOptions.Empty);
             var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty, analyzerConfigOptionsProvider);
             compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, analyzerOptions);
             analyzerDiagnostics = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync();
@@ -539,10 +539,10 @@ class C
                 AnalyzerOptions analyzerOptions;
                 if (options.HasValue)
                 {
-                    var analyzerConfigOptions = new CompilerAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add(options.Value.key, options.Value.value));
+                    var analyzerConfigOptions = new DictionaryAnalyzerConfigOptions(ImmutableDictionary<string, string>.Empty.Add(options.Value.key, options.Value.value));
                     var analyzerConfigOptionsProvider = new CompilerAnalyzerConfigOptionsProvider(
                         ImmutableDictionary<object, AnalyzerConfigOptions>.Empty.Add(compilation.SyntaxTrees.Single(), analyzerConfigOptions),
-                        CompilerAnalyzerConfigOptions.Empty);
+                        DictionaryAnalyzerConfigOptions.Empty);
                     analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty, analyzerConfigOptionsProvider);
                 }
                 else
@@ -732,6 +732,48 @@ class C
             // Now fetch diagnostics for entire tree and verify event queue is completed.
             _ = await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel, filterSpan: null, CancellationToken.None);
             Assert.True(eventQueue.IsCompleted);
+        }
+
+        [Fact, WorkItem(56843, "https://github.com/dotnet/roslyn/issues/56843")]
+        public async Task TestCompilerAnalyzerForSpanBasedSemanticDiagnostics()
+        {
+            var source = @"
+class C
+{
+    void M1()
+    {
+        int x1 = 0; // CS0219 (unused variable)
+    }
+}";
+            var compilation = CreateCompilation(source);
+            var syntaxTree = compilation.SyntaxTrees[0];
+            var semanticModel = compilation.GetSemanticModel(syntaxTree);
+
+            // Get compiler analyzer diagnostics for a span within "M1".
+            var localDecl = syntaxTree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().First();
+            var span = localDecl.Span;
+            var compilerAnalyzer = new CSharpCompilerDiagnosticAnalyzer();
+            var compilationWithAnalyzers = compilation.WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(compilerAnalyzer), AnalyzerOptions.Empty);
+            var result = await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel, span, CancellationToken.None);
+            var diagnostics = result.SemanticDiagnostics[syntaxTree][compilerAnalyzer];
+            diagnostics.Verify(
+                // (6,13): warning CS0219: The variable 'x1' is assigned but its value is never used
+                //         int x1 = 0; // CS0219 (unused variable)
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x1").WithArguments("x1").WithLocation(6, 13));
+
+            // Verify compiler analyzer diagnostics for entire tree
+            result = await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel, filterSpan: null, CancellationToken.None);
+            diagnostics = result.SemanticDiagnostics[syntaxTree][compilerAnalyzer];
+            diagnostics.Verify(
+                // (6,13): warning CS0219: The variable 'x1' is assigned but its value is never used
+                //         int x1 = 0; // CS0219 (unused variable)
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x1").WithArguments("x1").WithLocation(6, 13));
+
+            // Verify no diagnostics with a span outside the local decl
+            span = localDecl.GetLastToken().GetNextToken().Span;
+            result = await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel, span, CancellationToken.None);
+            var diagnosticsByAnalyzerMap = result.SemanticDiagnostics[syntaxTree];
+            Assert.Empty(diagnosticsByAnalyzerMap);
         }
     }
 }

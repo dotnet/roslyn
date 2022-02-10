@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.IO
+Imports System.Reflection
 Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
 Imports System.Reflection.PortableExecutable
@@ -4684,6 +4685,41 @@ End Class
   <methods />
 </symbols>
 ")
+        End Sub
+
+        <Fact>
+        Public Sub CompilerInfo_WindowsPdb()
+            Dim compilerAssembly = GetType(Compilation).Assembly
+            Dim fileVersion = Version.Parse(compilerAssembly.GetCustomAttribute(Of AssemblyFileVersionAttribute)().Version).ToString()
+            Dim versionString = compilerAssembly.GetCustomAttribute(Of AssemblyInformationalVersionAttribute)().InformationalVersion
+
+            Dim source = "
+Class C 
+    Sub F
+    End Sub
+End CLass"
+
+            Dim c = CreateCompilation({Parse(source, "a.cs")}, options:=TestOptions.DebugDll)
+
+            c.VerifyPdb("
+<symbols>
+  <files>
+    <file id=""1"" name=""a.cs"" language=""VB"" checksumAlgorithm=""SHA1"" checksum=""D1-16-CD-EB-E1-D0-E0-7B-86-B4-47-40-75-8E-0D-53-E7-3B-10-0D"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""F"">
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""3"" startColumn=""5"" endLine=""3"" endColumn=""10"" document=""1"" />
+        <entry offset=""0x1"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""12"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <currentnamespace name="""" />
+      </scope>
+    </method>
+  </methods>
+  <compilerInfo version=""" & fileVersion & """ name=""Visual Basic - " & versionString & """ />
+</symbols>
+", options:=PdbValidationOptions.IncludeModuleDebugInfo, format:=DebugInformationFormat.Pdb)
         End Sub
     End Class
 End Namespace

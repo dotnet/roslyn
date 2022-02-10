@@ -10,9 +10,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             OperationStatus status,
             TextSpan originalSpan,
             TextSpan finalSpan,
-            OptionSet options,
+            ExtractMethodOptions options,
             bool selectionInExpression,
             SemanticDocument document,
             SyntaxToken firstToken,
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             OperationStatus status,
             TextSpan originalSpan,
             TextSpan finalSpan,
-            OptionSet options,
+            ExtractMethodOptions options,
             bool selectionInExpression,
             SemanticDocument document,
             SyntaxAnnotation firstTokenAnnotation,
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 
             Contract.ThrowIfNull(statement);
             var firstStatementUnderContainer = GetFirstStatementUnderContainer();
-            Contract.ThrowIfFalse(statement.Parent == firstStatementUnderContainer.Parent);
+            Contract.ThrowIfFalse(CSharpSyntaxFacts.Instance.AreStatementsInSameContainer(statement, firstStatementUnderContainer));
 
             return statement;
         }

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Microsoft.VisualStudio.Shell.TableControl;
@@ -22,15 +23,16 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         /// This context will not group entries by definition, and will instead just create
         /// entries for the definitions themselves.
         /// </summary>
-        private class WithoutReferencesFindUsagesContext : AbstractTableDataSourceFindUsagesContext
+        private sealed class WithoutReferencesFindUsagesContext : AbstractTableDataSourceFindUsagesContext
         {
             public WithoutReferencesFindUsagesContext(
                 StreamingFindUsagesPresenter presenter,
                 IFindAllReferencesWindow findReferencesWindow,
                 ImmutableArray<ITableColumnDefinition> customColumns,
+                IGlobalOptionService globalOptions,
                 bool includeContainingTypeAndMemberColumns,
                 bool includeKindColumn)
-                : base(presenter, findReferencesWindow, customColumns, includeContainingTypeAndMemberColumns, includeKindColumn)
+                : base(presenter, findReferencesWindow, customColumns, globalOptions, includeContainingTypeAndMemberColumns, includeKindColumn)
             {
             }
 
@@ -40,7 +42,32 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             // Nothing to do on completion.
             protected override Task OnCompletedAsyncWorkerAsync(CancellationToken cancellationToken)
-                => Task.CompletedTask;
+                => CreateNoResultsFoundEntryIfNecessaryAsync();
+
+            private async Task CreateNoResultsFoundEntryIfNecessaryAsync()
+            {
+                string message;
+                lock (Gate)
+                {
+                    // If we got definitions, then no need to show the 'no results found' message.
+                    if (this.Definitions.Count > 0)
+                        return;
+
+                    message = NoDefinitionsFoundMessage;
+                }
+
+                var definitionBucket = GetOrCreateDefinitionBucket(CreateNoResultsDefinitionItem(message), expandedByDefault: true);
+                var entry = await SimpleMessageEntry.CreateAsync(definitionBucket, navigationBucket: null, message).ConfigureAwait(false);
+
+                lock (Gate)
+                {
+                    EntriesWhenGroupingByDefinition = EntriesWhenGroupingByDefinition.Add(entry);
+                    EntriesWhenNotGroupingByDefinition = EntriesWhenNotGroupingByDefinition.Add(entry);
+                    CurrentVersionNumber++;
+                }
+
+                NotifyChange();
+            }
 
             protected override async ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition, CancellationToken cancellationToken)
             {
@@ -88,6 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     {
                         EntriesWhenGroupingByDefinition = EntriesWhenGroupingByDefinition.AddRange(entries);
                         EntriesWhenNotGroupingByDefinition = EntriesWhenNotGroupingByDefinition.AddRange(entries);
+                        CurrentVersionNumber++;
                     }
 
                     NotifyChange();

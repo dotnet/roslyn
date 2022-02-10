@@ -22,15 +22,5 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return false;
         }
-
-        public static OptionSet GetUpdatedRecommendationOptions(OptionSet options, string language)
-        {
-            var filterOutOfScopeLocals = options.GetOption(CompletionControllerOptions.FilterOutOfScopeLocals);
-            var hideAdvancedMembers = options.GetOption(CompletionOptions.HideAdvancedMembers, language);
-
-            return options
-                .WithChangedOption(RecommendationOptions.FilterOutOfScopeLocals, language, filterOutOfScopeLocals)
-                .WithChangedOption(RecommendationOptions.HideAdvancedMembers, language, hideAdvancedMembers);
-        }
     }
 }

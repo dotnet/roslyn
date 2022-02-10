@@ -39,15 +39,17 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             private readonly SyntaxNode _node;
             private readonly ISymbolSearchService _symbolSearchService;
-            private readonly bool _searchReferenceAssemblies;
+            private readonly AddImportOptions _options;
             private readonly ImmutableArray<PackageSource> _packageSources;
 
             public SymbolReferenceFinder(
                 AbstractAddImportFeatureService<TSimpleNameSyntax> owner,
-                Document document, SemanticModel semanticModel,
-                string diagnosticId, SyntaxNode node,
+                Document document,
+                SemanticModel semanticModel,
+                string diagnosticId,
+                SyntaxNode node,
                 ISymbolSearchService symbolSearchService,
-                bool searchReferenceAssemblies,
+                AddImportOptions options,
                 ImmutableArray<PackageSource> packageSources,
                 CancellationToken cancellationToken)
             {
@@ -58,10 +60,10 @@ namespace Microsoft.CodeAnalysis.AddImport
                 _node = node;
 
                 _symbolSearchService = symbolSearchService;
-                _searchReferenceAssemblies = searchReferenceAssemblies;
+                _options = options;
                 _packageSources = packageSources;
 
-                if (_searchReferenceAssemblies || packageSources.Length > 0)
+                if (options.SearchReferenceAssemblies || packageSources.Length > 0)
                 {
                     Contract.ThrowIfNull(symbolSearchService);
                 }
@@ -217,15 +219,13 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                 var typeSymbols = OfType<ITypeSymbol>(symbols);
 
-                var options = await _document.GetOptionsAsync(searchScope.CancellationToken).ConfigureAwait(false);
-                var hideAdvancedMembers = options.GetOption(CompletionOptions.HideAdvancedMembers);
                 var editorBrowserInfo = new EditorBrowsableInfo(_semanticModel.Compilation);
 
                 // Only keep symbols which are accessible from the current location and that are allowed by the current
                 // editor browsable rules.
                 var accessibleTypeSymbols = typeSymbols.WhereAsArray(
                     s => ArityAccessibilityAndAttributeContextAreCorrect(s.Symbol, arity, inAttributeContext, hasIncompleteParentMember, looksGeneric) &&
-                         s.Symbol.IsEditorBrowsable(hideAdvancedMembers, _semanticModel.Compilation, editorBrowserInfo));
+                         s.Symbol.IsEditorBrowsable(_options.HideAdvancedMembers, _semanticModel.Compilation, editorBrowserInfo));
 
                 // These types may be contained within namespaces, or they may be nested 
                 // inside generic types.  Record these namespaces/types if it would be 

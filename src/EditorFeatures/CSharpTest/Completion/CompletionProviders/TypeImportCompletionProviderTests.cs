@@ -7,11 +7,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -24,18 +22,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         internal override Type GetCompletionProviderType()
             => typeof(TypeImportCompletionProvider);
 
-        private bool? ShowImportCompletionItemsOptionValue { get; set; } = true;
-
-        private bool IsExpandedCompletion { get; set; } = true;
-
-        private bool HideAdvancedMembers { get; set; }
-
-        protected override OptionSet WithChangedOptions(OptionSet options)
+        public TypeImportCompletionProviderTests()
         {
-            return base.WithChangedOptions(options)
-                .WithChangedOption(CompletionOptions.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, ShowImportCompletionItemsOptionValue)
-                .WithChangedOption(CompletionServiceOptions.IsExpandedCompletion, IsExpandedCompletion)
-                .WithChangedOption(CompletionOptions.HideAdvancedMembers, LanguageNames.CSharp, HideAdvancedMembers);
+            ShowImportCompletionItemsOptionValue = true;
+            ForceExpandedCompletionIndexCreation = true;
         }
 
         #region "Option tests"
@@ -60,7 +50,7 @@ class Bar
         public async Task OptionSetToNull_ExpDisabled()
         {
             ShowImportCompletionItemsOptionValue = null;
-            IsExpandedCompletion = false;
+            ForceExpandedCompletionIndexCreation = false;
             var markup = @"
 class Bar
 {
@@ -77,7 +67,7 @@ class Bar
         {
             TypeImportCompletionFeatureFlag = isExperimentEnabled;
             ShowImportCompletionItemsOptionValue = false;
-            IsExpandedCompletion = false;
+            ForceExpandedCompletionIndexCreation = false;
 
             var markup = @"
 class Bar

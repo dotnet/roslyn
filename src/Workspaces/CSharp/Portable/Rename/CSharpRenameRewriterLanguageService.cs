@@ -137,8 +137,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 _renamedSymbol = parameters.RenameSymbol;
                 _replacementTextValid = parameters.ReplacementTextValid;
                 _renameSpansTracker = parameters.RenameSpansTracker;
-                _isRenamingInStrings = parameters.OptionSet.RenameInStrings;
-                _isRenamingInComments = parameters.OptionSet.RenameInComments;
+                _isRenamingInStrings = parameters.IsRenamingInStrings;
+                _isRenamingInComments = parameters.IsRenamingInComments;
                 _stringAndCommentTextSpans = parameters.StringAndCommentTextSpans;
                 _renameAnnotations = parameters.RenameAnnotations;
 
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         return newToken;
                     }
 
-                    var symbols = RenameUtilities.GetSymbolsTouchingPosition(token.Span.Start, _semanticModel, _solution.Workspace, _cancellationToken);
+                    var symbols = RenameUtilities.GetSymbolsTouchingPosition(token.Span.Start, _semanticModel, _solution.Workspace.Services, _cancellationToken);
 
                     string? suffix = null;
                     var prefix = isRenameLocation && _renameLocations[token.Span].IsRenamableAccessor

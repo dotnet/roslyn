@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
@@ -305,20 +306,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int Formatting_TriggerOnPaste
         {
-            get { return GetBooleanOption(FormattingOptions2.FormatOnPaste); }
-            set { SetBooleanOption(FormattingOptions2.FormatOnPaste, value); }
+            get { return GetBooleanOption(FormattingOptionsMetadata.FormatOnPaste); }
+            set { SetBooleanOption(FormattingOptionsMetadata.FormatOnPaste, value); }
         }
 
         public int Formatting_TriggerOnStatementCompletion
         {
-            get { return GetBooleanOption(FormattingOptions2.AutoFormattingOnSemicolon); }
-            set { SetBooleanOption(FormattingOptions2.AutoFormattingOnSemicolon, value); }
+            get { return GetBooleanOption(AutoFormattingOptions.Metadata.AutoFormattingOnSemicolon); }
+            set { SetBooleanOption(AutoFormattingOptions.Metadata.AutoFormattingOnSemicolon, value); }
         }
 
         public int AutoFormattingOnTyping
         {
-            get { return GetBooleanOption(FormattingOptions2.AutoFormattingOnTyping); }
-            set { SetBooleanOption(FormattingOptions2.AutoFormattingOnTyping, value); }
+            get { return GetBooleanOption(AutoFormattingOptions.Metadata.AutoFormattingOnTyping); }
+            set { SetBooleanOption(AutoFormattingOptions.Metadata.AutoFormattingOnTyping, value); }
         }
     }
 }

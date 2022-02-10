@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
                     _document.Project.Solution,
                     _state.ContainingType,
                     members,
-                    new CodeGenerationOptions(
+                    new CodeGenerationContext(
                         contextLocation: syntaxTree.GetLocation(_state.TextSpan),
                         afterThisLocation: afterThisLocation),
                     cancellationToken).ConfigureAwait(false);

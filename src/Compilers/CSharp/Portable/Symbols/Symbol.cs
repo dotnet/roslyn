@@ -661,6 +661,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.Equals(obj as Symbol, SymbolEqualityComparer.Default.CompareKind);
         }
 
+        public bool Equals(Symbol other)
+        {
+            return this.Equals(other, SymbolEqualityComparer.Default.CompareKind);
+        }
+
         bool ISymbolInternal.Equals(ISymbolInternal other, TypeCompareKind compareKind)
         {
             return this.Equals(other as Symbol, compareKind);
@@ -832,6 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable 
         /// <summary>
         /// Fetches the documentation comment for this element with a cancellation token.
         /// </summary>
@@ -840,12 +846,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="cancellationToken">Optionally, allow cancellation of documentation comment retrieval.</param>
         /// <returns>The XML that would be written to the documentation file for the symbol.</returns>
         public virtual string GetDocumentationCommentXml(
-            CultureInfo preferredCulture = null,
+            CultureInfo? preferredCulture = null,
             bool expandIncludes = false,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             return "";
         }
+#nullable disable
 
         private static readonly SymbolDisplayFormat s_debuggerDisplayFormat =
             SymbolDisplayFormat.TestFormat

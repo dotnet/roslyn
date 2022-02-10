@@ -1107,11 +1107,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
             if (_size > 1)
             {
-#if NET
-                _items.AsSpan(0, _size).Sort(comparison);
-#else
                 SegmentedArray.Sort<T>(_items, 0, _size, Comparer<T>.Create(comparison));
-#endif
             }
             _version++;
         }
@@ -1141,7 +1137,7 @@ namespace Microsoft.CodeAnalysis.Collections
         //
         public void TrimExcess()
         {
-            var threshold = (int)(((double)_items.Length) * 0.9);
+            var threshold = (int)(_items.Length * 0.9);
             if (_size < threshold)
             {
                 Capacity = _size;

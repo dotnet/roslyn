@@ -683,7 +683,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.@a1')
                   Value: 
-                    IOperation:  (OperationKind.None, Type: null) (Syntax: '.@a1')
+                    IOperation:  (OperationKind.None, Type: System.String) (Syntax: '.@a1')
             Next (Regular) Block[B7]
                 Leaving: {R2}
     }
@@ -783,7 +783,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.X.@a1')
                   Value: 
-                    IOperation:  (OperationKind.None, Type: null) (Syntax: '.X.@a1')
+                    IOperation:  (OperationKind.None, Type: System.String) (Syntax: '.X.@a1')
 
             Next (Regular) Block[B5]
                 Leaving: {R2}
@@ -890,7 +890,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.@a1')
                   Value: 
-                    IOperation:  (OperationKind.None, Type: null) (Syntax: '.@a1')
+                    IOperation:  (OperationKind.None, Type: System.String) (Syntax: '.@a1')
 
             Next (Regular) Block[B5]
                 Leaving: {R2}
@@ -1030,12 +1030,12 @@ Block[B0] - Entry
                 Statements (1)
                     IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.@a1')
                       Value: 
-                        IOperation:  (OperationKind.None, Type: null) (Syntax: '.@a1')
+                        IOperation:  (OperationKind.None, Type: System.String) (Syntax: '.@a1')
 
                 Jump if True (Regular) to Block[B7]
                     IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: '.@a1')
                       Operand: 
-                        IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: null, IsImplicit) (Syntax: '.@a1')
+                        IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: '.@a1')
                     Leaving: {R4}
 
                 Next (Regular) Block[B6]
@@ -1044,7 +1044,7 @@ Block[B0] - Entry
                 Statements (1)
                     IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '.<e1>')
                       Value: 
-                        IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '.<e1>')
+                        IOperation:  (OperationKind.None, Type: ?, IsInvalid) (Syntax: '.<e1>')
 
                 Next (Regular) Block[B9]
                     Leaving: {R4} {R2}

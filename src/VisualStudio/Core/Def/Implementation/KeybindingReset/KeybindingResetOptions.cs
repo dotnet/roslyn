@@ -11,26 +11,26 @@ using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
 {
-    [ExportOptionProvider, Shared]
+    [ExportGlobalOptionProvider, Shared]
     internal sealed class KeybindingResetOptions : IOptionProvider
     {
         private const string LocalRegistryPath = @"Roslyn\Internal\KeybindingsStatus\";
 
-        public static readonly Option<ReSharperStatus> ReSharperStatus = new(nameof(KeybindingResetOptions),
+        public static readonly Option2<ReSharperStatus> ReSharperStatus = new(nameof(KeybindingResetOptions),
             nameof(ReSharperStatus), defaultValue: KeybindingReset.ReSharperStatus.NotInstalledOrDisabled,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(ReSharperStatus)));
+            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(ReSharperStatus)));
 
-        public static readonly Option<bool> NeedsReset = new(nameof(KeybindingResetOptions),
+        public static readonly Option2<bool> NeedsReset = new(nameof(KeybindingResetOptions),
             nameof(NeedsReset), defaultValue: false,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(NeedsReset)));
+            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(NeedsReset)));
 
-        public static readonly Option<bool> NeverShowAgain = new(nameof(KeybindingResetOptions),
+        public static readonly Option2<bool> NeverShowAgain = new(nameof(KeybindingResetOptions),
             nameof(NeverShowAgain), defaultValue: false,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(NeverShowAgain)));
+            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(NeverShowAgain)));
 
-        public static readonly Option<bool> EnabledFeatureFlag = new(nameof(KeybindingResetOptions),
+        public static readonly Option2<bool> EnabledFeatureFlag = new(nameof(KeybindingResetOptions),
             nameof(EnabledFeatureFlag), defaultValue: false,
-            storageLocations: new FeatureFlagStorageLocation("Roslyn.KeybindingResetEnabled"));
+            storageLocation: new FeatureFlagStorageLocation("Roslyn.KeybindingResetEnabled"));
 
         ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
             ReSharperStatus,

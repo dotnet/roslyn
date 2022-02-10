@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public IList<TestHostDocument> AdditionalDocuments { get; }
         public IList<TestHostDocument> AnalyzerConfigDocuments { get; }
         public IList<TestHostDocument> ProjectionDocuments { get; }
+        internal IGlobalOptionService GlobalOptions { get; }
 
         internal override bool IgnoreUnchangeableDocumentsWhenApplyingChanges { get; }
 
@@ -79,6 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             this.CanApplyChangeDocument = true;
             this.IgnoreUnchangeableDocumentsWhenApplyingChanges = ignoreUnchangeableDocumentsWhenApplyingChanges;
+            this.GlobalOptions = GetService<IGlobalOptionService>();
 
             if (Services.GetService<INotificationService>() is INotificationServiceCallback callback)
             {
@@ -683,10 +685,30 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public void ChangeDocument(DocumentId documentId, SourceText text)
         {
-            var oldSolution = this.CurrentSolution;
-            var newSolution = this.SetCurrentSolution(oldSolution.WithDocumentText(documentId, text));
+            ChangeDocumentAsync(documentId, text);
+        }
 
-            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId.ProjectId, documentId);
+        public Task ChangeDocumentAsync(DocumentId documentId, SourceText text)
+        {
+            return ChangeDocumentAsync(documentId, this.CurrentSolution.WithDocumentText(documentId, text));
+        }
+
+        public Task ChangeDocumentAsync(DocumentId documentId, Solution solution)
+        {
+            var oldSolution = this.CurrentSolution;
+            var newSolution = this.SetCurrentSolution(solution);
+
+            return this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentChanged, oldSolution, newSolution, documentId.ProjectId, documentId);
+        }
+
+        public Task AddDocumentAsync(DocumentInfo documentInfo)
+        {
+            var documentId = documentInfo.Id;
+
+            var oldSolution = this.CurrentSolution;
+            var newSolution = this.SetCurrentSolution(oldSolution.AddDocument(documentInfo));
+
+            return this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentAdded, oldSolution, newSolution, documentId: documentId);
         }
 
         public void ChangeAdditionalDocument(DocumentId documentId, SourceText text)
@@ -707,10 +729,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public void ChangeProject(ProjectId projectId, Solution solution)
         {
+            ChangeProjectAsync(projectId, solution);
+        }
+
+        public Task ChangeProjectAsync(ProjectId projectId, Solution solution)
+        {
             var oldSolution = this.CurrentSolution;
             var newSolution = this.SetCurrentSolution(solution);
 
-            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
+            return this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
         }
 
         public new void ClearSolution()
@@ -718,10 +745,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public void ChangeSolution(Solution solution)
         {
+            ChangeSolutionAsync(solution);
+        }
+
+        public Task ChangeSolutionAsync(Solution solution)
+        {
             var oldSolution = this.CurrentSolution;
             var newSolution = this.SetCurrentSolution(solution);
 
-            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
+            return this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
         }
 
         public override bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, Project project)

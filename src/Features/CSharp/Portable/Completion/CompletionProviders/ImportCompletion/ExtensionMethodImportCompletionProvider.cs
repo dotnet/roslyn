@@ -5,17 +5,12 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
@@ -31,9 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
         }
 
+        internal override string Language => LanguageNames.CSharp;
+
         protected override string GenericSuffix => "<>";
 
-        public override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
+        public override bool IsInsertionTrigger(SourceText text, int characterPosition, CompletionOptions options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
 
         public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
@@ -43,9 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
             => ImportCompletionProviderHelper.GetImportedNamespaces(location, semanticModel);
-
-        protected override Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken)
-            => ImportCompletionProviderHelper.CreateContextAsync(document, position, cancellationToken);
 
         protected override bool IsFinalSemicolonOfUsingOrExtern(SyntaxNode directive, SyntaxToken token)
         {

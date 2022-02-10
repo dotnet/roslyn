@@ -6,8 +6,10 @@ Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Formatting.Rules
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.UseConditionalExpression
+Imports Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 #If CODE_STYLE Then
@@ -25,6 +27,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Used in test code: https://github.com/dotnet/roslyn/issues/42814")>
         Public Sub New()
         End Sub
+
+        Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
 
         Protected Overrides Function ConvertToExpression(throwOperation As IThrowOperation) As ExpressionSyntax
             ' VB does not have throw expressions

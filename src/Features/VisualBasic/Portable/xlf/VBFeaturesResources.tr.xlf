@@ -1719,7 +1719,7 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="namespace_name">
         <source>&lt;namespace name&gt;</source>
-        <target state="translated">&lt;namespace name&gt;</target>
+        <target state="translated">&lt;ad alanı adı&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Type_a_name_here_to_declare_a_namespace">
