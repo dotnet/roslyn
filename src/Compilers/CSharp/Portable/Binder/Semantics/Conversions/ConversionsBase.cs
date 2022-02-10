@@ -652,7 +652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conversion = ClassifyImplicitBuiltInConversionFromExpression(sourceExpression, compilation, source, destination, ref useSiteInfo);
             if (conversion.Exists &&
                 !conversion.IsInterpolatedStringHandler &&
-                !conversion.IsUtf8StringLiteral) // UTF-8 string conversion is not a standard conversion.
+                !conversion.IsUTF8StringLiteral) // UTF-8 string conversion is not a standard conversion.
             {
                 Debug.Assert(IsStandardImplicitConversionFromExpression(conversion.Kind));
                 return conversion;
