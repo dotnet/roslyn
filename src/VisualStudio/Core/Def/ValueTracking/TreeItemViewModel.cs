@@ -57,8 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             IGlyphService glyphService,
             IThreadingContext threadingContext,
             Workspace workspace,
-            ImmutableArray<TreeItemViewModel> children = default)
-            : base()
+            ImmutableArray<TreeItemViewModel> children)
         {
             FileName = fileName;
             TextSpan = textSpan;

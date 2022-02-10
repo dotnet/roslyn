@@ -5,9 +5,11 @@
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.InitializeParameter;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
@@ -27,6 +29,12 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         public CSharpInitializeMemberFromParameterCodeRefactoringProvider()
         {
         }
+
+        protected override ISyntaxFacts SyntaxFacts
+            => CSharpSyntaxFacts.Instance;
+
+        protected override bool SupportsRecords(ParseOptions options)
+            => false;
 
         protected override bool IsFunctionDeclaration(SyntaxNode node)
             => InitializeParameterHelpers.IsFunctionDeclaration(node);

@@ -3422,6 +3422,62 @@ Regex.OtherEscape("0020"),
 Regex.Grouping(")"));
         }
 
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexSingleLineRawStringLiteral(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regex */ """"""$\a(?#comment)"""""";
+    }
+}",
+testHost, Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestRegexMultiLineRawStringLiteral(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regex */ """"""
+            $\a(?#comment)
+            """""";
+    }
+}",
+testHost, Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Regex.Text(@"
+            "),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"),
+Regex.Text(@"
+            "));
+        }
+
         [Theory, WorkItem(47079, "https://github.com/dotnet/roslyn/issues/47079")]
         [CombinatorialData]
         public async Task TestRegexWithSpecialCSharpCharLiterals(TestHost testHost)
@@ -3561,6 +3617,35 @@ EnumMember("IgnorePatternWhitespace"));
 
         [Theory]
         [CombinatorialData]
+        public async Task TestRegexOnApiWithStringSyntaxAttribute_Attribute(TestHost testHost)
+        {
+            await TestAsync(
+@"
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+
+[AttributeUsage(AttributeTargets.Field)]
+class RegexTestAttribute : Attribute
+{
+    public RegexTestAttribute([StringSyntax(StringSyntaxAttribute.Regex)] string value) { }
+}
+
+class Program
+{
+    [|[RegexTest(@""$\a(?#comment)"")]|]
+    private string field;
+}" + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp,
+testHost,
+Class("RegexTest"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task TestIncompleteRegexLeadingToStringInsideSkippedTokensInsideADirective(TestHost testHost)
         {
             await TestAsync(
@@ -3630,6 +3715,32 @@ Json.Punctuation(","),
 Json.String("'str'"),
 Json.Array("]"),
 Json.Comment("// comment"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestJson_RawString(TestHost testHost)
+        {
+            await TestAsync(
+@"
+class Program
+{
+    void Goo()
+    {
+        // lang=json
+        var r = """"""[/*comment*/{ 'goo': 0 }]"""""";
+    }
+}",
+testHost,
+Keyword("var"),
+Json.Array("["),
+Json.Comment("/*comment*/"),
+Json.Object("{"),
+Json.PropertyName("'goo'"),
+Json.Punctuation(":"),
+Json.Number("0"),
+Json.Object("}"),
+Json.Array("]"));
         }
 
         [Theory]

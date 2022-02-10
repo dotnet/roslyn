@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIsNullCheck
     public partial class UseIsNullCheckForReferenceEqualsTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         public UseIsNullCheckForReferenceEqualsTests(ITestOutputHelper logger)
-          : base(logger)
+            : base(logger)
         {
         }
 

@@ -655,6 +655,39 @@ Regex.Grouping(")"))
         End Function
 
         <WpfTheory, CombinatorialData>
+        Public Async Function TestRegexStringSyntaxAttribute_Attribute(testHost As TestHost) As Task
+            Await TestAsync(
+"
+imports system
+imports System.Diagnostics.CodeAnalysis
+imports System.Text.RegularExpressions
+
+<AttributeUsage(AttributeTargets.Field)>
+class RegexTestAttribute 
+    inherits Attribute
+
+    public sub new(<StringSyntax(StringSyntaxAttribute.Regex)> value as string)
+    end sub
+end class
+
+class Program
+    [|<RegexTest(""$(\b\G\z)"")>|]
+    dim field as string
+end class" & EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeVB,
+                testHost,
+[Class]("RegexTest"),
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.Anchor("\"),
+Regex.Anchor("b"),
+Regex.Anchor("\"),
+Regex.Anchor("G"),
+Regex.Anchor("\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"))
+        End Function
+
+        <WpfTheory, CombinatorialData>
         Public Async Function TestRegexStringSyntaxAttribute_Property(testHost As TestHost) As Task
             Await TestAsync(
 "

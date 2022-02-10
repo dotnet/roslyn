@@ -5,8 +5,10 @@
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -16,12 +18,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
     [ProvidesMethod(LSP.Methods.TextDocumentImplementationName)]
-    internal class FindImplementationsHandler : AbstractStatelessRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]>
+    internal sealed class FindImplementationsHandler : AbstractStatelessRequestHandler<LSP.TextDocumentPositionParams, LSP.Location[]>
     {
+        private readonly IGlobalOptionService _globalOptions;
+
         [ImportingConstructor]
         [System.Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FindImplementationsHandler()
+        public FindImplementationsHandler(IGlobalOptionService globalOptions)
         {
+            _globalOptions = globalOptions;
         }
 
         public override string Method => LSP.Methods.TextDocumentImplementationName;
@@ -41,8 +46,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var findUsagesService = document.GetRequiredLanguageService<IFindUsagesService>();
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
-            var findUsagesContext = new SimpleFindUsagesContext();
-            await FindImplementationsAsync(findUsagesService, document, position, findUsagesContext, cancellationToken).ConfigureAwait(false);
+            var findUsagesContext = new SimpleFindUsagesContext(_globalOptions);
+            await findUsagesService.FindImplementationsAsync(findUsagesContext, document, position, cancellationToken).ConfigureAwait(false);
 
             foreach (var definition in findUsagesContext.GetDefinitions())
             {
@@ -62,8 +67,5 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             return locations.ToArrayAndFree();
         }
-
-        protected virtual Task FindImplementationsAsync(IFindUsagesService findUsagesService, Document document, int position, SimpleFindUsagesContext context, CancellationToken cancellationToken)
-            => findUsagesService.FindImplementationsAsync(document, position, context, cancellationToken);
     }
 }

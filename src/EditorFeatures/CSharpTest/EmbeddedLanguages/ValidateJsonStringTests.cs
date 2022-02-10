@@ -49,6 +49,23 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
+        public async Task TestWarningInRawString1()
+        {
+            await TestDiagnosticInfoAsync(@"
+class Program
+{
+    void Main()
+    {
+        var r = /*lang=json,strict*/ """"""[|new|] Json()"""""";
+    }     
+}",
+                options: OptionOn(),
+                diagnosticId: AbstractJsonDiagnosticAnalyzer.DiagnosticId,
+                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticMessage: string.Format(FeaturesResources.JSON_issue_0, FeaturesResources.Constructors_not_allowed));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ValidateJsonString)]
         public async Task TestWarning2()
         {
             await TestDiagnosticInfoAsync(@"

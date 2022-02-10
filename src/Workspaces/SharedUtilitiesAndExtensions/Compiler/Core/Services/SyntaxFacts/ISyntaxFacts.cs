@@ -324,6 +324,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode node);
         SeparatedSyntaxList<SyntaxNode> GetArgumentsOfObjectCreationExpression(SyntaxNode node);
         SeparatedSyntaxList<SyntaxNode> GetArgumentsOfArgumentList(SyntaxNode node);
+        SeparatedSyntaxList<SyntaxNode> GetArgumentsOfAttributeArgumentList(SyntaxNode node);
 
         bool IsUsingDirectiveName([NotNullWhen(true)] SyntaxNode? node);
 
@@ -534,7 +535,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsLiteralExpression([NotNullWhen(true)] SyntaxNode? node);
         bool IsMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node);
         bool IsSimpleName([NotNullWhen(true)] SyntaxNode? node);
+
         bool IsNamedMemberInitializer([NotNullWhen(true)] SyntaxNode? node);
+        bool IsElementAccessInitializer([NotNullWhen(true)] SyntaxNode? node);
+        bool IsObjectMemberInitializer([NotNullWhen(true)] SyntaxNode? node);
+        bool IsObjectCollectionInitializer([NotNullWhen(true)] SyntaxNode? node);
 
         #endregion
 
@@ -569,8 +574,10 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetExpressionOfExpressionStatement(SyntaxNode node);
         SyntaxNode? GetExpressionOfReturnStatement(SyntaxNode node);
         SyntaxNode GetExpressionOfThrowExpression(SyntaxNode node);
-        SeparatedSyntaxList<SyntaxNode> GetMemberInitializersOfInitializer(SyntaxNode node);
         SyntaxNode? GetValueOfEqualsValueClause(SyntaxNode? node);
+
+        SeparatedSyntaxList<SyntaxNode> GetInitializersOfObjectMemberInitializer(SyntaxNode node);
+        SeparatedSyntaxList<SyntaxNode> GetExpressionsOfObjectCollectionInitializer(SyntaxNode node);
 
         #endregion
     }

@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Tags;
 
@@ -39,11 +40,12 @@ namespace Microsoft.CodeAnalysis.Completion
             Document document,
             int caretPosition,
             CompletionOptions options,
+            OptionSet passThroughOptions,
             CompletionTrigger trigger,
             ImmutableHashSet<string>? roles,
             CancellationToken cancellationToken)
         {
-            return GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, options, trigger, roles, cancellationToken);
+            return GetCompletionsWithAvailabilityOfExpandedItemsAsync(document, caretPosition, options, passThroughOptions, trigger, roles, cancellationToken);
         }
 
         protected static bool IsKeywordItem(CompletionItem item)

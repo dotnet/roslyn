@@ -349,4 +349,7 @@
   <data name="Remove_unnecessary_lambda_expression" xml:space="preserve">
     <value>Remove unnecessary lambda expression</value>
   </data>
+  <data name="Simplify_delegate_invocation" xml:space="preserve">
+    <value>Simplify delegate invocation</value>
+  </data>
 </root>

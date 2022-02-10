@@ -7,6 +7,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
 {
     internal abstract partial class AbstractGoToBaseService : IGoToBaseService
     {
-        public async Task FindBasesAsync(Document document, int position, IFindUsagesContext context, CancellationToken cancellationToken)
+        public async Task FindBasesAsync(IFindUsagesContext context, Document document, int position, CancellationToken cancellationToken)
         {
             var symbolAndProjectOpt = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
                 document, position, cancellationToken).ConfigureAwait(false);
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToBase
             if (symbolAndProjectOpt == null)
             {
                 await context.ReportMessageAsync(
-                    FeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret, cancellationToken).ConfigureAwait(false);
+                    EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret, cancellationToken).ConfigureAwait(false);
                 return;
             }
 

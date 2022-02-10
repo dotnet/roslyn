@@ -40,6 +40,7 @@ using IObjectWithSite = Microsoft.VisualStudio.OLE.Interop.IObjectWithSite;
 using IOleCommandTarget = Microsoft.VisualStudio.OLE.Interop.IOleCommandTarget;
 using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
+using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing
 {
@@ -123,6 +124,18 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             var point = new SnapshotPoint(subjectBuffer.CurrentSnapshot, position);
 
             view.Caret.MoveTo(point);
+        }
+
+        public async Task SetMultiSelectionAsync(ImmutableArray<TextSpan> positions, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var view = await GetActiveTextViewAsync(cancellationToken);
+
+            var subjectBuffer = view.GetBufferContainingCaret();
+            Assumes.Present(subjectBuffer);
+
+            view.SetMultiSelection(positions.Select(p => new SnapshotSpan(subjectBuffer.CurrentSnapshot, p.Start, p.Length)));
         }
 
         public async Task SelectTextInCurrentDocumentAsync(string text, CancellationToken cancellationToken)
