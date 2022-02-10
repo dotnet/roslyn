@@ -1432,6 +1432,11 @@
         <target state="translated">vzor seznamu</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureMainAttrLoc">
+        <source>main as an attribute target specifier</source>
+        <target state="new">main as an attribute target specifier</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureNewLinesInInterpolations">
         <source>newlines in interpolations</source>
         <target state="translated">nové řádky v interpolacích</target>

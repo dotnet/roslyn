@@ -929,10 +929,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var attributes = _pool.AllocateSeparated<AttributeSyntax>();
             try
             {
-                if (attrLocation != null && attrLocation.Identifier.ToAttributeLocation() == AttributeLocation.Module)
+                attrLocation = attrLocation?.Identifier.ToAttributeLocation() switch
                 {
-                    attrLocation = CheckFeatureAvailability(attrLocation, MessageID.IDS_FeatureModuleAttrLoc);
-                }
+                    AttributeLocation.Module => CheckFeatureAvailability(attrLocation, MessageID.IDS_FeatureModuleAttrLoc),
+                    AttributeLocation.Main => CheckFeatureAvailability(attrLocation, MessageID.IDS_FeatureMainAttrLoc),
+                    _ => attrLocation
+                };
 
                 this.ParseAttributes(attributes);
                 var closeBracket = this.EatToken(SyntaxKind.CloseBracketToken);

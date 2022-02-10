@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestGlobalMainAttribute()
         {
             var text = "[main:a]";
-            var file = this.ParseFile(text);
+            var file = this.ParseFile(text, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
 
             Assert.NotNull(file);
             Assert.Equal(1, file.AttributeLists.Count);
@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestGlobalMainAttribute_Verbatim()
         {
             var text = "[@main:a]";
-            var file = this.ParseFile(text);
+            var file = this.ParseFile(text, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
 
             Assert.NotNull(file);
             Assert.Equal(1, file.AttributeLists.Count);
@@ -609,6 +609,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("a", ad.Attributes[0].Name.ToString());
             Assert.Null(ad.Attributes[0].ArgumentList);
             Assert.NotEqual(default, ad.CloseBracketToken);
+        }
+
+        [Fact]
+        public void TestGlobalMainAttribute_LangVersion()
+        {
+            var text = "[main:a]";
+            var file = this.ParseFile(text, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10));
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.AttributeLists.Count);
+            Assert.Equal(text, file.ToString());
+
+            file.GetDiagnostics().Verify(
+                // (1,2): error CS8652: The feature 'main as an attribute target specifier' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // [main:a]
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "main:").WithArguments("main as an attribute target specifier").WithLocation(1, 2)
+                );
         }
 
         [Fact]
