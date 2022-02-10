@@ -240,6 +240,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             RoslynDebug.Assert((object)attributeType != null);
             Debug.Assert(node.Kind() == SyntaxKind.Attribute);
 
+            hasErrors = hasErrors || node.HasErrors || attributeType.IsErrorType();
+
             if (attributeType.IsErrorType() || attributeType.IsAbstract || attributeConstructor is null)
             {
                 // prevent cascading diagnostics
