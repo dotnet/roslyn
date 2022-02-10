@@ -2111,5 +2111,160 @@ file.cs
             }
             EOF();
         }
+
+        [Fact]
+        public void NotUTF8StringLiteral_13()
+        {
+            string source = @"#line (1, 2)-(3, 4) ""file.cs""u8";
+
+            UsingLineDirective(source, options: null,
+                // (1,30): error CS1025: Single-line comment or end-of-line expected
+                // #line (1, 2)-(3, 4) "file.cs"u8
+                Diagnostic(ErrorCode.ERR_EndOfPPLineExpected, "u8").WithLocation(1, 30)
+                );
+
+            N(SyntaxKind.LineSpanDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "2");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.MinusToken);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "3");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "4");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.StringLiteralToken, "\"file.cs\"");
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NotUTF8StringLiteral_14()
+        {
+            string source = @"#line (1, 2)-(3, 4) @""file.cs""u8";
+
+            UsingLineDirective(source, options: null,
+                // (1,21): error CS1578: Quoted file name, single-line comment or end-of-line expected
+                // #line (1, 2)-(3, 4) @"file.cs"u8
+                Diagnostic(ErrorCode.ERR_MissingPPFile, "@").WithLocation(1, 21)
+                );
+
+            N(SyntaxKind.LineSpanDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "2");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.MinusToken);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "3");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "4");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                M(SyntaxKind.StringLiteralToken);
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NotUTF8StringLiteral_15()
+        {
+            string source = @"#line (1, 2)-(3, 4) """"""file.cs""""""u8";
+
+            UsingLineDirective(source, options: null,
+                // (1,21): error CS8996: Raw string literals are not allowed in preprocessor directives.
+                // #line (1, 2)-(3, 4) """file.cs"""u8
+                Diagnostic(ErrorCode.ERR_RawStringNotInDirectives, "").WithLocation(1, 21),
+                // (1,34): error CS1025: Single-line comment or end-of-line expected
+                // #line (1, 2)-(3, 4) """file.cs"""u8
+                Diagnostic(ErrorCode.ERR_EndOfPPLineExpected, "u8").WithLocation(1, 34)
+                );
+
+            N(SyntaxKind.LineSpanDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "2");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.MinusToken);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "3");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "4");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.StringLiteralToken, "\"\"\"file.cs\"\"\"");
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void NotUTF8StringLiteral_16()
+        {
+            string source = @"#line (1, 2)-(3, 4) @""""""file.cs""""""u8";
+
+            UsingLineDirective(source, options: null,
+                // (1,21): error CS1578: Quoted file name, single-line comment or end-of-line expected
+                // #line (1, 2)-(3, 4) @"""file.cs"""u8
+                Diagnostic(ErrorCode.ERR_MissingPPFile, "@").WithLocation(1, 21)
+                );
+
+            N(SyntaxKind.LineSpanDirectiveTrivia);
+            {
+                N(SyntaxKind.HashToken);
+                N(SyntaxKind.LineKeyword);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "1");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "2");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.MinusToken);
+                N(SyntaxKind.LineDirectivePosition);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.NumericLiteralToken, "3");
+                    N(SyntaxKind.CommaToken);
+                    N(SyntaxKind.NumericLiteralToken, "4");
+                    N(SyntaxKind.CloseParenToken);
+                }
+                M(SyntaxKind.StringLiteralToken);
+                N(SyntaxKind.EndOfDirectiveToken);
+            }
+            EOF();
+        }
     }
 }

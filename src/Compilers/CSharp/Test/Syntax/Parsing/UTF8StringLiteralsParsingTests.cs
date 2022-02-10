@@ -698,8 +698,8 @@ hello
         }
 
         [Theory]
-        [InlineData("u80")]
-        [InlineData("U80")]
+        [InlineData("u8")]
+        [InlineData("U8")]
         public void Interpolation_05(string suffix)
         {
             UsingExpression(@"$""""""hello""""""" + suffix,
@@ -721,8 +721,8 @@ hello
         }
 
         [Theory]
-        [InlineData("u80")]
-        [InlineData("U80")]
+        [InlineData("u8")]
+        [InlineData("U8")]
         public void Interpolation_06(string suffix)
         {
             UsingExpression(@"$@""""""hello""""""" + suffix,
@@ -884,8 +884,8 @@ hello
         }
 
         [Theory]
-        [InlineData("u80")]
-        [InlineData("U80")]
+        [InlineData("u8")]
+        [InlineData("U8")]
         public void Interpolation_07(string suffix)
         {
             UsingExpression(@"$""""""
@@ -911,8 +911,8 @@ hello
         }
 
         [Theory]
-        [InlineData("u80")]
-        [InlineData("U80")]
+        [InlineData("u8")]
+        [InlineData("U8")]
         public void Interpolation_08(string suffix)
         {
             UsingExpression(@"$@""""""
