@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             return info;
         }
 
-        private static NamingStylePreferences FieldNamesAreCamelCaseWithFieldUnderscorePrefixOption()
+        internal static NamingStylePreferences FieldNamesAreCamelCaseWithFieldUnderscorePrefixOption()
         {
             var symbolSpecification = new SymbolSpecification(
                 null,
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             return info;
         }
 
-        private static NamingStylePreferences FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffixOption()
+        internal static NamingStylePreferences FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffixOption()
         {
             var symbolSpecification = new SymbolSpecification(
                 null,
@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             return info;
         }
 
-        private static NamingStylePreferences ParameterNamesAreCamelCaseWithPUnderscorePrefixOption()
+        internal static NamingStylePreferences ParameterNamesAreCamelCaseWithPUnderscorePrefixOption()
         {
             var symbolSpecification = new SymbolSpecification(
                 null,
@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
             return info;
         }
 
-        private static NamingStylePreferences ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffixOption()
+        internal static NamingStylePreferences ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffixOption()
         {
             var symbolSpecification = new SymbolSpecification(
                 null,
