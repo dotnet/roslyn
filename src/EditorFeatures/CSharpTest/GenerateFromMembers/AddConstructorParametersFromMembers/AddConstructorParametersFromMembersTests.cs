@@ -7,9 +7,6 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddConstructorParametersFromMembers;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -20,11 +17,37 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
 
     public class AddConstructorParametersFromMembersTests
     {
-        private static NamingStylePreferences MergeNamingStyles(NamingStylePreferences first, NamingStylePreferences second)
-            => new NamingStylePreferences(
-                first.SymbolSpecifications.AddRange(second.SymbolSpecifications),
-                first.NamingStyles.AddRange(second.NamingStyles),
-                first.NamingRules.AddRange(second.NamingRules));
+        private const string FieldNamesCamelCaseWithFieldUnderscorePrefixEditorConfig = @"
+[*.cs]
+dotnet_naming_style.field_camel_case.capitalization         = camel_case
+dotnet_naming_style.field_camel_case.required_prefix        = field_
+dotnet_naming_symbols.fields.applicable_kinds               = field
+dotnet_naming_symbols.fields.applicable_accessibilities     = *
+dotnet_naming_rule.fields_should_be_camel_case.severity     = error
+dotnet_naming_rule.fields_should_be_camel_case.symbols      = fields
+dotnet_naming_rule.fields_should_be_camel_case.style        = field_camel_case
+";
+
+        private const string FieldNamesCamelCaseWithFieldUnderscorePrefixEndUnderscoreSuffixEditorConfig =
+            FieldNamesCamelCaseWithFieldUnderscorePrefixEditorConfig + @"
+dotnet_naming_style.field_camel_case.required_suffix        = _End
+";
+
+        private const string ParameterNamesCamelCaseWithPUnderscorePrefixEditorConfig = @"
+[*.cs]
+dotnet_naming_style.p_camel_case.capitalization             = camel_case
+dotnet_naming_style.p_camel_case.required_prefix            = p_
+dotnet_naming_symbols.parameters.applicable_kinds           = parameter
+dotnet_naming_symbols.parameters.applicable_accessibilities = *
+dotnet_naming_rule.parameters_should_be_camel_case.severity = error
+dotnet_naming_rule.parameters_should_be_camel_case.symbols  = parameters
+dotnet_naming_rule.parameters_should_be_camel_case.style    = p_camel_case
+";
+
+        private const string ParameterNamesCamelCaseWithPUnderscorePrefixEndUnderscoreSuffixEditorConfig =
+            ParameterNamesCamelCaseWithPUnderscorePrefixEditorConfig + @"
+dotnet_naming_style.p_camel_case.required_suffix            = _End
+";
 
         [WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
         [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
@@ -1360,7 +1383,7 @@ class C
             {
                 TestCode = source,
                 FixedCode = expected,
-                Options = { { NamingStyleOptions.NamingPreferences, NamingStylesTestOptionSets.ParameterNamesAreCamelCaseWithPUnderscorePrefixAndUnderscoreEndSuffixOption() } }
+                EditorConfig = ParameterNamesCamelCaseWithPUnderscorePrefixEndUnderscoreSuffixEditorConfig
             }.RunAsync();
         }
 
@@ -1394,7 +1417,7 @@ class C
             {
                 TestCode = source,
                 FixedCode = expected,
-                Options = { { NamingStyleOptions.NamingPreferences, NamingStylesTestOptionSets.ParameterNamesAreCamelCaseWithPUnderscorePrefixOption() } }
+                EditorConfig = ParameterNamesCamelCaseWithPUnderscorePrefixEditorConfig
             }.RunAsync();
         }
 
@@ -1424,15 +1447,11 @@ class C
     }
 }
 ";
-            var namingStyleOptions = MergeNamingStyles(
-                NamingStylesTestOptionSets.FieldNamesAreCamelCaseWithFieldUnderscorePrefixOption(),
-                NamingStylesTestOptionSets.ParameterNamesAreCamelCaseWithPUnderscorePrefixOption());
-
             await new VerifyCS.Test
             {
                 TestCode = source,
                 FixedCode = expected,
-                Options = { { NamingStyleOptions.NamingPreferences, namingStyleOptions } }
+                EditorConfig = FieldNamesCamelCaseWithFieldUnderscorePrefixEditorConfig + ParameterNamesCamelCaseWithPUnderscorePrefixEditorConfig
             }.RunAsync();
         }
 
@@ -1463,15 +1482,11 @@ class C
 }
 ";
 
-            var namingStyleOptions = MergeNamingStyles(
-                NamingStylesTestOptionSets.FieldNamesAreCamelCaseWithFieldUnderscorePrefixOption(),
-                NamingStylesTestOptionSets.ParameterNamesAreCamelCaseWithPUnderscorePrefixOption());
-
             await new VerifyCS.Test
             {
                 TestCode = source,
                 FixedCode = expected,
-                Options = { { NamingStyleOptions.NamingPreferences, namingStyleOptions } }
+                EditorConfig = FieldNamesCamelCaseWithFieldUnderscorePrefixEditorConfig + ParameterNamesCamelCaseWithPUnderscorePrefixEditorConfig
             }.RunAsync();
         }
 
@@ -1501,15 +1516,11 @@ class C
     }
 }
 ";
-            var namingStyleOptions = MergeNamingStyles(
-                NamingStylesTestOptionSets.FieldNamesAreCamelCaseWithFieldUnderscorePrefixOption(),
-                NamingStylesTestOptionSets.ParameterNamesAreCamelCaseWithPUnderscorePrefixOption());
-
             await new VerifyCS.Test
             {
                 TestCode = source,
                 FixedCode = expected,
-                Options = { { NamingStyleOptions.NamingPreferences, namingStyleOptions } }
+                EditorConfig = FieldNamesCamelCaseWithFieldUnderscorePrefixEditorConfig + ParameterNamesCamelCaseWithPUnderscorePrefixEditorConfig
             }.RunAsync();
         }
 
@@ -1532,7 +1543,7 @@ class C
             {
                 TestCode = source,
                 FixedCode = source,
-                Options = { { NamingStyleOptions.NamingPreferences, NamingStylesTestOptionSets.FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffixOption() } }
+                EditorConfig = FieldNamesCamelCaseWithFieldUnderscorePrefixEndUnderscoreSuffixEditorConfig
             }.RunAsync();
         }
 
@@ -1565,15 +1576,11 @@ class C
 }
 ";
 
-            var namingStyleOptions = MergeNamingStyles(
-                NamingStylesTestOptionSets.FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffixOption(),
-                NamingStylesTestOptionSets.ParameterNamesAreCamelCaseWithPUnderscorePrefixOption());
-
             await new VerifyCS.Test
             {
                 TestCode = source,
                 FixedCode = expected,
-                Options = { { NamingStyleOptions.NamingPreferences, namingStyleOptions } }
+                EditorConfig = FieldNamesCamelCaseWithFieldUnderscorePrefixEndUnderscoreSuffixEditorConfig + ParameterNamesCamelCaseWithPUnderscorePrefixEditorConfig
             }.RunAsync();
         }
 
@@ -1608,7 +1615,7 @@ class C
             {
                 TestCode = source,
                 FixedCode = expected,
-                Options = { { NamingStyleOptions.NamingPreferences, NamingStylesTestOptionSets.ParameterNamesAreCamelCaseWithPUnderscorePrefixOption() } }
+                EditorConfig = ParameterNamesCamelCaseWithPUnderscorePrefixEditorConfig
             }.RunAsync();
         }
 
@@ -1876,8 +1883,9 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestNonSelectionMultiVar2()
         {
-            await new VerifyCS.Test { 
-                TestCode = 
+            await new VerifyCS.Test
+            {
+                TestCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -1889,8 +1897,8 @@ class Program
     {
         this.i = i;
     }
-}", 
-                FixedCode = 
+}",
+                FixedCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -1904,8 +1912,8 @@ class Program
         this.s = s;
         this.t = t;
     }
-}", 
-                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"), codeAction.Title) 
+}",
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"), codeAction.Title)
             }.RunAsync();
         }
 
