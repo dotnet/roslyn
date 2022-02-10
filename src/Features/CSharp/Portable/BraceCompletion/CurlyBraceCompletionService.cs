@@ -352,8 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             public override AbstractFormattingRule WithOptions(SyntaxFormattingOptions options)
             {
                 var newOptions = options as CSharpSyntaxFormattingOptions ?? CSharpSyntaxFormattingOptions.Default;
-
-                if (_options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers) == newOptions.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers))
+                if (_options.NewLines == newOptions.NewLines)
                 {
                     return this;
                 }
@@ -361,8 +360,13 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 return new BraceCompletionFormattingRule(_indentStyle, newOptions);
             }
 
-            public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
+            private static bool? NeedsNewLine(in SyntaxToken currentToken, CSharpSyntaxFormattingOptions options)
             {
+                if (!currentToken.IsKind(SyntaxKind.OpenBraceToken))
+                {
+                    return null;
+                }
+
                 // If we're inside any of the following expressions check if the option for
                 // braces on new lines in object / array initializers is set before we attempt
                 // to move the open brace location to a new line.
@@ -371,23 +375,109 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 // int[] arr = {
                 //           = new[] {
                 //           = new int[] {
-                if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(
+                if (currentToken.Parent.IsKind(
                     SyntaxKind.ObjectInitializerExpression,
                     SyntaxKind.CollectionInitializerExpression,
                     SyntaxKind.ArrayInitializerExpression,
-                    SyntaxKind.ImplicitArrayCreationExpression))
+                    SyntaxKind.ImplicitArrayCreationExpression,
+                    SyntaxKind.WithInitializerExpression,
+                    SyntaxKind.PropertyPatternClause))
                 {
-                    if (_options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers))
-                    {
-                        return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
-                    }
-                    else
-                    {
-                        return null;
-                    }
+                    return options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers);
                 }
 
-                return base.GetAdjustNewLinesOperation(in previousToken, in currentToken, in nextOperation);
+                var currentTokenParentParent = currentToken.Parent?.Parent;
+
+                // * { - in the property accessor context
+                if (currentTokenParentParent is AccessorDeclarationSyntax)
+                {
+                    return options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInAccessors);
+                }
+
+                // * { - in the anonymous Method context
+                if (currentTokenParentParent.IsKind(SyntaxKind.AnonymousMethodExpression))
+                {
+                    return options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInAnonymousMethods);
+                }
+
+                // new { - Anonymous object creation
+                if (currentToken.Parent.IsKind(SyntaxKind.AnonymousObjectCreationExpression))
+                {
+                    return options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInAnonymousTypes);
+                }
+
+                // * { - in the control statement context
+                if (IsControlBlock(currentToken.Parent))
+                {
+                    return options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInControlBlocks);
+                }
+
+                // * { - in the simple Lambda context
+                if (currentTokenParentParent.IsKind(SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression))
+                {
+                    return options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody);
+                }
+
+                // * { - in the member declaration context
+                if (currentTokenParentParent is MemberDeclarationSyntax)
+                {
+                    return currentTokenParentParent is BasePropertyDeclarationSyntax
+                        ? options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInProperties)
+                        : options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInMethods);
+                }
+
+                // * { - in the type declaration context
+                if (currentToken.Parent is BaseTypeDeclarationSyntax or NamespaceDeclarationSyntax)
+                {
+                    return options.NewLines.HasFlag(NewLinePlacement.BeforeOpenBraceInTypes);
+                }
+
+                return null;
+            }
+
+            private static bool IsControlBlock(SyntaxNode? node)
+            {
+                if (node.IsKind(SyntaxKind.SwitchStatement))
+                {
+                    return true;
+                }
+
+                var parentKind = node?.Parent?.Kind();
+
+                switch (parentKind.GetValueOrDefault())
+                {
+                    case SyntaxKind.IfStatement:
+                    case SyntaxKind.ElseClause:
+                    case SyntaxKind.WhileStatement:
+                    case SyntaxKind.DoStatement:
+                    case SyntaxKind.ForEachStatement:
+                    case SyntaxKind.ForEachVariableStatement:
+                    case SyntaxKind.UsingStatement:
+                    case SyntaxKind.ForStatement:
+                    case SyntaxKind.TryStatement:
+                    case SyntaxKind.CatchClause:
+                    case SyntaxKind.FinallyClause:
+                    case SyntaxKind.LockStatement:
+                    case SyntaxKind.CheckedStatement:
+                    case SyntaxKind.UncheckedStatement:
+                    case SyntaxKind.SwitchSection:
+                    case SyntaxKind.FixedStatement:
+                    case SyntaxKind.UnsafeStatement:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+
+            public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
+            {
+                var needsNewLine = NeedsNewLine(currentToken, _options);
+                return needsNewLine switch
+                {
+                    true => CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines),
+                    false => null,
+                    _ => base.GetAdjustNewLinesOperation(in previousToken, in currentToken, in nextOperation),
+                };
             }
 
             public override void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode node, in NextAlignTokensOperationAction nextOperation)
