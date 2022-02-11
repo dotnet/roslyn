@@ -932,7 +932,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 attrLocation = attrLocation?.Identifier.ToAttributeLocation() switch
                 {
                     AttributeLocation.Module => CheckFeatureAvailability(attrLocation, MessageID.IDS_FeatureModuleAttrLoc),
-                    AttributeLocation.Main => CheckFeatureAvailability(attrLocation, MessageID.IDS_FeatureMainAttrLoc),
+                    AttributeLocation.Main => CheckFeatureAvailability(attrLocation, MessageID.IDS_FeatureMainAttributeLocation),
                     _ => attrLocation
                 };
 
