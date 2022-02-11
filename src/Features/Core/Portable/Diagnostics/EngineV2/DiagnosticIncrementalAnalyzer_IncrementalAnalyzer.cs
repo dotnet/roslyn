@@ -84,9 +84,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     var analysisScope = new DocumentAnalysisScope(document, span: null, nonCachedStateSets.SelectAsArray(s => s.Analyzer), kind);
                     var executor = new DocumentAnalysisExecutor(analysisScope, compilationWithAnalyzers, _diagnosticAnalyzerRunner, logPerformanceInfo: true, onAnalysisException: OnAnalysisException);
+                    var logTelemetry = document.Project.Solution.Options.GetOption(DiagnosticOptions.LogTelemetryForBackgroundAnalyzerExecution);
                     foreach (var stateSet in nonCachedStateSets)
                     {
-                        var computedData = await ComputeDocumentAnalysisDataAsync(executor, stateSet, cancellationToken).ConfigureAwait(false);
+                        var computedData = await ComputeDocumentAnalysisDataAsync(executor, stateSet, logTelemetry, cancellationToken).ConfigureAwait(false);
                         PersistAndRaiseDiagnosticsIfNeeded(computedData, stateSet);
                     }
                 }

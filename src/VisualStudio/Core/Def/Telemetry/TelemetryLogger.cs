@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Telemetry
             Contract.ThrowIfFalse(_pendingScopes.TryRemove(blockId, out var scope));
 
             var endEvent = GetEndEvent(scope);
-            SetProperties(endEvent, functionId, logMessage);
+            SetProperties(endEvent, functionId, logMessage, delta);
 
             var result = cancellationToken.IsCancellationRequested ? TelemetryResult.UserCancel : TelemetryResult.Success;
 
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Telemetry
                                     _ => LogType.Trace
                                 };
 
-        private static void SetProperties(TelemetryEvent telemetryEvent, FunctionId functionId, LogMessage logMessage)
+        private static void SetProperties(TelemetryEvent telemetryEvent, FunctionId functionId, LogMessage logMessage, int? delta = null)
         {
             if (logMessage is KeyValueLogMessage kvLogMessage)
             {
@@ -171,6 +171,12 @@ namespace Microsoft.CodeAnalysis.Telemetry
                     var propertyName = GetPropertyName(functionId, "Message");
                     telemetryEvent.Properties.Add(propertyName, message);
                 }
+            }
+
+            if (delta.HasValue)
+            {
+                var propertyName = GetPropertyName(functionId, "Delta");
+                telemetryEvent.Properties.Add(propertyName, delta.Value);
             }
         }
 

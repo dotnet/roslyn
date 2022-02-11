@@ -57,6 +57,9 @@
 
                     <CheckBox x:Name="Skip_analyzers_for_implicitly_triggered_builds"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Skip_analyzers_for_implicitly_triggered_builds}" />
+
+                    <CheckBox x:Name="Log_telemetry_for_background_code_analysis"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Log_telemetry_for_background_code_analysis}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="UsingDirectivesGroupBox"

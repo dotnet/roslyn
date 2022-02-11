@@ -301,6 +301,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Skip_analyzers_for_implicitly_triggered_builds
             => ServicesVSResources.Skip_analyzers_for_implicitly_triggered_builds;
 
+        public static string Option_Log_telemetry_for_background_code_analysis
+            => ServicesVSResources.Log_telemetry_for_background_code_analysis;
+
         public static string Show_inheritance_margin
             => ServicesVSResources.Show_inheritance_margin;
 

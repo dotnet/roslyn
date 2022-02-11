@@ -321,6 +321,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Skip_analyzers_for_implicitly_triggered_builds As String =
             ServicesVSResources.Skip_analyzers_for_implicitly_triggered_builds
 
+        Public ReadOnly Property Option_Log_telemetry_for_background_code_analysis As String =
+            ServicesVSResources.Log_telemetry_for_background_code_analysis
+
         Public ReadOnly Property Show_inheritance_margin As String =
             ServicesVSResources.Show_inheritance_margin
 

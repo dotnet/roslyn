@@ -607,6 +607,11 @@
         <target state="translated">Posizione</target>
         <note />
       </trans-unit>
+      <trans-unit id="Log_telemetry_for_background_code_analysis">
+        <source>Log telemetry for background code analysis</source>
+        <target state="new">Log telemetry for background code analysis</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_0_abstract">
         <source>Make '{0}' abstract</source>
         <target state="translated">Rendi astratto '{0}'</target>
