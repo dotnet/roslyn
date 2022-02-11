@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private bool TryGetAttributeData(BoundAttribute boundAttribute, [NotNullWhen(returnValue: true)] out AttributeData? data)
         {
-            if (boundAttribute.HasAnyErrors ||
+            if (boundAttribute.Constructor is null ||
                 boundAttribute.Syntax.Parent?.Parent is not { } attributedDeclaration)
             {
                 data = null;
