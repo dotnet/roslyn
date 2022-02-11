@@ -2761,6 +2761,39 @@ class X
             );
     }
 
+    [Fact, WorkItem(59466, "https://github.com/dotnet/roslyn/issues/59466")]
+    public void AlwaysTruePattern()
+    {
+        var source = @"
+_ = new S() is [..var y];
+_ = new S() is [..];
+_ = new S() is [..[..]];
+_ = new S() is not [..];
+
+struct S
+{
+    public int Length => 1;
+    public int this[int i] => 42;
+    public S this[System.Range r] => default;
+}
+";
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(source);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): warning CS8794: An expression of type 'S' always matches the provided pattern.
+            // _ = new S() is [..var y];
+            Diagnostic(ErrorCode.WRN_IsPatternAlways, "new S() is [..var y]").WithArguments("S").WithLocation(2, 5),
+            // (3,5): warning CS8794: An expression of type 'S' always matches the provided pattern.
+            // _ = new S() is [..];
+            Diagnostic(ErrorCode.WRN_IsPatternAlways, "new S() is [..]").WithArguments("S").WithLocation(3, 5),
+            // (4,5): warning CS8794: An expression of type 'S' always matches the provided pattern.
+            // _ = new S() is [..[..]];
+            Diagnostic(ErrorCode.WRN_IsPatternAlways, "new S() is [..[..]]").WithArguments("S").WithLocation(4, 5),
+            // (5,5): error CS8518: An expression of type 'S' can never match the provided pattern.
+            // _ = new S() is not [..];
+            Diagnostic(ErrorCode.ERR_IsPatternImpossible, "new S() is not [..]").WithArguments("S").WithLocation(5, 5)
+            );
+    }
+
     [Fact]
     public void ListPattern_ValEscape()
     {

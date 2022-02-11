@@ -71,13 +71,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BoundConstantPattern _:
                         case BoundITuplePattern _:
-                        case BoundListPattern:
                             // these patterns can fail in practice
                             throw ExceptionUtilities.Unreachable;
                         case BoundRelationalPattern _:
                         case BoundTypePattern _:
                         case BoundNegatedPattern _:
                         case BoundBinaryPattern _:
+                        case BoundListPattern:
                             Debug.Assert(expression.Type is object);
                             diagnostics.Add(ErrorCode.WRN_IsPatternAlways, node.Location, expression.Type);
                             break;
