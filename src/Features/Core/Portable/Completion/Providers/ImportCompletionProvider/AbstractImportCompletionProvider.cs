@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Completion.Log;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -22,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractImportCompletionProvider : LSPCompletionProvider, INotifyCommittingItemCompletionProvider
     {
-        protected abstract ImmutableArray<string> GetImportedNamespaces(SyntaxNode location, SemanticModel semanticModel, CancellationToken cancellationToken);
+        protected abstract Task<ImmutableArray<string>> GetImportedNamespacesAsync(SyntaxContext syntaxContext, CancellationToken cancellationToken);
         protected abstract bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext);
         protected abstract Task AddCompletionItemsAsync(CompletionContext completionContext, SyntaxContext syntaxContext, HashSet<string> namespacesInScope, CancellationToken cancellationToken);
         protected abstract bool IsFinalSemicolonOfUsingOrExtern(SyntaxNode directive, SyntaxToken token);
@@ -58,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             // Find all namespaces in scope at current cursor location, 
             // which will be used to filter so the provider only returns out-of-scope types.
-            var namespacesInScope = GetNamespacesInScope(document, syntaxContext, cancellationToken);
+            var namespacesInScope = await GetNamespacesInScopeAsync(syntaxContext, cancellationToken).ConfigureAwait(false);
             await AddCompletionItemsAsync(completionContext, syntaxContext, namespacesInScope, cancellationToken).ConfigureAwait(false);
         }
 
@@ -70,14 +69,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
         }
 
-        private HashSet<string> GetNamespacesInScope(Document document, SyntaxContext syntaxContext, CancellationToken cancellationToken)
+        private async Task<HashSet<string>> GetNamespacesInScopeAsync(SyntaxContext syntaxContext, CancellationToken cancellationToken)
         {
             var semanticModel = syntaxContext.SemanticModel;
+            var document = syntaxContext.Document;
 
-            // The location is the containing node of the LeftToken, or the compilation unit itself if LeftToken
-            // indicates the beginning of the document (i.e. no parent).
-            var location = syntaxContext.LeftToken.Parent ?? syntaxContext.SyntaxTree.GetRoot(cancellationToken);
-            var importedNamespaces = GetImportedNamespaces(location, semanticModel, cancellationToken);
+            var importedNamespaces = await GetImportedNamespacesAsync(syntaxContext, cancellationToken).ConfigureAwait(false);
 
             // This hashset will be used to match namespace names, so it must have the same case-sensitivity as the source language.
             var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
