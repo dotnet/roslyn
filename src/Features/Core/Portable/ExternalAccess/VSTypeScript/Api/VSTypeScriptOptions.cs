@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
             => options.WithChangedOption(
                     SolutionCrawlerOptions.BackgroundAnalysisScopeOption,
                     InternalLanguageNames.TypeScript,
-                    openFilesOnly ? BackgroundAnalysisScope.OpenFiles : BackgroundAnalysisScope.FullSolution)
+                    openFilesOnly ? BackgroundAnalysisScope.OpenFilesAndProjects : BackgroundAnalysisScope.FullSolution)
                 .WithChangedOption(
                     ServiceFeatureOnOffOptions.RemoveDocumentDiagnosticsOnDocumentClose,
                     InternalLanguageNames.TypeScript,

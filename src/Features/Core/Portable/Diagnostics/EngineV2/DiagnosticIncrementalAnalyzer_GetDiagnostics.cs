@@ -281,12 +281,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private bool ShouldIncludeStateSet(Project project, StateSet stateSet)
             {
-                if (!AnalyzerHelper.IsAnalyzerEnabledForProject(stateSet.Analyzer, project))
+                var infoCache = Owner.DiagnosticAnalyzerInfoCache;
+                if (infoCache.IsAnalyzerSuppressed(stateSet.Analyzer, project))
                 {
                     return false;
                 }
 
-                if (_diagnosticIds != null && Owner.DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(stateSet.Analyzer).All(d => !_diagnosticIds.Contains(d.Id)))
+                if (_diagnosticIds != null && infoCache.GetDiagnosticDescriptors(stateSet.Analyzer).All(d => !_diagnosticIds.Contains(d.Id)))
                 {
                     return false;
                 }

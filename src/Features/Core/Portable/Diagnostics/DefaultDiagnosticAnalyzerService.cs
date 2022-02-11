@@ -231,9 +231,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public Task NonSourceDocumentOpenAsync(TextDocument textDocument, CancellationToken cancellationToken)
                 => Task.CompletedTask;
 
-            public Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken)
-                => Task.CompletedTask;
-
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
                 => Task.CompletedTask;
 

@@ -84,8 +84,5 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         public static readonly InvocationReasons ReanalyzeHighPriority =
             Reanalyze.With(PredefinedInvocationReasons.HighPriority);
-
-        public static readonly InvocationReasons ActiveDocumentSwitched =
-            new(PredefinedInvocationReasons.ActiveDocumentSwitched);
     }
 }

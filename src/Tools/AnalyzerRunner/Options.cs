@@ -40,7 +40,7 @@ namespace AnalyzerRunner
         internal readonly string ProfileRoot;
 
         internal BackgroundAnalysisScope AnalysisScope
-            => FullSolutionAnalysis ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.OpenFiles;
+            => FullSolutionAnalysis ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.Default;
 
         public Options(
             string analyzerPath,
