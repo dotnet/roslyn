@@ -55,6 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             public readonly StreamingFindUsagesPresenter Presenter;
             private readonly IFindAllReferencesWindow _findReferencesWindow;
+            private readonly IGlobalOptionService _globalOptions;
             protected readonly IWpfTableControl2 TableControl;
 
             private readonly AsyncBatchingWorkQueue<(int current, int maximum)> _progressQueue;
@@ -117,12 +118,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                  IGlobalOptionService globalOptions,
                  bool includeContainingTypeAndMemberColumns,
                  bool includeKindColumn)
-                : base(globalOptions)
             {
                 presenter.AssertIsForeground();
 
                 Presenter = presenter;
                 _findReferencesWindow = findReferencesWindow;
+                _globalOptions = globalOptions;
                 TableControl = (IWpfTableControl2)findReferencesWindow.TableControl;
                 TableControl.GroupingsChanged += OnTableControlGroupingsChanged;
 
@@ -156,6 +157,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     presenter._asyncListener,
                     CancellationTokenSource.Token);
             }
+
+            public override ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
+                => ValueTaskFactory.FromResult(_globalOptions.GetFindUsagesOptions(language));
 
             private static ImmutableArray<string> SelectCustomColumnsToInclude(ImmutableArray<ITableColumnDefinition> customColumns, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
             {
