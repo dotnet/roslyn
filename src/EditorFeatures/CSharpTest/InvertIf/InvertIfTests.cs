@@ -1134,7 +1134,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         [WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
-        public async Task TestIsCheck_CSharp8()
+        public async Task TestIsCheck_CSharp6()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -1156,6 +1156,41 @@ class C
     int M()
     {
         if (!(c is object))
+        {
+            return 2;
+        }
+        else
+        {
+            return 1;
+        }
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
+        public async Task TestIsCheck_CSharp8()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M()
+    {
+        [||]if (c is object)
+        {
+            return 1;
+        }
+        else
+        {
+            return 2;
+        }
+    }
+}",
+@"class C
+{
+    int M()
+    {
+        if (c is null)
         {
             return 2;
         }

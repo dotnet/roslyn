@@ -136,14 +136,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var operation = semanticModel.GetOperation(expressionNode, cancellationToken);
             if (operation is not IBinaryOperation binaryOperation)
             {
-                // x is y   ->    x is not y
-                //
-                // special case `x is not object` to `x is null`
-                if (syntaxFacts.IsIsTypeExpression(expressionNode) && syntaxFacts.SupportsNotPattern(semanticModel.SyntaxTree.Options))
+                if (syntaxFacts.IsIsTypeExpression(expressionNode))
                 {
-                    return syntaxFacts.IsPredefinedType(rightOperand, PredefinedType.Object)
-                        ? generatorInternal.IsPatternExpression(leftOperand, operatorToken, generatorInternal.ConstantPattern(generator.NullLiteralExpression()))
-                        : generatorInternal.IsPatternExpression(leftOperand, operatorToken, generatorInternal.NotPattern(generatorInternal.TypePattern(rightOperand)));
+                    // `is object`  ->   `is null`
+                    if (syntaxFacts.IsPredefinedType(rightOperand, PredefinedType.Object) &&
+                        generatorInternal.SupportsPatterns(semanticModel.SyntaxTree.Options))
+                    {
+                        return generatorInternal.IsPatternExpression(leftOperand, operatorToken, generatorInternal.ConstantPattern(generator.NullLiteralExpression()));
+                    }
+
+                    // `is y`   ->    `is not y`
+                    if (syntaxFacts.SupportsNotPattern(semanticModel.SyntaxTree.Options))
+                        return generatorInternal.IsPatternExpression(leftOperand, operatorToken, generatorInternal.NotPattern(generatorInternal.TypePattern(rightOperand)));
                 }
 
                 // Apply the logical not operator if it is not a binary operation.
