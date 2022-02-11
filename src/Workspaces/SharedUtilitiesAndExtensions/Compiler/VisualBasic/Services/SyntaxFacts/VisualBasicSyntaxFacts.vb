@@ -311,6 +311,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return TryGetPredefinedType(token, actualType) AndAlso actualType = type
         End Function
 
+        Public Function IsPredefinedType(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsPredefinedType
+            Dim predefined = TryCast(node, PredefinedTypeSyntax)
+            Return predefined IsNot Nothing AndAlso IsPredefinedType(predefined.Keyword)
+        End Function
+
+        Public Function IsPredefinedType(node As SyntaxNode, type As PredefinedType) As Boolean Implements ISyntaxFacts.IsPredefinedType
+            Dim predefined = TryCast(node, PredefinedTypeSyntax)
+            Return predefined IsNot Nothing AndAlso IsPredefinedType(predefined.Keyword, type)
+        End Function
+
         Public Function TryGetPredefinedType(token As SyntaxToken, ByRef type As PredefinedType) As Boolean Implements ISyntaxFacts.TryGetPredefinedType
             type = GetPredefinedType(token)
             Return type <> PredefinedType.None
@@ -1222,6 +1232,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return DirectCast(node, ArgumentListSyntax).Arguments
         End Function
 
+        Public Function GetArgumentsOfAttributeArgumentList(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetArgumentsOfAttributeArgumentList
+            Return GetArgumentsOfArgumentList(node)
+        End Function
+
         Public Function ConvertToSingleLine(node As SyntaxNode, Optional useElasticTrivia As Boolean = False) As SyntaxNode Implements ISyntaxFacts.ConvertToSingleLine
             Return node.ConvertToSingleLine(useElasticTrivia)
         End Function
@@ -1421,8 +1435,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return DirectCast(node, ExpressionStatementSyntax).Expression
         End Function
 
-        Public Function IsIsExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsIsExpression
+        Public Function IsIsTypeExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsIsTypeExpression
             Return node.IsKind(SyntaxKind.TypeOfIsExpression)
+        End Function
+
+        Public Function IsIsNotTypeExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsIsNotTypeExpression
+            Return node.IsKind(SyntaxKind.TypeOfIsNotExpression)
         End Function
 
         Public Sub GetPartsOfTupleExpression(Of TArgumentSyntax As SyntaxNode)(node As SyntaxNode, ByRef openParen As SyntaxToken, ByRef arguments As SeparatedSyntaxList(Of TArgumentSyntax), ByRef closeParen As SyntaxToken) Implements ISyntaxFacts.GetPartsOfTupleExpression
@@ -1637,7 +1655,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Private Shared Function GetDeclarationCount(nodes As IReadOnlyList(Of SyntaxNode)) As Integer
             Dim count As Integer = 0
             For i = 0 To nodes.Count - 1
-                count = count + GetDeclarationCount(nodes(i))
+                count += GetDeclarationCount(nodes(i))
             Next
 
             Return count
@@ -1664,6 +1682,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public Function SupportsNotPattern(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsNotPattern
             Return False
+        End Function
+
+        Public Function SupportsIsNotTypeExpression(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsIsNotTypeExpression
+            Return DirectCast(options, VisualBasicParseOptions).LanguageVersion >= LanguageVersion.VisualBasic14
         End Function
 
         Public Function IsIsPatternExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsIsPatternExpression
@@ -1717,6 +1739,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public Function IsVarPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsVarPattern
             Return False
         End Function
+
+        Public Sub GetPartsOfAnyIsTypeExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef type As SyntaxNode) Implements ISyntaxFacts.GetPartsOfAnyIsTypeExpression
+            Dim typeOfExpression = DirectCast(node, TypeOfExpressionSyntax)
+            expression = typeOfExpression.Expression
+            type = typeOfExpression.Type
+        End Sub
 
         Public Sub GetPartsOfIsPatternExpression(node As SyntaxNode, ByRef left As SyntaxNode, ByRef isToken As SyntaxToken, ByRef right As SyntaxNode) Implements ISyntaxFacts.GetPartsOfIsPatternExpression
             Throw ExceptionUtilities.Unreachable
@@ -1789,6 +1817,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
 
         Public Function IsNamedMemberInitializer(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNamedMemberInitializer
             Return TypeOf node Is NamedFieldInitializerSyntax
+        End Function
+
+        Public Function IsElementAccessInitializer(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsElementAccessInitializer
+            Return False
+        End Function
+
+        Public Function IsObjectMemberInitializer(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsObjectMemberInitializer
+            Return TypeOf node Is ObjectMemberInitializerSyntax
+        End Function
+
+        Public Function IsObjectCollectionInitializer(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsObjectCollectionInitializer
+            Return TypeOf node Is ObjectCollectionInitializerSyntax
         End Function
 
 #End Region
@@ -1895,13 +1935,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Throw New NotImplementedException()
         End Function
 
-        Public Function GetMemberInitializersofInitializer(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetMemberInitializersOfInitializer
+        Public Function GetInitializersOfObjectMemberInitializer(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetInitializersOfObjectMemberInitializer
             Dim initializer = TryCast(node, ObjectMemberInitializerSyntax)
             If initializer Is Nothing Then
                 Return Nothing
             End If
 
             Return initializer.Initializers
+        End Function
+
+        Public Function GetExpressionsOfObjectCollectionInitializer(node As SyntaxNode) As SeparatedSyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetExpressionsOfObjectCollectionInitializer
+            Dim initializer = TryCast(node, ObjectCollectionInitializerSyntax)
+            If initializer Is Nothing Then
+                Return Nothing
+            End If
+
+            Return initializer.Initializer.Initializers
         End Function
 
 #End Region

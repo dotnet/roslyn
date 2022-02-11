@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             {
                 // Just rename everything.
                 return await Renamer.RenameSymbolAsync(
-                    solution, field, generatedPropertyName, solution.Options, cancellationToken).ConfigureAwait(false);
+                    solution, field, new SymbolRenameOptions(), generatedPropertyName, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -283,8 +283,14 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             Func<Location, bool> filter,
             CancellationToken cancellationToken)
         {
+            var options = new SymbolRenameOptions(
+                RenameOverloads: false,
+                RenameInStrings: false,
+                RenameInComments: false,
+                RenameFile: false);
+
             var initialLocations = await Renamer.FindRenameLocationsAsync(
-                solution, field, RenameOptionSet.From(solution), cancellationToken).ConfigureAwait(false);
+                solution, field, options, cancellationToken).ConfigureAwait(false);
 
             var resolution = await initialLocations.Filter(filter).ResolveConflictsAsync(
                 finalName, nonConflictSymbols: null, cancellationToken).ConfigureAwait(false);

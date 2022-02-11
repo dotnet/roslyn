@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Settings;
@@ -53,11 +54,16 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioSymbolSearchService(
             IThreadingContext threadingContext,
+            IAsynchronousOperationListenerProvider listenerProvider,
             VisualStudioWorkspaceImpl workspace,
             IGlobalOptionService globalOptions,
             VSShell.SVsServiceProvider serviceProvider)
-            : base(threadingContext, workspace, globalOptions, SymbolSearchGlobalOptions.Enabled,
-                  SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, SymbolSearchOptions.SuggestForTypesInNuGetPackages)
+            : base(globalOptions,
+                   listenerProvider,
+                   threadingContext,
+                   workspace,
+                   featureEnabledOption: SymbolSearchGlobalOptions.Enabled,
+                   perLanguageOptions: ImmutableArray.Create(SymbolSearchOptionsStorage.SearchReferenceAssemblies, SymbolSearchOptionsStorage.SearchNuGetPackages))
         {
             _workspace = workspace;
             _installerService = workspace.Services.GetService<IPackageInstallerService>();

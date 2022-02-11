@@ -62,6 +62,159 @@ class Program
 }", title: string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"));
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        [WorkItem(58040, "https://github.com/dotnet/roslyn/issues/58040")]
+        public async Task TestProperlyWrapParameters1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    [|int i;
+    string s;|]
+
+    public Program(
+        int i)
+    {
+        this.i = i;
+    }
+}",
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+    string s;
+
+    public Program(
+        int i, string s)
+    {
+        this.i = i;
+        this.s = s;
+    }
+}", title: string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        [WorkItem(58040, "https://github.com/dotnet/roslyn/issues/58040")]
+        public async Task TestProperlyWrapParameters2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    [|int i;
+    string s;
+    bool b;|]
+
+    public Program(
+        int i,
+        string s)
+    {
+        this.i = i;
+        this.s = s;
+    }
+}",
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+    string s;
+    bool b;
+
+    public Program(
+        int i,
+        string s,
+        bool b)
+    {
+        this.i = i;
+        this.s = s;
+        this.b = b;
+    }
+}", title: string.Format(FeaturesResources.Add_parameters_to_0, "Program(int, string)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        [WorkItem(58040, "https://github.com/dotnet/roslyn/issues/58040")]
+        public async Task TestProperlyWrapParameters3()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    [|int i;
+    string s;
+    bool b;|]
+
+    public Program(int i,
+        string s)
+    {
+        this.i = i;
+        this.s = s;
+    }
+}",
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+    string s;
+    bool b;
+
+    public Program(int i,
+        string s,
+        bool b)
+    {
+        this.i = i;
+        this.s = s;
+        this.b = b;
+    }
+}", title: string.Format(FeaturesResources.Add_parameters_to_0, "Program(int, string)"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        [WorkItem(58040, "https://github.com/dotnet/roslyn/issues/58040")]
+        public async Task TestProperlyWrapParameters4()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    [|int i;
+    string s;
+    bool b;|]
+
+    public Program(int i,
+                   string s)
+    {
+        this.i = i;
+        this.s = s;
+    }
+}",
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+    string s;
+    bool b;
+
+    public Program(int i,
+                   string s,
+                   bool b)
+    {
+        this.i = i;
+        this.s = s;
+        this.b = b;
+    }
+}", title: string.Format(FeaturesResources.Add_parameters_to_0, "Program(int, string)"));
+        }
+
         [WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
         [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]

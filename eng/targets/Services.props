@@ -38,7 +38,7 @@
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.UnusedReferenceAnalysis" ClassName="Microsoft.CodeAnalysis.Remote.RemoteUnusedReferenceAnalysisService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.ProcessTelemetry" ClassName="Microsoft.CodeAnalysis.Remote.RemoteProcessTelemetryService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.CompilationAvailable" ClassName="Microsoft.CodeAnalysis.Remote.RemoteCompilationAvailableService+Factory" />
-    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.StackTraceExplorer" ClassName="Microsoft.CodeAnalysis.Remote.Services.StackTraceExplorer.RemoteStackTraceExplorerService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.StackTraceExplorer" ClassName="Microsoft.CodeAnalysis.Remote.RemoteStackTraceExplorerService+Factory" />
   </ItemGroup>
 
   <!--

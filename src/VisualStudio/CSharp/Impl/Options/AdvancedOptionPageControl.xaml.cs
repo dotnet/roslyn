@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Windows;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
@@ -47,9 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             InitializeComponent();
 
-            BindToOption(Background_analysis_scope_active_file, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.ActiveFile, LanguageNames.CSharp);
-            BindToOption(Background_analysis_scope_open_files, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.OpenFilesAndProjects, LanguageNames.CSharp);
-            BindToOption(Background_analysis_scope_full_solution, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, BackgroundAnalysisScope.FullSolution, LanguageNames.CSharp);
+            BindToOption(Run_background_code_analysis_for, SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp);
             BindToOption(DisplayDiagnosticsInline, InlineDiagnosticsOptions.EnableInlineDiagnostics, LanguageNames.CSharp);
             BindToOption(at_the_end_of_the_line_of_code, InlineDiagnosticsOptions.Location, InlineDiagnosticsLocations.PlacedAtEndOfCode, LanguageNames.CSharp);
             BindToOption(on_the_right_edge_of_the_editor_window, InlineDiagnosticsOptions.Location, InlineDiagnosticsLocations.PlacedAtEndOfEditor, LanguageNames.CSharp);
@@ -66,8 +65,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             BindToOption(PlaceSystemNamespaceFirst, GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp);
             BindToOption(SeparateImportGroups, GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.CSharp);
-            BindToOption(SuggestForTypesInReferenceAssemblies, SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.CSharp);
-            BindToOption(SuggestForTypesInNuGetPackages, SymbolSearchOptions.SuggestForTypesInNuGetPackages, LanguageNames.CSharp);
+            BindToOption(SuggestForTypesInReferenceAssemblies, SymbolSearchOptionsStorage.SearchReferenceAssemblies, LanguageNames.CSharp);
+            BindToOption(SuggestForTypesInNuGetPackages, SymbolSearchOptionsStorage.SearchNuGetPackages, LanguageNames.CSharp);
             BindToOption(AddUsingsOnPaste, FeatureOnOffOptions.AddImportsOnPaste, LanguageNames.CSharp, () =>
             {
                 // This option used to be backed by an experimentation flag but is no longer.
@@ -84,8 +83,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Show_outlining_for_comments_and_preprocessor_regions, BlockStructureOptions.Metadata.ShowOutliningForCommentsAndPreprocessorRegions, LanguageNames.CSharp);
             BindToOption(Collapse_regions_when_collapsing_to_definitions, BlockStructureOptions.Metadata.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp);
 
-            BindToOption(Fade_out_unused_usings, FadingOptions.FadeOutUnusedImports, LanguageNames.CSharp);
-            BindToOption(Fade_out_unreachable_code, FadingOptions.FadeOutUnreachableCode, LanguageNames.CSharp);
+            BindToOption(Fade_out_unused_usings, FadingOptions.Metadata.FadeOutUnusedImports, LanguageNames.CSharp);
+            BindToOption(Fade_out_unreachable_code, FadingOptions.Metadata.FadeOutUnreachableCode, LanguageNames.CSharp);
 
             BindToOption(Show_guides_for_declaration_level_constructs, BlockStructureOptions.Metadata.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.CSharp);
             BindToOption(Show_guides_for_code_level_constructs, BlockStructureOptions.Metadata.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.CSharp);
@@ -132,7 +131,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Highlight_related_regular_expression_components_under_cursor, RegularExpressionsOptions.HighlightRelatedRegexComponentsUnderCursor, LanguageNames.CSharp);
             BindToOption(Show_completion_list, CompletionOptionsStorage.ProvideRegexCompletions, LanguageNames.CSharp);
 
-            BindToOption(Detect_and_offer_editor_features_for_likely_JSON_strings, JsonFeatureOptions.DetectAndOfferEditorFeaturesForProbableJsonStrings, LanguageNames.CSharp);
             BindToOption(Colorize_JSON_strings, ClassificationOptions.Metadata.ColorizeJsonPatterns, LanguageNames.CSharp);
             BindToOption(Report_invalid_JSON_strings, JsonFeatureOptions.ReportInvalidJsonPatterns, LanguageNames.CSharp);
             BindToOption(Highlight_related_JSON_components_under_cursor, JsonFeatureOptions.HighlightRelatedJsonComponentsUnderCursor, LanguageNames.CSharp);
@@ -160,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(ShowInheritanceMargin, FeatureOnOffOptions.ShowInheritanceMargin, LanguageNames.CSharp, () => true);
             BindToOption(InheritanceMarginCombinedWithIndicatorMargin, FeatureOnOffOptions.InheritanceMarginCombinedWithIndicatorMargin);
 
-            BindToOption(AutomaticallyOpenStackTraceExplorer, StackTraceExplorerOptions.OpenOnFocus);
+            BindToOption(AutomaticallyOpenStackTraceExplorer, StackTraceExplorerOptionsMetadata.OpenOnFocus);
         }
 
         // Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,

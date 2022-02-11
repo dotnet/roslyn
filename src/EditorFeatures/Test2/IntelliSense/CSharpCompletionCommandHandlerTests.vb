@@ -50,10 +50,10 @@ public class C2
                 showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
 
                 state.SendTypeChars(".")
-                Await state.AssertSelectedCompletionItem(displayText:="IntProperty:", isHardSelected:=False)
+                Await state.AssertSelectedCompletionItem(displayText:="IntProperty", isHardSelected:=False)
 
                 state.SendTypeChars("IP")
-                Await state.AssertSelectedCompletionItem(displayText:="IntProperty:", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="IntProperty", isHardSelected:=True)
 
                 state.SendTab()
                 state.SendTypeChars(": 2 }")
@@ -121,10 +121,10 @@ End Class
                 </Workspace>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
 
                 state.SendTypeChars(".")
-                Await state.AssertSelectedCompletionItem(displayText:="IntProperty:", isHardSelected:=False)
+                Await state.AssertSelectedCompletionItem(displayText:="IntProperty", isHardSelected:=False)
 
                 state.SendTypeChars("IP")
-                Await state.AssertSelectedCompletionItem(displayText:="IntProperty:", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="IntProperty", isHardSelected:=True)
 
                 state.SendTab()
                 state.SendTypeChars(": 2 }")
@@ -158,10 +158,10 @@ public class C3
                 showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
 
                 state.SendTypeChars(".")
-                Await state.AssertSelectedCompletionItem(displayText:="IntProperty:", isHardSelected:=False)
+                Await state.AssertSelectedCompletionItem(displayText:="IntProperty", isHardSelected:=False)
 
                 state.SendTypeChars("IP")
-                Await state.AssertSelectedCompletionItem(displayText:="IntProperty:", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="IntProperty", isHardSelected:=True)
 
                 state.SendTab()
                 state.SendTypeChars(": 2 }")
@@ -195,16 +195,16 @@ public class C3
                 showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
 
                 state.SendTypeChars(".")
-                Await state.AssertSelectedCompletionItem(displayText:="C3Field:", isHardSelected:=False)
+                Await state.AssertSelectedCompletionItem(displayText:="C3Field", isHardSelected:=False)
 
                 state.SendTypeChars("CF")
-                Await state.AssertSelectedCompletionItem(displayText:="C3Field:", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="C3Field", isHardSelected:=True)
 
                 state.SendTypeChars(".")
-                Await state.AssertSelectedCompletionItem(displayText:="IntField:", isHardSelected:=False)
+                Await state.AssertSelectedCompletionItem(displayText:="IntField", isHardSelected:=False)
 
                 state.SendTypeChars("IF")
-                Await state.AssertSelectedCompletionItem(displayText:="IntField:", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="IntField", isHardSelected:=True)
 
                 state.SendTab()
                 state.SendTypeChars(": 2 }")
@@ -258,17 +258,17 @@ public class C2
                 showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
 
                 state.SendTypeChars("{ ")
-                Await state.AssertSelectedCompletionItem(displayText:="CProperty:", isHardSelected:=False)
+                Await state.AssertSelectedCompletionItem(displayText:="CProperty", isHardSelected:=False)
 
                 state.SendTypeChars("CP")
-                Await state.AssertSelectedCompletionItem(displayText:="CProperty:", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="CProperty", isHardSelected:=True)
 
                 state.SendTypeChars(".")
                 Assert.Contains("c is { CProperty.", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
-                Await state.AssertSelectedCompletionItem(displayText:="IntProperty:", isHardSelected:=False)
+                Await state.AssertSelectedCompletionItem(displayText:="IntProperty", isHardSelected:=False)
 
                 state.SendTypeChars("IP")
-                Await state.AssertSelectedCompletionItem(displayText:="IntProperty:", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="IntProperty", isHardSelected:=True)
 
                 state.SendTab()
                 state.SendTypeChars(": 2 }")
@@ -328,18 +328,18 @@ public class C2
                 showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
 
                 state.SendTypeChars(", ")
-                Await state.AssertSelectedCompletionItem(displayText:="CProperty:", isHardSelected:=False)
+                Await state.AssertSelectedCompletionItem(displayText:="CProperty", isHardSelected:=False)
 
                 state.SendTypeChars("CP")
-                Await state.AssertSelectedCompletionItem(displayText:="CProperty:", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="CProperty", isHardSelected:=True)
 
                 state.SendTypeChars(".")
                 Assert.Contains("is { CProperty.IntProperty: 2, CProperty.", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
                 ' Note: same completion is offered a second time
-                Await state.AssertSelectedCompletionItem(displayText:="IntProperty:", isHardSelected:=False)
+                Await state.AssertSelectedCompletionItem(displayText:="IntProperty", isHardSelected:=False)
 
                 state.SendTypeChars("SP")
-                Await state.AssertSelectedCompletionItem(displayText:="ShortProperty:", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="ShortProperty", isHardSelected:=True)
 
                 state.SendTab()
                 state.SendTypeChars(": 3")
@@ -378,10 +378,10 @@ public class C2
                 state.SendTypeChars(".")
                 Assert.Contains("is { CProperty: { IntProperty: 2 }, CProperty.", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
                 ' Note: same completion is offered a second time
-                Await state.AssertSelectedCompletionItem(displayText:="IntProperty:", isHardSelected:=False)
+                Await state.AssertSelectedCompletionItem(displayText:="IntProperty", isHardSelected:=False)
 
                 state.SendTypeChars("SP")
-                Await state.AssertSelectedCompletionItem(displayText:="ShortProperty:", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="ShortProperty", isHardSelected:=True)
 
                 state.SendTab()
                 state.SendTypeChars(": 3")
@@ -412,10 +412,10 @@ public class C2
                 showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
 
                 state.SendTypeChars(" ")
-                Await state.AssertSelectedCompletionItem(displayText:="CProperty:", isHardSelected:=False)
+                Await state.AssertSelectedCompletionItem(displayText:="CProperty", isHardSelected:=False)
 
                 state.SendTypeChars("CP")
-                Await state.AssertSelectedCompletionItem(displayText:="CProperty:", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="CProperty", isHardSelected:=True)
 
                 state.SendTypeChars(".")
                 Assert.Contains("is { CProperty. CProperty.IntProperty: 2 }", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
@@ -452,10 +452,10 @@ public class C2
                 showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
 
                 state.SendTypeChars(" ")
-                Await state.AssertSelectedCompletionItem(displayText:="ShortProperty:", isHardSelected:=False)
+                Await state.AssertSelectedCompletionItem(displayText:="ShortProperty", isHardSelected:=False)
 
                 state.SendTypeChars("SP")
-                Await state.AssertSelectedCompletionItem(displayText:="ShortProperty:", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="ShortProperty", isHardSelected:=True)
 
                 state.SendTab()
                 state.SendTypeChars(": 3,")
@@ -636,7 +636,7 @@ class C
                               showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
 
                 state.SendTypeChars("w")
-                Await state.AssertSelectedCompletionItem(displayText:="with", isHardSelected:=False)
+                Await state.AssertSelectedCompletionItem(displayText:="with", isHardSelected:=True)
                 state.SendTab()
                 state.SendTypeChars(" { ")
                 Await state.AssertSelectedCompletionItem(displayText:="Property", isHardSelected:=False)
@@ -1956,13 +1956,13 @@ class Class
                 state.SendTypeChars("C")
                 Await state.AssertSelectedCompletionItem(displayText:="Class", isHardSelected:=True)
                 state.SendTypeChars(" { P")
-                Await state.AssertSelectedCompletionItem(displayText:="Prop", displayTextSuffix:=":", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="Prop", displayTextSuffix:="", isHardSelected:=True)
                 state.SendTypeChars(":")
                 Assert.Contains("{ Prop:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
                 state.SendTypeChars(" 0, ")
-                Await state.AssertSelectedCompletionItem(displayText:="OtherProp", displayTextSuffix:=":", isSoftSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="OtherProp", displayTextSuffix:="", isSoftSelected:=True)
                 state.SendTypeChars("O")
-                Await state.AssertSelectedCompletionItem(displayText:="OtherProp", displayTextSuffix:=":", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="OtherProp", displayTextSuffix:="", isHardSelected:=True)
                 state.SendTypeChars(": 1 }")
                 Assert.Contains("is Class { Prop: 0, OtherProp: 1 }", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -1990,15 +1990,15 @@ class Class
                 state.SendTypeChars(" ")
                 Assert.Contains("is Class", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
                 state.SendTypeChars("{ P")
-                Await state.AssertSelectedCompletionItem(displayText:="Prop", displayTextSuffix:=":", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="Prop", displayTextSuffix:="", isHardSelected:=True)
                 state.SendTypeChars(" ")
                 Assert.Contains("is Class { Prop ", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
                 state.SendTypeChars(":")
                 Assert.Contains("is Class { Prop :", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
                 state.SendTypeChars(" 0, ")
-                Await state.AssertSelectedCompletionItem(displayText:="OtherProp", displayTextSuffix:=":", isSoftSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="OtherProp", displayTextSuffix:="", isSoftSelected:=True)
                 state.SendTypeChars("O")
-                Await state.AssertSelectedCompletionItem(displayText:="OtherProp", displayTextSuffix:=":", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="OtherProp", displayTextSuffix:="", isHardSelected:=True)
                 state.SendTypeChars(" ")
                 Assert.Contains("is Class { Prop : 0, OtherProp", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
                 state.SendTypeChars(": 1 }")
@@ -9363,10 +9363,10 @@ public class C
                 Await state.AssertSelectedCompletionItem(displayText:="async", isHardSelected:=False)
 
                 state.SendTypeChars("{ ")
-                Await state.AssertSelectedCompletionItem(displayText:="IntProperty:", isHardSelected:=False)
+                Await state.AssertSelectedCompletionItem(displayText:="IntProperty", isHardSelected:=False)
 
                 state.SendTypeChars("IP")
-                Await state.AssertSelectedCompletionItem(displayText:="IntProperty:", isHardSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="IntProperty", isHardSelected:=True)
 
                 state.SendTab()
                 state.SendTypeChars(": 1")

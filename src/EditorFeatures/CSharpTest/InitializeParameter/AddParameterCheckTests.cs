@@ -2,23 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.InitializeParameter;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeRefactoringVerifier<
-    Microsoft.CodeAnalysis.CSharp.InitializeParameter.CSharpAddParameterCheckCodeRefactoringProvider>;
-
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
 {
+    using VerifyCS = CSharpCodeRefactoringVerifier<
+        CSharpAddParameterCheckCodeRefactoringProvider>;
+
     public class AddParameterCheckTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
@@ -73,27 +73,6 @@ class C
                 LanguageVersion = LanguageVersionExtensions.CSharpNext,
                 TestCode = testCode,
                 FixedCode = testCode
-            }.RunAsync();
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestRecordPrimaryConstructor()
-        {
-            // https://github.com/dotnet/roslyn/issues/58779
-            // Note: we declare a field within the record to work around missing IsExternalInit errors
-            await new VerifyCS.Test
-            {
-                LanguageVersion = LanguageVersionExtensions.CSharpNext,
-                TestCode = @"
-using System;
-
-record Rec([||]string s) { public string s = s; }
-",
-                FixedCode = @"
-using System;
-
-record Rec(string s) { public string s = s; }
-"
             }.RunAsync();
         }
 
@@ -2858,6 +2837,49 @@ class C
     }
 }";
             await VerifyCS.VerifyRefactoringAsync(source, source);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [WorkItem(58779, "https://github.com/dotnet/roslyn/issues/58779")]
+        public async Task TestNotInRecordBeforeCSharp11()
+        {
+            var code = @"
+record C([||]string s) { public string s; }";
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersion.CSharp10,
+                TestCode = code,
+                FixedCode = code,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [WorkItem(58779, "https://github.com/dotnet/roslyn/issues/58779")]
+        public async Task TestInRecordAfterCSharp11()
+        {
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                TestCode = @"
+record C([||]string s) { public string s; }",
+                FixedCode = @"
+record C(string s!!) { public string s; }",
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [WorkItem(58779, "https://github.com/dotnet/roslyn/issues/58779")]
+        public async Task TestInRecordWithMultipleParametersAfterCSharp11()
+        {
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                TestCode = @"
+record C([||]string s, string t) { public string s, t; }",
+                FixedCode = @"
+record C(string s!!, string t!!) { public string s, t; }",
+                CodeActionIndex = 1,
+            }.RunAsync();
         }
     }
 }

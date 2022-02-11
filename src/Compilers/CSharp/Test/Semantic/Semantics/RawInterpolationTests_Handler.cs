@@ -2453,9 +2453,10 @@ class C
 
         var comp = CreateCompilation(new[] { source, interpolatedStringBuilder },
             targetFramework: TargetFramework.NetCoreApp);
+        // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 10 }
         var verifier = CompileAndVerify(comp, expectedOutput: @"
 value:S converted
-value:C");
+value:C", verify: Verification.FailsILVerify);
 
         verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
@@ -7940,12 +7941,13 @@ public partial struct CustomHandler
 
         var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: true);
 
+        // Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 1 }
         var verifier = CompileAndVerify(
             new[] { code, InterpolatedStringHandlerArgumentAttribute, handler },
             expectedOutput: "1literal:literal",
             symbolValidator: validator,
             sourceSymbolValidator: validator,
-            verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped);
+            verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.FailsILVerify : Verification.Skipped);
         verifier.VerifyIL("<top-level-statements-entry-point>", refness == "in" ? @"
 {
   // Code size       46 (0x2e)

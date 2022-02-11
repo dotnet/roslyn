@@ -22,14 +22,14 @@
     <RoslynDiagnosticsNugetPackageVersion>3.3.3-beta1.21105.3</RoslynDiagnosticsNugetPackageVersion>
     <MicrosoftCodeAnalysisNetAnalyzersVersion>6.0.0-rc1.21366.2</MicrosoftCodeAnalysisNetAnalyzersVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.1.1-beta1.22081.4</MicrosoftCodeAnalysisTestingVersion>
-    <MicrosoftVisualStudioExtensibilityTestingVersion>0.1.122-beta</MicrosoftVisualStudioExtensibilityTestingVersion>
+    <MicrosoftVisualStudioExtensibilityTestingVersion>0.1.124-beta</MicrosoftVisualStudioExtensibilityTestingVersion>
     <!-- CodeStyleAnalyzerVersion should we updated together with version of dotnet-format in dotnet-tools.json -->
     <CodeStyleAnalyzerVersion>4.0.1</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>16.10.230</VisualStudioEditorPackagesVersion>
     <VisualStudioEditorNewPackagesVersion>17.0.487</VisualStudioEditorNewPackagesVersion>
     <ILAsmPackageVersion>5.0.0-alpha1.19409.1</ILAsmPackageVersion>
     <ILDAsmPackageVersion>5.0.0-preview.1.20112.8</ILDAsmPackageVersion>
-    <MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>17.1.8</MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>
+    <MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>17.1.11</MicrosoftVisualStudioLanguageServerProtocolPackagesVersion>
     <MicrosoftVisualStudioShellPackagesVersion>17.0.31723.112</MicrosoftVisualStudioShellPackagesVersion>
     <RefOnlyMicrosoftBuildPackagesVersion>16.5.0</RefOnlyMicrosoftBuildPackagesVersion>
     <!-- The version of Roslyn we build Source Generators against that are built in this
@@ -37,6 +37,7 @@
          but not higher than our minimum dogfoodable Visual Studio version, or else
          the generators we build would load on the command line but not load in IDEs. -->
     <SourceGeneratorMicrosoftCodeAnalysisVersion>3.8.0</SourceGeneratorMicrosoftCodeAnalysisVersion>
+    <MicrosoftILVerificationVersion>7.0.0-alpha.1.22060.1</MicrosoftILVerificationVersion>
   </PropertyGroup>
   <!--
     Dependency versions
@@ -66,7 +67,7 @@
     <RefOnlyMicrosoftBuildRuntimeVersion>$(RefOnlyMicrosoftBuildPackagesVersion)</RefOnlyMicrosoftBuildRuntimeVersion>
     <RefOnlyMicrosoftBuildTasksCoreVersion>$(RefOnlyMicrosoftBuildPackagesVersion)</RefOnlyMicrosoftBuildTasksCoreVersion>
     <NuGetVisualStudioContractsVersion>6.0.0-preview.0.15</NuGetVisualStudioContractsVersion>
-    <MicrosoftVisualStudioRpcContractsVersion>16.10.23</MicrosoftVisualStudioRpcContractsVersion>
+    <MicrosoftVisualStudioRpcContractsVersion>17.0.51</MicrosoftVisualStudioRpcContractsVersion>
     <!--
       Since the Microsoft.CodeAnalysis.Analyzers package is a public dependency of our NuGet
       packages we will keep it untied to the RoslynDiagnosticsNugetPackageVersion we use for
@@ -166,7 +167,7 @@
     <MicrosoftVisualStudioShell150Version>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShell150Version>
     <MicrosoftVisualStudioShellFrameworkVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellFrameworkVersion>
     <MicrosoftVisualStudioShellDesignVersion>$(MicrosoftVisualStudioShellPackagesVersion)</MicrosoftVisualStudioShellDesignVersion>
-    <MicrosoftVisualStudioTelemetryVersion>16.4.22</MicrosoftVisualStudioTelemetryVersion>
+    <MicrosoftVisualStudioTelemetryVersion>16.4.29</MicrosoftVisualStudioTelemetryVersion>
     <MicrosoftVisualStudioTemplateWizardInterfaceVersion>8.0.0.0-alpha</MicrosoftVisualStudioTemplateWizardInterfaceVersion>
     <MicrosoftVisualStudioTextDataVersion>$(VisualStudioEditorNewPackagesVersion)</MicrosoftVisualStudioTextDataVersion>
     <MicrosoftVisualStudioTextInternalVersion>$(VisualStudioEditorNewPackagesVersion)</MicrosoftVisualStudioTextInternalVersion>

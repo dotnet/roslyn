@@ -144,6 +144,24 @@ $${|VirtualSpaces-4:|}
 @"var v = $""""""""$$""""");
         }
 
+        [WpfFact]
+        public void TestReturnEndOfFile()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"var v = """"""$$");
+
+            testState.SendReturn(handled: false);
+        }
+
+        [WpfFact]
+        public void TestReturnInEmptyFile()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"$$");
+
+            testState.SendReturn(handled: false);
+        }
+
         #endregion
 
         #region generate initial empty raw string
@@ -345,5 +363,16 @@ $${|VirtualSpaces-4:|}
         }
 
         #endregion
+
+        [WpfFact]
+        public void TestTypeQuoteEmptyFile()
+        {
+            using var testState = RawStringLiteralTestState.CreateTestState(
+@"$$");
+
+            testState.SendTypeChar('"');
+            testState.AssertCodeIs(
+@"""$$");
+        }
     }
 }

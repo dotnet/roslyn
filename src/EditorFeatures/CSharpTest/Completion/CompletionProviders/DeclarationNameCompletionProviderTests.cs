@@ -691,6 +691,126 @@ public class C
             }
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(36248, "https://github.com/dotnet/roslyn/issues/36248")]
+        public async Task Parameter13()
+        {
+            using var workspaceFixture = GetOrCreateWorkspaceFixture();
+
+            var workspace = workspaceFixture.Target.GetWorkspace(ExportProvider);
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options.WithChangedOption(
+                new OptionKey2(NamingStyleOptions.NamingPreferences, LanguageNames.CSharp),
+                ParameterCamelCaseWithPascalCaseFallback())));
+
+            var markup = @"
+using System.Threading;
+public class C
+{
+    void Goo(CancellationToken $$
+}
+";
+            await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
+            await VerifyItemIsAbsentAsync(markup, "CancellationToken");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
+        public async Task SuggestParameterNamesFromExistingOverloads()
+        {
+            var markup = @"
+using System.Threading;
+public class C
+{
+    void M(CancellationToken myTok) { }
+
+    void M(CancellationToken $$
+}
+";
+            await VerifyItemExistsAsync(markup, "myTok", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
+        public async Task SuggestParameterNamesFromExistingOverloads_Constructor()
+        {
+            var markup = @"
+using System.Threading;
+public class C
+{
+    public C(string firstName, string middleName, string lastName) { }
+
+    public C(string firstName, string $$)
+}
+";
+            await VerifyItemExistsAsync(markup, "middleName", glyph: (int)Glyph.Parameter);
+            await VerifyItemExistsAsync(markup, "lastName", glyph: (int)Glyph.Parameter);
+            await VerifyItemIsAbsentAsync(markup, "firstName");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
+        public async Task DoNotSuggestParameterNamesFromTheSameOverload()
+        {
+            var markup = @"
+public class C
+{
+    void M(string name, string $$) { }
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "name");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
+        public async Task DoNotSuggestParameterNamesFromNonOverloads()
+        {
+            var markup = @"
+using System.Threading;
+public class C
+{
+    void M1(CancellationToken myTok) { }
+
+    void M2(CancellationToken $$
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "myTok");
+            await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
+        public async Task DoNotSuggestInGenericType()
+        {
+            var markup = @"
+using System.Collections.Generic;
+public class C
+{
+    void M(IEnumerable<int> numbers) { }
+
+    void M(List<$$>) { }
+}
+";
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(52534, "https://github.com/dotnet/roslyn/issues/52534")]
+        public async Task DoNotSuggestInOptionalParameterDefaultValue()
+        {
+            var markup = @"
+using System.Collections.Generic;
+public class C
+{
+    private const int ZERO = 0;
+    void M(int num = ZERO) { }
+
+    void M(int x, int num = $$) { }
+}
+";
+            await VerifyNoItemsExistAsync(markup);
+        }
+
         [WorkItem(19260, "https://github.com/dotnet/roslyn/issues/19260")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task EscapeKeywords1()
@@ -2700,6 +2820,44 @@ public class MyClass
 
                 return (symbolSpecification, namingStyle);
             }
+        }
+
+        private static NamingStylePreferences ParameterCamelCaseWithPascalCaseFallback()
+        {
+            var symbolSpecifications = ImmutableArray.Create(
+                new SymbolSpecification(
+                    id: Guid.NewGuid(),
+                    symbolSpecName: "parameters",
+                    ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Parameter)),
+                    accessibilityList: default,
+                    modifiers: default),
+                new SymbolSpecification(
+                    id: Guid.NewGuid(),
+                    symbolSpecName: "fallback",
+                    ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Parameter), new SymbolKindOrTypeKind(SymbolKind.Local)),
+                    accessibilityList: default,
+                    modifiers: default));
+            var namingStyles = ImmutableArray.Create(
+                new NamingStyle(
+                    Guid.NewGuid(),
+                    name: "parameter",
+                    capitalizationScheme: Capitalization.CamelCase,
+                    prefix: "",
+                    suffix: "",
+                    wordSeparator: ""),
+                new NamingStyle(
+                    Guid.NewGuid(),
+                    name: "any_symbol",
+                    capitalizationScheme: Capitalization.PascalCase,
+                    prefix: "",
+                    suffix: "",
+                    wordSeparator: ""));
+            return new NamingStylePreferences(
+                symbolSpecifications,
+                namingStyles,
+                namingRules: ImmutableArray.Create(
+                    CreateRule(symbolSpecifications[0], namingStyles[0]),
+                    CreateRule(symbolSpecifications[1], namingStyles[1])));
         }
 
         private static SerializableNamingRule CreateRule(SymbolSpecification specification, NamingStyle style)
