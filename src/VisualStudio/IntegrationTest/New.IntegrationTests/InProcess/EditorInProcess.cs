@@ -37,7 +37,6 @@ using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using Xunit;
 using IObjectWithSite = Microsoft.VisualStudio.OLE.Interop.IObjectWithSite;
-using IOleCommandTarget = Microsoft.VisualStudio.OLE.Interop.IOleCommandTarget;
 using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
 using TextSpan = Microsoft.CodeAnalysis.Text.TextSpan;
@@ -278,9 +277,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         {
             if (await IsUseSuggestionModeOnAsync(forDebuggerTextView, cancellationToken) != value)
             {
-                var dispatcher = await GetRequiredGlobalServiceAsync<SUIHostCommandDispatcher, IOleCommandTarget>(cancellationToken);
-                ErrorHandler.ThrowOnFailure(dispatcher.Exec(typeof(VSConstants.VSStd2KCmdID).GUID, (uint)VSConstants.VSStd2KCmdID.ToggleConsumeFirstCompletionMode, (uint)OLECMDEXECOPT.OLECMDEXECOPT_DODEFAULT, IntPtr.Zero, IntPtr.Zero));
-
+                await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd2KCmdID.ToggleConsumeFirstCompletionMode, cancellationToken);
                 if (await IsUseSuggestionModeOnAsync(forDebuggerTextView, cancellationToken) != value)
                 {
                     throw new InvalidOperationException($"{WellKnownCommandNames.Edit_ToggleCompletionMode} did not leave the editor in the expected state.");
@@ -886,8 +883,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var dispatcher = await GetRequiredGlobalServiceAsync<SUIHostCommandDispatcher, IOleCommandTarget>(cancellationToken);
-            ErrorHandler.ThrowOnFailure(dispatcher.Exec(EditorConstants.EditorCommandSet, (uint)EditorConstants.EditorCommandID.GoToBase, (uint)OLECMDEXECOPT.OLECMDEXECOPT_DODEFAULT, IntPtr.Zero, IntPtr.Zero));
+            await TestServices.Shell.ExecuteCommandAsync(EditorConstants.EditorCommandID.GoToBase, cancellationToken);
 
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, cancellationToken);
 

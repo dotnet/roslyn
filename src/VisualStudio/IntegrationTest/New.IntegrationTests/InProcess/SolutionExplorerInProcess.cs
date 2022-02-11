@@ -206,10 +206,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
         public async Task SaveAllAsync(CancellationToken cancellationToken)
         {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            var dispatcher = await GetRequiredGlobalServiceAsync<SUIHostCommandDispatcher, IOleCommandTarget>(cancellationToken);
-            ErrorHandler.ThrowOnFailure(dispatcher.Exec(typeof(VSConstants.VSStd97CmdID).GUID, (uint)VSConstants.VSStd97CmdID.SaveSolution, (uint)OLECMDEXECOPT.OLECMDEXECOPT_DODEFAULT, IntPtr.Zero, IntPtr.Zero));
+            await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.SaveSolution, cancellationToken);
         }
 
         public async Task OpenFileAsync(string projectName, string relativeFilePath, CancellationToken cancellationToken)
