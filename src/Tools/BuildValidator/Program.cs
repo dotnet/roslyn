@@ -71,8 +71,6 @@ namespace BuildValidator
 
             var excludes = new List<string>(exclude ?? Array.Empty<string>());
             excludes.Add(Path.DirectorySeparatorChar + "runtimes" + Path.DirectorySeparatorChar);
-            excludes.Add(Path.DirectorySeparatorChar + "ref" + Path.DirectorySeparatorChar);
-            excludes.Add(Path.DirectorySeparatorChar + "refint" + Path.DirectorySeparatorChar);
             excludes.Add(@".resources.dll");
 
             var options = new Options(assembliesPath, referencesPath, excludes.ToArray(), sourcePath, verbose, quiet, debug, debugPath);
@@ -159,13 +157,19 @@ namespace BuildValidator
 
                     if (Util.GetPortableExecutableInfo(filePath) is not { } peInfo)
                     {
-                        logger.LogError($"Skipping non-pe file {filePath}");
+                        logger.LogInformation($"Skipping non-pe file {filePath}");
                         continue;
                     }
 
                     if (peInfo.IsReadyToRun)
                     {
-                        logger.LogError($"Skipping ReadyToRun file {filePath}");
+                        logger.LogInformation($"Skipping ReadyToRun file {filePath}");
+                        continue;
+                    }
+
+                    if (peInfo.IsReferenceAssembly)
+                    {
+                        logger.LogInformation($"Skipping reference assembly {filePath}");
                         continue;
                     }
 
