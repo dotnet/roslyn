@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.VisualStudio.Shell.TableControl;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
@@ -46,7 +47,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 // to point to some random file in error or more.
 
                 // TODO: Use a threaded-wait-dialog here so we can cancel navigation.
-                e.Handled = roslynSnapshot.TryNavigateTo(index, e.IsPreview, e.ShouldActivate, CancellationToken.None);
+                var options = new NavigationOptions(PreferProvisionalTab: e.IsPreview, ActivateTab: e.ShouldActivate);
+                e.Handled = roslynSnapshot.TryNavigateTo(index, options, CancellationToken.None);
             }
         }
     }

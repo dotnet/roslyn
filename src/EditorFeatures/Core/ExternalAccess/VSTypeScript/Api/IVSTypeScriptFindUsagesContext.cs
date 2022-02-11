@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.Navigation;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
 {
@@ -62,25 +63,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         public static VSTypeScriptDefinitionItem Create(VSTypeScriptDefinitionItemBase item)
             => new(item);
 
-        [Obsolete]
-        public VSTypeScriptDefinitionItem(
-            ImmutableArray<string> tags,
-            ImmutableArray<TaggedText> displayParts,
-            ImmutableArray<DocumentSpan> sourceSpans,
-            ImmutableArray<TaggedText> nameDisplayParts = default,
-            ImmutableDictionary<string, string>? properties = null,
-            ImmutableDictionary<string, string>? displayableProperties = null,
-            bool displayIfNoReferences = true)
-        {
-            UnderlyingObject = new DefinitionItem.DefaultDefinitionItem(
-                tags, displayParts, nameDisplayParts, originationParts: ImmutableArray<TaggedText>.Empty, sourceSpans, properties, displayableProperties, displayIfNoReferences);
-        }
-
         public ImmutableArray<string> Tags => UnderlyingObject.Tags;
         public ImmutableArray<TaggedText> DisplayParts => UnderlyingObject.DisplayParts;
-
-        [Obsolete]
-        public ImmutableArray<DocumentSpan> SourceSpans => UnderlyingObject.SourceSpans;
 
         public ImmutableArray<VSTypeScriptDocumentSpan> GetSourceSpans()
             => UnderlyingObject.SourceSpans.SelectAsArray(span => new VSTypeScriptDocumentSpan(span));
@@ -89,7 +73,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
             => UnderlyingObject.CanNavigateToAsync(workspace, cancellationToken);
 
         public Task<bool> TryNavigateToAsync(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
-            => UnderlyingObject.TryNavigateToAsync(workspace, showInPreviewTab, activateTab, cancellationToken);
+            => UnderlyingObject.TryNavigateToAsync(workspace, new NavigationOptions(showInPreviewTab, activateTab), cancellationToken);
     }
 
     internal sealed class VSTypeScriptSourceReferenceItem
@@ -104,21 +88,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
             UnderlyingObject = new SourceReferenceItem(definition.UnderlyingObject, sourceSpan.ToDocumentSpan(), symbolUsageInfo.UnderlyingObject);
         }
 
-        [Obsolete]
-        public VSTypeScriptSourceReferenceItem(
-            VSTypeScriptDefinitionItem definition,
-            DocumentSpan sourceSpan,
-            SymbolUsageInfo symbolUsageInfo)
-        {
-            UnderlyingObject = new SourceReferenceItem(definition.UnderlyingObject, sourceSpan, symbolUsageInfo);
-        }
-
         public VSTypeScriptDocumentSpan GetSourceSpan()
             => new(UnderlyingObject.SourceSpan);
-
-        [Obsolete]
-        public DocumentSpan SourceSpan
-            => UnderlyingObject.SourceSpan;
     }
 
     internal readonly struct VSTypeScriptSymbolUsageInfo

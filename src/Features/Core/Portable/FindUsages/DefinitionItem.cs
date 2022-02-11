@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Tags;
 using Roslyn.Utilities;
 
@@ -159,24 +160,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
             }
         }
 
-        [Obsolete("Override CanNavigateToAsync instead", error: false)]
-        public abstract bool CanNavigateTo(Workspace workspace, CancellationToken cancellationToken);
-        [Obsolete("Override TryNavigateToAsync instead", error: false)]
-        public abstract bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken);
-
-        public virtual Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken)
-        {
-#pragma warning disable CS0618 // Type or member is obsolete
-            return Task.FromResult(CanNavigateTo(workspace, cancellationToken));
-#pragma warning restore CS0618 // Type or member is obsolete
-        }
-
-        public virtual Task<bool> TryNavigateToAsync(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
-        {
-#pragma warning disable CS0618 // Type or member is obsolete
-            return Task.FromResult(TryNavigateTo(workspace, showInPreviewTab, activateTab, cancellationToken));
-#pragma warning restore CS0618 // Type or member is obsolete
-        }
+        public abstract Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken);
+        public abstract Task<bool> TryNavigateToAsync(Workspace workspace, NavigationOptions options, CancellationToken cancellationToken);
 
         public static DefinitionItem Create(
             ImmutableArray<string> tags,

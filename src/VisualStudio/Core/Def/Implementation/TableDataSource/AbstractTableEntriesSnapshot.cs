@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             _trackingPoints = trackingPoints;
         }
 
-        public abstract bool TryNavigateTo(int index, bool previewTab, bool activate, CancellationToken cancellationToken);
+        public abstract bool TryNavigateTo(int index, NavigationOptions options, CancellationToken cancellationToken);
         public abstract bool TryGetValue(int index, string columnName, [NotNullWhen(true)] out object? content);
 
         public int VersionNumber
@@ -152,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             return new LinePosition(line.LineNumber, point.Position - line.Start);
         }
 
-        protected static bool TryNavigateTo(Workspace workspace, DocumentId documentId, LinePosition position, bool previewTab, bool activate, CancellationToken cancellationToken)
+        protected static bool TryNavigateTo(Workspace workspace, DocumentId documentId, LinePosition position, NavigationOptions options, CancellationToken cancellationToken)
         {
             var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
             if (navigationService == null)
@@ -160,13 +160,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 return false;
             }
 
-            var solution = workspace.CurrentSolution;
-            var options = solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, previewTab)
-                                          .WithChangedOption(NavigationOptions.ActivateTab, activate);
             return navigationService.TryNavigateToLineAndOffset(workspace, documentId, position.Line, position.Character, options, cancellationToken);
         }
 
-        protected bool TryNavigateToItem(int index, bool previewTab, bool activate, CancellationToken cancellationToken)
+        protected bool TryNavigateToItem(int index, NavigationOptions options, CancellationToken cancellationToken)
         {
             var item = GetItem(index);
             if (item is not { DocumentId: { } documentId })
@@ -195,7 +192,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 position = item.GetOriginalPosition();
             }
 
-            return TryNavigateTo(workspace, documentId, position, previewTab, activate, cancellationToken);
+            return TryNavigateTo(workspace, documentId, position, options, cancellationToken);
         }
 
         // we don't use these
