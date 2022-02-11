@@ -297,9 +297,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     // Record how long it takes for the background task to complete *after* core providers returned.
                     // If telemetry shows that a short wait is all it takes for ExpandedItemsTask to complete in
                     // majority of the sessions, then we might consider doing that instead of return immediately.
-                    var elapsedMs = (int)stopwatch.ElapsedMilliseconds;
-                    if (elapsedMs > 0)
-                        AsyncCompletionLogger.LogAdditionalTicksToCompleteDelayedImportCompletionDataPoint(elapsedMs);
+                    // There could be a race around the usage of this stopwatch, I ignored it since we just need a rough idea:
+                    // we always log the time even if the stopwatch's not started regardless of whether expand items are included intially
+                    // (that number can be obtained via another property.)
+                    AsyncCompletionLogger.LogAdditionalTicksToCompleteDelayedImportCompletionDataPoint((int)stopwatch.ElapsedMilliseconds);
 
                     return result;
                 }, cancellationToken);
