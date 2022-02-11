@@ -9330,8 +9330,8 @@ Sie sollten das Unterdrücken der Warnung nur in Betracht ziehen, wenn Sie siche
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalAttributesNotAllowed">
-        <source>Assembly and module attributes are not allowed in this context</source>
-        <target state="translated">Assembly- und Modulattribute sind in diesem Kontext nicht zulässig.</target>
+        <source>Assembly, module, and main attributes are not allowed in this context</source>
+        <target state="needs-review-translation">Assembly- und Modulattribute sind in diesem Kontext nicht zulässig.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDelegateType">

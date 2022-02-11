@@ -9330,8 +9330,8 @@ Pominięcie ostrzeżenia należy wziąć pod uwagę tylko w sytuacji, gdy na pew
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalAttributesNotAllowed">
-        <source>Assembly and module attributes are not allowed in this context</source>
-        <target state="translated">Atrybuty zestawów i modułów nie są dozwolone w tym kontekście</target>
+        <source>Assembly, module, and main attributes are not allowed in this context</source>
+        <target state="needs-review-translation">Atrybuty zestawów i modułów nie są dozwolone w tym kontekście</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDelegateType">

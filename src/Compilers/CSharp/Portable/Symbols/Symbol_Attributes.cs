@@ -551,6 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             case AttributeLocation.Assembly:
                             case AttributeLocation.Module:
+                            case AttributeLocation.Main:
                                 // global attributes are disallowed in interactive code:
                                 diagnostics.Add(ErrorCode.ERR_GlobalAttributesNotAllowed, targetOpt.Identifier.GetLocation());
                                 break;

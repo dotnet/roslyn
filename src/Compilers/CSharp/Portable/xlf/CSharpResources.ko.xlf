@@ -9329,8 +9329,8 @@ You should consider suppressing the warning only if you're sure that you don't w
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalAttributesNotAllowed">
-        <source>Assembly and module attributes are not allowed in this context</source>
-        <target state="translated">이 컨텍스트에 어셈블리 및 모듈 특성이 허용되지 않습니다.</target>
+        <source>Assembly, module, and main attributes are not allowed in this context</source>
+        <target state="needs-review-translation">이 컨텍스트에 어셈블리 및 모듈 특성이 허용되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDelegateType">

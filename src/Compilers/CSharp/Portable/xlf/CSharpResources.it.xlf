@@ -9330,8 +9330,8 @@ Come procedura consigliata, è consigliabile attendere sempre la chiamata.
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalAttributesNotAllowed">
-        <source>Assembly and module attributes are not allowed in this context</source>
-        <target state="translated">Gli attributi di assembly e modulo non sono consentiti in questo contesto</target>
+        <source>Assembly, module, and main attributes are not allowed in this context</source>
+        <target state="needs-review-translation">Gli attributi di assembly e modulo non sono consentiti in questo contesto</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDelegateType">

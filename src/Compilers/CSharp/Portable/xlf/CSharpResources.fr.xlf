@@ -9330,8 +9330,8 @@ Supprimez l'avertissement seulement si vous êtes sûr de ne pas vouloir attendr
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalAttributesNotAllowed">
-        <source>Assembly and module attributes are not allowed in this context</source>
-        <target state="translated">Les attributs d'assembly et de module ne sont pas autorisés dans ce contexte</target>
+        <source>Assembly, module, and main attributes are not allowed in this context</source>
+        <target state="needs-review-translation">Les attributs d'assembly et de module ne sont pas autorisés dans ce contexte</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDelegateType">

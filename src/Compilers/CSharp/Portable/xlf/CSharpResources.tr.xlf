@@ -9330,8 +9330,8 @@ Yalnızca asenkron çağrının tamamlanmasını beklemek istemediğinizden ve �
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalAttributesNotAllowed">
-        <source>Assembly and module attributes are not allowed in this context</source>
-        <target state="translated">Derleme ve modül özniteliklerine bu bağlamda izin verilmiyor</target>
+        <source>Assembly, module, and main attributes are not allowed in this context</source>
+        <target state="needs-review-translation">Derleme ve modül özniteliklerine bu bağlamda izin verilmiyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDelegateType">

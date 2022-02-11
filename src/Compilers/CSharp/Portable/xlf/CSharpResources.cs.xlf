@@ -9330,8 +9330,8 @@ Potlačení upozornění zvažte jenom v případě, když určitě nechcete če
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalAttributesNotAllowed">
-        <source>Assembly and module attributes are not allowed in this context</source>
-        <target state="translated">Atributy sestavení a modulů nejsou v tomto kontextu povolené.</target>
+        <source>Assembly, module, and main attributes are not allowed in this context</source>
+        <target state="needs-review-translation">Atributy sestavení a modulů nejsou v tomto kontextu povolené.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDelegateType">

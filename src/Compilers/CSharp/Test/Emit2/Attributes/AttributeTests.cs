@@ -5194,6 +5194,24 @@ public class MyAttribute : Attribute {{ public MyAttribute(string name) {{}} }}
                 });
         }
 
+        [Fact]
+        public void TestMainAttributesInScript()
+        {
+            var compilation = CreateSubmission(@"
+using System;
+[main: My(""one"")]
+
+public class C {}
+public class MyAttribute : Attribute { public MyAttribute(string name) {} }",
+            parseOptions: TestOptions.Script.WithLanguageVersion(LanguageVersion.Preview));
+
+            compilation.VerifyDiagnostics(
+                // (3,2): error CS7026: Assembly and module attributes are not allowed in this context
+                // [main: My("one")]
+                Diagnostic(ErrorCode.ERR_GlobalAttributesNotAllowed, "main").WithLocation(3, 2)
+                );
+        }
+
         #endregion
 
         #region Error Tests

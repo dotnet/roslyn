@@ -3975,7 +3975,7 @@ You should consider suppressing the warning only if you're sure that you don't w
     <value>Cannot declare namespace in script code</value>
   </data>
   <data name="ERR_GlobalAttributesNotAllowed" xml:space="preserve">
-    <value>Assembly and module attributes are not allowed in this context</value>
+    <value>Assembly, module, and main attributes are not allowed in this context</value>
   </data>
   <data name="ERR_InvalidDelegateType" xml:space="preserve">
     <value>Delegate '{0}' has no invoke method or an invoke method with a return type or parameter types that are not supported.</value>
