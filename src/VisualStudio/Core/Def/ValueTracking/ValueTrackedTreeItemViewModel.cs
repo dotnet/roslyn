@@ -78,6 +78,16 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             }
         }
 
+        internal static ValueTask<TreeItemViewModel> CreateAsync(
+            Solution solution,
+            ValueTrackedItem item,
+            ValueTrackingTreeViewModel treeViewModel,
+            IGlyphService glyphService,
+            IValueTrackingService valueTrackingService,
+            IThreadingContext threadingContext,
+            CancellationToken cancellationToken)
+            => CreateAsync(solution, item, treeViewModel, glyphService, valueTrackingService, threadingContext, ImmutableArray<TreeItemViewModel>.Empty, cancellationToken);
+
         internal static async ValueTask<TreeItemViewModel> CreateAsync(
             Solution solution,
             ValueTrackedItem item,
@@ -85,6 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             IGlyphService glyphService,
             IValueTrackingService valueTrackingService,
             IThreadingContext threadingContext,
+            ImmutableArray<TreeItemViewModel> children,
             CancellationToken cancellationToken)
         {
             var document = solution.GetRequiredDocument(item.DocumentId);
@@ -104,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 valueTrackingService,
                 threadingContext,
                 fileName,
-                children: ImmutableArray<TreeItemViewModel>.Empty);
+                children);
         }
 
         private void CalculateChildren()
