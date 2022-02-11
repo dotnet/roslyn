@@ -110,10 +110,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         string EscapeIdentifier(string identifier);
         bool IsVerbatimIdentifier(SyntaxToken token);
         bool IsOperator(SyntaxToken token);
-        bool IsPredefinedType(SyntaxToken token);
-        bool IsPredefinedType(SyntaxToken token, PredefinedType type);
         bool IsPredefinedOperator(SyntaxToken token);
         bool IsPredefinedOperator(SyntaxToken token, PredefinedOperator op);
+
+        bool IsPredefinedType(SyntaxToken token);
+        bool IsPredefinedType(SyntaxToken token, PredefinedType type);
+
+        bool IsPredefinedType([NotNullWhen(true)] SyntaxNode? node);
+        bool IsPredefinedType([NotNullWhen(true)] SyntaxNode? node, PredefinedType type);
 
         /// <summary>
         /// Returns 'true' if this a 'reserved' keyword for the language.  A 'reserved' keyword is a

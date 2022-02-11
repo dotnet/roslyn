@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
                     OriginalSourceText.GetOffset(firstPeriod.SpanStart).CreateIndentationString(UseTabs, TabSize)));
 
                 _smartIndentTrivia = new SyntaxTriviaList(generator.Whitespace(
-                    GetSmartIndentationAfter(firstPeriod)));
+                    GetIndentationAfter(firstPeriod, FormattingOptions.IndentStyle.Smart)));
 
                 _newlineBeforeOperatorTrivia = service.GetNewLineBeforeOperatorTrivia(NewLineTrivia);
             }
