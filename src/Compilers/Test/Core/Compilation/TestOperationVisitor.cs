@@ -1704,7 +1704,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitAttribute(IAttributeOperation operation)
         {
             Assert.Equal(OperationKind.Attribute, operation.Kind);
-            Assert.NotNull(operation.Type);
             Assert.False(operation.ConstantValue.HasValue);
         }
     }
