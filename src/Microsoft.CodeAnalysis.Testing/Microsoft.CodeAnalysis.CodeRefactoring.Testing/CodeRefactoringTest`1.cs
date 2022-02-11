@@ -83,8 +83,8 @@ namespace Microsoft.CodeAnalysis.Testing
 
             if (CodeActionExpected())
             {
-                await VerifyDiagnosticsAsync(new EvaluatedProjectState(fixedState, ReferenceAssemblies), fixedState.AdditionalProjects.Values.Select(additionalProject => new EvaluatedProjectState(additionalProject, ReferenceAssemblies)).ToImmutableArray(), FilterTriggerSpanResults(fixedState.ExpectedDiagnostics).ToArray(), Verify.PushContext("Diagnostics of fixed state"), cancellationToken).ConfigureAwait(false);
                 await VerifyRefactoringAsync(testState, fixedState, GetTriggerSpanResult(testState.ExpectedDiagnostics), Verify, cancellationToken).ConfigureAwait(false);
+                await VerifyDiagnosticsAsync(new EvaluatedProjectState(fixedState, ReferenceAssemblies), fixedState.AdditionalProjects.Values.Select(additionalProject => new EvaluatedProjectState(additionalProject, ReferenceAssemblies)).ToImmutableArray(), FilterTriggerSpanResults(fixedState.ExpectedDiagnostics).ToArray(), Verify.PushContext("Diagnostics of fixed state"), cancellationToken).ConfigureAwait(false);
             }
 
             static IEnumerable<DiagnosticResult> FilterTriggerSpanResults(IEnumerable<DiagnosticResult> expected)
