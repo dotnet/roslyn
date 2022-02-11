@@ -224,6 +224,7 @@ namespace System.Diagnostics.CodeAnalysis
                         ReadGeneratedSource("WorkspaceInProcess1.g.cs"),
                         ReadGeneratedSource("TestServiceAttribute.g.cs"),
                         ReadGeneratedSource("InProcComponent.g.cs"),
+                        ReadGeneratedSource("ShellInProcess_ExecuteCommandAsync_TEnum.g.cs"),
                         ReadGeneratedSource("ShellInProcess_EnumerateWindowsAsync.g.cs"),
                         ReadGeneratedSource("SolutionExplorerInProcess.SolutionEvents_IAsyncDisposable.g.cs"),
                         ReadGeneratedSource("AbstractIdeIntegrationTest.g.cs"),
@@ -267,6 +268,7 @@ namespace System.Diagnostics.CodeAnalysis
                         ReadGeneratedSource("WorkspaceInProcess1.g.cs"),
                         ReadGeneratedSource("TestServiceAttribute.g.cs"),
                         ReadGeneratedSource("InProcComponent.g.cs"),
+                        ReadGeneratedSource("ShellInProcess_ExecuteCommandAsync_TEnum.g.cs"),
                         ReadGeneratedSource("ShellInProcess_EnumerateWindowsAsync.g.cs"),
                         ReadGeneratedSource("SolutionExplorerInProcess.SolutionEvents_IDisposable.g.cs"),
                         ReadGeneratedSource("AbstractIdeIntegrationTest.g.cs"),
@@ -311,6 +313,7 @@ namespace System.Diagnostics.CodeAnalysis
                         ReadGeneratedSource("WorkspaceInProcess1.g.cs"),
                         ReadGeneratedSource("TestServiceAttribute.g.cs"),
                         ReadGeneratedSource("InProcComponent.g.cs"),
+                        ReadGeneratedSource("ShellInProcess_ExecuteCommandAsync_TEnum.g.cs"),
                         ReadGeneratedSource("ShellInProcess_EnumerateWindowsAsync.g.cs"),
                         ReadGeneratedSource("SolutionExplorerInProcess.SolutionEvents_IDisposable.g.cs"),
                         ReadGeneratedSource("AbstractIdeIntegrationTest.g.cs"),
@@ -335,6 +338,7 @@ namespace System.Diagnostics.CodeAnalysis
                     ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net46.Wpf
                         .AddPackages(ImmutableArray.Create(
                             new PackageIdentity("Microsoft.VisualStudio.SDK", "15.0.1"),
+                            new PackageIdentity("System.ValueTuple", "4.5.0"),
                             new PackageIdentity("xunit", "2.4.1"))),
                     AdditionalReferences =
                     {
@@ -354,6 +358,7 @@ namespace System.Diagnostics.CodeAnalysis
                         ReadGeneratedSource("WorkspaceInProcess1.g.cs"),
                         ReadGeneratedSource("TestServiceAttribute.g.cs"),
                         ReadGeneratedSource("InProcComponent.g.cs"),
+                        ReadGeneratedSource("ShellInProcess_ExecuteCommandAsync_TEnum.g.cs"),
                         ReadGeneratedSource("ShellInProcess_EnumerateWindowsAsync.g.cs"),
                         ReadGeneratedSource("SolutionExplorerInProcess.SolutionEvents_IDisposable.g.cs"),
                         ReadGeneratedSource("AbstractIdeIntegrationTest.g.cs"),
@@ -386,6 +391,7 @@ namespace System.Diagnostics.CodeAnalysis
                             new PackageIdentity("Microsoft.VisualStudio.Shell.14.0", shellVersion),
                             new PackageIdentity("Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime", shellVersion),
                             new PackageIdentity("Microsoft.VisualStudio.Text.UI.Wpf", shellVersion),
+                            new PackageIdentity("System.ValueTuple", "4.5.0"),
                             new PackageIdentity("xunit", "2.4.1"))),
                     AdditionalReferences =
                     {
@@ -405,6 +411,7 @@ namespace System.Diagnostics.CodeAnalysis
                         ReadGeneratedSource("WorkspaceInProcess1.g.cs"),
                         ReadGeneratedSource("TestServiceAttribute.g.cs"),
                         ReadGeneratedSource("InProcComponent.g.cs"),
+                        ReadGeneratedSource("ShellInProcess_ExecuteCommandAsync_TEnum.g.cs"),
                         ReadGeneratedSource("ShellInProcess_EnumerateWindowsAsync.g.cs"),
                         ReadGeneratedSource("SolutionExplorerInProcess.SolutionEvents_IDisposable.g.cs"),
                         ReadGeneratedSource("AbstractIdeIntegrationTest.g.cs"),
@@ -428,6 +435,7 @@ namespace System.Diagnostics.CodeAnalysis
                 {
                     ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net46.Wpf
                         .AddPackages(ImmutableArray.Create(
+                            new PackageIdentity("System.ValueTuple", "4.5.0"),
                             new PackageIdentity("VSSDK.ComponentModelHost.12", "12.0.4"),
                             new PackageIdentity("VSSDK.Editor.12", "12.0.4"),
                             new PackageIdentity("VSSDK.Shell.12", "12.0.4"),
@@ -452,6 +460,7 @@ namespace System.Diagnostics.CodeAnalysis
                         ReadGeneratedSource("WorkspaceInProcess1.g.cs"),
                         ReadGeneratedSource("TestServiceAttribute.g.cs"),
                         ReadGeneratedSource("InProcComponent.g.cs"),
+                        ReadGeneratedSource("ShellInProcess_ExecuteCommandAsync_TEnum.g.cs"),
                         ReadGeneratedSource("ShellInProcess_EnumerateWindowsAsync.g.cs"),
                         ReadGeneratedSource("SolutionExplorerInProcess.SolutionEvents_IDisposable.g.cs"),
                         ReadGeneratedSource("AbstractIdeIntegrationTest.g.cs"),
@@ -476,6 +485,7 @@ namespace System.Diagnostics.CodeAnalysis
                     ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net46.Wpf
                         .AddPackages(ImmutableArray.Create(
                             new PackageIdentity("Microsoft.VisualStudio.Threading", "12.0.0"),
+                            new PackageIdentity("System.ValueTuple", "4.5.0"),
                             new PackageIdentity("VSSDK.ComponentModelHost.11", "11.0.4"),
                             new PackageIdentity("VSSDK.Editor.11", "11.0.4"),
                             new PackageIdentity("VSSDK.Shell.11", "11.0.4"),
@@ -503,6 +513,7 @@ namespace System.Diagnostics.CodeAnalysis
                         ReadGeneratedSource("WorkspaceInProcess1.g.cs"),
                         ReadGeneratedSource("TestServiceAttribute.g.cs"),
                         ReadGeneratedSource("InProcComponent.g.cs"),
+                        ReadGeneratedSource("ShellInProcess_ExecuteCommandAsync_TEnum.g.cs"),
                         ReadGeneratedSource("ShellInProcess_EnumerateWindowsAsync.g.cs"),
                         ReadGeneratedSource("SolutionExplorerInProcess.SolutionEvents_IDisposable.g.cs"),
                         ReadGeneratedSource("AbstractIdeIntegrationTest.g.cs"),
