@@ -1706,7 +1706,7 @@ class Program
     <Project Language="C#" CommonReferences="true">
         <Document>
             class SomeClass { }
-            cl$$ass OtherClass
+            c$$lass OtherClass
             {
                 SomeClass obj;
             }
