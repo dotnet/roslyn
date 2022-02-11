@@ -30,7 +30,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                                            compilationOptions:=compilationOptions)
         End Function
 
-        Private Shared ReadOnly Property VerifyOnMonoOrCoreClr As Verification
+        Private Shared ReadOnly Property VerifyFailsOnMonoOrCoreClr As Verification
+            Get
+                Return If(ExecutionConditionUtil.IsMonoOrCoreClr, Verification.Fails, Verification.Skipped)
+            End Get
+        End Property
+
+        Private Shared ReadOnly Property VerifyPassesOnMonoOrCoreClr As Verification
             Get
                 Return If(ExecutionConditionUtil.IsMonoOrCoreClr, Verification.Passes, Verification.Skipped)
             End Get
@@ -108,7 +114,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -191,7 +197,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -268,7 +274,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -345,7 +351,8 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            ' ILVerify: Method is not visible. { Offset = 8 }
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
 
@@ -387,7 +394,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -527,7 +534,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -559,7 +566,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -745,7 +752,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -831,7 +838,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -870,7 +877,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -1380,7 +1387,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -1449,7 +1456,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -1478,7 +1485,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.M1", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -1777,7 +1784,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, verify:=VerifyOnMonoOrCoreClr).VerifyDiagnostics()
+            CompileAndVerify(comp1, verify:=VerifyPassesOnMonoOrCoreClr).VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -1867,7 +1874,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, verify:=VerifyOnMonoOrCoreClr).VerifyDiagnostics()
+            CompileAndVerify(comp1, verify:=VerifyPassesOnMonoOrCoreClr).VerifyDiagnostics()
         End Sub
 
         Private Const NoPiaAttributes As String = "
@@ -2404,7 +2411,7 @@ public interface ITest33
 
             For Each reference2 In {compilation1.ToMetadataReference(), compilation1.EmitToImageReference()}
                 Dim compilation2 = CreateCompilation(consumer2, options:=TestOptions.ReleaseExe, references:={reference2, pia2Reference})
-                CompileAndVerify(compilation2, expectedOutput:="Test.M1")
+                CompileAndVerify(compilation2, expectedOutput:="Test.M1", verify:=Verification.FailsILVerify)
             Next
         End Sub
 
@@ -2529,7 +2536,7 @@ End Class
 I1+T2
 I1+T3
 B
-I1+T5", Nothing), verify:=VerifyOnMonoOrCoreClr)
+I1+T5", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -2753,7 +2760,7 @@ End Class
 I1+T2
 I1+T3
 B
-I1+T5", Nothing), verify:=VerifyOnMonoOrCoreClr)
+I1+T5", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -3223,7 +3230,7 @@ End Interface
 I1+T2
 I1+T3
 B
-I1+T5", Nothing), verify:=VerifyOnMonoOrCoreClr)
+I1+T5", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -3292,7 +3299,7 @@ End Interface
 I1+T2
 I1+T3
 B
-I1+T5", Nothing), verify:=VerifyOnMonoOrCoreClr)
+I1+T5", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -3512,7 +3519,7 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
 
-            CompileAndVerify(comp1, verify:=VerifyOnMonoOrCoreClr).VerifyDiagnostics()
+            CompileAndVerify(comp1, verify:=VerifyPassesOnMonoOrCoreClr).VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -3666,7 +3673,7 @@ End Class
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugDll, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
 
-            CompileAndVerify(comp1, verify:=VerifyOnMonoOrCoreClr).VerifyDiagnostics()
+            CompileAndVerify(comp1, verify:=VerifyPassesOnMonoOrCoreClr).VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -3811,7 +3818,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Get
-C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+C.P1.Set", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -3894,7 +3901,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Get
-C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+C.P1.Set", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -3979,7 +3986,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Get
-C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+C.P1.Set", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -4172,7 +4179,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Get
-C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+C.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -4221,7 +4228,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Get
-C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+C.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -4270,7 +4277,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Get
-C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+C.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -4319,7 +4326,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Get
-C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+C.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -4368,7 +4375,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Get
-C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+C.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -4417,7 +4424,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Get
-C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+C.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -4625,10 +4632,10 @@ End Class
                                 Assert.Empty(p1Get.ExplicitInterfaceImplementations)
                             End Sub
 
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyPassesOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
 
             comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyPassesOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
         End Sub
 
         <Fact>
@@ -4686,10 +4693,10 @@ End Class
                                 Assert.Empty(p1Get.ExplicitInterfaceImplementations)
                             End Sub
 
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyPassesOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
 
             comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyPassesOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
         End Sub
 
         <Fact>
@@ -4753,10 +4760,10 @@ End Class
                                 Assert.Empty(p1Set.ExplicitInterfaceImplementations)
                             End Sub
 
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyPassesOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
 
             comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyPassesOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
         End Sub
 
         <Fact>
@@ -4816,10 +4823,10 @@ End Class
                                 Assert.Empty(p1Set.ExplicitInterfaceImplementations)
                             End Sub
 
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyPassesOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
 
             comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyPassesOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
         End Sub
 
         <Fact>
@@ -4856,10 +4863,10 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
 
             comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -4897,10 +4904,10 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
 
             comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -4937,10 +4944,10 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
 
             comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -5127,7 +5134,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -5157,7 +5164,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -5187,7 +5194,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -5217,7 +5224,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -5247,7 +5254,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -5277,7 +5284,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -5780,7 +5787,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "I1.P1.Get
-I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+I1.P1.Set", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -5957,7 +5964,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "I1.P1.Get
-I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+I1.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -5999,7 +6006,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "I1.P1.Get
-I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+I1.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -6041,7 +6048,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "I1.P1.Get
-I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+I1.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -6083,7 +6090,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "I1.P1.Get
-I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+I1.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -6125,7 +6132,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "I1.P1.Get
-I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+I1.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -6167,7 +6174,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "I1.P1.Get
-I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+I1.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -7460,7 +7467,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -7538,7 +7545,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -7618,7 +7625,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -7708,7 +7715,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -7752,7 +7759,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Get", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -7894,7 +7901,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -7923,7 +7930,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -8103,7 +8110,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.P1.Get", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -8187,7 +8194,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.P1.Get", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -8226,7 +8233,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.P1.Get", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.P1.Get", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -8721,7 +8728,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -8798,7 +8805,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -8877,7 +8884,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -8966,7 +8973,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -9009,7 +9016,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -9156,7 +9163,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -9188,7 +9195,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "100", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -9368,7 +9375,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.P1.Set", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -9452,7 +9459,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -9491,7 +9498,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.P1.Set", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "I1.P1.Set", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -9994,7 +10001,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Add
-C.P1.Remove", Nothing), verify:=VerifyOnMonoOrCoreClr)
+C.P1.Remove", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -10079,7 +10086,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Add
-C.P1.Remove", Nothing), verify:=VerifyOnMonoOrCoreClr)
+C.P1.Remove", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -10166,7 +10173,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Add
-C.P1.Remove", Nothing), verify:=VerifyOnMonoOrCoreClr)
+C.P1.Remove", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -10266,7 +10273,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Add
-C.P1.Remove", Nothing), verify:=VerifyOnMonoOrCoreClr)
+C.P1.Remove", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -10317,7 +10324,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "C.P1.Add
-C.P1.Remove", Nothing), verify:=VerifyOnMonoOrCoreClr)
+C.P1.Remove", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -10408,7 +10415,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "M1
-M2", Nothing), verify:=VerifyOnMonoOrCoreClr)
+M2", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -10499,7 +10506,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "M1
-M2", Nothing), verify:=VerifyOnMonoOrCoreClr)
+M2", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -10542,7 +10549,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "M1
-M2", Nothing), verify:=VerifyOnMonoOrCoreClr)
+M2", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -10749,7 +10756,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "I1.P1.Add
-I1.P1.Remove", Nothing), verify:=VerifyOnMonoOrCoreClr)
+I1.P1.Remove", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -10844,7 +10851,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "I1.P1.Add
-I1.P1.Remove", Nothing), verify:=VerifyOnMonoOrCoreClr)
+I1.P1.Remove", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -10887,7 +10894,7 @@ End Class
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
             CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr,
 "I1.P1.Add
-I1.P1.Remove", Nothing), verify:=VerifyOnMonoOrCoreClr)
+I1.P1.Remove", Nothing), verify:=VerifyFailsOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -11407,7 +11414,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -11489,7 +11496,7 @@ End Class
 </compilation>
 
             Dim comp1 = CreateCompilation(source1, options:=TestOptions.DebugExe, targetFramework:=TargetFramework.NetCoreApp, references:={csCompilation})
-            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyOnMonoOrCoreClr)
+            CompileAndVerify(comp1, expectedOutput:=If(ExecutionConditionUtil.IsMonoOrCoreClr, "C.M1", Nothing), verify:=VerifyPassesOnMonoOrCoreClr)
         End Sub
 
         <Fact>
@@ -11878,7 +11885,7 @@ End Class
                                 Assert.Same(i1WinRT.RemoveMethod, i2WinRT.RemoveMethod.ExplicitInterfaceImplementations.Single())
                             End Sub
 
-            CompileAndVerify(comp1, verify:=VerifyOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
+            CompileAndVerify(comp1, verify:=VerifyPassesOnMonoOrCoreClr, sourceSymbolValidator:=validator, symbolValidator:=validator)
         End Sub
 
     End Class

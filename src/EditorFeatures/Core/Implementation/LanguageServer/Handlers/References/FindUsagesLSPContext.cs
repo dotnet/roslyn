@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
         private readonly Document _document;
         private readonly int _position;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
+        private readonly IGlobalOptionService _globalOptions;
 
         /// <summary>
         /// Methods in FindUsagesLSPContext can be called by multiple threads concurrently.
@@ -78,15 +79,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             IAsynchronousOperationListener asyncListener,
             IGlobalOptionService globalOptions,
             CancellationToken cancellationToken)
-            : base(globalOptions)
         {
             _progress = progress;
             _document = document;
             _position = position;
             _metadataAsSourceFileService = metadataAsSourceFileService;
+            _globalOptions = globalOptions;
             _workQueue = new AsyncBatchingWorkQueue<VSInternalReferenceItem>(
                 TimeSpan.FromMilliseconds(500), ReportReferencesAsync, asyncListener, cancellationToken);
         }
+
+        public override ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
+            => ValueTaskFactory.FromResult(_globalOptions.GetFindUsagesOptions(language));
 
         // After all definitions/references have been found, wait here until all results have been reported.
         public override async ValueTask OnCompletedAsync(CancellationToken cancellationToken)
