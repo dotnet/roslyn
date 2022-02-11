@@ -9,6 +9,7 @@ using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
@@ -44,9 +45,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             public bool CanNavigateTo()
                 => true;
 
-            public Task NavigateToAsync(bool isPreview, bool shouldActivate, CancellationToken cancellationToken)
+            public Task NavigateToAsync(NavigationOptions options, CancellationToken cancellationToken)
                 => DefinitionBucket.DefinitionItem.TryNavigateToAsync(
-                    Presenter._workspace, showInPreviewTab: isPreview, activateTab: shouldActivate, cancellationToken); // Only activate the tab if requested
+                    Presenter._workspace, options, cancellationToken); // Only activate the tab if requested
 
             protected override IList<Inline> CreateLineTextInlines()
                 => DefinitionBucket.DefinitionItem.DisplayParts

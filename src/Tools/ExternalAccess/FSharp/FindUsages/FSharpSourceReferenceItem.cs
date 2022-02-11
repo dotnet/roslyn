@@ -4,28 +4,26 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.FindUsages;
+
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.FindUsages
 {
     internal class FSharpSourceReferenceItem
     {
-        private readonly Microsoft.CodeAnalysis.FindUsages.SourceReferenceItem _roslynSourceReferenceItem;
+        private readonly SourceReferenceItem _roslynSourceReferenceItem;
 
-        private FSharpSourceReferenceItem(Microsoft.CodeAnalysis.FindUsages.SourceReferenceItem roslynDefinitionItem)
+        private FSharpSourceReferenceItem(SourceReferenceItem roslynDefinitionItem)
         {
             _roslynSourceReferenceItem = roslynDefinitionItem;
         }
 
         public FSharpSourceReferenceItem(FSharpDefinitionItem definition, FSharpDocumentSpan sourceSpan)
         {
-            _roslynSourceReferenceItem = new Microsoft.CodeAnalysis.FindUsages.SourceReferenceItem(definition.RoslynDefinitionItem, sourceSpan.ToRoslynDocumentSpan());
+            _roslynSourceReferenceItem = new SourceReferenceItem(definition.RoslynDefinitionItem, sourceSpan.ToRoslynDocumentSpan(), SymbolUsageInfo.None);
         }
 
-        internal Microsoft.CodeAnalysis.FindUsages.SourceReferenceItem RoslynSourceReferenceItem
-        {
-            get
-            {
-                return _roslynSourceReferenceItem;
-            }
-        }
+        internal SourceReferenceItem RoslynSourceReferenceItem
+            => _roslynSourceReferenceItem;
     }
 }

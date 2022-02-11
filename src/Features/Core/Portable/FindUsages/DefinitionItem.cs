@@ -4,12 +4,11 @@
 
 using System;
 using System.Collections.Immutable;
-using System.ComponentModel;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Tags;
 using Roslyn.Utilities;
 
@@ -112,27 +111,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
         internal abstract bool IsExternal { get; }
 
-        // F# uses this
-        protected DefinitionItem(
-            ImmutableArray<string> tags,
-            ImmutableArray<TaggedText> displayParts,
-            ImmutableArray<TaggedText> nameDisplayParts,
-            ImmutableArray<TaggedText> originationParts,
-            ImmutableArray<DocumentSpan> sourceSpans,
-            ImmutableDictionary<string, string>? properties,
-            bool displayIfNoReferences)
-            : this(
-                tags,
-                displayParts,
-                nameDisplayParts,
-                originationParts,
-                sourceSpans,
-                properties,
-                ImmutableDictionary<string, string>.Empty,
-                displayIfNoReferences)
-        {
-        }
-
         protected DefinitionItem(
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
@@ -159,24 +137,8 @@ namespace Microsoft.CodeAnalysis.FindUsages
             }
         }
 
-        [Obsolete("Override CanNavigateToAsync instead", error: false)]
-        public abstract bool CanNavigateTo(Workspace workspace, CancellationToken cancellationToken);
-        [Obsolete("Override TryNavigateToAsync instead", error: false)]
-        public abstract bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken);
-
-        public virtual Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken)
-        {
-#pragma warning disable CS0618 // Type or member is obsolete
-            return Task.FromResult(CanNavigateTo(workspace, cancellationToken));
-#pragma warning restore CS0618 // Type or member is obsolete
-        }
-
-        public virtual Task<bool> TryNavigateToAsync(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
-        {
-#pragma warning disable CS0618 // Type or member is obsolete
-            return Task.FromResult(TryNavigateTo(workspace, showInPreviewTab, activateTab, cancellationToken));
-#pragma warning restore CS0618 // Type or member is obsolete
-        }
+        public abstract Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken);
+        public abstract Task<bool> TryNavigateToAsync(Workspace workspace, NavigationOptions options, CancellationToken cancellationToken);
 
         public static DefinitionItem Create(
             ImmutableArray<string> tags,
@@ -186,20 +148,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             bool displayIfNoReferences = true)
         {
             return Create(
-                tags, displayParts, ImmutableArray.Create(sourceSpan),
-                nameDisplayParts, displayIfNoReferences);
-        }
-
-        // Kept around for binary compat with F#/TypeScript.
-        public static DefinitionItem Create(
-            ImmutableArray<string> tags,
-            ImmutableArray<TaggedText> displayParts,
-            ImmutableArray<DocumentSpan> sourceSpans,
-            ImmutableArray<TaggedText> nameDisplayParts,
-            bool displayIfNoReferences)
-        {
-            return Create(
-                tags, displayParts, sourceSpans, nameDisplayParts,
+                tags, displayParts, ImmutableArray.Create(sourceSpan), nameDisplayParts,
                 properties: null, displayableProperties: ImmutableDictionary<string, string>.Empty, displayIfNoReferences: displayIfNoReferences);
         }
 
@@ -272,18 +221,6 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 properties: properties,
                 displayableProperties: ImmutableDictionary<string, string>.Empty,
                 displayIfNoReferences: displayIfNoReferences);
-        }
-
-        // Kept around for binary compat with F#/TypeScript.
-        public static DefinitionItem CreateNonNavigableItem(
-            ImmutableArray<string> tags,
-            ImmutableArray<TaggedText> displayParts,
-            ImmutableArray<TaggedText> originationParts,
-            bool displayIfNoReferences)
-        {
-            return CreateNonNavigableItem(
-                tags, displayParts, originationParts,
-                properties: null, displayIfNoReferences: displayIfNoReferences);
         }
 
         public static DefinitionItem CreateNonNavigableItem(
