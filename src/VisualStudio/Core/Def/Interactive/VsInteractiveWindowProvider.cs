@@ -12,6 +12,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Interactive;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Editor.Interactive;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.InteractiveWindow.Shell;
@@ -24,7 +25,6 @@ using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.Interactive
 {

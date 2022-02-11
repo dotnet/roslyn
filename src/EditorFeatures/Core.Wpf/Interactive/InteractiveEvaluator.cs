@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
@@ -26,7 +27,6 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Interactive
 {
     using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
-    using Microsoft.CodeAnalysis.Options;
 
     // TODO: Rename to InteractiveEvaluator https://github.com/dotnet/roslyn/issues/6441
     // The code is not specific to C#, but Interactive Window has hardcoded "CSharpInteractiveEvaluator" name.
