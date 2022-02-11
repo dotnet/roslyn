@@ -2867,7 +2867,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return declaration.GetParameterList()
         End Function
 
-        Private Function WithParameterList(declaration As SyntaxNode, list As ParameterListSyntax) As SyntaxNode
+        Private Shared Function WithParameterList(declaration As SyntaxNode, list As ParameterListSyntax) As SyntaxNode
             Select Case declaration.Kind
                 Case SyntaxKind.DelegateFunctionStatement,
                     SyntaxKind.DelegateSubStatement
