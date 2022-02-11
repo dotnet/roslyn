@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
-    internal static class DashboardColors
+    internal static class InlineRenameColors
     {
         // In the Dashboard XAML, we bind to these keys to provide the correct color resources.
         // The default values of these fields match the names of the keys in DashboardColors.xaml,
