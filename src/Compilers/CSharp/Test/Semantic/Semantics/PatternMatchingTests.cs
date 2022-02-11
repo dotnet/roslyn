@@ -7819,7 +7819,7 @@ class C
     {
         var number = chars switch {
             { Length: 0 } => 0,
-            ""string 1"" => 1,
+            ""string 1"" and [..,'1'] => 1,
             { Length: 8 } and ""string 2"" => 2,
             _ => 3,
         };
@@ -7835,43 +7835,52 @@ class C
 3")
                 .VerifyIL("C.Test", @"
 {
-  // Code size       74 (0x4a)
-  .maxstack  2
+  // Code size       91 (0x5b)
+  .maxstack  3
   .locals init (int V_0,
                 int V_1)
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       ""int System.ReadOnlySpan<char>.Length.get""
   IL_0007:  stloc.1
   IL_0008:  ldloc.1
-  IL_0009:  brfalse.s  IL_0035
+  IL_0009:  brfalse.s  IL_0046
   IL_000b:  ldarg.0
   IL_000c:  ldstr      ""string 1""
   IL_0011:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_0016:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_001b:  brtrue.s   IL_0039
-  IL_001d:  ldloc.1
-  IL_001e:  ldc.i4.8
-  IL_001f:  bne.un.s   IL_0041
-  IL_0021:  ldarg.0
-  IL_0022:  ldstr      ""string 2""
-  IL_0027:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_002c:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
-  IL_0031:  brtrue.s   IL_003d
-  IL_0033:  br.s       IL_0041
-  IL_0035:  ldc.i4.0
-  IL_0036:  stloc.0
-  IL_0037:  br.s       IL_0043
-  IL_0039:  ldc.i4.1
-  IL_003a:  stloc.0
-  IL_003b:  br.s       IL_0043
-  IL_003d:  ldc.i4.2
-  IL_003e:  stloc.0
-  IL_003f:  br.s       IL_0043
-  IL_0041:  ldc.i4.3
-  IL_0042:  stloc.0
-  IL_0043:  ldloc.0
-  IL_0044:  call       ""void System.Console.WriteLine(int)""
-  IL_0049:  ret
+  IL_001b:  brfalse.s  IL_002e
+  IL_001d:  ldarga.s   V_0
+  IL_001f:  ldloc.1
+  IL_0020:  ldc.i4.1
+  IL_0021:  sub
+  IL_0022:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
+  IL_0027:  ldind.u2
+  IL_0028:  ldc.i4.s   49
+  IL_002a:  beq.s      IL_004a
+  IL_002c:  br.s       IL_0052
+  IL_002e:  ldloc.1
+  IL_002f:  ldc.i4.8
+  IL_0030:  bne.un.s   IL_0052
+  IL_0032:  ldarg.0
+  IL_0033:  ldstr      ""string 2""
+  IL_0038:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_003d:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0042:  brtrue.s   IL_004e
+  IL_0044:  br.s       IL_0052
+  IL_0046:  ldc.i4.0
+  IL_0047:  stloc.0
+  IL_0048:  br.s       IL_0054
+  IL_004a:  ldc.i4.1
+  IL_004b:  stloc.0
+  IL_004c:  br.s       IL_0054
+  IL_004e:  ldc.i4.2
+  IL_004f:  stloc.0
+  IL_0050:  br.s       IL_0054
+  IL_0052:  ldc.i4.3
+  IL_0053:  stloc.0
+  IL_0054:  ldloc.0
+  IL_0055:  call       ""void System.Console.WriteLine(int)""
+  IL_005a:  ret
 }");
         }
 
@@ -8117,6 +8126,7 @@ class Program
     {
         var s = new ReadOnlySpan<char>(new char[0]);
         _ = s is ""str"";
+        _ = s is { Length: 0 } and """";
         _ = s switch { ""str"" => 1, _ => 0 };
     }
 }";
@@ -8125,9 +8135,15 @@ class Program
                 // (7,18): error CS0656: Missing compiler required member 'System.ReadOnlySpan`1.get_Length'
                 //         _ = s is "str";
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""str""").WithArguments("System.ReadOnlySpan`1", "get_Length").WithLocation(7, 18),
-                // (8,24): error CS0656: Missing compiler required member 'System.ReadOnlySpan`1.get_Length'
+                // (8,20): error CS0117: 'ReadOnlySpan<char>' does not contain a definition for 'Length'
+                //         _ = s is { Length: 0 } and "";
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Length").WithArguments("System.ReadOnlySpan<char>", "Length").WithLocation(8, 20),
+                // (8,36): error CS0656: Missing compiler required member 'System.ReadOnlySpan`1.get_Length'
+                //         _ = s is { Length: 0 } and "";
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""""").WithArguments("System.ReadOnlySpan`1", "get_Length").WithLocation(8, 36),
+                // (9,24): error CS0656: Missing compiler required member 'System.ReadOnlySpan`1.get_Length'
                 //         _ = s switch { "str" => 1, _ => 0 };
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""str""").WithArguments("System.ReadOnlySpan`1", "get_Length").WithLocation(8, 24));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""str""").WithArguments("System.ReadOnlySpan`1", "get_Length").WithLocation(9, 24));
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -8981,7 +8997,7 @@ class C
     {
         var number = chars switch {
             { Length: 0 } => 0,
-            ""string 1"" => 1,
+            ""string 1"" and [..,'1'] => 1,
             { Length: 8 } and ""string 2"" => 2,
             _ => 3,
         };
@@ -8997,43 +9013,52 @@ class C
 3")
                 .VerifyIL("C.Test", @"
 {
-  // Code size       74 (0x4a)
-  .maxstack  2
+  // Code size       91 (0x5b)
+  .maxstack  3
   .locals init (int V_0,
                 int V_1)
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       ""int System.Span<char>.Length.get""
   IL_0007:  stloc.1
   IL_0008:  ldloc.1
-  IL_0009:  brfalse.s  IL_0035
+  IL_0009:  brfalse.s  IL_0046
   IL_000b:  ldarg.0
   IL_000c:  ldstr      ""string 1""
   IL_0011:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_0016:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_001b:  brtrue.s   IL_0039
-  IL_001d:  ldloc.1
-  IL_001e:  ldc.i4.8
-  IL_001f:  bne.un.s   IL_0041
-  IL_0021:  ldarg.0
-  IL_0022:  ldstr      ""string 2""
-  IL_0027:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
-  IL_002c:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
-  IL_0031:  brtrue.s   IL_003d
-  IL_0033:  br.s       IL_0041
-  IL_0035:  ldc.i4.0
-  IL_0036:  stloc.0
-  IL_0037:  br.s       IL_0043
-  IL_0039:  ldc.i4.1
-  IL_003a:  stloc.0
-  IL_003b:  br.s       IL_0043
-  IL_003d:  ldc.i4.2
-  IL_003e:  stloc.0
-  IL_003f:  br.s       IL_0043
-  IL_0041:  ldc.i4.3
-  IL_0042:  stloc.0
-  IL_0043:  ldloc.0
-  IL_0044:  call       ""void System.Console.WriteLine(int)""
-  IL_0049:  ret
+  IL_001b:  brfalse.s  IL_002e
+  IL_001d:  ldarga.s   V_0
+  IL_001f:  ldloc.1
+  IL_0020:  ldc.i4.1
+  IL_0021:  sub
+  IL_0022:  call       ""ref char System.Span<char>.this[int].get""
+  IL_0027:  ldind.u2
+  IL_0028:  ldc.i4.s   49
+  IL_002a:  beq.s      IL_004a
+  IL_002c:  br.s       IL_0052
+  IL_002e:  ldloc.1
+  IL_002f:  ldc.i4.8
+  IL_0030:  bne.un.s   IL_0052
+  IL_0032:  ldarg.0
+  IL_0033:  ldstr      ""string 2""
+  IL_0038:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_003d:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0042:  brtrue.s   IL_004e
+  IL_0044:  br.s       IL_0052
+  IL_0046:  ldc.i4.0
+  IL_0047:  stloc.0
+  IL_0048:  br.s       IL_0054
+  IL_004a:  ldc.i4.1
+  IL_004b:  stloc.0
+  IL_004c:  br.s       IL_0054
+  IL_004e:  ldc.i4.2
+  IL_004f:  stloc.0
+  IL_0050:  br.s       IL_0054
+  IL_0052:  ldc.i4.3
+  IL_0053:  stloc.0
+  IL_0054:  ldloc.0
+  IL_0055:  call       ""void System.Console.WriteLine(int)""
+  IL_005a:  ret
 }");
         }
 
@@ -9283,6 +9308,7 @@ class Program
     {
         var s = new Span<char>(new char[0]);
         _ = s is ""str"";
+        _ = s is { Length: 0 } and """";
         _ = s switch { ""str"" => 1, _ => 0 };
     }
 }";
@@ -9291,9 +9317,15 @@ class Program
                 // (7,18): error CS0656: Missing compiler required member 'System.Span`1.get_Length'
                 //         _ = s is "str";
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""str""").WithArguments("System.Span`1", "get_Length").WithLocation(7, 18),
-                // (8,24): error CS0656: Missing compiler required member 'System.Span`1.get_Length'
+                // (8,20): error CS0117: 'Span<char>' does not contain a definition for 'Length'
+                //         _ = s is { Length: 0 } and "";
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Length").WithArguments("System.Span<char>", "Length").WithLocation(8, 20),
+                // (8,36): error CS0656: Missing compiler required member 'System.Span`1.get_Length'
+                //         _ = s is { Length: 0 } and "";
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""""").WithArguments("System.Span`1", "get_Length").WithLocation(8, 36),
+                // (9,24): error CS0656: Missing compiler required member 'System.Span`1.get_Length'
                 //         _ = s switch { "str" => 1, _ => 0 };
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""str""").WithArguments("System.Span`1", "get_Length").WithLocation(8, 24));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""str""").WithArguments("System.Span`1", "get_Length").WithLocation(9, 24));
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
