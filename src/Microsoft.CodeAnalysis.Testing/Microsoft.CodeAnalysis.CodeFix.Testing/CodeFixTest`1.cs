@@ -265,13 +265,14 @@ namespace Microsoft.CodeAnalysis.Testing
 
             if (CodeFixExpected())
             {
+                // Verify code fix output before verifying the diagnostics of the fixed state
+                await VerifyFixAsync(testState, fixedState, batchFixedState, Verify, cancellationToken).ConfigureAwait(false);
+
                 await VerifyDiagnosticsAsync(new EvaluatedProjectState(fixedState, ReferenceAssemblies), fixedState.AdditionalProjects.Values.Select(additionalProject => new EvaluatedProjectState(additionalProject, ReferenceAssemblies)).ToImmutableArray(), fixedState.ExpectedDiagnostics.ToArray(), Verify.PushContext("Diagnostics of fixed state"), cancellationToken).ConfigureAwait(false);
                 if (allowFixAll && CodeActionExpected(BatchFixedState))
                 {
                     await VerifyDiagnosticsAsync(new EvaluatedProjectState(batchFixedState, ReferenceAssemblies), batchFixedState.AdditionalProjects.Values.Select(additionalProject => new EvaluatedProjectState(additionalProject, ReferenceAssemblies)).ToImmutableArray(), batchFixedState.ExpectedDiagnostics.ToArray(), Verify.PushContext("Diagnostics of batch fixed state"), cancellationToken).ConfigureAwait(false);
                 }
-
-                await VerifyFixAsync(testState, fixedState, batchFixedState, Verify, cancellationToken).ConfigureAwait(false);
             }
         }
 
