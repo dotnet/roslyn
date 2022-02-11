@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                 // for us appropriately.
                 unnecessaryImports = MergeImports(unnecessaryImports);
 
-                var fadeOut = ShouldFade(context.Options, tree, language, cancellationToken);
+                var fadeOut = context.GetIdeOptions().FadeOutUnusedImports;
 
                 DiagnosticDescriptor descriptor;
                 if (GeneratedCodeUtilities.IsGeneratedCode(tree, IsRegularCommentOrDocComment, cancellationToken))
@@ -163,15 +163,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                 {
                     context.ReportDiagnostic(diagnostic);
                 }
-            }
-
-            static bool ShouldFade(AnalyzerOptions options, SyntaxTree tree, string language, CancellationToken cancellationToken)
-            {
-#if CODE_STYLE
-                return true;
-#else
-                return options.GetOption(Fading.FadingOptions.FadeOutUnusedImports, language, tree, cancellationToken);
-#endif
             }
         }
 
