@@ -305,7 +305,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitAttribute(AttributeSyntax node)
         {
-            var attrBinder = new ContextualAttributeBinder(_enclosing, _containingMemberOrLambda);
+            Binder attrBinder = null;
+            if (node.Parent?.Parent is { } attributedDeclaration)
+            {
+                var model = _containingMemberOrLambda.DeclaringCompilation.GetSemanticModel(node.SyntaxTree);
+                if (model.GetDeclaredSymbolForNode(attributedDeclaration) is { } attributedSymbol)
+                {
+                    attrBinder = new ContextualAttributeBinder(_enclosing, attributedSymbol.GetSymbol());
+                }
+            }
+
+            attrBinder ??= new ExpressionVariableBinder(node, _enclosing);
             AddToMap(node, attrBinder);
 
             if (node.ArgumentList?.Arguments.Count > 0)
