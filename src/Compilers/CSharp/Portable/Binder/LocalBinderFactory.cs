@@ -308,10 +308,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder attrBinder = null;
             if (node.Parent?.Parent is { } attributedDeclaration)
             {
-                var model = _containingMemberOrLambda.DeclaringCompilation.GetSemanticModel(node.SyntaxTree);
-                if (model.GetDeclaredSymbolForNode(attributedDeclaration) is { } attributedSymbol)
+                if (attributedDeclaration is LocalFunctionStatementSyntax localFunctionSyntax)
                 {
-                    attrBinder = new ContextualAttributeBinder(_enclosing, attributedSymbol.GetSymbol());
+                    var localFunction = FindLocalFunction(localFunctionSyntax, _enclosing);
+                    attrBinder = new ContextualAttributeBinder(_enclosing, localFunction);
+                }
+                else
+                {
+                    var model = _containingMemberOrLambda.DeclaringCompilation.GetSemanticModel(node.SyntaxTree);
+                    if (model.GetDeclaredSymbolForNode(attributedDeclaration) is { } attributedSymbol)
+                    {
+                        attrBinder = new ContextualAttributeBinder(_enclosing, attributedSymbol.GetSymbol());
+                    }
                 }
             }
 
