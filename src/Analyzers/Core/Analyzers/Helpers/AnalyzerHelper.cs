@@ -24,36 +24,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             FadeOutUnreachableCode: false,
             ReportInvalidPlaceholdersInStringDotFormatCalls: true,
             ReportInvalidRegexPatterns: true);
+
+        public static IdeAnalyzerOptions FromProject(Project project)
+            => new(
+                FadeOutUnusedImports: project.Solution.Options.GetOption(Fading.FadingOptions.Metadata.FadeOutUnusedImports, project.Language),
+                FadeOutUnreachableCode: project.Solution.Options.GetOption(Fading.FadingOptions.Metadata.FadeOutUnreachableCode, project.Language),
+                ReportInvalidPlaceholdersInStringDotFormatCalls: project.Solution.Options.GetOption(ValidateFormatString.ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, project.Language),
+                ReportInvalidRegexPatterns: project.Solution.Options.GetOption(Features.EmbeddedLanguages.RegularExpressions.LanguageServices.RegularExpressionsOptions.ReportInvalidRegexPatterns, project.Language));
     }
 
     internal static partial class AnalyzerHelper
     {
-        public static IdeAnalyzerOptions GetIdeOptions(this SyntaxTreeAnalysisContext context)
+        public static IdeAnalyzerOptions GetIdeOptions(this AnalyzerOptions options)
 #if CODE_STYLE
             => IdeAnalyzerOptions.CodeStyleDefault;
 #else
-            => (context.Options is WorkspaceAnalyzerOptions workspaceOptions) ? workspaceOptions.GetIdeOptions(context.Tree.Options.Language) : IdeAnalyzerOptions.CodeStyleDefault;
-#endif
-
-        public static IdeAnalyzerOptions GetIdeOptions(this OperationAnalysisContext context)
-#if CODE_STYLE
-            => IdeAnalyzerOptions.CodeStyleDefault;
-#else
-            => (context.Options is WorkspaceAnalyzerOptions workspaceOptions) ? workspaceOptions.GetIdeOptions(context.Operation.Language) : IdeAnalyzerOptions.CodeStyleDefault;
-#endif
-
-        public static IdeAnalyzerOptions GetIdeOptions(this SyntaxNodeAnalysisContext context)
-#if CODE_STYLE
-            => IdeAnalyzerOptions.CodeStyleDefault;
-#else
-            => (context.Options is WorkspaceAnalyzerOptions workspaceOptions) ? workspaceOptions.GetIdeOptions(context.Node.Language) : IdeAnalyzerOptions.CodeStyleDefault;
-#endif
-
-        public static IdeAnalyzerOptions GetIdeOptions(this SemanticModelAnalysisContext context)
-#if CODE_STYLE
-            => IdeAnalyzerOptions.CodeStyleDefault;
-#else
-            => (context.Options is WorkspaceAnalyzerOptions workspaceOptions) ? workspaceOptions.GetIdeOptions(context.SemanticModel.Language) : IdeAnalyzerOptions.CodeStyleDefault;
+            => (options is WorkspaceAnalyzerOptions workspaceOptions) ? workspaceOptions.IdeOptions : IdeAnalyzerOptions.CodeStyleDefault;
 #endif
 
         public static T GetOption<T>(this SemanticModelAnalysisContext context, Option2<T> option)
