@@ -118,6 +118,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 namespace Microsoft.VisualStudio.Extensibility.Testing
 {
     using System;
+    using System.ComponentModel.Design;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio;
@@ -144,7 +145,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return base.GetComponentModelServiceAsync<TService>(cancellationToken);
         }
 
-        public async Task<(Guid commandGroup, uint commandId)> PrepareCommandAsync(string command, CancellationToken cancellationToken)
+        public async Task<CommandID> PrepareCommandAsync(string command, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -157,19 +158,19 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                 throw new NotSupportedException(""Unable to create a disposable wrapper for command arguments (VARIANT)."");
             }
 
-            return (commandGroup, commandId);
+            return new CommandID(commandGroup, (int)commandId);
         }
 
         public async Task ExecuteCommandAsync(string command, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var (commandGuid, commandId) = await PrepareCommandAsync(command, cancellationToken);
-            await ExecuteCommandAsync(commandGuid, commandId, cancellationToken);
+            var commandID = await PrepareCommandAsync(command, cancellationToken);
+            await ExecuteCommandAsync(commandID, cancellationToken);
         }
 
-        public Task ExecuteCommandAsync((Guid commandGuid, uint commandId) command, CancellationToken cancellationToken)
-            => ExecuteCommandAsync(command.commandGuid, command.commandId, cancellationToken);
+        public Task ExecuteCommandAsync(CommandID command, CancellationToken cancellationToken)
+            => ExecuteCommandAsync(command.Guid, (uint)command.ID, cancellationToken);
 
         public async Task ExecuteCommandAsync(Guid commandGuid, uint commandId, CancellationToken cancellationToken)
         {
