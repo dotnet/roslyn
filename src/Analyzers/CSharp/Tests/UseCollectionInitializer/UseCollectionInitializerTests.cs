@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
         {
             await new VerifyCS.Test
             {
+                ReferenceAssemblies = Testing.ReferenceAssemblies.NetCore.NetCoreApp31,
                 TestCode = testCode,
                 FixedCode = fixedCode,
                 LanguageVersion = LanguageVersion.Preview,
