@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.InvertIf;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -1128,6 +1127,111 @@ class C
             * two words
             * per line.
             */
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
+        public async Task TestIsCheck_CSharp8()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M()
+    {
+        [||]if (c is object)
+        {
+            return 1;
+        }
+        else
+        {
+            return 2;
+        }
+    }
+}",
+@"class C
+{
+    int M()
+    {
+        if (!(c is object))
+        {
+            return 2;
+        }
+        else
+        {
+            return 1;
+        }
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
+        public async Task TestIsCheck_CSharp9()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M()
+    {
+        [||]if (c is object)
+        {
+            return 1;
+        }
+        else
+        {
+            return 2;
+        }
+    }
+}",
+@"class C
+{
+    int M()
+    {
+        if (c is not object)
+        {
+            return 2;
+        }
+        else
+        {
+            return 1;
+        }
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
+        public async Task TestIsNotCheck()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M()
+    {
+        [||]if (c is not object)
+        {
+            return 1;
+        }
+        else
+        {
+            return 2;
+        }
+    }
+}",
+@"class C
+{
+    int M()
+    {
+        if (c is object)
+        {
+            return 2;
+        }
+        else
+        {
+            return 1;
         }
     }
 }");
