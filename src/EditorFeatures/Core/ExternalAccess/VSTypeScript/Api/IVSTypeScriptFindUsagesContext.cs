@@ -41,8 +41,39 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
         ValueTask ItemCompletedAsync(CancellationToken cancellationToken);
     }
 
+    internal abstract class VSTypeScriptDefinitionItemNavigator
+    {
+        public abstract Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken);
+        public abstract Task<bool> TryNavigateToAsync(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken);
+    }
+
     internal sealed class VSTypeScriptDefinitionItem
     {
+        private sealed class ExternalDefinitionItem : DefinitionItem
+        {
+            private readonly VSTypeScriptDefinitionItemNavigator _navigator;
+
+            internal override bool IsExternal => true;
+
+            public ExternalDefinitionItem(VSTypeScriptDefinitionItemNavigator navigator, ImmutableArray<string> tags, ImmutableArray<TaggedText> displayParts)
+                : base(tags,
+                       displayParts,
+                       ImmutableArray<TaggedText>.Empty,
+                       originationParts: default,
+                       sourceSpans: default,
+                       properties: null,
+                       displayIfNoReferences: true)
+            {
+                _navigator = navigator;
+            }
+
+            public override Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken)
+                => _navigator.CanNavigateToAsync(workspace, cancellationToken);
+
+            public override Task<bool> TryNavigateToAsync(Workspace workspace, NavigationOptions options, CancellationToken cancellationToken)
+                => _navigator.TryNavigateToAsync(workspace, options.PreferProvisionalTab, options.ActivateTab, cancellationToken);
+        }
+
         internal readonly DefinitionItem UnderlyingObject;
 
         internal VSTypeScriptDefinitionItem(DefinitionItem underlyingObject)
@@ -60,6 +91,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
                 properties: null, displayableProperties: ImmutableDictionary<string, string>.Empty, displayIfNoReferences: displayIfNoReferences));
         }
 
+        public static VSTypeScriptDefinitionItem CreateExternal(
+            VSTypeScriptDefinitionItemNavigator navigator,
+            ImmutableArray<string> tags,
+            ImmutableArray<TaggedText> displayParts)
+            => new(new ExternalDefinitionItem(navigator, tags, displayParts));
+
+        [Obsolete]
         public static VSTypeScriptDefinitionItem Create(VSTypeScriptDefinitionItemBase item)
             => new(item);
 

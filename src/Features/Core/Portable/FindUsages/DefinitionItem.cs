@@ -160,8 +160,23 @@ namespace Microsoft.CodeAnalysis.FindUsages
             }
         }
 
-        public abstract Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken);
-        public abstract Task<bool> TryNavigateToAsync(Workspace workspace, NavigationOptions options, CancellationToken cancellationToken);
+#pragma warning disable CS0612 // Type or member is obsolete - TypeScript
+        [Obsolete]
+        public virtual bool CanNavigateTo(Workspace workspace, CancellationToken cancellationToken) => false;
+
+        [Obsolete]
+        public virtual bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken) => false;
+
+        public virtual Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken)
+            => Task.FromResult(CanNavigateTo(workspace, cancellationToken));
+
+        [Obsolete]
+        public virtual Task<bool> TryNavigateToAsync(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
+            => Task.FromResult(TryNavigateTo(workspace, showInPreviewTab, activateTab, cancellationToken));
+
+        public virtual Task<bool> TryNavigateToAsync(Workspace workspace, NavigationOptions options, CancellationToken cancellationToken)
+            => TryNavigateToAsync(workspace, options.PreferProvisionalTab, options.ActivateTab, cancellationToken);
+#pragma warning restore
 
         public static DefinitionItem Create(
             ImmutableArray<string> tags,
