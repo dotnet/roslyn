@@ -281,6 +281,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public SyntaxNode ReturnTypeSyntax => CompilationUnit.Members.First(m => m.Kind() == SyntaxKind.GlobalStatement);
 
+        internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
+        {
+            // there could me multiple simple program entry points. Only consider [main:] attributes
+            // if we're the entry point that will ultimately be selected.
+            if (this == GetSimpleProgramEntryPoint(DeclaringCompilation))
+            {
+                return OneOrMany.Create(((SourceAssemblySymbol)ContainingAssembly).GetAttributeDeclarations());
+            }
+
+            return OneOrMany<SyntaxList<AttributeListSyntax>>.Empty;
+        }
+
+        protected override IAttributeTargetSymbol AttributeOwner => (IAttributeTargetSymbol)this.ContainingAssembly;
+
+        AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => AttributeLocation.Main;
+
         private static bool IsNullableAnalysisEnabled(CSharpCompilation compilation, CompilationUnitSyntax syntax)
         {
             foreach (var member in syntax.Members)
