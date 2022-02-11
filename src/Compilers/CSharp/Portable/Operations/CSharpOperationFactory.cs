@@ -484,14 +484,44 @@ namespace Microsoft.CodeAnalysis.Operations
                 boundUnconvertedAddressOf.WasCompilerGenerated);
         }
 
+        private bool TryGetAttributeData(BoundAttribute boundAttribute, [NotNullWhen(returnValue: true)] out AttributeData? data)
+        {
+            if (boundAttribute.HasAnyErrors ||
+                boundAttribute.Syntax.Parent?.Parent is not { } attributedDeclaration)
+            {
+                data = null;
+                return false;
+            }
+
+            var model = _semanticModel.Compilation.GetSemanticModel(boundAttribute.SyntaxTree!);
+            var attributedSymbol = model.GetDeclaredSymbol(attributedDeclaration);
+            if (attributedSymbol is null)
+            {
+                data = null;
+                return false;
+            }
+
+            var attributes = attributedSymbol.GetAttributes();
+            foreach (var attribute in attributes)
+            {
+                if (attribute.ApplicationSyntaxReference?.GetSyntax() == boundAttribute.Syntax)
+                {
+                    data = attribute;
+                    return true;
+                }
+            }
+
+            data = null;
+            return false;
+        }
+
         private IOperation CreateBoundAttributeOperation(BoundAttribute boundAttribute)
         {
-            if (boundAttribute.HasAnyErrors || boundAttribute.Constructor is null)
+            if (!TryGetAttributeData(boundAttribute, out var attributeData))
             {
                 return OperationFactory.CreateInvalidOperation(_semanticModel, boundAttribute.Syntax, ImmutableArray<IOperation>.Empty, isImplicit: false);
             }
 
-            var attributeData = boundAttribute.AttributeData;
             var builder = ImmutableArray.CreateBuilder<IArgumentOperation>(boundAttribute.Constructor.ParameterCount);
             var seenParameters = ImmutableHashSet.CreateBuilder<ParameterSymbol>();
 
@@ -516,15 +546,6 @@ namespace Microsoft.CodeAnalysis.Operations
                     builder.Add(CreateArgumentOperation(ArgumentKind.DefaultValue, parameter.GetPublicSymbol(), new BoundLiteral(boundAttribute.Syntax, ConstantValue.Create(typedConstant.Value!, typedConstant.Type!.SpecialType), parameter.Type) { WasCompilerGenerated = true }));
                 }
             }
-
-            // var arguments = DeriveArguments(
-            //     methodOrIndexer: boundAttribute.Constructor,
-            //     boundArguments: boundAttribute.ConstructorArguments,
-            //     argumentsToParametersOpt: boundAttribute.ConstructorArgumentsToParamsOpt,
-            //     defaultArguments: boundAttribute.DefaultArguments,
-            //     boundAttribute.ConstructorExpanded,
-            //     boundAttribute.Syntax);
-
             var namedArguments = CreateFromArray<BoundAssignmentOperator, ISimpleAssignmentOperation>(boundAttribute.NamedArguments);
 
             return new AttributeOperation(builder.ToImmutable(), namedArguments, _semanticModel, boundAttribute.Syntax, boundAttribute.GetPublicTypeSymbol(), boundAttribute.WasCompilerGenerated);
