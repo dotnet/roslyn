@@ -1228,7 +1228,7 @@ class C
 {
     int M()
     {
-        if (!(c is not object))
+        if (c is object)
         {
             return 2;
         }

@@ -208,25 +208,33 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // Don't recurse into patterns if the language doesn't support negated patterns.
             // Just wrap with a normal '!' expression.
             var syntaxFacts = generatorInternal.SyntaxFacts;
+            syntaxFacts.GetPartsOfIsPatternExpression(isExpression, out var left, out var isToken, out var pattern);
+
+            SyntaxNode? negatedPattern = null;
             if (syntaxFacts.SupportsNotPattern(semanticModel.SyntaxTree.Options))
             {
-                syntaxFacts.GetPartsOfIsPatternExpression(isExpression, out var left, out var isToken, out var pattern);
-                var negated = generator.Negate(generatorInternal, pattern, semanticModel, cancellationToken);
+                // We do support 'not' patterns.  So attempt to push a 'not' pattern into the current is-pattern RHS.
+                negatedPattern = generator.Negate(generatorInternal, pattern, semanticModel, cancellationToken);
+            }
+            else if (syntaxFacts.IsNotPattern(pattern))
+            {
+                // we don't support 'not' patterns, but we have a 'not' pattern in code.  Do a simple unwrapping of it.
+                negatedPattern = GetNegationOfNotPattern(pattern, generator, generatorInternal, syntaxFacts);
+            }
 
-                // Negating the pattern may have formed something illegal.  If so, just do a normal `!` negation.
-                if (IsLegalPattern(syntaxFacts, negated, designatorsLegal: true))
+            // Negating the pattern may have formed something illegal.  If so, just do a normal `!` negation.
+            if (negatedPattern != null && IsLegalPattern(syntaxFacts, negatedPattern, designatorsLegal: true))
+            {
+                if (syntaxFacts.IsTypePattern(negatedPattern))
                 {
-                    if (syntaxFacts.IsTypePattern(negated))
-                    {
-                        // We started with `x is not t`.  Unwrap the type pattern for 't' and create a simple `is` binary expr `x is t`.
-                        var type = syntaxFacts.GetTypeOfTypePattern(negated);
-                        return generator.IsTypeExpression(left, type);
-                    }
-                    else
-                    {
-                        // Keep this as a normal `is-pattern`, just with the pattern portion negated.
-                        return generatorInternal.IsPatternExpression(left, isToken, negated);
-                    }
+                    // We started with `x is not t`.  Unwrap the type pattern for 't' and create a simple `is` binary expr `x is t`.
+                    var type = syntaxFacts.GetTypeOfTypePattern(negatedPattern);
+                    return generator.IsTypeExpression(left, type);
+                }
+                else
+                {
+                    // Keep this as a normal `is-pattern`, just with the pattern portion negated.
+                    return generatorInternal.IsPatternExpression(left, isToken, negatedPattern);
                 }
             }
 
@@ -434,30 +442,42 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             SyntaxGeneratorInternal generatorInternal,
             ISyntaxFacts syntaxFacts)
         {
-            syntaxFacts.GetPartsOfUnaryPattern(pattern, out var opToken, out var subPattern);
-
             // not not p    ->   p
             if (syntaxFacts.IsNotPattern(pattern))
             {
-                // If we started with `not object`, instead of converting to `object`, directly convert to `not null`
-                if (syntaxFacts.IsTypePattern(subPattern))
-                {
-                    var type = syntaxFacts.GetTypeOfTypePattern(subPattern);
-                    if (syntaxFacts.IsPredefinedType(type, PredefinedType.Object))
-                    {
-                        return generatorInternal.UnaryPattern(opToken,
-                            generatorInternal.ConstantPattern(
-                                generator.NullLiteralExpression().WithTriviaFrom(type)));
-                    }
-                }
-
-                return subPattern.WithPrependedLeadingTrivia(opToken.LeadingTrivia)
-                                 .WithAdditionalAnnotations(Simplifier.Annotation);
+                return GetNegationOfNotPattern(pattern, generator, generatorInternal, syntaxFacts);
             }
 
             // If there are other interesting unary patterns in the future, we can support specialized logic for
             // negating them here.
             return generatorInternal.NotPattern(pattern);
+        }
+
+        private static SyntaxNode GetNegationOfNotPattern(
+            SyntaxNode pattern,
+            SyntaxGenerator generator,
+            SyntaxGeneratorInternal generatorInternal,
+            ISyntaxFacts syntaxFacts)
+        {
+            Contract.ThrowIfFalse(syntaxFacts.IsNotPattern(pattern));
+
+            syntaxFacts.GetPartsOfUnaryPattern(pattern, out var opToken, out var subPattern);
+
+            // If we started with `not object`, instead of converting to `object`, directly convert to `not null`
+            if (syntaxFacts.SupportsNotPattern(pattern.SyntaxTree.Options) &&
+                syntaxFacts.IsTypePattern(subPattern))
+            {
+                var type = syntaxFacts.GetTypeOfTypePattern(subPattern);
+                if (syntaxFacts.IsPredefinedType(type, PredefinedType.Object))
+                {
+                    return generatorInternal.UnaryPattern(opToken,
+                        generatorInternal.ConstantPattern(
+                            generator.NullLiteralExpression().WithTriviaFrom(type)));
+                }
+            }
+
+            return subPattern.WithPrependedLeadingTrivia(opToken.LeadingTrivia)
+                             .WithAdditionalAnnotations(Simplifier.Annotation);
         }
     }
 }
