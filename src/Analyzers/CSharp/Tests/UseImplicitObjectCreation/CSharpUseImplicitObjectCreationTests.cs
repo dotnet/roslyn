@@ -689,11 +689,13 @@ class C
             await new VerifyCS.Test
             {
                 TestCode = @"
+#nullable enable
 class C
 {
     C? c = new [|C|]();
 }",
                 FixedCode = @"
+#nullable enable
 class C
 {
     C? c = new();
