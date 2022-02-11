@@ -3544,7 +3544,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <para>
     ///   Current usage:
     ///   (1) C# attribute application.
-    ///   (2) C# attribute application.
+    ///   (2) VB attribute application.
     /// </para>
     /// </summary>
     /// <remarks>
@@ -3558,13 +3558,9 @@ namespace Microsoft.CodeAnalysis.Operations
     public interface IAttributeOperation : IOperation
     {
         /// <summary>
-        /// The arguments passed to the attribute constructor.
+        /// The operation representing the attribute. This can be a <see cref="IObjectCreationOperation" /> in non-error cases, or an <see cref="IInvalidOperation" /> in error cases.
         /// </summary>
-        ImmutableArray<IArgumentOperation> Arguments { get; }
-        /// <summary>
-        /// TBD
-        /// </summary>
-        ImmutableArray<ISimpleAssignmentOperation> NamedArguments { get; }
+        IOperation Operation { get; }
     }
     #endregion
 
@@ -10091,25 +10087,19 @@ namespace Microsoft.CodeAnalysis.Operations
     }
     internal sealed partial class AttributeOperation : Operation, IAttributeOperation
     {
-        internal AttributeOperation(ImmutableArray<IArgumentOperation> arguments, ImmutableArray<ISimpleAssignmentOperation> namedArguments, SemanticModel? semanticModel, SyntaxNode syntax, ITypeSymbol? type, bool isImplicit)
+        internal AttributeOperation(IOperation operation, SemanticModel? semanticModel, SyntaxNode syntax, bool isImplicit)
             : base(semanticModel, syntax, isImplicit)
         {
-            Arguments = SetParentOperation(arguments, this);
-            NamedArguments = SetParentOperation(namedArguments, this);
-            Type = type;
+            Operation = SetParentOperation(operation, this);
         }
-        public ImmutableArray<IArgumentOperation> Arguments { get; }
-        public ImmutableArray<ISimpleAssignmentOperation> NamedArguments { get; }
+        public IOperation Operation { get; }
         internal override int ChildOperationsCount =>
-            Arguments.Length +
-            NamedArguments.Length;
+            (Operation is null ? 0 : 1);
         internal override IOperation GetCurrent(int slot, int index)
             => slot switch
             {
-                0 when index < Arguments.Length
-                    => Arguments[index],
-                1 when index < NamedArguments.Length
-                    => NamedArguments[index],
+                0 when Operation != null
+                    => Operation,
                 _ => throw ExceptionUtilities.UnexpectedValue((slot, index)),
             };
         internal override (bool hasNext, int nextSlot, int nextIndex) MoveNext(int previousSlot, int previousIndex)
@@ -10117,18 +10107,11 @@ namespace Microsoft.CodeAnalysis.Operations
             switch (previousSlot)
             {
                 case -1:
-                    if (!Arguments.IsEmpty) return (true, 0, 0);
+                    if (Operation != null) return (true, 0, 0);
                     else goto case 0;
-                case 0 when previousIndex + 1 < Arguments.Length:
-                    return (true, 0, previousIndex + 1);
                 case 0:
-                    if (!NamedArguments.IsEmpty) return (true, 1, 0);
-                    else goto case 1;
-                case 1 when previousIndex + 1 < NamedArguments.Length:
-                    return (true, 1, previousIndex + 1);
                 case 1:
-                case 2:
-                    return (false, 2, 0);
+                    return (false, 1, 0);
                 default:
                     throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
@@ -10138,15 +10121,8 @@ namespace Microsoft.CodeAnalysis.Operations
             switch (previousSlot)
             {
                 case int.MaxValue:
-                    if (!NamedArguments.IsEmpty) return (true, 1, NamedArguments.Length - 1);
-                    else goto case 1;
-                case 1 when previousIndex > 0:
-                    return (true, 1, previousIndex - 1);
-                case 1:
-                    if (!Arguments.IsEmpty) return (true, 0, Arguments.Length - 1);
+                    if (Operation != null) return (true, 0, 0);
                     else goto case 0;
-                case 0 when previousIndex > 0:
-                    return (true, 0, previousIndex - 1);
                 case 0:
                 case -1:
                     return (false, -1, 0);
@@ -10154,7 +10130,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     throw ExceptionUtilities.UnexpectedValue((previousSlot, previousIndex));
             }
         }
-        public override ITypeSymbol? Type { get; }
+        public override ITypeSymbol? Type => null;
         internal override ConstantValue? OperationConstantValue => null;
         public override OperationKind Kind => OperationKind.Attribute;
         public override void Accept(OperationVisitor visitor) => visitor.VisitAttribute(this);
@@ -10761,7 +10737,7 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitAttribute(IAttributeOperation operation, object? argument)
         {
             var internalOperation = (AttributeOperation)operation;
-            return new AttributeOperation(VisitArray(internalOperation.Arguments), VisitArray(internalOperation.NamedArguments), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.Type, internalOperation.IsImplicit);
+            return new AttributeOperation(Visit(internalOperation.Operation), internalOperation.OwningSemanticModel, internalOperation.Syntax, internalOperation.IsImplicit);
         }
     }
     #endregion

@@ -3273,25 +3273,20 @@
       </Comments>
     </Property>
   </Node>
-  <Node Name="IAttributeOperation" Base="IOperation" ChildrenOrder="Arguments,NamedArguments" HasType="true">
+  <Node Name="IAttributeOperation" Base="IOperation">
     <Comments>
       <summary>
         Represents the application of an attribute.
         <para>
           Current usage:
           (1) C# attribute application.
-          (2) C# attribute application.
+          (2) VB attribute application.
         </para>
       </summary>
     </Comments>
-    <Property Name="Arguments" Type="ImmutableArray&lt;IArgumentOperation&gt;">
+    <Property Name="Operation" Type="IOperation">
       <Comments>
-        <summary>The arguments passed to the attribute constructor.</summary>
-      </Comments>
-    </Property>
-    <Property Name="NamedArguments" Type="ImmutableArray&lt;ISimpleAssignmentOperation&gt;">
-      <Comments>
-        <summary>TBD</summary>
+        <summary>The operation representing the attribute. This can be a <see cref="IObjectCreationOperation" /> in non-error cases, or an <see cref="IInvalidOperation" /> in error cases.</summary>
       </Comments>
     </Property>
   </Node>

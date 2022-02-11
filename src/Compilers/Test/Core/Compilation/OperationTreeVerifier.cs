@@ -2108,8 +2108,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IAttributeOperation));
             LogCommonPropertiesAndNewLine(operation);
-            VisitArguments(operation.Arguments);
-            VisitArray(operation.NamedArguments, "NamedArguments", true);
+            Visit(operation.Operation);
         }
 
         #endregion

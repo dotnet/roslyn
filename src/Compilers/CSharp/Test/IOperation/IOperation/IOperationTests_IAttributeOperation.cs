@@ -8,6 +8,13 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
+    // PROTOTYPE(TODO):
+    // - VB tests
+    // - params tests
+    // - named arguments tests
+    // source and module attribute targets tests.
+    // multiple attributes on declaration tests
+    // local function tests.
     [CompilerTrait(CompilerFeature.IOperation)]
     public class IOperationTests_IAttributeOperation : SemanticModelTestBase
     {
@@ -30,13 +37,15 @@ class MyAttribute : Attribute
 class Test { }
 ";
             string expectedOperationTree = @"
-IAttributeOperation (OperationKind.Attribute, Type: MyAttribute) (Syntax: 'My')
-  Arguments(1):
-      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: lineNumber) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'My')
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 13, IsImplicit) (Syntax: 'My')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  NamedArguments(0)
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My')
+  IObjectCreationOperation (Constructor: MyAttribute..ctor([System.Int32 lineNumber = -1])) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: lineNumber) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'My')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 13, IsImplicit) (Syntax: 'My')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -55,8 +64,9 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'My')
-  Children(0)
+IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'My')
+  IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'My')
+    Children(0)
 ";
             var expectedDiagnostics = new[]
             {
@@ -85,9 +95,11 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IAttributeOperation (OperationKind.Attribute, Type: MyAttribute) (Syntax: 'My')
-  Arguments(0)
-  NamedArguments(0)
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My')
+  IObjectCreationOperation (Constructor: MyAttribute..ctor()) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My')
+    Arguments(0)
+    Initializer:
+      null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -111,15 +123,49 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IAttributeOperation (OperationKind.Attribute, Type: MyAttribute) (Syntax: 'My(""Value"")')
-  Arguments(1):
-      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '""Value""')
-        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""Value"") (Syntax: '""Value""')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  NamedArguments(0)
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(""Value"")')
+  IObjectCreationOperation (Constructor: MyAttribute..ctor(System.String value)) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(""Value"")')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '""Value""')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""Value"") (Syntax: '""Value""')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void TestAttributeWithExplicitArgument_IncorrectTypePassed()
+        {
+            string source = @"
+using System;
+
+class MyAttribute : Attribute
+{
+    public MyAttribute(string value) { }
+}
+
+[/*<bind>*/My(0)/*</bind>*/]
+class C
+{
+}
+";
+            string expectedOperationTree = @"
+IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'My(0)')
+  IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'My(0)')
+    Children(1):
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+";
+            var expectedDiagnostics = new[]
+            {
+                // (9,15): error CS1503: Argument 1: cannot convert from 'int' to 'string'
+                // [/*<bind>*/My(0)/*</bind>*/]
+                Diagnostic(ErrorCode.ERR_BadArgType, "0").WithArguments("1", "int", "string").WithLocation(9, 15)
+            };
 
             VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -141,13 +187,15 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IAttributeOperation (OperationKind.Attribute, Type: MyAttribute) (Syntax: 'My(""Value"")')
-  Arguments(1):
-      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '""Value""')
-        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""Value"") (Syntax: '""Value""')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  NamedArguments(0)
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(""Value"")')
+  IObjectCreationOperation (Constructor: MyAttribute..ctor([System.String value = """"])) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(""Value"")')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: '""Value""')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""Value"") (Syntax: '""Value""')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -179,13 +227,15 @@ class C
 }
 ";
             string expectedOperationTree = $@"
-IAttributeOperation (OperationKind.Attribute, Type: MyAttribute) (Syntax: '{attribute}')
-  Arguments(1):
-      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: value) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{attribute}')
-        ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """", IsImplicit) (Syntax: '{attribute}')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  NamedArguments(0)
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: '{attribute}')
+  IObjectCreationOperation (Constructor: MyAttribute..ctor([System.String value = """"])) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: '{attribute}')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: value) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{attribute}')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """", IsImplicit) (Syntax: '{attribute}')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -209,17 +259,19 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IAttributeOperation (OperationKind.Attribute, Type: MyAttribute) (Syntax: 'My(b: 1, a: 0)')
-  Arguments(2):
-      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument, Type: null) (Syntax: 'b: 1')
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: 'a: 0')
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  NamedArguments(0)
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(b: 1, a: 0)')
+  IObjectCreationOperation (Constructor: MyAttribute..ctor(System.Int32 a, System.Int32 b)) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(b: 1, a: 0)')
+    Arguments(2):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument, Type: null) (Syntax: 'b: 1')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: 'a: 0')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -243,25 +295,27 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IAttributeOperation (OperationKind.Attribute, Type: MyAttribute) (Syntax: 'My(b: 1, a: 0, d: 5)')
-  Arguments(4):
-      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument, Type: null) (Syntax: 'b: 1')
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: 'a: 0')
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: d) (OperationKind.Argument, Type: null) (Syntax: 'd: 5')
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: c) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'My(b: 1, a: 0, d: 5)')
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'My(b: 1, a: 0, d: 5)')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  NamedArguments(0)
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(b: 1, a: 0, d: 5)')
+  IObjectCreationOperation (Constructor: MyAttribute..ctor(System.Int32 a, System.Int32 b, [System.Int32 c = 2], [System.Int32 d = 3])) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(b: 1, a: 0, d: 5)')
+    Arguments(4):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument, Type: null) (Syntax: 'b: 1')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: 'a: 0')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: d) (OperationKind.Argument, Type: null) (Syntax: 'd: 5')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: c) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'My(b: 1, a: 0, d: 5)')
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'My(b: 1, a: 0, d: 5)')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -282,16 +336,18 @@ class MyAttribute : Attribute
 }
 ";
             string expectedOperationTree = @"
-IAttributeOperation (OperationKind.Attribute, Type: MyAttribute) (Syntax: 'My(0.0f)')
-  Arguments(1):
-      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '0.0f')
-        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, Constant: 0, IsImplicit) (Syntax: '0.0f')
-          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-          Operand:
-            ILiteralOperation (OperationKind.Literal, Type: System.Single, Constant: 0) (Syntax: '0.0f')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  NamedArguments(0)
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(0.0f)')
+  IObjectCreationOperation (Constructor: MyAttribute..ctor(System.Double x)) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(0.0f)')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: '0.0f')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double, Constant: 0, IsImplicit) (Syntax: '0.0f')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Operand:
+              ILiteralOperation (OperationKind.Literal, Type: System.Single, Constant: 0) (Syntax: '0.0f')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
             VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -327,28 +383,30 @@ public class B
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "1 switch { 1 => 1, _ => 2 }").WithLocation(5, 19),
             };
             string expectedOperationTree = @"
-IAttributeOperation (OperationKind.Attribute, Type: MyAttribute, IsInvalid) (Syntax: 'My(1 switch ... , _ => 2 })')
-  Arguments(1):
-      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Value) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: '1 switch {  ... 1, _ => 2 }')
-        ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: '1 switch {  ... 1, _ => 2 }')
-          Value:
-            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-          Arms(2):
-              ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '1 => 1')
-                Pattern:
-                  IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: '1') (InputType: System.Int32, NarrowedType: System.Int32)
-                    Value:
-                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-                Value:
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-              ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => 2')
-                Pattern:
-                  IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Int32, NarrowedType: System.Int32)
-                Value:
-                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
-        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-  NamedArguments(0)
+IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'My(1 switch ... , _ => 2 })')
+  IObjectCreationOperation (Constructor: MyAttribute..ctor(System.Int32 Value)) (OperationKind.ObjectCreation, Type: MyAttribute, IsInvalid, IsImplicit) (Syntax: 'My(1 switch ... , _ => 2 })')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Value) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: '1 switch {  ... 1, _ => 2 }')
+          ISwitchExpressionOperation (2 arms, IsExhaustive: True) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: '1 switch {  ... 1, _ => 2 }')
+            Value:
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+            Arms(2):
+                ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '1 => 1')
+                  Pattern:
+                    IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid) (Syntax: '1') (InputType: System.Int32, NarrowedType: System.Int32)
+                      Value:
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                  Value:
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                ISwitchExpressionArmOperation (0 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: '_ => 2')
+                  Pattern:
+                    IDiscardPatternOperation (OperationKind.DiscardPattern, Type: null, IsInvalid) (Syntax: '_') (InputType: System.Int32, NarrowedType: System.Int32)
+                  Value:
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
 ";
             VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }

@@ -492,8 +492,27 @@ namespace Microsoft.CodeAnalysis.Operations
                 return false;
             }
 
-            var model = _semanticModel.Compilation.GetSemanticModel(boundAttribute.SyntaxTree!);
-            var attributedSymbol = model.GetDeclaredSymbol(attributedDeclaration);
+            ISymbol? attributedSymbol = null;
+            if (attributedDeclaration.IsKind(SyntaxKind.CompilationUnit))
+            {
+                if (boundAttribute.Syntax.Parent is AttributeListSyntax { Target.Identifier: var targetToken })
+                {
+                    if (targetToken.IsKind(SyntaxKind.AssemblyKeyword))
+                    {
+                        attributedSymbol = _semanticModel.Compilation.Assembly;
+                    }
+                    else if (targetToken.IsKind(SyntaxKind.ModuleKeyword))
+                    {
+                        attributedSymbol = _semanticModel.Compilation.SourceModule;
+                    }
+                }
+            }
+            else
+            {
+                var model = _semanticModel.Compilation.GetSemanticModel(boundAttribute.SyntaxTree!);
+                attributedSymbol = model.GetDeclaredSymbol(attributedDeclaration);
+            }
+
             if (attributedSymbol is null)
             {
                 data = null;
@@ -516,9 +535,11 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IOperation CreateBoundAttributeOperation(BoundAttribute boundAttribute)
         {
+            var isImplicit = boundAttribute.WasCompilerGenerated;
             if (!TryGetAttributeData(boundAttribute, out var attributeData))
             {
-                return OperationFactory.CreateInvalidOperation(_semanticModel, boundAttribute.Syntax, ImmutableArray<IOperation>.Empty, isImplicit: false);
+                var invalidOperation = OperationFactory.CreateInvalidOperation(_semanticModel, boundAttribute.Syntax, GetIOperationChildren(boundAttribute), isImplicit: true);
+                return new AttributeOperation(invalidOperation, _semanticModel, boundAttribute.Syntax, isImplicit);
             }
 
             var builder = ImmutableArray.CreateBuilder<IArgumentOperation>(boundAttribute.Constructor!.ParameterCount);
@@ -545,9 +566,16 @@ namespace Microsoft.CodeAnalysis.Operations
                     builder.Add(CreateArgumentOperation(ArgumentKind.DefaultValue, parameter.GetPublicSymbol(), new BoundLiteral(boundAttribute.Syntax, ConstantValue.Create(typedConstant.Value!, typedConstant.Type!.SpecialType), parameter.Type) { WasCompilerGenerated = true }));
                 }
             }
-            var namedArguments = CreateFromArray<BoundAssignmentOperator, ISimpleAssignmentOperation>(boundAttribute.NamedArguments);
 
-            return new AttributeOperation(builder.ToImmutable(), namedArguments, _semanticModel, boundAttribute.Syntax, boundAttribute.GetPublicTypeSymbol(), boundAttribute.WasCompilerGenerated);
+            ObjectOrCollectionInitializerOperation? initializer = null;
+            if (!boundAttribute.NamedArguments.IsEmpty)
+            {
+                var namedArguments = CreateFromArray<BoundAssignmentOperator, IOperation>(boundAttribute.NamedArguments);
+                initializer = new ObjectOrCollectionInitializerOperation(namedArguments, _semanticModel, boundAttribute.Syntax, boundAttribute.GetPublicTypeSymbol(), isImplicit: true);
+            }
+
+            var objectCreationOperation = new ObjectCreationOperation(boundAttribute.Constructor.GetPublicSymbol(), initializer, builder.ToImmutable(), _semanticModel, boundAttribute.Syntax, boundAttribute.GetPublicTypeSymbol(), boundAttribute.ConstantValue, isImplicit: true);
+            return new AttributeOperation(objectCreationOperation, _semanticModel, boundAttribute.Syntax, isImplicit);
         }
 
         internal ImmutableArray<IOperation> CreateIgnoredDimensions(BoundNode declaration, SyntaxNode declarationSyntax)
