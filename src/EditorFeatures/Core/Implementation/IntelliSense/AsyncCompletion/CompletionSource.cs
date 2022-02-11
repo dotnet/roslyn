@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly IAsynchronousOperationListener _asyncListener;
         private readonly IGlobalOptionService _globalOptions;
         private bool _snippetCompletionTriggeredIndirectly;
+        private bool _responsiveCompletionEnabled;
 
         internal CompletionSource(
             ITextView textView,
@@ -121,6 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // The right fix would be to send this information as a result of the method. 
             // Then, the Editor would choose the right behavior for mixed cases.
             _textView.Options.GlobalOptions.SetOptionValue(s_nonBlockingCompletionEditorOption, !_globalOptions.GetOption(CompletionViewOptions.BlockForCompletionItems, service.Language));
+            _responsiveCompletionEnabled = _textView.Options.GetOptionValue(DefaultOptions.ResponsiveCompletionOptionId);
 
             // In case of calls with multiple completion services for the same view (e.g. TypeScript and C#), those completion services must not be called simultaneously for the same session.
             // Therefore, in each completion session we use a list of commit character for a specific completion service and a specific content type.
@@ -271,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 AddPropertiesToSession(session, list, triggerLocation);
                 return context;
             }
-            else if (!session.TextView.Options.GetOptionValue(DefaultOptions.ResponsiveCompletionOptionId))
+            else if (!_responsiveCompletionEnabled)
             {
                 // We tie the behavior of delaying expand items to editor's "responsive completion" option.
                 // i.e. "responsive completion" disabled == always wait for all items to be calculated.
