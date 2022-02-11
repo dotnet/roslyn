@@ -62,6 +62,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
                        originationParts: default,
                        sourceSpans: default,
                        properties: null,
+                       ImmutableDictionary<string, string>.Empty,
                        displayIfNoReferences: true)
             {
                 _navigator = navigator;
@@ -96,10 +97,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts)
             => new(new ExternalDefinitionItem(navigator, tags, displayParts));
-
-        [Obsolete]
-        public static VSTypeScriptDefinitionItem Create(VSTypeScriptDefinitionItemBase item)
-            => new(item);
 
         public ImmutableArray<string> Tags => UnderlyingObject.Tags;
         public ImmutableArray<TaggedText> DisplayParts => UnderlyingObject.DisplayParts;

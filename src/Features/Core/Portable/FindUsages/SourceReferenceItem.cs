@@ -56,19 +56,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             AdditionalProperties = additionalProperties ?? ImmutableDictionary<string, string>.Empty;
         }
 
-        // Used by F#
-        internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan)
-            : this(definition, sourceSpan, SymbolUsageInfo.None)
-        {
-        }
-
-        // Used by TypeScript
-        internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, SymbolUsageInfo symbolUsageInfo)
-            : this(definition, sourceSpan, symbolUsageInfo, additionalProperties: ImmutableDictionary<string, string>.Empty)
-        {
-        }
-
-        internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, SymbolUsageInfo symbolUsageInfo, ImmutableDictionary<string, string> additionalProperties)
+        internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, SymbolUsageInfo symbolUsageInfo, ImmutableDictionary<string, string> additionalProperties = null)
             : this(definition, sourceSpan, symbolUsageInfo, additionalProperties, isWrittenTo: symbolUsageInfo.IsWrittenTo())
         {
         }
