@@ -78,16 +78,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             }
         }
 
-        internal static ValueTask<TreeItemViewModel> CreateAsync(
-            Solution solution,
-            ValueTrackedItem item,
-            ValueTrackingTreeViewModel treeViewModel,
-            IGlyphService glyphService,
-            IValueTrackingService valueTrackingService,
-            IThreadingContext threadingContext,
-            CancellationToken cancellationToken)
-            => CreateAsync(solution, item, treeViewModel, glyphService, valueTrackingService, threadingContext, ImmutableArray<TreeItemViewModel>.Empty, cancellationToken);
-
         internal static async ValueTask<TreeItemViewModel> CreateAsync(
             Solution solution,
             ValueTrackedItem item,
@@ -183,7 +173,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 cancellationToken).ConfigureAwait(false);
 
             return await valueTrackedItems.SelectAsArrayAsync((item, cancellationToken) =>
-                CreateAsync(_solution, item, TreeViewModel, _glyphService, _valueTrackingService, ThreadingContext, cancellationToken), cancellationToken).ConfigureAwait(false);
+                CreateAsync(_solution, item, TreeViewModel, _glyphService, _valueTrackingService, ThreadingContext, ImmutableArray<TreeItemViewModel>.Empty, cancellationToken), cancellationToken).ConfigureAwait(false);
         }
     }
 }

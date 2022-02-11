@@ -98,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             return true;
         }
 
-        private async Task ShowToolWindowAsync(ITextView textView, CodeAnalysis.Document document, ImmutableArray<ValueTrackedItem> items, CancellationToken cancellationToken)
+        private async Task ShowToolWindowAsync(ITextView textView, Document document, ImmutableArray<ValueTrackedItem> items, CancellationToken cancellationToken)
         {
             var toolWindow = await GetOrCreateToolWindowAsync(textView, cancellationToken).ConfigureAwait(false);
             if (toolWindow?.ViewModel is null)
@@ -106,35 +106,42 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 return;
             }
 
-            var rootItemMap = items.GroupBy(i => i.Parent, resultSelector: (key, items) => (parent: key, children: items.ToImmutableArray())).ToImmutableArray();
+
             var classificationFormatMap = _classificationFormatMapService.GetClassificationFormatMap(textView);
             var solution = document.Project.Solution;
             var valueTrackingService = solution.Workspace.Services.GetRequiredService<IValueTrackingService>();
+            var rootItemMap = items.GroupBy(i => i.Parent, resultSelector: (key, items) => (parent: key, children: items));
 
-            var rootViewModels = await rootItemMap.SelectAsArrayAsync(async (pair, cancellationToken) =>
+            using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<TreeItemViewModel>.GetInstance(out var rootItems);
+
+            foreach (var (parent, children) in rootItemMap)
             {
-                var (parent, children) = pair;
-
                 if (parent is null)
                 {
-                    // If the parent items are null then each child is a top level item
-                    return await children.SelectAsArrayAsync(async (child, cancellationToken) =>
+                    foreach (var child in children)
                     {
-                        return await ValueTrackedTreeItemViewModel.CreateAsync(solution, child, toolWindow.ViewModel, _glyphService, valueTrackingService, _threadingContext, ImmutableArray<TreeItemViewModel>.Empty, cancellationToken).ConfigureAwait(false);
-                    }, cancellationToken).ConfigureAwait(false);
+                        var root = await ValueTrackedTreeItemViewModel.CreateAsync(solution, child, toolWindow.ViewModel, _glyphService, valueTrackingService, _threadingContext, ImmutableArray<TreeItemViewModel>.Empty, cancellationToken).ConfigureAwait(false);
+                        rootItems.Add(root);
+                    }
                 }
+                else
+                {
+                    using var _1 = CodeAnalysis.PooledObjects.ArrayBuilder<TreeItemViewModel>.GetInstance(out var childItems);
+                    foreach (var child in children)
+                    {
+                        var childViewModel = await ValueTrackedTreeItemViewModel.CreateAsync(solution, child, toolWindow.ViewModel, _glyphService, valueTrackingService, _threadingContext, ImmutableArray<TreeItemViewModel>.Empty, cancellationToken).ConfigureAwait(false);
+                        childItems.Add(childViewModel);
+                    }
 
-                var childrenViewModels = await children.SelectAsArrayAsync((item, cancellationToken) =>
-                ValueTrackedTreeItemViewModel.CreateAsync(solution, item, toolWindow.ViewModel, _glyphService, valueTrackingService, _threadingContext, cancellationToken), cancellationToken).ConfigureAwait(false);
-
-                var root = await ValueTrackedTreeItemViewModel.CreateAsync(solution, parent, toolWindow.ViewModel, _glyphService, valueTrackingService, _threadingContext, childrenViewModels, cancellationToken).ConfigureAwait(false);
-                return ImmutableArray.Create(root);
-            }, cancellationToken).ConfigureAwait(false);
+                    var root = await ValueTrackedTreeItemViewModel.CreateAsync(solution, parent, toolWindow.ViewModel, _glyphService, valueTrackingService, _threadingContext, childItems.ToImmutable(), cancellationToken).ConfigureAwait(false);
+                    rootItems.Add(root);
+                }
+            }
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             toolWindow.ViewModel.Roots.Clear();
-            foreach (var root in rootViewModels.SelectMany(items => items))
+            foreach (var root in rootItems)
             {
                 toolWindow.ViewModel.Roots.Add(root);
             }
