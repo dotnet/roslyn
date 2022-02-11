@@ -349,8 +349,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
 
             if (names.Length > 1 && names[0].SyntaxTree.Options.LanguageVersion() >= LanguageVersion.CSharp10)
             {
-                ExpressionSyntax expression = names[0];
-                for (var i = 1; i < names.Length; i++)
+                ExpressionSyntax expression = names[^1];
+                for (var i = names.Length - 2; i >= 0; i--)
                     expression = MemberAccessExpression(SimpleMemberAccessExpression, expression, names[i]);
                 return SyntaxFactory.Subpattern(ExpressionColon(expression, Token(ColonToken)), pattern);
             }
