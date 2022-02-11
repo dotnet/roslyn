@@ -2,7 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.OrganizeImports;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Formatting
 {
@@ -24,5 +27,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Formatting
                 newLine))
         {
         }
+
+        public static async ValueTask<OmniSharpOrganizeImportsOptionsWrapper> FromDocumentAsync(Document document, CancellationToken cancellationToken)
+            => new(await OrganizeImportsOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false));
     }
 }
