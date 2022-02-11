@@ -359,7 +359,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                hasErrors |= !TryBindLengthOrCount(node, receiverPlaceholder, out lengthAccess, diagnostics);
+                var foundLengthOrCount = TryBindLengthOrCount(node, receiverPlaceholder, out lengthAccess, diagnostics);
+                if (!foundLengthOrCount && !hasErrors)
+                {
+                    hasErrors = true;
+                    Error(diagnostics, ErrorCode.ERR_ListPatternRequiresLength, node, inputType);
+                }
             }
 
             var analyzedArguments = AnalyzedArguments.GetInstance();
