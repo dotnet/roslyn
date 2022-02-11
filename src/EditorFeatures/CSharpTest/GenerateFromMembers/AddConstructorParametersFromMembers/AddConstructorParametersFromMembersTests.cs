@@ -89,7 +89,9 @@ class Program
         [WorkItem(58040, "https://github.com/dotnet/roslyn/issues/58040")]
         public async Task TestProperlyWrapParameters1()
         {
-            await TestInRegularAndScriptAsync(
+            await new VerifyCS.Test
+            {
+                TestCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -103,6 +105,7 @@ class Program
         this.i = i;
     }
 }",
+                FixedCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -116,14 +119,18 @@ class Program
         this.i = i;
         this.s = s;
     }
-}", title: string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"));
+}",
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"), codeAction.Title)
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         [WorkItem(58040, "https://github.com/dotnet/roslyn/issues/58040")]
         public async Task TestProperlyWrapParameters2()
         {
-            await TestInRegularAndScriptAsync(
+            await new VerifyCS.Test
+            {
+                TestCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -140,6 +147,7 @@ class Program
         this.s = s;
     }
 }",
+                FixedCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -157,14 +165,18 @@ class Program
         this.s = s;
         this.b = b;
     }
-}", title: string.Format(FeaturesResources.Add_parameters_to_0, "Program(int, string)"));
+}",
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int, string)"), codeAction.Title)
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         [WorkItem(58040, "https://github.com/dotnet/roslyn/issues/58040")]
         public async Task TestProperlyWrapParameters3()
         {
-            await TestInRegularAndScriptAsync(
+            await new VerifyCS.Test
+            {
+                TestCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -180,6 +192,7 @@ class Program
         this.s = s;
     }
 }",
+                FixedCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -196,14 +209,18 @@ class Program
         this.s = s;
         this.b = b;
     }
-}", title: string.Format(FeaturesResources.Add_parameters_to_0, "Program(int, string)"));
+}",
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int, string)"), codeAction.Title)
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         [WorkItem(58040, "https://github.com/dotnet/roslyn/issues/58040")]
         public async Task TestProperlyWrapParameters4()
         {
-            await TestInRegularAndScriptAsync(
+            await new VerifyCS.Test
+            {
+                TestCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -219,6 +236,7 @@ class Program
         this.s = s;
     }
 }",
+                FixedCode =
 @"using System.Collections.Generic;
 
 class Program
@@ -235,7 +253,9 @@ class Program
         this.s = s;
         this.b = b;
     }
-}", title: string.Format(FeaturesResources.Add_parameters_to_0, "Program(int, string)"));
+}",
+                CodeActionVerifier = (codeAction, verifier) => verifier.Equal(string.Format(FeaturesResources.Add_parameters_to_0, "Program(int, string)"), codeAction.Title)
+            }.RunAsync();
         }
 
         [WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
