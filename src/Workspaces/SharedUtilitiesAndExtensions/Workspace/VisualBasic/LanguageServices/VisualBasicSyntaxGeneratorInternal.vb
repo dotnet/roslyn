@@ -184,6 +184,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Throw New NotImplementedException()
         End Function
 
+        Public Overrides Function UnaryPattern(operatorToken As SyntaxToken, pattern As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
 #End Region
     End Class
 End Namespace

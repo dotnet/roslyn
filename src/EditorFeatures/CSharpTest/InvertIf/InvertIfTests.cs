@@ -1204,7 +1204,45 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
         [WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
-        public async Task TestIsNotCheck()
+        public async Task TestIsNotObjectCheck_CSharp8()
+        {
+            // Not terrific.  But the starting code is not legal C#8 either.  In this case because we don't even support
+            // 'not' patterns wee dont' bother diving into the pattern to negate it, and we instead just negate the
+            // expression.
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int M()
+    {
+        [||]if (c is not object)
+        {
+            return 1;
+        }
+        else
+        {
+            return 2;
+        }
+    }
+}",
+@"class C
+{
+    int M()
+    {
+        if (!(c is not object))
+        {
+            return 2;
+        }
+        else
+        {
+            return 1;
+        }
+    }
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        [WorkItem(51359, "https://github.com/dotnet/roslyn/issues/51359")]
+        public async Task TestIsNotObjectCheck_CSharp9()
         {
             await TestInRegularAndScriptAsync(
 @"class C
@@ -1225,7 +1263,7 @@ class C
 {
     int M()
     {
-        if (c is object)
+        if (c is not null)
         {
             return 2;
         }
@@ -1234,7 +1272,7 @@ class C
             return 1;
         }
     }
-}");
+}", parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9));
         }
     }
 }

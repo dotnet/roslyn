@@ -179,6 +179,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override SyntaxNode TypePattern(SyntaxNode type)
             => SyntaxFactory.TypePattern((TypeSyntax)type);
 
+        public override SyntaxNode UnaryPattern(SyntaxToken operatorToken, SyntaxNode pattern)
+            => SyntaxFactory.UnaryPattern(operatorToken, (PatternSyntax)Parenthesize(pattern));
+
         #endregion
     }
 }

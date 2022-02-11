@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return GetNegationOfConstantPattern(expressionOrPattern, generator, generatorInternal);
 
             if (syntaxFacts.IsUnaryPattern(expressionOrPattern))
-                return GetNegationOfUnaryPattern(expressionOrPattern, generatorInternal, syntaxFacts);
+                return GetNegationOfUnaryPattern(expressionOrPattern, generator, generatorInternal, syntaxFacts);
 
             if (syntaxFacts.IsIsTypeExpression(expressionOrPattern))
             {
@@ -430,6 +430,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static SyntaxNode GetNegationOfUnaryPattern(
             SyntaxNode pattern,
+            SyntaxGenerator generator,
             SyntaxGeneratorInternal generatorInternal,
             ISyntaxFacts syntaxFacts)
         {
@@ -438,6 +439,18 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // not not p    ->   p
             if (syntaxFacts.IsNotPattern(pattern))
             {
+                // If we started with `not object`, instead of converting to `object`, directly convert to `not null`
+                if (syntaxFacts.IsTypePattern(subPattern))
+                {
+                    var type = syntaxFacts.GetTypeOfTypePattern(subPattern);
+                    if (syntaxFacts.IsPredefinedType(type, PredefinedType.Object))
+                    {
+                        return generatorInternal.UnaryPattern(opToken,
+                            generatorInternal.ConstantPattern(
+                                generator.NullLiteralExpression().WithTriviaFrom(type)));
+                    }
+                }
+
                 return subPattern.WithPrependedLeadingTrivia(opToken.LeadingTrivia)
                                  .WithAdditionalAnnotations(Simplifier.Annotation);
             }
