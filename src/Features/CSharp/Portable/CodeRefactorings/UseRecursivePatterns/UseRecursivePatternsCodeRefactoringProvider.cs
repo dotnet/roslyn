@@ -280,6 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
                 .Where(d => d.Identifier.ValueText == identifierName.Identifier.ValueText)
                 .FirstOrDefault();
 
+            // Excluding list patterns because those cannot be combined with a recursive pattern.
             if (designation is not { Parent: PatternSyntax(not SyntaxKind.ListPattern) containingPattern })
                 return null;
 
@@ -346,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns
         {
             Debug.Assert(!names.IsDefaultOrEmpty);
 
-            if (names.Length > 1 && ((CSharpParseOptions)names[0].SyntaxTree.Options).LanguageVersion >= LanguageVersion.CSharp10)
+            if (names.Length > 1 && names[0].SyntaxTree.Options.LanguageVersion() >= LanguageVersion.CSharp10)
             {
                 ExpressionSyntax expression = names[0];
                 for (var i = 1; i < names.Length; i++)
