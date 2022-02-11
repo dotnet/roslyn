@@ -308,6 +308,9 @@ namespace Microsoft.CodeAnalysis.Collections
         public int BinarySearch(T item, IComparer<T>? comparer)
             => BinarySearch(0, Count, item, comparer);
 
+        internal int BinarySearch<TValue>(TValue value, Func<T, TValue, int> comparer)
+            => SegmentedArray.BinarySearch(_items, value, comparer);
+
         // Clears the contents of SegmentedList.
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()

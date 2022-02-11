@@ -190,6 +190,9 @@ namespace Microsoft.CodeAnalysis.Collections
             return SegmentedArraySortHelper<T>.BinarySearch(array, index, length, value, comparer);
         }
 
+        internal static int BinarySearch<T, TValue>(SegmentedArray<T> array, TValue value, Func<T, TValue, int> comparer)
+            => SegmentedArraySortHelper<T>.BinarySearch<TValue>(array, 0, array.Length, value, comparer);
+
         public static int IndexOf<T>(SegmentedArray<T> array, T value)
         {
             return IndexOf(array, value, 0, array.Length, comparer: null);

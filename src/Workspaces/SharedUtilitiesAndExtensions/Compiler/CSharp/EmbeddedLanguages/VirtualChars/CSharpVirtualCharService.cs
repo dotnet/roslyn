@@ -4,6 +4,7 @@
 
 using System.Diagnostics;
 using System.Text;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             Contract.ThrowIfFalse(tokenText[0] == '"');
             Contract.ThrowIfFalse(tokenText[^1] == '"');
 
-            using var _ = ArrayBuilder<VirtualChar>.GetInstance(out var result);
+            var result = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
 
             var startIndexInclusive = 0;
             var endIndexExclusive = tokenText.Length;
@@ -139,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             // again, trying to create Runes from the 16-bit-chars. We do this to simplify complex cases where we may
             // have escapes and non-escapes mixed together.
 
-            using var _ = ArrayBuilder<(char ch, TextSpan span)>.GetInstance(out var charResults);
+            var charResults = ImmutableSegmentedList.CreateBuilder<(char ch, TextSpan span)>();
 
             // First pass, just convert everything in the string (i.e. escapes) to plain 16-bit characters.
             var offset = token.SpanStart;
@@ -151,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                     if (!TryAddEscape(charResults, tokenText, offset, index))
                         return default;
 
-                    index += charResults.Last().span.Length;
+                    index += charResults[^1].span.Length;
                 }
                 else if (escapeBraces && IsOpenOrCloseBrace(ch))
                 {
@@ -159,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                         return default;
 
                     charResults.Add((ch, braceSpan));
-                    index += charResults.Last().span.Length;
+                    index += charResults[^1].span.Length;
                 }
                 else
                 {
@@ -172,17 +173,20 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
         }
 
         private static VirtualCharSequence CreateVirtualCharSequence(
-            string tokenText, int offset, int startIndexInclusive, int endIndexExclusive, ArrayBuilder<(char ch, TextSpan span)> charResults)
+            string tokenText, int offset, int startIndexInclusive, int endIndexExclusive,
+            ImmutableSegmentedList<(char ch, TextSpan span)>.Builder charResults)
         {
             // Second pass.  Convert those characters to Runes.
-            using var _ = ArrayBuilder<VirtualChar>.GetInstance(out var runeResults);
+            var runeResults = ImmutableSegmentedList.CreateBuilder<VirtualChar>();
 
             ConvertCharactersToRunes(charResults, runeResults);
 
             return CreateVirtualCharSequence(tokenText, offset, startIndexInclusive, endIndexExclusive, runeResults);
         }
 
-        private static void ConvertCharactersToRunes(ArrayBuilder<(char ch, TextSpan span)> charResults, ArrayBuilder<VirtualChar> runeResults)
+        private static void ConvertCharactersToRunes(
+            ImmutableSegmentedList<(char ch, TextSpan span)>.Builder charResults,
+            ImmutableSegmentedList<VirtualChar>.Builder runeResults)
         {
             for (var i = 0; i < charResults.Count;)
             {
@@ -216,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
         }
 
         private static bool TryAddEscape(
-            ArrayBuilder<(char ch, TextSpan span)> result, string tokenText, int offset, int index)
+            ImmutableSegmentedList<(char ch, TextSpan span)>.Builder result, string tokenText, int offset, int index)
         {
             // Copied from Lexer.ScanEscapeSequence.
             Debug.Assert(tokenText[index] == '\\');
@@ -255,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
         }
 
         private static bool TryAddSingleCharacterEscape(
-            ArrayBuilder<(char ch, TextSpan span)> result, string tokenText, int offset, int index)
+            ImmutableSegmentedList<(char ch, TextSpan span)>.Builder result, string tokenText, int offset, int index)
         {
             // Copied from Lexer.ScanEscapeSequence.
             Debug.Assert(tokenText[index] == '\\');
@@ -288,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
         }
 
         private static bool TryAddMultiCharacterEscape(
-            ArrayBuilder<(char ch, TextSpan span)> result, string tokenText, int offset, int index)
+            ImmutableSegmentedList<(char ch, TextSpan span)>.Builder result, string tokenText, int offset, int index)
         {
             // Copied from Lexer.ScanEscapeSequence.
             Debug.Assert(tokenText[index] == '\\');
@@ -307,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
         }
 
         private static bool TryAddMultiCharacterEscape(
-            ArrayBuilder<(char ch, TextSpan span)> result, string tokenText, int offset, int index, char character)
+            ImmutableSegmentedList<(char ch, TextSpan span)>.Builder result, string tokenText, int offset, int index, char character)
         {
             var startIndex = index;
             Debug.Assert(tokenText[index] == '\\');

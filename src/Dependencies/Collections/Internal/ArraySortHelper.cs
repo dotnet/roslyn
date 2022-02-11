@@ -58,6 +58,19 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
             }
         }
 
+        public static int BinarySearch<TValue>(SegmentedArray<T> array, int index, int length, TValue value, Func<T, TValue, int> comparer)
+        {
+            try
+            {
+                return InternalBinarySearch(array, index, length, value, comparer);
+            }
+            catch (Exception e)
+            {
+                ThrowHelper.ThrowInvalidOperationException(ExceptionResource.InvalidOperation_IComparerFailed, e);
+                return 0;
+            }
+        }
+
         internal static void Sort(SegmentedArraySegment<T> keys, Comparison<T> comparer)
         {
             Debug.Assert(comparer != null, "Check the arguments in the caller!");
@@ -87,6 +100,32 @@ namespace Microsoft.CodeAnalysis.Collections.Internal
             {
                 int i = lo + ((hi - lo) >> 1);
                 int order = comparer.Compare(array[i], value);
+
+                if (order == 0)
+                    return i;
+                if (order < 0)
+                {
+                    lo = i + 1;
+                }
+                else
+                {
+                    hi = i - 1;
+                }
+            }
+
+            return ~lo;
+        }
+
+        internal static int InternalBinarySearch<TValue>(SegmentedArray<T> array, int index, int length, TValue value, Func<T, TValue, int> comparer)
+        {
+            Debug.Assert(index >= 0 && length >= 0 && (array.Length - index >= length), "Check the arguments in the caller!");
+
+            int lo = index;
+            int hi = index + length - 1;
+            while (lo <= hi)
+            {
+                int i = lo + ((hi - lo) >> 1);
+                int order = comparer(array[i], value);
 
                 if (order == 0)
                     return i;

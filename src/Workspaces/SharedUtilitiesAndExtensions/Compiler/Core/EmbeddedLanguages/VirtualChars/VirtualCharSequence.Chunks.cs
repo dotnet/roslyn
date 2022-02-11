@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
@@ -35,17 +36,17 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// </summary>
         private class ImmutableArrayChunk : Chunk
         {
-            private readonly ImmutableArray<VirtualChar> _array;
+            private readonly ImmutableSegmentedList<VirtualChar> _array;
 
-            public ImmutableArrayChunk(ImmutableArray<VirtualChar> array)
+            public ImmutableArrayChunk(ImmutableSegmentedList<VirtualChar> array)
                 => _array = array;
 
-            public override int Length => _array.Length;
+            public override int Length => _array.Count;
             public override VirtualChar this[int index] => _array[index];
 
             public override VirtualChar? Find(int position)
             {
-                if (_array.Length == 0)
+                if (_array.Count == 0)
                     return null;
 
                 if (position < _array[0].Span.Start || position >= _array[^1].Span.End)

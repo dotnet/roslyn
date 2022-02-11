@@ -195,6 +195,9 @@ namespace Microsoft.CodeAnalysis.Collections
         public int BinarySearch(int index, int count, T item, IComparer<T>? comparer)
             => _list.BinarySearch(index, count, item, comparer);
 
+        internal int BinarySearch<TValue>(TValue value, Func<T, TValue, int> comparer)
+            => _list.BinarySearch(value, comparer);
+
         /// <inheritdoc cref="ImmutableList{T}.Clear()"/>
         public ImmutableSegmentedList<T> Clear()
             => Empty;
