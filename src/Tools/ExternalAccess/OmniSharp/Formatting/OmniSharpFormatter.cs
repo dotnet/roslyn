@@ -14,10 +14,10 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Formatting
 {
     internal static class OmniSharpFormatter
     {
-        public static Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, OmniSharpSyntaxFormattingOptions options, CancellationToken cancellationToken)
-            => Formatter.FormatAsync(document, spans, options.ToSyntaxFormattingOptions(), rules: null, cancellationToken);
+        public static Task<Document> FormatAsync(Document document, IEnumerable<TextSpan>? spans, OmniSharpSyntaxFormattingOptionsWrapper options, CancellationToken cancellationToken)
+            => Formatter.FormatAsync(document, spans, options.UnderlyingObject, rules: null, cancellationToken);
 
-        public static async Task<Document> OrganizeImportsAsync(Document document, OmniSharpOrganizeImportsOptions options, CancellationToken cancellationToken)
+        public static async Task<Document> OrganizeImportsAsync(Document document, OmniSharpOrganizeImportsOptionsWrapper options, CancellationToken cancellationToken)
         {
             var organizeImportsService = document.GetLanguageService<IOrganizeImportsService>();
             if (organizeImportsService is null)
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Formatting
                 return document;
             }
 
-            return await organizeImportsService.OrganizeImportsAsync(document, options.ToOrganizeImportsOptions(), cancellationToken).ConfigureAwait(false);
+            return await organizeImportsService.OrganizeImportsAsync(document, options.UnderlyingObject, cancellationToken).ConfigureAwait(false);
         }
     }
 }
