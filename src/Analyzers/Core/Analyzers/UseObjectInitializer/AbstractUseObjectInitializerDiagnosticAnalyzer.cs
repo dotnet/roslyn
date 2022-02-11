@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.UseObjectInitializer
@@ -43,16 +44,18 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
         protected override void InitializeWorker(AnalysisContext context)
         {
-            var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
             context.RegisterCompilationStartAction(context =>
             {
                 if (!AreObjectInitializersSupported(context.Compilation))
-                {
                     return;
-                }
 
-                context.RegisterSyntaxNodeAction(
-                    AnalyzeNode, syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ObjectCreationExpression));
+                var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
+                using var matchKinds = TemporaryArray<TSyntaxKind>.Empty;
+                matchKinds.Add(syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ObjectCreationExpression));
+                if (syntaxKinds.ImplicitObjectCreationExpression != null)
+                    matchKinds.Add(syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ImplicitObjectCreationExpression.Value));
+
+                context.RegisterSyntaxNodeAction(AnalyzeNode, matchKinds.ToImmutableAndClear());
             });
         }
 

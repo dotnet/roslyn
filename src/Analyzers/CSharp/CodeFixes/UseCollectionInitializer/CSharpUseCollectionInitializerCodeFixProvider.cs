@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
             SyntaxKind,
             ExpressionSyntax,
             StatementSyntax,
-            ObjectCreationExpressionSyntax,
+            BaseObjectCreationExpressionSyntax,
             MemberAccessExpressionSyntax,
             InvocationExpressionSyntax,
             ExpressionStatementSyntax,
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
 
         protected override StatementSyntax GetNewStatement(
             StatementSyntax statement,
-            ObjectCreationExpressionSyntax objectCreation,
+            BaseObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<ExpressionStatementSyntax> matches)
         {
             return statement.ReplaceNode(
@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
                 GetNewObjectCreation(objectCreation, matches));
         }
 
-        private static ObjectCreationExpressionSyntax GetNewObjectCreation(
-            ObjectCreationExpressionSyntax objectCreation,
+        private static BaseObjectCreationExpressionSyntax GetNewObjectCreation(
+            BaseObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<ExpressionStatementSyntax> matches)
         {
             return UseInitializerHelpers.GetNewObjectCreation(
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer
         }
 
         private static SeparatedSyntaxList<ExpressionSyntax> CreateExpressions(
-            ObjectCreationExpressionSyntax objectCreation,
+            BaseObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<ExpressionStatementSyntax> matches)
         {
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);

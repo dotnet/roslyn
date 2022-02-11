@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
             SyntaxKind,
             ExpressionSyntax,
             StatementSyntax,
-            ObjectCreationExpressionSyntax,
+            BaseObjectCreationExpressionSyntax,
             MemberAccessExpressionSyntax,
             ExpressionStatementSyntax,
             VariableDeclaratorSyntax>
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
         }
 
         protected override StatementSyntax GetNewStatement(
-            StatementSyntax statement, ObjectCreationExpressionSyntax objectCreation,
+            StatementSyntax statement, BaseObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>> matches)
         {
             return statement.ReplaceNode(
@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
                 GetNewObjectCreation(objectCreation, matches));
         }
 
-        private static ObjectCreationExpressionSyntax GetNewObjectCreation(
-            ObjectCreationExpressionSyntax objectCreation,
+        private static BaseObjectCreationExpressionSyntax GetNewObjectCreation(
+            BaseObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>> matches)
         {
             return UseInitializerHelpers.GetNewObjectCreation(
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
         }
 
         private static SeparatedSyntaxList<ExpressionSyntax> CreateExpressions(
-                ObjectCreationExpressionSyntax objectCreation,
+                BaseObjectCreationExpressionSyntax objectCreation,
                 ImmutableArray<Match<ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, ExpressionStatementSyntax>> matches)
         {
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
