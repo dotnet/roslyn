@@ -291,6 +291,42 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
         private static bool IsDebuggerTextView(ITextView textView)
             => textView.Roles.Contains("DEBUGVIEW");
 
+        public async Task<ImmutableArray<string>> GetF1KeywordsAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var vsView = await GetActiveVsTextViewAsync(cancellationToken);
+            ErrorHandler.ThrowOnFailure(vsView.GetBuffer(out var textLines));
+            ErrorHandler.ThrowOnFailure(textLines.GetLanguageServiceID(out var languageServiceGuid));
+
+            var languageService = await ((AsyncServiceProvider)AsyncServiceProvider.GlobalProvider).QueryServiceAsync(languageServiceGuid).WithCancellation(cancellationToken);
+            Assumes.Present(languageService);
+
+            var languageContextProvider = (IVsLanguageContextProvider)languageService;
+            var monitorUserContext = await GetRequiredGlobalServiceAsync<SVsMonitorUserContext, IVsMonitorUserContext>(cancellationToken);
+            ErrorHandler.ThrowOnFailure(monitorUserContext.CreateEmptyContext(out var emptyUserContext));
+            ErrorHandler.ThrowOnFailure(vsView.GetCaretPos(out var line, out var column));
+
+            var span = new TextManager.Interop.TextSpan()
+            {
+                iStartLine = line,
+                iStartIndex = column,
+                iEndLine = line,
+                iEndIndex = column,
+            };
+
+            ErrorHandler.ThrowOnFailure(languageContextProvider.UpdateLanguageContext(dwHint: 0, textLines, new[] { span }, emptyUserContext));
+            ErrorHandler.ThrowOnFailure(emptyUserContext.CountAttributes("keyword", fIncludeChildren: Convert.ToInt32(true), out var count));
+            var results = ImmutableArray.CreateBuilder<string>(count);
+            for (var i = 0; i < count; i++)
+            {
+                emptyUserContext.GetAttribute(i, "keyword", fIncludeChildren: Convert.ToInt32(true), pbstrName: out _, out var value);
+                results.Add(value);
+            }
+
+            return results.MoveToImmutable();
+        }
+
         #region Navigation bars
 
         public async Task ExpandNavigationBarAsync(NavigationBarDropdownKind index, CancellationToken cancellationToken)

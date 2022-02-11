@@ -736,39 +736,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             });
         }
 
-        public List<string> GetF1Keywords()
-        {
-            return InvokeOnUIThread(cancellationToken =>
-            {
-                var results = new List<string>();
-                GetActiveVsTextView().GetBuffer(out var textLines);
-                Marshal.ThrowExceptionForHR(textLines.GetLanguageServiceID(out var languageServiceGuid));
-                Marshal.ThrowExceptionForHR(Microsoft.VisualStudio.Shell.ServiceProvider.GlobalProvider.QueryService(languageServiceGuid, out var languageService));
-                var languageContextProvider = (IVsLanguageContextProvider)languageService;
-
-                var monitorUserContext = GetGlobalService<SVsMonitorUserContext, IVsMonitorUserContext>();
-                Marshal.ThrowExceptionForHR(monitorUserContext.CreateEmptyContext(out var emptyUserContext));
-                Marshal.ThrowExceptionForHR(GetActiveVsTextView().GetCaretPos(out var line, out var column));
-                var span = new TextManager.Interop.TextSpan()
-                {
-                    iStartLine = line,
-                    iStartIndex = column,
-                    iEndLine = line,
-                    iEndIndex = column
-                };
-
-                Marshal.ThrowExceptionForHR(languageContextProvider.UpdateLanguageContext(0, textLines, new[] { span }, emptyUserContext));
-                Marshal.ThrowExceptionForHR(emptyUserContext.CountAttributes("keyword", VSConstants.S_FALSE, out var count));
-                for (var i = 0; i < count; i++)
-                {
-                    emptyUserContext.GetAttribute(i, "keyword", VSConstants.S_FALSE, out var key, out var value);
-                    results.Add(value);
-                }
-
-                return results;
-            });
-        }
-
         public void GoToDefinition()
             => ExecuteCommand(WellKnownCommandNames.Edit_GoToDefinition);
 

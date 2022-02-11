@@ -239,9 +239,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public string[] GetErrorTags()
             => _editorInProc.GetErrorTags();
 
-        public List<string> GetF1Keyword()
-            => _editorInProc.GetF1Keywords();
-
         public void ExpandTypeNavBar()
         {
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
