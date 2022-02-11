@@ -72,7 +72,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 _semanticChangeProcessor = new SemanticChangeProcessor(listener, _registration, _documentAndProjectWorkerProcessor, semanticBackOffTimeSpan, projectBackOffTimeSpan, _shutdownToken);
 
-                // if option is on
                 _registration.Workspace.WorkspaceChanged += OnWorkspaceChanged;
                 _registration.Workspace.DocumentOpened += OnDocumentOpened;
                 _registration.Workspace.DocumentClosed += OnDocumentClosed;
