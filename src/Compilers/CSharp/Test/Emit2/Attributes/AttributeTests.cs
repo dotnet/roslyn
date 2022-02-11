@@ -5061,7 +5061,46 @@ public class MyAttribute : Attribute { public MyAttribute(string name) {} }
             attribute.VerifyValue(0, TypedConstantKind.Primitive, "one");
             Assert.Equal(@"MyAttribute(""one"")", attribute.ToString());
 
-            CompileAndVerify(source, expectedOutput: "Hello World");
+            CompileAndVerify(source, expectedOutput: "Hello World")
+                .VerifyTypeIL("Program", @"
+.class private auto ansi beforefieldinit Program
+	extends [netstandard]System.Object
+{
+	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		01 00 00 00
+	)
+	// Methods
+	.method private hidebysig static 
+		void '<Main>$' (
+			string[] args
+		) cil managed 
+	{
+		.custom instance void MyAttribute::.ctor(string) = (
+			01 00 03 6f 6e 65 00 00
+		)
+		// Method begins at RVA 0x2050
+		// Code size 11 (0xb)
+		.maxstack 8
+		.entrypoint
+		IL_0000: ldstr ""Hello World""
+
+        IL_0005: call void[netstandard]System.Console::WriteLine(string)
+
+        IL_000a: ret
+
+    } // end of method Program::'<Main>$'
+	.method public hidebysig specialname rtspecialname
+        instance void .ctor() cil managed
+        {
+		// Method begins at RVA 0x205c
+		// Code size 7 (0x7)
+		.maxstack 8
+		IL_0000: ldarg.0
+		IL_0001: call instance void [netstandard] System.Object::.ctor()
+         IL_0006: ret
+    } // end of method Program::.ctor
+} // end of class Program
+");
         }
 
         [Fact]
