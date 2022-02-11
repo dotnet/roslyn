@@ -3603,7 +3603,8 @@ class Program
     static T Goo<T>(Action<T, T> x) { throw null; }
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true), verify: Verification.Fails).VerifyDiagnostics();
+            // PEVerify: [ : Program::Main][mdToken=0x6000001][offset 0x0000002C][found unmanaged pointer][expected unmanaged pointer] Unexpected type on the stack.
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
             var tree = verifier.Compilation.SyntaxTrees.Single();
             var model = verifier.Compilation.GetSemanticModel(tree);
@@ -3630,7 +3631,8 @@ class Program
     static T Goo<T>(Action<T, T> x) { throw null; }
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true), verify: Verification.Fails).VerifyDiagnostics();
+            // PEVerify: [ : Program::Main][mdToken=0x6000001][offset 0x0000002C][found unmanaged pointer][expected unmanaged pointer] Unexpected type on the stack.
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
             var tree = verifier.Compilation.SyntaxTrees.Single();
             var model = verifier.Compilation.GetSemanticModel(tree);
