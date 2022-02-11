@@ -105,6 +105,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int ConditionalAccessExpression { get; }
         int ConditionalExpression { get; }
         int? ImplicitObjectCreationExpression { get; }
+        int? IndexExpression { get; }
         int InterpolatedStringExpression { get; }
         int InvocationExpression { get; }
         int LogicalAndExpression { get; }
@@ -113,6 +114,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         int ObjectCreationExpression { get; }
         int ParenthesizedExpression { get; }
         int QueryExpression { get; }
+        int? RangeExpression { get; }
         int ReferenceEqualsExpression { get; }
         int ReferenceNotEqualsExpression { get; }
         int SimpleMemberAccessExpression { get; }
