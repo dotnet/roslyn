@@ -52,6 +52,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\CSharpUseConditionalExpressionHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseConditionalExpression\MultiLineConditionalExpressionFormattingRule.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseDeconstruction\CSharpUseDeconstructionCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\UseIsNullCheckHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseParameterNullChecking\CSharpUseParameterNullCheckingCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseTupleSwap\CSharpUseTupleSwapCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseDefaultLiteral\CSharpUseDefaultLiteralCodeFixProvider.cs" />
