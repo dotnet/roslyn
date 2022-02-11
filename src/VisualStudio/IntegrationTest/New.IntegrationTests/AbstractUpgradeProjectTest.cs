@@ -2,31 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Linq;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Xunit;
-using Xunit.Abstractions;
-using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
-    public abstract class AbstractUpdateProjectTest : AbstractIntegrationTest
+    public abstract class AbstractUpgradeProjectTest : AbstractIntegrationTest
     {
-        protected AbstractUpdateProjectTest(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
-        {
-        }
-
-        protected XElement GetProjectFileElement(ProjectUtils.Project project)
+        protected async Task<XElement> GetProjectFileElementAsync(string projectName, CancellationToken cancellationToken)
         {
             // Save the project file.
-            VisualStudio.SolutionExplorer.SaveAll();
+            await TestServices.SolutionExplorer.SaveAllAsync(cancellationToken);
 
-            var projectFileContent = VisualStudio.SolutionExplorer.GetFileContents(project, Path.GetFileName(project.RelativePath));
+            var projectFileContent = await TestServices.SolutionExplorer.GetFileContentsAsync(projectName, $"{ProjectName}.csproj", cancellationToken);
             return XElement.Parse(projectFileContent);
         }
 
@@ -50,7 +42,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
                 => element.Name.LocalName == "PropertyGroup" && element.Attributes().Any(a => a.Name.LocalName == "Condition");
         }
 
-        private static string GetPropertyValue(XElement propertyGroup, string propertyName)
+        private static string? GetPropertyValue(XElement propertyGroup, string propertyName)
             => propertyGroup.Elements().SingleOrDefault(e => e.Name.LocalName == propertyName)?.Value;
     }
 }
