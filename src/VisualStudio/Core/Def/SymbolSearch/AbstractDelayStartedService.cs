@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
@@ -28,11 +29,12 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
     {
         private readonly List<string> _registeredLanguageNames = new();
 
-        protected readonly Workspace Workspace;
+        private readonly Workspace _workspace;
+        private readonly IAsynchronousOperationListener _asyncListener;
         private readonly IGlobalOptionService _globalOptions;
 
         // Option that controls if this service is enabled or not (regardless of language).
-        private readonly Option2<bool> _globalSwitch;
+        private readonly Option2<bool> _featureEnabledOption;
 
         // Options that control if this service is enabled or not for a particular language.
         private readonly ImmutableArray<PerLanguageOption2<bool>> _perLanguageOptions;
@@ -42,17 +44,19 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         protected CancellationToken DisposalToken { get; }
 
         protected AbstractDelayStartedService(
+            IGlobalOptionService globalOptions,
+            IAsynchronousOperationListenerProvider listenerProvider,
             IThreadingContext threadingContext,
             Workspace workspace,
-            IGlobalOptionService globalOptions,
-            Option2<bool> globalSwitch,
-            params PerLanguageOption2<bool>[] perLanguageOptions)
+            Option2<bool> featureEnabledOption,
+            ImmutableArray<PerLanguageOption2<bool>> perLanguageOptions)
             : base(threadingContext)
         {
-            Workspace = workspace;
+            _workspace = workspace;
+            _asyncListener = listenerProvider.GetListener(FeatureAttribute.Workspace);
             _globalOptions = globalOptions;
-            _globalSwitch = globalSwitch;
-            _perLanguageOptions = perLanguageOptions.ToImmutableArray();
+            _featureEnabledOption = featureEnabledOption;
+            _perLanguageOptions = perLanguageOptions;
             DisposalToken = threadingContext.DisposalToken;
         }
 
@@ -64,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         {
             this.AssertIsForeground();
 
-            if (!_globalOptions.GetOption(_globalSwitch))
+            if (!_globalOptions.GetOption(_featureEnabledOption))
             {
                 // Feature is totally disabled.  Do nothing.
                 return;
@@ -74,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             if (_registeredLanguageNames.Count == 1)
             {
                 // Register to hear about option changing.
-                var optionsService = Workspace.Services.GetService<IOptionService>();
+                var optionsService = _workspace.Services.GetRequiredService<IOptionService>();
                 optionsService.OptionChanged += OnOptionChanged;
             }
 
@@ -92,8 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 return;
             }
 
-            var listenerProvider = Workspace.Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
-            var asyncToken = listenerProvider.GetListener().BeginAsyncOperation(nameof(AbstractDelayStartedService.EnableServiceAsync), tag: GetType());
+            var asyncToken = _asyncListener.BeginAsyncOperation(nameof(AbstractDelayStartedService.EnableServiceAsync), tag: GetType());
             var enableAsync = ThreadingContext.JoinableTaskFactory.RunAsync(async () =>
             {
                 // The first time we see that we're registered for a language, enable the
@@ -112,9 +115,6 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         }
 
         private bool IsRegisteredForLanguage(string language)
-        {
-            var options = Workspace.Options;
-            return _perLanguageOptions.Any(o => options.GetOption(o, language));
-        }
+            => _perLanguageOptions.Any(option => _globalOptions.GetOption(option, language));
     }
 }

@@ -6,6 +6,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.CommandHandlers;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -19,7 +20,7 @@ using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 
-namespace Microsoft.CodeAnalysis.Editor.GoToBase
+namespace Microsoft.CodeAnalysis.GoToBase
 {
     [Export(typeof(VSCommanding.ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]

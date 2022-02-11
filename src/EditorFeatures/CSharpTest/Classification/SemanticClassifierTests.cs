@@ -3801,6 +3801,51 @@ Json.Comment("// comment"));
 
         [Theory]
         [CombinatorialData]
+        public async Task TestJson_NoComment_NotLikelyJson(TestHost testHost)
+        {
+            var input = @"
+class C
+{
+    void Goo()
+    {
+        var r = @""[1, 2, 3]"";
+    }
+}";
+            await TestAsync(input,
+testHost,
+Keyword("var"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestJson_NoComment_LikelyJson(TestHost testHost)
+        {
+            var input = @"
+class C
+{
+    void Goo()
+    {
+        var r = @""[1, { prop: 0 }, 3]"";
+    }
+}";
+            await TestAsync(input,
+testHost,
+Keyword("var"),
+Json.Array("["),
+Json.Number("1"),
+Json.Punctuation(","),
+Json.Object("{"),
+Json.PropertyName("prop"),
+Json.Punctuation(":"),
+Json.Number("0"),
+Json.Object("}"),
+Json.Punctuation(","),
+Json.Number("3"),
+Json.Array("]"));
+        }
+
+        [Theory]
+        [CombinatorialData]
         public async Task TestJsonOnApiWithStringSyntaxAttribute_Field(TestHost testHost)
         {
             await TestAsync(
