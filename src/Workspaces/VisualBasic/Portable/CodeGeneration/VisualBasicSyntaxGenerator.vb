@@ -2759,7 +2759,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return declaration
         End Function
 
-        Friend Overrides Function WithExplicitInterfaceImplementations(declaration As SyntaxNode, explicitInterfaceImplementations As ImmutableArray(Of ISymbol)) As SyntaxNode
+        Friend Overrides Function WithExplicitInterfaceImplementations(
+                declaration As SyntaxNode,
+                explicitInterfaceImplementations As ImmutableArray(Of ISymbol),
+                Optional removeDefaults As Boolean = True) As SyntaxNode
+            ' removeDefaults is ignored in VB as the impl method is always directly callable
+
             If TypeOf declaration Is MethodStatementSyntax Then
                 Dim methodStatement = DirectCast(declaration, MethodStatementSyntax)
 

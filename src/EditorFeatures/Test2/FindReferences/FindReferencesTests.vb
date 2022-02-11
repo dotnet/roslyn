@@ -5,7 +5,6 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Editor.FindUsages
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.FindUsages
@@ -73,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                     Assert.NotNull(startDocument)
 
                     Dim findRefsService = startDocument.GetLanguageService(Of IFindUsagesService)
-                    Dim context = New TestContext(workspace.GlobalOptions)
+                    Dim context = New TestContext()
                     Await findRefsService.FindReferencesAsync(context, startDocument, cursorPosition, CancellationToken.None)
 
                     Dim expectedDefinitions =
@@ -225,9 +224,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Public ReadOnly Definitions As List(Of DefinitionItem) = New List(Of DefinitionItem)()
             Public ReadOnly References As List(Of SourceReferenceItem) = New List(Of SourceReferenceItem)()
 
-            Public Sub New(globalOptions As IGlobalOptionService)
-                MyBase.New(globalOptions)
+            Public Sub New()
             End Sub
+
+            Public Overrides Function GetOptionsAsync(language As String, cancellationToken As CancellationToken) As ValueTask(Of FindUsagesOptions)
+                Return ValueTaskFactory.FromResult(FindUsagesOptions.Default)
+            End Function
 
             Public Function ShouldShow(definition As DefinitionItem) As Boolean
                 If References.Any(Function(r) r.Definition Is definition) Then

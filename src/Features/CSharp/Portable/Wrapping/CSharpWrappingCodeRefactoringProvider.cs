@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Wrapping.BinaryExpression;
 using Microsoft.CodeAnalysis.CSharp.Wrapping.ChainedExpression;
+using Microsoft.CodeAnalysis.CSharp.Wrapping.InitializerExpression;
 using Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList;
 using Microsoft.CodeAnalysis.Wrapping;
 
@@ -23,7 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping
                 new CSharpArgumentWrapper(),
                 new CSharpParameterWrapper(),
                 new CSharpBinaryExpressionWrapper(),
-                new CSharpChainedExpressionWrapper());
+                new CSharpChainedExpressionWrapper(),
+                new CSharpInitializerExpressionWrapper());
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]

@@ -758,5 +758,30 @@ class C
                 FixedCode = source,
             }.RunAsync();
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]
+        [WorkItem(49347, "https://github.com/dotnet/roslyn/issues/49347")]
+        public async Task TestNotInExpressionTree()
+        {
+            var source =
+@"
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+class C
+{
+    void Goo(List<int> s)
+    {
+        Expression<Func<int>> f = () => s[s.Count - 1];
+    }
+}";
+
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.NetCore.NetCoreApp31,
+                TestCode = source,
+                FixedCode = source,
+            }.RunAsync();
+        }
     }
 }

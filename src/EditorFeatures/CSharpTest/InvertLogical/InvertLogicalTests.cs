@@ -670,7 +670,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InvertLogical
 {
     void M(bool x, int a, object b)
     {
-        var c = !(a <= 10 || !(b is string s));
+        var c = !(a <= 10 || b is not string s);
     }
 }", parseOptions: CSharp9);
         }

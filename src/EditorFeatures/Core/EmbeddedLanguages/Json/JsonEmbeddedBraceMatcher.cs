@@ -39,7 +39,10 @@ namespace Microsoft.CodeAnalysis.Editor.EmbeddedLanguages.Json
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var detector = JsonLanguageDetector.GetOrCreate(semanticModel.Compilation, _info);
-            var tree = detector.TryParseString(token, semanticModel, cancellationToken);
+
+            // We do support brace matching in strings that look very likely to be json, even if we aren't 100% certain
+            // if it truly is json.
+            var tree = detector.TryParseString(token, semanticModel, includeProbableStrings: true, cancellationToken);
             if (tree == null)
                 return null;
 
