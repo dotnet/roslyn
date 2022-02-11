@@ -310,6 +310,12 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public bool IsPredefinedType(SyntaxToken token, PredefinedType type)
             => TryGetPredefinedType(token, out var actualType) && actualType == type;
 
+        public bool IsPredefinedType(SyntaxNode? node)
+            => node is PredefinedTypeSyntax predefinedType && IsPredefinedType(predefinedType.Keyword);
+
+        public bool IsPredefinedType(SyntaxNode? node, PredefinedType type)
+            => node is PredefinedTypeSyntax predefinedType && IsPredefinedType(predefinedType.Keyword, type);
+
         public bool TryGetPredefinedType(SyntaxToken token, out PredefinedType type)
         {
             type = GetPredefinedType(token);

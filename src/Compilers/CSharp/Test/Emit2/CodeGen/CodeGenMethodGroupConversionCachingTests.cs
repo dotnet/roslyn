@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -146,7 +147,8 @@ static class E
     public static void Target(this C that) { Console.WriteLine(""FAIL""); }
 }
 ";
-        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: VerifyNoCacheContainersIn("C"));
+        // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 14 }
+        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: VerifyNoCacheContainersIn("C"), verify: Verification.FailsILVerify);
         verifier.VerifyIL("C.Main", @"
 {
   // Code size       37 (0x25)
@@ -188,7 +190,8 @@ static class E
     public static void Target(this C that) { Console.WriteLine(""FAIL""); }
 }
 ";
-        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: VerifyNoCacheContainersIn("C"));
+        // ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 14 }
+        var verifier = CompileAndVerify(source, expectedOutput: PASS, symbolValidator: VerifyNoCacheContainersIn("C"), verify: Verification.FailsILVerify);
         verifier.VerifyIL("C.Main", @"
 {
   // Code size       37 (0x25)

@@ -137,8 +137,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (operation is not IBinaryOperation binaryOperation)
             {
                 // x is y   ->    x is not y
+                //
+                // special case `x is not object` to `x is null`
                 if (syntaxFacts.IsIsTypeExpression(expressionNode) && syntaxFacts.SupportsNotPattern(semanticModel.SyntaxTree.Options))
-                    return generatorInternal.IsPatternExpression(leftOperand, operatorToken, generatorInternal.NotPattern(generatorInternal.TypePattern(rightOperand)));
+                {
+                    return syntaxFacts.IsPredefinedType(rightOperand, PredefinedType.Object)
+                        ? generatorInternal.IsPatternExpression(leftOperand, operatorToken, generatorInternal.ConstantPattern(generator.NullLiteralExpression()))
+                        : generatorInternal.IsPatternExpression(leftOperand, operatorToken, generatorInternal.NotPattern(generatorInternal.TypePattern(rightOperand)));
+                }
 
                 // Apply the logical not operator if it is not a binary operation.
                 return generator.LogicalNotExpression(expressionNode);
@@ -240,7 +246,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             if (syntaxFacts.IsNotPattern(pattern))
             {
+                // it's fine to have `not string s` (or `not (string s)`) as long as we're currently in a location where
+                // designators are legal themselves.
                 syntaxFacts.GetPartsOfUnaryPattern(pattern, out _, out var subPattern);
+                if (syntaxFacts.IsParenthesizedPattern(subPattern))
+                    subPattern = syntaxFacts.GetPatternOfParenthesizedPattern(subPattern);
+
+                if (syntaxFacts.IsDeclarationPattern(subPattern))
+                    return designatorsLegal;
+
                 return IsLegalPattern(syntaxFacts, subPattern, designatorsLegal: false);
             }
 

@@ -58,6 +58,62 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        [WorkItem(58483, "https://github.com/dotnet/roslyn/issues/58483")]
+        public async Task TestIsNullTitle()
+        {
+            await TestExactActionSetOfferedAsync(
+@"using System;
+
+class C
+{
+    void M(string s)
+    {
+        if ([||]ReferenceEquals(s, null))
+            return;
+    }
+}",
+new[] { CSharpAnalyzersResources.Use_is_null_check });
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        [WorkItem(58483, "https://github.com/dotnet/roslyn/issues/58483")]
+        public async Task TestIsObjectTitle()
+        {
+            await TestExactActionSetOfferedAsync(
+@"using System;
+
+class C
+{
+    void M(string s)
+    {
+        if (![||]ReferenceEquals(s, null))
+            return;
+    }
+}",
+new[] { CSharpAnalyzersResources.Use_is_object_check },
+new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        [WorkItem(58483, "https://github.com/dotnet/roslyn/issues/58483")]
+        public async Task TestIsNotNullTitle()
+        {
+            await TestExactActionSetOfferedAsync(
+@"using System;
+
+class C
+{
+    void M(string s)
+    {
+        if (![||]ReferenceEquals(s, null))
+            return;
+    }
+}",
+new[] { CSharpAnalyzersResources.Use_is_not_null_check },
+new TestParameters(parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp9)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
         public async Task TestBuiltInType()
         {
             await TestInRegularAndScript1Async(

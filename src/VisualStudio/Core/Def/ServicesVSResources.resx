@@ -978,9 +978,6 @@ Additional information: {1}</value>
   <data name="Colorize_JSON_strings" xml:space="preserve">
     <value>Colorize JSON strings</value>
   </data>
-  <data name="Detect_and_offer_editor_features_for_likely_JSON_strings" xml:space="preserve">
-    <value>Detect and offer editor features for likely JSON strings</value>
-  </data>
   <data name="JSON_strings" xml:space="preserve">
     <value>JSON strings</value>
   </data>
@@ -1324,8 +1321,8 @@ Additional information: {1}</value>
   <data name="Code_analysis_terminated_before_completion_for_Solution" xml:space="preserve">
     <value>Code analysis terminated before completion for Solution.</value>
   </data>
-  <data name="Background_analysis_scope_colon" xml:space="preserve">
-    <value>Background analysis scope:</value>
+  <data name="Run_background_code_analysis_for_colon" xml:space="preserve">
+    <value>Run background code analysis for:</value>
   </data>
   <data name="Current_document" xml:space="preserve">
     <value>Current document</value>
@@ -1833,6 +1830,10 @@ Additional information: {1}</value>
   </data>
   <data name="Default_Open_Documents" xml:space="preserve">
     <value>Default (Open Documents)</value>
+    <comment>This text is a menu command</comment>
+  </data>
+  <data name="Default_None" xml:space="preserve">
+    <value>Default (None)</value>
     <comment>This text is a menu command</comment>
   </data>
   <data name="Suppress_hints_when_argument_matches_parameter_name" xml:space="preserve">

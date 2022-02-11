@@ -214,7 +214,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var solutionClosingContext = UIContext.FromUIContextGuid(VSConstants.UICONTEXT.SolutionClosing_guid);
             solutionClosingContext.UIContextChanged += (_, e) => _solutionClosing = e.Activated;
 
-            var openFileTracker = await OpenFileTracker.CreateAsync(this, _threadingContext, asyncServiceProvider).ConfigureAwait(true);
+            var openFileTracker = await OpenFileTracker.CreateAsync(this, asyncServiceProvider).ConfigureAwait(true);
             var memoryListener = await VirtualMemoryNotificationListener.CreateAsync(this, _threadingContext, asyncServiceProvider, _globalOptions, _threadingContext.DisposalToken).ConfigureAwait(true);
 
             // Update our fields first, so any asynchronous work that needs to use these is able to see the service.
@@ -1565,9 +1565,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// Applies a single operation to the workspace. <paramref name="action"/> should be a call to one of the protected Workspace.On* methods.
         /// </summary>
-        public async ValueTask ApplyChangeToWorkspaceMaybeAsync(bool useAsync, Action<Workspace> action, CancellationToken cancellationToken = default)
+        public async ValueTask ApplyChangeToWorkspaceMaybeAsync(bool useAsync, Action<Workspace> action)
         {
-            using (useAsync ? await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false) : _gate.DisposableWait(cancellationToken))
+            using (useAsync ? await _gate.DisposableWaitAsync().ConfigureAwait(false) : _gate.DisposableWait())
             {
                 action(this);
             }
