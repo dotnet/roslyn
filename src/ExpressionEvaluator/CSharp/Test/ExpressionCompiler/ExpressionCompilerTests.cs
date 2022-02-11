@@ -6952,5 +6952,54 @@ class C
   IL_0011:  ret
 }");
         }
+
+        [Fact]
+        public void EvaluateField_PropertyUsesField()
+        {
+            var source =
+@"class C
+{
+    public int P
+    {
+        get
+        {
+            field = 10;
+            return field;
+        }
+        set => field = value;
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics();
+            WithRuntimeInstance(compilation, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.get_P");
+                var testData = new CompilationTestData();
+                var result = context.CompileExpression("field", out var error, testData);
+
+                // PROTOTYPE(semi-auto-props): Likely incorrect behavior.
+                Assert.Equal("error CS0103: The name 'field' does not exist in the current context", error);
+            });
+        }
+
+        [Fact]
+        public void EvaluateField_PropertyDoesNotUseField()
+        {
+            var source =
+@"class C
+{
+    public int P { get => 0; set => _ = value; }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics();
+            WithRuntimeInstance(compilation, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.get_P");
+                var testData = new CompilationTestData();
+                var result = context.CompileExpression("field", out var error, testData);
+
+                Assert.Equal("error CS0103: The name 'field' does not exist in the current context", error);
+            });
+        }
     }
 }
