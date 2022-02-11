@@ -224,6 +224,18 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <returns>The <see cref="CodeFixProvider"/> to be used.</returns>
         protected abstract IEnumerable<CodeFixProvider> GetCodeFixProviders();
 
+        /// <summary>
+        /// Creates a code fix context to be used for testing.
+        /// </summary>
+        /// <param name="document">Document to fix.</param>
+        /// <param name="span">Text span within the <paramref name="document"/> to fix.</param>
+        /// <param name="diagnostics">Diagnostic to fix.</param>
+        /// <param name="registerCodeFix">Delegate to register a <see cref="CodeAction"/> fixing a subset of diagnostics.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>New <see cref="CodeFixContext"/>.</returns>
+        protected virtual CodeFixContext CreateCodeFixContext(Document document, TextSpan span, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix, CancellationToken cancellationToken)
+            => new CodeFixContext(document, span, diagnostics, registerCodeFix, cancellationToken);
+
         /// <inheritdoc />
         protected override bool IsCompilerDiagnosticIncluded(Diagnostic diagnostic, CompilerDiagnostics compilerDiagnostics)
         {
@@ -590,7 +602,7 @@ namespace Microsoft.CodeAnalysis.Testing
                             continue;
                         }
 
-                        var context = new CodeFixContext(fixableDocument, diagnostic, (a, d) => actions.Add(a), cancellationToken);
+                        var context = CreateCodeFixContext(fixableDocument, diagnostic.Location.SourceSpan, ImmutableArray.Create(diagnostic), (a, d) => actions.Add(a), cancellationToken);
                         await codeFixProvider.RegisterCodeFixesAsync(context).ConfigureAwait(false);
                     }
 
@@ -733,7 +745,7 @@ namespace Microsoft.CodeAnalysis.Testing
                         }
 
                         var actionsBuilder = ImmutableArray.CreateBuilder<CodeAction>();
-                        var context = new CodeFixContext(diagnosticDocument, diagnostic, (a, d) => actionsBuilder.Add(a), cancellationToken);
+                        var context = CreateCodeFixContext(diagnosticDocument, diagnostic.Location.SourceSpan, ImmutableArray.Create(diagnostic), (a, d) => actionsBuilder.Add(a), cancellationToken);
                         await codeFixProvider.RegisterCodeFixesAsync(context).ConfigureAwait(false);
                         actions.AddRange(FilterCodeActions(actionsBuilder.ToImmutable()).Select(action => (action, codeFixProvider)));
                     }
