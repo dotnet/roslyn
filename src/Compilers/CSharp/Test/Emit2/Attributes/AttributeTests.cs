@@ -5061,6 +5061,21 @@ public class MyAttribute : Attribute { public MyAttribute(string name) {} }
             attribute.VerifyValue(0, TypedConstantKind.Primitive, "one");
             Assert.Equal(@"MyAttribute(""one"")", attribute.ToString());
 
+            CompileAndVerify(source, expectedOutput: "Hello World");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void TestMainAttributes_IL()
+        {
+            var source = CreateCompilation(@"
+using System;
+
+[main: My(""one"")]
+Console.WriteLine(""Hello World"");
+
+public class MyAttribute : Attribute { public MyAttribute(string name) {} }
+");
+
             CompileAndVerify(source, expectedOutput: "Hello World")
                 .VerifyTypeIL("Program", @"
 .class private auto ansi beforefieldinit Program
