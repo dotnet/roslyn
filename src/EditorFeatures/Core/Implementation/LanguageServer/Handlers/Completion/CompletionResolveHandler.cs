@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// references to VS icon types and classified text runs are removed.
     /// See https://github.com/dotnet/roslyn/issues/55142
     /// </summary>
+    [Method(LSP.Methods.TextDocumentCompletionResolveName)]
     internal sealed class CompletionResolveHandler : IRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
     {
         private readonly CompletionListCache _completionListCache;

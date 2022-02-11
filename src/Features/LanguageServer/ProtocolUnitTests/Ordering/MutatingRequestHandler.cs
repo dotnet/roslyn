@@ -4,7 +4,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,34 +14,26 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
     [Shared, ExportRoslynLanguagesLspRequestHandlerProvider, PartNotDiscoverable]
-    [ProvidesMethod(MutatingRequestHandler.MethodName, typeof(MutatingRequestHandler))]
-    internal class MutatingRequestHandlerProvider : AbstractRequestHandlerProvider
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public MutatingRequestHandlerProvider()
-        {
-        }
-
-        public override ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
-        {
-            return ImmutableArray.Create<IRequestHandler>(new MutatingRequestHandler());
-        }
-    }
-
-    internal class MutatingRequestHandler : IRequestHandler<TestRequest, TestResponse>
+    [Method(MethodName)]
+    internal class MutatingRequestHandler : AbstractStatelessRequestHandler<TestRequest, TestResponse>
     {
         public const string MethodName = nameof(MutatingRequestHandler);
         private const int Delay = 100;
 
-        public string Method => MethodName;
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public MutatingRequestHandler()
+        {
+        }
 
-        public bool MutatesSolutionState => true;
-        public bool RequiresLSPSolution => true;
+        public override string Method => MethodName;
 
-        public TextDocumentIdentifier GetTextDocumentIdentifier(TestRequest request) => null;
+        public override bool MutatesSolutionState => true;
+        public override bool RequiresLSPSolution => true;
 
-        public async Task<TestResponse> HandleRequestAsync(TestRequest request, RequestContext context, CancellationToken cancellationToken)
+        public override TextDocumentIdentifier GetTextDocumentIdentifier(TestRequest request) => null;
+
+        public override async Task<TestResponse> HandleRequestAsync(TestRequest request, RequestContext context, CancellationToken cancellationToken)
         {
             var response = new TestResponse
             {

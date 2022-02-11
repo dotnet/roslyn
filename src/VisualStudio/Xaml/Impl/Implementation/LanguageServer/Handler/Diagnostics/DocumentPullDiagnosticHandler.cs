@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Diagnostics;
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Handler.Diagnostics
 {
     [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
-    [ProvidesMethod(VSInternalMethods.DocumentPullDiagnosticName, typeof(DocumentPullDiagnosticHandler))]
+    [Method(VSInternalMethods.DocumentPullDiagnosticName)]
     internal class DocumentPullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport>
     {
         [ImportingConstructor]

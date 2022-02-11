@@ -9,17 +9,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-    internal class ProvidesMethodAttribute : Attribute
+    internal class MethodAttribute : Attribute
     {
         /// <summary>
         /// Contains the method and concrete type of the request handler that implements <see cref="IRequestHandler{RequestType, ResponseType}"/>.
         /// The type and method are passed to StreamJsonRpc to create RPC targets without actually instantiating the handler.
         /// </summary>
-        public (string Method, Type RequestHandlerType) RequestMetadata { get; }
+        public string Method { get; }
 
-        public ProvidesMethodAttribute(string method, Type requestHandlerType)
+        public MethodAttribute(string method)
         {
-            RequestMetadata = (method, requestHandlerType);
+            Method = method;
         }
     }
 }

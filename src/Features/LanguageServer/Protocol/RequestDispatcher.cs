@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         private readonly ImmutableDictionary<RequestHandlerMetadata, Lazy<IRequestHandler>> _requestHandlers;
 
         public RequestDispatcher(
-            ImmutableArray<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders,
+            ImmutableArray<Lazy<IRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders,
             ImmutableArray<string> languageNames,
             WellKnownLspServerKinds serverKind)
         {
@@ -33,19 +34,35 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         private static ImmutableDictionary<RequestHandlerMetadata, Lazy<IRequestHandler>> CreateMethodToHandlerMap(
-            IEnumerable<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders, WellKnownLspServerKinds serverKind)
+            IEnumerable<Lazy<IRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders, WellKnownLspServerKinds serverKind)
         {
             var requestHandlerDictionary = ImmutableDictionary.CreateBuilder<RequestHandlerMetadata, Lazy<IRequestHandler>>();
 
-            // Store the request handlers in a dictionary from request name to handler instance.
-            foreach (var handlerProvider in requestHandlerProviders)
+            // Go through all of the handler providers and lazily retrieve the handlers that they provide.
+            foreach (var lazyHandlerProvider in requestHandlerProviders)
             {
-                var handlerMetadata = handlerProvider.Metadata.HandlerMetadata;
-                // Instantiate all the providers as one lazy object and re-use it for all methods that the provider provides handlers for.
-                // This ensures 2 things:
-                // 1.  That the handler provider is not instantiated (and therefore its dependencies are not) until a handler it provides is needed.
-                // 2.  That the handler provider's CreateRequestHandlers is only called once and always returns the same handler instances.
-                var lazyProviders = new Lazy<ImmutableDictionary<string, IRequestHandler>>(() => handlerProvider.Value.CreateRequestHandlers(serverKind).ToImmutableDictionary(p => p.Method, p => p, StringComparer.OrdinalIgnoreCase));
+                var handlerProvider = lazyHandlerProvider.Value;
+
+                // Get the IRequestHandlerProvider<T> generic types that this provider is associated with.
+                var providerGenericTypes = GetGenericProviderTypes(handlerProvider);
+                foreach (var providerGenericType in providerGenericTypes)
+                {
+                    // Get the actual IRequestHandlerType that is provided by this IRequestHandlerProvider<T>
+                    var handlerType = providerGenericType.GetGenericArguments().Single();
+
+                    // Get the LSP type arguments that this handler type is created with.
+                    var (requestType, responseType) = ConvertHandlerTypeToRequestResponseTypes(handlerType);
+
+                    // Get the LSP method name from the handler's method name attribute.
+                    var methodAttribute = Attribute.GetCustomAttribute(handlerType, typeof(MethodAttribute)) as MethodAttribute;
+                    Contract.ThrowIfNull(methodAttribute, $"{handlerType} is missing Method attribute");
+
+                    // Lazily instantiate the IRequestHandler
+                    var lazyHandler = new Lazy<IRequestHandler>(() => CreateRequestHandler(handlerProvider, providerGenericType, serverKind));
+
+                    // Store the handler metadata to its associated request handler.
+                    requestHandlerDictionary.Add(new RequestHandlerMetadata(methodAttribute.Method, requestType, responseType), lazyHandler);
+                }
 
                 foreach (var (method, handlerType) in handlerMetadata)
                 {
@@ -58,6 +75,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
 
             return requestHandlerDictionary.ToImmutable();
+        }
+
+        private static ImmutableArray<Type> GetGenericProviderTypes(IRequestHandlerProvider provider)
+        {
+            var providerType = provider.GetType();
+            var providerGenericTypes = providerType.GetInterfaces().Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IRequestHandlerProvider<>)).ToImmutableArray();
+            Contract.ThrowIfTrue(providerGenericTypes.IsEmpty, $"Handler provider {providerType.FullName} does not implement any IRequestHandlerProvider<>");
+
+            return providerGenericTypes;
+        }
+
+        private static IRequestHandler CreateRequestHandler(IRequestHandlerProvider providerInstance, Type providerGenericType, WellKnownLspServerKinds serverKind)
+        {
+            var methodInfo = providerGenericType.GetMethod("CreateRequestHandler");
+            Contract.ThrowIfNull(methodInfo, $"Handler provider {providerGenericType} is missing CreateRequestHandler method");
+
+            var result = methodInfo.Invoke(providerInstance, new object[] { serverKind }) as IRequestHandler;
+            Contract.ThrowIfNull(result, $"Could not invoke {methodInfo.Name} on {providerGenericType.FullName}");
+
+            return result;
         }
 
         /// <summary>

@@ -16,12 +16,14 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(LSP.Methods.TextDocumentCompletionName, typeof(CompletionHandler))]
-    [ProvidesMethod(LSP.Methods.TextDocumentCompletionResolveName, typeof(CompletionResolveHandler))]
-    internal class CompletionHandlerProvider : AbstractRequestHandlerProvider
+    internal class CompletionHandlerProvider :
+        IRequestHandlerProvider<CompletionHandler>,
+        IRequestHandlerProvider<CompletionResolveHandler>
     {
         private readonly IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> _completionProviders;
         private readonly IGlobalOptionService _globalOptions;
+
+        private readonly Lazy<CompletionListCache> _completionListCache = new(() => new());
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -33,12 +35,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _completionProviders = completionProviders;
         }
 
-        public override ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
-        {
-            var completionListCache = new CompletionListCache();
-            return ImmutableArray.Create<IRequestHandler>(
-                new CompletionHandler(_globalOptions, _completionProviders, completionListCache),
-                new CompletionResolveHandler(_globalOptions, completionListCache));
-        }
+        CompletionHandler IRequestHandlerProvider<CompletionHandler>.CreateRequestHandler(WellKnownLspServerKinds serverKind)
+            => new(_globalOptions, _completionProviders, _completionListCache.Value);
+
+        CompletionResolveHandler IRequestHandlerProvider<CompletionResolveHandler>.CreateRequestHandler(WellKnownLspServerKinds serverKind)
+            => new(_globalOptions, _completionListCache.Value);
     }
 }

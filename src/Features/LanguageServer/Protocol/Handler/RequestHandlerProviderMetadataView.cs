@@ -17,15 +17,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     {
         public ImmutableArray<string> LanguageNames { get; set; }
 
-        public ImmutableArray<(string method, Type handlerType)> HandlerMetadata { get; set; }
-
         public RequestHandlerProviderMetadataView(IDictionary<string, object> metadata)
         {
-            var requestMetadata = metadata[nameof(ProvidesMethodAttribute.RequestMetadata)];
-            HandlerMetadata = ConvertMetadataToArray<(string method, Type requestHandlerType)>(requestMetadata);
-
             var languageMetadata = metadata[nameof(ExportLspRequestHandlerProviderAttribute.LanguageNames)];
-            LanguageNames = ConvertMetadataToArray<string>(languageMetadata);
+            LanguageNames = ConvertMetadataToArray(languageMetadata);
         }
 
         /// <summary>
@@ -35,15 +30,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// MEF cannot construct the metadata object when it sees just the string type with AllowMultiple = true,
         /// so we override and construct it ourselves here.
         /// </summary>
-        private static ImmutableArray<T> ConvertMetadataToArray<T>(object metadata)
+        private static ImmutableArray<string> ConvertMetadataToArray(object metadata)
         {
-            if (metadata is T[] arrayData)
+            if (metadata is string[] arrayData)
             {
                 return arrayData.ToImmutableArray();
             }
             else
             {
-                return ImmutableArray.Create<T>((T)metadata);
+                return ImmutableArray.Create((string)metadata);
             }
         }
     }

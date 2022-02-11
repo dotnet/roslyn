@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// This means that the handler can be shared between multiple servers
     /// and does not need to be re-instantiated on server restarts.
     /// </summary>
-    internal abstract class AbstractStatelessRequestHandler<RequestType, ResponseType> : AbstractRequestHandlerProvider, IRequestHandler<RequestType, ResponseType>
+    internal abstract class AbstractStatelessRequestHandler<RequestType, ResponseType> : IRequestHandlerProvider<AbstractStatelessRequestHandler<RequestType, ResponseType>>, IRequestHandler<RequestType, ResponseType>
     {
         public abstract string Method { get; }
 
@@ -24,9 +24,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(RequestType request);
         public abstract Task<ResponseType> HandleRequestAsync(RequestType request, RequestContext context, CancellationToken cancellationToken);
 
-        public override ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
+        AbstractStatelessRequestHandler<RequestType, ResponseType> IRequestHandlerProvider<AbstractStatelessRequestHandler<RequestType, ResponseType>>.CreateRequestHandler(WellKnownLspServerKinds serverKind)
         {
-            return ImmutableArray.Create<IRequestHandler>(this);
+            return this;
         }
     }
 }

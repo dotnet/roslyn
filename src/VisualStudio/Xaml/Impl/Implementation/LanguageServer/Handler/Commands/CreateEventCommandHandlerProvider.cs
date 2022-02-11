@@ -14,8 +14,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Handler.Commands
 {
     [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
-    [ProvidesCommand(StringConstants.CreateEventHandlerCommand, typeof(CreateEventCommandHandler))]
-    internal class CreateEventCommandHandlerProvider : AbstractRequestHandlerProvider
+    internal class CreateEventCommandHandlerProvider : IRequestHandlerProvider<CreateEventCommandHandler>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -23,9 +22,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
         {
         }
 
-        public override ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
-        {
-            return ImmutableArray.Create<IRequestHandler>(new CreateEventCommandHandler());
-        }
+        CreateEventCommandHandler IRequestHandlerProvider<CreateEventCommandHandler>.CreateRequestHandler(WellKnownLspServerKinds serverKind) => new();
     }
 }

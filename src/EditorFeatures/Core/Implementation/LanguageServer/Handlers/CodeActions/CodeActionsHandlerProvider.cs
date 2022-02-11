@@ -21,15 +21,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// share the same code actions cache state.
     /// </summary>
     [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(LSP.Methods.TextDocumentCodeActionName, typeof(CodeActionsHandler))]
-    [ProvidesMethod(LSP.Methods.CodeActionResolveName, typeof(CodeActionResolveHandler))]
-    [ProvidesCommand(CodeActionsHandler.RunCodeActionCommandName, typeof(RunCodeActionHandler))]
-    internal class CodeActionsHandlerProvider : AbstractRequestHandlerProvider
+    internal class CodeActionsHandlerProvider :
+        IRequestHandlerProvider<CodeActionsHandler>,
+        IRequestHandlerProvider<CodeActionResolveHandler>,
+        IRequestHandlerProvider<RunCodeActionHandler>
     {
         private readonly ICodeFixService _codeFixService;
         private readonly ICodeRefactoringService _codeRefactoringService;
         private readonly IThreadingContext _threadingContext;
         private readonly IGlobalOptionService _globalOptions;
+
+        private readonly Lazy<CodeActionsCache> _codeActionsCache = new(() => new());
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -45,13 +47,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _globalOptions = globalOptions;
         }
 
-        public override ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
-        {
-            var codeActionsCache = new CodeActionsCache();
-            return ImmutableArray.Create<IRequestHandler>(
-                new CodeActionsHandler(codeActionsCache, _codeFixService, _codeRefactoringService, _globalOptions),
-                new CodeActionResolveHandler(codeActionsCache, _codeFixService, _codeRefactoringService, _globalOptions),
-                new RunCodeActionHandler(codeActionsCache, _codeFixService, _codeRefactoringService, _globalOptions, _threadingContext));
-        }
+        CodeActionsHandler IRequestHandlerProvider<CodeActionsHandler>.CreateRequestHandler(WellKnownLspServerKinds serverKind)
+            => new(_codeActionsCache.Value, _codeFixService, _codeRefactoringService, _globalOptions);
+
+        CodeActionResolveHandler IRequestHandlerProvider<CodeActionResolveHandler>.CreateRequestHandler(WellKnownLspServerKinds serverKind)
+            => new(_codeActionsCache.Value, _codeFixService, _codeRefactoringService, _globalOptions);
+
+        RunCodeActionHandler IRequestHandlerProvider<RunCodeActionHandler>.CreateRequestHandler(WellKnownLspServerKinds serverKind)
+            => new(_codeActionsCache.Value, _codeFixService, _codeRefactoringService, _globalOptions, _threadingContext);
     }
 }

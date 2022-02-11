@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 /// Supports built in legacy snippets for razor scenarios.
 /// </summary>
 [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-[ProvidesMethod(VSInternalMethods.TextDocumentInlineCompletionName, typeof(InlineCompletionsHandler))]
+[Method(VSInternalMethods.TextDocumentInlineCompletionName)]
 internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandler<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList?>
 {
     /// <summary>
