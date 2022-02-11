@@ -2893,13 +2893,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     SyntaxKind.DelegateFunctionStatement
                     Return DirectCast(declaration, DelegateStatementSyntax).WithParameterList(list)
                 Case SyntaxKind.PropertyBlock
-                    If GetDeclarationKind(declaration) = DeclarationKind.Indexer Then
-                        Return DirectCast(declaration, PropertyBlockSyntax).WithPropertyStatement(DirectCast(declaration, PropertyBlockSyntax).PropertyStatement.WithParameterList(list))
-                    End If
+                    Return DirectCast(declaration, PropertyBlockSyntax).WithPropertyStatement(DirectCast(declaration, PropertyBlockSyntax).PropertyStatement.WithParameterList(list))
                 Case SyntaxKind.PropertyStatement
-                    If GetDeclarationKind(declaration) = DeclarationKind.Indexer Then
-                        Return DirectCast(declaration, PropertyStatementSyntax).WithParameterList(list)
-                    End If
+                    Return DirectCast(declaration, PropertyStatementSyntax).WithParameterList(list)
                 Case SyntaxKind.EventBlock
                     Return DirectCast(declaration, EventBlockSyntax).WithEventStatement(DirectCast(declaration, EventBlockSyntax).EventStatement.WithParameterList(list))
                 Case SyntaxKind.EventStatement
