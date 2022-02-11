@@ -9,6 +9,8 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Windows.Interop;
 using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
+using Microsoft.CodeAnalysis.InlineRename;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.VisualStudio.PlatformUI.OleComponentSupport;
 
@@ -26,11 +28,11 @@ namespace Microsoft.CodeAnalysis.Editor.InlineRename.Adornment
             _session = session;
             _session.ReplacementTextChanged += OnReplacementTextChanged;
 
-            _previewChangesFlag = _session.OptionSet.GetOption(RenameOptions.PreviewChanges);
-            _renameFileFlag = _session.OptionSet.GetOption(RenameOptions.RenameFile);
-            _renameInStringsFlag = _session.OptionSet.GetOption(RenameOptions.RenameInStrings);
-            _renameInCommentsFlag = _session.OptionSet.GetOption(RenameOptions.RenameInComments);
-            _renameOverloadsFlag = _session.OptionSet.GetOption(RenameOptions.RenameOverloads);
+            _previewChangesFlag = _session.PreviewChanges;
+            _renameFileFlag = _session.Options.RenameFile;
+            _renameInStringsFlag = _session.Options.RenameInStrings;
+            _renameInCommentsFlag = _session.Options.RenameInComments;
+            _renameOverloadsFlag = _session.Options.RenameOverloads;
 
             RegisterOleComponent();
         }
@@ -66,7 +68,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineRename.Adornment
             {
                 if (Set(ref _renameInCommentsFlag, value))
                 {
-                    _session.RefreshRenameSessionWithOptionsChanged(RenameOptions.RenameInComments, value);
+                    _session.RenameService.GlobalOptions.SetGlobalOption(new OptionKey(InlineRenameSessionOptionsStorage.RenameInComments), value);
+                    _session.RefreshRenameSessionWithOptionsChanged(_session.Options with { RenameInComments = value });
                 }
             }
         }
@@ -79,7 +82,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineRename.Adornment
             {
                 if (Set(ref _renameInStringsFlag, value))
                 {
-                    _session.RefreshRenameSessionWithOptionsChanged(RenameOptions.RenameInStrings, value);
+                    _session.RenameService.GlobalOptions.SetGlobalOption(new OptionKey(InlineRenameSessionOptionsStorage.RenameInStrings), value);
+                    _session.RefreshRenameSessionWithOptionsChanged(_session.Options with { RenameInStrings = value });
                 }
             }
         }
@@ -92,7 +96,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineRename.Adornment
             {
                 if (Set(ref _renameFileFlag, value))
                 {
-                    _session.RefreshRenameSessionWithOptionsChanged(RenameOptions.RenameFile, value);
+                    _session.RenameService.GlobalOptions.SetGlobalOption(new OptionKey(InlineRenameSessionOptionsStorage.RenameFile), value);
+                    _session.RefreshRenameSessionWithOptionsChanged(_session.Options with { RenameFile = value });
                 }
             }
         }
@@ -105,7 +110,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineRename.Adornment
             {
                 if (Set(ref _previewChangesFlag, value))
                 {
-                    _session.RefreshRenameSessionWithOptionsChanged(RenameOptions.PreviewChanges, value);
+                    _session.RenameService.GlobalOptions.SetGlobalOption(new OptionKey(InlineRenameSessionOptionsStorage.PreviewChanges), value);
+                    _session.SetPreviewChanges(value);
                 }
             }
         }
@@ -118,7 +124,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineRename.Adornment
             {
                 if (Set(ref _renameOverloadsFlag, value))
                 {
-                    _session.RefreshRenameSessionWithOptionsChanged(RenameOptions.RenameOverloads, value);
+                    _session.RenameService.GlobalOptions.SetGlobalOption(new OptionKey(InlineRenameSessionOptionsStorage.RenameOverloads), value);
+                    _session.RefreshRenameSessionWithOptionsChanged(_session.Options with { RenameOverloads = value });
                 }
             }
         }
