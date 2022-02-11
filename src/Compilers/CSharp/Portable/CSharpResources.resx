@@ -3302,7 +3302,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>'{0}' does not contain a constructor that takes {1} arguments</value>
   </data>
   <data name="ERR_GlobalAttributesNotFirst" xml:space="preserve">
-    <value>Assembly and module attributes must precede all other elements defined in a file except using clauses and extern alias declarations</value>
+    <value>Assembly, module, and main attributes must precede all other elements defined in a file except using clauses and extern alias declarations</value>
   </data>
   <data name="ERR_ExpressionExpected" xml:space="preserve">
     <value>Expected expression</value>

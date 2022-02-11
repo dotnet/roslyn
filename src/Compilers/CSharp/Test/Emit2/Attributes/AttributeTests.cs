@@ -5149,6 +5149,51 @@ public class MyAttribute : Attribute { public MyAttribute(string name) {} }
             CompileAndVerify(source, expectedOutput: "Hello World");
         }
 
+        [Fact]
+        public void TestMainAttributesAfterCode()
+        {
+            var source = CreateCompilation(@"
+using System;
+Console.WriteLine(""Hello World"");
+
+[main: My(""one"")]
+public class MyAttribute : Attribute { public MyAttribute(string name) {} }
+");
+            source.VerifyDiagnostics(
+                // (5,2): error CS1730: Assembly, module, and main attributes must precede all other elements defined in a file except using clauses and extern alias declarations
+                // [main: My("one")]
+                Diagnostic(ErrorCode.ERR_GlobalAttributesNotFirst, "main").WithLocation(5, 2)
+                );
+        }
+
+        [Theory]
+        [InlineData("All", true)]
+        [InlineData("Method", true)]
+        [InlineData("Class", false)]
+        [InlineData("Field", false)]
+        [InlineData("Assembly", false)]
+        [InlineData("Module", false)]
+        public void TestMainAttributesWithSpecificLocation(string location, bool valid)
+        {
+            var source = CreateCompilation($@"
+using System;
+
+[main: My(""one"")]
+Console.WriteLine(""Hello World"");
+
+[AttributeUsage(AttributeTargets.{location}, AllowMultiple = true)]
+public class MyAttribute : Attribute {{ public MyAttribute(string name) {{}} }}
+");
+
+            source.VerifyDiagnostics(valid ? Array.Empty<DiagnosticDescription>() :
+                new[]
+                {
+                    // (4,8): error CS0592: Attribute 'My' is not valid on this declaration type. It is only valid on '...' declarations.
+                    // [main: My("one")]
+                    Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "My").WithArguments("My", location.ToLower()).WithLocation(4, 8)
+                });
+        }
+
         #endregion
 
         #region Error Tests

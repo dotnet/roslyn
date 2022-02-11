@@ -8225,8 +8225,8 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalAttributesNotFirst">
-        <source>Assembly and module attributes must precede all other elements defined in a file except using clauses and extern alias declarations</source>
-        <target state="translated">アセンブリ属性とモジュール属性は、句および extern エイリアス宣言を使用する場合を除き、ファイルで定義された他のすべての要素の前に指定しなければなりません</target>
+        <source>Assembly, module, and main attributes must precede all other elements defined in a file except using clauses and extern alias declarations</source>
+        <target state="needs-review-translation">アセンブリ属性とモジュール属性は、句および extern エイリアス宣言を使用する場合を除き、ファイルで定義された他のすべての要素の前に指定しなければなりません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionExpected">

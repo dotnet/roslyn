@@ -49,7 +49,7 @@ public class A : Attribute { }
 ";
 
             CreateCompilation(new[] { source1, source2 }).VerifyDiagnostics(
-                // (4,6): error CS1730: Assembly and module attributes must precede all other elements defined in a file except using clauses and extern alias declarations
+                // (4,6): error CS1730: Assembly, module, and main attributes must precede all other elements defined in a file except using clauses and extern alias declarations
                 Diagnostic(ErrorCode.ERR_GlobalAttributesNotFirst, "assembly"));
         }
 

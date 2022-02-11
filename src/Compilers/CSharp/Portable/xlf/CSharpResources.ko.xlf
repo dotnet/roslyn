@@ -8224,8 +8224,8 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalAttributesNotFirst">
-        <source>Assembly and module attributes must precede all other elements defined in a file except using clauses and extern alias declarations</source>
-        <target state="translated">using 절과 extern 별칭 선언을 제외하고 어셈블리 특성과 모듈 특성은 파일에 정의된 다른 모든 요소보다 앞에 와야 합니다.</target>
+        <source>Assembly, module, and main attributes must precede all other elements defined in a file except using clauses and extern alias declarations</source>
+        <target state="needs-review-translation">using 절과 extern 별칭 선언을 제외하고 어셈블리 특성과 모듈 특성은 파일에 정의된 다른 모든 요소보다 앞에 와야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionExpected">

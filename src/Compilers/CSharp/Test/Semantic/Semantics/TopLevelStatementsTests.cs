@@ -5871,7 +5871,7 @@ class MyAttribute : System.Attribute
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
-                // (4,2): error CS1730: Assembly and module attributes must precede all other elements defined in a file except using clauses and extern alias declarations
+                // (4,2): error CS1730: Assembly, module, and main attributes must precede all other elements defined in a file except using clauses and extern alias declarations
                 // [module: MyAttribute]
                 Diagnostic(ErrorCode.ERR_GlobalAttributesNotFirst, "module").WithLocation(4, 2)
                 );

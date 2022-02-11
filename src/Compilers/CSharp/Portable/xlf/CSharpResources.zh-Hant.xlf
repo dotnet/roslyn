@@ -8225,8 +8225,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalAttributesNotFirst">
-        <source>Assembly and module attributes must precede all other elements defined in a file except using clauses and extern alias declarations</source>
-        <target state="translated">組件和模組屬性必須位於檔案中所有定義的其他項目之前 (using 子句與外部別名宣告除外)</target>
+        <source>Assembly, module, and main attributes must precede all other elements defined in a file except using clauses and extern alias declarations</source>
+        <target state="needs-review-translation">組件和模組屬性必須位於檔案中所有定義的其他項目之前 (using 子句與外部別名宣告除外)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionExpected">

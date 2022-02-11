@@ -8225,8 +8225,8 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalAttributesNotFirst">
-        <source>Assembly and module attributes must precede all other elements defined in a file except using clauses and extern alias declarations</source>
-        <target state="translated">Assembly ve module öznitelikleri, using yan tümceleri ve extern diğer ad bildirimleri dışında dosyada tanımlanan diğer tüm öğelerden önce gelmelidir</target>
+        <source>Assembly, module, and main attributes must precede all other elements defined in a file except using clauses and extern alias declarations</source>
+        <target state="needs-review-translation">Assembly ve module öznitelikleri, using yan tümceleri ve extern diğer ad bildirimleri dışında dosyada tanımlanan diğer tüm öğelerden önce gelmelidir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionExpected">

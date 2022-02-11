@@ -8225,8 +8225,8 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
         <note />
       </trans-unit>
       <trans-unit id="ERR_GlobalAttributesNotFirst">
-        <source>Assembly and module attributes must precede all other elements defined in a file except using clauses and extern alias declarations</source>
-        <target state="translated">Os atributos assembly e module devem preceder todos os outros elementos definidos em um arquivo, exceto as cláusulas using e as declarações de alias externas</target>
+        <source>Assembly, module, and main attributes must precede all other elements defined in a file except using clauses and extern alias declarations</source>
+        <target state="needs-review-translation">Os atributos assembly e module devem preceder todos os outros elementos definidos em um arquivo, exceto as cláusulas using e as declarações de alias externas</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionExpected">
