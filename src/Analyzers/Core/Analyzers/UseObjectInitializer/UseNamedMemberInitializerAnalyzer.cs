@@ -119,7 +119,10 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                     break;
                 }
 
-                var type = _semanticModel.GetSymbolInfo(_syntaxFacts.GetTypeOfObjectCreationExpression(_objectCreationExpression), _cancellationToken).Symbol as INamedTypeSymbol;
+                var type = _semanticModel.GetTypeInfo(_objectCreationExpression, _cancellationToken).Type;
+                if (type == null)
+                    break;
+
                 if (IsExplicitlyImplemented(type, leftSymbol, out var typeMember))
                     break;
 
@@ -167,7 +170,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         }
 
         private static bool IsExplicitlyImplemented(
-            INamedTypeSymbol classOrStructType,
+            ITypeSymbol classOrStructType,
             ISymbol member,
             out ISymbol typeMember)
         {
