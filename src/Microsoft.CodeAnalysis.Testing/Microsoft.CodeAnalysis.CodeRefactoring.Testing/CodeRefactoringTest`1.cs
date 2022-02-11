@@ -227,6 +227,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 numberOfIterations = -numberOfIterations;
             }
 
+            ExceptionDispatchInfo? firstValidationError = null;
             var currentIteration = -1;
             bool done;
             do
@@ -239,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 }
                 catch (Exception ex)
                 {
-                    return (project, ExceptionDispatchInfo.Capture(ex));
+                    return (project, firstValidationError ?? ExceptionDispatchInfo.Capture(ex));
                 }
 
                 done = true;
@@ -262,7 +263,8 @@ namespace Microsoft.CodeAnalysis.Testing
                     anyActions = true;
 
                     var originalProjectId = project.Id;
-                    var fixedProject = await ApplyCodeActionAsync(triggerDocument.Project, actionToApply, verifier, cancellationToken).ConfigureAwait(false);
+                    var (fixedProject, currentError) = await ApplyCodeActionAsync(triggerDocument.Project, actionToApply, verifier, cancellationToken).ConfigureAwait(false);
+                    firstValidationError ??= currentError;
                     if (fixedProject != triggerDocument.Project)
                     {
                         done = false;
@@ -294,10 +296,10 @@ namespace Microsoft.CodeAnalysis.Testing
             }
             catch (Exception ex)
             {
-                return (project, ExceptionDispatchInfo.Capture(ex));
+                return (project, firstValidationError ?? ExceptionDispatchInfo.Capture(ex));
             }
 
-            return (project, null);
+            return (project, firstValidationError);
 
             async Task<Location> GetTriggerLocationAsync()
             {

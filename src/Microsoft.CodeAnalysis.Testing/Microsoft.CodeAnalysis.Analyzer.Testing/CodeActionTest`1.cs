@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -195,17 +196,18 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="verifier">The verifier to use for test assertions.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the task will observe.</param>
         /// <returns>A <see cref="Project"/> with the changes from the <see cref="CodeAction"/>.</returns>
-        protected async Task<Project> ApplyCodeActionAsync(Project project, CodeAction codeAction, IVerifier verifier, CancellationToken cancellationToken)
+        protected async Task<(Project updatedProject, ExceptionDispatchInfo? validationError)> ApplyCodeActionAsync(Project project, CodeAction codeAction, IVerifier verifier, CancellationToken cancellationToken)
         {
             var operations = await codeAction.GetOperationsAsync(cancellationToken).ConfigureAwait(false);
             var solution = operations.OfType<ApplyChangesOperation>().Single().ChangedSolution;
             var changedProject = solution.GetProject(project.Id);
+            ExceptionDispatchInfo? validationError = null;
             if (changedProject != project)
             {
-                project = await RecreateProjectDocumentsAsync(changedProject, verifier, cancellationToken).ConfigureAwait(false);
+                (project, validationError) = await RecreateProjectDocumentsAsync(changedProject, verifier, cancellationToken).ConfigureAwait(false);
             }
 
-            return project;
+            return (project, validationError);
         }
 
         /// <summary>
@@ -215,15 +217,16 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="verifier">The verifier to use for test assertions.</param>
         /// <param name="cancellationToken">The <see cref="CancellationToken"/>.</param>
         /// <returns>The updated <see cref="Project"/>.</returns>
-        private async Task<Project> RecreateProjectDocumentsAsync(Project project, IVerifier verifier, CancellationToken cancellationToken)
+        private async Task<(Project updatedProject, ExceptionDispatchInfo? validationError)> RecreateProjectDocumentsAsync(Project project, IVerifier verifier, CancellationToken cancellationToken)
         {
+            ExceptionDispatchInfo? validationError = null;
             foreach (var documentId in project.DocumentIds)
             {
                 var document = project.GetDocument(documentId);
                 var initialTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 document = await RecreateDocumentAsync(document, cancellationToken).ConfigureAwait(false);
                 var recreatedTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                if (CodeActionValidationMode != CodeActionValidationMode.None)
+                if (CodeActionValidationMode != CodeActionValidationMode.None && validationError is null)
                 {
                     try
                     {
@@ -236,23 +239,32 @@ namespace Microsoft.CodeAnalysis.Testing
                             await initialTree.GetRootAsync(cancellationToken).ConfigureAwait(false),
                             checkTrivia: CodeActionValidationMode == CodeActionValidationMode.Full);
                     }
-                    catch
+                    catch (Exception genericError)
                     {
                         // Try to revalidate the tree with a better message
                         var renderedInitialTree = TreeToString(await initialTree.GetRootAsync(cancellationToken).ConfigureAwait(false), CodeActionValidationMode);
                         var renderedRecreatedTree = TreeToString(await recreatedTree.GetRootAsync(cancellationToken).ConfigureAwait(false), CodeActionValidationMode);
-                        verifier.EqualOrDiff(renderedRecreatedTree, renderedInitialTree);
-
-                        // This is not expected to be hit, but it will be hit if the validation failure occurred in a
-                        // portion of the tree not captured by the rendered form from TreeToString.
-                        throw;
+                        try
+                        {
+                            verifier.EqualOrDiff(renderedRecreatedTree, renderedInitialTree);
+                        }
+                        catch (Exception specificError)
+                        {
+                            validationError = ExceptionDispatchInfo.Capture(specificError);
+                        }
+                        finally
+                        {
+                            // This is not expected to be hit, but it will be hit if the validation failure occurred in
+                            // a portion of the tree not captured by the rendered form from TreeToString.
+                            validationError ??= ExceptionDispatchInfo.Capture(genericError);
+                        }
                     }
                 }
 
                 project = document.Project;
             }
 
-            return project;
+            return (project, validationError);
         }
 
         private static async Task<Document> RecreateDocumentAsync(Document document, CancellationToken cancellationToken)
