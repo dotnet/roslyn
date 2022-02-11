@@ -144,7 +144,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                 End If
 
                 Return VSConstants.S_OK
-            Catch e As Exception When FatalError.ReportAndPropagate(e)
+            Catch e As Exception When FatalError.ReportAndPropagate(e, ErrorSeverity.Diagnostic)
                 Throw ExceptionUtilities.Unreachable
             End Try
         End Function

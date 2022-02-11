@@ -141,7 +141,7 @@ internal abstract class AbstractGoToCommandHandler<TLanguageService, TCommandArg
         catch (OperationCanceledException)
         {
         }
-        catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+        catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
         {
         }
     }

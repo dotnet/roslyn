@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     return solution;
                 }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.Critical))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }

@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 var isSuccessful = await _session.ExecuteCodeAsync(text).ConfigureAwait(false);
                 return new ExecutionResult(isSuccessful);
             }
-            catch (Exception e) when (FatalError.ReportAndPropagate(e))
+            catch (Exception e) when (FatalError.ReportAndPropagate(e, ErrorSeverity.General))
             {
                 throw ExceptionUtilities.Unreachable;
             }

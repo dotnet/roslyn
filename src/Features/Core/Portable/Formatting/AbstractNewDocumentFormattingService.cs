@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                     // happen.
                     document = await CodeAction.CleanupDocumentAsync(document, cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken, ErrorSeverity.General))
+                catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, ErrorSeverity.General, cancellationToken))
                 {
                 }
             }

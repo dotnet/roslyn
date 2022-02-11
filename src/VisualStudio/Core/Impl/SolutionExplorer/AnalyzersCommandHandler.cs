@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -427,7 +428,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                         SolutionExplorerShim.The_rule_set_file_could_not_be_updated,
                         totalMessage);
                 }
-            }).Task.ReportNonFatalErrorUnlessCancelledAsync(_threadingContext.DisposalToken);
+            }).Task.ReportNonFatalErrorUnlessCancelledAsync(ErrorSeverity.Critical, _threadingContext.DisposalToken);
         }
 
         private async Task SetSeverityHandlerAsync(VisualStudioWorkspaceImpl workspace, MenuCommand selectedItem, ArrayBuilder<string> notificationMessages)

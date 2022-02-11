@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 service = (IVsFeatureFlags?)await _serviceProvider.GetServiceAsync(typeof(SVsFeatureFlags)).ConfigureAwait(false);
             }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Diagnostic))
             {
                 service = null;
             }

@@ -1236,7 +1236,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 if (document.FilePath == null)
                 {
-                    FatalError.ReportAndCatch(new Exception("Attempting to change the information of a document without a file path."));
+                    FatalError.ReportAndCatch(new Exception("Attempting to change the information of a document without a file path."), ErrorSeverity.Diagnostic);
                     return;
                 }
 

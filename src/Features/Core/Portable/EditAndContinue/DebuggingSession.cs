@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 return analysis.RudeEditErrors.SelectAsArray((e, t) => e.ToDiagnostic(t), tree);
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General, cancellationToken))
             {
                 return ImmutableArray<Diagnostic>.Empty;
             }
@@ -726,7 +726,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 return spans.ToImmutable();
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -803,7 +803,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 return adjustedMappedSpans.ToImmutable();
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -865,7 +865,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 Contract.ThrowIfTrue(analysis.ActiveStatements.IsDefault);
                 return analysis.ActiveStatements.GetStatement(baseActiveStatement.Ordinal).Span;
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General, cancellationToken))
             {
                 return null;
             }
@@ -922,7 +922,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var oldDocumentActiveStatements = await baseActiveStatements.GetOldActiveStatementsAsync(analyzer, oldDocument, cancellationToken).ConfigureAwait(false);
                 return oldDocumentActiveStatements.GetStatement(baseActiveStatement.Ordinal).ExceptionRegions.IsActiveStatementCovered;
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General, cancellationToken))
             {
                 return null;
             }
@@ -997,7 +997,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
                 return documentId;
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }

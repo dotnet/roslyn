@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
                     _disposableToolTip = _createToolTip();
                     _element.ToolTip = _disposableToolTip.ToolTip;
                 }
-                catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+                catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
                 {
                     // Do nothing, since this is a WPF event handler and propagating the exception would cause a crash
                 }
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
                     _disposableToolTip.Dispose();
                     _disposableToolTip = null;
                 }
-                catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+                catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Diagnostic))
                 {
                     // Do nothing, since this is a WPF event handler and propagating the exception would cause a crash
                 }

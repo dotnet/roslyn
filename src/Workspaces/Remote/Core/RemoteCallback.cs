@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 // Log unexpected state where a cancellation exception occurs without being requested.
-                return FatalError.ReportAndCatch(exception);
+                return FatalError.ReportAndCatch(exception, ErrorSeverity.General);
             }
 
             // When a connection is dropped and CancelLocallyInvokedMethodsWhenConnectionIsClosed is
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             // Indicates bug on client side or in serialization, report NFW and propagate the exception.
-            return FatalError.ReportAndPropagate(exception);
+            return FatalError.ReportAndPropagate(exception, ErrorSeverity.General);
         }
 
         private static Exception OnUnexpectedException(Exception exception, CancellationToken cancellationToken)

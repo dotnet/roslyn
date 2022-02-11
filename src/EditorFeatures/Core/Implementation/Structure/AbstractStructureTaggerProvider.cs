@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                     context, documentSnapshotSpan.SnapshotSpan, outliningService,
                     blockStructure.Spans);
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
                             {
                                 throw new InvalidOutliningRegionException(service, snapshot, snapshotSpan, regionSpan);
                             }
-                            catch (InvalidOutliningRegionException e) when (FatalError.ReportAndCatch(e))
+                            catch (InvalidOutliningRegionException e) when (FatalError.ReportAndCatch(e, ErrorSeverity.General))
                             {
                             }
                         }

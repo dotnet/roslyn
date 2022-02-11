@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelReuse
 ---");
 
                     }
-                    catch (Exception e) when (FatalError.ReportAndCatch(e))
+                    catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Critical))
                     {
                     }
                 }

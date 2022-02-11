@@ -125,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InlineRename
                     // the conflict resolution edits.
                     undoManager.UndoTo(this.UndoManagers[subjectBuffer].StartRenameSessionUndoPrimitive);
                 }
-                catch (COMException ex) when (ex.ErrorCode == VSConstants.E_UNEXPECTED && FatalError.ReportAndCatch(ex))
+                catch (COMException ex) when (ex.ErrorCode == VSConstants.E_UNEXPECTED && FatalError.ReportAndCatch(ex, ErrorSeverity.General))
                 {
                     // According to the documentation, E_UNEXPECTED (0x8000FFFF) is raised when the UndoManager is disabled.
                     // https://docs.microsoft.com/en-us/windows/win32/api/ocidl/nf-ocidl-ioleundomanager-undoto#return-value

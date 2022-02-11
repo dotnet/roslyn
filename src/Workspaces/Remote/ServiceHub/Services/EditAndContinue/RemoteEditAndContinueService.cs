@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     var results = await service.EmitSolutionUpdateAsync(sessionId, solution, CreateActiveStatementSpanProvider(callbackId), cancellationToken).ConfigureAwait(false);
                     return results.Dehydrate(solution);
                 }
-                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+                catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General, cancellationToken))
                 {
                     var updates = new ManagedModuleUpdates(ManagedModuleUpdateStatus.Blocked, ImmutableArray<ManagedModuleUpdate>.Empty);
                     var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.CannotApplyChangesUnexpectedError);

@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 // await ExecuteRemoteAsync above does not take cancellationToken
                 // - we don't currently support cancellation of the RPC call,
                 // but JsonRpc.InvokeAsync that we use still claims it may throw OperationCanceledException..
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.Critical))
 #pragma warning restore CA2016
                 {
                     throw ExceptionUtilities.Unreachable;

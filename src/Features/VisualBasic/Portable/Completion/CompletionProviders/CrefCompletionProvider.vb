@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 End If
 
                 context.IsExclusive = True
-            Catch e As Exception When FatalError.ReportAndCatchUnlessCanceled(e)
+            Catch e As Exception When FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.Critical)
                 ' nop
             End Try
         End Function

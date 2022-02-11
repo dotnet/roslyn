@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     }
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General, cancellationToken))
             {
                 var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(RudeEditKind.InternalError);
 

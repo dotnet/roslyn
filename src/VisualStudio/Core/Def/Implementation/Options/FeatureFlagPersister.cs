@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 value = _featureFlags.IsFeatureEnabled(location.Name, defaultValue);
             }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Diagnostic))
             {
                 value = defaultValue;
             }
@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 ((IVsFeatureFlags2)_featureFlags).EnableFeatureFlag(location.Name, flag);
             }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Diagnostic))
             {
                 return false;
             }

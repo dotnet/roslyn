@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
         private static void Exit(string? message)
         {
-            FatalError.ReportAndPropagate(new Exception(message));
+            FailFast.OnFatalException(new Exception(message));
         }
 
         internal static void Install()

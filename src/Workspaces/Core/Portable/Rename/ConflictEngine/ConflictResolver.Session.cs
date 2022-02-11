@@ -833,7 +833,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
                     return partiallyRenamedSolution;
                 }
-                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.Critical))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }

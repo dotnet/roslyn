@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// </summary>
         /// <returns><see langword="false"/> to avoid catching the exception.</returns>
         [DebuggerHidden]
-        public static bool ReportAndPropagate(Exception exception, ErrorSeverity severity = ErrorSeverity.Uncategorized)
+        public static bool ReportAndPropagate(Exception exception, ErrorSeverity severity)
         {
             Report(exception, severity);
             return false;
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// </summary>
         /// <returns><see langword="false"/> to avoid catching the exception.</returns>
         [DebuggerHidden]
-        public static bool ReportAndPropagateUnlessCanceled(Exception exception, ErrorSeverity severity = ErrorSeverity.Uncategorized)
+        public static bool ReportAndPropagateUnlessCanceled(Exception exception, ErrorSeverity severity)
         {
             if (exception is OperationCanceledException)
             {
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// <see cref="CancellationToken.IsCancellationRequested"/> set if cancellation is expected.</param>
         /// <returns><see langword="false"/> to avoid catching the exception.</returns>
         [DebuggerHidden]
-        public static bool ReportAndPropagateUnlessCanceled(Exception exception, CancellationToken contextCancellationToken, ErrorSeverity severity = ErrorSeverity.Uncategorized)
+        public static bool ReportAndPropagateUnlessCanceled(Exception exception, ErrorSeverity severity, CancellationToken contextCancellationToken)
         {
             if (ExceptionUtilities.IsCurrentOperationBeingCancelled(exception, contextCancellationToken))
             {
@@ -160,14 +160,14 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// </summary>
         /// <returns>True to catch the exception.</returns>
         [DebuggerHidden]
-        public static bool ReportAndCatch(Exception exception, ErrorSeverity severity = ErrorSeverity.Uncategorized)
+        public static bool ReportAndCatch(Exception exception, ErrorSeverity severity)
         {
             Report(exception, severity);
             return true;
         }
 
         [DebuggerHidden]
-        public static bool ReportWithDumpAndCatch(Exception exception, ErrorSeverity severity = ErrorSeverity.Uncategorized)
+        public static bool ReportWithDumpAndCatch(Exception exception, ErrorSeverity severity)
         {
             Report(exception, severity, forceDump: true);
             return true;
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// <returns><see langword="true"/> to catch the exception if the error was reported; otherwise,
         /// <see langword="false"/> to propagate the exception if the operation was cancelled.</returns>
         [DebuggerHidden]
-        public static bool ReportAndCatchUnlessCanceled(Exception exception, ErrorSeverity severity = ErrorSeverity.Uncategorized)
+        public static bool ReportAndCatchUnlessCanceled(Exception exception, ErrorSeverity severity)
         {
             if (exception is OperationCanceledException)
             {
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         /// <returns><see langword="true"/> to catch the exception if the error was reported; otherwise,
         /// <see langword="false"/> to propagate the exception if the operation was cancelled.</returns>
         [DebuggerHidden]
-        public static bool ReportAndCatchUnlessCanceled(Exception exception, CancellationToken contextCancellationToken, ErrorSeverity severity = ErrorSeverity.Uncategorized)
+        public static bool ReportAndCatchUnlessCanceled(Exception exception, ErrorSeverity severity, CancellationToken contextCancellationToken)
         {
             if (ExceptionUtilities.IsCurrentOperationBeingCancelled(exception, contextCancellationToken))
             {
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
         private static readonly object s_reportedMarker = new();
 
-        private static void Report(Exception exception, ErrorSeverity severity = ErrorSeverity.Uncategorized, bool forceDump = false)
+        private static void Report(Exception exception, ErrorSeverity severity, bool forceDump = false)
         {
             // hold onto last exception to make investigation easier
             s_reportedException = exception;
@@ -264,11 +264,6 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
     /// </summary>
     internal enum ErrorSeverity
     {
-        /// <summary>
-        /// The severity hasn't been categorized. Don't use this in new code.
-        /// </summary>
-        Uncategorized,
-
         /// <summary>
         /// Something failed, but the user is unlikely to notice. Especially useful for background things that we can silently recover
         /// from, like bugs in caching systems.

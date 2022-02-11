@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                     _connectionPools.Add(databaseFilePath, pool);
                     return pool.TryAddReference() ?? throw ExceptionUtilities.Unreachable;
                 }
-                catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, cancellationToken))
+                catch (Exception ex) when (FatalError.ReportAndCatchUnlessCanceled(ex, ErrorSeverity.General, cancellationToken))
                 {
                     if (pool is not null)
                     {

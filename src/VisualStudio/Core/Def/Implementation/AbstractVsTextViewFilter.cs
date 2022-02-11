@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 return GetDataTipTextImpl(pSpan, out pbstrText);
             }
-            catch (Exception e) when (FatalError.ReportAndCatch(e) && false)
+            catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Critical) && false)
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -152,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 return result;
             }
-            catch (Exception e) when (FatalError.ReportAndCatch(e) && false)
+            catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Critical) && false)
             {
                 throw ExceptionUtilities.Unreachable;
             }

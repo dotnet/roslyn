@@ -124,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
             var hr = vsShell.IsPackageInstalled(s_resharperPackageGuid, out var extensionEnabled);
             if (ErrorHandler.Failed(hr))
             {
-                FatalError.ReportAndCatch(Marshal.GetExceptionForHR(hr));
+                FatalError.ReportAndCatch(Marshal.GetExceptionForHR(hr), ErrorSeverity.Diagnostic);
                 return;
             }
 
@@ -141,7 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
 
                 if (ErrorHandler.Failed(hr))
                 {
-                    FatalError.ReportAndCatch(Marshal.GetExceptionForHR(hr));
+                    FatalError.ReportAndCatch(Marshal.GetExceptionForHR(hr), ErrorSeverity.Diagnostic);
                     return;
                 }
 
@@ -314,7 +314,7 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
                 var hr = _oleCommandTarget.QueryStatus(s_resharperCommandGroup, (uint)cmds.Length, cmds, IntPtr.Zero);
                 if (ErrorHandler.Failed(hr))
                 {
-                    FatalError.ReportAndCatch(Marshal.GetExceptionForHR(hr));
+                    FatalError.ReportAndCatch(Marshal.GetExceptionForHR(hr), ErrorSeverity.Diagnostic);
                     await ShutdownAsync().ConfigureAwait(false);
 
                     return 0;
@@ -433,7 +433,7 @@ namespace Microsoft.VisualStudio.LanguageServices.KeybindingReset
 
                 if (ErrorHandler.Failed(hr))
                 {
-                    FatalError.ReportAndCatch(Marshal.GetExceptionForHR(hr));
+                    FatalError.ReportAndCatch(Marshal.GetExceptionForHR(hr), ErrorSeverity.Diagnostic);
                 }
             }
 

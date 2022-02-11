@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             {
                 return await _provider(documentId, filePath, cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General, cancellationToken))
             {
                 return ImmutableArray<ActiveStatementSpan>.Empty;
             }

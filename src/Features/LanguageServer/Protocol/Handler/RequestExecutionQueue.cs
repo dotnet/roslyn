@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     }
                 }
             }
-            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
             {
                 // We encountered an unexpected exception in processing the queue or in a mutating request.
                 // Log it, shutdown the queue, and exit the loop.

@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             var type = GetClassificationTypeWorker(name);
             if (type == null)
             {
-                FatalError.ReportAndCatch(new Exception($"classification type doesn't exist for {name}"));
+                FatalError.ReportAndCatch(new Exception($"classification type doesn't exist for {name}"), ErrorSeverity.Critical);
             }
 
             return type ?? GetClassificationTypeWorker(ClassificationTypeNames.Text);

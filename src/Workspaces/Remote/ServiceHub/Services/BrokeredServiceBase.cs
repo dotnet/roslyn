@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 return await implementation(cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, ErrorSeverity.General, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 await implementation(cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
+            catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, ErrorSeverity.General, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }

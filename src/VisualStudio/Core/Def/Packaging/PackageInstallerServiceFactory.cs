@@ -177,7 +177,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             {
                 // These exceptions can happen when the nuget.config file is broken.
             }
-            catch (ArgumentException ae) when (FatalError.ReportAndCatch(ae))
+            catch (ArgumentException ae) when (FatalError.ReportAndCatch(ae, ErrorSeverity.Diagnostic))
             {
                 // This exception can happen when the nuget.config file is broken, e.g. invalid credentials.
                 // https://github.com/dotnet/roslyn/issues/40857
@@ -366,7 +366,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 await UpdateStatusBarAsync(dte, ServicesVSResources.Package_install_canceled, cancellationToken).ConfigureAwait(false);
                 return false;
             }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Critical))
             {
                 await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 dte.StatusBar.Text = string.Format(ServicesVSResources.Package_install_failed_colon_0, e.Message);
@@ -427,7 +427,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 await UpdateStatusBarAsync(dte, ServicesVSResources.Package_uninstall_canceled, cancellationToken).ConfigureAwait(false);
                 return false;
             }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
+            catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Critical))
             {
                 await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 dte.StatusBar.Text = string.Format(ServicesVSResources.Package_uninstall_failed_colon_0, e.Message);
@@ -601,7 +601,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
                 return new ProjectState(installedPackagesMap);
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.Diagnostic, cancellationToken))
             {
                 return null;
             }

@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
     internal static class UnitTestingFatalErrorAccessor
     {
         public static bool ReportWithoutCrash(this Exception e)
-            => FatalError.ReportAndCatch(e);
+            => FatalError.ReportAndCatch(e, ErrorSeverity.General);
 
         public static bool ReportWithoutCrashUnlessCanceled(this Exception e)
-            => FatalError.ReportAndCatchUnlessCanceled(e);
+            => FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General);
     }
 }

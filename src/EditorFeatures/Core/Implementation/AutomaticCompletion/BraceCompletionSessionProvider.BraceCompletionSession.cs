@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                     Contract.ThrowIfFalse(SubjectBuffer.CurrentSnapshot[ClosingPoint.GetPosition(SubjectBuffer.CurrentSnapshot) - 1] == ClosingBrace,
                         "The closing point does not match the closing brace character");
                 }
-                catch (Exception e) when (FatalError.ReportAndCatch(e))
+                catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.General))
                 {
                     return;
                 }

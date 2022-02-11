@@ -673,7 +673,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     hasChanges: true,
                     hasSyntaxErrors: false);
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General, cancellationToken))
             {
                 // The same behavior as if there was a syntax error - we are unable to analyze the document. 
                 // We expect OOM to be thrown during the analysis if the number of top-level entities is too large.
@@ -1177,7 +1177,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     newActiveStatements[activeStatementIndex] = GetActiveStatementWithSpan(oldActiveStatements[activeStatementIndex], newDeclaration.SyntaxTree, newSpan, diagnostics, cancellationToken);
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General, cancellationToken))
             {
                 // Set the new spans of active statements overlapping the method body to match the old spans.
                 // Even though these might be now outside of the method body it's ok since we report a rude edit and don't allow to continue.

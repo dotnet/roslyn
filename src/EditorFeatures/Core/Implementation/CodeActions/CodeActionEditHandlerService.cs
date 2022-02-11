@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                         applied = await operations.Single().TryApplyAsync(
                             workspace, progressTracker, cancellationToken).ConfigureAwait(true);
                     }
-                    catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
+                    catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, ErrorSeverity.Critical, cancellationToken))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                         workspace, operations, progressTracker,
                         cancellationToken).ConfigureAwait(true);
                 }
-                catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, cancellationToken))
+                catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, ErrorSeverity.Critical, cancellationToken))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }

@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Structure
                 foreach (var span in spans)
                     context.AddBlockSpan(span);
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.General))
             {
                 throw ExceptionUtilities.Unreachable;
             }

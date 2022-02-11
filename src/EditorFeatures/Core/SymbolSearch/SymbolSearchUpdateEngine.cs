@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                    new PatchService(),
                    new DatabaseFactoryService(),
                    // Report all exceptions we encounter, but don't crash on them. Propagate expected cancellation.
-                   static (e, ct) => FatalError.ReportAndCatchUnlessCanceled(e, ct))
+                   static (e, ct) => FatalError.ReportAndCatchUnlessCanceled(e, ErrorSeverity.General, ct))
         {
         }
 

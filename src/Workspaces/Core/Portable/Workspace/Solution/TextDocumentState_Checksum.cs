@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis
                     return new DocumentStateChecksums(infoChecksum, textChecksum);
                 }
             }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, ErrorSeverity.Critical, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
             }
