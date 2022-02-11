@@ -4,48 +4,40 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
+namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
 {
-    using Microsoft.CodeAnalysis.Indentation;
-    using Microsoft.CodeAnalysis.Shared.Extensions;
-
-    /// <summary>
-    /// Base type for all wrappers that involve wrapping a comma-separated list of arguments or parameters.
-    /// </summary>
-    internal abstract partial class AbstractSeparatedSyntaxListWrapper<
+    internal abstract partial class AbstractInitializerExpressionWrapper<
         TListSyntax,
         TListItemSyntax>
         : AbstractSeparatedListWrapper<TListSyntax, TListItemSyntax>
         where TListSyntax : SyntaxNode
         where TListItemSyntax : SyntaxNode
     {
-        // These refactor offerings are unique to argument or parameter lists
-        protected abstract string Unwrap_and_indent_all_items { get; }
-        protected abstract string Align_wrapped_items { get; }
-        protected abstract string Indent_wrapped_items { get; }
+        protected sealed override string Indent_all_items => FeaturesResources.Indent_all_elements;
+        protected sealed override string Unwrap_all_items => FeaturesResources.Unwrap_all_elements;
+        protected sealed override string Unwrap_list => FeaturesResources.Unwrap_initializer;
+        protected sealed override string Wrap_every_item => FeaturesResources.Wrap_initializer;
+        protected sealed override string Wrap_long_list => FeaturesResources.Wrap_long_initializer;
 
-        protected AbstractSeparatedSyntaxListWrapper(IIndentationService indentationService)
+        protected AbstractInitializerExpressionWrapper(IIndentationService indentationService)
             : base(indentationService)
         {
         }
 
-        protected abstract TListSyntax? TryGetApplicableList(SyntaxNode node);
         protected abstract SeparatedSyntaxList<TListItemSyntax> GetListItems(TListSyntax listSyntax);
-        protected abstract bool PositionIsApplicable(
-            SyntaxNode root, int position, SyntaxNode declaration, TListSyntax listSyntax);
 
-        public override async Task<ICodeActionComputer?> TryCreateComputerAsync(
+        protected abstract TListSyntax? TryGetApplicableList(SyntaxNode node);
+
+        protected abstract bool TryGetNewLinesForBracesInObjectCollectionArrayInitializersOption(DocumentOptionSet options);
+
+        public sealed override async Task<ICodeActionComputer?> TryCreateComputerAsync(
             Document document, int position, SyntaxNode declaration, CancellationToken cancellationToken)
         {
             var listSyntax = TryGetApplicableList(declaration);
             if (listSyntax == null)
-            {
-                return null;
-            }
-
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (!PositionIsApplicable(root, position, declaration, listSyntax))
             {
                 return null;
             }
@@ -69,8 +61,8 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return new SeparatedSyntaxListCodeActionComputer(
-                this, document, sourceText, options, listSyntax, listItems, cancellationToken);
+            return new InitializerExpressionCodeActionComputer(
+                this, document, sourceText, options, listSyntax, listItems, TryGetNewLinesForBracesInObjectCollectionArrayInitializersOption(options), cancellationToken);
         }
     }
 }

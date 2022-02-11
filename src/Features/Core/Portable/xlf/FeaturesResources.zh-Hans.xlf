@@ -840,6 +840,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">缩进所有参数</target>
         <note />
       </trans-unit>
+      <trans-unit id="Indent_all_elements">
+        <source>Indent all elements</source>
+        <target state="new">Indent all elements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Indent_all_parameters">
         <source>Indent all parameters</source>
         <target state="translated">缩进所有参数</target>
@@ -2635,6 +2640,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">展开所有参数</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unwrap_all_elements">
+        <source>Unwrap all elements</source>
+        <target state="new">Unwrap all elements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unwrap_all_parameters">
         <source>Unwrap all parameters</source>
         <target state="translated">展开打开所有参数</target>
@@ -2663,6 +2673,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Unwrap_expression">
         <source>Unwrap expression</source>
         <target state="translated">展开表达式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_initializer">
+        <source>Unwrap initializer</source>
+        <target state="new">Unwrap initializer</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_parameter_list">
@@ -2840,6 +2855,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">包装表达式</target>
         <note />
       </trans-unit>
+      <trans-unit id="Wrap_initializer">
+        <source>Wrap initializer</source>
+        <target state="new">Wrap initializer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_long_argument_list">
         <source>Wrap long argument list</source>
         <target state="translated">包装长参数列表</target>
@@ -2848,6 +2868,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Wrap_long_call_chain">
         <source>Wrap long call chain</source>
         <target state="translated">包装长调用链</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_initializer">
+        <source>Wrap long initializer</source>
+        <target state="new">Wrap long initializer</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_parameter_list">
