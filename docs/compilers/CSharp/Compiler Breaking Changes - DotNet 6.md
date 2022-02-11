@@ -110,7 +110,7 @@ These are _function_type_conversions_.
     }
     ```
 
-4. <a name="4"></a>In Visual Studio 17.0 servicing, an error is reported in a `record struct` with a primary constructor if an explicit constructor has a `this()` initializer that invokes the implicit parameterless constructor.
+4. <a name="4"></a><a name="roslyn-58339"></a>In Visual Studio 17.0 servicing, an error is reported in a `record struct` with a primary constructor if an explicit constructor has a `this()` initializer that invokes the implicit parameterless constructor. See [roslyn#58339](https://github.com/dotnet/roslyn/pull/58339).
 
     For instance, the following results in an error:
     ```csharp
@@ -130,7 +130,7 @@ These are _function_type_conversions_.
     }
     ```
 
-5. <a name="5"></a>In Visual Studio 17.0 servicing, if a `struct` type declaration with no constructors includes initializers for some but not all fields, the compiler will report an error that all fields must be assigned.
+5. <a name="5"></a><a name="roslyn-57925"></a>In Visual Studio 17.0 servicing, if a `struct` type declaration with no constructors includes initializers for some but not all fields, the compiler will report an error that all fields must be assigned. See [roslyn#57925](https://github.com/dotnet/roslyn/pull/57925).
 
     For instance, the following results in an error:
     ```csharp
@@ -151,7 +151,7 @@ These are _function_type_conversions_.
     }
     ```
 
-6. <a name="6"></a>In Visual Studio 17.1, `struct` type declarations with field initializers must include an explicitly declared constructor. Additionally, all fields must be definitely assigned in `struct` instance constructors that do not have a `: this()` initializer so any previously unassigned fields must be assigned from the added constructor or from field initializers.
+6. <a name="6"></a><a name="roslyn-58581"></a>In Visual Studio 17.1, `struct` type declarations with field initializers must include an explicitly declared constructor. Additionally, all fields must be definitely assigned in `struct` instance constructors that do not have a `: this()` initializer so any previously unassigned fields must be assigned from the added constructor or from field initializers. See [csharplang#5552](https://github.com/dotnet/csharplang/issues/5552), [roslyn#58581](https://github.com/dotnet/roslyn/pull/58581).
 
     For instance, the following results in an error in 17.1:
     ```csharp
