@@ -1190,7 +1190,7 @@ class C
 {
     int M()
     {
-        if (c is not object)
+        if (c is null)
         {
             return 2;
         }
