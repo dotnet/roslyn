@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -522,7 +521,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 return OperationFactory.CreateInvalidOperation(_semanticModel, boundAttribute.Syntax, ImmutableArray<IOperation>.Empty, isImplicit: false);
             }
 
-            var builder = ImmutableArray.CreateBuilder<IArgumentOperation>(boundAttribute.Constructor.ParameterCount);
+            var builder = ImmutableArray.CreateBuilder<IArgumentOperation>(boundAttribute.Constructor!.ParameterCount);
             var seenParameters = ImmutableHashSet.CreateBuilder<ParameterSymbol>();
 
             for (int i = 0; i < boundAttribute.ConstructorArguments.Length; i++)

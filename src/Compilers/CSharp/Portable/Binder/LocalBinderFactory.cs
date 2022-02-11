@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitAttribute(AttributeSyntax node)
         {
-            Binder attrBinder = new ExpressionVariableBinder(node, _enclosing);
+            var attrBinder = new ExpressionVariableBinder(node, _enclosing);
             AddToMap(node, attrBinder);
 
             if (node.ArgumentList?.Arguments.Count > 0)
