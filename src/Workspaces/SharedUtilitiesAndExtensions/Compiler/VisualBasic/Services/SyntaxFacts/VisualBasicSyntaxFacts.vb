@@ -311,6 +311,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return TryGetPredefinedType(token, actualType) AndAlso actualType = type
         End Function
 
+        Public Function IsPredefinedType(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsPredefinedType
+            Dim predefined = TryCast(node, PredefinedTypeSyntax)
+            Return predefined IsNot Nothing AndAlso IsPredefinedType(predefined.Keyword)
+        End Function
+
+        Public Function IsPredefinedType(node As SyntaxNode, type As PredefinedType) As Boolean Implements ISyntaxFacts.IsPredefinedType
+            Dim predefined = TryCast(node, PredefinedTypeSyntax)
+            Return predefined IsNot Nothing AndAlso IsPredefinedType(predefined.Keyword, type)
+        End Function
+
         Public Function TryGetPredefinedType(token As SyntaxToken, ByRef type As PredefinedType) As Boolean Implements ISyntaxFacts.TryGetPredefinedType
             type = GetPredefinedType(token)
             Return type <> PredefinedType.None
