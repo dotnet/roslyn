@@ -81,7 +81,6 @@ namespace BuildValidator
                 default:
                     throw new InvalidOperationException();
             }
-
         }
 
         internal static bool IsReadyToRunImage(PEReader peReader)
