@@ -6,6 +6,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Runtime.InteropServices;
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -117,12 +118,16 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 namespace Microsoft.VisualStudio.Extensibility.Testing
 {
     using System;
+    using System.ComponentModel.Design;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio;
     using Microsoft.VisualStudio.Shell;
     using Microsoft.VisualStudio.Shell.Interop;
     using Microsoft.VisualStudio.Threading;
+    using IOleCommandTarget = Microsoft.VisualStudio.OLE.Interop.IOleCommandTarget;
+    using OLECMDEXECOPT = Microsoft.VisualStudio.OLE.Interop.OLECMDEXECOPT;
+    using Task = System.Threading.Tasks.Task;
 
     [TestService]
     internal partial class ShellInProcess
@@ -138,6 +143,41 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             where TService : class
         {
             return base.GetComponentModelServiceAsync<TService>(cancellationToken);
+        }
+
+        public async Task<CommandID> PrepareCommandAsync(string command, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var commandWindow = await GetRequiredGlobalServiceAsync<SVsCommandWindow, IVsCommandWindow>(cancellationToken);
+            var result = new PREPARECOMMANDRESULT[1];
+            ErrorHandler.ThrowOnFailure(commandWindow.PrepareCommand(command, out var commandGroup, out var commandId, out var cmdArg, result));
+
+            if (cmdArg != IntPtr.Zero)
+            {
+                throw new NotSupportedException(""Unable to create a disposable wrapper for command arguments (VARIANT)."");
+            }
+
+            return new CommandID(commandGroup, (int)commandId);
+        }
+
+        public async Task ExecuteCommandAsync(string command, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var commandID = await PrepareCommandAsync(command, cancellationToken);
+            await ExecuteCommandAsync(commandID, cancellationToken);
+        }
+
+        public Task ExecuteCommandAsync(CommandID command, CancellationToken cancellationToken)
+            => ExecuteCommandAsync(command.Guid, (uint)command.ID, cancellationToken);
+
+        public async Task ExecuteCommandAsync(Guid commandGuid, uint commandId, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var dispatcher = await TestServices.Shell.GetRequiredGlobalServiceAsync<SUIHostCommandDispatcher, IOleCommandTarget>(cancellationToken);
+            ErrorHandler.ThrowOnFailure(dispatcher.Exec(commandGuid, commandId, (uint)OLECMDEXECOPT.OLECMDEXECOPT_DODEFAULT, IntPtr.Zero, IntPtr.Zero));
         }
 
         public async Task<string> GetActiveWindowCaptionAsync(CancellationToken cancellationToken)
@@ -627,8 +667,29 @@ namespace Microsoft.VisualStudio
                     var hasErrorHandler = compilation.GetTypeByMetadataName("Microsoft.VisualStudio.ErrorHandler") is not null;
                     var hasOperationProgress = compilation.GetTypeByMetadataName("Microsoft.VisualStudio.OperationProgress.SVsOperationProgress") is not null;
                     var hasOperationProgressStatusService = compilation.GetTypeByMetadataName("Microsoft.VisualStudio.OperationProgress.IVsOperationProgressStatusService") is not null;
+                    var hasEditorConstants = compilation.GetTypeByMetadataName("Microsoft.VisualStudio.Editor.EditorConstants") is not null;
 
-                    return new ReferenceDataModel(hasSAsyncServiceProvider, hasThreadHelperJoinableTaskContext, canCancelJoinTillEmptyAsync, hasJoinableTaskFactoryWithPriority, hasAsyncEnumerable, hasErrorHandler, hasOperationProgress, hasOperationProgressStatusService);
+                    var editorConstantsCommandIDMissingGuid = true;
+                    if (hasEditorConstants)
+                    {
+                        if (compilation.GetTypeByMetadataName("Microsoft.VisualStudio.Editor.EditorConstants+EditorCommandID") is { } editorConstantsEditorCommandID
+                            && editorConstantsEditorCommandID.GetAttributes().Any(attribute => attribute.AttributeClass.Name == nameof(GuidAttribute)))
+                        {
+                            editorConstantsCommandIDMissingGuid = false;
+                        }
+                    }
+
+                    return new ReferenceDataModel(
+                        hasSAsyncServiceProvider,
+                        hasThreadHelperJoinableTaskContext,
+                        canCancelJoinTillEmptyAsync,
+                        hasJoinableTaskFactoryWithPriority,
+                        hasAsyncEnumerable,
+                        hasErrorHandler,
+                        hasOperationProgress,
+                        hasOperationProgressStatusService,
+                        hasEditorConstants,
+                        editorConstantsCommandIDMissingGuid);
                 });
 
             context.RegisterSourceOutput(
@@ -762,6 +823,57 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 ";
 
                     context.AddSource($"InProcComponent{SourceSuffix}", inProcComponentSource);
+
+                    string shellInProcessExecuteCommandTEnumImpl;
+                    if (referenceDataModel.HasEditorConstants && referenceDataModel.EditorConstantsCommandIDMissingGuid)
+                    {
+                        shellInProcessExecuteCommandTEnumImpl = @"    using System;
+    using System.Threading;
+    using Microsoft.VisualStudio.Editor;
+    using Task = System.Threading.Tasks.Task;
+
+    internal partial class ShellInProcess
+    {
+        public Task ExecuteCommandAsync<TEnum>(TEnum command, CancellationToken cancellationToken)
+            where TEnum : struct, Enum
+        {
+            var commandGuid = command switch
+            {
+                EditorConstants.EditorCommandID => EditorConstants.EditorCommandSet,
+                _ => typeof(TEnum).GUID,
+            };
+
+            return ExecuteCommandAsync(commandGuid, Convert.ToUInt32(command), cancellationToken);
+        }
+    }";
+                    }
+                    else
+                    {
+                        shellInProcessExecuteCommandTEnumImpl = @"    using System;
+    using System.Threading;
+    using Task = System.Threading.Tasks.Task;
+
+    internal partial class ShellInProcess
+    {
+        public Task ExecuteCommandAsync<TEnum>(TEnum command, CancellationToken cancellationToken)
+            where TEnum : struct, Enum
+        {
+            return ExecuteCommandAsync(typeof(TEnum).GUID, Convert.ToUInt32(command), cancellationToken);
+        }
+    }";
+                    }
+
+                    var shellInProcessExecuteCommandTEnumSource = $@"// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for more information.
+
+#nullable enable
+
+namespace Microsoft.VisualStudio.Extensibility.Testing
+{{
+{shellInProcessExecuteCommandTEnumImpl}
+}}
+";
+                    context.AddSource($"ShellInProcess_ExecuteCommandAsync_TEnum{SourceSuffix}", shellInProcessExecuteCommandTEnumSource);
 
                     string shellInProcessEnumerateWindowsImpl;
                     if (referenceDataModel.HasAsyncEnumerable)
@@ -1250,6 +1362,8 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             bool HasAsyncEnumerable,
             bool HasErrorHandler,
             bool HasOperationProgress,
-            bool HasOperationProgressStatusService);
+            bool HasOperationProgressStatusService,
+            bool HasEditorConstants,
+            bool EditorConstantsCommandIDMissingGuid);
     }
 }
