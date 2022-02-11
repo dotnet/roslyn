@@ -20,10 +20,6 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
         where TListSyntax : SyntaxNode
         where TListItemSyntax : SyntaxNode
     {
-        //protected abstract string ListName { get; }
-        //protected abstract string ItemNamePlural { get; }
-        //protected abstract string ItemNameSingular { get; }
-
         protected abstract string Unwrap_list { get; }
         protected abstract string Wrap_long_list { get; }
 
