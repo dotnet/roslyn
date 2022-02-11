@@ -6446,7 +6446,7 @@ interface I1 {}
                         Assert.Equal(OperationKind.ParameterInitializer, context.OperationBlocks[0].Kind);
                         Assert.Equal("= 0", context.OperationBlocks[0].Syntax.ToString());
 
-                        Assert.Equal(OperationKind.None, context.OperationBlocks[1].Kind);
+                        Assert.Equal(OperationKind.Attribute, context.OperationBlocks[1].Kind);
                         Assert.Equal("Attr1(100)", context.OperationBlocks[1].Syntax.ToString());
 
                         break;
