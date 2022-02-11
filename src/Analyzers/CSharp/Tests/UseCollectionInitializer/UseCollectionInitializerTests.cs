@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
             {
                 TestCode = testCode,
                 FixedCode = fixedCode,
+                LanguageVersion = LanguageVersion.Preview,
             }.RunAsync();
         }
 
@@ -1205,6 +1206,103 @@ public class Goo
         obj.Add(""int"", 1);
         obj.Add("" object"", new { X = 1, Y = 2 });
         }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [WorkItem(47632, "https://github.com/dotnet/roslyn/issues/47632")]
+        public async Task TestWhenReferencedInInitializerLeft()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System.Collections.Generic;
+
+class C
+{
+    static void M()
+    {
+        List<object> items = [|new|] List<object>();
+        items[0] = 1;
+        items[items.Count - 1] = 2;
+    }
+}",
+@"
+using System.Collections.Generic;
+
+class C
+{
+    static void M()
+    {
+        List<object> items = [|new|] List<object>
+        {
+            [0] = 1
+        };
+        items[items.Count - 1] = 2;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [WorkItem(47632, "https://github.com/dotnet/roslyn/issues/47632")]
+        public async Task TestWithIndexerInInitializerLeft()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System.Collections.Generic;
+
+class C
+{
+    static void M()
+    {
+        List<object> items = [|new|] List<object>();
+        items[0] = 1;
+        items[^1] = 2;
+    }
+}",
+@"
+using System.Collections.Generic;
+
+class C
+{
+    static void M()
+    {
+        List<object> items = new List<object>
+        {
+            [0] = 1
+        };
+        items[^1] = 2;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
+        [WorkItem(47632, "https://github.com/dotnet/roslyn/issues/47632")]
+        public async Task TestWithImplicitObjectCreation()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System.Collections.Generic;
+
+class C
+{
+    static void M()
+    {
+        List<object> items = [|new|]();
+        items[0] = 1;
+    }
+}",
+@"
+using System.Collections.Generic;
+
+class C
+{
+    static void M()
+    {
+        List<object> items = new()
+        {
+            [0] = 1
+        };
+    }
 }");
         }
     }
