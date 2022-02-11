@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.GoToBase
+namespace Microsoft.CodeAnalysis.GoToBase
 {
     internal static class FindBaseHelpers
     {

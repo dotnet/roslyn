@@ -3109,4 +3109,22 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Invalid_JSON_pattern" xml:space="preserve">
     <value>Invalid JSON pattern</value>
   </data>
+  <data name="Cannot_navigate_to_the_symbol_under_the_caret" xml:space="preserve">
+    <value>Cannot navigate to the symbol under the caret.</value>
+  </data>
+  <data name="_0_bases" xml:space="preserve">
+    <value>'{0}' bases</value>
+  </data>
+  <data name="_0_implementations" xml:space="preserve">
+    <value>'{0}' implementations</value>
+  </data>
+  <data name="_0_references" xml:space="preserve">
+    <value>'{0}' references</value>
+  </data>
+  <data name="The_symbol_has_no_base" xml:space="preserve">
+    <value>The symbol has no base.</value>
+  </data>
+  <data name="The_symbol_has_no_implementations" xml:space="preserve">
+    <value>The symbol has no implementations.</value>
+  </data>
 </root>

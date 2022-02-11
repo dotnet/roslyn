@@ -12,18 +12,14 @@ namespace Microsoft.CodeAnalysis.FindUsages
 {
     internal abstract class FindUsagesContext : IFindUsagesContext
     {
-        private readonly IGlobalOptionService _globalOptions;
-
         public IStreamingProgressTracker ProgressTracker { get; }
 
-        protected FindUsagesContext(IGlobalOptionService globalOptions)
+        protected FindUsagesContext()
         {
             ProgressTracker = new StreamingProgressTracker(ReportProgressAsync);
-            _globalOptions = globalOptions;
         }
 
-        public ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(_globalOptions.GetFindUsagesOptions(language));
+        public abstract ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken);
 
         public virtual ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken) => default;
 
