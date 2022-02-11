@@ -265,13 +265,14 @@ namespace Microsoft.CodeAnalysis.Testing
 
             if (CodeFixExpected())
             {
+                // Verify code fix output before verifying the diagnostics of the fixed state
+                await VerifyFixAsync(testState, fixedState, batchFixedState, Verify, cancellationToken).ConfigureAwait(false);
+
                 await VerifyDiagnosticsAsync(new EvaluatedProjectState(fixedState, ReferenceAssemblies), fixedState.AdditionalProjects.Values.Select(additionalProject => new EvaluatedProjectState(additionalProject, ReferenceAssemblies)).ToImmutableArray(), fixedState.ExpectedDiagnostics.ToArray(), Verify.PushContext("Diagnostics of fixed state"), cancellationToken).ConfigureAwait(false);
                 if (allowFixAll && CodeActionExpected(BatchFixedState))
                 {
                     await VerifyDiagnosticsAsync(new EvaluatedProjectState(batchFixedState, ReferenceAssemblies), batchFixedState.AdditionalProjects.Values.Select(additionalProject => new EvaluatedProjectState(additionalProject, ReferenceAssemblies)).ToImmutableArray(), batchFixedState.ExpectedDiagnostics.ToArray(), Verify.PushContext("Diagnostics of batch fixed state"), cancellationToken).ConfigureAwait(false);
                 }
-
-                await VerifyFixAsync(testState, fixedState, batchFixedState, Verify, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -534,6 +535,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
             var previousDiagnostics = ImmutableArray.Create<(Project project, Diagnostic diagnostic)>();
 
+            ExceptionDispatchInfo? firstValidationError = null;
             var currentIteration = -1;
             bool done;
             do
@@ -557,7 +559,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 }
                 catch (Exception ex)
                 {
-                    return (project, ExceptionDispatchInfo.Capture(ex));
+                    return (project, firstValidationError ?? ExceptionDispatchInfo.Capture(ex));
                 }
 
                 previousDiagnostics = analyzerDiagnostics;
@@ -599,7 +601,8 @@ namespace Microsoft.CodeAnalysis.Testing
                         anyActions = true;
 
                         var originalProjectId = project.Id;
-                        var fixedProject = await ApplyCodeActionAsync(fixableDocument.Project, actionToApply, verifier, cancellationToken).ConfigureAwait(false);
+                        var (fixedProject, currentError) = await ApplyCodeActionAsync(fixableDocument.Project, actionToApply, verifier, cancellationToken).ConfigureAwait(false);
+                        firstValidationError ??= currentError;
                         if (fixedProject != fixableDocument.Project)
                         {
                             done = false;
@@ -637,10 +640,10 @@ namespace Microsoft.CodeAnalysis.Testing
             }
             catch (Exception ex)
             {
-                return (project, ExceptionDispatchInfo.Capture(ex));
+                return (project, firstValidationError ?? ExceptionDispatchInfo.Capture(ex));
             }
 
-            return (project, null);
+            return (project, firstValidationError ?? null);
         }
 
         private Task<(Project project, ExceptionDispatchInfo? iterationCountFailure)> FixAllAnalyzerDiagnosticsInDocumentAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, ImmutableArray<CodeFixProvider> codeFixProviders, int? codeFixIndex, string? codeFixEquivalenceKey, Action<CodeAction, IVerifier>? codeActionVerifier, Project project, int numberOfIterations, IVerifier verifier, CancellationToken cancellationToken)
@@ -675,6 +678,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
             var previousDiagnostics = ImmutableArray.Create<(Project project, Diagnostic diagnostic)>();
 
+            ExceptionDispatchInfo? firstValidationError = null;
             var currentIteration = -1;
             bool done;
             do
@@ -698,7 +702,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 }
                 catch (Exception ex)
                 {
-                    return (project, ExceptionDispatchInfo.Capture(ex));
+                    return (project, firstValidationError ?? ExceptionDispatchInfo.Capture(ex));
                 }
 
                 var fixableDiagnostics = analyzerDiagnostics
@@ -771,7 +775,8 @@ namespace Microsoft.CodeAnalysis.Testing
                 }
 
                 var originalProjectId = project.Id;
-                var fixedProject = await ApplyCodeActionAsync(fixableDocument.Project, action, verifier, cancellationToken).ConfigureAwait(false);
+                var (fixedProject, currentError) = await ApplyCodeActionAsync(fixableDocument.Project, action, verifier, cancellationToken).ConfigureAwait(false);
+                firstValidationError ??= currentError;
                 if (fixedProject != fixableDocument.Project)
                 {
                     done = false;
@@ -798,10 +803,10 @@ namespace Microsoft.CodeAnalysis.Testing
             }
             catch (Exception ex)
             {
-                return (project, ExceptionDispatchInfo.Capture(ex));
+                return (project, firstValidationError ?? ExceptionDispatchInfo.Capture(ex));
             }
 
-            return (project, null);
+            return (project, firstValidationError);
         }
 
         /// <summary>

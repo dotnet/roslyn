@@ -317,6 +317,25 @@ namespace Microsoft.CodeAnalysis.Testing
 
                     PackageReaderBase packageReader;
                     var installedPath = GetInstalledPath(localPathResolver, globalPathResolver, packageToInstall);
+                    if (installedPath is { })
+                    {
+                        packageReader = new PackageFolderReader(installedPath);
+                        if (Path.GetDirectoryName(installedPath) == temporaryPackagesFolder)
+                        {
+                            // Delete the folder if it's in the temporary path and the package reader cannot read the
+                            // nuspec file.
+                            try
+                            {
+                                _ = packageReader.GetNuspecFile();
+                            }
+                            catch (PackagingException)
+                            {
+                                Directory.Delete(installedPath, recursive: true);
+                                installedPath = null;
+                            }
+                        }
+                    }
+
                     if (installedPath is null)
                     {
                         var downloadResource = await availablePackages[packageToInstall].Source.GetResourceAsync<DownloadResource>(cancellationToken);
