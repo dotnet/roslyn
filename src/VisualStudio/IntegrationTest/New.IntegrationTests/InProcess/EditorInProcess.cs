@@ -846,6 +846,19 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return bufferPosition.Position;
         }
 
+        public async Task GoToBaseAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var dispatcher = await GetRequiredGlobalServiceAsync<SUIHostCommandDispatcher, IOleCommandTarget>(cancellationToken);
+            ErrorHandler.ThrowOnFailure(dispatcher.Exec(EditorConstants.EditorCommandSet, (uint)EditorConstants.EditorCommandID.GoToBase, (uint)OLECMDEXECOPT.OLECMDEXECOPT_DODEFAULT, IntPtr.Zero, IntPtr.Zero));
+
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, cancellationToken);
+
+            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.GoToBase, cancellationToken);
+            await TestServices.Editor.WaitForEditorOperationsAsync(cancellationToken);
+        }
+
         private async Task WaitForCompletionSetAsync(CancellationToken cancellationToken)
         {
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.CompletionSet, cancellationToken);

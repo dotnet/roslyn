@@ -345,14 +345,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             }
         }
 
-        public void GoToBase(string expectedNavigateWindowName)
-        {
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
-            _editorInProc.GoToBase();
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.GoToBase);
-            _editorInProc.WaitForActiveWindow(expectedNavigateWindowName);
-        }
-
         public void SendExplicitFocus()
             => _editorInProc.SendExplicitFocus();
 
