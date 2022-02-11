@@ -9,7 +9,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 using Roslyn.Utilities;
@@ -34,8 +33,12 @@ namespace Microsoft.CodeAnalysis
         private static readonly ConditionalWeakTable<GreenNode, DiagnosticInfo[]> s_diagnosticsTable =
             new ConditionalWeakTable<GreenNode, DiagnosticInfo[]>();
 
+#if NETCOREAPP
         private static readonly ConditionalWeakTable<GreenNode, SyntaxAnnotation[]> s_annotationsTable =
             new ConditionalWeakTable<GreenNode, SyntaxAnnotation[]>();
+#else
+        private readonly SyntaxAnnotation[]? _annotations;
+#endif
 
         private static readonly DiagnosticInfo[] s_noDiagnostics = Array.Empty<DiagnosticInfo>();
         private static readonly SyntaxAnnotation[] s_noAnnotations = Array.Empty<SyntaxAnnotation>();
@@ -84,7 +87,11 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 this.flags |= NodeFlags.ContainsAnnotations;
+#if NETCOREAPP
                 s_annotationsTable.Add(this, annotations);
+#else
+                _annotations = annotations;
+#endif
             }
         }
 
@@ -99,7 +106,11 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 this.flags |= NodeFlags.ContainsAnnotations;
+#if NETCOREAPP
                 s_annotationsTable.Add(this, annotations);
+#else
+                _annotations = annotations;
+#endif
             }
         }
 
@@ -442,7 +453,11 @@ namespace Microsoft.CodeAnalysis
                 if (annotations != null && annotations.Length > 0)
                 {
                     this.flags |= NodeFlags.ContainsAnnotations;
+#if NETCOREAPP
                     s_annotationsTable.Add(this, annotations);
+#else
+                    _annotations = annotations;
+#endif
                 }
             }
         }
@@ -595,8 +610,11 @@ namespace Microsoft.CodeAnalysis
         {
             if (this.ContainsAnnotations)
             {
-                SyntaxAnnotation[]? annotations;
-                if (s_annotationsTable.TryGetValue(this, out annotations))
+#if NETCOREAPP
+                if (s_annotationsTable.TryGetValue(this, out SyntaxAnnotation[]? annotations))
+#else
+                if (_annotations is { } annotations)
+#endif
                 {
                     System.Diagnostics.Debug.Assert(annotations.Length != 0, "we should return nonempty annotations or NoAnnotations");
                     return annotations;
