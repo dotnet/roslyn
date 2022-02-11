@@ -6,7 +6,6 @@
 
 using System;
 using System.Linq;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
@@ -55,6 +54,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var withLine = (_firstLine != null) ? $".WithFirstLine(\"{_firstLine}\")" : null;
 
             return $"Diagnostic(RudeEditKind.{_rudeEditKind}, {arguments}){withLine}";
+        }
+
+        internal void VerifyMessageFormat()
+        {
+            var descriptior = EditAndContinueDiagnosticDescriptors.GetDescriptor(_rudeEditKind);
+            string.Format(descriptior.MessageFormat.ToString(), _arguments);
         }
     }
 }
