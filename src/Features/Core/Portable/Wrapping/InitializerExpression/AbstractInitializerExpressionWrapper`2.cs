@@ -34,13 +34,14 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
         protected abstract bool TryGetNewLinesForBracesInObjectCollectionArrayInitializersOption(DocumentOptionSet options);
 
         public sealed override async Task<ICodeActionComputer?> TryCreateComputerAsync(
-            Document document, int position, SyntaxNode declaration, CancellationToken cancellationToken)
+            Document document, int position, SyntaxNode declaration, bool containsSyntaxError, CancellationToken cancellationToken)
         {
+            if (containsSyntaxError)
+                return null;
+
             var listSyntax = TryGetApplicableList(declaration);
             if (listSyntax == null)
-            {
                 return null;
-            }
 
             var listItems = GetListItems(listSyntax);
             if (listItems.Count <= 1)
@@ -55,9 +56,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.InitializerExpression
                 document, listItems.GetWithSeparators(), cancellationToken).ConfigureAwait(false);
 
             if (containsUnformattableContent)
-            {
                 return null;
-            }
 
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
