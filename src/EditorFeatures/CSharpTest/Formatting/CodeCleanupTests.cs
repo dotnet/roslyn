@@ -81,7 +81,7 @@ internal class Program
 {
     private static void Main(string[] args)
     {
-        List<int> list = new List<int>();
+        List<int> list = new();
         Console.WriteLine(list.Count);
     }
 }
@@ -104,6 +104,7 @@ class Program
         Barrier b = new Barrier(0);
         var list = new List<int>();
         Console.WriteLine(list.Count);
+        b.Dispose();
     }
 }
 ";
@@ -117,9 +118,10 @@ internal class Program
 {
     private static async Task Main(string[] args)
     {
-        Barrier b = new Barrier(0);
-        List<int> list = new List<int>();
+        Barrier b = new(0);
+        List<int> list = new();
         Console.WriteLine(list.Count);
+        b.Dispose();
     }
 }
 ";
@@ -159,7 +161,7 @@ internal class Program
     {
         Console.WriteLine(""Hello World!"");
 
-        new Goo();
+        _ = new Goo();
     }
 }
 
@@ -204,7 +206,7 @@ internal class Program
     {
         Console.WriteLine(""Hello World!"");
 
-        new Goo();
+        _ = new Goo();
     }
 }
 
@@ -222,23 +224,27 @@ namespace M
         {
             var code = @"class Program
 {
-    void Method()
+    int Method()
     {
         int a = 0;
         if (a > 0)
             a ++;
+
+        return a;
     }
 }
 ";
             var expected = @"internal class Program
 {
-    private void Method()
+    private int Method()
     {
         int a = 0;
         if (a > 0)
         {
             a++;
         }
+
+        return a;
     }
 }
 ";
@@ -421,6 +427,7 @@ namespace A
         {
             Console.WriteLine();
             List<int> list = new List<int>();
+            Console.WriteLine(list.Length);
         }
     }
 }
@@ -436,7 +443,8 @@ namespace A
         private void Method()
         {
             Console.WriteLine();
-            List<int> list = new List<int>();
+            List<int> list = new();
+            Console.WriteLine(list.Length);
         }
     }
 }
@@ -460,7 +468,8 @@ namespace A
         private void Method()
         {
             Console.WriteLine();
-            List<int> list = new List<int>();
+            List<int> list = new();
+            Console.WriteLine(list.Length);
         }
     }
 }
@@ -477,7 +486,8 @@ namespace A
         private void Method()
         {
             Console.WriteLine();
-            List<int> list = new List<int>();
+            List<int> list = new();
+            Console.WriteLine(list.Length);
         }
     }
 }
@@ -501,7 +511,8 @@ namespace A
         private void Method()
         {
             Console.WriteLine();
-            List<int> list = new List<int>();
+            List<int> list = new();
+            Console.WriteLine(list.Length);
         }
     }
 }
@@ -527,7 +538,8 @@ namespace A
         private void Method()
         {
             Console.WriteLine();
-            List<int> list = new List<int>();
+            List<int> list = new();
+            Console.WriteLine(list.Length);
         }
     }
 }
