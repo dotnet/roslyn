@@ -181,8 +181,6 @@
             <GroupBox x:Uid="JsonGroupBox"
                     Header="{x:Static local:AdvancedOptionPageStrings.Option_JSON_strings}">
                 <StackPanel>
-                    <CheckBox x:Name="Detect_and_offer_editor_features_for_likely_JSON_strings"
-                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Detect_and_offer_editor_features_for_likely_JSON_strings}" />
                     <CheckBox x:Name="Colorize_JSON_strings"
                         Content="{x:Static local:AdvancedOptionPageStrings.Option_Colorize_JSON_strings}" />
                     <CheckBox x:Name="Report_invalid_JSON_strings"

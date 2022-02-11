@@ -978,9 +978,6 @@ Additional information: {1}</value>
   <data name="Colorize_JSON_strings" xml:space="preserve">
     <value>Colorize JSON strings</value>
   </data>
-  <data name="Detect_and_offer_editor_features_for_likely_JSON_strings" xml:space="preserve">
-    <value>Detect and offer editor features for likely JSON strings</value>
-  </data>
   <data name="JSON_strings" xml:space="preserve">
     <value>JSON strings</value>
   </data>

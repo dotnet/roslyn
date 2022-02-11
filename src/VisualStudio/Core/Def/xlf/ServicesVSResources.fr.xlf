@@ -307,11 +307,6 @@
         <target state="translated">Types dérivés</target>
         <note />
       </trans-unit>
-      <trans-unit id="Detect_and_offer_editor_features_for_likely_JSON_strings">
-        <source>Detect and offer editor features for likely JSON strings</source>
-        <target state="new">Detect and offer editor features for likely JSON strings</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Disabled">
         <source>Disabled</source>
         <target state="translated">Désactivé</target>
