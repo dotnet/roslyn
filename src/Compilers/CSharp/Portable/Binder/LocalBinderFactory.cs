@@ -305,25 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitAttribute(AttributeSyntax node)
         {
-            Binder attrBinder = null;
-            if (node.Parent?.Parent is { } attributedDeclaration)
-            {
-                if (attributedDeclaration is LocalFunctionStatementSyntax localFunctionSyntax)
-                {
-                    var localFunction = FindLocalFunction(localFunctionSyntax, _enclosing);
-                    attrBinder = new ContextualAttributeBinder(_enclosing, localFunction);
-                }
-                else
-                {
-                    var model = _containingMemberOrLambda.DeclaringCompilation.GetSemanticModel(node.SyntaxTree);
-                    if (model.GetDeclaredSymbolForNode(attributedDeclaration) is { } attributedSymbol)
-                    {
-                        attrBinder = new ContextualAttributeBinder(_enclosing, attributedSymbol.GetSymbol());
-                    }
-                }
-            }
-
-            attrBinder ??= new ExpressionVariableBinder(node, _enclosing);
+            Binder attrBinder = new ExpressionVariableBinder(node, _enclosing);
             AddToMap(node, attrBinder);
 
             if (node.ArgumentList?.Arguments.Count > 0)
