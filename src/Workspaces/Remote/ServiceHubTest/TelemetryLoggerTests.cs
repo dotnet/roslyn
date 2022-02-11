@@ -59,8 +59,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 => ((TestScope)scope).EndEvent;
         }
 
-        private static IEnumerable<string> InspectProperties(TelemetryEvent @event)
-            => @event.Properties.Select(p => $"{p.Key}={InspectPropertyValue(p.Value)}");
+        private static IEnumerable<string> InspectProperties(TelemetryEvent @event, string? keyToIgnoreValueInspection = null)
+            => @event.Properties.Select(p => $"{p.Key}={(keyToIgnoreValueInspection == p.Key ? string.Empty : InspectPropertyValue(p.Value))}");
 
         private static string InspectPropertyValue(object? value)
             => value switch
@@ -118,10 +118,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Equal("vs/ide/vbcs/debugging/encsession/editsession/emitdeltaerrorid", scope.EndEvent.Name);
 
+            // We don't inspect the property value for "Delta" (time of execution) as that value will vary each time.
             AssertEx.Equal(new[]
             {
-                "vs.ide.vbcs.debugging.encsession.editsession.emitdeltaerrorid.test=end"
-            }, InspectProperties(scope.EndEvent));
+                "vs.ide.vbcs.debugging.encsession.editsession.emitdeltaerrorid.test=end",
+                "vs.ide.vbcs.debugging.encsession.editsession.emitdeltaerrorid.delta="
+            }, InspectProperties(scope.EndEvent, keyToIgnoreValueInspection: "vs.ide.vbcs.debugging.encsession.editsession.emitdeltaerrorid.delta"));
         }
     }
 }
