@@ -486,7 +486,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IOperation CreateBoundAttributeOperation(BoundAttribute boundAttribute)
         {
-            if (boundAttribute.HasAnyErrors || boundAttribute.Constructor is null || boundAttribute.AttributeData is null)
+            if (boundAttribute.HasAnyErrors || boundAttribute.Constructor is null)
             {
                 return OperationFactory.CreateInvalidOperation(_semanticModel, boundAttribute.Syntax, ImmutableArray<IOperation>.Empty, isImplicit: false);
             }

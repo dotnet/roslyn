@@ -224,11 +224,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder = binder.Next;
             }
 
-            CSharpAttributeData? attributeData = null;
-            if (binder is not null)
-            {
-                attributeData = binder.GetAttribute(attributeType, attributeConstructor, boundConstructorArguments, boundNamedArguments, boundConstructorArgumentNamesOpt, argsToParamsOpt, node, hasErrors: resultKind != LookupResultKind.Viable, diagnostics);
-            }
+            Debug.Assert(binder is not null);
+
+            var attributeData = binder.GetAttribute(attributeType, attributeConstructor, boundConstructorArguments, boundNamedArguments, boundConstructorArgumentNamesOpt, argsToParamsOpt, node, hasErrors: resultKind != LookupResultKind.Viable, diagnostics);
 
             return new BoundAttribute(node, attributeConstructor, boundConstructorArguments, boundConstructorArgumentNamesOpt, argsToParamsOpt, expanded,
                 boundNamedArguments, resultKind, attributeData, attributeType, hasErrors: resultKind != LookupResultKind.Viable);
