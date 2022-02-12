@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 if (context2.Items.IsEmpty && context2.SuggestionItemOptions is null)
                     return context1;
 
-                var _ = ArrayBuilder<VSCompletionItem>.GetInstance(context1.Items.Length + context2.Items.Length, out var itemsBuilder);
+                using var _ = ArrayBuilder<VSCompletionItem>.GetInstance(context1.Items.Length + context2.Items.Length, out var itemsBuilder);
                 itemsBuilder.AddRange(context1.Items);
                 itemsBuilder.AddRange(context2.Items);
 
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 var suggestionItem = context1.SuggestionItemOptions ?? context2.SuggestionItemOptions;
                 var hint = suggestionItem == null ? AsyncCompletionData.InitialSelectionHint.RegularSelection : AsyncCompletionData.InitialSelectionHint.SoftSelection;
 
-                return new(itemsBuilder.ToImmutable(), suggestionItem, hint, filterStates);
+                return new VSCompletionContext(itemsBuilder.ToImmutableAndClear(), suggestionItem, hint, filterStates);
             }
         }
 

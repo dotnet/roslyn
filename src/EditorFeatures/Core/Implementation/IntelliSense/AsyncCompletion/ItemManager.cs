@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     session.Properties[CombinedSortedList] = combinedList;
                     var combinedFilterStates = FilterSet.CombineFilterStates(expandedContext.Filters, data.SelectedFilters);
 
-                    data = new(combinedList, data.Snapshot, data.Trigger, data.InitialTrigger, combinedFilterStates,
+                    data = new AsyncCompletionSessionDataSnapshot(combinedList, data.Snapshot, data.Trigger, data.InitialTrigger, combinedFilterStates,
                         data.IsSoftSelected, data.DisplaySuggestionItem, data.Defaults);
                 }
 
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             else if (session.Properties.TryGetProperty<ImmutableArray<VSCompletionItem>>(CombinedSortedList, out var combinedSortedList))
             {
                 // Always use the previously saved combined list if available.
-                data = new(combinedSortedList, data.Snapshot, data.Trigger, data.InitialTrigger, data.SelectedFilters,
+                data = new AsyncCompletionSessionDataSnapshot(combinedSortedList, data.Snapshot, data.Trigger, data.InitialTrigger, data.SelectedFilters,
                     data.IsSoftSelected, data.DisplaySuggestionItem, data.Defaults);
             }
 
