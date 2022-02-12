@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpGoToSymbolService(IThreadingContext threadingContext, IGlobalOptionService globalOptions)
-            : base(threadingContext, globalOptions)
+        public CSharpGoToSymbolService(IThreadingContext threadingContext)
+            : base(threadingContext)
         {
         }
     }

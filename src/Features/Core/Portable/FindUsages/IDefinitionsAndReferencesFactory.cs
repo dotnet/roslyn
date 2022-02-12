@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             CancellationToken cancellationToken)
         {
             var unclassifiedSpans = TryGetSourceLocations(definition, solution, definition.Locations, includeHiddenLocations);
-            var classifiedSpans = await ClassifyDocumentSpansAsync(context, unclassifiedSpans, cancellationToken).ConfigureAwait(false);
+            var classifiedSpans = unclassifiedSpans.IsDefault ? default : await ClassifyDocumentSpansAsync(context, unclassifiedSpans, cancellationToken).ConfigureAwait(false);
 
             return ToDefinitionItem(definition, classifiedSpans, solution, options, isPrimary);
         }
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
             var allLocations = group.Symbols.SelectMany(s => s.Locations).ToImmutableArray();
             var unclassifiedSpans = TryGetSourceLocations(definition, solution, allLocations, includeHiddenLocations);
-            var classifiedSpans = await ClassifyDocumentSpansAsync(context, unclassifiedSpans, cancellationToken).ConfigureAwait(false);
+            var classifiedSpans = unclassifiedSpans.IsDefault ? default : await ClassifyDocumentSpansAsync(context, unclassifiedSpans, cancellationToken).ConfigureAwait(false);
 
             return ToDefinitionItem(definition, classifiedSpans, solution, options, isPrimary);
         }

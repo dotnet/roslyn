@@ -3,13 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Options;
-using System;
+using Microsoft.CodeAnalysis.Classification;
 
 namespace Microsoft.CodeAnalysis.FindUsages
 {
     internal static class FindUsagesOptionsStorage
     {
         public static FindUsagesOptions GetFindUsagesOptions(this IGlobalOptionService globalOptions, string language)
-            => globalOptions.GetFindUsagesOptions(language);
+            => new(ClassificationOptions: globalOptions.GetClassificationOptions(language));
     }
 }

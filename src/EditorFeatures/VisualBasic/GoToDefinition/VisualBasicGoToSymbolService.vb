@@ -15,8 +15,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GoToDefinition
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New(threadingContext As IThreadingContext, globalOptions As IGlobalOptionService)
-            MyBase.New(threadingContext, globalOptions)
+        Public Sub New(threadingContext As IThreadingContext)
+            MyBase.New(threadingContext)
         End Sub
     End Class
 End Namespace
