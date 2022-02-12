@@ -47,8 +47,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _globalOptions = globalOptions;
         }
 
-        public override string Method => LSP.Methods.TextDocumentReferencesName;
-
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
 

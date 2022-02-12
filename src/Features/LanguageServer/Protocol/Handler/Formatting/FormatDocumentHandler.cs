@@ -21,8 +21,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public override string Method => LSP.Methods.TextDocumentFormattingName;
-
         public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.DocumentFormattingParams request) => request.TextDocument;
 
         public override Task<LSP.TextEdit[]?> HandleRequestAsync(

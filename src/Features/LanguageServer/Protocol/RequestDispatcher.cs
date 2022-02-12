@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 => _requestDispatcher = requestDispatcher;
 
             public IRequestHandler<RequestType, ResponseType> GetHandler<RequestType, ResponseType>(string methodName)
-                => (IRequestHandler<RequestType, ResponseType>)_requestDispatcher._requestHandlers.Single(handler => handler.Value.Value.Method == methodName).Value.Value;
+                => (IRequestHandler<RequestType, ResponseType>)_requestDispatcher._requestHandlers.Single(handler => handler.Key.MethodName == methodName).Value.Value;
         }
     }
 }

@@ -38,8 +38,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             _metadataAsSourceFileService = metadataAsSourceFileService;
         }
 
-        public override string Method => Methods.TextDocumentDefinitionName;
-
         public override bool MutatesSolutionState => false;
 
         public override bool RequiresLSPSolution => true;

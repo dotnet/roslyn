@@ -21,8 +21,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public override string Method => Methods.TextDocumentRangeFormattingName;
-
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentRangeFormattingParams request) => request.TextDocument;
 
         public override Task<TextEdit[]?> HandleRequestAsync(

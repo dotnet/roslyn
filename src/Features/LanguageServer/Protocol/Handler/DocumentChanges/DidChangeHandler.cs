@@ -23,8 +23,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges
         {
         }
 
-        public override string Method => LSP.Methods.TextDocumentDidChangeName;
-
         public override bool MutatesSolutionState => true;
         public override bool RequiresLSPSolution => false;
 

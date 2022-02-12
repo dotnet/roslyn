@@ -48,8 +48,6 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
     {
     }
 
-    public override string Method => VSInternalMethods.TextDocumentInlineCompletionName;
-
     public override bool MutatesSolutionState => false;
 
     public override bool RequiresLSPSolution => true;

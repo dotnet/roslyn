@@ -52,8 +52,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _threadingContext = threadingContext;
         }
 
-        public override string Method => Methods.WorkspaceSymbolName;
-
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
 

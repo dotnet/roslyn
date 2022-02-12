@@ -28,7 +28,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     [Method(Methods.TextDocumentCompletionName)]
     internal class CompletionHandler : AbstractStatelessRequestHandler<CompletionParams, CompletionList?>
     {
-        public override string Method => Methods.TextDocumentCompletionName;
         private const string CreateEventHandlerCommandTitle = "Create Event Handler";
 
         private static readonly Command s_retriggerCompletionCommand = new Command()

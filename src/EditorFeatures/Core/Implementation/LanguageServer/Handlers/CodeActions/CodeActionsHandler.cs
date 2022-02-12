@@ -35,8 +35,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         internal const string RunCodeActionCommandName = "Roslyn.RunCodeAction";
 
-        public string Method => LSP.Methods.TextDocumentCodeActionName;
-
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 

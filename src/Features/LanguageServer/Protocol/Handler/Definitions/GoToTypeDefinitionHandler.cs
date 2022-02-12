@@ -22,8 +22,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public override string Method => LSP.Methods.TextDocumentTypeDefinitionName;
-
         public override Task<LSP.Location[]?> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
             => GetDefinitionAsync(request, typeOnly: true, context, cancellationToken);
     }

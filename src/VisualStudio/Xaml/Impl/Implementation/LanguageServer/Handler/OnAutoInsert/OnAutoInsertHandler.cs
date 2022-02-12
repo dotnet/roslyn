@@ -26,8 +26,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
-        public override string Method => VSInternalMethods.OnAutoInsertName;
-
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
 

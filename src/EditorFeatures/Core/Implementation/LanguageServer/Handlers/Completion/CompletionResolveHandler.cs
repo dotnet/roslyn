@@ -31,8 +31,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly CompletionListCache _completionListCache;
         private readonly IGlobalOptionService _globalOptions;
 
-        public string Method => LSP.Methods.TextDocumentCompletionResolveName;
-
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 

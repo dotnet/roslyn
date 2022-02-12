@@ -40,8 +40,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         private readonly CompletionListCache _completionListCache;
 
-        public string Method => LSP.Methods.TextDocumentCompletionName;
-
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 

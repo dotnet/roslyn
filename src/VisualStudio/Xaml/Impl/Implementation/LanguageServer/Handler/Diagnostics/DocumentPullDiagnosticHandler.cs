@@ -25,8 +25,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             : base(xamlPullDiagnosticService)
         { }
 
-        public override string Method => VSInternalMethods.DocumentPullDiagnosticName;
-
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalDocumentDiagnosticsParams request)
             => request.TextDocument;
 

@@ -26,8 +26,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
         {
         }
 
-        public override string Method => nameof(NonMutatingRequestHandler);
-
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
 

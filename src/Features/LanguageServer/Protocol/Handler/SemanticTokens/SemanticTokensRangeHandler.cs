@@ -20,8 +20,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     [Method(Methods.TextDocumentSemanticTokensRangeName)]
     internal class SemanticTokensRangeHandler : AbstractStatelessRequestHandler<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>
     {
-        public override string Method => LSP.Methods.TextDocumentSemanticTokensRangeName;
-
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
 

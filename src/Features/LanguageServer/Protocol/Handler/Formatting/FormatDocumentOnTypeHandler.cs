@@ -23,8 +23,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [Method(Methods.TextDocumentOnTypeFormattingName)]
     internal class FormatDocumentOnTypeHandler : AbstractStatelessRequestHandler<DocumentOnTypeFormattingParams, TextEdit[]?>
     {
-        public override string Method => Methods.TextDocumentOnTypeFormattingName;
-
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
 

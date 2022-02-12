@@ -25,8 +25,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
         }
 
-        public override string Method => VSMethods.GetProjectContextsName;
-
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
 

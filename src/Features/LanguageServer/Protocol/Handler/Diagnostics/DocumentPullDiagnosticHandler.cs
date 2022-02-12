@@ -18,8 +18,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     {
         private readonly IDiagnosticAnalyzerService _analyzerService;
 
-        public override string Method => VSInternalMethods.DocumentPullDiagnosticName;
-
         public DocumentPullDiagnosticHandler(
             WellKnownLspServerKinds serverKind,
             IDiagnosticService diagnosticService,

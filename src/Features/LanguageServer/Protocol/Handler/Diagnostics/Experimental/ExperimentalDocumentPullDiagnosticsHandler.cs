@@ -34,8 +34,6 @@ internal class ExperimentalDocumentPullDiagnosticsHandler : AbstractPullDiagnost
         _analyzerService = analyzerService;
     }
 
-    public override string Method => ExperimentalMethods.TextDocumentDiagnostic;
-
     public override TextDocumentIdentifier? GetTextDocumentIdentifier(DocumentDiagnosticParams diagnosticsParams) => diagnosticsParams.TextDocument;
 
     protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)

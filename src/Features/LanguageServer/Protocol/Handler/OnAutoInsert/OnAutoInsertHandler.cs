@@ -31,8 +31,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly ImmutableArray<IBraceCompletionService> _csharpBraceCompletionServices;
         private readonly ImmutableArray<IBraceCompletionService> _visualBasicBraceCompletionServices;
 
-        public override string Method => LSP.VSInternalMethods.OnAutoInsertName;
-
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
 

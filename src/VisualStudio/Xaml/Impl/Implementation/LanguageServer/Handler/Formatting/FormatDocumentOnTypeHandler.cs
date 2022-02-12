@@ -29,8 +29,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
         {
         }
 
-        public override string Method => Methods.TextDocumentOnTypeFormattingName;
-
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
 

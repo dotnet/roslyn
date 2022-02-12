@@ -27,8 +27,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [Method(Methods.TextDocumentDocumentSymbolName)]
     internal class DocumentSymbolsHandler : AbstractStatelessRequestHandler<DocumentSymbolParams, object[]>
     {
-        public override string Method => Methods.TextDocumentDocumentSymbolName;
-
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
 

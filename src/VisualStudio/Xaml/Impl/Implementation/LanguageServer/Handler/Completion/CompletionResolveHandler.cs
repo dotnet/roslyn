@@ -29,8 +29,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     [Method(LSP.Methods.TextDocumentCompletionResolveName)]
     internal class CompletionResolveHandler : AbstractStatelessRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
     {
-        public override string Method => LSP.Methods.TextDocumentCompletionResolveName;
-
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
 

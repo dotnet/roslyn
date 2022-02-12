@@ -32,8 +32,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _highlightingService = highlightingService;
         }
 
-        public override string Method => Methods.TextDocumentDocumentHighlightName;
-
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
 

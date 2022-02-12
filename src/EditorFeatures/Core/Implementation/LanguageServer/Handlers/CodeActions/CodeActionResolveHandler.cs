@@ -52,8 +52,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _globalOptions = globalOptions;
         }
 
-        public string Method => LSP.Methods.CodeActionResolveName;
-
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
