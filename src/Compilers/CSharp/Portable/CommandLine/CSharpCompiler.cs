@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         
         
 
-        private (string[] AdditionalLicenses, bool SkipUserLicenses) GetLicensingOptions(AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider)
+        private (string[] AdditionalLicenses, bool SkipImplicitLicenses) GetLicensingOptions(AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider)
         {
             // Load license keys from build options.
             string[] additionalLicenses;
@@ -435,8 +435,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             
             return (additionalLicenses, ignoreUserLicenses);
-
-
         }
 
         protected virtual bool RequiresMetalamaSupportServices => true;
@@ -461,9 +459,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var licenseOptions = this.GetLicensingOptions(analyzerConfigProvider);
                 serviceProviderBuilder.AddBackstageServices(
-                    new MetalamaCompilerApplicationInfo(this.IsLongRunningProcess),
+                    new MetalamaCompilerApplicationInfo(this.IsLongRunningProcess, licenseOptions.SkipImplicitLicenses),
                     inputCompilation.AssemblyName,
-                    licenseOptions.SkipUserLicenses,
+                    !licenseOptions.SkipImplicitLicenses,
+                    licenseOptions.SkipImplicitLicenses,
                     licenseOptions.AdditionalLicenses,
                     this.RequiresMetalamaSupportServices);
             }
