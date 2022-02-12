@@ -9789,6 +9789,74 @@ class C
             End Using
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestNonBlockingExpandCompletionDoesNotChangeItemOrder() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+                                  $$
+                              </Document>,
+                              extraExportedTypes:={GetType(TestProvider)}.ToList())
+
+                Dim workspace = state.Workspace
+
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
+                globalOptions.SetGlobalOption(New OptionKey(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
+
+                state.TextView.Options.SetOptionValue(DefaultOptions.ResponsiveCompletionOptionId, True)
+
+                Dim completionService = DirectCast(workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
+                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of TestProvider)().Single()
+
+                ' First we enable delay for expand item, and trigger completion with test provider blocked
+                ' this would ensure completion list don't have expand item until we release the checkpoint
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsDoNotContainAny("TestUnimportedItem")
+
+                Dim session = Await state.GetCompletionSession()
+                Dim expandTask As Task = Nothing
+                Assert.True(session.Properties.TryGetProperty(Of Task)(CompletionSource.ExpandedItemsTask, expandTask))
+                Assert.False(expandTask.IsCompleted)
+
+                provider.Checkpoint.Release()
+                Await expandTask
+
+                ' Now delayed expand item task is completed, following up by typing and delete a character to trigger
+                ' update so the list would contains all items
+                Dim uiRender = state.WaitForUIRenderedAsync()
+                state.SendTypeChars("t")
+                Await state.AssertCompletionItemsContain("TestUnimportedItem", "")
+                state.SendBackspace()
+                Await uiRender
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
+
+                ' Get the full list from session where delay happened
+                Dim list1 = state.GetCompletionItems()
+
+                state.SendEscape()
+                Await state.AssertNoCompletionSession()
+
+                ' Now disable expand item delay, so intial trigger should contain full list
+                state.TextView.Options.SetOptionValue(DefaultOptions.ResponsiveCompletionOptionId, False)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("TestUnimportedItem", "")
+
+                ' Get the full list from session where delay didn't happen
+                Dim list2 = state.GetCompletionItems()
+                Assert.Equal(list1.Count, list2.Count)
+
+                ' Two list of items should be identical in order.
+                For i As Integer = 0 To list1.Count - 1
+                    Dim item1 = list1(i)
+                    Dim item2 = list2(i)
+                    Assert.Equal(item1, item2)
+                Next
+
+            End Using
+        End Function
+
         <ExportCompletionProvider(NameOf(TestProvider), LanguageNames.CSharp)>
         <[Shared]>
         <PartNotDiscoverable>
