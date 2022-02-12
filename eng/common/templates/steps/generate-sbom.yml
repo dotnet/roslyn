@@ -18,7 +18,9 @@ steps:
     filePath: ./eng/common/generate-sbom-prep.ps1
     arguments: ${{parameters.manifestDirPath}}
 
+# Chmodding is a workaround for https://github.com/dotnet/arcade/issues/8461
 - script: |
+    chmod +x ./eng/common/generate-sbom-prep.sh
     ./eng/common/generate-sbom-prep.sh ${{parameters.manifestDirPath}}
   displayName: Prep for SBOM generation in (Linux)
   condition: eq(variables['Agent.Os'], 'Linux')
