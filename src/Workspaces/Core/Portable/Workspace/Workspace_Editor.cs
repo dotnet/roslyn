@@ -416,18 +416,17 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         // TODO: switch this protected once we have confidence in API shape
         internal void OnSourceGeneratedDocumentOpened(
-            SourceGeneratedDocumentIdentity documentIdentity,
             SourceTextContainer textContainer,
             SourceGeneratedDocument document)
         {
             using (_serializationLock.DisposableWait())
             {
-                var documentId = documentIdentity.DocumentId;
+                var documentId = document.Identity.DocumentId;
                 CheckDocumentIsClosed(documentId);
                 AddToOpenDocumentMap(documentId);
 
                 _documentToAssociatedBufferMap.Add(documentId, textContainer);
-                _openSourceGeneratedDocumentIdentities.Add(documentId, documentIdentity);
+                _openSourceGeneratedDocumentIdentities.Add(documentId, document.Identity);
 
                 UpdateCurrentContextMapping_NoLock(textContainer, documentId, isCurrentContext: true);
 

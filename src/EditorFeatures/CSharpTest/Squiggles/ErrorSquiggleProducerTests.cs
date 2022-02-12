@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -41,9 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
         public async Task ErrorTagGeneratedForError()
         {
             var spans = await GetTagSpansAsync("class C {");
-            Assert.Equal(1, spans.Count());
-
-            var firstSpan = spans.First();
+            var firstSpan = Assert.Single(spans);
             Assert.Equal(PredefinedErrorTypeNames.SyntaxError, firstSpan.Tag.ErrorType);
         }
 
@@ -51,9 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
         public async Task ErrorTagGeneratedForErrorInSourceGeneratedDocument()
         {
             var spans = await GetTagSpansInSourceGeneratedDocumentAsync("class C {");
-            Assert.Equal(1, spans.Count());
-
-            var firstSpan = spans.First();
+            var firstSpan = Assert.Single(spans);
             Assert.Equal(PredefinedErrorTypeNames.SyntaxError, firstSpan.Tag.ErrorType);
         }
 
@@ -365,12 +360,10 @@ class Program
 
         private static async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansInSourceGeneratedDocumentAsync(string content)
         {
-            var workspaceElement = $@"<Workspace>
-  <Project AssemblyName=""Test"" Language=""C#"" CommonReferences=""true"">
-    <DocumentFromSourceGenerator FilePath=""test1.cs"">{new XText(content)}</DocumentFromSourceGenerator>
-  </Project>
-</Workspace>";
-            using var workspace = TestWorkspace.Create(workspaceElement, composition: SquiggleUtilities.WpfCompositionWithSolutionCrawler);
+            using var workspace = TestWorkspace.CreateCSharp(
+                files: Array.Empty<string>(),
+                sourceGeneratedFiles: new[] { content },
+                composition: SquiggleUtilities.WpfCompositionWithSolutionCrawler);
             return await GetTagSpansAsync(workspace);
         }
 

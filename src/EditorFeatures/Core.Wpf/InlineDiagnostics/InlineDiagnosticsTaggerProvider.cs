@@ -79,12 +79,12 @@ namespace Microsoft.CodeAnalysis.Editor.InlineDiagnostics
                 return null;
             }
 
-            if (diagnostic.DocumentId is not { ProjectId: var projectId })
+            if (diagnostic.DocumentId is null)
             {
                 return null;
             }
 
-            var project = workspace.CurrentSolution.GetProject(projectId);
+            var project = workspace.CurrentSolution.GetProject(diagnostic.DocumentId.ProjectId);
             if (project is null)
             {
                 return null;

@@ -204,8 +204,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (documentId != null)
                 {
                     // file doesn't exist in current solution
-                    var document = project.Solution.GetDocument(documentId)
-                        ?? project.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId);
+                    var document = await project.Solution.GetDocumentAsync(
+                        documentId,
+                        includeSourceGenerated: project.Solution.Workspace.Services.GetService<ISyntaxTreeConfigurationService>() is { EnableOpeningSourceGeneratedFilesInWorkspace: true },
+                        cancellationToken).ConfigureAwait(false);
+
                     if (document == null)
                     {
                         return ImmutableArray<DiagnosticData>.Empty;

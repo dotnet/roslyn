@@ -535,10 +535,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             foreach (var documentId in newAnalysisResult.DocumentIds)
             {
-                // TryGetSourceGeneratedDocumentForAlreadyGeneratedId is safe to use here because the only way to report
-                // a diagnostic in a source generated document is for the source generated document to exist.
-                var document = project.GetTextDocument(documentId)
-                    ?? project.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(documentId);
+                var document = project.GetTextDocument(documentId);
+
+                // If we couldn't find a normal document, and all features are enabled for source generated documents,
+                // attempt to locate a matching source generated document in the project.
+                if (document is null
+                    && project.Solution.Workspace.Services.GetService<ISyntaxTreeConfigurationService>() is { EnableOpeningSourceGeneratedFilesInWorkspace: true })
+                {
+                    if (_workspaceThreadingService is not null)
+                    {
+                        document = _workspaceThreadingService.Run(() => project.GetSourceGeneratedDocumentAsync(documentId, CancellationToken.None).AsTask());
+                    }
+                    else
+                    {
+                        document = project.GetSourceGeneratedDocumentAsync(documentId, CancellationToken.None).AsTask().WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                    }
+                }
+
                 if (document == null)
                 {
                     // it can happen with build synchronization since, in build case, 

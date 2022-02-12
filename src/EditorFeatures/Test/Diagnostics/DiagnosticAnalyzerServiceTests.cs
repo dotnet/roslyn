@@ -7,10 +7,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessarySuppressions;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -22,7 +20,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
-using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
@@ -838,14 +835,20 @@ class A
 ";
             }
 
-            var documentElementName = isSourceGenerated ? "DocumentFromSourceGenerator" : "Document";
-            var workspaceElement = $@"<Workspace>
-  <Project AssemblyName=""Test"" Language=""C#"" CommonReferences=""true"">
-    <{documentElementName} FilePath=""test1.cs"">{new XText(code)}</{documentElementName}>
-  </Project>
-</Workspace>";
+            string[] files;
+            string[] sourceGeneratedFiles;
+            if (isSourceGenerated)
+            {
+                files = Array.Empty<string>();
+                sourceGeneratedFiles = new[] { code };
+            }
+            else
+            {
+                files = new[] { code };
+                sourceGeneratedFiles = Array.Empty<string>();
+            }
 
-            using var workspace = TestWorkspace.Create(workspaceElement, composition: s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(typeof(TestDocumentTrackingService)));
+            using var workspace = TestWorkspace.CreateCSharp(files, sourceGeneratedFiles, composition: s_editorFeaturesCompositionWithMockDiagnosticUpdateSourceRegistrationService.AddParts(typeof(TestDocumentTrackingService)));
             var options = workspace.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, analysisScope);
             workspace.SetOptions(options);
 

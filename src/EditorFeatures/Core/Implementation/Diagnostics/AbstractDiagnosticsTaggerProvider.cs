@@ -75,10 +75,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 return;
             }
 
-            // TryGetSourceGeneratedDocumentForAlreadyGeneratedId is safe to use here because the only way to report
-            // a diagnostic in a source generated document is for the source generated document to exist.
-            var document = e.Solution.GetDocument(e.DocumentId)
-                ?? e.Solution.GetProject(e.DocumentId.ProjectId)?.TryGetSourceGeneratedDocumentForAlreadyGeneratedId(e.DocumentId);
+            var document = e.Solution.GetDocument(e.DocumentId);
+
+            // If we couldn't find a normal document, and all features are enabled for source generated documents,
+            // attempt to locate a matching source generated document in the project.
+            if (document is null
+                && e.Workspace.Services.GetService<ISyntaxTreeConfigurationService>() is { EnableOpeningSourceGeneratedFilesInWorkspace: true }
+                && e.Solution.GetProject(e.DocumentId.ProjectId) is { } project)
+            {
+                document = ThreadingContext.JoinableTaskFactory.Run(() => project.GetSourceGeneratedDocumentAsync(e.DocumentId, CancellationToken.None).AsTask());
+            }
 
             // Open documents *should* always have their SourceText available, but we cannot guarantee
             // (i.e. assert) that they do.  That's because we're not on the UI thread here, so there's

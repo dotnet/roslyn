@@ -431,8 +431,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         // If all features are enabled for source generated documents, the solution crawler needs to
                         // include them in incremental analysis.
-                        if (_syntaxTreeConfigurationService?.EnableOpeningSourceGeneratedFilesInWorkspace != false)
+                        if (_syntaxTreeConfigurationService is { EnableOpeningSourceGeneratedFilesInWorkspace: true })
                         {
+                            // TODO: if this becomes a hot spot, we should be able to expose/access the dictionary
+                            // underneath GetSourceGeneratedDocumentsAsync rather than create a new one here.
                             var oldProjectSourceGeneratedDocuments = await oldProject.GetSourceGeneratedDocumentsAsync(_shutdownToken).ConfigureAwait(false);
                             var oldProjectSourceGeneratedDocumentsById = oldProjectSourceGeneratedDocuments.ToDictionary(static document => document.Id);
                             var newProjectSourceGeneratedDocuments = await newProject.GetSourceGeneratedDocumentsAsync(_shutdownToken).ConfigureAwait(false);
@@ -517,7 +519,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 // If all features are enabled for source generated documents, the solution crawler needs to
                 // include them in incremental analysis.
-                if (_syntaxTreeConfigurationService?.EnableOpeningSourceGeneratedFilesInWorkspace != false)
+                if (_syntaxTreeConfigurationService is { EnableOpeningSourceGeneratedFilesInWorkspace: true })
                 {
                     foreach (var document in await project.GetSourceGeneratedDocumentsAsync(_shutdownToken).ConfigureAwait(false))
                         await EnqueueDocumentWorkItemAsync(project, document.Id, document, invocationReasons).ConfigureAwait(false);
