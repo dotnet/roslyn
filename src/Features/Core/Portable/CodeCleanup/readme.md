@@ -29,3 +29,42 @@ The implementations for [AbstractCodeCleanupService](AbstractCodeCleanupService.
 The Code Cleanup language service is then consumed by our [ICodeCleanUpFixer](https://docs.microsoft.com/dotnet/api/microsoft.visualstudio.language.codecleanup.icodecleanupfixer) implementations: [CSharpCodeCleanUpFixer](../../../../VisualStudio/CSharp/Impl/LanguageService/CSharpCodeCleanupFixer.cs) and [VisualBasicCodeCleanUpFixer](../../../../VisualStudio/VisualBasic/Impl/LanguageService/VisualBasicCodeCleanupFixer.vb) (with nearly all the logic for them living in [AbstractCodeCleanUpFixer](../../../../VisualStudio/Core/Def/Implementation/CodeCleanup/AbstractCodeCleanUpFixer.cs)).
 
 In order for any of our codefixes to appear in the code cleanup UI in Visual Studio  we need to export a [FixIdAttribute](https://docs.microsoft.com/dotnet/api/microsoft.visualstudio.language.codecleanup.fixidattribute) on a field so Visual Studio can compose the set of diagnostic ids we care about. The common diagnostic ids that are used in both Visual Basic and C# are defined in [CommonCodeCleanUpFixerDiagnosticIds](../../../../VisualStudio/Core/Def/Implementation/CodeCleanup/CommonCodeCleanUpFixerDiagnosticIds.cs). C# specific diagnostic ids are exported in [CSharpCodeCleanUpFixerDiagnosticIds](../../../../VisualStudio/CSharp/Impl/LanguageService/CSharpCodeCleanupFixerDiagnosticIds.cs) and Visual Basic specific diagnostic ids are exported in [VisualBasicCodeCleanUpFixerDiagnosticIds](../../../../VisualStudio/VisualBasic/Impl/LanguageService/VisualBasicCodeCleanupFixerDiagnosticIds.vb).
+
+## Adding a new codefix to the code cleanup service
+
+1. Add the Diagnostic Id to the CodeCleanupService
+    1. If the code fixer should work for C# add it to [CSharpCodeCleanupService](../../../CSharp/Portable/CodeCleanup/CSharpCodeCleanupService.cs#L22)
+        1. If it logically fits in with an existing `DiagnosticSet` add the new diagnostic Id there
+        1. If there are no `DiagnosticSet`s that make sense add a new `DiagnosticSet` to the `s_diagnosticSets` `ImmutableArray`.
+            1. If the codefix is used across both languages add a new resource string to [`FeaturesResources`](../FeaturesResources.resx) with a description for your `DiagnosticSet`
+            1. If it only apples to a single language add a new resource string to [`CSharpFeaturesResources`](../../../CSharp/Portable/CSharpFeaturesResources.resx)with a description for your `DiagnosticSet`
+    1. If the code fixer should work for Visual Basic add it to [VisualBasicCodeCleanupService](../../../VisualBasic/Portable/CodeCleanup/VisualBasicCodeCleanupService.vb#L21)
+        1. If it logically fits in with an existing `DiagnosticSet` add the new diagnostic Id there
+        1. If there are no `DiagnosticSet`s that make sense add a new `DiagnosticSet` to the `s_diagnosticSets` `ImmutableArray`.
+            1. If the codefix is used across both languages add a new resource string to [`FeaturesResources`](../FeaturesResources.resx) with a description for your `DiagnosticSet`
+            1. If it only apples to a single language add a new resource string to [`VBFeaturesResources`](../../../VisualBasic/Portable/VBFeaturesResources.resx)with a description for your `DiagnosticSet`
+1. Export the `FixIdDefinition` for Visual Studio to show
+    1. If the code fixer works for both Visual Basic and C# add a new `public` `static` field of type `FixIdDefinition` to [CommonCodeCleanUpFixerDiagnosticIds](../../../../VisualStudio/Core/Def/Implementation/CodeCleanup/CommonCodeCleanUpFixerDiagnosticIds.cs)
+        1. Add the following attributes to the field
+            1. `[Export]`
+            1. `[FixId(IDEDiagnosticIds.NewDiagnosticIdThatYouAdded)]`
+            1. `[Name(IDEDiagnosticIds.NewDiagnosticIdThatYouAdded)]`
+            1. `[ConfigurationKey("unused")]`
+            1. If the feature is not experimental add the help link url `[HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.NewDiagnosticIdThatYouAdded}")]`
+            1. `[LocalizedName(typeof(FeaturesResources), nameof(FeaturesResources.string_you_added_in_1_a_ii_i))]`
+    1. If the code fixer only in C# add a new `public` `static` field of type `FixIdDefinition` to [CSharpCodeCleanupFixerDiagnosticIds](../../../../VisualStudio/CSharp/Impl/LanguageService/CSharpCodeCleanupFixerDiagnosticIds.cs)
+        1. Add the following attributes to the field
+            1. `[Export]`
+            1. `[FixId(IDEDiagnosticIds.NewDiagnosticIdThatYouAdded)]`
+            1. `[Name(IDEDiagnosticIds.NewDiagnosticIdThatYouAdded)]`
+            1. `[ConfigurationKey("unused")]`
+            1. If the feature is not experimental add the help link url `[HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.NewDiagnosticIdThatYouAdded}")]`
+            1. `[LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.string_you_added_in_1_a_ii_ii))]`
+    1. If the code fixer only in Visual Basic add a new `Public` `Shared` field of type `FixIdDefinition` to [VisualBasicCodeCleanUpFixerDiagnosticIds](../../../../VisualStudio/VisualBasic/Impl/LanguageService/VisualBasicCodeCleanupFixerDiagnosticIds.vb)
+        1. Add the following attributes to the field
+            1. `<Export>`
+            1. `<FixId(IDEDiagnosticIds.NewDiagnosticIdThatYouAdded)>`
+            1. `<Name(IDEDiagnosticIds.NewDiagnosticIdThatYouAdded)>`
+            1. `<ConfigurationKey("unused")>`
+            1. If the feature is not experimental add the help link url `<HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/NewDiagnosticIdThatYouAdded")>`
+            1. `<LocalizedName(GetType(VBFeaturesResources), NameOf(VBFeaturesResources.string_you_added_in_1_b_ii_i))>`
