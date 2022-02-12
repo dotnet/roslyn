@@ -7,7 +7,7 @@
   - [AbstractCodeCleanupService](AbstractCodeCleanupService.cs) methods common to both C# and VB implementations of [ICodeCleanupService](ICodeCleanupService.cs)
     - [DiagnosticSet](DiagnosticSet.cs) type to group diagnostics that should all be fixed together (all block style settings for example) used by [AbstractCodeCleanupService](AbstractCodeCleanupService.cs)
     - [EnabledDiagnosticOptions](EnabledDiagnosticOptions.cs) represents the total set of things the code cleanup service should attempt to fix. This is needed (instead of just using [DiagnosticSet](DiagnosticSet.cs)) because items like whitespace formatting and organize-usings do not use analyzers
-    - [OrganizeUsingsSet](OrganizeUsingsSet.cs) a type that packages the relevant organize-usings settings as boolean flags
+    - [OrganizeUsingsSet](OrganizeUsingsSettings.cs) a type that packages the relevant organize-usings settings as boolean flags
 - Types Defined by Visual Studio that Roslyn implements
   - [ICodeCleanUpFixerProvider](https://docs.microsoft.com/dotnet/api/microsoft.visualstudio.language.codecleanup.icodecleanupfixerprovider) a factory that creates the [ICodeCleanUpFixer](https://docs.microsoft.com/dotnet/api/microsoft.visualstudio.language.codecleanup.icodecleanupfixer) we want to use.
   - [ICodeCleanUpFixer](https://docs.microsoft.com/dotnet/api/microsoft.visualstudio.language.codecleanup.icodecleanupfixer) the interface we need to implement if we want Visual Studio to work for our language.
