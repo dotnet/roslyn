@@ -110,13 +110,14 @@ static class C { }
             // Testing as a Razor doc so we get both syntactic + semantic results; otherwise the results would be empty.
             var markup =
 @"{|caret:|}class C { /* one
+
 two
 three */ }
 ";
             using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
-            var range = new LSP.Range { Start = new Position(0, 0), End = new Position(3, 0) };
+            var range = new LSP.Range { Start = new Position(0, 0), End = new Position(4, 0) };
             var (results, _) = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
                 document, SemanticTokensHelpers.TokenTypeToIndex, range, includeSyntacticClassifications: true, CancellationToken.None);
 
@@ -129,7 +130,7 @@ three */ }
                        0,     6,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.ClassName],   0, // 'C'
                        0,     2,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '{'
                        0,     2,     6,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Comment],      0, // '/* one'
-                       1,     0,     3,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Comment],      0, // 'two'
+                       2,     0,     3,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Comment],      0, // 'two'
                        1,     0,     8,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Comment],      0, // 'three */'
                        0,     9,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '}'
                 },

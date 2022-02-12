@@ -52,11 +52,7 @@ class SomeOtherClass
 
             await TestServices.Input.SendAsync(new KeyPress(VirtualKey.F12, ShiftState.Shift));
 
-            const string ProgramReferencesCaption = "'Program' references";
-            var results = await TestServices.FindReferencesWindow.GetContentsAsync(ProgramReferencesCaption, HangMitigatingCancellationToken);
-
-            var activeWindowCaption = await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken);
-            Assert.Equal(expected: ProgramReferencesCaption, actual: activeWindowCaption);
+            var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
 
             Assert.Collection(
                 results,
@@ -101,11 +97,7 @@ class Program
 
             await TestServices.Input.SendAsync(new KeyPress(VirtualKey.F12, ShiftState.Shift));
 
-            const string LocalReferencesCaption = "'local' references";
-            var results = await TestServices.FindReferencesWindow.GetContentsAsync(LocalReferencesCaption, HangMitigatingCancellationToken);
-
-            var activeWindowCaption = await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken);
-            Assert.Equal(expected: LocalReferencesCaption, actual: activeWindowCaption);
+            var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
 
             Assert.Collection(
                 results,
@@ -143,11 +135,7 @@ class Program
 
             await TestServices.Input.SendAsync(new KeyPress(VirtualKey.F12, ShiftState.Shift));
 
-            const string FindReferencesCaption = "'\"1\"' references";
-            var results = await TestServices.FindReferencesWindow.GetContentsAsync(FindReferencesCaption, HangMitigatingCancellationToken);
-
-            var activeWindowCaption = await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken);
-            Assert.Equal(expected: FindReferencesCaption, actual: activeWindowCaption);
+            var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
 
             Assert.Collection(
                 results,

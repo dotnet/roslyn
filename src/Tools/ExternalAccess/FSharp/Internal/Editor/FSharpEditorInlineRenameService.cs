@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -97,9 +97,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 
         public IList<InlineRenameLocation> Locations => _locations;
 
-        public async Task<IInlineRenameReplacementInfo> GetReplacementsAsync(string replacementText, OptionSet optionSet, CancellationToken cancellationToken)
+        public async Task<IInlineRenameReplacementInfo> GetReplacementsAsync(string replacementText, SymbolRenameOptions options, CancellationToken cancellationToken)
         {
-            var info = await _set.GetReplacementsAsync(replacementText, optionSet, cancellationToken).ConfigureAwait(false);
+            var info = await _set.GetReplacementsAsync(replacementText, optionSet: null, cancellationToken).ConfigureAwait(false);
             if (info != null)
             {
                 return new FSharpInlineRenameReplacementInfoLegacyWrapper(info);
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
 
         public bool HasOverloads => _info.HasOverloads;
 
-        public bool ForceRenameOverloads => _info.ForceRenameOverloads;
+        public bool MustRenameOverloads => _info.ForceRenameOverloads;
 
         public string DisplayName => _info.DisplayName;
 
@@ -140,9 +140,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Editor
         // This property isn't currently supported in F# since it would involve modifying the IFSharpInlineRenameInfo interface.
         public ImmutableArray<DocumentSpan> DefinitionLocations => default;
 
-        public async Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken)
+        public async Task<IInlineRenameLocationSet> FindRenameLocationsAsync(SymbolRenameOptions options, CancellationToken cancellationToken)
         {
-            var set = await _info.FindRenameLocationsAsync(optionSet, cancellationToken).ConfigureAwait(false);
+            var set = await _info.FindRenameLocationsAsync(optionSet: null, cancellationToken).ConfigureAwait(false);
             if (set != null)
             {
                 return new FSharpInlineRenameLocationSetLegacyWrapper(set);

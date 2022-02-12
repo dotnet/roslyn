@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
             {
                 result.Add(new GenerateParameterCodeAction(document, state, includeOverridesAndImplementations: false));
 
-                if (AddParameterService.Instance.HasCascadingDeclarations(state.ContainingMethod))
+                if (AddParameterService.HasCascadingDeclarations(state.ContainingMethod))
                     result.Add(new GenerateParameterCodeAction(document, state, includeOverridesAndImplementations: true));
             }
         }
