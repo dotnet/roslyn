@@ -433,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ignoreUserLicenses = false;
             }
-
+            
             return (additionalLicenses, ignoreUserLicenses);
 
 
@@ -522,8 +522,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var licensingMessage in licenseManager.Messages)
                     {
+                        int messageId = (int) (licensingMessage.IsError ? MetalamaErrorCode.ERR_LicensingMessage : MetalamaErrorCode.WRN_LicensingMessage);
                         diagnostics.Add(Diagnostic.Create(MetalamaCompilerMessageProvider.Instance,
-                            (int)MetalamaErrorCode.WRN_LicensingMessage, licensingMessage.Text));
+                            messageId, licensingMessage.Text));
                     }
                 }
                 
