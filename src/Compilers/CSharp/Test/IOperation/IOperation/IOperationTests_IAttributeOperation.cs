@@ -410,5 +410,171 @@ IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'M
 ";
             VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
+
+        [Fact]
+        public void BadAttributeParameterType()
+        {
+            string source = @"
+[/*<bind>*/Boom/*</bind>*/]
+class Boom : System.Attribute
+{
+    public Boom(int? x = 0) { }
+
+    static void Main()
+    {
+        typeof(Boom).GetCustomAttributes(true);
+    }
+}";
+            var expectedDiagnostics = new DiagnosticDescription[]
+            {
+                // (2,2): error CS0181: Attribute constructor parameter 'x' has type 'int?', which is not a valid attribute parameter type
+                // [/*<bind>*/Boom/*</bind>*/]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Boom").WithArguments("x", "int?").WithLocation(2, 12)
+            };
+            string expectedOperationTree = @"
+IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'Boom')
+  IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'Boom')
+    Children(0)
+";
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void AttributeWithExplicitNullArgument()
+        {
+            string source = @"
+using System;
+
+[/*<bind>*/My(null)/*</bind>*/]
+class MyAttribute : Attribute
+{
+    public MyAttribute(Type opt = null)
+    {
+    }
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+            string expectedOperationTree = @"
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(null)')
+  IObjectCreationOperation (Constructor: MyAttribute..ctor([System.Type opt = null])) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(null)')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: opt) (OperationKind.Argument, Type: null) (Syntax: 'null')
+          IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Type, Constant: null, IsImplicit) (Syntax: 'null')
+            Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+            Operand:
+              ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+";
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void AttributeWithDefaultNullArgument()
+        {
+            string source = @"
+using System;
+
+[/*<bind>*/My/*</bind>*/]
+class MyAttribute : Attribute
+{
+    public MyAttribute(Type opt = null)
+    {
+    }
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+            string expectedOperationTree = @"
+";
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void AttributeWithTypeOfArgument()
+        {
+            string source = @"
+using System;
+
+[/*<bind>*/My(typeof(MyAttribute))/*</bind>*/]
+class MyAttribute : Attribute
+{
+    public MyAttribute(Type opt = null)
+    {
+    }
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+            string expectedOperationTree = @"
+IAttributeOperation (OperationKind.Attribute, Type: null) (Syntax: 'My(typeof(MyAttribute))')
+  IObjectCreationOperation (Constructor: MyAttribute..ctor([System.Type opt = null])) (OperationKind.ObjectCreation, Type: MyAttribute, IsImplicit) (Syntax: 'My(typeof(MyAttribute))')
+    Arguments(1):
+        IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: opt) (OperationKind.Argument, Type: null) (Syntax: 'typeof(MyAttribute)')
+          ITypeOfOperation (OperationKind.TypeOf, Type: System.Type) (Syntax: 'typeof(MyAttribute)')
+            TypeOperand: MyAttribute
+          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Initializer:
+      null
+";
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void InvalidValue()
+        {
+            string source = @"
+using System.Security.Permissions;
+
+[/*<bind>*/A/*</bind>*/]
+class A : CodeAccessSecurityAttribute
+{
+    public A(SecurityAction a = 0) : base(a)
+    {
+    }
+
+}
+";
+            var expectedDiagnostics = new DiagnosticDescription[]
+            {
+                // (4,12): error CS7049: Security attribute 'A' has an invalid SecurityAction value '0'
+                // [/*<bind>*/A/*</bind>*/]
+                Diagnostic(ErrorCode.ERR_SecurityAttributeInvalidAction, "A").WithArguments("A", "0").WithLocation(4, 12),
+                // (5,7): error CS0534: 'A' does not implement inherited abstract member 'SecurityAttribute.CreatePermission()'
+                // class A : CodeAccessSecurityAttribute
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "A").WithArguments("A", "System.Security.Permissions.SecurityAttribute.CreatePermission()").WithLocation(5, 7)
+            };
+            string expectedOperationTree = @"
+
+";
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void InvalidAttributeParameterType()
+        {
+            string source = @"
+using System;
+
+[/*<bind>*/My/*</bind>*/]
+class MyAttribute : Attribute
+{
+    public MyAttribute(params int[][,] x) { }
+}
+";
+            var expectedDiagnostics = new DiagnosticDescription[]
+            {
+                // (4,12): error CS0181: Attribute constructor parameter 'x' has type 'int[][*,*]', which is not a valid attribute parameter type
+                // [/*<bind>*/My/*</bind>*/]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "My").WithArguments("x", "int[][*,*]").WithLocation(4, 12)
+            };
+            string expectedOperationTree = @"
+IAttributeOperation (OperationKind.Attribute, Type: null, IsInvalid) (Syntax: 'My')
+  IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'My')
+    Children(0)
+";
+            VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
     }
 }

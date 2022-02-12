@@ -547,13 +547,15 @@ namespace Microsoft.CodeAnalysis.Operations
         private IOperation CreateBoundAttributeOperation(BoundAttribute boundAttribute)
         {
             var isImplicit = boundAttribute.WasCompilerGenerated;
-            if (!TryGetAttributeData(boundAttribute, out var attributeData))
+            var constructor = boundAttribute.Constructor!;
+            if (!TryGetAttributeData(boundAttribute, out var attributeData) ||
+                attributeData.ConstructorArguments.Length != constructor.ParameterCount)
             {
                 var invalidOperation = OperationFactory.CreateInvalidOperation(_semanticModel, boundAttribute.Syntax, GetIOperationChildren(boundAttribute), isImplicit: true);
                 return new AttributeOperation(invalidOperation, _semanticModel, boundAttribute.Syntax, isImplicit);
             }
 
-            var builder = ImmutableArray.CreateBuilder<IArgumentOperation>(boundAttribute.Constructor!.ParameterCount);
+            var builder = ImmutableArray.CreateBuilder<IArgumentOperation>(constructor.ParameterCount);
             var seenParameters = ImmutableHashSet.CreateBuilder<ParameterSymbol>();
 
             for (int i = 0; i < boundAttribute.ConstructorArguments.Length; i++)
@@ -564,12 +566,12 @@ namespace Microsoft.CodeAnalysis.Operations
                     false => boundAttribute.ConstructorArgumentsToParamsOpt[i],
                 };
 
-                var parameter = boundAttribute.Constructor.Parameters[parameterIndex];
+                var parameter = constructor.Parameters[parameterIndex];
                 seenParameters.Add(parameter);
                 builder.Add(CreateArgumentOperation(ArgumentKind.Explicit, parameter.GetPublicSymbol(), boundAttribute.ConstructorArguments[i]));
             }
 
-            foreach (var parameter in boundAttribute.Constructor.Parameters)
+            foreach (var parameter in constructor.Parameters)
             {
                 if (!seenParameters.Contains(parameter))
                 {
