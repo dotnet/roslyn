@@ -44,7 +44,7 @@ End Class"
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
         <WorkItem(58040, "https://github.com/dotnet/roslyn/issues/58040")>
         Public Async Function TestProperlyWrapParameters1() As Task
-            Await TestInRegularAndScriptAsync(
+            Dim source =
 "Class Program
     [|Private i As Integer
     Private s As String|]
@@ -52,7 +52,8 @@ End Class"
             i As Integer)
         Me.i = i
     End Sub
-End Class",
+End Class"
+            Dim fixedSource =
 "Class Program
     Private i As Integer
     Private s As String
@@ -61,13 +62,20 @@ End Class",
         Me.i = i
         Me.s = s
     End Sub
-End Class", title:=String.Format(FeaturesResources.Add_parameters_to_0, "Program(Integer)"))
+End Class"
+            Dim test As New VerifyVB.Test()
+            test.TestCode = source
+            test.FixedCode = fixedSource
+            test.CodeActionVerifier = Sub(codeAction As CodeAction, verifier As IVerifier)
+                                          verifier.Equal(String.Format(FeaturesResources.Add_parameters_to_0, "Program(Integer)"), codeAction.Title)
+                                      End Sub
+            Await test.RunAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
         <WorkItem(58040, "https://github.com/dotnet/roslyn/issues/58040")>
         Public Async Function TestProperlyWrapParameters2() As Task
-            Await TestInRegularAndScriptAsync(
+            Dim source =
 "Class Program
     [|Private i As Integer
     Private s As String
@@ -78,7 +86,8 @@ End Class", title:=String.Format(FeaturesResources.Add_parameters_to_0, "Program
         Me.i = i
         Me.s = s
     End Sub
-End Class",
+End Class"
+            Dim fixedSource =
 "Class Program
     Private i As Integer
     Private s As String
@@ -91,13 +100,20 @@ End Class",
         Me.s = s
         Me.b = b
     End Sub
-End Class", title:=String.Format(FeaturesResources.Add_parameters_to_0, "Program(Integer, String)"))
+End Class"
+            Dim test As New VerifyVB.Test()
+            test.TestCode = source
+            test.FixedCode = fixedSource
+            test.CodeActionVerifier = Sub(codeAction As CodeAction, verifier As IVerifier)
+                                          verifier.Equal(String.Format(FeaturesResources.Add_parameters_to_0, "Program(Integer, String)"), codeAction.Title)
+                                      End Sub
+            Await test.RunAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
         <WorkItem(58040, "https://github.com/dotnet/roslyn/issues/58040")>
         Public Async Function TestProperlyWrapParameters3() As Task
-            Await TestInRegularAndScriptAsync(
+            Dim source =
 "Class Program
     [|Private i As Integer
     Private s As String
@@ -107,7 +123,8 @@ End Class", title:=String.Format(FeaturesResources.Add_parameters_to_0, "Program
         Me.i = i
         Me.s = s
     End Sub
-End Class",
+End Class"
+            Dim fixedSource =
 "Class Program
     Private i As Integer
     Private s As String
@@ -119,13 +136,20 @@ End Class",
         Me.s = s
         Me.b = b
     End Sub
-End Class", title:=String.Format(FeaturesResources.Add_parameters_to_0, "Program(Integer, String)"))
+End Class"
+            Dim test As New VerifyVB.Test()
+            test.TestCode = source
+            test.FixedCode = fixedSource
+            test.CodeActionVerifier = Sub(codeAction As CodeAction, verifier As IVerifier)
+                                          verifier.Equal(String.Format(FeaturesResources.Add_parameters_to_0, "Program(Integer, String)"), codeAction.Title)
+                                      End Sub
+            Await test.RunAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
         <WorkItem(58040, "https://github.com/dotnet/roslyn/issues/58040")>
         Public Async Function TestProperlyWrapParameters4() As Task
-            Await TestInRegularAndScriptAsync(
+            Dim source =
 "Class Program
     [|Private i As Integer
     Private s As String
@@ -135,7 +159,8 @@ End Class", title:=String.Format(FeaturesResources.Add_parameters_to_0, "Program
         Me.i = i
         Me.s = s
     End Sub
-End Class",
+End Class"
+            Dim fixedSource =
 "Class Program
     Private i As Integer
     Private s As String
@@ -147,7 +172,14 @@ End Class",
         Me.s = s
         Me.b = b
     End Sub
-End Class", title:=String.Format(FeaturesResources.Add_parameters_to_0, "Program(Integer, String)"))
+End Class"
+            Dim test As New VerifyVB.Test()
+            test.TestCode = source
+            test.FixedCode = fixedSource
+            test.CodeActionVerifier = Sub(codeAction As CodeAction, verifier As IVerifier)
+                                          verifier.Equal(String.Format(FeaturesResources.Add_parameters_to_0, "Program(Integer, String)"), codeAction.Title)
+                                      End Sub
+            Await test.RunAsync()
         End Function
 
         <WorkItem(530592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530592")>
