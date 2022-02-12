@@ -132,11 +132,6 @@
         <target state="translated">Indietro</target>
         <note />
       </trans-unit>
-      <trans-unit id="Background_analysis_scope_colon">
-        <source>Background analysis scope:</source>
-        <target state="translated">Ambito di analisi in background:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Beginning_of_line">
         <source>Beginning of line</source>
         <target state="translated">Inizio riga</target>
@@ -297,6 +292,11 @@
         <target state="translated">Impostazione predefinita (Intera soluzione)</target>
         <note>This text is a menu command</note>
       </trans-unit>
+      <trans-unit id="Default_None">
+        <source>Default (None)</source>
+        <target state="new">Default (None)</target>
+        <note>This text is a menu command</note>
+      </trans-unit>
       <trans-unit id="Default_Open_Documents">
         <source>Default (Open Documents)</source>
         <target state="translated">Impostazione predefinita (Documenti aperti)</target>
@@ -305,11 +305,6 @@
       <trans-unit id="Derived_types">
         <source>Derived types</source>
         <target state="translated">Tipi derivati</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Detect_and_offer_editor_features_for_likely_JSON_strings">
-        <source>Detect and offer editor features for likely JSON strings</source>
-        <target state="new">Detect and offer editor features for likely JSON strings</target>
         <note />
       </trans-unit>
       <trans-unit id="Disabled">
@@ -1160,6 +1155,11 @@
       <trans-unit id="Run_Code_Analysis_on_0">
         <source>Run Code Analysis on {0}</source>
         <target state="translated">Esegui Code Analysis su {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_background_code_analysis_for_colon">
+        <source>Run background code analysis for:</source>
+        <target state="new">Run background code analysis for:</target>
         <note />
       </trans-unit>
       <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">

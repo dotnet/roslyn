@@ -71,14 +71,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
         private void AnalyzeInvocation(
             OperationAnalysisContext context, InfoCache infoCache)
         {
-            var syntaxTree = context.Operation.SemanticModel!.SyntaxTree;
+            var operation = context.Operation;
+            var syntaxTree = operation.SemanticModel!.SyntaxTree;
             var cancellationToken = context.CancellationToken;
             var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferRangeOperator, syntaxTree, cancellationToken);
             if (!option.Value)
                 return;
 
-            var result = AnalyzeInvocation((IInvocationOperation)context.Operation, infoCache);
+            var result = AnalyzeInvocation((IInvocationOperation)operation, infoCache);
             if (result == null)
+                return;
+
+            if (CSharpSemanticFacts.Instance.IsInExpressionTree(operation.SemanticModel, operation.Syntax, infoCache.ExpressionOfTType, cancellationToken))
                 return;
 
             context.ReportDiagnostic(CreateDiagnostic(result.Value, option.Notification.Severity));

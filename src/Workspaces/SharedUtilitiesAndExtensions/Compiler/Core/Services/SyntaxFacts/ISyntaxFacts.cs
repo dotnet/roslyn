@@ -104,16 +104,21 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool SupportsRecordStruct(ParseOptions options);
         bool SupportsThrowExpression(ParseOptions options);
         bool SupportsTargetTypedConditionalExpression(ParseOptions options);
+        bool SupportsIsNotTypeExpression(ParseOptions options);
 
         SyntaxToken ParseToken(string text);
         SyntaxTriviaList ParseLeadingTrivia(string text);
         string EscapeIdentifier(string identifier);
         bool IsVerbatimIdentifier(SyntaxToken token);
         bool IsOperator(SyntaxToken token);
-        bool IsPredefinedType(SyntaxToken token);
-        bool IsPredefinedType(SyntaxToken token, PredefinedType type);
         bool IsPredefinedOperator(SyntaxToken token);
         bool IsPredefinedOperator(SyntaxToken token, PredefinedOperator op);
+
+        bool IsPredefinedType(SyntaxToken token);
+        bool IsPredefinedType(SyntaxToken token, PredefinedType type);
+
+        bool IsPredefinedType([NotNullWhen(true)] SyntaxNode? node);
+        bool IsPredefinedType([NotNullWhen(true)] SyntaxNode? node, PredefinedType type);
 
         /// <summary>
         /// Returns 'true' if this a 'reserved' keyword for the language.  A 'reserved' keyword is a
@@ -188,7 +193,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsDeclarationExpression([NotNullWhen(true)] SyntaxNode? node);
 
-        bool IsIsExpression([NotNullWhen(true)] SyntaxNode? node);
+        bool IsIsTypeExpression([NotNullWhen(true)] SyntaxNode? node);
+        bool IsIsNotTypeExpression([NotNullWhen(true)] SyntaxNode? node);
 
         bool IsIsPatternExpression([NotNullWhen(true)] SyntaxNode? node);
 
@@ -545,6 +551,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         #region GetPartsOfXXX members
 
+        void GetPartsOfAnyIsTypeExpression(SyntaxNode node, out SyntaxNode expression, out SyntaxNode type);
         void GetPartsOfBaseNamespaceDeclaration(SyntaxNode node, out SyntaxNode name, out SyntaxList<SyntaxNode> imports, out SyntaxList<SyntaxNode> members);
         void GetPartsOfBaseObjectCreationExpression(SyntaxNode node, out SyntaxNode? argumentList, out SyntaxNode? initializer);
         void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right);

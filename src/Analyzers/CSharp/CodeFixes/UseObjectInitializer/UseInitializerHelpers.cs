@@ -11,14 +11,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
 
     internal static class UseInitializerHelpers
     {
-        public static ObjectCreationExpressionSyntax GetNewObjectCreation(
-            ObjectCreationExpressionSyntax objectCreation,
+        public static BaseObjectCreationExpressionSyntax GetNewObjectCreation(
+            BaseObjectCreationExpressionSyntax baseObjectCreation,
             SeparatedSyntaxList<ExpressionSyntax> expressions)
         {
-            if (objectCreation.ArgumentList != null &&
-                objectCreation.ArgumentList.Arguments.Count == 0)
+            if (baseObjectCreation is ObjectCreationExpressionSyntax objectCreation &&
+                objectCreation.ArgumentList?.Arguments.Count == 0)
             {
-                objectCreation = objectCreation
+                baseObjectCreation = objectCreation
                     .WithType(objectCreation.Type.WithTrailingTrivia(objectCreation.ArgumentList.GetTrailingTrivia()))
                     .WithArgumentList(null);
             }
@@ -28,10 +28,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UseObjectInitializer
                 ? SyntaxKind.ObjectInitializerExpression
                 : SyntaxKind.CollectionInitializerExpression;
 
-            return objectCreation.WithInitializer(InitializerExpression(initializerKind, expressions));
+            return baseObjectCreation.WithInitializer(InitializerExpression(initializerKind, expressions));
         }
 
-        public static void AddExistingItems(ObjectCreationExpressionSyntax objectCreation, ArrayBuilder<SyntaxNodeOrToken> nodesAndTokens)
+        public static void AddExistingItems(BaseObjectCreationExpressionSyntax objectCreation, ArrayBuilder<SyntaxNodeOrToken> nodesAndTokens)
         {
             if (objectCreation.Initializer != null)
                 nodesAndTokens.AddRange(objectCreation.Initializer.Expressions.GetWithSeparators());

@@ -129,9 +129,6 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     await SearchAllProjectsAsync(isFullyLoaded, scope, cancellationToken).ConfigureAwait(false);
                 }
             }
-            catch (OperationCanceledException)
-            {
-            }
             finally
             {
                 // Ensure that we actually complete all our remaining progress items so that the progress bar completes.

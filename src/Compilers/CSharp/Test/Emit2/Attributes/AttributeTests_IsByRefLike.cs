@@ -957,7 +957,8 @@ namespace System
 }";
             var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
 
-            CompileAndVerify(compilation1, verify: Verification.Fails, symbolValidator: module =>
+            // PEVerify: Type load failed.
+            CompileAndVerify(compilation1, verify: Verification.FailsPEVerify, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("System.TypedReference");
                 AssertReferencedIsByRefLike(type, hasObsolete: false);

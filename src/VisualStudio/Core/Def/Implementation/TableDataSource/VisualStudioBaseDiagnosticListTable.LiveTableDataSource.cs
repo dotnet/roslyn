@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
@@ -475,8 +476,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     }
                 }
 
-                public override bool TryNavigateTo(int index, bool previewTab, bool activate, CancellationToken cancellationToken)
-                    => TryNavigateToItem(index, previewTab, activate, cancellationToken);
+                public override bool TryNavigateTo(int index, NavigationOptions options, CancellationToken cancellationToken)
+                    => TryNavigateToItem(index, options, cancellationToken);
 
                 #region IWpfTableEntriesSnapshot
 

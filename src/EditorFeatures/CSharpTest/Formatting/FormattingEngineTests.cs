@@ -2170,6 +2170,38 @@ using System.B;
             AssertFormatWithView(expected, code, (GenerationOptions.SeparateImportDirectiveGroups, true));
         }
 
+        [WpfFact]
+        [WorkItem(58157, "https://github.com/dotnet/roslyn/issues/58157")]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void FormatImplicitObjectCollection()
+        {
+            var code = @"class Program
+{
+    static void Main(string[] args)
+    {
+        $$List<int> list = new()
+        {
+            1, 2, 3, 4,
+        };
+    }
+}
+";
+
+            var expected = @"class Program
+{
+    static void Main(string[] args)
+    {
+        $$List<int> list = new()
+        {
+            1, 2, 3, 4,
+        };
+    }
+}
+";
+
+            AssertFormatWithView(expected, code);
+        }
+
         [Fact, WorkItem(49492, "https://github.com/dotnet/roslyn/issues/49492")]
         public void PreserveAnnotationsOnMultiLineTrivia()
         {

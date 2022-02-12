@@ -12,6 +12,11 @@
         <target state="translated">Änderungen werden übernommen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
+        <source>Cannot navigate to the symbol under the caret.</source>
+        <target state="new">Cannot navigate to the symbol under the caret.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Change_configuration">
         <source>Change configuration</source>
         <target state="translated">Konfiguration ändern</target>
@@ -322,11 +327,6 @@
         <target state="translated">Die Ergebnisse sind möglicherweise unvollständig, da die Projektmappe noch Projekte lädt.</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_symbol_has_no_base">
-        <source>The symbol has no base.</source>
-        <target state="translated">Das Symbol verfügt über keine Basis.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Toggle_Block_Comment">
         <source>Toggle Block Comment</source>
         <target state="translated">Kommentarblock ein/aus</target>
@@ -595,11 +595,6 @@
       <trans-unit id="You_cannot_rename_this_element_because_it_is_in_a_location_that_cannot_be_navigated_to">
         <source>You cannot rename this element because it is in a location that cannot be navigated to.</source>
         <target state="translated">Dieses Element kann nicht umbenannt werden, weil es sich an einem Speicherort befindet, zu dem nicht navigiert werden kann.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_bases">
-        <source>'{0}' bases</source>
-        <target state="translated">Basiswerte: "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">
@@ -1017,11 +1012,6 @@
         <target state="translated">Aktuell markierter Text wird formatiert...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
-        <source>Cannot navigate to the symbol under the caret.</source>
-        <target state="translated">Navigieren zu dem Symbol unter dem Caret nicht möglich.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Go_to_Definition">
         <source>Go to Definition</source>
         <target state="translated">Gehe zu Definition</target>
@@ -1429,11 +1419,6 @@ Möchten Sie fortfahren?</target>
         <target state="translated">Zur Implementierung wechseln</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_symbol_has_no_implementations">
-        <source>The symbol has no implementations.</source>
-        <target state="translated">Das Symbol verfügt über keine Implementierungen.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="New_name_colon_0">
         <source>New name: {0}</source>
         <target state="translated">Neuer Name: "{0}"</target>
@@ -1457,16 +1442,6 @@ Möchten Sie fortfahren?</target>
       <trans-unit id="Suggestion_ellipses">
         <source>Suggestion ellipses (…)</source>
         <target state="translated">Auslassungspunkte für Vorschlag (…)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_references">
-        <source>'{0}' references</source>
-        <target state="translated">"{0}"-Verweise</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_implementations">
-        <source>'{0}' implementations</source>
-        <target state="translated">"{0}"-Implementierungen</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_declarations">

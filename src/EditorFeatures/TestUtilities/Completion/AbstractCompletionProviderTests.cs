@@ -773,15 +773,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return VerifyItemWithReferenceWorkerAsync(xmlString, expectedItem, expectedSymbols);
         }
 
-        protected static string CreateMarkupForSingleProject(string markup, string referencedCode, string sourceLanguage)
+        protected static string CreateMarkupForSingleProject(
+            string sourceCode,
+            string referencedCode,
+            string sourceLanguage,
+            string sourceFileName = "SourceDocument",
+            string referencedFileName = "ReferencedDocument")
         {
             return string.Format(@"
 <Workspace>
-    <Project Language=""{0}"" CommonReferences=""true"">
-        <Document FilePath=""SourceDocument"">{1}</Document>
-        <Document FilePath=""ReferencedDocument"">{2}</Document>
+    <Project Language=""{0}"" CommonReferences=""true"" Name=""ProjectName"">
+        <Document FilePath=""{3}"">{1}</Document>
+        <Document FilePath=""{4}"">{2}</Document>
     </Project>    
-</Workspace>", sourceLanguage, SecurityElement.Escape(markup), SecurityElement.Escape(referencedCode));
+</Workspace>", sourceLanguage, SecurityElement.Escape(sourceCode), SecurityElement.Escape(referencedCode), sourceFileName, referencedFileName);
         }
 
         private async Task VerifyItemWithReferenceWorkerAsync(
