@@ -37,7 +37,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.LanguageService
         <Order(After:=IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)>
         <ConfigurationKey("unused")>
         <HelpLink("https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/ide0084")>
-        <LocalizedName(GetType(VBFeaturesResources), NameOf(VBFeaturesResources.Apply_isnot_preferences_experimental))>
+        <LocalizedName(GetType(VBFeaturesResources), NameOf(VBFeaturesResources.Apply_isnot_preferences))>
         Public Shared ReadOnly UseIsNotExpressionDiagnosticId As FixIdDefinition
     End Class
 End Namespace

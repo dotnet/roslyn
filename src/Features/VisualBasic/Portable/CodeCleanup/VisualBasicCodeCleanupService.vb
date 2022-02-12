@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeCleanup
                     IDEDiagnosticIds.ConsecutiveStatementPlacementDiagnosticId),
                 New DiagnosticSet(FeaturesResources.Sort_accessibility_modifiers,
                     IDEDiagnosticIds.OrderModifiersDiagnosticId),
-                New DiagnosticSet(VBFeaturesResources.Apply_isnot_preferences_experimental,
+                New DiagnosticSet(VBFeaturesResources.Apply_isnot_preferences,
                     IDEDiagnosticIds.UseIsNotExpressionDiagnosticId),
                 New DiagnosticSet(VBFeaturesResources.Apply_object_creation_preferences,
                     IDEDiagnosticIds.SimplifyObjectCreationDiagnosticId),

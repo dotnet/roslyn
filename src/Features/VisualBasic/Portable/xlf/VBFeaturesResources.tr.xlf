@@ -37,9 +37,9 @@
         <target state="translated">Me yeterlilik tercihlerini uygula</target>
         <note>{Locked="Me"} "Me" is a VB keyword and should not be localized.</note>
       </trans-unit>
-      <trans-unit id="Apply_isnot_preferences_experimental">
-        <source>Apply IsNot preferences (experimental)</source>
-        <target state="new">Apply IsNot preferences (experimental)</target>
+      <trans-unit id="Apply_isnot_preferences">
+        <source>Apply IsNot preferences</source>
+        <target state="new">Apply IsNot preferences</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_object_creation_preferences">
