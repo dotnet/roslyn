@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// This means that the handler can be shared between multiple servers
     /// and does not need to be re-instantiated on server restarts.
     /// </summary>
-    internal abstract class AbstractStatelessRequestHandler<RequestType, ResponseType> : IRequestHandlerProvider<AbstractStatelessRequestHandler<RequestType, ResponseType>>, IRequestHandler<RequestType, ResponseType>
+    internal abstract class AbstractStatelessRequestHandler<RequestType, ResponseType> : AbstractRequestHandlerProvider, IRequestHandler<RequestType, ResponseType>
     {
         public abstract string Method { get; }
 
@@ -24,9 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(RequestType request);
         public abstract Task<ResponseType> HandleRequestAsync(RequestType request, RequestContext context, CancellationToken cancellationToken);
 
-        AbstractStatelessRequestHandler<RequestType, ResponseType> IRequestHandlerProvider<AbstractStatelessRequestHandler<RequestType, ResponseType>>.CreateRequestHandler(WellKnownLspServerKinds serverKind)
-        {
-            return this;
-        }
+        public override ImmutableArray<LazyRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
+            => ImmutableArray.Create(new LazyRequestHandler(this.GetType(), new Lazy<IRequestHandler>(() => this)));
     }
 }

@@ -11,19 +11,14 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.Options;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-    internal class CompletionHandlerProvider :
-        IRequestHandlerProvider<CompletionHandler>,
-        IRequestHandlerProvider<CompletionResolveHandler>
+    internal class CompletionHandlerProvider : AbstractRequestHandlerProvider
     {
         private readonly IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> _completionProviders;
         private readonly IGlobalOptionService _globalOptions;
-
-        private readonly Lazy<CompletionListCache> _completionListCache = new(() => new());
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -35,10 +30,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _completionProviders = completionProviders;
         }
 
-        CompletionHandler IRequestHandlerProvider<CompletionHandler>.CreateRequestHandler(WellKnownLspServerKinds serverKind)
-            => new(_globalOptions, _completionProviders, _completionListCache.Value);
-
-        CompletionResolveHandler IRequestHandlerProvider<CompletionResolveHandler>.CreateRequestHandler(WellKnownLspServerKinds serverKind)
-            => new(_globalOptions, _completionListCache.Value);
+        public override ImmutableArray<LazyRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
+        {
+            var completionCache = new CompletionListCache();
+            return ImmutableArray.Create(
+                CreateLazyRequestHandlerMetadata(() => new CompletionHandler(_globalOptions, _completionProviders, completionCache)),
+                CreateLazyRequestHandlerMetadata(() => new CompletionResolveHandler(_globalOptions, completionCache)));
+        }
     }
 }

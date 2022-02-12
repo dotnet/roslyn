@@ -2,6 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Immutable;
+using System.Composition;
+using Microsoft.CodeAnalysis.Host.Mef;
+
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     /// <summary>
@@ -9,22 +14,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// New handler instances are created for each LSP server and re-created whenever the 
     /// server restarts.
     /// 
-    /// Implement multiple <see cref="IRequestHandlerProvider{T}"/> on the same provider instance
-    /// in order to share state between different LSP methods.
-    /// E.g. completion requests can share a cache with completion resolve requests for the same LSP server.
+    /// Note that the instances of <see cref="AbstractRequestHandlerProvider"/> are all created
+    /// upfront, so any dependencies they import will also be instantiated upfront.
     /// </summary>
-    internal interface IRequestHandlerProvider<T> : IRequestHandlerProvider where T : IRequestHandler
+    internal abstract class AbstractRequestHandlerProvider
     {
-        /// <summary>
-        /// Instantiates new handler instances and returns them.
-        /// </summary>
-        public T CreateRequestHandler(WellKnownLspServerKinds serverKind);
+        public abstract ImmutableArray<LazyRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind);
+
+        protected static LazyRequestHandler CreateLazyRequestHandlerMetadata<T>(Func<T> creationFunc) where T : IRequestHandler
+        {
+            return new LazyRequestHandler(typeof(T), new Lazy<IRequestHandler>(() => creationFunc()));
+        }
+
+        protected static ImmutableArray<LazyRequestHandler> CreateSingleRequestHandler<T>(Func<T> creationFunc) where T : IRequestHandler
+        {
+            return ImmutableArray.Create(CreateLazyRequestHandlerMetadata(creationFunc));
+        }
     }
 
-    /// <summary>
-    /// Marker interface for <see cref="IRequestHandlerProvider{T}"/> to allow exporting.
-    /// </summary>
-    internal interface IRequestHandlerProvider
-    {
-    }
+    internal record struct LazyRequestHandler(Type RequestHandlerType, Lazy<IRequestHandler> RequestHandler);
 }

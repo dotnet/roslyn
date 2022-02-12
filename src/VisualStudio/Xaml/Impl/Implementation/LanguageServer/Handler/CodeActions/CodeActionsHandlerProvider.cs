@@ -14,8 +14,6 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.Commands;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
@@ -27,25 +25,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     /// Same as C# and VB but for XAML. See also <seealso cref="Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActionsHandlerProvider"/>.
     /// </remarks>
     [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
-    internal class CodeActionsHandlerProvider :
-        IRequestHandlerProvider<CodeActionsHandler>,
-        IRequestHandlerProvider<CodeActionResolveHandler>,
-        IRequestHandlerProvider<RunCodeActionHandler>
+    internal class CodeActionsHandlerProvider : AbstractRequestHandlerProvider
     {
-        private readonly ICodeFixService _codeFixService;
-        private readonly ICodeRefactoringService _codeRefactoringService;
-        private readonly IThreadingContext _threadingContext;
-        private readonly IGlobalOptionService _globalOptions;
-
-        private readonly Lazy<CodeActionsCache> _codeActionsCache = new(() => new());
+        private readonly Lazy<ICodeFixService> _codeFixService;
+        private readonly Lazy<ICodeRefactoringService> _codeRefactoringService;
+        private readonly Lazy<IThreadingContext> _threadingContext;
+        private readonly Lazy<IGlobalOptionService> _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CodeActionsHandlerProvider(
-            ICodeFixService codeFixService,
-            ICodeRefactoringService codeRefactoringService,
-            IThreadingContext threadingContext,
-            IGlobalOptionService globalOptions)
+            Lazy<ICodeFixService> codeFixService,
+            Lazy<ICodeRefactoringService> codeRefactoringService,
+            Lazy<IThreadingContext> threadingContext,
+            Lazy<IGlobalOptionService> globalOptions)
         {
             _codeFixService = codeFixService;
             _codeRefactoringService = codeRefactoringService;
@@ -53,13 +46,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             _globalOptions = globalOptions;
         }
 
-        CodeActionsHandler IRequestHandlerProvider<CodeActionsHandler>.CreateRequestHandler(WellKnownLspServerKinds serverKind)
-            => new(_codeActionsCache.Value, _codeFixService, _codeRefactoringService, _globalOptions);
-
-        CodeActionResolveHandler IRequestHandlerProvider<CodeActionResolveHandler>.CreateRequestHandler(WellKnownLspServerKinds serverKind)
-            => new(_codeActionsCache.Value, _codeFixService, _codeRefactoringService, _globalOptions);
-
-        RunCodeActionHandler IRequestHandlerProvider<RunCodeActionHandler>.CreateRequestHandler(WellKnownLspServerKinds serverKind)
-            => new(_codeActionsCache.Value, _codeFixService, _codeRefactoringService, _globalOptions, _threadingContext);
+        public override ImmutableArray<LazyRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
+        {
+            var codeActionsCache = new Lazy<CodeActionsCache>(() => new());
+            return ImmutableArray.Create(
+                CreateLazyRequestHandlerMetadata(() => new CodeActionsHandler(codeActionsCache.Value, _codeFixService.Value, _codeRefactoringService.Value, _globalOptions.Value)),
+                CreateLazyRequestHandlerMetadata(() => new CodeActionResolveHandler(codeActionsCache.Value, _codeFixService.Value, _codeRefactoringService.Value, _globalOptions.Value)),
+                CreateLazyRequestHandlerMetadata(() => new RunCodeActionHandler(codeActionsCache.Value, _codeFixService.Value, _codeRefactoringService.Value, _globalOptions.Value, _threadingContext.Value)));
+        }
     }
 }

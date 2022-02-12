@@ -10,7 +10,7 @@ using System.Linq;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     /// <summary>
-    /// Defines an attribute used to export instances of <see cref="IRequestHandlerProvider{T}"/>.
+    /// Defines an attribute used to export instances of <see cref="AbstractRequestHandlerProvider"/>.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class), MetadataAttribute]
     internal class ExportLspRequestHandlerProviderAttribute : ExportAttribute
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         public string[] LanguageNames { get; }
 
-        public ExportLspRequestHandlerProviderAttribute(params string[] languageNames) : base(typeof(IRequestHandlerProvider))
+        public ExportLspRequestHandlerProviderAttribute(params string[] languageNames) : base(typeof(AbstractRequestHandlerProvider))
         {
             LanguageNames = languageNames;
         }

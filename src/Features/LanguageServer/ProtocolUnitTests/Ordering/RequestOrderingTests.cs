@@ -20,12 +20,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
     public partial class RequestOrderingTests : AbstractLanguageServerProtocolTests
     {
         protected override TestComposition Composition => base.Composition
-            .AddParts(typeof(MutatingRequestHandlerProvider))
-            .AddParts(typeof(NonMutatingRequestHandlerProvider))
-            .AddParts(typeof(FailingRequestHandlerProvider))
-            .AddParts(typeof(FailingMutatingRequestHandlerProvider))
-            .AddParts(typeof(NonLSPSolutionRequestHandlerProvider))
-            .AddParts(typeof(LongRunningNonMutatingRequestHandlerProvider));
+            .AddParts(typeof(MutatingRequestHandler))
+            .AddParts(typeof(NonMutatingRequestHandler))
+            .AddParts(typeof(FailingRequestHandler))
+            .AddParts(typeof(FailingMutatingRequestHandler))
+            .AddParts(typeof(NonLSPSolutionRequestHandler))
+            .AddParts(typeof(LongRunningNonMutatingRequestHandler));
 
         [Fact]
         public async Task MutatingRequestsDontOverlap()
