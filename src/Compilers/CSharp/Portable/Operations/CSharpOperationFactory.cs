@@ -509,6 +509,17 @@ namespace Microsoft.CodeAnalysis.Operations
             }
             else
             {
+                if (attributedDeclaration is BaseFieldDeclarationSyntax baseFieldDeclarationSyntax)
+                {
+                    if (baseFieldDeclarationSyntax.Declaration.Variables.Count == 0)
+                    {
+                        data = null;
+                        return false;
+                    }
+
+                    attributedDeclaration = baseFieldDeclarationSyntax.Declaration.Variables[0];
+                }
+
                 var model = _semanticModel.Compilation.GetSemanticModel(boundAttribute.SyntaxTree!);
                 attributedSymbol = model.GetDeclaredSymbol(attributedDeclaration);
             }
