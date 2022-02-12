@@ -64,7 +64,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // There is a `CompletionContext.IsIncomplete` flag, which is only supported in LSP mode at the moment. Therefore we opt to handle the checking
             // and combining the items in Roslyn until the `IsIncomplete` flag is fully supported in classic mode.
 
-            if (session.Properties.TryGetProperty(CompletionSource.ExpandedItemsTask, out Task<(CompletionContext, RoslynCompletionList)> task)
+            if (session.Properties.TryGetProperty(CombinedSortedList, out ImmutableArray<VSCompletionItem> combinedSortedList))
+            {
+                // Always use the previously saved combined list if available.
+                data = new AsyncCompletionSessionDataSnapshot(combinedSortedList, data.Snapshot, data.Trigger, data.InitialTrigger, data.SelectedFilters,
+                    data.IsSoftSelected, data.DisplaySuggestionItem, data.Defaults);
+            }
+            else if (session.Properties.TryGetProperty(CompletionSource.ExpandedItemsTask, out Task<(CompletionContext, RoslynCompletionList)> task)
                 && task.Status == TaskStatus.RanToCompletion)
             {
                 // Make sure the task is removed when Adding expanded items,
@@ -89,12 +95,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 }
 
                 AsyncCompletionLogger.LogSessionWithDelayedImportCompletionIncludedInUpdate();
-            }
-            else if (session.Properties.TryGetProperty<ImmutableArray<VSCompletionItem>>(CombinedSortedList, out var combinedSortedList))
-            {
-                // Always use the previously saved combined list if available.
-                data = new AsyncCompletionSessionDataSnapshot(combinedSortedList, data.Snapshot, data.Trigger, data.InitialTrigger, data.SelectedFilters,
-                    data.IsSoftSelected, data.DisplaySuggestionItem, data.Defaults);
             }
 
             var updater = new CompletionListUpdater(session, data, _recentItemsManager, _globalOptions);
