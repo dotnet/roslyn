@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInArgumentForOutput));
             nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate));
             nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate));
+            nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInImplicitParameterTypeOfTargetDelegate));
             nullableWarnings.Add(GetId(ErrorCode.WRN_NullAsNonNullable));
             nullableWarnings.Add(GetId(ErrorCode.WRN_NullableValueTypeMayBeNull));
             nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint));
@@ -434,6 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullabilityMismatchInArgumentForOutput:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate:
+                case ErrorCode.WRN_NullabilityMismatchInImplicitParameterTypeOfTargetDelegate:
                 case ErrorCode.WRN_NullAsNonNullable:
                 case ErrorCode.WRN_NullableValueTypeMayBeNull:
                 case ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint:

@@ -1637,6 +1637,16 @@
         <target state="translated">Для типа, допускающего значение NULL, выполнена проверка значения NULL. Он будет выдаваться, если ему присвоено значение NULL.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInImplicitParameterTypeOfTargetDelegate">
+        <source>Nullability of reference types in type of implicit parameter with index {0} of '{1}' doesn't match the target delegate '{2}' (possibly because of nullability attributes).</source>
+        <target state="new">Nullability of reference types in type of implicit parameter with index {0} of '{1}' doesn't match the target delegate '{2}' (possibly because of nullability attributes).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInImplicitParameterTypeOfTargetDelegate_Title">
+        <source>Nullability of reference types in type of implicit parameter doesn't match the target delegate (possibly because of nullability attributes).</source>
+        <target state="new">Nullability of reference types in type of implicit parameter doesn't match the target delegate (possibly because of nullability attributes).</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
         <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
         <target state="translated">При выходе параметр "{0}" должен иметь значение, отличное от NULL, так как параметр "{1}" имеет значение, отличное от NULL.</target>

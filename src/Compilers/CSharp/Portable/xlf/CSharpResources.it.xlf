@@ -1637,6 +1637,16 @@
         <target state="translated">Il tipo nullable è controllato Null e verrà generato se Null.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInImplicitParameterTypeOfTargetDelegate">
+        <source>Nullability of reference types in type of implicit parameter with index {0} of '{1}' doesn't match the target delegate '{2}' (possibly because of nullability attributes).</source>
+        <target state="new">Nullability of reference types in type of implicit parameter with index {0} of '{1}' doesn't match the target delegate '{2}' (possibly because of nullability attributes).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInImplicitParameterTypeOfTargetDelegate_Title">
+        <source>Nullability of reference types in type of implicit parameter doesn't match the target delegate (possibly because of nullability attributes).</source>
+        <target state="new">Nullability of reference types in type of implicit parameter doesn't match the target delegate (possibly because of nullability attributes).</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
         <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
         <target state="translated">Il parametro '{0}' deve avere un valore non Null quando viene terminato perché il parametro '{1}' è non Null.</target>

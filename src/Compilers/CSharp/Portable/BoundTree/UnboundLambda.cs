@@ -457,6 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public TypeWithAnnotations ParameterTypeWithAnnotations(int index) { return Data.ParameterTypeWithAnnotations(index); }
         public TypeSymbol ParameterType(int index) { return ParameterTypeWithAnnotations(index).Type; }
         public Location ParameterLocation(int index) { return Data.ParameterLocation(index); }
+        public bool HasParameterNames() { return Data.HasParameterNames(); }
         public string ParameterName(int index) { return Data.ParameterName(index); }
         public bool ParameterIsDiscard(int index) { return Data.ParameterIsDiscard(index); }
         public bool ParameterIsNullChecked(int index) { return Data.ParameterIsNullChecked(index); }
@@ -517,6 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public UnboundLambda UnboundLambda => _unboundLambda;
 
         public abstract MessageID MessageID { get; }
+        public abstract bool HasParameterNames();
         public abstract string ParameterName(int index);
         public abstract bool ParameterIsDiscard(int index);
         public abstract bool ParameterIsNullChecked(int index);
@@ -1408,6 +1410,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return _parameterAttributes.IsDefault ? default : _parameterAttributes[index];
         }
+
+        public override bool HasParameterNames() { return !_parameterNames.IsDefault; }
 
         public override string ParameterName(int index)
         {
