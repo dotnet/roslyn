@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
@@ -29,7 +30,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
         AbstractNavigationCommandHandler<FindDerivedSymbolsCommandArgs>
     {
         private readonly IAsynchronousOperationListener _asyncListener;
-        private readonly IGlobalOptionService _globalOptions;
 
         public override string DisplayName => nameof(FindDerivedSymbolsCommandHandler);
 
@@ -37,14 +37,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FindDerivedSymbolsCommandHandler(
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            IGlobalOptionService globalOptions)
+            IAsynchronousOperationListenerProvider listenerProvider)
             : base(streamingPresenters)
         {
             Contract.ThrowIfNull(listenerProvider);
 
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.FindReferences);
-            _globalOptions = globalOptions;
         }
 
         protected override bool TryExecuteCommand(int caretPosition, Document document, CommandExecutionContext context)

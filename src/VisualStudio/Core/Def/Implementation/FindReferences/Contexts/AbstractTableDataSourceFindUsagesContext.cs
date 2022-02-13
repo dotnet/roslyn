@@ -352,7 +352,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 CancellationToken cancellationToken)
             {
                 var document = documentSpan.Document;
-                var options = GlobalOptions.GetClassificationOptions(document.Project.Language);
+                var options = _globalOptions.GetClassificationOptions(document.Project.Language);
                 var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var (excerptResult, lineText) = await ExcerptAsync(sourceText, documentSpan, options, cancellationToken).ConfigureAwait(false);
 
