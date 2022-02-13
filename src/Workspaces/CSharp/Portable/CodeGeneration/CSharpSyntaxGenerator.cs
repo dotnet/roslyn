@@ -2041,12 +2041,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var newParameters = AsParameterList(parameters);
 
             var currentList = declaration.GetParameterList();
-            if (currentList == null)
-            {
-                currentList = declaration.IsKind(SyntaxKind.IndexerDeclaration)
-                    ? SyntaxFactory.BracketedParameterList()
-                    : SyntaxFactory.ParameterList();
-            }
+            currentList ??= declaration.IsKind(SyntaxKind.IndexerDeclaration)
+                ? SyntaxFactory.BracketedParameterList()
+                : SyntaxFactory.ParameterList();
 
             var newList = currentList.WithParameters(currentList.Parameters.InsertRange(index, newParameters.Parameters));
             return WithParameterList(declaration, newList);

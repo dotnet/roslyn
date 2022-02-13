@@ -42,8 +42,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public Debugger_OutOfProc Debugger { get; }
 
-        public Dialog_OutOfProc Dialog { get; }
-
         public Editor_OutOfProc Editor { get; }
 
         public EncapsulateField_OutOfProc EncapsulateField { get; }
@@ -138,7 +136,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             InteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
             ObjectBrowserWindow = new ObjectBrowserWindow_OutOfProc(this);
             Debugger = new Debugger_OutOfProc(this);
-            Dialog = new Dialog_OutOfProc(this);
             Editor = new Editor_OutOfProc(this);
             EncapsulateField = new EncapsulateField_OutOfProc(this);
             ErrorList = new ErrorList_OutOfProc(this);

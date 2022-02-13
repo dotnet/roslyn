@@ -46,17 +46,17 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
         protected abstract TListSyntax? TryGetApplicableList(SyntaxNode node);
         protected abstract SeparatedSyntaxList<TListItemSyntax> GetListItems(TListSyntax listSyntax);
         protected abstract bool PositionIsApplicable(
-            SyntaxNode root, int position, SyntaxNode declaration, TListSyntax listSyntax);
+            SyntaxNode root, int position, SyntaxNode declaration, bool containsSyntaxError, TListSyntax listSyntax);
 
         public override async Task<ICodeActionComputer?> TryCreateComputerAsync(
-            Document document, int position, SyntaxNode declaration, CancellationToken cancellationToken)
+            Document document, int position, SyntaxNode declaration, bool containsSyntaxError, CancellationToken cancellationToken)
         {
             var listSyntax = TryGetApplicableList(declaration);
             if (listSyntax == null)
                 return null;
 
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (!PositionIsApplicable(root, position, declaration, listSyntax))
+            if (!PositionIsApplicable(root, position, declaration, containsSyntaxError, listSyntax))
                 return null;
 
             var listItems = GetListItems(listSyntax);

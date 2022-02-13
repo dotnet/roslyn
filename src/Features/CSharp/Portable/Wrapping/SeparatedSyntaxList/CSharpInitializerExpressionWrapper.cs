@@ -40,7 +40,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
         protected override InitializerExpressionSyntax? TryGetApplicableList(SyntaxNode node)
             => node as InitializerExpressionSyntax;
 
-        protected override bool PositionIsApplicable(SyntaxNode root, int position, SyntaxNode declaration, InitializerExpressionSyntax listSyntax)
-            => listSyntax.Span.Contains(position);
+        protected override bool PositionIsApplicable(SyntaxNode root, int position, SyntaxNode declaration, bool containsSyntaxError, InitializerExpressionSyntax listSyntax)
+        {
+            if (containsSyntaxError)
+                return false;
+
+            return listSyntax.Span.Contains(position);
+        }
     }
 }

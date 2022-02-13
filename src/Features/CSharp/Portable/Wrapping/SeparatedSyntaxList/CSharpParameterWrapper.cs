@@ -43,14 +43,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
             => node.GetParameterList();
 
         protected override bool PositionIsApplicable(
-            SyntaxNode root, int position, SyntaxNode declaration, BaseParameterListSyntax listSyntax)
+            SyntaxNode root, int position, SyntaxNode declaration, bool containsSyntaxError, BaseParameterListSyntax listSyntax)
         {
             // CSharpSyntaxGenerator.GetParameterList synthesizes a parameter list for simple-lambdas.
             // In that case, we're not applicable in that list.
             if (declaration.Kind() == SyntaxKind.SimpleLambdaExpression)
-            {
                 return false;
-            }
 
             var generator = CSharpSyntaxGenerator.Instance;
             var attributes = generator.GetAttributes(declaration);
@@ -64,7 +62,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
             var lastToken = listSyntax.GetLastToken();
 
             var headerSpan = TextSpan.FromBounds(firstToken.SpanStart, lastToken.Span.End);
-            return headerSpan.IntersectsWith(position);
+            if (!headerSpan.IntersectsWith(position))
+                return false;
+
+            if (containsSyntaxError && ContainsOverlappingSyntaxErrror(declaration, headerSpan))
+                return false;
+
+            return true;
         }
     }
 }

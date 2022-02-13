@@ -49,7 +49,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping.SeparatedSyntaxList
                       TryCast(node, ObjectCollectionInitializerSyntax)?.Initializer)
         End Function
 
-        Protected Overrides Function PositionIsApplicable(root As SyntaxNode, position As Integer, declaration As SyntaxNode, listSyntax As CollectionInitializerSyntax) As Boolean
+        Protected Overrides Function PositionIsApplicable(
+                root As SyntaxNode, position As Integer, declaration As SyntaxNode, containsSyntaxError As Boolean, listSyntax As CollectionInitializerSyntax) As Boolean
+            If containsSyntaxError Then
+                Return False
+            End If
+
             Return listSyntax.Span.Contains(position)
         End Function
     End Class

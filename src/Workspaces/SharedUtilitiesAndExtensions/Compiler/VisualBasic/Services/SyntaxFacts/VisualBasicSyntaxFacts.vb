@@ -311,6 +311,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return TryGetPredefinedType(token, actualType) AndAlso actualType = type
         End Function
 
+        Public Function IsPredefinedType(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsPredefinedType
+            Dim predefined = TryCast(node, PredefinedTypeSyntax)
+            Return predefined IsNot Nothing AndAlso IsPredefinedType(predefined.Keyword)
+        End Function
+
+        Public Function IsPredefinedType(node As SyntaxNode, type As PredefinedType) As Boolean Implements ISyntaxFacts.IsPredefinedType
+            Dim predefined = TryCast(node, PredefinedTypeSyntax)
+            Return predefined IsNot Nothing AndAlso IsPredefinedType(predefined.Keyword, type)
+        End Function
+
         Public Function TryGetPredefinedType(token As SyntaxToken, ByRef type As PredefinedType) As Boolean Implements ISyntaxFacts.TryGetPredefinedType
             type = GetPredefinedType(token)
             Return type <> PredefinedType.None
@@ -1425,8 +1435,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return DirectCast(node, ExpressionStatementSyntax).Expression
         End Function
 
-        Public Function IsIsExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsIsExpression
+        Public Function IsIsTypeExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsIsTypeExpression
             Return node.IsKind(SyntaxKind.TypeOfIsExpression)
+        End Function
+
+        Public Function IsIsNotTypeExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsIsNotTypeExpression
+            Return node.IsKind(SyntaxKind.TypeOfIsNotExpression)
         End Function
 
         Public Sub GetPartsOfTupleExpression(Of TArgumentSyntax As SyntaxNode)(node As SyntaxNode, ByRef openParen As SyntaxToken, ByRef arguments As SeparatedSyntaxList(Of TArgumentSyntax), ByRef closeParen As SyntaxToken) Implements ISyntaxFacts.GetPartsOfTupleExpression
@@ -1670,6 +1684,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
+        Public Function SupportsIsNotTypeExpression(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsIsNotTypeExpression
+            Return DirectCast(options, VisualBasicParseOptions).LanguageVersion >= LanguageVersion.VisualBasic14
+        End Function
+
         Public Function IsIsPatternExpression(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsIsPatternExpression
             Return False
         End Function
@@ -1721,6 +1739,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public Function IsVarPattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsVarPattern
             Return False
         End Function
+
+        Public Sub GetPartsOfAnyIsTypeExpression(node As SyntaxNode, ByRef expression As SyntaxNode, ByRef type As SyntaxNode) Implements ISyntaxFacts.GetPartsOfAnyIsTypeExpression
+            Dim typeOfExpression = DirectCast(node, TypeOfExpressionSyntax)
+            expression = typeOfExpression.Expression
+            type = typeOfExpression.Type
+        End Sub
 
         Public Sub GetPartsOfIsPatternExpression(node As SyntaxNode, ByRef left As SyntaxNode, ByRef isToken As SyntaxToken, ByRef right As SyntaxNode) Implements ISyntaxFacts.GetPartsOfIsPatternExpression
             Throw ExceptionUtilities.Unreachable

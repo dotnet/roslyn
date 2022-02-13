@@ -36,8 +36,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping.SeparatedSyntaxList
         End Function
 
         Protected Overrides Function PositionIsApplicable(
-                root As SyntaxNode, position As Integer,
-                declaration As SyntaxNode, listSyntax As ArgumentListSyntax) As Boolean
+                root As SyntaxNode, position As Integer, declaration As SyntaxNode, containsSyntaxError As Boolean, listSyntax As ArgumentListSyntax) As Boolean
+
+            If containsSyntaxError Then
+                Return False
+            End If
 
             Dim startToken = listSyntax.GetFirstToken()
 

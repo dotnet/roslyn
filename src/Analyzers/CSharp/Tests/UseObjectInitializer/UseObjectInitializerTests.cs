@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseObjectInitializer
             {
                 TestCode = testCode,
                 FixedCode = fixedCode,
+                LanguageVersion = LanguageVersion.Preview,
             }.RunAsync();
         }
 
@@ -810,6 +811,34 @@ class MyClass
 
     public void Dispose()
     {
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestImplicitObject()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    int i;
+
+    void M()
+    {
+        C c = [|new|]();
+        c.i = 1;
+    }
+}",
+@"class C
+{
+    int i;
+
+    void M()
+    {
+        C c = new()
+        {
+            i = 1
+        };
     }
 }");
         }

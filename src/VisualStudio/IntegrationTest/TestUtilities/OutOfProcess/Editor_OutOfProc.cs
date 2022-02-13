@@ -117,12 +117,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             return _editorInProc.IsSignatureHelpActive();
         }
 
-        public Signature[] GetSignatures()
-        {
-            WaitForSignatureHelp();
-            return _editorInProc.GetSignatures();
-        }
-
         public Signature GetCurrentSignature()
         {
             WaitForSignatureHelp();
@@ -184,15 +178,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             VisualStudioInstance.SendKeys.Send(keys);
         }
 
-        public void MessageBox(string message)
-            => _editorInProc.MessageBox(message);
-
-        public IUIAutomationElement GetDialog(string dialogAutomationId)
-        {
-            var dialog = DialogHelpers.GetOpenDialogById(_instance.Shell.GetHWnd(), dialogAutomationId);
-            return dialog;
-        }
-
         public void VerifyDialog(string dialogName, bool isOpen)
             => _editorInProc.VerifyDialog(dialogName, isOpen);
 
@@ -242,9 +227,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public ClassifiedToken[] GetLightbulbPreviewClassification(string menuText) =>
             _editorInProc.GetLightbulbPreviewClassifications(menuText);
 
-        public bool IsUseSuggestionModeOn()
-            => _editorInProc.IsUseSuggestionModeOn();
-
         public void SetUseSuggestionMode(bool value)
         {
             Assert.False(IsCompletionActive());
@@ -254,20 +236,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void WaitForActiveView(string viewName)
             => _editorInProc.WaitForActiveView(viewName);
 
-        public void WaitForActiveWindow(string windowName)
-            => _editorInProc.WaitForActiveWindow(windowName);
-
         public string[] GetErrorTags()
             => _editorInProc.GetErrorTags();
 
         public List<string> GetF1Keyword()
             => _editorInProc.GetF1Keywords();
-
-        public void ExpandProjectNavBar()
-        {
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
-            _editorInProc.ExpandNavigationBar(0);
-        }
 
         public void ExpandTypeNavBar()
         {
@@ -287,22 +260,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             return _editorInProc.GetNavBarItems(0);
         }
 
-        public string[] GetTypeNavBarItems()
-        {
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
-            return _editorInProc.GetNavBarItems(1);
-        }
-
         public string[] GetMemberNavBarItems()
         {
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
             return _editorInProc.GetNavBarItems(2);
-        }
-
-        public string? GetProjectNavBarSelection()
-        {
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
-            return _editorInProc.GetSelectedNavBarItem(0);
         }
 
         public string? GetTypeNavBarSelection()
@@ -315,15 +276,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         {
             _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
             return _editorInProc.GetSelectedNavBarItem(2);
-        }
-
-        public void SelectProjectNavbarItem(string item)
-        {
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
-            _editorInProc.SelectNavBarItem(0, item);
-
-            // Navigation and/or code generation following selection is tracked under FeatureAttribute.NavigationBar
-            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.NavigationBar);
         }
 
         public void SelectTypeNavBarItem(string item)

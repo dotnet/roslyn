@@ -35,8 +35,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping.SeparatedSyntaxList
         End Function
 
         Protected Overrides Function PositionIsApplicable(
-                root As SyntaxNode, position As Integer,
-                declaration As SyntaxNode, listSyntax As ParameterListSyntax) As Boolean
+                root As SyntaxNode, position As Integer, declaration As SyntaxNode,
+                containsSyntaxError As Boolean, listSyntax As ParameterListSyntax) As Boolean
 
             Dim generator = VisualBasicSyntaxGenerator.Instance
             Dim attributes = generator.GetAttributes(declaration)
@@ -50,7 +50,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Wrapping.SeparatedSyntaxList
             Dim lastToken = listSyntax.GetLastToken()
 
             Dim headerSpan = TextSpan.FromBounds(firstToken.SpanStart, lastToken.Span.End)
-            Return headerSpan.IntersectsWith(position)
+            If Not headerSpan.IntersectsWith(position) Then
+                Return False
+            End If
+
+            If containsSyntaxError AndAlso ContainsOverlappingSyntaxErrror(declaration, headerSpan) Then
+                Return False
+            End If
+
+            Return True
         End Function
     End Class
 End Namespace
