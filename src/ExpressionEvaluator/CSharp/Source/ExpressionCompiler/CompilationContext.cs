@@ -669,7 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
         }
 
-        private static bool TryBindFieldKeyword(Symbol? containingMemberOrLambda, ExpressionSyntax syntax, out BoundFieldAccess? boundField)
+        private static bool TryBindFieldKeyword(Symbol? containingMemberOrLambda, ExpressionSyntax syntax, [NotNullWhen(true)] out BoundFieldAccess? boundField)
         {
             if (syntax is not IdentifierNameSyntax identifier || identifier.Identifier.ContextualKind() != SyntaxKind.FieldKeyword)
             {
