@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     [SuppressMessage("Documentation", "CA1200:Avoid using cref tags with a prefix", Justification = "Required to avoid ambiguous reference warnings.")]
-    internal partial class CSharpUseRangeOperatorDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal sealed partial class CSharpUseRangeOperatorDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         // public const string UseIndexer = nameof(UseIndexer);
         public const string ComputedRange = nameof(ComputedRange);
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
                 // Check if we're at least on C# 8
                 if (compilation.LanguageVersion < LanguageVersion.CSharp8)
-                    return null;
+                    return;
 
                 // We're going to be checking every invocation in the compilation. Cache information
                 // we compute in this object so we don't have to continually recompute it.
