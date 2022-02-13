@@ -3310,9 +3310,19 @@ class C
             default:
                 break;
         }").WithArguments("System.Int32").WithLocation(6, 9),
-                // (8,13): error CS0518: Predefined type 'System.Int32' is not defined or imported
-                //             case not "one" when b1:
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"case not ""one"" when b1:").WithArguments("System.Int32").WithLocation(8, 13)
+                // (6,9): error CS0518: Predefined type 'System.Int32' is not defined or imported
+                //         switch (s)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"switch (s)
+        {
+            case not ""one"" when b1:
+                break;
+            case var _ when b2:
+                break;
+            case ""one"":
+                break;
+            default:
+                break;
+        }").WithArguments("System.Int32").WithLocation(6, 9)
                 );
         }
 

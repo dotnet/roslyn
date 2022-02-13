@@ -168,7 +168,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return VisitExpressionImpl(expr);
             }
 
-            return node.Accept(this);
+#if DEBUG
+            var oldSyntax = _factory.Syntax;
+#endif
+            var result = node.Accept(this);
+#if DEBUG
+            Debug.Assert(oldSyntax == _factory.Syntax);
+#endif
+            return result;
         }
 
         [return: NotNullIfNotNull("node")]
@@ -192,7 +199,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             Debug.Assert(!node.HasErrors, "nodes with errors should not be lowered");
 
-            return (BoundStatement?)node.Accept(this);
+#if DEBUG
+            var oldSyntax = _factory.Syntax;
+#endif
+            var result = (BoundStatement?)node.Accept(this);
+#if DEBUG
+            Debug.Assert(oldSyntax == _factory.Syntax);
+#endif
+            return result;
         }
 
         private BoundExpression? VisitExpressionImpl(BoundExpression node)

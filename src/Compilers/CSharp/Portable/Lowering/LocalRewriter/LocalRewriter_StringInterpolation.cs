@@ -16,6 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression RewriteInterpolatedStringConversion(BoundConversion conversion)
         {
             Debug.Assert(conversion.ConversionKind == ConversionKind.InterpolatedString);
+            var oldSyntax = _factory.Syntax;
+            _factory.Syntax = conversion.Syntax;
+
             BoundExpression format;
             ArrayBuilder<BoundExpression> expressions;
             MakeInterpolatedStringFormat((BoundInterpolatedString)conversion.Operand, out format, out expressions);
@@ -35,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = MakeImplicitConversionForInterpolatedString(result, conversion.Type);
             }
 
+            _factory.Syntax = oldSyntax;
             return result;
         }
 
@@ -207,7 +211,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void MakeInterpolatedStringFormat(BoundInterpolatedString node, out BoundExpression format, out ArrayBuilder<BoundExpression> expressions)
         {
+            var oldSyntax = _factory.Syntax;
             _factory.Syntax = node.Syntax;
+
             int n = node.Parts.Length - 1;
             var formatString = PooledStringBuilder.GetInstance();
             var stringBuilder = formatString.Builder;
@@ -249,97 +255,107 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             format = _factory.StringLiteral(formatString.ToStringAndFree());
+            _factory.Syntax = oldSyntax;
         }
 
         public override BoundNode VisitInterpolatedString(BoundInterpolatedString node)
         {
             Debug.Assert(node.Type is { SpecialType: SpecialType.System_String }); // if target-converted, we should not get here.
 
-            BoundExpression? result;
-
-            if (node.InterpolationData is InterpolatedStringHandlerData data)
+            var oldSyntax = _factory.Syntax;
+            _factory.Syntax = node.Syntax;
+            try
             {
-                return LowerPartsToString(data, node.Parts, node.Syntax, node.Type);
-            }
-            else if (CanLowerToStringConcatenation(node))
-            {
-                // All fill-ins, if any, are strings, and none of them have alignment or format specifiers.
-                // We can lower to a more efficient string concatenation
-                // The normal pattern for lowering is to lower subtrees before the enclosing tree. However in this case
-                // we want to lower the entire concatenation so we get the optimizations done by that lowering (e.g. constant folding).
+                BoundExpression? result;
 
-                int length = node.Parts.Length;
-                if (length == 0)
+                if (node.InterpolationData is InterpolatedStringHandlerData data)
                 {
-                    // $"" -> ""
-                    return _factory.StringLiteral("");
+                    return LowerPartsToString(data, node.Parts, node.Syntax, node.Type);
                 }
-
-                result = null;
-                for (int i = 0; i < length; i++)
+                else if (CanLowerToStringConcatenation(node))
                 {
-                    var part = node.Parts[i];
-                    if (part is BoundStringInsert fillin)
+                    // All fill-ins, if any, are strings, and none of them have alignment or format specifiers.
+                    // We can lower to a more efficient string concatenation
+                    // The normal pattern for lowering is to lower subtrees before the enclosing tree. However in this case
+                    // we want to lower the entire concatenation so we get the optimizations done by that lowering (e.g. constant folding).
+
+                    int length = node.Parts.Length;
+                    if (length == 0)
                     {
-                        // this is one of the filled-in expressions
-                        part = fillin.Value;
-                    }
-                    else
-                    {
-                        // this is one of the literal parts
-                        Debug.Assert(part is BoundLiteral && part.ConstantValue is { StringValue: { } });
-                        part = _factory.StringLiteral(ConstantValueUtils.UnescapeInterpolatedStringLiteral(part.ConstantValue.StringValue));
+                        // $"" -> ""
+                        return _factory.StringLiteral("");
                     }
 
-                    result = result == null ?
-                        part :
-                        _factory.Binary(BinaryOperatorKind.StringConcatenation, node.Type, result, part);
-                }
+                    result = null;
+                    for (int i = 0; i < length; i++)
+                    {
+                        var part = node.Parts[i];
+                        if (part is BoundStringInsert fillin)
+                        {
+                            // this is one of the filled-in expressions
+                            part = fillin.Value;
+                        }
+                        else
+                        {
+                            // this is one of the literal parts
+                            Debug.Assert(part is BoundLiteral && part.ConstantValue is { StringValue: { } });
+                            part = _factory.StringLiteral(ConstantValueUtils.UnescapeInterpolatedStringLiteral(part.ConstantValue.StringValue));
+                        }
 
-                // We need to ensure that the result of the interpolated string is not null. If the single part has a non-null constant value
-                // or is itself an interpolated string (which by proxy cannot be null), then there's nothing else that needs to be done. Otherwise,
-                // we need to test for null and ensure "" if it is.
-                if (length == 1 && result is not ({ Kind: BoundKind.InterpolatedString } or { ConstantValue: { IsString: true } }))
+                        result = result == null ?
+                            part :
+                            _factory.Binary(BinaryOperatorKind.StringConcatenation, node.Type, result, part);
+                    }
+
+                    // We need to ensure that the result of the interpolated string is not null. If the single part has a non-null constant value
+                    // or is itself an interpolated string (which by proxy cannot be null), then there's nothing else that needs to be done. Otherwise,
+                    // we need to test for null and ensure "" if it is.
+                    if (length == 1 && result is not ({ Kind: BoundKind.InterpolatedString } or { ConstantValue: { IsString: true } }))
+                    {
+                        Debug.Assert(result is not null);
+                        Debug.Assert(result.Type is not null);
+                        Debug.Assert(result.Type.SpecialType == SpecialType.System_String || result.Type.IsErrorType());
+                        var placeholder = new BoundValuePlaceholder(result.Syntax, result.Type);
+                        result = new BoundNullCoalescingOperator(result.Syntax, result, _factory.StringLiteral(""), leftPlaceholder: placeholder, leftConversion: placeholder, BoundNullCoalescingOperatorResultKind.LeftType, result.Type) { WasCompilerGenerated = true };
+                    }
+                }
+                else
                 {
-                    Debug.Assert(result is not null);
-                    Debug.Assert(result.Type is not null);
-                    Debug.Assert(result.Type.SpecialType == SpecialType.System_String || result.Type.IsErrorType());
-                    var placeholder = new BoundValuePlaceholder(result.Syntax, result.Type);
-                    result = new BoundNullCoalescingOperator(result.Syntax, result, _factory.StringLiteral(""), leftPlaceholder: placeholder, leftConversion: placeholder, BoundNullCoalescingOperatorResultKind.LeftType, result.Type) { WasCompilerGenerated = true };
+                    //
+                    // We lower an interpolated string into an invocation of String.Format.  For example, we translate the expression
+                    //
+                    //     $"Jenny don\'t change your number { 8675309 }"
+                    //
+                    // into
+                    //
+                    //     String.Format("Jenny don\'t change your number {0}", new object[] { 8675309 })
+                    //
+
+                    MakeInterpolatedStringFormat(node, out BoundExpression format, out ArrayBuilder<BoundExpression> expressions);
+
+                    // The normal pattern for lowering is to lower subtrees before the enclosing tree. However we cannot lower
+                    // the arguments first in this situation because we do not know what conversions will be
+                    // produced for the arguments until after we've done overload resolution. So we produce the invocation
+                    // and then lower it along with its arguments.
+                    expressions.Insert(0, format);
+                    var stringType = node.Type;
+                    result = _factory.StaticCall(stringType, "Format", expressions.ToImmutableAndFree(),
+                        allowUnexpandedForm: false // if an interpolation expression is the null literal, it should not match a params parameter.
+                        );
                 }
+
+                Debug.Assert(result is { });
+                if (!result.HasAnyErrors)
+                {
+                    result = VisitExpression(result); // lower the arguments AND handle expanded form, argument conversions, etc.
+                    result = MakeImplicitConversionForInterpolatedString(result, node.Type);
+                }
+                return result;
             }
-            else
+            finally
             {
-                //
-                // We lower an interpolated string into an invocation of String.Format.  For example, we translate the expression
-                //
-                //     $"Jenny don\'t change your number { 8675309 }"
-                //
-                // into
-                //
-                //     String.Format("Jenny don\'t change your number {0}", new object[] { 8675309 })
-                //
-
-                MakeInterpolatedStringFormat(node, out BoundExpression format, out ArrayBuilder<BoundExpression> expressions);
-
-                // The normal pattern for lowering is to lower subtrees before the enclosing tree. However we cannot lower
-                // the arguments first in this situation because we do not know what conversions will be
-                // produced for the arguments until after we've done overload resolution. So we produce the invocation
-                // and then lower it along with its arguments.
-                expressions.Insert(0, format);
-                var stringType = node.Type;
-                result = _factory.StaticCall(stringType, "Format", expressions.ToImmutableAndFree(),
-                    allowUnexpandedForm: false // if an interpolation expression is the null literal, it should not match a params parameter.
-                    );
+                _factory.Syntax = oldSyntax;
             }
-
-            Debug.Assert(result is { });
-            if (!result.HasAnyErrors)
-            {
-                result = VisitExpression(result); // lower the arguments AND handle expanded form, argument conversions, etc.
-                result = MakeImplicitConversionForInterpolatedString(result, node.Type);
-            }
-            return result;
         }
 
         private BoundExpression LowerPartsToString(InterpolatedStringHandlerData data, ImmutableArray<BoundExpression> parts, SyntaxNode syntax, TypeSymbol type)

@@ -106,6 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal BoundExpression LowerGeneralIsPattern(BoundIsPatternExpression node, BoundDecisionDag decisionDag)
             {
+                var oldSyntax = _factory.Syntax;
                 _factory.Syntax = node.Syntax;
                 var resultBuilder = ArrayBuilder<BoundStatement>.GetInstance();
                 var inputExpression = _localRewriter.VisitExpression(node.Expression);
@@ -128,7 +129,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultBuilder.Add(_factory.Assignment(_factory.Local(resultTemp), _factory.Literal(false)));
                 resultBuilder.Add(_factory.Label(afterIsPatternExpression));
                 _localRewriter._needsSpilling = true;
-                return _factory.SpillSequence(_tempAllocator.AllTemps().Add(resultTemp), resultBuilder.ToImmutableAndFree(), _factory.Local(resultTemp));
+                var result = _factory.SpillSequence(_tempAllocator.AllTemps().Add(resultTemp), resultBuilder.ToImmutableAndFree(), _factory.Local(resultTemp));
+                _factory.Syntax = oldSyntax;
+                return result;
             }
         }
 
@@ -188,6 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private void LowerOneTest(BoundDagTest test, bool invert = false)
             {
+                var oldSyntax = _factory.Syntax;
                 _factory.Syntax = test.Syntax;
                 switch (test)
                 {
@@ -195,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             var sideEffect = LowerEvaluation(eval);
                             _sideEffectBuilder.Add(sideEffect);
-                            return;
+                            break;
                         }
                     case var _:
                         {
@@ -207,10 +211,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 AddConjunct(testExpression);
                             }
-
-                            return;
+                            break;
                         }
                 }
+                _factory.Syntax = oldSyntax;
             }
 
             public BoundExpression LowerIsPatternAsLinearTestSequence(

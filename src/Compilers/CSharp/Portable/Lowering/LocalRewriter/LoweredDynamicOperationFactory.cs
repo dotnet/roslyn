@@ -76,6 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isChecked,
             TypeSymbol resultType)
         {
+            var oldSyntax = _factory.Syntax;
             _factory.Syntax = loweredOperand.Syntax;
 
             CSharpBinderFlags binderFlags = 0;
@@ -108,7 +109,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.TypeofDynamicOperationContextType()
             });
 
-            return MakeDynamicOperation(binderConstruction, null, RefKind.None, loweredArguments, default(ImmutableArray<RefKind>), null, resultType);
+            var result = MakeDynamicOperation(binderConstruction, null, RefKind.None, loweredArguments, default(ImmutableArray<RefKind>), null, resultType);
+            _factory.Syntax = oldSyntax;
+            return result;
         }
 
         internal LoweredDynamicOperation MakeDynamicUnaryOperator(
@@ -118,6 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(operatorKind.IsDynamic());
 
+            var oldSyntax = _factory.Syntax;
             _factory.Syntax = loweredOperand.Syntax;
 
             CSharpBinderFlags binderFlags = 0;
@@ -144,7 +148,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MakeCallSiteArgumentInfos(argumentInfoFactory, loweredArguments)
             }) : null;
 
-            return MakeDynamicOperation(binderConstruction, null, RefKind.None, loweredArguments, default(ImmutableArray<RefKind>), null, resultType);
+            var result = MakeDynamicOperation(binderConstruction, null, RefKind.None, loweredArguments, default(ImmutableArray<RefKind>), null, resultType);
+            _factory.Syntax = oldSyntax;
+            return result;
         }
 
         internal LoweredDynamicOperation MakeDynamicBinaryOperator(
@@ -156,6 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(operatorKind.IsDynamic());
 
+            var oldSyntax = _factory.Syntax;
             _factory.Syntax = loweredLeft.Syntax;
 
             CSharpBinderFlags binderFlags = 0;
@@ -187,7 +194,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MakeCallSiteArgumentInfos(argumentInfoFactory, loweredArguments)
             }) : null;
 
-            return MakeDynamicOperation(binderConstruction, null, RefKind.None, loweredArguments, default(ImmutableArray<RefKind>), null, resultType);
+            var result = MakeDynamicOperation(binderConstruction, null, RefKind.None, loweredArguments, default(ImmutableArray<RefKind>), null, resultType);
+            _factory.Syntax = oldSyntax;
+            return result;
         }
 
         internal LoweredDynamicOperation MakeDynamicMemberInvocation(
@@ -200,6 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasImplicitReceiver,
             bool resultDiscarded)
         {
+            var oldSyntax = _factory.Syntax;
             _factory.Syntax = loweredReceiver.Syntax;
             Debug.Assert(_factory.TopLevelMethod is { });
 
@@ -255,7 +265,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MakeCallSiteArgumentInfos(argumentInfoFactory, loweredArguments, argumentNames, refKinds, loweredReceiver, receiverRefKind, receiverIsStaticType)
             }) : null;
 
-            return MakeDynamicOperation(binderConstruction, loweredReceiver, receiverRefKind, loweredArguments, refKinds, null, resultType);
+            var result = MakeDynamicOperation(binderConstruction, loweredReceiver, receiverRefKind, loweredArguments, refKinds, null, resultType);
+            _factory.Syntax = oldSyntax;
+            return result;
         }
 
         internal LoweredDynamicOperation MakeDynamicEventAccessorInvocation(
@@ -263,6 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression loweredReceiver,
             BoundExpression loweredHandler)
         {
+            var oldSyntax = _factory.Syntax;
             _factory.Syntax = loweredReceiver.Syntax;
 
             CSharpBinderFlags binderFlags = CSharpBinderFlags.InvokeSpecialName | CSharpBinderFlags.ResultDiscarded;
@@ -289,7 +302,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MakeCallSiteArgumentInfos(argumentInfoFactory, loweredArguments, loweredReceiver: loweredReceiver, loweredRight: loweredHandler)
             }) : null;
 
-            return MakeDynamicOperation(binderConstruction, loweredReceiver, RefKind.None, loweredArguments, default(ImmutableArray<RefKind>), loweredHandler, resultType);
+            var result = MakeDynamicOperation(binderConstruction, loweredReceiver, RefKind.None, loweredArguments, default(ImmutableArray<RefKind>), loweredHandler, resultType);
+            _factory.Syntax = oldSyntax;
+            return result;
         }
 
         internal LoweredDynamicOperation MakeDynamicInvocation(
@@ -299,6 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> refKinds,
             bool resultDiscarded)
         {
+            var oldSyntax = _factory.Syntax;
             _factory.Syntax = loweredReceiver.Syntax;
 
             TypeSymbol resultType;
@@ -326,7 +342,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MakeCallSiteArgumentInfos(argumentInfoFactory, loweredArguments, argumentNames, refKinds, loweredReceiver)
             }) : null;
 
-            return MakeDynamicOperation(binderConstruction, loweredReceiver, RefKind.None, loweredArguments, refKinds, null, resultType);
+            var result = MakeDynamicOperation(binderConstruction, loweredReceiver, RefKind.None, loweredArguments, refKinds, null, resultType);
+            _factory.Syntax = oldSyntax;
+            return result;
         }
 
         internal LoweredDynamicOperation MakeDynamicConstructorInvocation(
@@ -336,6 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<string> argumentNames,
             ImmutableArray<RefKind> refKinds)
         {
+            var oldSyntax = _factory.Syntax;
             _factory.Syntax = syntax;
 
             var loweredReceiver = _factory.Typeof(type);
@@ -353,7 +372,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MakeCallSiteArgumentInfos(argumentInfoFactory, loweredArguments, argumentNames, refKinds, loweredReceiver, receiverIsStaticType: true)
             }) : null;
 
-            return MakeDynamicOperation(binderConstruction, loweredReceiver, RefKind.None, loweredArguments, refKinds, null, type);
+            var result = MakeDynamicOperation(binderConstruction, loweredReceiver, RefKind.None, loweredArguments, refKinds, null, type);
+            _factory.Syntax = oldSyntax;
+            return result;
         }
 
         internal LoweredDynamicOperation MakeDynamicGetMember(
@@ -361,6 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string name,
             bool resultIndexed)
         {
+            var oldSyntax = _factory.Syntax;
             _factory.Syntax = loweredReceiver.Syntax;
 
             CSharpBinderFlags binderFlags = 0;
@@ -388,7 +410,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MakeCallSiteArgumentInfos(argumentInfoFactory, loweredArguments, loweredReceiver: loweredReceiver)
             }) : null;
 
-            return MakeDynamicOperation(binderConstruction, loweredReceiver, RefKind.None, loweredArguments, default(ImmutableArray<RefKind>), null, resultType);
+            var result = MakeDynamicOperation(binderConstruction, loweredReceiver, RefKind.None, loweredArguments, default(ImmutableArray<RefKind>), null, resultType);
+            _factory.Syntax = oldSyntax;
+            return result;
         }
 
         internal LoweredDynamicOperation MakeDynamicSetMember(
@@ -398,6 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isCompoundAssignment = false,
             bool isChecked = false)
         {
+            var oldSyntax = _factory.Syntax;
             _factory.Syntax = loweredReceiver.Syntax;
 
             CSharpBinderFlags binderFlags = 0;
@@ -429,7 +454,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MakeCallSiteArgumentInfos(argumentInfoFactory, loweredArguments, loweredReceiver: loweredReceiver, loweredRight: loweredRight)
             }) : null;
 
-            return MakeDynamicOperation(binderConstruction, loweredReceiver, RefKind.None, loweredArguments, default(ImmutableArray<RefKind>), loweredRight, AssemblySymbol.DynamicType);
+            var result = MakeDynamicOperation(binderConstruction, loweredReceiver, RefKind.None, loweredArguments, default(ImmutableArray<RefKind>), loweredRight, AssemblySymbol.DynamicType);
+            _factory.Syntax = oldSyntax;
+            return result;
         }
 
         internal LoweredDynamicOperation MakeDynamicGetIndex(
@@ -438,6 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<string> argumentNames,
             ImmutableArray<RefKind> refKinds)
         {
+            var oldSyntax = _factory.Syntax;
             _factory.Syntax = loweredReceiver.Syntax;
 
             var resultType = DynamicTypeSymbol.Instance;
@@ -455,7 +483,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MakeCallSiteArgumentInfos(argumentInfoFactory, loweredArguments, argumentNames, refKinds, loweredReceiver: loweredReceiver)
             }) : null;
 
-            return MakeDynamicOperation(binderConstruction, loweredReceiver, RefKind.None, loweredArguments, refKinds, null, resultType);
+            var result = MakeDynamicOperation(binderConstruction, loweredReceiver, RefKind.None, loweredArguments, refKinds, null, resultType);
+            _factory.Syntax = oldSyntax;
+            return result;
         }
 
         internal LoweredDynamicOperation MakeDynamicSetIndex(
@@ -499,6 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal LoweredDynamicOperation MakeDynamicIsEventTest(string name, BoundExpression loweredReceiver)
         {
+            var oldSyntax = _factory.Syntax;
             _factory.Syntax = loweredReceiver.Syntax;
             var resultType = _factory.SpecialType(SpecialType.System_Boolean);
             var binderConstruction = MakeBinderConstruction(WellKnownMember.Microsoft_CSharp_RuntimeBinder_Binder__IsEvent, new[]
@@ -513,7 +544,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.TypeofDynamicOperationContextType()
             });
 
-            return MakeDynamicOperation(binderConstruction, loweredReceiver, RefKind.None, ImmutableArray<BoundExpression>.Empty, default(ImmutableArray<RefKind>), null, resultType);
+            var result = MakeDynamicOperation(binderConstruction, loweredReceiver, RefKind.None, ImmutableArray<BoundExpression>.Empty, default(ImmutableArray<RefKind>), null, resultType);
+            _factory.Syntax = oldSyntax;
+            return result;
         }
 
         private MethodSymbol GetArgumentInfoFactory()

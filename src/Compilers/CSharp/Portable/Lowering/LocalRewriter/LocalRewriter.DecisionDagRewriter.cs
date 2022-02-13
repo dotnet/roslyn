@@ -472,6 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private void GenerateTest(BoundExpression test, BoundDecisionDagNode whenTrue, BoundDecisionDagNode whenFalse, BoundDecisionDagNode nextNode)
             {
                 // Because we have already "optimized" away tests for a constant switch expression, the test should be nontrivial.
+                var oldSyntax = _factory.Syntax;
                 _factory.Syntax = test.Syntax;
                 Debug.Assert(test != null);
 
@@ -490,6 +491,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _loweredDecisionDag.Add(_factory.ConditionalGoto(test, GetDagNodeLabel(whenTrue), jumpIfTrue: true));
                     _loweredDecisionDag.Add(_factory.Goto(GetDagNodeLabel(whenFalse)));
                 }
+
+                _factory.Syntax = oldSyntax;
             }
 
             /// <summary>
@@ -1026,6 +1029,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // }
                 void addConditionalGoto(BoundExpression whenExpression, SyntaxNode whenClauseSyntax, LabelSymbol whenTrueLabel, ArrayBuilder<BoundStatement> sectionBuilder)
                 {
+                    var oldSyntax = _factory.Syntax;
                     _factory.Syntax = whenClauseSyntax;
                     BoundStatement conditionalGoto = _factory.ConditionalGoto(_localRewriter.VisitExpression(whenExpression), whenTrueLabel, jumpIfTrue: true);
 
@@ -1036,6 +1040,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     sectionBuilder.Add(conditionalGoto);
+                    _factory.Syntax = oldSyntax;
                 }
 
                 bool isSharedWhenExpression(BoundExpression? whenExpression)
@@ -1101,7 +1106,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private void LowerDecisionDagNode(BoundDecisionDagNode node, BoundDecisionDagNode nextNode)
             {
+                var oldSyntax = _factory.Syntax;
                 _factory.Syntax = node.Syntax;
+
                 switch (node)
                 {
                     case BoundEvaluationDecisionDagNode evaluationNode:
@@ -1136,6 +1143,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     default:
                         throw ExceptionUtilities.UnexpectedValue(node.Kind);
                 }
+
+                _factory.Syntax = oldSyntax;
             }
         }
     }

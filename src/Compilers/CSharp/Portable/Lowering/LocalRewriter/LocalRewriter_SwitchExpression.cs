@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // When compiling for Debug (not Release), we produce the most detailed sequence points.
                 var produceDetailedSequencePoints =
                     GenerateInstrumentation && _localRewriter._compilation.Options.OptimizationLevel != OptimizationLevel.Release;
+                var oldSyntax = _factory.Syntax;
                 _factory.Syntax = node.Syntax;
                 var result = ArrayBuilder<BoundStatement>.GetInstance();
                 var outerVariables = ArrayBuilder<LocalSymbol>.GetInstance();
@@ -142,7 +143,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 outerVariables.Add(resultTemp);
                 outerVariables.AddRange(_tempAllocator.AllTemps());
-                return _factory.SpillSequence(outerVariables.ToImmutableAndFree(), result.ToImmutableAndFree(), _factory.Local(resultTemp));
+                var sequence = _factory.SpillSequence(outerVariables.ToImmutableAndFree(), result.ToImmutableAndFree(), _factory.Local(resultTemp));
+                _factory.Syntax = oldSyntax;
+                return sequence;
 
                 bool implicitConversionExists(BoundExpression expression, TypeSymbol type)
                 {
