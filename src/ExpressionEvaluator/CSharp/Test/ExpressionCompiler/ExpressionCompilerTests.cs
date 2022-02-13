@@ -6977,8 +6977,16 @@ class C
                 var testData = new CompilationTestData();
                 var result = context.CompileExpression("field", out var error, testData);
 
-                // PROTOTYPE(semi-auto-props): Likely incorrect behavior.
-                Assert.Equal("error CS0103: The name 'field' does not exist in the current context", error);
+                Assert.Null(error);
+                testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<P>k__BackingField""
+  IL_0006:  ret
+}");
             });
         }
 

@@ -597,13 +597,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var flags = DkmClrCompilationResultFlags.None;
             var bindingDiagnostics = new BindingDiagnosticBag(diagnostics);
 
-            // In addition to C# expressions, the native EE also supports
-            // type names which are bound to a representation of the type
-            // (but not System.Type) that the user can expand to see the
-            // base type. Instead, we only allow valid C# expressions.
-            var expression = IsDeconstruction(syntax)
-                ? binder.BindDeconstruction((AssignmentExpressionSyntax)syntax, bindingDiagnostics, resultIsUsedOverride: true)
-                : binder.BindRValueWithoutTargetType(syntax, bindingDiagnostics);
+            BoundExpression? expression;
+            if (TryBindFieldKeyword(binder.ContainingMemberOrLambda, syntax, out var boundField))
+            {
+                expression = boundField;
+            }
+            else
+            {
+                // In addition to C# expressions, the native EE also supports
+                // type names which are bound to a representation of the type
+                // (but not System.Type) that the user can expand to see the
+                // base type. Instead, we only allow valid C# expressions.
+                expression = IsDeconstruction(syntax)
+                    ? binder.BindDeconstruction((AssignmentExpressionSyntax)syntax, bindingDiagnostics, resultIsUsedOverride: true)
+                    : binder.BindRValueWithoutTargetType(syntax, bindingDiagnostics);
+            }
+
             if (diagnostics.HasAnyErrors())
             {
                 resultProperties = default;
@@ -658,6 +667,49 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             resultProperties = expression.ExpressionSymbol.GetResultProperties(flags, expression.ConstantValue != null);
             return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
+        }
+
+        private static bool TryBindFieldKeyword(Symbol? containingMemberOrLambda, ExpressionSyntax syntax, out BoundFieldAccess? boundField)
+        {
+            if (syntax is not IdentifierNameSyntax identifier || identifier.Identifier.ContextualKind() != SyntaxKind.FieldKeyword)
+            {
+                boundField = null;
+                return false;
+            }
+
+            while (containingMemberOrLambda is not null)
+            {
+                if (containingMemberOrLambda is MethodSymbol { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet } accessorSymbol)
+                {
+                    containingMemberOrLambda = accessorSymbol.AssociatedSymbol;
+                    break;
+                }
+
+                containingMemberOrLambda = containingMemberOrLambda.ContainingSymbol;
+            }
+
+            if (containingMemberOrLambda is null)
+            {
+                boundField = null;
+                return false;
+            }
+
+            Debug.Assert(containingMemberOrLambda is PropertySymbol);
+
+            var containingType = containingMemberOrLambda.ContainingType;
+            var members = containingType.GetMembers().OfType<FieldSymbol>();
+            foreach (var member in members)
+            {
+                if (GeneratedNameParser.TryParseBackingFieldName(member.Name, out var propertyName) && propertyName == containingMemberOrLambda.Name)
+                {
+                    var receiver = new BoundThisReference(syntax, containingType);
+                    boundField = new BoundFieldAccess(syntax, receiver, member, constantValueOpt: null);
+                    return true;
+                }
+            }
+
+            boundField = null;
+            return false;
         }
 
         private static bool IsDeconstruction(ExpressionSyntax syntax)
