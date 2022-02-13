@@ -40,7 +40,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GoToDefinition
                 Assert.NotNull(symbolInfo.Symbol)
 
                 Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
-                Dim presenter = New MockStreamingFindUsagesPresenter(Sub() Exit Sub)
+                Dim presenter = New MockStreamingFindUsagesPresenter(workspace.GlobalOptions, Sub() Exit Sub)
 
                 WpfTestRunner.RequireWpfFact($"{NameOf(GoToDefinitionHelpers)}.{NameOf(GoToDefinitionHelpers.TryGoToDefinitionAsync)} assumes it's on the UI thread with a {NameOf(TaskExtensions.WaitAndGetResult)} call")
                 Dim success = Await GoToDefinitionHelpers.TryGoToDefinitionAsync(

@@ -4679,7 +4679,7 @@ End Class
 
             Assert.Null(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor))
 
-            Dim v0 = CompileAndVerify(compilation0, verify:=Verification.Fails)
+            Dim v0 = CompileAndVerify(compilation0, verify:=Verification.FailsPEVerify)
             Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
 
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
@@ -4756,7 +4756,7 @@ End Class
 
             Assert.Null(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor))
 
-            Dim v0 = CompileAndVerify(compilation0, verify:=Verification.Fails)
+            Dim v0 = CompileAndVerify(compilation0, verify:=Verification.FailsPEVerify)
             Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
 
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")

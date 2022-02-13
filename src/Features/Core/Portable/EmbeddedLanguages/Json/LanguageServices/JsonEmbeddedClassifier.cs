@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
         public JsonEmbeddedClassifier(EmbeddedLanguageInfo info)
         {
             _info = info;
-            SyntaxTokenKinds = ImmutableArray.Create(info.StringLiteralTokenKind);
+            SyntaxTokenKinds = info.AllStringLiteralKinds;
         }
 
         public override void AddClassifications(
@@ -40,14 +40,17 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
             ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
-            if (_info.StringLiteralTokenKind != token.RawKind)
+            if (!_info.IsAnyStringLiteral(token.RawKind))
                 return;
 
             if (!options.ColorizeJsonPatterns)
                 return;
 
             var detector = JsonLanguageDetector.GetOrCreate(semanticModel.Compilation, _info);
-            var tree = detector.TryParseString(token, semanticModel, cancellationToken);
+
+            // We do support json classification in strings that look very likely to be json, even if we aren't 100%
+            // certain if it truly is json.
+            var tree = detector.TryParseString(token, semanticModel, includeProbableStrings: true, cancellationToken);
             if (tree == null)
                 return;
 

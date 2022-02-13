@@ -6,10 +6,10 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.Editor.GoToBase;
+using Microsoft.CodeAnalysis.GoToBase;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.GoToBase
+namespace Microsoft.CodeAnalysis.CSharp.GoToBase
 {
     [ExportLanguageService(typeof(IGoToBaseService), LanguageNames.CSharp), Shared]
     internal class CSharpGoToBaseService : AbstractGoToBaseService

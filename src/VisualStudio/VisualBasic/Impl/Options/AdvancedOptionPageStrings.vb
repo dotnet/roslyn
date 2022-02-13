@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Editor.ColorSchemes
+Imports Microsoft.CodeAnalysis.SolutionCrawler
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Friend Module AdvancedOptionPageStrings
@@ -15,17 +16,32 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Analysis As String =
             ServicesVSResources.Analysis
 
-        Public ReadOnly Property Option_Background_analysis_scope As String =
-            ServicesVSResources.Background_analysis_scope_colon
+        Public ReadOnly Property Option_Run_background_code_analysis_for As String =
+            ServicesVSResources.Run_background_code_analysis_for_colon
+
+        Public ReadOnly Property Option_Background_Analysis_Scope_None As String =
+            ServicesVSResources.None
 
         Public ReadOnly Property Option_Background_Analysis_Scope_Active_File As String =
             ServicesVSResources.Current_document
 
-        Public ReadOnly Property Option_Background_Analysis_Scope_Open_Files_And_Projects As String =
+        Public ReadOnly Property Option_Background_Analysis_Scope_Open_Files As String =
             ServicesVSResources.Open_documents
 
         Public ReadOnly Property Option_Background_Analysis_Scope_Full_Solution As String =
             ServicesVSResources.Entire_solution
+
+        Public ReadOnly Property Option_Background_Analysis_Scope_None_Tag As BackgroundAnalysisScope =
+            BackgroundAnalysisScope.None
+
+        Public ReadOnly Property Option_Background_Analysis_Scope_Active_File_Tag As BackgroundAnalysisScope =
+            BackgroundAnalysisScope.ActiveFile
+
+        Public ReadOnly Property Option_Background_Analysis_Scope_Open_Files_Tag As BackgroundAnalysisScope =
+            BackgroundAnalysisScope.OpenFiles
+
+        Public ReadOnly Property Option_Background_Analysis_Scope_Full_Solution_Tag As BackgroundAnalysisScope =
+            BackgroundAnalysisScope.FullSolution
 
         Public ReadOnly Property Option_run_code_analysis_in_separate_process As String =
             ServicesVSResources.Run_code_analysis_in_separate_process_requires_restart
@@ -262,9 +278,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_JSON_strings As String =
             ServicesVSResources.JSON_strings
-
-        Public ReadOnly Property Option_Detect_and_offer_editor_features_for_likely_JSON_strings As String =
-            ServicesVSResources.Detect_and_offer_editor_features_for_likely_JSON_strings
 
         Public ReadOnly Property Option_Colorize_JSON_strings As String =
             ServicesVSResources.Colorize_JSON_strings
