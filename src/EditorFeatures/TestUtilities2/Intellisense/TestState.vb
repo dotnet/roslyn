@@ -26,7 +26,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Inherits AbstractCommandHandlerTestState
 
         Private Const timeoutMs = 60000
-        Private Const editorTimeoutMs = 60000
         Friend Const RoslynItem = "RoslynItem"
         Friend ReadOnly EditorCompletionCommandHandler As ICommandHandler
         Friend ReadOnly CompletionPresenterProvider As ICompletionPresenterProvider
@@ -62,9 +61,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                        Optional roles As ImmutableArray(Of String) = Nothing)
             MyBase.New(workspaceElement, GetComposition(excludedTypes, extraExportedTypes, includeFormatCommandHandler), workspaceKind:=workspaceKind, makeSeparateBufferForCursor, roles)
 
-            ' The current default timeout defined in the Editor may not work on slow virtual test machines.
-            ' Need to use a safe timeout there to follow real code paths.
-            MyBase.TextView.Options.GlobalOptions.SetOptionValue(DefaultOptions.ResponsiveCompletionThresholdOptionId, editorTimeoutMs)
+            ' Disable editor's responsive completion option to ensure a deterministic test behavior
+            MyBase.TextView.Options.GlobalOptions.SetOptionValue(DefaultOptions.ResponsiveCompletionOptionId, False)
 
             Dim languageServices = Me.Workspace.CurrentSolution.Projects.First().LanguageServices
             Dim language = languageServices.Language
@@ -327,6 +325,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Task.WaitAny(task1, task2)
         End Sub
+
+        Public Async Function GetCompletionSession(Optional projectionsView As ITextView = Nothing) As Task(Of IAsyncCompletionSession)
+            Await WaitForAsynchronousOperationsAsync()
+            Dim view = If(projectionsView, TextView)
+
+            Return GetExportedValue(Of IAsyncCompletionBroker)().GetSession(view)
+        End Function
 
         Public Async Function AssertCompletionSession(Optional projectionsView As ITextView = Nothing) As Task
             Await WaitForAsynchronousOperationsAsync()

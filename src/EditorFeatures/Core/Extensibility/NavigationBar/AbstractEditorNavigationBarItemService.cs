@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
             var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
             if (navigationService.CanNavigateToPosition(workspace, documentId, position, virtualSpace, cancellationToken))
             {
-                navigationService.TryNavigateToPosition(workspace, documentId, position, virtualSpace, options: null, cancellationToken);
+                navigationService.TryNavigateToPosition(workspace, documentId, position, virtualSpace, NavigationOptions.Default, cancellationToken);
             }
             else
             {

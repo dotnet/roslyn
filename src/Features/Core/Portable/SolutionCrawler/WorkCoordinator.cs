@@ -76,14 +76,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _registration.Workspace.WorkspaceChanged += OnWorkspaceChanged;
                     _registration.Workspace.DocumentOpened += OnDocumentOpened;
                     _registration.Workspace.DocumentClosed += OnDocumentClosed;
+
+                    // subscribe to active document changed event for active file background analysis scope.
+                    _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentSwitched;
                 }
 
                 // subscribe to option changed event after all required fields are set
                 // otherwise, we can get null exception when running OnOptionChanged handler
                 _optionService.OptionChanged += OnOptionChanged;
-
-                // subscribe to active document changed event for active file background analysis scope.
-                _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentSwitched;
             }
 
             public int CorrelationId => _registration.CorrelationId;
@@ -151,12 +151,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _registration.Workspace.WorkspaceChanged += OnWorkspaceChanged;
                         _registration.Workspace.DocumentOpened += OnDocumentOpened;
                         _registration.Workspace.DocumentClosed += OnDocumentClosed;
+                        _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentSwitched;
                     }
                     else
                     {
                         _registration.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
                         _registration.Workspace.DocumentOpened -= OnDocumentOpened;
                         _registration.Workspace.DocumentClosed -= OnDocumentClosed;
+                        _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentSwitched;
                     }
 
                     SolutionCrawlerLogger.LogOptionChanged(CorrelationId, value);

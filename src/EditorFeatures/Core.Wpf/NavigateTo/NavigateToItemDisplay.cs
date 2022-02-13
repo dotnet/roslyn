@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                 workspace,
                 document.Id,
                 _searchResult.NavigableItem.SourceSpan,
-                options: null,
+                NavigationOptions.Default,
                 allowInvalidSpan: _searchResult.NavigableItem.IsStale,
                 CancellationToken.None);
         }
