@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -27,12 +28,13 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 {
-    internal class FindUsagesLSPContext : FindUsagesContext
+    internal sealed class FindUsagesLSPContext : FindUsagesContext
     {
         private readonly IProgress<VSInternalReferenceItem[]> _progress;
         private readonly Document _document;
         private readonly int _position;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
+        private readonly IGlobalOptionService _globalOptions;
 
         /// <summary>
         /// Methods in FindUsagesLSPContext can be called by multiple threads concurrently.
@@ -75,15 +77,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             int position,
             IMetadataAsSourceFileService metadataAsSourceFileService,
             IAsynchronousOperationListener asyncListener,
+            IGlobalOptionService globalOptions,
             CancellationToken cancellationToken)
         {
             _progress = progress;
             _document = document;
             _position = position;
             _metadataAsSourceFileService = metadataAsSourceFileService;
+            _globalOptions = globalOptions;
             _workQueue = new AsyncBatchingWorkQueue<VSInternalReferenceItem>(
                 TimeSpan.FromMilliseconds(500), ReportReferencesAsync, asyncListener, cancellationToken);
         }
+
+        public override ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
+            => ValueTaskFactory.FromResult(_globalOptions.GetFindUsagesOptions(language));
 
         // After all definitions/references have been found, wait here until all results have been reported.
         public override async ValueTask OnCompletedAsync(CancellationToken cancellationToken)

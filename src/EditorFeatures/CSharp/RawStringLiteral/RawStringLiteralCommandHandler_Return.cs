@@ -47,6 +47,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.RawStringLiteral
 
             var position = caret.Value.Position;
             var currentSnapshot = subjectBuffer.CurrentSnapshot;
+            if (position >= currentSnapshot.Length)
+                return false;
+
             if (currentSnapshot[position] != '"')
                 return false;
 

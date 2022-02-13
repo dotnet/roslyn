@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 
                 Dim presenterCalled As Boolean = False
                 Dim threadingContext = workspace.ExportProvider.GetExportedValue(Of IThreadingContext)()
-                Dim presenter = New MockStreamingFindUsagesPresenter(Sub() presenterCalled = True)
+                Dim presenter = New MockStreamingFindUsagesPresenter(workspace.GlobalOptions, Sub() presenterCalled = True)
                 Dim actualResult = executeOnDocument(document, cursorPosition, threadingContext, presenter)
 
                 Assert.Equal(expectedResult, actualResult)

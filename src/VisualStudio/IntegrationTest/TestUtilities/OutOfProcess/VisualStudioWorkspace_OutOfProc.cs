@@ -104,15 +104,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 value: value);
         }
 
-        public void SetFeatureOption(string feature, string optionName, string language, string? valueString)
+        public void SetFeatureOption(string feature, string optionName, string? language, string? valueString)
             => _inProc.SetFeatureOption(feature, optionName, language, valueString);
-
-        public object? GetGlobalOption(WellKnownGlobalOption option, string? language)
-            => _inProc.GetGlobalOption(option, language);
 
         public void SetGlobalOption(WellKnownGlobalOption option, string? language, object? value)
             => _inProc.SetGlobalOption(option, language, value);
-
-        public string? GetWorkingFolder() => _inProc.GetWorkingFolder();
     }
 }

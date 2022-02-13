@@ -10,11 +10,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
     {
         private static readonly LogAggregator s_logAggregator = new();
         private static readonly StatisticLogAggregator s_statisticLogAggregator = new();
+        private static readonly HistogramLogAggregator s_histogramLogAggregator = new(25, 500);
 
         private enum ActionInfo
         {
-            // For type import completion
+            // # of sessions where import completion is enabled by default
             SessionWithTypeImportCompletionEnabled,
+            // # of sessions that we wait for import compeltion task to complete before return
+            // curerntly it's decided by "responsive completion" options
+            SessionWithImportCompletionBlocking,
+            // # of sessions where items from import completion are not included intially 
+            SessionWithImportCompletionDelayed,
+            // # of session among SessionWithImportCompletionDelayed where import completion items
+            // are later included in list update. Note this doesn't include using of expander.
+            SessionWithDelayedImportCompletionIncludedInUpdate,
+            // Among sessions in SessionWithImportCompletionDelayed, how much longer it takes 
+            // for import completion task to finish after regular item task is completed.
+            // Knowing this would help us to decide whether a short wait would have ensure import completion
+            // items to be included in the intial list.
+            AdditionalTicksToCompleteDelayedImportCompletion,
             ExpanderUsageCount,
 
             // For targeted type completion
@@ -34,7 +48,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             GetDefaultsMatchTicks,
         }
 
-        internal static void LogSessionWithTypeImportCompletionEnabled() =>
+        internal static void LogImportCompletionGetContext(bool isBlocking, bool delayed)
+        {
+            s_logAggregator.IncreaseCount((int)ActionInfo.SessionWithTypeImportCompletionEnabled);
+
+            if (isBlocking)
+                s_logAggregator.IncreaseCount((int)ActionInfo.SessionWithImportCompletionBlocking);
+
+            if (delayed)
+                s_logAggregator.IncreaseCount((int)ActionInfo.SessionWithImportCompletionDelayed);
+        }
+
+        internal static void LogSessionWithDelayedImportCompletionIncludedInUpdate() =>
+            s_logAggregator.IncreaseCount((int)ActionInfo.SessionWithDelayedImportCompletionIncludedInUpdate);
+
+        internal static void LogAdditionalTicksToCompleteDelayedImportCompletionDataPoint(int count) =>
+            s_histogramLogAggregator.IncreaseCount((int)ActionInfo.AdditionalTicksToCompleteDelayedImportCompletion, count);
+
+        internal static void LogDelayedImportCompletionIncluded() =>
             s_logAggregator.IncreaseCount((int)ActionInfo.SessionWithTypeImportCompletionEnabled);
 
         internal static void LogExpanderUsage() =>
@@ -78,6 +109,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 {
                     var mergeInfo = ((ActionInfo)kv.Key).ToString("f");
                     m[mergeInfo] = kv.Value.GetCount();
+                }
+
+                foreach (var kv in s_histogramLogAggregator)
+                {
+                    var info = ((ActionInfo)kv.Key).ToString("f");
+                    m[$"{info}.BucketSize"] = kv.Value.BucketSize;
+                    m[$"{info}.MaxBucketValue"] = kv.Value.MaxBucketValue;
+                    m[$"{info}.Buckets"] = kv.Value.GetBucketsAsString();
                 }
             }));
         }

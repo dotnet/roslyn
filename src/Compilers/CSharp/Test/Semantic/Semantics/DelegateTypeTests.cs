@@ -1298,7 +1298,8 @@ static class B
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
             if (expectedDiagnostics is null)
             {
-                CompileAndVerify(comp, expectedOutput: $"{expectedMethod}: {expectedType}");
+                // ILVerify: Unrecognized arguments for delegate .ctor.
+                CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: $"{expectedMethod}: {expectedType}");
             }
             else
             {
@@ -1392,7 +1393,8 @@ namespace N
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
             if (expectedDiagnostics is null)
             {
-                CompileAndVerify(comp, expectedOutput: $"{expectedMethod}: {expectedType}");
+                // ILVerify: Unrecognized arguments for delegate .ctor.
+                CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: $"{expectedMethod}: {expectedType}");
             }
             else
             {
@@ -1767,7 +1769,8 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { source, s_utils }, parseOptions: TestOptions.RegularPreview, options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, expectedOutput: "System.Action<System.Int32>, System.Action");
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "System.Action<System.Int32>, System.Action");
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -7908,7 +7911,8 @@ static class E
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(comp, expectedOutput: @"(41, 42)");
+            // ILVerify: Unrecognized arguments for delegate .ctor.
+            var verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: @"(41, 42)");
             verifier.VerifyIL("Program.M1",
 @"{
   // Code size       20 (0x14)
@@ -8487,12 +8491,13 @@ class Program
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics();
 
+            // ILVerify: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 24 }
             CompileAndVerify(comp, expectedOutput:
 @"0
 System.Object
 <>f__AnonymousDelegate0
 <>f__AnonymousDelegate1
-");
+", verify: Verification.FailsILVerify);
         }
 
         [Fact]

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
         protected AbstractRegexDiagnosticAnalyzer(EmbeddedLanguageInfo info)
             : base(DiagnosticId,
                    EnforceOnBuildValues.Regex,
-                   RegularExpressionsOptions.ReportInvalidRegexPatterns,
+                   option: null,
                    new LocalizableResourceString(nameof(FeaturesResources.Invalid_regex_pattern), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Regex_issue_0), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             var syntaxTree = semanticModel.SyntaxTree;
             var cancellationToken = context.CancellationToken;
 
-            var option = context.GetOption(RegularExpressionsOptions.ReportInvalidRegexPatterns, syntaxTree.Options.Language);
+            var option = context.GetIdeOptions().ReportInvalidRegexPatterns;
             if (!option)
                 return;
 
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
             SyntaxToken token,
             CancellationToken cancellationToken)
         {
-            if (token.RawKind == _info.StringLiteralTokenKind)
+            if (_info.IsAnyStringLiteral(token.RawKind))
             {
                 var tree = detector.TryParseString(token, context.SemanticModel, cancellationToken);
                 if (tree != null)

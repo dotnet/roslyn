@@ -146,7 +146,7 @@ jobs:
       testArtifactName: Transport_Artifacts_Unix_Debug
       configuration: Debug
       testArguments: --testCoreClr
-      queueName: 'Build.Ubuntu.1804.amd64.Open'
+      queueName: Build.Ubuntu.1804.Amd64.Open
 
 - template: eng/pipelines/test-unix-job.yml
   parameters:

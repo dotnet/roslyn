@@ -304,9 +304,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             => parentNode.Kind() switch
             {
                 SyntaxKind.ClassDeclaration => ClassificationTypeNames.ClassName,
+                SyntaxKind.InterfaceDeclaration => ClassificationTypeNames.InterfaceName,
                 SyntaxKind.RecordDeclaration => ClassificationTypeNames.RecordClassName,
-                SyntaxKind.StructDeclaration => ClassificationTypeNames.StructName,
                 SyntaxKind.RecordStructDeclaration => ClassificationTypeNames.RecordStructName,
+                SyntaxKind.StructDeclaration => ClassificationTypeNames.StructName,
                 _ => null
             };
 
