@@ -24,6 +24,7 @@ Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Text.Projection
+Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
@@ -9700,8 +9701,10 @@ class C
                 Await state.AssertCompletionItemsDoNotContainAny("TestUnimportedItem")
 
                 Dim session = Await state.GetCompletionSession()
-                Dim expandTask As Task = Nothing
-                Assert.True(session.Properties.TryGetProperty(Of Task)(CompletionSource.ExpandedItemsTask, expandTask))
+                Dim sessionData = CompletionSessionData.GetOrCreateSessionData(session)
+                Dim expandTask = sessionData.ExpandedItemsTask.GetValueOrNull()
+
+                Assert.NotNull(expandTask)
                 Assert.False(expandTask.IsCompleted)
 
                 ' following up by typing a few more characters each triggers an list update
@@ -9757,8 +9760,10 @@ class C
                 Await state.AssertCompletionItemsDoNotContainAny("TestUnimportedItem")
 
                 Dim session = Await state.GetCompletionSession()
-                Dim expandTask As Task = Nothing
-                Assert.True(session.Properties.TryGetProperty(Of Task)(CompletionSource.ExpandedItemsTask, expandTask))
+                Dim sessionData = CompletionSessionData.GetOrCreateSessionData(session)
+                Dim expandTask = sessionData.ExpandedItemsTask.GetValueOrNull()
+
+                Assert.NotNull(expandTask)
                 Assert.False(expandTask.IsCompleted)
 
                 ' following up by typing more characters each triggers an list update
@@ -9815,8 +9820,10 @@ class C
                 Await state.AssertCompletionItemsDoNotContainAny("TestUnimportedItem")
 
                 Dim session = Await state.GetCompletionSession()
-                Dim expandTask As Task = Nothing
-                Assert.True(session.Properties.TryGetProperty(Of Task)(CompletionSource.ExpandedItemsTask, expandTask))
+                Dim sessionData = CompletionSessionData.GetOrCreateSessionData(session)
+                Dim expandTask = sessionData.ExpandedItemsTask.GetValueOrNull()
+
+                Assert.NotNull(expandTask)
                 Assert.False(expandTask.IsCompleted)
 
                 provider.Checkpoint.Release()

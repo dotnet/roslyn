@@ -79,8 +79,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return false;
             }
 
-            return !(session.Properties.TryGetProperty(CompletionSource.ExcludedCommitCharacters, out ImmutableArray<char> excludedCommitCharacter)
-                && excludedCommitCharacter.Contains(typedChar));
+            var sessionData = CompletionSessionData.GetOrCreateSessionData(session);
+            return !sessionData.ExcludedCommitCharacters.HasValue
+                || !sessionData.ExcludedCommitCharacters.Value.Contains(typedChar);
         }
 
         public AsyncCompletionData.CommitResult TryCommit(
@@ -120,6 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var options = _globalOptions.GetCompletionOptions(document.Project.Language);
             var serviceRules = completionService.GetRules(options);
+            var sessionData = CompletionSessionData.GetOrCreateSessionData(session);
 
             // We can be called before for ShouldCommitCompletion. However, that call does not provide rules applied for the completion item.
             // Now we check for the commit character in the context of Rules that could change the list of commit characters.
@@ -139,10 +141,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return CommitResultUnhandled;
             }
 
-            if (!session.Properties.TryGetProperty(CompletionSource.CompletionListSpan, out TextSpan completionListSpan))
+            if (!sessionData.CompletionListSpan.HasValue)
             {
                 return CommitResultUnhandled;
             }
+
+            var completionListSpan = sessionData.CompletionListSpan.Value;
 
             var triggerDocument = triggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (triggerDocument == null)
@@ -151,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             // Telemetry
-            if (session.TextView.Properties.TryGetProperty(CompletionSource.TargetTypeFilterExperimentEnabled, out bool isExperimentEnabled) && isExperimentEnabled)
+            if (sessionData.TargetTypeFilterExperimentEnabled)
             {
                 // Capture the % of committed completion items that would have appeared in the "Target type matches" filter
                 // (regardless of whether that filter button was active at the time of commit).

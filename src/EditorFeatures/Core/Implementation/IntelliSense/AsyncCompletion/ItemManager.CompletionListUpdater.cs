@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -33,10 +32,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         /// </summary>
         private sealed class CompletionListUpdater
         {
-            private readonly IAsyncCompletionSession _session;
+            private readonly CompletionSessionData _sessionData;
             private readonly AsyncCompletionSessionDataSnapshot _data;
             private readonly RecentItemsManager _recentItemsManager;
 
+            private readonly ITrackingSpan _applicableToSpan;
             private readonly bool _hasSuggestedItemOptions;
             private readonly string _filterText;
             private readonly Document? _document;
@@ -59,25 +59,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             private static readonly ObjectPool<List<MatchResult<VSCompletionItem>>> s_listOfMatchResultPool = new(factory: () => new(), size: 1);
 
             public CompletionListUpdater(
-                IAsyncCompletionSession session,
+                ITrackingSpan applicableToSpan,
+                CompletionSessionData sessionData,
                 AsyncCompletionSessionDataSnapshot data,
                 RecentItemsManager recentItemsManager,
                 IGlobalOptionService globalOptions)
             {
-                _session = session;
+                _sessionData = sessionData;
                 _data = data;
                 _recentItemsManager = recentItemsManager;
 
-                _filterText = _session.ApplicableToSpan.GetText(_data.Snapshot);
+                _applicableToSpan = applicableToSpan;
+                _filterText = applicableToSpan.GetText(_data.Snapshot);
 
-                if (!_session.Properties.TryGetProperty(CompletionSource.HasSuggestionItemOptions, out bool hasSuggestedItemOptions))
-                {
-                    // This is the scenario when the session is created out of Roslyn, in some other provider, e.g. in Debugger.
-                    // For now, the default hasSuggestedItemOptions is false.
-                    hasSuggestedItemOptions = false;
-                }
-
-                _hasSuggestedItemOptions = hasSuggestedItemOptions || _data.DisplaySuggestionItem;
+                _hasSuggestedItemOptions = sessionData.HasSuggestionItemOptions || _data.DisplaySuggestionItem;
 
                 // We prefer using the original snapshot, which should always be available from items provided by Roslyn's CompletionSource.
                 // Only use data.Snapshot in the theoretically possible but rare case when all items we are handling are from some non-Roslyn CompletionSource.
@@ -184,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 //
                 // We'll bring up the completion list here (as VB has completion on <space>).
                 // If the user then types '3', we don't want to match against Int32.
-                if (_filterText.Length > 0 && char.IsNumber(_filterText[0]) && !IsAfterDot(_data.Snapshot, _session.ApplicableToSpan))
+                if (_filterText.Length > 0 && char.IsNumber(_filterText[0]) && !IsAfterDot(_data.Snapshot, _applicableToSpan))
                 {
                     // Dismiss the session.
                     return true;
@@ -214,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 // FilterStateHelper is used to decide whether a given item should be included in the list based on the state of filter/expander buttons.
                 var filterHelper = new FilterStateHelper(_data.SelectedFilters);
-                filterHelper.LogTargetTypeFilterTelemetry(_session);
+                filterHelper.LogTargetTypeFilterTelemetry(_sessionData);
 
                 // We want to sort the items by pattern matching results while preserving the original alphabetical order for items with
                 // same pattern match score, but `List<T>.Sort` isn't stable. Therefore we have to add a monotonically increasing integer
@@ -738,9 +733,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 private readonly bool _needToFilter;
                 private readonly bool _needToFilterExpanded;
 
-                // For telemetry
-                private readonly object _targetTypeCompletionFilterChosenMarker = new();
-
                 public FilterStateHelper(ImmutableArray<CompletionFilterWithState> filtersWithState)
                 {
                     // The filter state list contains two kinds of "filters": regular filter and expander.
@@ -796,19 +788,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     return associatedWithUnselectedExpander;
                 }
 
-                public void LogTargetTypeFilterTelemetry(IAsyncCompletionSession session)
+                public void LogTargetTypeFilterTelemetry(CompletionSessionData sessionData)
                 {
-                    if (session.TextView.Properties.TryGetProperty(CompletionSource.TargetTypeFilterExperimentEnabled, out bool isExperimentEnabled) && isExperimentEnabled)
+                    if (sessionData.TargetTypeFilterExperimentEnabled)
                     {
                         // Telemetry: Want to know % of sessions with the "Target type matches" filter where that filter is actually enabled
                         if (_needToFilter &&
-                            !session.Properties.ContainsProperty(_targetTypeCompletionFilterChosenMarker) &&
+                            !sessionData.TargetTypeFilterSelected &&
                             _selectedNonExpanderFilters.Any(f => f.DisplayText == FeaturesResources.Target_type_matches))
                         {
                             AsyncCompletionLogger.LogTargetTypeFilterChosenInSession();
 
                             // Make sure we only record one enabling of the filter per session
-                            session.Properties.AddProperty(_targetTypeCompletionFilterChosenMarker, _targetTypeCompletionFilterChosenMarker);
+                            sessionData.TargetTypeFilterSelected = true;
                         }
                     }
                 }
