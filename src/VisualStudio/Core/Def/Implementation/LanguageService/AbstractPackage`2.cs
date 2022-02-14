@@ -79,8 +79,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
         {
-            var workspace = ComponentModel.GetService<VisualStudioWorkspace>();
-
             // Do the MEF loads and initialization in the BG explicitly.
             await TaskScheduler.Default;
 
@@ -93,6 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             //
             // This code will have to be moved elsewhere once any of that load path is changed such that the package
             // no longer loads if a file is opened.
+            var workspace = ComponentModel.GetService<VisualStudioWorkspace>();
             _packageInstallerService = workspace.Services.GetService<IPackageInstallerService>() as PackageInstallerService;
             _symbolSearchService = workspace.Services.GetService<ISymbolSearchService>() as VisualStudioSymbolSearchService;
 
