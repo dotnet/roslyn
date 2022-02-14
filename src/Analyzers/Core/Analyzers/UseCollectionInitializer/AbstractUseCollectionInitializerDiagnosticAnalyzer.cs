@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer
@@ -57,9 +58,15 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             if (ienumerableType != null)
             {
                 var syntaxKinds = GetSyntaxFacts().SyntaxKinds;
+
+                using var matchKinds = TemporaryArray<TSyntaxKind>.Empty;
+                matchKinds.Add(syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ObjectCreationExpression));
+                if (syntaxKinds.ImplicitObjectCreationExpression != null)
+                    matchKinds.Add(syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ImplicitObjectCreationExpression.Value));
+
                 context.RegisterSyntaxNodeAction(
                     nodeContext => AnalyzeNode(nodeContext, ienumerableType),
-                    syntaxKinds.Convert<TSyntaxKind>(syntaxKinds.ObjectCreationExpression));
+                    matchKinds.ToImmutableAndClear());
             }
         }
 

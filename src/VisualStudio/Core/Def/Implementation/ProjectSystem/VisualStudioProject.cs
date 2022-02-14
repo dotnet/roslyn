@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
@@ -136,6 +137,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly BatchingDocumentCollection _additionalFiles;
         private readonly BatchingDocumentCollection _analyzerConfigFiles;
 
+        private readonly AsyncBatchingWorkQueue<string> _fileChangesToProcess;
+        private readonly CancellationTokenSource _asynchronousFileChangeProcessingCancellationTokenSource = new();
+
         public ProjectId Id { get; }
         public string Language { get; }
 
@@ -167,19 +171,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 documentAlreadyInWorkspace: (s, d) => s.ContainsDocument(d),
                 documentAddAction: (w, d) => w.OnDocumentAdded(d),
                 documentRemoveAction: (w, documentId) => w.OnDocumentRemoved(documentId),
-                documentTextLoaderChangedAction: (w, d, loader) => w.OnDocumentTextLoaderChanged(d, loader));
+                documentTextLoaderChangedAction: (s, d, loader) => s.WithDocumentTextLoader(d, loader, PreservationMode.PreserveValue),
+                documentChangedWorkspaceKind: WorkspaceChangeKind.DocumentChanged);
 
             _additionalFiles = new BatchingDocumentCollection(this,
                 (s, d) => s.ContainsAdditionalDocument(d),
                 (w, d) => w.OnAdditionalDocumentAdded(d),
                 (w, documentId) => w.OnAdditionalDocumentRemoved(documentId),
-                documentTextLoaderChangedAction: (w, d, loader) => w.OnAdditionalDocumentTextLoaderChanged(d, loader));
+                documentTextLoaderChangedAction: (s, d, loader) => s.WithAdditionalDocumentTextLoader(d, loader, PreservationMode.PreserveValue),
+                documentChangedWorkspaceKind: WorkspaceChangeKind.AdditionalDocumentChanged);
 
             _analyzerConfigFiles = new BatchingDocumentCollection(this,
                 (s, d) => s.ContainsAnalyzerConfigDocument(d),
                 (w, d) => w.OnAnalyzerConfigDocumentAdded(d),
                 (w, documentId) => w.OnAnalyzerConfigDocumentRemoved(documentId),
-                documentTextLoaderChangedAction: (w, d, loader) => w.OnAnalyzerConfigDocumentTextLoaderChanged(d, loader));
+                documentTextLoaderChangedAction: (s, d, loader) => s.WithAnalyzerConfigDocumentTextLoader(d, loader, PreservationMode.PreserveValue),
+                documentChangedWorkspaceKind: WorkspaceChangeKind.AnalyzerConfigDocumentChanged);
+
+            _fileChangesToProcess = new AsyncBatchingWorkQueue<string>(
+                TimeSpan.FromMilliseconds(200), // 200 chosen with absolutely no evidence whatsoever
+                ProcessFileChangesAsync,
+                StringComparer.Ordinal,
+                workspace.Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>().GetListener(),
+                _asynchronousFileChangeProcessingCancellationTokenSource.Token);
 
             _assemblyName = assemblyName;
             _compilationOptions = compilationOptions;
@@ -859,7 +873,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (fileInfoPath != null)
             {
-                _sourceFiles.ProcessFileChange(dynamicFilePath, fileInfoPath);
+                _sourceFiles.ProcessDynamicFileChange(dynamicFilePath, fileInfoPath);
             }
         }
 
@@ -951,9 +965,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void DocumentFileChangeContext_FileChanged(object sender, string fullFilePath)
         {
-            _sourceFiles.ProcessFileChange(fullFilePath);
-            _additionalFiles.ProcessFileChange(fullFilePath);
-            _analyzerConfigFiles.ProcessFileChange(fullFilePath);
+            _fileChangesToProcess.AddWork(fullFilePath);
+        }
+
+        private async ValueTask ProcessFileChangesAsync(ImmutableArray<string> filePaths, CancellationToken cancellationToken)
+        {
+            await _sourceFiles.ProcessRegularFileChangesAsync(filePaths).ConfigureAwait(false);
+            await _additionalFiles.ProcessRegularFileChangesAsync(filePaths).ConfigureAwait(false);
+            await _analyzerConfigFiles.ProcessRegularFileChangesAsync(filePaths).ConfigureAwait(false);
         }
 
         #region Metadata Reference Addition/Removal
@@ -1198,6 +1217,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     throw new InvalidOperationException("The project has already been removed.");
                 }
 
+                _asynchronousFileChangeProcessingCancellationTokenSource.Cancel();
+
                 // clear tracking to external components
                 foreach (var provider in _eventSubscriptionTracker)
                 {
@@ -1330,19 +1351,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly Func<Solution, DocumentId, bool> _documentAlreadyInWorkspace;
             private readonly Action<Workspace, DocumentInfo> _documentAddAction;
             private readonly Action<Workspace, DocumentId> _documentRemoveAction;
-            private readonly Action<Workspace, DocumentId, TextLoader> _documentTextLoaderChangedAction;
+            private readonly Func<Solution, DocumentId, TextLoader, Solution> _documentTextLoaderChangedAction;
+            private readonly WorkspaceChangeKind _documentChangedWorkspaceKind;
 
             public BatchingDocumentCollection(VisualStudioProject project,
                 Func<Solution, DocumentId, bool> documentAlreadyInWorkspace,
                 Action<Workspace, DocumentInfo> documentAddAction,
                 Action<Workspace, DocumentId> documentRemoveAction,
-                Action<Workspace, DocumentId, TextLoader> documentTextLoaderChangedAction)
+                Func<Solution, DocumentId, TextLoader, Solution> documentTextLoaderChangedAction,
+                WorkspaceChangeKind documentChangedWorkspaceKind)
             {
                 _project = project;
                 _documentAlreadyInWorkspace = documentAlreadyInWorkspace;
                 _documentAddAction = documentAddAction;
                 _documentRemoveAction = documentRemoveAction;
                 _documentTextLoaderChangedAction = documentTextLoaderChangedAction;
+                _documentChangedWorkspaceKind = documentChangedWorkspaceKind;
             }
 
             public DocumentId AddFile(string fullPath, SourceCodeKind sourceCodeKind, ImmutableArray<string> folders)
@@ -1639,15 +1663,68 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
-            public void ProcessFileChange(string filePath)
-                => ProcessFileChange(filePath, filePath);
+            public async ValueTask ProcessRegularFileChangesAsync(ImmutableArray<string> filePaths)
+            {
+                using (await _project._gate.DisposableWaitAsync().ConfigureAwait(false))
+                {
+                    // If our project has already been removed, this is a stale notification, and we can disregard.
+                    if (_project.HasBeenRemoved)
+                    {
+                        return;
+                    }
+
+                    var documentsToChange = ArrayBuilder<(DocumentId, TextLoader)>.GetInstance(filePaths.Length);
+
+                    foreach (var filePath in filePaths)
+                    {
+                        if (_documentPathsToDocumentIds.TryGetValue(filePath, out var documentId))
+                        {
+                            // We create file watching prior to pushing the file to the workspace in batching, so it's
+                            // possible we might see a file change notification early. In this case, toss it out. Since
+                            // all adds/removals of documents for this project happen under our lock, it's safe to do this
+                            // check without taking the main workspace lock. We don't have to check for documents removed in
+                            // the batch, since those have already been removed out of _documentPathsToDocumentIds.
+                            if (!_documentsAddedInBatch.Any(d => d.Id == documentId))
+                            {
+                                documentsToChange.Add((documentId, new FileTextLoader(filePath, defaultEncoding: null)));
+                            }
+                        }
+                    }
+
+                    // Nothing actually matched, so we're done
+                    if (documentsToChange.Count == 0)
+                    {
+                        return;
+                    }
+
+                    await _project._workspace.ApplyBatchChangeToWorkspaceMaybeAsync(useAsync: true, s =>
+                    {
+                        var accumulator = new SolutionChangeAccumulator(s);
+
+                        foreach (var (documentId, textLoader) in documentsToChange)
+                        {
+                            if (!s.Workspace.IsDocumentOpen(documentId))
+                            {
+                                accumulator.UpdateSolutionForDocumentAction(
+                                    _documentTextLoaderChangedAction(accumulator.Solution, documentId, textLoader),
+                                    _documentChangedWorkspaceKind,
+                                    SpecializedCollections.SingletonEnumerable(documentId));
+                            }
+                        }
+
+                        return accumulator;
+                    }).ConfigureAwait(false);
+
+                    documentsToChange.Free();
+                }
+            }
 
             /// <summary>
             /// Process file content changes
             /// </summary>
             /// <param name="projectSystemFilePath">filepath given from project system</param>
-            /// <param name="workspaceFilePath">filepath used in workspace. it might be different than projectSystemFilePath. ex) dynamic file</param>
-            public void ProcessFileChange(string projectSystemFilePath, string workspaceFilePath)
+            /// <param name="workspaceFilePath">filepath used in workspace. it might be different than projectSystemFilePath</param>
+            public void ProcessDynamicFileChange(string projectSystemFilePath, string workspaceFilePath)
             {
                 using (_project._gate.DisposableWait())
                 {
@@ -1669,7 +1746,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             return;
                         }
 
-                        _documentIdToDynamicFileInfoProvider.TryGetValue(documentId, out var fileInfoProvider);
+                        Contract.ThrowIfFalse(_documentIdToDynamicFileInfoProvider.TryGetValue(documentId, out var fileInfoProvider));
 
                         _project._workspace.ApplyChangeToWorkspace(w =>
                         {
@@ -1678,35 +1755,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                                 return;
                             }
 
-                            if (fileInfoProvider == null)
-                            {
-                                var textLoader = new FileTextLoader(projectSystemFilePath, defaultEncoding: null);
-                                _documentTextLoaderChangedAction(w, documentId, textLoader);
-                            }
-                            else
-                            {
-                                // we do not expect JTF to be used around this code path. and contract of fileInfoProvider is it being real free-threaded
-                                // meaning it can't use JTF to go back to UI thread.
-                                // so, it is okay for us to call regular ".Result" on a task here.
-                                var fileInfo = fileInfoProvider.GetDynamicFileInfoAsync(
-                                    _project.Id, _project._filePath, projectSystemFilePath, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+                            // we do not expect JTF to be used around this code path. and contract of fileInfoProvider is it being real free-threaded
+                            // meaning it can't use JTF to go back to UI thread.
+                            // so, it is okay for us to call regular ".Result" on a task here.
+                            var fileInfo = fileInfoProvider.GetDynamicFileInfoAsync(
+                                _project.Id, _project._filePath, projectSystemFilePath, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
 
-                                // Right now we're only supporting dynamic files as actual source files, so it's OK to call GetDocument here
-                                var document = w.CurrentSolution.GetRequiredDocument(documentId);
+                            // Right now we're only supporting dynamic files as actual source files, so it's OK to call GetDocument here
+                            var document = w.CurrentSolution.GetRequiredDocument(documentId);
 
-                                var documentInfo = DocumentInfo.Create(
-                                    document.Id,
-                                    document.Name,
-                                    document.Folders,
-                                    document.SourceCodeKind,
-                                    loader: fileInfo.TextLoader,
-                                    document.FilePath,
-                                    document.State.Attributes.IsGenerated,
-                                    document.State.Attributes.DesignTimeOnly,
-                                    documentServiceProvider: fileInfo.DocumentServiceProvider);
+                            var documentInfo = DocumentInfo.Create(
+                                document.Id,
+                                document.Name,
+                                document.Folders,
+                                document.SourceCodeKind,
+                                loader: fileInfo.TextLoader,
+                                document.FilePath,
+                                document.State.Attributes.IsGenerated,
+                                document.State.Attributes.DesignTimeOnly,
+                                documentServiceProvider: fileInfo.DocumentServiceProvider);
 
-                                w.OnDocumentReloaded(documentInfo);
-                            }
+                            w.OnDocumentReloaded(documentInfo);
                         });
                     }
                 }

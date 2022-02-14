@@ -12,8 +12,8 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
@@ -213,7 +213,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         }
                     }
 
-                    public override bool TryNavigateTo(int index, bool previewTab, bool activate, CancellationToken cancellationToken)
+                    public override bool TryNavigateTo(int index, NavigationOptions options, CancellationToken cancellationToken)
                     {
                         var item = GetItem(index);
                         if (item is null)
@@ -223,7 +223,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         if (documentId is null)
                             return false;
 
-                        return TryNavigateTo(item.Workspace, documentId, item.GetOriginalPosition(), previewTab, activate, cancellationToken);
+                        return TryNavigateTo(item.Workspace, documentId, item.GetOriginalPosition(), options, cancellationToken);
                     }
 
                     private static DocumentId? GetProperDocumentId(IThreadingContext threadingContext, DiagnosticTableItem item, CancellationToken cancellationToken)

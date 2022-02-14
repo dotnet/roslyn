@@ -3,13 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 {
@@ -35,8 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
             => _globalOptions.GetOption(OptionsMetadata.EnableOpeningSourceGeneratedFilesInWorkspace)
                 ?? _globalOptions.GetOption(OptionsMetadata.EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag);
 
-        [ExportSolutionOptionProvider, Shared]
-        internal sealed class OptionsMetadata : IOptionProvider
+        internal sealed class OptionsMetadata
         {
             /// <summary>
             /// Disables if the workspace creates recoverable trees when from its <see cref="ISyntaxTreeFactoryService"/>s.
@@ -60,18 +57,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
             internal static readonly Option2<bool> EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag = new(
                 nameof(ISyntaxTreeConfigurationService), nameof(EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag), defaultValue: false,
                 new FeatureFlagStorageLocation("Roslyn.SourceGeneratorsEnableOpeningInWorkspace"));
-
-            ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
-                DisableRecoverableTrees,
-                DisableProjectCacheService,
-                EnableOpeningSourceGeneratedFilesInWorkspace,
-                EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag);
-
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public OptionsMetadata()
-            {
-            }
         }
     }
 }

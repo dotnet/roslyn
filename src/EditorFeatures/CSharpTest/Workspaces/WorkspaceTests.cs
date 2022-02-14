@@ -1282,16 +1282,16 @@ class D { }
             var optionValue = solution.Options.GetOption(optionKey);
             Assert.Equal(BackgroundAnalysisScope.Default, optionValue);
 
-            var newOptions = solution.Options.WithChangedOption(optionKey, BackgroundAnalysisScope.ActiveFile);
+            var newOptions = solution.Options.WithChangedOption(optionKey, BackgroundAnalysisScope.FullSolution);
             var newSolution = solution.WithOptions(newOptions);
             var newOptionValue = newSolution.Options.GetOption(optionKey);
-            Assert.Equal(BackgroundAnalysisScope.ActiveFile, newOptionValue);
+            Assert.Equal(BackgroundAnalysisScope.FullSolution, newOptionValue);
 
             var applied = workspace.TryApplyChanges(newSolution);
             Assert.True(applied);
 
             var currentOptionValue = workspace.CurrentSolution.Options.GetOption(optionKey);
-            Assert.Equal(BackgroundAnalysisScope.ActiveFile, currentOptionValue);
+            Assert.Equal(BackgroundAnalysisScope.FullSolution, currentOptionValue);
         }
 
         [CombinatorialData]
@@ -1324,12 +1324,12 @@ class D { }
             if (testDeprecatedOptionsSetter)
             {
 #pragma warning disable CS0618 // Type or member is obsolete - this test ensures that deprecated "Workspace.set_Options" API's functionality is preserved.
-                primaryWorkspace.Options = primaryWorkspace.Options.WithChangedOption(optionKey, BackgroundAnalysisScope.ActiveFile);
+                primaryWorkspace.Options = primaryWorkspace.Options.WithChangedOption(optionKey, BackgroundAnalysisScope.FullSolution);
 #pragma warning restore CS0618 // Type or member is obsolete
             }
             else
             {
-                primaryWorkspace.SetOptions(primaryWorkspace.Options.WithChangedOption(optionKey, BackgroundAnalysisScope.ActiveFile));
+                primaryWorkspace.SetOptions(primaryWorkspace.Options.WithChangedOption(optionKey, BackgroundAnalysisScope.FullSolution));
             }
 
             // Verify current solution and option change for both workspaces.
@@ -1355,7 +1355,7 @@ class D { }
                 // Verify workspace.CurrentSolution has changed option.
                 var optionKey = new OptionKey2(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp);
                 Assert.Equal(BackgroundAnalysisScope.Default, beforeOptionChangedSolution.Options.GetOption(optionKey));
-                Assert.Equal(BackgroundAnalysisScope.ActiveFile, currentSolution.Options.GetOption(optionKey));
+                Assert.Equal(BackgroundAnalysisScope.FullSolution, currentSolution.Options.GetOption(optionKey));
             }
         }
     }

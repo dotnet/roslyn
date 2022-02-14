@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             var seenInvocation = false;
             var seenIndexAssignment = false;
 
-            var initializer = _syntaxFacts.GetInitializerOfObjectCreationExpression(_objectCreationExpression);
+            var initializer = _syntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression);
             if (initializer != null)
             {
                 var firstInit = _syntaxFacts.GetExpressionsOfObjectCollectionInitializer(initializer).First();
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
         protected override bool ShouldAnalyze()
         {
-            if (_syntaxFacts.IsObjectMemberInitializer(_syntaxFacts.GetInitializerOfObjectCreationExpression(_objectCreationExpression)))
+            if (_syntaxFacts.IsObjectMemberInitializer(_syntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression)))
                 return false;
 
             var type = _semanticModel.GetTypeInfo(_objectCreationExpression, _cancellationToken).Type;
@@ -135,8 +135,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             if (!_syntaxFacts.IsSimpleAssignmentStatement(statement))
                 return false;
 
-            _syntaxFacts.GetPartsOfAssignmentStatement(statement,
-                out var left, out var right);
+            _syntaxFacts.GetPartsOfAssignmentStatement(statement, out var left, out var right);
 
             if (!_syntaxFacts.IsElementAccessExpression(left))
                 return false;
@@ -147,7 +146,24 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             if (ExpressionContainsValuePatternOrReferencesInitializedSymbol(right))
                 return false;
 
-            instance = _syntaxFacts.GetExpressionOfElementAccessExpression(left);
+            // Can't reference the variable being initialized in the arguments of the indexing expression.
+            _syntaxFacts.GetPartsOfElementAccessExpression(left, out var elementInstance, out var argumentList);
+            var elementAccessArguments = _syntaxFacts.GetArgumentsOfArgumentList(argumentList);
+            foreach (var argument in elementAccessArguments)
+            {
+                if (ExpressionContainsValuePatternOrReferencesInitializedSymbol(argument))
+                    return false;
+
+                // An index/range expression implicitly references the value being initialized.  So it cannot be used in the
+                // indexing expression.
+                var argExpression = _syntaxFacts.GetExpressionOfArgument(argument);
+                argExpression = _syntaxFacts.WalkDownParentheses(argExpression);
+
+                if (_syntaxFacts.IsIndexExpression(argExpression) || _syntaxFacts.IsRangeExpression(argExpression))
+                    return false;
+            }
+
+            instance = elementInstance;
             return instance != null;
         }
 

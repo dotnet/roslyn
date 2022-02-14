@@ -78,8 +78,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(10, worker.DocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None)]
         [InlineData(BackgroundAnalysisScope.ActiveFile)]
-        [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects)]
+        [InlineData(BackgroundAnalysisScope.OpenFiles)]
         [InlineData(BackgroundAnalysisScope.FullSolution)]
         [Theory, WorkItem(747226, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/747226")]
         internal async Task SolutionAdded_Simple(BackgroundAnalysisScope analysisScope)
@@ -105,8 +106,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedDocumentEvents, worker.SyntaxDocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None)]
         [InlineData(BackgroundAnalysisScope.ActiveFile)]
-        [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects)]
+        [InlineData(BackgroundAnalysisScope.OpenFiles)]
         [InlineData(BackgroundAnalysisScope.FullSolution)]
         [Theory]
         internal async Task SolutionAdded_Complex(BackgroundAnalysisScope analysisScope)
@@ -120,8 +122,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedDocumentEvents, worker.SyntaxDocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None)]
         [InlineData(BackgroundAnalysisScope.ActiveFile)]
-        [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects)]
+        [InlineData(BackgroundAnalysisScope.OpenFiles)]
         [InlineData(BackgroundAnalysisScope.FullSolution)]
         [Theory]
         internal async Task Solution_Remove(BackgroundAnalysisScope analysisScope)
@@ -135,8 +138,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(10, worker.InvalidateDocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None)]
         [InlineData(BackgroundAnalysisScope.ActiveFile)]
-        [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects)]
+        [InlineData(BackgroundAnalysisScope.OpenFiles)]
         [InlineData(BackgroundAnalysisScope.FullSolution)]
         [Theory]
         internal async Task Solution_Clear(BackgroundAnalysisScope analysisScope)
@@ -150,8 +154,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(10, worker.InvalidateDocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None)]
         [InlineData(BackgroundAnalysisScope.ActiveFile)]
-        [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects)]
+        [InlineData(BackgroundAnalysisScope.OpenFiles)]
         [InlineData(BackgroundAnalysisScope.FullSolution)]
         [Theory]
         internal async Task Solution_Reload(BackgroundAnalysisScope analysisScope)
@@ -169,8 +174,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedProjectEvents, worker.ProjectIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None)]
         [InlineData(BackgroundAnalysisScope.ActiveFile)]
-        [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects)]
+        [InlineData(BackgroundAnalysisScope.OpenFiles)]
         [InlineData(BackgroundAnalysisScope.FullSolution)]
         [Theory]
         internal async Task Solution_Change(BackgroundAnalysisScope analysisScope)
@@ -192,8 +198,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedDocumentEvents, worker.SyntaxDocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None)]
         [InlineData(BackgroundAnalysisScope.ActiveFile)]
-        [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects)]
+        [InlineData(BackgroundAnalysisScope.OpenFiles)]
         [InlineData(BackgroundAnalysisScope.FullSolution)]
         [Theory]
         internal async Task Project_Add(BackgroundAnalysisScope analysisScope)
@@ -218,8 +225,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedDocumentEvents, worker.SyntaxDocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None)]
         [InlineData(BackgroundAnalysisScope.ActiveFile)]
-        [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects)]
+        [InlineData(BackgroundAnalysisScope.OpenFiles)]
         [InlineData(BackgroundAnalysisScope.FullSolution)]
         [Theory]
         internal async Task Project_Remove(BackgroundAnalysisScope analysisScope)
@@ -236,8 +244,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(5, worker.InvalidateDocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None)]
         [InlineData(BackgroundAnalysisScope.ActiveFile)]
-        [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects)]
+        [InlineData(BackgroundAnalysisScope.OpenFiles)]
         [InlineData(BackgroundAnalysisScope.FullSolution)]
         [Theory]
         internal async Task Project_Change(BackgroundAnalysisScope analysisScope)
@@ -256,9 +265,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(1, worker.InvalidateDocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
-        [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
+        [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory]
         internal async Task Project_AssemblyName_Change(BackgroundAnalysisScope analysisScope, bool firstDocumentActive)
@@ -283,9 +293,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedDocumentEvents, worker.DocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
-        [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
+        [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory]
         internal async Task Project_DefaultNamespace_Change(BackgroundAnalysisScope analysisScope, bool firstDocumentActive)
@@ -310,9 +321,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedDocumentEvents, worker.DocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
-        [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
+        [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory]
         internal async Task Project_AnalyzerOptions_Change(BackgroundAnalysisScope analysisScope, bool firstDocumentActive)
@@ -339,9 +351,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(1, worker.NonSourceDocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
-        [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
+        [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory]
         internal async Task Project_OutputFilePath_Change(BackgroundAnalysisScope analysisScope, bool firstDocumentActive)
@@ -366,9 +379,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedDocumentEvents, worker.DocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
-        [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
+        [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory]
         internal async Task Project_OutputRefFilePath_Change(BackgroundAnalysisScope analysisScope, bool firstDocumentActive)
@@ -393,9 +407,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedDocumentEvents, worker.DocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
-        [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
+        [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory]
         internal async Task Project_CompilationOutputInfo_Change(BackgroundAnalysisScope analysisScope, bool firstDocumentActive)
@@ -420,9 +435,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedDocumentEvents, worker.DocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
-        [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
+        [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory]
         internal async Task Project_RunAnalyzers_Change(BackgroundAnalysisScope analysisScope, bool firstDocumentActive)
@@ -468,7 +484,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [Fact]
-        public async Task Test_BackgroundAnalysisScopeOptionChanged_ActiveFile()
+        public async Task Test_BackgroundAnalysisScopeOptionChanged_OpenFiles()
         {
             using var workspace = new WorkCoordinatorWorkspace(SolutionCrawlerWorkspaceKind, incrementalAnalyzer: typeof(AnalyzerProviderNoWaitNoBlock));
             var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents();
@@ -476,9 +492,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             MakeFirstDocumentActive(workspace.CurrentSolution.Projects.First());
             await WaitWaiterAsync(workspace.ExportProvider);
 
-            Assert.Equal(BackgroundAnalysisScope.Default, SolutionCrawlerOptions.GetBackgroundAnalysisScope(workspace.Options, LanguageNames.CSharp));
+            Assert.Equal(BackgroundAnalysisScope.ActiveFile, SolutionCrawlerOptions.GetBackgroundAnalysisScope(workspace.Options, LanguageNames.CSharp));
 
-            var newAnalysisScope = BackgroundAnalysisScope.ActiveFile;
+            var newAnalysisScope = BackgroundAnalysisScope.OpenFiles;
             var worker = await ExecuteOperation(workspace, w => w.TryApplyChanges(w.CurrentSolution.WithOptions(w.CurrentSolution.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, newAnalysisScope))));
 
             Assert.Equal(newAnalysisScope, SolutionCrawlerOptions.GetBackgroundAnalysisScope(workspace.Options, LanguageNames.CSharp));
@@ -495,7 +511,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             workspace.OnSolutionAdded(solutionInfo);
             await WaitWaiterAsync(workspace.ExportProvider);
 
-            Assert.Equal(BackgroundAnalysisScope.Default, SolutionCrawlerOptions.GetBackgroundAnalysisScope(workspace.Options, LanguageNames.CSharp));
+            Assert.Equal(BackgroundAnalysisScope.ActiveFile, SolutionCrawlerOptions.GetBackgroundAnalysisScope(workspace.Options, LanguageNames.CSharp));
 
             var newAnalysisScope = BackgroundAnalysisScope.FullSolution;
             var worker = await ExecuteOperation(workspace, w => w.TryApplyChanges(w.CurrentSolution.WithOptions(w.CurrentSolution.Options.WithChangedOption(SolutionCrawlerOptions.BackgroundAnalysisScopeOption, LanguageNames.CSharp, newAnalysisScope))));
@@ -506,8 +522,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(2, worker.ProjectIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None)]
         [InlineData(BackgroundAnalysisScope.ActiveFile)]
-        [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects)]
+        [InlineData(BackgroundAnalysisScope.OpenFiles)]
         [InlineData(BackgroundAnalysisScope.FullSolution)]
         [Theory]
         internal async Task Project_Reload(BackgroundAnalysisScope analysisScope)
@@ -526,9 +543,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedProjectEvents, worker.ProjectIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
-        [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
+        [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory]
         internal async Task Document_Add(BackgroundAnalysisScope analysisScope, bool activeDocument)
@@ -559,9 +577,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedDocumentSemanticEvents, worker.DocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
-        [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
+        [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory]
         internal async Task Document_Remove(BackgroundAnalysisScope analysisScope, bool removeActiveDocument)
@@ -588,9 +607,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedDocumentInvalidatedEvents, worker.InvalidateDocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
-        [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
+        [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory]
         internal async Task Document_Reload(BackgroundAnalysisScope analysisScope, bool reloadActiveDocument)
@@ -613,9 +633,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(0, worker.InvalidateDocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
-        [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
+        [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory]
         internal async Task Document_Reanalyze(BackgroundAnalysisScope analysisScope, bool reanalyzeActiveDocument)
@@ -658,9 +679,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedReanalyzeDocumentCount, worker.DocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
-        [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
+        [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory, WorkItem(670335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
         internal async Task Document_Change(BackgroundAnalysisScope analysisScope, bool changeActiveDocument)
@@ -683,9 +705,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedDocumentEvents, worker.SyntaxDocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
-        [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
+        [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory]
         internal async Task Document_AdditionalFileChange(BackgroundAnalysisScope analysisScope, bool firstDocumentActive)
@@ -725,9 +748,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Empty(worker.NonSourceDocumentIds);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
-        [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
+        [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory]
         internal async Task Document_AnalyzerConfigFileChange(BackgroundAnalysisScope analysisScope, bool firstDocumentActive)
@@ -764,9 +788,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedDocumentSemanticEvents, worker.DocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
-        [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
+        [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory, WorkItem(670335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
         internal async Task Document_Cancellation(BackgroundAnalysisScope analysisScope, bool activeDocument)
@@ -818,9 +843,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(expectedDocumentSemanticEvents, analyzer.DocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
-        [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
+        [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory, WorkItem(670335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
         internal async Task Document_Cancellation_MultipleTimes(BackgroundAnalysisScope analysisScope, bool activeDocument)
@@ -925,9 +951,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             Assert.Equal(5, analyzer.DocumentIds.Count);
         }
 
+        [InlineData(BackgroundAnalysisScope.None, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, false)]
         [InlineData(BackgroundAnalysisScope.ActiveFile, true)]
-        [InlineData(BackgroundAnalysisScope.OpenFilesAndProjects, false)]
+        [InlineData(BackgroundAnalysisScope.OpenFiles, false)]
         [InlineData(BackgroundAnalysisScope.FullSolution, false)]
         [Theory, WorkItem(670335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/670335")]
         internal async Task Document_ActiveDocumentChanged(BackgroundAnalysisScope analysisScope, bool hasActiveDocumentBefore)
@@ -949,14 +976,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
             var expectedSyntaxDocumentEvents = (analysisScope, hasActiveDocumentBefore) switch
             {
                 (BackgroundAnalysisScope.ActiveFile, _) => 1,
-                (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, _) => 0,
+                (BackgroundAnalysisScope.OpenFiles or BackgroundAnalysisScope.FullSolution or BackgroundAnalysisScope.None, _) => 0,
                 _ => throw ExceptionUtilities.Unreachable,
             };
 
             var expectedDocumentEvents = (analysisScope, hasActiveDocumentBefore) switch
             {
-                (BackgroundAnalysisScope.ActiveFile, _) => 5,
-                (BackgroundAnalysisScope.OpenFilesAndProjects or BackgroundAnalysisScope.FullSolution, _) => 0,
+                (BackgroundAnalysisScope.ActiveFile, _) => 1,
+                (BackgroundAnalysisScope.OpenFiles or BackgroundAnalysisScope.FullSolution or BackgroundAnalysisScope.None, _) => 0,
                 _ => throw ExceptionUtilities.Unreachable,
             };
 
@@ -1696,6 +1723,24 @@ class C
                 return Task.CompletedTask;
             }
 
+            public async Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken)
+            {
+                if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(document.Project) != BackgroundAnalysisScope.ActiveFile)
+                {
+                    return;
+                }
+
+                if (document is Document sourceDocument)
+                {
+                    await AnalyzeSyntaxAsync(sourceDocument, InvocationReasons.ActiveDocumentSwitched, cancellationToken).ConfigureAwait(false);
+                    await AnalyzeDocumentAsync(sourceDocument, bodyOpt: null, InvocationReasons.ActiveDocumentSwitched, cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    await AnalyzeNonSourceDocumentAsync(document, InvocationReasons.ActiveDocumentSwitched, cancellationToken).ConfigureAwait(false);
+                }
+            }
+
             public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken)
             {
                 InvalidateDocumentIds.Add(documentId);
@@ -1774,6 +1819,7 @@ class C
             public Task DocumentOpenAsync(Document document, CancellationToken cancellationToken) => Task.CompletedTask;
             public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken) => Task.CompletedTask;
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken) => Task.CompletedTask;
+            public Task ActiveDocumentSwitchedAsync(TextDocument document, CancellationToken cancellationToken) => Task.CompletedTask;
             public Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken) => Task.CompletedTask;
             public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken) => Task.CompletedTask;
             public Task RemoveDocumentAsync(DocumentId documentId, CancellationToken cancellationToken) => Task.CompletedTask;

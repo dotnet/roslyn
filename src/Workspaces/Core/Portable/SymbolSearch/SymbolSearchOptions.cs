@@ -2,36 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Immutable;
-using System.Composition;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
+using System.Runtime.Serialization;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
 {
-    [ExportSolutionOptionProvider, Shared]
-    internal sealed class SymbolSearchOptions : IOptionProvider
+    [DataContract]
+    internal readonly record struct SymbolSearchOptions(
+        [property: DataMember(Order = 0)] bool SearchReferenceAssemblies = true,
+        [property: DataMember(Order = 1)] bool SearchNuGetPackages = true)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public SymbolSearchOptions()
+            : this(SearchReferenceAssemblies: true)
         {
         }
 
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            SuggestForTypesInReferenceAssemblies,
-            SuggestForTypesInNuGetPackages);
-
-        private const string FeatureName = "SymbolSearchOptions";
-
-        public static PerLanguageOption2<bool> SuggestForTypesInReferenceAssemblies =
-            new(FeatureName, "SuggestForTypesInReferenceAssemblies", defaultValue: true,
-                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInReferenceAssemblies"));
-
-        public static PerLanguageOption2<bool> SuggestForTypesInNuGetPackages =
-            new(FeatureName, "SuggestForTypesInNuGetPackages", defaultValue: true,
-                storageLocation: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages"));
+        public static readonly SymbolSearchOptions Default = new();
     }
 }
