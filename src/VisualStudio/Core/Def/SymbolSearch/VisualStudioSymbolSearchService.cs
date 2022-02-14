@@ -84,6 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             // kick off the work to process them.
             _installerService.PackageSourcesChanged += OnPackageSourcesChanged;
 
+            // Kick off the initial work to pull down the nuget index.
             this.StartWorking();
         }
 

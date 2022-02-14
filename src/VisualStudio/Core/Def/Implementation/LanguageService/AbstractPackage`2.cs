@@ -8,10 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.SymbolSearch;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Packaging;
@@ -19,8 +17,7 @@ using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
-using Roslyn.Utilities;
-using Task = System.Threading.Tasks.Task;
+  using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
@@ -84,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             var workspace = ComponentModel.GetService<VisualStudioWorkspace>();
 
-            // Do the MEF loads in the BG explicitly.
+            // Do the MEF loads and initialization in the BG explicitly.
             await TaskScheduler.Default;
 
             // Ensure the nuget package services are initialized. This initialization pass will only run
@@ -99,11 +96,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             _packageInstallerService = workspace.Services.GetService<IPackageInstallerService>() as PackageInstallerService;
             _symbolSearchService = workspace.Services.GetService<ISymbolSearchService>() as VisualStudioSymbolSearchService;
 
-            if (_packageInstallerService != null)
-                await _packageInstallerService.StartAsync().ConfigureAwait(false);
-
-            if (_symbolSearchService != null)
-                await _symbolSearchService.StartAsync().ConfigureAwait(false);
+            _packageInstallerService?.RegisterLanguage(this.RoslynLanguageName);
+            _symbolSearchService?.RegisterLanguage(this.RoslynLanguageName);
         }
 
         protected abstract void RegisterMiscellaneousFilesWorkspaceInformation(MiscellaneousFilesWorkspace miscellaneousFilesWorkspace);

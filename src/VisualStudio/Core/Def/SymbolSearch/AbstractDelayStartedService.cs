@@ -23,6 +23,11 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
     internal abstract class AbstractDelayStartedService : ForegroundThreadAffinitizedObject
     {
         private readonly IGlobalOptionService _globalOptions;
+
+        /// <summary>
+        /// The set of languages that have loaded that care about this service.  If one language loads and has an
+        /// appropriate <see cref="_perLanguageOptions"/> also enabled, then this service will start working.
+        /// </summary>
         private readonly ConcurrentSet<string> _registeredLanguages = new();
 
         /// <summary>
@@ -52,12 +57,12 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             _globalOptions = globalOptions;
             _featureEnabledOption = featureEnabledOption;
             _perLanguageOptions = perLanguageOptions;
+
             _optionChangedWorkQueue = new AsyncBatchingWorkQueue(
                 TimeSpan.FromMilliseconds(500),
                 ProcessOptionChangesAsync,
                 listenerProvider.GetListener(FeatureAttribute.Workspace),
                 this.DisposalToken);
-
             _globalOptions.OptionChanged += OnOptionChanged;
         }
 
@@ -83,10 +88,12 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 return;
 
             // If feature isn't enabled for any registered language, do nothing.
-            if (!_registeredLanguages.Any(lang => !_perLanguageOptions.Any(option => _globalOptions.GetOption(option, lang))))
+            var languageEnabled = _registeredLanguages.Any(lang => _perLanguageOptions.Any(option => _globalOptions.GetOption(option, lang)));
+            if (!languageEnabled)
                 return;
 
-            // We were enabled for some language.  Kick off the work for this service now.
+            // We were enabled for some language.  Kick off the work for this service now. Since we're now enable,d we
+            // no longer need to listen for option changes.
             _enabled = true;
             _globalOptions.OptionChanged -= OnOptionChanged;
 
