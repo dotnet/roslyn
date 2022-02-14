@@ -95,19 +95,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             vsProject.AnalyzerReferences.Add(filePath);
         }
 
-        public void RemoveAnalyzerReference(string filePath, string projectName)
-        {
-            var project = GetProject(projectName);
-            ((VSProject3)project.Object).AnalyzerReferences.Remove(filePath);
-        }
-
-        public void SetLanguageVersion(string projectName, string languageVersion)
-        {
-            var project = GetProject(projectName);
-            var projectConfiguration = (CSharpProjectConfigurationProperties3)project.ConfigurationManager.ActiveConfiguration.Object;
-            projectConfiguration.LanguageVersion = languageVersion;
-        }
-
         public string DirectoryName => Path.GetDirectoryName(SolutionFileFullPath);
 
         public string SolutionFileFullPath
@@ -317,21 +304,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
 
             reference.Remove();
-        }
-
-        public void OpenSolution(string path, bool saveExistingSolutionIfExists = false)
-        {
-            var dte = GetDTE();
-
-            if (dte.Solution.IsOpen)
-            {
-                CloseSolution(saveExistingSolutionIfExists);
-            }
-
-            dte.Solution.Open(path);
-
-            _solution = (EnvDTE80.Solution2)dte.Solution;
-            _fileName = path;
         }
 
         private static string ConvertLanguageName(string languageName)
@@ -740,12 +712,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             WaitForBuildToFinish();
         }
 
-        public void ClearBuildOutputWindowPane()
-        {
-            var buildOutputWindowPane = GetBuildOutputWindowPane();
-            buildOutputWindowPane.Clear();
-        }
-
         private static EnvDTE.OutputWindowPane GetBuildOutputWindowPane()
         {
             var dte = (DTE2)GetDTE();
@@ -1034,14 +1000,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return Path.Combine(projectPath, relativeFilePath);
         }
 
-        public void ReloadProject(string projectRelativePath)
-        {
-            Contract.ThrowIfNull(_solution);
-            var solutionPath = Path.GetDirectoryName(_solution.FullName);
-            var projectPath = Path.Combine(solutionPath, projectRelativePath);
-            _solution.AddFromFile(projectPath);
-        }
-
         public bool RestoreNuGetPackages(string projectName)
         {
             using var cancellationTokenSource = new CancellationTokenSource(Helper.HangMitigatingTimeout);
@@ -1054,29 +1012,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void SaveAll()
             => ExecuteCommand(WellKnownCommandNames.File_SaveAll);
-
-        public void ShowErrorList()
-            => ExecuteCommand(WellKnownCommandNames.View_ErrorList);
-
-        public void ShowOutputWindow()
-            => ExecuteCommand(WellKnownCommandNames.View_Output);
-
-        public void UnloadProject(string projectName)
-        {
-            Contract.ThrowIfNull(_solution);
-            var projects = _solution.Projects;
-            EnvDTE.Project? project = null;
-            for (var i = 1; i <= projects.Count; i++)
-            {
-                project = projects.Item(i);
-                if (string.Compare(project.Name, projectName, StringComparison.Ordinal) == 0)
-                {
-                    break;
-                }
-            }
-
-            _solution.Remove(project);
-        }
 
         public void SelectItem(string itemName)
         {
@@ -1100,34 +1035,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             item.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
             solutionExplorer.Parent.Activate();
-        }
-
-        public string[] GetChildrenOfItem(string itemName)
-        {
-            var dte = (DTE2)GetDTE();
-            var solutionExplorer = dte.ToolWindows.SolutionExplorer;
-
-            var item = FindFirstItemRecursively(solutionExplorer.UIHierarchyItems, itemName);
-            Contract.ThrowIfNull(item);
-
-            return item.UIHierarchyItems
-                .Cast<EnvDTE.UIHierarchyItem>()
-                .Select(i => i.Name)
-                .ToArray();
-        }
-
-        public string[] GetChildrenOfItemAtPath(params string[] path)
-        {
-            var dte = (DTE2)GetDTE();
-            var solutionExplorer = dte.ToolWindows.SolutionExplorer;
-
-            var item = FindItemAtPath(solutionExplorer.UIHierarchyItems, path);
-            Contract.ThrowIfNull(item);
-
-            return item.UIHierarchyItems
-                .Cast<EnvDTE.UIHierarchyItem>()
-                .Select(i => i.Name)
-                .ToArray();
         }
 
         private static EnvDTE.UIHierarchyItem? FindItemAtPath(

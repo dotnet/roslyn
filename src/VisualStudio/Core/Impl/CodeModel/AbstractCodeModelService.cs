@@ -1075,6 +1075,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             var newContainerNode = insertNodeIntoContainer(insertionIndex, node, containerNode);
             var newRoot = root.ReplaceNode(containerNode, newContainerNode);
+
+            Contract.ThrowIfTrue(object.ReferenceEquals(root, newRoot), $"We failed to insert the node into the tree; this might be if {nameof(containerNode)} came from a different snapshot.");
+
             document = document.WithSyntaxRoot(newRoot);
 
             if (!batchMode)

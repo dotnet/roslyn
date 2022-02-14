@@ -1922,7 +1922,7 @@ class C
 ";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "123: True");
+            CompileAndVerify(comp, expectedOutput: "123: True", verify: Verification.FailsILVerify);
         }
 
         [Fact]
