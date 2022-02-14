@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
@@ -548,6 +549,51 @@ namespace A
             var expected = code;
 
             return AssertCodeCleanupResult(expected, code, OutsidePreferPreservationOption);
+        }
+
+        [Theory]
+        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
+        [InlineData(LanguageNames.CSharp, 32)]
+        [InlineData(LanguageNames.VisualBasic, 67)]
+        public void VerifyAllVisualBasicCodeStyleFixersAreSupportedByCodeCleanup(string language, int expectedNumberOfUnsupportedDiagnosticIds)
+        {
+            var supportedDiagnostics = GetSupportedDiagnosticIdsForCodeCleanupService(language);
+
+            // No Duplicates
+            Assert.Equal(supportedDiagnostics, supportedDiagnostics.Distinct());
+
+            // Exact Number of Unsupported Diagnostic Ids
+            var ideDiagnosticIds = typeof(IDEDiagnosticIds).GetFields().Select(f => f.GetValue(f) as string).ToArray();
+            var unsupportedDiagnosticIds = ideDiagnosticIds.Except(supportedDiagnostics).ToArray();
+            Assert.Equal(expectedNumberOfUnsupportedDiagnosticIds, unsupportedDiagnosticIds.Length);
+        }
+
+        private static string[] GetSupportedDiagnosticIdsForCodeCleanupService(string language)
+        {
+            using var workspace = GetTestWorkspaceForLanguage(language);
+            var hostdoc = workspace.Documents.Single();
+            var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
+
+            var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
+
+            var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
+            var supportedDiagnostics = enabledDiagnostics.Diagnostics.SelectMany(x => x.DiagnosticIds).ToArray();
+            return supportedDiagnostics;
+
+            TestWorkspace GetTestWorkspaceForLanguage(string language)
+            {
+                if (language == LanguageNames.CSharp)
+                {
+                    return TestWorkspace.CreateCSharp(string.Empty, composition: EditorTestCompositions.EditorFeaturesWpf);
+                }
+
+                if (language == LanguageNames.VisualBasic)
+                {
+                    return TestWorkspace.CreateVisualBasic(string.Empty, composition: EditorTestCompositions.EditorFeaturesWpf);
+                }
+
+                return null;
+            }
         }
 
         /// <summary>
