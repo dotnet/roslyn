@@ -818,5 +818,27 @@ End Class
 ",
 index:=1)
         End Function
+
+        <WorkItem(17643, "https://github.com/dotnet/roslyn/issues/17643")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        Public Async Function TestWithDialogOnClassHeader() As Task
+            Await TestWithPickMembersDialogAsync(
+"
+Class [||]Program
+    Public Property F() As Integer
+    
+End Class",
+"
+Class Program
+    Public Property F() As Integer
+
+    Public Overrides Function Equals(obj As Object) As Boolean
+        Dim program = TryCast(obj, Program)
+        Return program IsNot Nothing AndAlso
+               F = program.F
+    End Function
+End Class",
+chosenSymbols:=Nothing)
+        End Function
     End Class
 End Namespace
