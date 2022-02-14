@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             if (!languageEnabled)
                 return;
 
-            // We were enabled for some language.  Kick off the work for this service now. Since we're now enable,d we
+            // We were enabled for some language.  Kick off the work for this service now. Since we're now enabled, we
             // no longer need to listen for option changes.
             _enabled = true;
             _globalOptions.OptionChanged -= OnOptionChanged;
