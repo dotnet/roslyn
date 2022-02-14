@@ -725,16 +725,13 @@ class B2 : A<string>
 }
 class B3 : A<int?>
 {
-    internal override void F<U>(U u!! = default) { }
+    internal override void F<U>(U u!! = default) { } // note: 'U' is a nullable type here but we don't give a warning due to complexity of accurately searching the constraints.
 }";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             compilation.VerifyDiagnostics(
-                    // (12,35): warning CS8719: Parameter 'u' is null-checked but is null by default.
-                    //     internal override void F<U>(U u!! = default) { }
-                    Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "u").WithArguments("u").WithLocation(12, 35),
-                    // (16,35): warning CS8721: Nullable value type 'U' is null-checked and will throw if null.
-                    //     internal override void F<U>(U u!! = default) { }
-                    Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "u").WithArguments("U").WithLocation(16, 35));
+                // (12,35): warning CS8993: Parameter 'u' is null-checked but is null by default.
+                //     internal override void F<U>(U u!! = default) { }
+                Diagnostic(ErrorCode.WRN_NullCheckedHasDefaultNull, "u").WithArguments("u").WithLocation(12, 35));
         }
 
         [Fact]
@@ -1209,6 +1206,29 @@ class C
                 //         [AllowNull, DisallowNull] T? t11!! // 5
                 Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "t11").WithArguments("T?").WithLocation(19, 38)
             );
+        }
+
+        [Fact]
+        public void AnnotatedTypeParameter_Indirect()
+        {
+            var source = @"
+#nullable enable
+
+class C
+{
+    void M<T, U>(
+        T? t!!, // 1
+        U u!!) where U : T?
+    {
+    }
+}";
+            // note: U is always nullable when a reference type,
+            // but we don't warn on '!!' for it due to complexity of accurately searching the constraints.
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,12): warning CS8995: Nullable type 'T?' is null-checked and will throw if null.
+                //         T? t!!, // 1
+                Diagnostic(ErrorCode.WRN_NullCheckingOnNullableType, "t").WithArguments("T?").WithLocation(7, 12));
         }
     }
 }
