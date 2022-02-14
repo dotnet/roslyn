@@ -84,7 +84,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             var workspace = ComponentModel.GetService<VisualStudioWorkspace>();
 
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            // Do the MEF loads in the BG explicitly.
+            await TaskScheduler.Default;
 
             // Ensure the nuget package services are initialized. This initialization pass will only run
             // once our package is loaded indirectly through a legacy COM service we proffer (like the legacy project systems
@@ -97,6 +98,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // no longer loads if a file is opened.
             _packageInstallerService = workspace.Services.GetService<IPackageInstallerService>() as PackageInstallerService;
             _symbolSearchService = workspace.Services.GetService<ISymbolSearchService>() as VisualStudioSymbolSearchService;
+
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             _packageInstallerService?.Connect(this.RoslynLanguageName);
             _symbolSearchService?.Connect(this.RoslynLanguageName);
