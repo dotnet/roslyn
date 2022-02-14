@@ -1637,16 +1637,6 @@
         <target state="translated">可為 Null 的類型會檢查是否為 Null，若為 Null，則會擲回。</target>
         <note />
       </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInImplicitParameterTypeOfTargetDelegate">
-        <source>Nullability of reference types in type of implicit parameter with index {0} of '{1}' doesn't match the target delegate '{2}' (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in type of implicit parameter with index {0} of '{1}' doesn't match the target delegate '{2}' (possibly because of nullability attributes).</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_NullabilityMismatchInImplicitParameterTypeOfTargetDelegate_Title">
-        <source>Nullability of reference types in type of implicit parameter doesn't match the target delegate (possibly because of nullability attributes).</source>
-        <target state="new">Nullability of reference types in type of implicit parameter doesn't match the target delegate (possibly because of nullability attributes).</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
         <source>Parameter '{0}' must have a non-null value when exiting because parameter '{1}' is non-null.</source>
         <target state="translated">因為參數 '{1}' 不是 null，所以參數 '{0}' 在結束時必須具有非 Null 值。</target>
