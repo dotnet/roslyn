@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
             foreach (var implementation in implementations)
             {
                 var definitionItem = await implementation.ToClassifiedDefinitionItemAsync(
-                    context, solution, FindReferencesSearchOptions.Default, isPrimary: true, includeHiddenLocations: false, cancellationToken).ConfigureAwait(false);
+                    solution, isPrimary: true, includeHiddenLocations: false, FindReferencesSearchOptions.Default, cancellationToken).ConfigureAwait(false);
 
                 await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
             }

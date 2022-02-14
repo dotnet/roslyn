@@ -9,12 +9,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CodeLens;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
@@ -25,13 +23,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
     [ExportWorkspaceService(typeof(ICodeLensReferencesService), layer: ServiceLayer.Host), Shared]
     internal sealed class RemoteCodeLensReferencesService : ICodeLensReferencesService
     {
-        private readonly IGlobalOptionService _globalOptions;
-
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public RemoteCodeLensReferencesService(IGlobalOptionService globalOptions)
+        public RemoteCodeLensReferencesService()
         {
-            _globalOptions = globalOptions;
         }
 
         public ValueTask<VersionStamp> GetProjectCodeLensVersionAsync(Solution solution, ProjectId projectId, CancellationToken cancellationToken)
@@ -136,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             }
         }
 
-        private async Task<ImmutableArray<ReferenceLocationDescriptor>> FixUpDescriptorsAsync(
+        private static async Task<ImmutableArray<ReferenceLocationDescriptor>> FixUpDescriptorsAsync(
             Solution solution, ImmutableArray<ReferenceLocationDescriptor> descriptors, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<ReferenceLocationDescriptor>.GetInstance(out var list);
@@ -180,9 +175,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                     continue;
                 }
 
-                var classificationOptions = _globalOptions.GetClassificationOptions(document.Project.Language);
-                var referenceExcerpt = await excerpter.TryExcerptAsync(document, span, ExcerptMode.SingleLine, classificationOptions, cancellationToken).ConfigureAwait(false);
-                var tooltipExcerpt = await excerpter.TryExcerptAsync(document, span, ExcerptMode.Tooltip, classificationOptions, cancellationToken).ConfigureAwait(false);
+                var referenceExcerpt = await excerpter.TryExcerptAsync(document, span, ExcerptMode.SingleLine, cancellationToken).ConfigureAwait(false);
+                var tooltipExcerpt = await excerpter.TryExcerptAsync(document, span, ExcerptMode.Tooltip, cancellationToken).ConfigureAwait(false);
 
                 var (text, start, length) = GetReferenceInfo(referenceExcerpt, descriptor);
                 var (before1, before2, after1, after2) = GetReferenceTexts(referenceExcerpt, tooltipExcerpt, descriptor);
