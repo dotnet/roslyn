@@ -134,6 +134,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             Document document,
             Dictionary<string, int> tokenTypesToIndex,
             LSP.Range? range,
+            ClassificationOptions options,
             bool includeSyntacticClassifications,
             CancellationToken cancellationToken)
         {
@@ -150,8 +151,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             var semanticModel = await frozenDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var isFinalized = document.Project.TryGetCompilation(out var compilation) && compilation == semanticModel.Compilation;
             document = frozenDocument;
-
-            var options = ClassificationOptions.From(document.Project);
 
             var classifiedSpans = await GetClassifiedSpansForDocumentAsync(
                 document, textSpan, options, includeSyntacticClassifications, cancellationToken).ConfigureAwait(false);
