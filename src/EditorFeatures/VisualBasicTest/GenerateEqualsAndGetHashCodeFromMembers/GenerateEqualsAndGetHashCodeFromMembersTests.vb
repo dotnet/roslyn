@@ -819,8 +819,8 @@ End Class
 index:=1)
         End Function
 
-        <WorkItem(17643, "https://github.com/dotnet/roslyn/issues/17643")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)>
+        <WorkItem(45919, "https://github.com/dotnet/roslyn/issues/45919")>
         Public Async Function TestWithDialogOnClassHeader() As Task
             Await TestWithPickMembersDialogAsync(
 "
