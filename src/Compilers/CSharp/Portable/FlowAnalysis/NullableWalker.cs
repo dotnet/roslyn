@@ -7571,7 +7571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             void reportBadDelegateParameter(BindingDiagnosticBag bag, MethodSymbol sourceInvokeMethod, MethodSymbol targetInvokeMethod, ParameterSymbol parameterSymbol, bool topLevel, Location location)
             {
                 // For anonymous functions with implicit parameters, no need to report this since the parameters can't be referenced
-                if (unboundLambda.HasParameterNames())
+                if (unboundLambda.HasSignature)
                 {
                     ReportDiagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, location,
                         unboundLambda.ParameterName(parameterSymbol.Ordinal),
