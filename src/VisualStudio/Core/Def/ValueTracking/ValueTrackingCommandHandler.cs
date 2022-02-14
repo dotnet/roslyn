@@ -125,7 +125,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 {
                     foreach (var child in children)
                     {
-                        var root = await ValueTrackedTreeItemViewModel.CreateAsync(solution, child, toolWindow.ViewModel, _glyphService, valueTrackingService, _threadingContext, ImmutableArray<TreeItemViewModel>.Empty, cancellationToken).ConfigureAwait(false);
+                        var root = await ValueTrackedTreeItemViewModel.CreateAsync(solution, child, children: ImmutableArray<TreeItemViewModel>.Empty, toolWindow.ViewModel, _glyphService, valueTrackingService, _globalOptions, _threadingContext, cancellationToken).ConfigureAwait(false);
                         rootItems.Add(root);
                     }
                 }
@@ -134,11 +134,11 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                     using var _1 = CodeAnalysis.PooledObjects.ArrayBuilder<TreeItemViewModel>.GetInstance(out var childItems);
                     foreach (var child in children)
                     {
-                        var childViewModel = await ValueTrackedTreeItemViewModel.CreateAsync(solution, child, toolWindow.ViewModel, _glyphService, valueTrackingService, _threadingContext, ImmutableArray<TreeItemViewModel>.Empty, cancellationToken).ConfigureAwait(false);
+                        var childViewModel = await ValueTrackedTreeItemViewModel.CreateAsync(solution, child, children: ImmutableArray<TreeItemViewModel>.Empty, toolWindow.ViewModel, _glyphService, valueTrackingService, _globalOptions, _threadingContext, cancellationToken).ConfigureAwait(false);
                         childItems.Add(childViewModel);
                     }
 
-                    var root = await ValueTrackedTreeItemViewModel.CreateAsync(solution, parent, toolWindow.ViewModel, _glyphService, valueTrackingService, _threadingContext, childItems.ToImmutable(), cancellationToken).ConfigureAwait(false);
+                    var root = await ValueTrackedTreeItemViewModel.CreateAsync(solution, parent, childItems.ToImmutable(), toolWindow.ViewModel, _glyphService, valueTrackingService, _globalOptions, _threadingContext, cancellationToken).ConfigureAwait(false);
                     rootItems.Add(root);
                 }
             }
