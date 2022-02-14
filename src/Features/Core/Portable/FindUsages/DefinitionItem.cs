@@ -4,9 +4,13 @@
 
 using System;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.FindSymbols.Finders;
+using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Tags;
 using Roslyn.Utilities;
 
@@ -156,24 +160,23 @@ namespace Microsoft.CodeAnalysis.FindUsages
             }
         }
 
-        [Obsolete("Override CanNavigateToAsync instead", error: false)]
-        public abstract bool CanNavigateTo(Workspace workspace, CancellationToken cancellationToken);
-        [Obsolete("Override TryNavigateToAsync instead", error: false)]
-        public abstract bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken);
+#pragma warning disable CS0612 // Type or member is obsolete - TypeScript
+        [Obsolete]
+        public virtual bool CanNavigateTo(Workspace workspace, CancellationToken cancellationToken) => false;
+
+        [Obsolete]
+        public virtual bool TryNavigateTo(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken) => false;
 
         public virtual Task<bool> CanNavigateToAsync(Workspace workspace, CancellationToken cancellationToken)
-        {
-#pragma warning disable CS0618 // Type or member is obsolete
-            return Task.FromResult(CanNavigateTo(workspace, cancellationToken));
-#pragma warning restore CS0618 // Type or member is obsolete
-        }
+            => Task.FromResult(CanNavigateTo(workspace, cancellationToken));
 
+        [Obsolete]
         public virtual Task<bool> TryNavigateToAsync(Workspace workspace, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
-        {
-#pragma warning disable CS0618 // Type or member is obsolete
-            return Task.FromResult(TryNavigateTo(workspace, showInPreviewTab, activateTab, cancellationToken));
-#pragma warning restore CS0618 // Type or member is obsolete
-        }
+            => Task.FromResult(TryNavigateTo(workspace, showInPreviewTab, activateTab, cancellationToken));
+
+        public virtual Task<bool> TryNavigateToAsync(Workspace workspace, NavigationOptions options, CancellationToken cancellationToken)
+            => TryNavigateToAsync(workspace, options.PreferProvisionalTab, options.ActivateTab, cancellationToken);
+#pragma warning restore
 
         public static DefinitionItem Create(
             ImmutableArray<string> tags,
@@ -253,6 +256,14 @@ namespace Microsoft.CodeAnalysis.FindUsages
             properties = properties.Add(MetadataSymbolKey, symbolKey)
                                    .Add(MetadataSymbolOriginatingProjectIdGuid, projectId.Id.ToString())
                                    .Add(MetadataSymbolOriginatingProjectIdDebugName, projectId.DebugName ?? "");
+
+            // Find the highest level containing type to show as the "file name". For metadata locations
+            // that come from embedded source or SourceLink this could be wrong, as there is no reason
+            // to assume a type is defined in a filename that matches, but its _way_ too expensive
+            // to try to find the right answer. For metadata-as-source locations though, it will be the same
+            // as the synthesized filename, so will make sense in the majority of cases.
+            var containingTypeName = MetadataAsSourceHelpers.GetTopLevelContainingNamedType(symbol).Name;
+            properties = properties.Add(AbstractReferenceFinder.ContainingTypeInfoPropertyName, containingTypeName);
 
             var originationParts = GetOriginationParts(symbol);
             return new DefaultDefinitionItem(

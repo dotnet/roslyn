@@ -95,5 +95,41 @@ class C
                 LanguageVersion = LanguageVersion.Preview,
             }.RunAsync();
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsDetectJsonString)]
+        public async Task TestNotWithExistingComment()
+        {
+            var code = @"
+class C
+{
+    void Goo()
+    {
+        var j = /*lang=json,strict*/ ""{ \""a\"": 0 }"";
+    }
+}";
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsDetectJsonString)]
+        public async Task TestNotOnUnlikelyJson()
+        {
+            var code = @"
+class C
+{
+    void Goo()
+    {
+        var j = ""[1, 2, 3]"";
+    }
+}";
+            await new VerifyCS.Test
+            {
+                TestCode = code,
+                FixedCode = code,
+            }.RunAsync();
+        }
     }
 }

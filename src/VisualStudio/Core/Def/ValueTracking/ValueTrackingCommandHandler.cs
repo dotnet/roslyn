@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.ValueTracking;
 using Microsoft.VisualStudio.Commanding;
@@ -40,6 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         private readonly IClassificationFormatMapService _classificationFormatMapService;
         private readonly IGlyphService _glyphService;
         private readonly IEditorFormatMapService _formatMapService;
+        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -49,7 +52,8 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             ClassificationTypeMap typeMap,
             IClassificationFormatMapService classificationFormatMapService,
             IGlyphService glyphService,
-            IEditorFormatMapService formatMapService)
+            IEditorFormatMapService formatMapService,
+            IGlobalOptionService globalOptions)
         {
             _serviceProvider = (IAsyncServiceProvider)serviceProvider;
             _threadingContext = threadingContext;
@@ -57,6 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             _classificationFormatMapService = classificationFormatMapService;
             _glyphService = glyphService;
             _formatMapService = formatMapService;
+            _globalOptions = globalOptions;
         }
 
         public string DisplayName => "Go to value tracking";

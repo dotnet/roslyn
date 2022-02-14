@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Enable_JSON_editor_features, createChangedDocument, nameof(FeaturesResources.Enable_JSON_editor_features))
+                : base(FeaturesResources.Enable_all_JSON_editor_features, createChangedDocument, nameof(FeaturesResources.Enable_all_JSON_editor_features))
             {
             }
         }
