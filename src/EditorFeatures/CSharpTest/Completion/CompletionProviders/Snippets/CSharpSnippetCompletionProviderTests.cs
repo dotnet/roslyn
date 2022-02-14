@@ -3,9 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -14,10 +11,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders.Snippets
 {
-    public class ConsoleSnippetCompletionProviderTests : AbstractCSharpCompletionProviderTests
+    public class CSharpSnippetCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
         internal override Type GetCompletionProviderType()
-            => typeof(ConsoleSnippetCompletionProvider);
+            => typeof(CSharpSnippetCompletionProvider);
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InsertConsoleSnippetInMethodTest()

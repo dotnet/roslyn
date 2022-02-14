@@ -11,12 +11,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
         public static CompletionItem Create(
             string displayText,
             string displayTextSuffix,
-            int line,
             SyntaxToken token,
             Glyph glyph)
         {
             var props = ImmutableDictionary<string, string>.Empty
-                .Add("Line", line.ToString())
                 .Add("TokenSpanStart", token.Span.Start.ToString())
                 .Add("TokenSpanEnd", token.Span.End.ToString());
 
@@ -43,17 +41,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
         public static int GetTokenSpanEnd(CompletionItem item)
         {
             if (item.Properties.TryGetValue("TokenSpanEnd", out var text)
-                && int.TryParse(text, out var number))
-            {
-                return number;
-            }
-
-            return 0;
-        }
-
-        public static int GetLine(CompletionItem item)
-        {
-            if (item.Properties.TryGetValue("Line", out var text)
                 && int.TryParse(text, out var number))
             {
                 return number;
