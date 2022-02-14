@@ -75,10 +75,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         /// <c>solutionChanged == true iff changedProject == null</c> and <c>solutionChanged == false iff changedProject
         /// != null</c>. So technically having both values is redundant.  However, i like the clarity of having both.
         /// </remarks>
-        private readonly AsyncBatchingWorkQueue<(bool solutionChanged, ProjectId? changedProject)>? _workQueue;
+        private readonly AsyncBatchingWorkQueue<(bool solutionChanged, ProjectId? changedProject)> _workQueue;
 
-        private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectToInstalledPackageAndVersion =
-            new();
+        private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectToInstalledPackageAndVersion = new();
 
         /// <summary>
         /// Lock used to protect reads and writes of <see cref="_packageSourcesTask"/>.
@@ -106,11 +105,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             [Import(AllowDefault = true)] Lazy<IVsPackageUninstaller>? packageUninstaller,
             [Import(AllowDefault = true)] Lazy<IVsPackageSourceProvider>? packageSourceProvider)
             : base(globalOptions,
-                  listenerProvider,
-                  threadingContext,
-                  workspace,
-                  featureEnabledOption: SymbolSearchGlobalOptions.Enabled,
-                  perLanguageOptions: ImmutableArray.Create(SymbolSearchOptionsStorage.SearchReferenceAssemblies, SymbolSearchOptionsStorage.SearchNuGetPackages))
+                   threadingContext,
+                   featureEnabledOption: SymbolSearchGlobalOptions.Enabled)
         {
             _operationExecutor = operationExecutor;
             _workspace = workspace;
@@ -231,9 +227,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         protected override async Task EnableServiceAsync(CancellationToken cancellationToken)
         {
             if (!IsEnabled)
-            {
                 return;
-            }
 
             // Continue on captured context since EnableServiceAsync is part of a UI thread initialization sequence
             var packageSourceProvider = await GetPackageSourceProviderAsync().ConfigureAwait(true);
@@ -245,16 +239,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         protected override void StartWorking()
         {
-            this.AssertIsForeground();
-
             if (!this.IsEnabled)
-            {
                 return;
-            }
 
             OnSourceProviderSourcesChanged(this, EventArgs.Empty);
-
-            Contract.ThrowIfNull(_workQueue, "We should only be called after EnableService is called");
 
             // Kick off an initial set of work that will analyze the entire solution.
             _workQueue.AddWork((solutionChanged: true, changedProject: null));

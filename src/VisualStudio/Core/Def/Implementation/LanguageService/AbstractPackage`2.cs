@@ -99,10 +99,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             _packageInstallerService = workspace.Services.GetService<IPackageInstallerService>() as PackageInstallerService;
             _symbolSearchService = workspace.Services.GetService<ISymbolSearchService>() as VisualStudioSymbolSearchService;
 
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            if (_packageInstallerService != null)
+                await _packageInstallerService.StartAsync().ConfigureAwait(false);
 
-            _packageInstallerService?.Connect(this.RoslynLanguageName);
-            _symbolSearchService?.Connect(this.RoslynLanguageName);
+            if (_symbolSearchService != null)
+                await _symbolSearchService.StartAsync().ConfigureAwait(false);
         }
 
         protected abstract void RegisterMiscellaneousFilesWorkspaceInformation(MiscellaneousFilesWorkspace miscellaneousFilesWorkspace);
