@@ -1409,6 +1409,8 @@ class C
             Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
 
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
             // PROTOTYPE(semi-auto-props): Should this return a null or non-null?
             Assert.Null(fieldKeywordSymbolInfo.Symbol);
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
@@ -1434,6 +1436,8 @@ class C
             var identifier = SyntaxFactory.ParseExpression("field");
             model.TryGetSpeculativeSemanticModel(token.SpanStart, (IdentifierNameSyntax)identifier, out var speculativeModel);
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
 
             // PROTOTYPE(semi-auto-props): Should `GetFieldsToEmit` return empty? Currently it looks like it mutates the original symbol in a bad way.
             Assert.Equal("System.Int32 C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
@@ -1522,7 +1526,6 @@ class C
 }").GetRoot().DescendantNodes().OfType<BlockSyntax>().Single();
             model.TryGetSpeculativeSemanticModel(token.SpanStart, block, out var speculativeModel);
             var fieldIdentifierSymbolInfo = speculativeModel.GetSymbolInfo(block.DescendantNodes().OfType<IdentifierNameSyntax>().Single());
-
             Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
             Assert.Equal(SymbolKind.Local, fieldIdentifierSymbolInfo.Symbol.Kind);
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
@@ -1561,6 +1564,8 @@ class C
             Assert.Equal("System.Double C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
 
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
             Assert.Equal("System.Double C.<P>k__BackingField", fieldKeywordSymbolInfo.Symbol.ToTestDisplayString(includeNonNullable: true));
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
             Assert.Same(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
@@ -1595,7 +1600,8 @@ class C
             var identifier = SyntaxFactory.ParseExpression("field");
             model.TryGetSpeculativeSemanticModel(token.SpanStart, (IdentifierNameSyntax)identifier, out var speculativeModel);
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
-
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
             Assert.Equal("System.Double C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
             Assert.Same(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
@@ -1635,6 +1641,8 @@ class C
             Assert.Equal("System.Double C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
 
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
             Assert.Equal("System.Double C.<P>k__BackingField", fieldKeywordSymbolInfo.Symbol.ToTestDisplayString(includeNonNullable: true));
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
             Assert.Same(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
@@ -1670,6 +1678,8 @@ class C
             var identifier = SyntaxFactory.ParseExpression("field");
             model.TryGetSpeculativeSemanticModel(token.SpanStart, (IdentifierNameSyntax)identifier, out var speculativeModel);
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
 
             Assert.Equal("System.Double C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
             Assert.Same(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
@@ -1724,6 +1734,8 @@ class C
             }
 
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
             if (fieldAccessorFirst)
             {
                 Assert.Equal("System.Double C.<P>k__BackingField", fieldKeywordSymbolInfo.Symbol.ToTestDisplayString(includeNonNullable: true));
@@ -1775,6 +1787,8 @@ class C
             var identifier = SyntaxFactory.ParseExpression("field");
             model.TryGetSpeculativeSemanticModel(token.SpanStart, (IdentifierNameSyntax)identifier, out var speculativeModel);
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
 
             Assert.Equal("System.Double C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
             Assert.Same(comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single(), fieldKeywordSymbolInfo.Symbol.GetSymbol());
@@ -1819,6 +1833,8 @@ class C
             Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
 
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
             Assert.Null(fieldKeywordSymbolInfo.Symbol);
             Assert.Equal(0, accessorBindingData.NumberOfPerformedAccessorBinding);
             Assert.Empty(comp.GetTypeByMetadataName("C").GetFieldsToEmit());
@@ -1854,6 +1870,8 @@ class C
             var identifier = SyntaxFactory.ParseExpression("field");
             model.TryGetSpeculativeSemanticModel(token.SpanStart, (IdentifierNameSyntax)identifier, out var speculativeModel);
             var fieldKeywordSymbolInfo = speculativeModel.GetSymbolInfo(identifier);
+            var fieldKeywordSymbolInfo2 = model.GetSpeculativeSymbolInfo(token.SpanStart, identifier, SpeculativeBindingOption.BindAsExpression);
+            Assert.Equal(fieldKeywordSymbolInfo, fieldKeywordSymbolInfo2);
 
             // PROTOTYPE(semi-auto-props) : It looks like the property symbol was mutated in a bad way.
             Assert.Equal("System.Double C.<P>k__BackingField", comp.GetTypeByMetadataName("C").GetFieldsToEmit().Single().ToTestDisplayString());
