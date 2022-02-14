@@ -14,11 +14,18 @@ using TOption = Microsoft.CodeAnalysis.Options.IOption;
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal readonly record struct IdeAnalyzerOptions(
-        bool FadeOutUnusedImports,
-        bool FadeOutUnreachableCode,
-        bool ReportInvalidPlaceholdersInStringDotFormatCalls,
-        bool ReportInvalidRegexPatterns)
+        bool FadeOutUnusedImports = true,
+        bool FadeOutUnreachableCode = true,
+        bool ReportInvalidPlaceholdersInStringDotFormatCalls = true,
+        bool ReportInvalidRegexPatterns = true)
     {
+        public IdeAnalyzerOptions()
+            : this(FadeOutUnusedImports: true)
+        {
+        }
+
+        public static readonly IdeAnalyzerOptions Default = new();
+
         public static readonly IdeAnalyzerOptions CodeStyleDefault = new(
             FadeOutUnusedImports: false,
             FadeOutUnreachableCode: false,
@@ -27,11 +34,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
 #if !CODE_STYLE
         public static IdeAnalyzerOptions FromProject(Project project)
+            => From(project.Solution.Options, project.Language);
+
+        public static IdeAnalyzerOptions From(OptionSet options, string language)
             => new(
-                FadeOutUnusedImports: project.Solution.Options.GetOption(Microsoft.CodeAnalysis.Fading.FadingOptions.Metadata.FadeOutUnusedImports, project.Language),
-                FadeOutUnreachableCode: project.Solution.Options.GetOption(Microsoft.CodeAnalysis.Fading.FadingOptions.Metadata.FadeOutUnreachableCode, project.Language),
-                ReportInvalidPlaceholdersInStringDotFormatCalls: project.Solution.Options.GetOption(Microsoft.CodeAnalysis.ValidateFormatString.ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, project.Language),
-                ReportInvalidRegexPatterns: project.Solution.Options.GetOption(Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices.RegularExpressionsOptions.ReportInvalidRegexPatterns, project.Language));
+                FadeOutUnusedImports: options.GetOption(Microsoft.CodeAnalysis.Fading.FadingOptions.Metadata.FadeOutUnusedImports, language),
+                FadeOutUnreachableCode: options.GetOption(Microsoft.CodeAnalysis.Fading.FadingOptions.Metadata.FadeOutUnreachableCode, language),
+                ReportInvalidPlaceholdersInStringDotFormatCalls: options.GetOption(Microsoft.CodeAnalysis.ValidateFormatString.ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, language),
+                ReportInvalidRegexPatterns: options.GetOption(Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices.RegularExpressionsOptions.ReportInvalidRegexPatterns, language));
 #endif
     }
 

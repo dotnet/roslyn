@@ -73,6 +73,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             /// <inheritdoc cref="SharedVerifierState.Options"/>
             internal OptionsCollection Options => _sharedState.Options;
 
+#if !CODE_STYLE
+            internal CodeActionOptions CodeActionOptions
+            {
+                get => _sharedState.CodeActionOptions;
+                set => _sharedState.CodeActionOptions = value;
+            }
+#endif
             /// <inheritdoc cref="SharedVerifierState.EditorConfig"/>
             public string? EditorConfig
             {
@@ -98,6 +105,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 #if !CODE_STYLE
             protected override AnalyzerOptions GetAnalyzerOptions(Project project)
                 => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), project);
+                
+            protected override CodeFixContext CreateCodeFixContext(Document document, TextSpan span, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix, CancellationToken cancellationToken)
+                => new(document, span, diagnostics, registerCodeFix, _sharedState.CodeActionOptions, cancellationToken);
 #endif
 
             protected override Diagnostic? TrySelectDiagnosticToFix(ImmutableArray<Diagnostic> fixableDiagnostics)
