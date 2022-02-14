@@ -28,7 +28,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
         private readonly Guid _languageServiceGuid;
-        private readonly IGlobalOptionService _globalOptions;
 
         protected readonly Workspace Workspace;
         protected readonly IComponentModel ComponentModel;
@@ -103,7 +102,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             _editorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
             _diagnosticAnalyzerService = componentModel.GetService<IDiagnosticAnalyzerService>();
-            _globalOptions = componentModel.GetService<IGlobalOptionService>();
 
             // Get the ITextBuffer for the secondary buffer
             Marshal.ThrowExceptionForHR(bufferCoordinator.GetSecondaryBuffer(out var secondaryTextLines));
