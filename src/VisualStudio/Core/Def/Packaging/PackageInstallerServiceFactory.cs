@@ -105,8 +105,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             [Import(AllowDefault = true)] Lazy<IVsPackageUninstaller>? packageUninstaller,
             [Import(AllowDefault = true)] Lazy<IVsPackageSourceProvider>? packageSourceProvider)
             : base(globalOptions,
+                   listenerProvider,
                    threadingContext,
-                   featureEnabledOption: SymbolSearchGlobalOptions.Enabled)
+                   SymbolSearchGlobalOptions.Enabled,
+                   ImmutableArray.Create(SymbolSearchOptionsStorage.SearchReferenceAssemblies, SymbolSearchOptionsStorage.SearchNuGetPackages))
         {
             _operationExecutor = operationExecutor;
             _workspace = workspace;
@@ -229,22 +231,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             if (!IsEnabled)
                 return;
 
-            // Continue on captured context since EnableServiceAsync is part of a UI thread initialization sequence
-            var packageSourceProvider = await GetPackageSourceProviderAsync().ConfigureAwait(true);
+            var packageSourceProvider = await GetPackageSourceProviderAsync().ConfigureAwait(false);
 
             // Start listening to additional events workspace changes.
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
             packageSourceProvider.SourcesChanged += OnSourceProviderSourcesChanged;
-        }
-
-        protected override void StartWorking()
-        {
-            if (!this.IsEnabled)
-                return;
-
-            OnSourceProviderSourcesChanged(this, EventArgs.Empty);
 
             // Kick off an initial set of work that will analyze the entire solution.
+            OnSourceProviderSourcesChanged(this, EventArgs.Empty);
             _workQueue.AddWork((solutionChanged: true, changedProject: null));
         }
 

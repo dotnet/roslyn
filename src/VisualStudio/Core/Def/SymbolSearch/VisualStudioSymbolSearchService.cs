@@ -62,8 +62,10 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             IGlobalOptionService globalOptions,
             VSShell.SVsServiceProvider serviceProvider)
             : base(globalOptions,
+                   listenerProvider,
                    threadingContext,
-                   featureEnabledOption: SymbolSearchGlobalOptions.Enabled)
+                   SymbolSearchGlobalOptions.Enabled,
+                   ImmutableArray.Create(SymbolSearchOptionsStorage.SearchReferenceAssemblies, SymbolSearchOptionsStorage.SearchNuGetPackages))
         {
             _workspace = workspace;
             _serviceProvider = serviceProvider;
@@ -81,12 +83,14 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             // We need to know when the list of sources have changed so we can
             // kick off the work to process them.
             _installerService.PackageSourcesChanged += OnPackageSourcesChanged;
+
+            this.StartWorking();
         }
 
         private void OnPackageSourcesChanged(object sender, EventArgs e)
             => StartWorking();
 
-        protected override void StartWorking()
+        private void StartWorking()
         {
             // Always pull down the nuget.org index.  It contains the MS reference assembly index
             // inside of it.
