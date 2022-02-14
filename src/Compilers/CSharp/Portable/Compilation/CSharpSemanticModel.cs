@@ -5285,6 +5285,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.GetEnclosingSymbol(position, cancellationToken);
         }
 
+        protected sealed override IImportChain GetImportChainCore(int position, CancellationToken cancellationToken)
+        {
+            position = CheckAndAdjustPosition(position);
+            var binder = GetEnclosingBinder(position);
+            return binder?.ImportChain;
+        }
+
         protected sealed override bool IsAccessibleCore(int position, ISymbol symbol)
         {
             return this.IsAccessible(position, symbol.EnsureCSharpSymbolOrNull(nameof(symbol)));

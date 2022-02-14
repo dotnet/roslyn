@@ -774,6 +774,15 @@ namespace Microsoft.CodeAnalysis
         protected abstract ISymbol? GetEnclosingSymbolCore(int position, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
+        /// Given a position in the SyntaxTree for this SemanticModel returns the <see cref="IImportChain"/> at that
+        /// point.
+        /// </summary>
+        public IImportChain? GetImportChain(int position, CancellationToken cancellationToken = default)
+            => GetImportChainCore(position, cancellationToken);
+
+        protected abstract IImportChain? GetImportChainCore(int position, CancellationToken cancellationToken);
+
+        /// <summary>
         /// Determines if the symbol is accessible from the specified location.
         /// </summary>
         /// <param name="position">A character position used to identify a declaration scope and

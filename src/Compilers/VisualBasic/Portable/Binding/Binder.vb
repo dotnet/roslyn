@@ -1142,6 +1142,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return m_containingBinder.QuickAttributeChecker
             End Get
         End Property
+
+        Public ReadOnly Property NextImportChain As IImportChain
+            Get
+                Dim importChain = TryCast(m_containingBinder, IImportChain)
+                Return If(importChain, m_containingBinder?.NextImportChain)
+            End Get
+        End Property
     End Class
 
 End Namespace

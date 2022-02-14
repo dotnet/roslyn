@@ -3409,6 +3409,13 @@ _Default:
             Return GetEnclosingSymbol(position, cancellationToken)
         End Function
 
+        Protected NotOverridable Overrides Function GetImportChainCore(position As Integer, cancellationToken As CancellationToken) As IImportChain
+            CheckPosition(position)
+            Dim binder = Me.GetEnclosingBinder(position)
+            Dim importChain = TryCast(binder, IImportChain)
+            Return If(importChain, binder.NextImportChain)
+        End Function
+
         Protected NotOverridable Overrides Function IsAccessibleCore(position As Integer, symbol As ISymbol) As Boolean
             Return Me.IsAccessible(position, symbol.EnsureVbSymbolOrNothing(Of Symbol)(NameOf(symbol)))
         End Function
