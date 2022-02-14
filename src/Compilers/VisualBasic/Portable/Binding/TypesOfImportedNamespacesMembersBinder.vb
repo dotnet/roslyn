@@ -101,19 +101,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Next
         End Sub
 
-        Public ReadOnly Property Parent As IImportChain Implements IImportChain.Parent
+        Private ReadOnly Property ParentImportChain As IImportChain Implements IImportChain.Parent
             Get
                 Return NextImportChain
             End Get
         End Property
 
-        Public ReadOnly Property Aliases As ImmutableArray(Of IAliasSymbol) Implements IImportChain.Aliases
+        Private ReadOnly Property Aliases As ImmutableArray(Of IAliasSymbol) Implements IImportChain.Aliases
             Get
                 Return ImmutableArray(Of IAliasSymbol).Empty
             End Get
         End Property
 
-        Public ReadOnly Property [Imports] As ImmutableArray(Of INamespaceOrTypeSymbol) Implements IImportChain.Imports
+        Private ReadOnly Property [Imports] As ImmutableArray(Of INamespaceOrTypeSymbol) Implements IImportChain.Imports
             Get
                 If _lazyImportChainImports.IsDefault Then
                     InterlockedOperations.Initialize(
