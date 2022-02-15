@@ -625,7 +625,7 @@ Outer
     [CombinatorialData]
     public void RequiredMemberAttributeEmitted_AbstractProperty(bool useMetadataReference)
     {
-        var @base =@"
+        var @base = @"
 public abstract class Base
 {
     public required abstract int Prop { get; set; }
