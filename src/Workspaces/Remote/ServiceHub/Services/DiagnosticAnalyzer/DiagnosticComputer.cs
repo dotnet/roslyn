@@ -238,6 +238,14 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             }
         }
 
+        /// <summary>
+        /// List of assemblies that contain analyzers that only run in-proc and should not be loaded OOP.
+        /// </summary>
+        private static readonly ImmutableArray<string> s_wellKnownAssembliesContainingIdeAnalyzersOnly = ImmutableArray.Create(
+            "Microsoft.CodeAnalysis.EditorFeatures",
+            "Microsoft.CodeAnalysis.ExternalAccess.FSharp",
+            "Microsoft.VisualStudio.LanguageServices.Xaml");
+
         private static async Task<CompilationWithAnalyzersCacheEntry> CreateCompilationWithAnalyzersCacheEntryAsync(Project project, CancellationToken cancellationToken)
         {
             // We could consider creating a service so that we don't do this repeatedly if this shows up as perf cost
@@ -251,6 +259,13 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             foreach (var reference in project.Solution.AnalyzerReferences.Concat(project.AnalyzerReferences))
             {
                 if (!referenceSet.Add(reference.Id))
+                {
+                    continue;
+                }
+
+                // do not attempt to load assemblies that we know only have IDE analyzers.
+                if (reference.FullPath != null &&
+                    s_wellKnownAssembliesContainingIdeAnalyzersOnly.Contains(FileNameUtilities.GetFileName(reference.FullPath, includeExtension: false)))
                 {
                     continue;
                 }
