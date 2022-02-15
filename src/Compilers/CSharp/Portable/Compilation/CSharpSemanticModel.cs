@@ -5285,13 +5285,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.GetEnclosingSymbol(position, cancellationToken);
         }
 
-        protected sealed override IImportChain GetImportChainCore(int position, CancellationToken cancellationToken)
+        private protected sealed override IImportScope GetImportScopeCore(int position, CancellationToken cancellationToken)
         {
             position = CheckAndAdjustPosition(position);
             var binder = GetEnclosingBinder(position);
-            return ConvertToImportChain(binder?.ImportChain);
+            return ConvertToImportScope(binder?.ImportChain);
 
-            static IImportChain ConvertToImportChain(ImportChain chain)
+            static IImportScope ConvertToImportScope(ImportChain chain)
             {
                 // Skip by any empty items in the chain.
                 while (chain != null && chain.Imports.IsEmpty)
@@ -5306,8 +5306,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Try to create a node corresponding to the imports of the next higher binder scope. Then create the
                 // node corresponding to this set of imports and chain it to that.
-                return new ImportChainNode(
-                    ConvertToImportChain(chain.ParentOpt),
+                return new ImportScope(
+                    ConvertToImportScope(chain.ParentOpt),
                     ConvertAliases(imports),
                     imports.ExternAliases.SelectAsArray(static e => e.Alias.GetPublicSymbol()),
                     imports.Usings.SelectAsArray(static n => n.NamespaceOrType.GetPublicSymbol()),

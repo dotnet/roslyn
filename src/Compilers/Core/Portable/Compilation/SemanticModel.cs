@@ -774,13 +774,13 @@ namespace Microsoft.CodeAnalysis
         protected abstract ISymbol? GetEnclosingSymbolCore(int position, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
-        /// Given a position in the SyntaxTree for this SemanticModel returns the <see cref="IImportChain"/> at that
+        /// Given a position in the SyntaxTree for this SemanticModel returns the <see cref="IImportScope"/> at that
         /// point.
         /// </summary>
-        public IImportChain? GetImportChain(int position, CancellationToken cancellationToken = default)
-            => GetImportChainCore(position, cancellationToken);
+        public IImportScope? GetImportScope(int position, CancellationToken cancellationToken = default)
+            => GetImportScopeCore(position, cancellationToken);
 
-        protected abstract IImportChain? GetImportChainCore(int position, CancellationToken cancellationToken);
+        private protected abstract IImportScope? GetImportScopeCore(int position, CancellationToken cancellationToken);
 
         /// <summary>
         /// Determines if the symbol is accessible from the specified location.

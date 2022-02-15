@@ -3408,13 +3408,13 @@ _Default:
             Return GetEnclosingSymbol(position, cancellationToken)
         End Function
 
-        Protected NotOverridable Overrides Function GetImportChainCore(position As Integer, cancellationToken As CancellationToken) As IImportChain
+        Private Protected NotOverridable Overrides Function GetImportScopeCore(position As Integer, cancellationToken As CancellationToken) As IImportScope
             CheckPosition(position)
             Dim binder = Me.GetEnclosingBinder(position)
-            Return ConvertToImportChain(binder)
+            Return ConvertToImportScope(binder)
         End Function
 
-        Private Shared Function ConvertToImportChain(binder As Binder) As IImportChain
+        Private Shared Function ConvertToImportScope(binder As Binder) As IImportScope
             ' The binder chain has the following in it (walking from the innermost level outwards)
             '
             ' 1. Optional binders for the compilation unit of the present source file.
@@ -3442,8 +3442,8 @@ _Default:
                     ' We hit the source file binder.  That means anything we found up till now were the imports for this
                     ' file.  Recurse and try to create the outer optional node, and then create a potential node for
                     ' this level to chain onto that.
-                    Return CreateImportChainNode(
-                        ConvertToImportChain(binder.ContainingBinder),
+                    Return CreateImportScopeNode(
+                        ConvertToImportScope(binder.ContainingBinder),
                         typesOfImportedNamespacesMembers, importAliases, xmlNamespaceImports)
                 End If
 
@@ -3455,15 +3455,15 @@ _Default:
             End While
 
             ' We hit the end of the binder chain.  Anything we found up till now are the compilation option imports
-            Return CreateImportChainNode(
+            Return CreateImportScopeNode(
                 parent:=Nothing, typesOfImportedNamespacesMembers, importAliases, xmlNamespaceImports)
         End Function
 
-        Private Shared Function CreateImportChainNode(
-                parent As IImportChain,
+        Private Shared Function CreateImportScopeNode(
+                parent As IImportScope,
                 typesOfImportedNamespacesMembers As TypesOfImportedNamespacesMembersBinder,
                 importAliases As ImportAliasesBinder,
-                xmlNamespaceImports As XmlNamespaceImportsBinder) As IImportChain
+                xmlNamespaceImports As XmlNamespaceImportsBinder) As IImportScope
 
             ' If we hit none of these binders, then we have no node to add to the chain. Note: these binders are only
             ' created as long as they are non-empty.  So once we hit one we know we must have data for a chain node.
@@ -3471,7 +3471,7 @@ _Default:
                 Return parent
             End If
 
-            Return New ImportChainNode(
+            Return New ImportScope(
                 parent,
                 If(importAliases?.GetImportChainData(), ImmutableArray(Of IAliasSymbol).Empty),
                 externAliases:=ImmutableArray(Of IAliasSymbol).Empty,

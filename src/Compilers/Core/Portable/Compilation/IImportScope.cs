@@ -11,15 +11,15 @@ namespace Microsoft.CodeAnalysis
     /// Represents a chain of symbols that are imported to a particular position in a source file.  Symbols may be
     /// imported, but may not necessarily be available at that location (for example, an alias symbol hidden by another
     /// symbol).  There is no guarantee that the same chain will be returned from successive calls to <see
-    /// cref="SemanticModel.GetImportChain"/>
+    /// cref="SemanticModel.GetImportScope"/>
     /// </summary>
-    public interface IImportChain
+    public interface IImportScope
     {
         /// <summary>
         /// Next item in the chain.  This generally represents the next scope in a file, or compilation that pulls in
         /// imported symbols.
         /// </summary>
-        IImportChain? Parent { get; }
+        IImportScope? Parent { get; }
 
         /// <summary>
         /// Aliases defined at this level of the chain.  This corresponds to <c>using X = TypeOrNamespace;</c> in C# or
@@ -47,19 +47,19 @@ namespace Microsoft.CodeAnalysis
     }
 
     /// <summary>
-    /// Simple POCO implementation of the import chain, usable by both C# and VB.
+    /// Simple POCO implementation of the import scope, usable by both C# and VB.
     /// </summary>
-    internal sealed class ImportChainNode : IImportChain
+    internal sealed class ImportScope : IImportScope
     {
-        public IImportChain? Parent { get; }
+        public IImportScope? Parent { get; }
 
         public ImmutableArray<IAliasSymbol> Aliases { get; }
         public ImmutableArray<IAliasSymbol> ExternAliases { get; }
         public ImmutableArray<INamespaceOrTypeSymbol> Imports { get; }
         public ImmutableArray<string> XmlNamespaces { get; }
 
-        public ImportChainNode(
-            IImportChain? parent,
+        public ImportScope(
+            IImportScope? parent,
             ImmutableArray<IAliasSymbol> aliases,
             ImmutableArray<IAliasSymbol> externAliases,
             ImmutableArray<INamespaceOrTypeSymbol> imports,

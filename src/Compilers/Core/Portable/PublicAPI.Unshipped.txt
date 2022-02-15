@@ -1,11 +1,11 @@
 *REMOVED*override abstract Microsoft.CodeAnalysis.Diagnostic.Equals(object? obj) -> bool
 Microsoft.CodeAnalysis.Compilation.GetTypesByMetadataName(string! fullyQualifiedMetadataName) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.INamedTypeSymbol!>
-Microsoft.CodeAnalysis.IImportChain
-Microsoft.CodeAnalysis.IImportChain.Aliases.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IAliasSymbol!>
-Microsoft.CodeAnalysis.IImportChain.ExternAliases.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IAliasSymbol!>
-Microsoft.CodeAnalysis.IImportChain.Imports.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.INamespaceOrTypeSymbol!>
-Microsoft.CodeAnalysis.IImportChain.Parent.get -> Microsoft.CodeAnalysis.IImportChain?
-Microsoft.CodeAnalysis.IImportChain.XmlNamespaces.get -> System.Collections.Immutable.ImmutableArray<string!>
+Microsoft.CodeAnalysis.IImportScope
+Microsoft.CodeAnalysis.IImportScope.Aliases.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IAliasSymbol!>
+Microsoft.CodeAnalysis.IImportScope.ExternAliases.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IAliasSymbol!>
+Microsoft.CodeAnalysis.IImportScope.Imports.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.INamespaceOrTypeSymbol!>
+Microsoft.CodeAnalysis.IImportScope.Parent.get -> Microsoft.CodeAnalysis.IImportScope?
+Microsoft.CodeAnalysis.IImportScope.XmlNamespaces.get -> System.Collections.Immutable.ImmutableArray<string!>
 Microsoft.CodeAnalysis.IOperation.ChildOperations.get -> Microsoft.CodeAnalysis.IOperation.OperationList
 Microsoft.CodeAnalysis.IOperation.OperationList
 Microsoft.CodeAnalysis.IOperation.OperationList.Any() -> bool
@@ -31,6 +31,7 @@ Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Reversed() -> void
 Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Count.get -> int
 Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.GetEnumerator() -> Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.Enumerator
 Microsoft.CodeAnalysis.IOperation.OperationList.Reversed.ToImmutableArray() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
+Microsoft.CodeAnalysis.SemanticModel.GetImportScope(int position, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.IImportScope?
 override sealed Microsoft.CodeAnalysis.Diagnostic.Equals(object? obj) -> bool
 *REMOVED*static Microsoft.CodeAnalysis.SyntaxNodeExtensions.ReplaceSyntax<TRoot>(this TRoot! root, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode!>! nodes, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode!>! computeReplacementNode, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxToken>! tokens, System.Func<Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken>! computeReplacementToken, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTrivia>! trivia, System.Func<Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia>! computeReplacementTrivia) -> TRoot!
 static Microsoft.CodeAnalysis.SyntaxNodeExtensions.ReplaceSyntax<TRoot>(this TRoot! root, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode!>? nodes, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode!>? computeReplacementNode, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxToken>? tokens, System.Func<Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken, Microsoft.CodeAnalysis.SyntaxToken>? computeReplacementToken, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxTrivia>? trivia, System.Func<Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia, Microsoft.CodeAnalysis.SyntaxTrivia>? computeReplacementTrivia) -> TRoot!
