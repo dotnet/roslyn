@@ -5311,7 +5311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ConvertAliases(imports),
                     imports.ExternAliases.SelectAsArray(static e => e.Alias.GetPublicSymbol()),
                     imports.Usings.SelectAsArray(static n => n.NamespaceOrType.GetPublicSymbol()),
-                    xmlNamespaces: ImmutableArray<string>.Empty);
+                    XmlNamespaces: ImmutableArray<string>.Empty);
             }
 
             static ImmutableArray<IAliasSymbol> ConvertAliases(Imports imports)
