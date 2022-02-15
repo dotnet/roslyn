@@ -23,17 +23,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     {
         private readonly ICapabilitiesProvider _capabilitiesProvider;
 
-        protected readonly IGlobalOptionService GlobalOptions;
-        protected readonly JsonRpc JsonRpc;
-        protected readonly RequestDispatcher RequestDispatcher;
-        protected readonly RequestExecutionQueue Queue;
-        protected readonly LspWorkspaceRegistrationService WorkspaceRegistrationService;
-        protected readonly IAsynchronousOperationListener Listener;
-        protected readonly ILspLogger Logger;
-        protected readonly string? ClientName;
+        private readonly JsonRpc _jsonRpc;
+        private readonly RequestDispatcher _requestDispatcher;
+        private readonly RequestExecutionQueue _queue;
+        private readonly IAsynchronousOperationListener _listener;
+        private readonly ILspLogger _logger;
+        private readonly string? _clientName;
 
         // Set on first LSP initialize request.
-        protected ClientCapabilities? _clientCapabilities;
+        private ClientCapabilities? _clientCapabilities;
 
         // Fields used during shutdown.
         private bool _shuttingDown;
@@ -54,30 +52,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             string? clientName,
             WellKnownLspServerKinds serverKind)
         {
-            GlobalOptions = globalOptions;
-            RequestDispatcher = requestDispatcherFactory.CreateRequestDispatcher(serverKind);
+            _requestDispatcher = requestDispatcherFactory.CreateRequestDispatcher(serverKind);
 
             _capabilitiesProvider = capabilitiesProvider;
-            WorkspaceRegistrationService = workspaceRegistrationService;
-            Logger = logger;
+            _logger = logger;
 
-            JsonRpc = jsonRpc;
-            JsonRpc.AddLocalRpcTarget(this);
-            JsonRpc.Disconnected += JsonRpc_Disconnected;
+            _jsonRpc = jsonRpc;
+            _jsonRpc.AddLocalRpcTarget(this);
+            _jsonRpc.Disconnected += JsonRpc_Disconnected;
 
-            Listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
-            ClientName = clientName;
+            _listener = listenerProvider.GetListener(FeatureAttribute.LanguageServer);
+            _clientName = clientName;
 
-            Queue = new RequestExecutionQueue(
+            _queue = new RequestExecutionQueue(
                 logger,
                 workspaceRegistrationService,
                 lspMiscellaneousFilesWorkspace,
                 globalOptions,
                 supportedLanguages,
                 serverKind);
-            Queue.RequestServerShutdown += RequestExecutionQueue_Errored;
+            _queue.RequestServerShutdown += RequestExecutionQueue_Errored;
 
-            foreach (var metadata in RequestDispatcher.GetRegisteredMethods())
+            foreach (var metadata in _requestDispatcher.GetRegisteredMethods())
             {
                 // Instead of concretely defining methods for each LSP method, we instead dynamically construct
                 // the generic method info from the exported handler types.  This allows us to define multiple handlers for the same method
@@ -92,7 +88,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 Contract.ThrowIfNull(entryPointMethod, $"{delegatingEntryPoint.GetType().FullName} is missing method {nameof(DelegatingEntryPoint.EntryPointAsync)}");
                 entryPointMethod = entryPointMethod.MakeGenericMethod(metadata.RequestType, metadata.ResponseType);
 
-                JsonRpc.AddLocalRpcMethod(entryPointMethod, delegatingEntryPoint, new JsonRpcMethodAttribute(metadata.MethodName) { UseSingleObjectParameterDeserialization = true });
+                _jsonRpc.AddLocalRpcMethod(entryPointMethod, delegatingEntryPoint, new JsonRpcMethodAttribute(metadata.MethodName) { UseSingleObjectParameterDeserialization = true });
             }
         }
 
@@ -114,12 +110,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             public async Task<TResponseType?> EntryPointAsync<TRequestType, TResponseType>(TRequestType requestType, CancellationToken cancellationToken) where TRequestType : class
             {
                 Contract.ThrowIfNull(_target._clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
-                var result = await _target.RequestDispatcher.ExecuteRequestAsync<TRequestType, TResponseType>(
+                var result = await _target._requestDispatcher.ExecuteRequestAsync<TRequestType, TResponseType>(
                     _method,
                     requestType,
                     _target._clientCapabilities,
-                    _target.ClientName,
-                    _target.Queue,
+                    _target._clientName,
+                    _target._queue,
                     cancellationToken).ConfigureAwait(false);
                 return result;
             }
@@ -134,7 +130,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             try
             {
-                Logger?.TraceStart("Initialize");
+                _logger?.TraceStart("Initialize");
 
                 Contract.ThrowIfTrue(_clientCapabilities != null, $"{nameof(InitializeAsync)} called multiple times");
                 _clientCapabilities = initializeParams.Capabilities;
@@ -145,7 +141,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
             finally
             {
-                Logger?.TraceStop("Initialize");
+                _logger?.TraceStop("Initialize");
             }
         }
 
@@ -160,7 +156,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             try
             {
-                Logger?.TraceStart("Shutdown");
+                _logger?.TraceStart("Shutdown");
 
                 ShutdownImpl();
 
@@ -168,7 +164,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
             finally
             {
-                Logger?.TraceStop("Shutdown");
+                _logger?.TraceStop("Shutdown");
             }
         }
 
@@ -186,7 +182,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             try
             {
-                Logger?.TraceStart("Exit");
+                _logger?.TraceStart("Exit");
 
                 ExitImpl();
 
@@ -194,7 +190,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
             finally
             {
-                Logger?.TraceStop("Exit");
+                _logger?.TraceStop("Exit");
             }
         }
 
@@ -203,8 +199,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             try
             {
                 ShutdownRequestQueue();
-                JsonRpc.Disconnected -= JsonRpc_Disconnected;
-                JsonRpc.Dispose();
+                _jsonRpc.Disconnected -= JsonRpc_Disconnected;
+                _jsonRpc.Dispose();
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e))
             {
@@ -223,28 +219,28 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             Contract.ThrowIfNull(_clientCapabilities, $"{nameof(InitializeAsync)} has not been called.");
             var requestMethod = AbstractExecuteWorkspaceCommandHandler.GetRequestNameForCommandName(request.Command);
 
-            var result = await RequestDispatcher.ExecuteRequestAsync<LSP.ExecuteCommandParams, object>(
+            var result = await _requestDispatcher.ExecuteRequestAsync<LSP.ExecuteCommandParams, object>(
                 requestMethod,
                 request,
                 _clientCapabilities,
-                ClientName,
-                Queue,
+                _clientName,
+                _queue,
                 cancellationToken).ConfigureAwait(false);
             return result;
         }
 
         private void ShutdownRequestQueue()
         {
-            Queue.RequestServerShutdown -= RequestExecutionQueue_Errored;
+            _queue.RequestServerShutdown -= RequestExecutionQueue_Errored;
             // if the queue requested shutdown via its event, it will have already shut itself down, but this
             // won't cause any problems calling it again
-            Queue.Shutdown();
+            _queue.Shutdown();
         }
 
         private void RequestExecutionQueue_Errored(object? sender, RequestShutdownEventArgs e)
         {
             // log message and shut down
-            Logger?.TraceWarning($"Request queue is requesting shutdown due to error: {e.Message}");
+            _logger?.TraceWarning($"Request queue is requesting shutdown due to error: {e.Message}");
 
             var message = new LogMessageParams()
             {
@@ -252,12 +248,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 Message = e.Message
             };
 
-            var asyncToken = Listener.BeginAsyncOperation(nameof(RequestExecutionQueue_Errored));
+            var asyncToken = _listener.BeginAsyncOperation(nameof(RequestExecutionQueue_Errored));
             _errorShutdownTask = Task.Run(async () =>
             {
-                Logger?.TraceInformation("Shutting down language server.");
+                _logger?.TraceInformation("Shutting down language server.");
 
-                await JsonRpc.NotifyWithParameterObjectAsync(Methods.WindowLogMessageName, message).ConfigureAwait(false);
+                await _jsonRpc.NotifyWithParameterObjectAsync(Methods.WindowLogMessageName, message).ConfigureAwait(false);
 
                 ShutdownImpl();
                 ExitImpl();
@@ -275,7 +271,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 return;
             }
 
-            Logger?.TraceWarning($"Encountered unexpected jsonrpc disconnect, Reason={e.Reason}, Description={e.Description}, Exception={e.Exception}");
+            _logger?.TraceWarning($"Encountered unexpected jsonrpc disconnect, Reason={e.Reason}, Description={e.Description}, Exception={e.Exception}");
 
             ShutdownImpl();
             ExitImpl();
@@ -287,7 +283,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             if (_errorShutdownTask is not null)
                 await _errorShutdownTask.ConfigureAwait(false);
 
-            if (Logger is IDisposable disposableLogger)
+            if (_logger is IDisposable disposableLogger)
                 disposableLogger.Dispose();
         }
 
@@ -303,15 +299,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
 
             internal RequestExecutionQueue.TestAccessor GetQueueAccessor()
-                => _server.Queue.GetTestAccessor();
+                => _server._queue.GetTestAccessor();
 
             internal LspWorkspaceManager.TestAccessor GetManagerAccessor()
-                => _server.Queue.GetTestAccessor().GetLspWorkspaceManager().GetTestAccessor();
+                => _server._queue.GetTestAccessor().GetLspWorkspaceManager().GetTestAccessor();
 
             internal RequestDispatcher.TestAccessor GetDispatcherAccessor()
-                => _server.RequestDispatcher.GetTestAccessor();
+                => _server._requestDispatcher.GetTestAccessor();
 
-            internal JsonRpc GetServerRpc() => _server.JsonRpc;
+            internal JsonRpc GetServerRpc() => _server._jsonRpc;
 
             internal bool HasShutdownStarted() => _server.HasShutdownStarted;
 

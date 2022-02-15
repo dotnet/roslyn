@@ -14,7 +14,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    internal record struct RequestHandlerMetadata(string MethodName, Type RequestType, Type ResponseType);
+    internal readonly record struct RequestHandlerMetadata(string MethodName, Type RequestType, Type ResponseType);
 
     /// <summary>
     /// Aggregates handlers for the specified languages and dispatches LSP requests
