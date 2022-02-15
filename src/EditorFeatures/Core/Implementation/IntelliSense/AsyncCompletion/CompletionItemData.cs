@@ -8,21 +8,11 @@ using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
 {
-    internal sealed class CompletionItemData
+    internal sealed record class CompletionItemData(RoslynCompletionItem RoslynItem, SnapshotPoint? TriggerLocation)
     {
         private const string RoslynCompletionItemData = nameof(RoslynCompletionItemData);
 
-        public RoslynCompletionItem RoslynItem { get; }
-
-        public Optional<SnapshotPoint> TriggerLocation { get; }
-
         public bool IsProvidedByRoslynCompletionSource => TriggerLocation.HasValue;
-
-        private CompletionItemData(RoslynCompletionItem roslynItem, SnapshotPoint? triggerLocation)
-        {
-            RoslynItem = roslynItem;
-            TriggerLocation = triggerLocation ?? new();
-        }
 
         public static bool TryGetData(CompletionItem vsCompletionitem, out CompletionItemData data)
             => vsCompletionitem.Properties.TryGetProperty(RoslynCompletionItemData, out data);

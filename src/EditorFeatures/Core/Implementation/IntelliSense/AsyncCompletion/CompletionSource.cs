@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var excludedCommitCharacters = GetExcludedCommitCharacters(completionList.Items);
             if (excludedCommitCharacters.Length > 0)
             {
-                if (sessionData.CompletionListSpan.HasValue)
+                if (sessionData.ExcludedCommitCharacters.HasValue)
                 {
                     excludedCommitCharacters = excludedCommitCharacters.Union(sessionData.ExcludedCommitCharacters.Value).ToImmutableArray();
                 }
