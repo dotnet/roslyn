@@ -1226,7 +1226,7 @@ class C
     }
 
     object Goo() => null;
-}", "_");
+}", "discard");
         }
     }
 }
