@@ -414,11 +414,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     //  3) for logical operators the result will always be the same (there are 
                     //     additional conditions that are checked for non-logical operators).
                     if (IsAssociative(parentBinaryExpression.Kind()) &&
-                        node.Expression.Kind() == parentBinaryExpression.Kind() &&
-                        parentBinaryExpression.Right == node)
+                        parentBinaryExpression.Right == node &&
+                        node.Expression.IsKind(parentBinaryExpression.Kind(), out BinaryExpressionSyntax? nodeBinary))
                     {
                         return !CSharpSemanticFacts.Instance.IsSafeToChangeAssociativity(
-                            (BinaryExpressionSyntax)node.Expression, parentBinaryExpression, semanticModel);
+                            nodeBinary, parentBinaryExpression, semanticModel);
                     }
 
                     // Null-coalescing is right associative; removing parens from the LHS changes the association.
