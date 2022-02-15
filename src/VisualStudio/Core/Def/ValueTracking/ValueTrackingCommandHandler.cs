@@ -111,7 +111,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 return;
             }
 
-
             var classificationFormatMap = _classificationFormatMapService.GetClassificationFormatMap(textView);
             var solution = document.Project.Solution;
             var valueTrackingService = solution.Workspace.Services.GetRequiredService<IValueTrackingService>();
