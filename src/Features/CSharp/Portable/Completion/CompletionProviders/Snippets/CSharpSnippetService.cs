@@ -10,7 +10,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers.Snippets;
+using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
 {
@@ -24,6 +28,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
         public CSharpSnippetService([ImportMany] IEnumerable<Lazy<ISnippetProvider, LanguageMetadata>> snippetProvider)
         {
             _snippetProvider = snippetProvider;
+        }
+
+        public async Task<TextSpan> GetInvocationSpanAsync(Document document, int position, CancellationToken cancellationToken)
+        {
+            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
+            var syntaxContext = (CSharpSyntaxContext)document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
+            return syntaxContext.LeftToken.Span;
         }
 
         public ISnippetProvider? GetSnippetProvider(SnippetData data)

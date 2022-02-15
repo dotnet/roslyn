@@ -43,6 +43,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             }
 
             var snippets = await service.GetSnippetsAsync(document, position, cancellationToken).ConfigureAwait(false);
+            var span = await service.GetInvocationSpanAsync(document, position, cancellationToken).ConfigureAwait(false);
 
             foreach (var snippetData in snippets)
             {
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
                 var completionItem = SnippetCompletionItem.Create(
                     displayText: snippetValue.DisplayName,
                     displayTextSuffix: "",
-                    token: token,
+                    span: span,
                     glyph: Glyph.Snippet);
                 context.AddItem(completionItem);
             }

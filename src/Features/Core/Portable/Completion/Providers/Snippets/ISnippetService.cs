@@ -17,5 +17,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
     {
         Task<ImmutableArray<SnippetData?>> GetSnippetsAsync(Document document, int position, CancellationToken cancellationToken);
         ISnippetProvider? GetSnippetProvider(SnippetData data);
+        Task<TextSpan> GetInvocationSpanAsync(Document document, int position, CancellationToken cancellationToken);
     }
 }

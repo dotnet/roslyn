@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
 {
@@ -11,12 +12,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
         public static CompletionItem Create(
             string displayText,
             string displayTextSuffix,
-            SyntaxToken token,
+            TextSpan span,
             Glyph glyph)
         {
             var props = ImmutableDictionary<string, string>.Empty
-                .Add("TokenSpanStart", token.Span.Start.ToString())
-                .Add("TokenSpanEnd", token.Span.End.ToString());
+                .Add("TokenSpanStart", span.Start.ToString())
+                .Add("TokenSpanEnd", span.End.ToString());
 
             return CommonCompletionItem.Create(
                 displayText: displayText,
