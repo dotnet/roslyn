@@ -2753,5 +2753,43 @@ public class C
 }
 ", offeredWhenRequireForClarityIsEnabled: true);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [WorkItem(45100, "https://github.com/dotnet/roslyn/issues/45100")]
+        public async Task TestArithmeticOverflow1()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(int a)
+    {
+        checked
+        {
+            return a + $$(int.MaxValue + -int.MaxValue);
+        }
+    }
+}", parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        [WorkItem(45100, "https://github.com/dotnet/roslyn/issues/45100")]
+        public async Task TestArithmeticOverflow2()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    void M(int a)
+    {
+        return a + $$(int.MaxValue + -int.MaxValue);
+    }
+}",
+@"class C
+{
+    void M(int a)
+    {
+        return a + int.MaxValue + -int.MaxValue;
+    }
+}", parameters: new TestParameters(options: RemoveAllUnnecessaryParentheses));
+        }
     }
 }
