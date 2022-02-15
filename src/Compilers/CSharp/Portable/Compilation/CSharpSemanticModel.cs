@@ -5306,7 +5306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Try to create a node corresponding to the imports of the next higher binder scope. Then create the
                 // node corresponding to this set of imports and chain it to that.
-                return new ImportScope(
+                return new SimpleImportScope(
                     ConvertToImportScope(chain.ParentOpt),
                     ConvertAliases(imports),
                     imports.ExternAliases.SelectAsArray(static e => e.Alias.GetPublicSymbol()),

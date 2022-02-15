@@ -3471,10 +3471,10 @@ _Default:
                 Return parent
             End If
 
-            Return New ImportScope(
+            Return New SimpleImportScope(
                 parent,
                 If(importAliases?.GetImportChainData(), ImmutableArray(Of IAliasSymbol).Empty),
-                externAliases:=ImmutableArray(Of IAliasSymbol).Empty,
+                ExternAliases:=ImmutableArray(Of IAliasSymbol).Empty,
                 If(typesOfImportedNamespacesMembers?.GetImportChainData(), ImmutableArray(Of INamespaceOrTypeSymbol).Empty),
                 If(xmlNamespaceImports?.GetImportChainData(), ImmutableArray(Of String).Empty))
         End Function

@@ -49,28 +49,10 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Simple POCO implementation of the import scope, usable by both C# and VB.
     /// </summary>
-    internal sealed class ImportScope : IImportScope
-    {
-        public IImportScope? Parent { get; }
-
-        public ImmutableArray<IAliasSymbol> Aliases { get; }
-        public ImmutableArray<IAliasSymbol> ExternAliases { get; }
-        public ImmutableArray<INamespaceOrTypeSymbol> Imports { get; }
-        public ImmutableArray<string> XmlNamespaces { get; }
-
-        public ImportScope(
-            IImportScope? parent,
-            ImmutableArray<IAliasSymbol> aliases,
-            ImmutableArray<IAliasSymbol> externAliases,
-            ImmutableArray<INamespaceOrTypeSymbol> imports,
-            ImmutableArray<string> xmlNamespaces)
-        {
-            Debug.Assert(aliases.Length > 0 || externAliases.Length > 0 || imports.Length > 0 || xmlNamespaces.Length > 0);
-            Parent = parent;
-            Aliases = aliases;
-            ExternAliases = externAliases;
-            Imports = imports;
-            XmlNamespaces = xmlNamespaces;
-        }
-    }
+    internal sealed record SimpleImportScope(
+        IImportScope? Parent,
+        ImmutableArray<IAliasSymbol> Aliases,
+        ImmutableArray<IAliasSymbol> ExternAliases,
+        ImmutableArray<INamespaceOrTypeSymbol> Imports,
+        ImmutableArray<string> XmlNamespaces) : IImportScope;
 }
