@@ -38,13 +38,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
-            // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 
-            var importCompletionOptionValue = completionContext.CompletionOptions.ShowItemsFromUnimportedNamespaces;
-            if (importCompletionOptionValue == false ||
-                (importCompletionOptionValue == null && !completionContext.CompletionOptions.TypeImportCompletion))
-            {
+            if (!completionContext.CompletionOptions.ShouldShowItemsFromUnimportNamspaces())
                 return;
-            }
 
             var cancellationToken = completionContext.CancellationToken;
             var document = completionContext.Document;

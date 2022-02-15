@@ -91,6 +91,9 @@ namespace Microsoft.CodeAnalysis.Wrapping
 
             protected abstract Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync();
 
+            protected string GetSmartIndentationAfter(SyntaxNodeOrToken nodeOrToken)
+                => GetIndentationAfter(nodeOrToken, FormattingOptions.IndentStyle.Smart);
+
             protected string GetIndentationAfter(SyntaxNodeOrToken nodeOrToken, FormattingOptions.IndentStyle indentStyle)
             {
                 var newSourceText = OriginalSourceText.WithChanges(new TextChange(new TextSpan(nodeOrToken.Span.End, 0), NewLine));

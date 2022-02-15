@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     [SuppressMessage("Documentation", "CA1200:Avoid using cref tags with a prefix", Justification = "Required to avoid ambiguous reference warnings.")]
-    internal partial class CSharpUseIndexOperatorDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    internal sealed partial class CSharpUseIndexOperatorDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public CSharpUseIndexOperatorDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseIndexOperatorDiagnosticId,
@@ -56,12 +56,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
         protected override void InitializeWorker(AnalysisContext context)
         {
-            context.RegisterCompilationStartAction(startContext =>
+            context.RegisterCompilationStartAction(context =>
             {
+                var compilation = (CSharpCompilation)context.Compilation;
+
+                // Only supported on C# 8 and above.
+                if (compilation.LanguageVersion < LanguageVersion.CSharp8)
+                    return;
+
                 // We're going to be checking every property-reference and invocation in the
                 // compilation. Cache information we compute in this object so we don't have to
                 // continually recompute it.
-                var compilation = startContext.Compilation;
                 if (!InfoCache.TryCreate(compilation, out var infoCache))
                     return;
 
@@ -171,14 +176,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             if (subtraction.Syntax is not BinaryExpressionSyntax binaryExpression)
                 return;
 
-            // Only supported on C# 8 and above.
-            var syntaxTree = binaryExpression.SyntaxTree;
-            var parseOptions = (CSharpParseOptions)syntaxTree.Options;
-            if (parseOptions.LanguageVersion < LanguageVersion.CSharp8)
-                return;
-
             // Don't bother analyzing if the user doesn't like using Index/Range operators.
-            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferIndexOperator, syntaxTree, cancellationToken);
+            var option = context.Options.GetOption(CSharpCodeStyleOptions.PreferIndexOperator, binaryExpression.SyntaxTree, cancellationToken);
             if (!option.Value)
                 return;
 
