@@ -16,6 +16,105 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
     internal static class CSharpCodeCleanUpFixerDiagnosticIds
     {
         [Export]
+        [FixId(IDEDiagnosticIds.UseImplicitTypeDiagnosticId)]
+        [Name(IDEDiagnosticIds.UseImplicitTypeDiagnosticId)]
+        [Order(After = IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.UseImplicitTypeDiagnosticId}")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_var_preferences))]
+        public static readonly FixIdDefinition? UseImplicitTypeDiagnosticId;
+
+        [Export]
+        [FixId(IDEDiagnosticIds.UseExplicitTypeDiagnosticId)]
+        [Name(IDEDiagnosticIds.UseExplicitTypeDiagnosticId)]
+        [Order(After = IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.UseExplicitTypeDiagnosticId}")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_var_preferences))]
+        public static readonly FixIdDefinition? UseExplicitTypeDiagnosticId;
+
+        [Export]
+        [FixId(IDEDiagnosticIds.AddBracesDiagnosticId)]
+        [Name(IDEDiagnosticIds.AddBracesDiagnosticId)]
+        [Order(After = AbstractCodeCleanUpFixer.SortImportsFixId)]
+        [ConfigurationKey("unused")]
+        [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.AddBracesDiagnosticId}")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Add_remove_braces_for_single_line_control_statements))]
+        public static readonly FixIdDefinition? AddBracesDiagnosticId;
+
+        [Export]
+        [FixId(IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId)]
+        [Name(IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId)]
+        [Order(After = IDEDiagnosticIds.OrderModifiersDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId}")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_expression_block_body_preferences))]
+        public static readonly FixIdDefinition? UseExpressionBodyForConstructorsDiagnosticId;
+
+        [Export]
+        [FixId(IDEDiagnosticIds.UseExpressionBodyForMethodsDiagnosticId)]
+        [Name(IDEDiagnosticIds.UseExpressionBodyForMethodsDiagnosticId)]
+        [Order(After = IDEDiagnosticIds.OrderModifiersDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.UseExpressionBodyForMethodsDiagnosticId}")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_expression_block_body_preferences))]
+        public static readonly FixIdDefinition? UseExpressionBodyForMethodsDiagnosticId;
+
+        [Export]
+        [FixId(IDEDiagnosticIds.UseExpressionBodyForConversionOperatorsDiagnosticId)]
+        [Name(IDEDiagnosticIds.UseExpressionBodyForConversionOperatorsDiagnosticId)]
+        [Order(After = IDEDiagnosticIds.OrderModifiersDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.UseExpressionBodyForConversionOperatorsDiagnosticId}")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_expression_block_body_preferences))]
+        public static readonly FixIdDefinition? UseExpressionBodyForConversionOperatorsDiagnosticId;
+
+        [Export]
+        [FixId(IDEDiagnosticIds.UseExpressionBodyForOperatorsDiagnosticId)]
+        [Name(IDEDiagnosticIds.UseExpressionBodyForOperatorsDiagnosticId)]
+        [Order(After = IDEDiagnosticIds.OrderModifiersDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.UseExpressionBodyForOperatorsDiagnosticId}")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_expression_block_body_preferences))]
+        public static readonly FixIdDefinition? UseExpressionBodyForOperatorsDiagnosticId;
+
+        [Export]
+        [FixId(IDEDiagnosticIds.UseExpressionBodyForPropertiesDiagnosticId)]
+        [Name(IDEDiagnosticIds.UseExpressionBodyForPropertiesDiagnosticId)]
+        [Order(After = IDEDiagnosticIds.OrderModifiersDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.UseExpressionBodyForPropertiesDiagnosticId}")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_expression_block_body_preferences))]
+        public static readonly FixIdDefinition? UseExpressionBodyForPropertiesDiagnosticId;
+
+        [Export]
+        [FixId(IDEDiagnosticIds.UseExpressionBodyForIndexersDiagnosticId)]
+        [Name(IDEDiagnosticIds.UseExpressionBodyForIndexersDiagnosticId)]
+        [Order(After = IDEDiagnosticIds.OrderModifiersDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.UseExpressionBodyForIndexersDiagnosticId}")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_expression_block_body_preferences))]
+        public static readonly FixIdDefinition? UseExpressionBodyForIndexersDiagnosticId;
+
+        [Export]
+        [FixId(IDEDiagnosticIds.UseExpressionBodyForAccessorsDiagnosticId)]
+        [Name(IDEDiagnosticIds.UseExpressionBodyForAccessorsDiagnosticId)]
+        [Order(After = IDEDiagnosticIds.OrderModifiersDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.UseExpressionBodyForAccessorsDiagnosticId}")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_expression_block_body_preferences))]
+        public static readonly FixIdDefinition? UseExpressionBodyForAccessorsDiagnosticId;
+
+        [Export]
+        [FixId(IDEDiagnosticIds.InlineDeclarationDiagnosticId)]
+        [Name(IDEDiagnosticIds.InlineDeclarationDiagnosticId)]
+        [Order(After = IDEDiagnosticIds.UseImplicitTypeDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.InlineDeclarationDiagnosticId}")]
+        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_inline_out_variable_preferences))]
+        public static readonly FixIdDefinition? InlineDeclarationDiagnosticId;
+
+        [Export]
         [FixId(CSharpRemoveUnusedVariableCodeFixProvider.CS0168)]
         [Name(CSharpRemoveUnusedVariableCodeFixProvider.CS0168)]
         [Order(After = IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)]
@@ -32,15 +131,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [HelpLink("https://docs.microsoft.com/dotnet/csharp/misc/cs0168")]
         [LocalizedName(typeof(FeaturesResources), nameof(FeaturesResources.Remove_unused_variables))]
         public static readonly FixIdDefinition? CS0219;
-
-        [Export]
-        [FixId(IDEDiagnosticIds.AddBracesDiagnosticId)]
-        [Name(IDEDiagnosticIds.AddBracesDiagnosticId)]
-        [Order(After = AbstractCodeCleanUpFixer.SortImportsFixId)]
-        [ConfigurationKey("unused")]
-        [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.AddBracesDiagnosticId}")]
-        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Add_remove_braces_for_single_line_control_statements))]
-        public static readonly FixIdDefinition? AddBracesDiagnosticId;
 
         [Export]
         [FixId(IDEDiagnosticIds.ConsecutiveBracePlacementDiagnosticId)]
@@ -86,15 +176,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.InlineAsTypeCheckId}")]
         [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_pattern_matching_preferences))]
         public static readonly FixIdDefinition? InlineAsTypeCheckId;
-
-        [Export]
-        [FixId(IDEDiagnosticIds.InlineDeclarationDiagnosticId)]
-        [Name(IDEDiagnosticIds.InlineDeclarationDiagnosticId)]
-        [Order(After = IDEDiagnosticIds.UseImplicitTypeDiagnosticId)]
-        [ConfigurationKey("unused")]
-        [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.InlineDeclarationDiagnosticId}")]
-        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_inline_out_variable_preferences))]
-        public static readonly FixIdDefinition? InlineDeclarationDiagnosticId;
 
         [Export]
         [FixId(IDEDiagnosticIds.InlineIsTypeCheckId)]
@@ -160,51 +241,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         public static readonly FixIdDefinition? UseDefaultLiteralDiagnosticId;
 
         [Export]
-        [FixId(IDEDiagnosticIds.UseExplicitTypeDiagnosticId)]
-        [Name(IDEDiagnosticIds.UseExplicitTypeDiagnosticId)]
-        [Order(After = IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId)]
-        [ConfigurationKey("unused")]
-        [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.UseExplicitTypeDiagnosticId}")]
-        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_var_preferences))]
-        public static readonly FixIdDefinition? UseExplicitTypeDiagnosticId;
-
-        [Export]
-        [FixId(IDEDiagnosticIds.UseExpressionBodyForAccessorsDiagnosticId)]
-        [Name(IDEDiagnosticIds.UseExpressionBodyForAccessorsDiagnosticId)]
-        [Order(After = IDEDiagnosticIds.OrderModifiersDiagnosticId)]
-        [ConfigurationKey("unused")]
-        [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.UseExpressionBodyForAccessorsDiagnosticId}")]
-        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_expression_block_body_preferences))]
-        public static readonly FixIdDefinition? UseExpressionBodyForAccessorsDiagnosticId;
-
-        [Export]
-        [FixId(IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId)]
-        [Name(IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId)]
-        [Order(After = IDEDiagnosticIds.OrderModifiersDiagnosticId)]
-        [ConfigurationKey("unused")]
-        [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId}")]
-        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_expression_block_body_preferences))]
-        public static readonly FixIdDefinition? UseExpressionBodyForConstructorsDiagnosticId;
-
-        [Export]
-        [FixId(IDEDiagnosticIds.UseExpressionBodyForConversionOperatorsDiagnosticId)]
-        [Name(IDEDiagnosticIds.UseExpressionBodyForConversionOperatorsDiagnosticId)]
-        [Order(After = IDEDiagnosticIds.OrderModifiersDiagnosticId)]
-        [ConfigurationKey("unused")]
-        [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.UseExpressionBodyForConversionOperatorsDiagnosticId}")]
-        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_expression_block_body_preferences))]
-        public static readonly FixIdDefinition? UseExpressionBodyForConversionOperatorsDiagnosticId;
-
-        [Export]
-        [FixId(IDEDiagnosticIds.UseExpressionBodyForIndexersDiagnosticId)]
-        [Name(IDEDiagnosticIds.UseExpressionBodyForIndexersDiagnosticId)]
-        [Order(After = IDEDiagnosticIds.OrderModifiersDiagnosticId)]
-        [ConfigurationKey("unused")]
-        [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.UseExpressionBodyForIndexersDiagnosticId}")]
-        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_expression_block_body_preferences))]
-        public static readonly FixIdDefinition? UseExpressionBodyForIndexersDiagnosticId;
-
-        [Export]
         [FixId(IDEDiagnosticIds.UseExpressionBodyForLambdaExpressionsDiagnosticId)]
         [Name(IDEDiagnosticIds.UseExpressionBodyForLambdaExpressionsDiagnosticId)]
         [Order(After = IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)]
@@ -223,33 +259,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         public static readonly FixIdDefinition? UseExpressionBodyForLocalFunctionsDiagnosticId;
 
         [Export]
-        [FixId(IDEDiagnosticIds.UseExpressionBodyForMethodsDiagnosticId)]
-        [Name(IDEDiagnosticIds.UseExpressionBodyForMethodsDiagnosticId)]
-        [Order(After = IDEDiagnosticIds.OrderModifiersDiagnosticId)]
-        [ConfigurationKey("unused")]
-        [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.UseExpressionBodyForMethodsDiagnosticId}")]
-        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_expression_block_body_preferences))]
-        public static readonly FixIdDefinition? UseExpressionBodyForMethodsDiagnosticId;
-
-        [Export]
-        [FixId(IDEDiagnosticIds.UseExpressionBodyForOperatorsDiagnosticId)]
-        [Name(IDEDiagnosticIds.UseExpressionBodyForOperatorsDiagnosticId)]
-        [Order(After = IDEDiagnosticIds.OrderModifiersDiagnosticId)]
-        [ConfigurationKey("unused")]
-        [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.UseExpressionBodyForOperatorsDiagnosticId}")]
-        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_expression_block_body_preferences))]
-        public static readonly FixIdDefinition? UseExpressionBodyForOperatorsDiagnosticId;
-
-        [Export]
-        [FixId(IDEDiagnosticIds.UseExpressionBodyForPropertiesDiagnosticId)]
-        [Name(IDEDiagnosticIds.UseExpressionBodyForPropertiesDiagnosticId)]
-        [Order(After = IDEDiagnosticIds.OrderModifiersDiagnosticId)]
-        [ConfigurationKey("unused")]
-        [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.UseExpressionBodyForPropertiesDiagnosticId}")]
-        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_expression_block_body_preferences))]
-        public static readonly FixIdDefinition? UseExpressionBodyForPropertiesDiagnosticId;
-
-        [Export]
         [FixId(IDEDiagnosticIds.UseFileScopedNamespaceDiagnosticId)]
         [Name(IDEDiagnosticIds.UseFileScopedNamespaceDiagnosticId)]
         [Order(After = IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)]
@@ -266,15 +275,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.UseImplicitObjectCreationDiagnosticId}")]
         [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_new_preferences))]
         public static readonly FixIdDefinition? UseImplicitObjectCreationDiagnosticId;
-
-        [Export]
-        [FixId(IDEDiagnosticIds.UseImplicitTypeDiagnosticId)]
-        [Name(IDEDiagnosticIds.UseImplicitTypeDiagnosticId)]
-        [Order(After = IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId)]
-        [ConfigurationKey("unused")]
-        [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.UseImplicitTypeDiagnosticId}")]
-        [LocalizedName(typeof(CSharpFeaturesResources), nameof(CSharpFeaturesResources.Apply_var_preferences))]
-        public static readonly FixIdDefinition? UseImplicitTypeDiagnosticId;
 
         [Export]
         [FixId(IDEDiagnosticIds.UseIndexOperatorDiagnosticId)]
