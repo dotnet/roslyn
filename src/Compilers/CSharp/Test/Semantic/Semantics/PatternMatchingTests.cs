@@ -8155,13 +8155,88 @@ using System;
 class C
 {
     static bool M(ReadOnlySpan<char> chars) => chars is """";
+    static void Main()
+    {
+        Console.WriteLine(M(new ReadOnlySpan<char>(null)));
+        Console.WriteLine(M((string)null));
+        Console.WriteLine(M(""""));
+        Console.WriteLine(M(""str""));
+    }
 }
 ";
-            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, parseOptions: TestOptions.Regular10)
-                .VerifyEmitDiagnostics(
-                    // (5,57): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     static bool M(ReadOnlySpan<char> chars) => chars is "";
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(5, 57));
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics(
+                // (5,57): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static bool M(ReadOnlySpan<char> chars) => chars is "";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(5, 57));
+
+            comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"True
+True
+True
+False");
+            verifier.VerifyIL("C.M",
+@"{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      """"
+  IL_0006:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_000b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0010:  ret
+}");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SwitchReadOnlySpanCharOnConstantStringCSharp10()
+        {
+            var source =
+@"using System;
+class C
+{
+    static bool M(ReadOnlySpan<char> chars) => chars switch { """" => true, _ => false };
+    static void Main()
+    {
+        Console.WriteLine(M(new ReadOnlySpan<char>(null)));
+        Console.WriteLine(M((string)null));
+        Console.WriteLine(M(""""));
+        Console.WriteLine(M(""str""));
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics(
+                // (4,63): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static bool M(ReadOnlySpan<char> chars) => chars switch { "" => true, _ => false };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(4, 63));
+
+            comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"True
+True
+True
+False");
+            verifier.VerifyIL("C.M",
+@"{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      """"
+  IL_0006:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_000b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0010:  brfalse.s  IL_0016
+  IL_0012:  ldc.i4.1
+  IL_0013:  stloc.0
+  IL_0014:  br.s       IL_0018
+  IL_0016:  ldc.i4.0
+  IL_0017:  stloc.0
+  IL_0018:  ldloc.0
+  IL_0019:  ret
+}");
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -9332,18 +9407,90 @@ class Program
         public void PatternMatchSpanCharOnConstantStringCSharp10()
         {
             var source =
-@"
-using System;
+@"using System;
+using System.Linq;
 class C
 {
     static bool M(Span<char> chars) => chars is """";
+    static void Main()
+    {
+        Console.WriteLine(M(new Span<char>(null)));
+        Console.WriteLine(M("""".ToArray()));
+        Console.WriteLine(M(""str"".ToArray()));
+    }
 }
 ";
-            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, parseOptions: TestOptions.Regular10)
-                .VerifyEmitDiagnostics(
-                    // (5,49): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     static bool M(Span<char> chars) => chars is "";
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(5, 49));
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics(
+                // (5,49): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static bool M(Span<char> chars) => chars is "";
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(5, 49));
+
+            comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"True
+True
+False");
+            verifier.VerifyIL("C.M",
+@"{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      """"
+  IL_0006:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_000b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0010:  ret
+}");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SwitchSpanCharOnConstantStringCSharp10()
+        {
+            var source =
+@"using System;
+using System.Linq;
+class C
+{
+    static bool M(Span<char> chars) => chars switch { """" => true, _ => false };
+    static void Main()
+    {
+        Console.WriteLine(M(new Span<char>(null)));
+        Console.WriteLine(M("""".ToArray()));
+        Console.WriteLine(M(""str"".ToArray()));
+    }
+}
+";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, parseOptions: TestOptions.Regular10);
+            comp.VerifyEmitDiagnostics(
+                // (5,55): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static bool M(Span<char> chars) => chars switch { "" => true, _ => false };
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(5, 55));
+
+            comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
+@"True
+True
+False");
+            verifier.VerifyIL("C.M",
+@"{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      """"
+  IL_0006:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_000b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0010:  brfalse.s  IL_0016
+  IL_0012:  ldc.i4.1
+  IL_0013:  stloc.0
+  IL_0014:  br.s       IL_0018
+  IL_0016:  ldc.i4.0
+  IL_0017:  stloc.0
+  IL_0018:  ldloc.0
+  IL_0019:  ret
+}");
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -9706,6 +9853,156 @@ class C
                     // (7,9): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                     //         "" => false,
                     Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"""""").WithLocation(7, 9));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void PatternMatchSpanOfT()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static bool F1<T>(ReadOnlySpan<T> span) => span is """";
+    static bool F2<T>(Span<T> span) => span is """";
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics(
+                // (4,56): error CS8121: An expression of type 'ReadOnlySpan<T>' cannot be handled by a pattern of type 'string'.
+                //     static bool F1<T>(ReadOnlySpan<T> span) => span is "";
+                Diagnostic(ErrorCode.ERR_PatternWrongType, @"""""").WithArguments("System.ReadOnlySpan<T>", "string").WithLocation(4, 56),
+                // (5,48): error CS8121: An expression of type 'Span<T>' cannot be handled by a pattern of type 'string'.
+                //     static bool F2<T>(Span<T> span) => span is "";
+                Diagnostic(ErrorCode.ERR_PatternWrongType, @"""""").WithArguments("System.Span<T>", "string").WithLocation(5, 48));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void SwitchSpanCharConstantStringAndListPatterns()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void Main()
+    {
+        var s1 = new Span<char>(new char[0]);
+        var s2 = new Span<char>(new[] { 's', 't', 'r' });
+        Console.WriteLine(F1(s1));
+        Console.WriteLine(F1(s2));
+        Console.WriteLine(F2(s1));
+        Console.WriteLine(F2(s2));
+    }
+    static int F1(ReadOnlySpan<char> span) 
+    {
+        return span switch
+        {
+            ""str"" => 1,
+            [ 's', 't', 'r' ] => 2,
+            _ => 0,
+        };
+    }
+    static int F2(Span<char> span) 
+    {
+        return span switch
+        {
+            [ 's', 't', 'r' ] => 2,
+            ""str"" => 1,
+            _ => 0,
+        };
+    }
+}";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext, expectedOutput:
+@"0
+1
+0
+2");
+            verifier.VerifyIL("Program.F1",
+@"{
+  // Code size       81 (0x51)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldstr      ""str""
+  IL_0006:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_000b:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.ReadOnlySpan<char>, System.ReadOnlySpan<char>)""
+  IL_0010:  brtrue.s   IL_0045
+  IL_0012:  ldarga.s   V_0
+  IL_0014:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_0019:  ldc.i4.3
+  IL_001a:  bne.un.s   IL_004d
+  IL_001c:  ldarga.s   V_0
+  IL_001e:  ldc.i4.0
+  IL_001f:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
+  IL_0024:  ldind.u2
+  IL_0025:  ldc.i4.s   115
+  IL_0027:  bne.un.s   IL_004d
+  IL_0029:  ldarga.s   V_0
+  IL_002b:  ldc.i4.1
+  IL_002c:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
+  IL_0031:  ldind.u2
+  IL_0032:  ldc.i4.s   116
+  IL_0034:  bne.un.s   IL_004d
+  IL_0036:  ldarga.s   V_0
+  IL_0038:  ldc.i4.2
+  IL_0039:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
+  IL_003e:  ldind.u2
+  IL_003f:  ldc.i4.s   114
+  IL_0041:  beq.s      IL_0049
+  IL_0043:  br.s       IL_004d
+  IL_0045:  ldc.i4.1
+  IL_0046:  stloc.0
+  IL_0047:  br.s       IL_004f
+  IL_0049:  ldc.i4.2
+  IL_004a:  stloc.0
+  IL_004b:  br.s       IL_004f
+  IL_004d:  ldc.i4.0
+  IL_004e:  stloc.0
+  IL_004f:  ldloc.0
+  IL_0050:  ret
+}");
+            verifier.VerifyIL("Program.F2",
+@"{
+  // Code size       81 (0x51)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""int System.Span<char>.Length.get""
+  IL_0007:  ldc.i4.3
+  IL_0008:  bne.un.s   IL_0031
+  IL_000a:  ldarga.s   V_0
+  IL_000c:  ldc.i4.0
+  IL_000d:  call       ""ref char System.Span<char>.this[int].get""
+  IL_0012:  ldind.u2
+  IL_0013:  ldc.i4.s   115
+  IL_0015:  bne.un.s   IL_0031
+  IL_0017:  ldarga.s   V_0
+  IL_0019:  ldc.i4.1
+  IL_001a:  call       ""ref char System.Span<char>.this[int].get""
+  IL_001f:  ldind.u2
+  IL_0020:  ldc.i4.s   116
+  IL_0022:  bne.un.s   IL_0031
+  IL_0024:  ldarga.s   V_0
+  IL_0026:  ldc.i4.2
+  IL_0027:  call       ""ref char System.Span<char>.this[int].get""
+  IL_002c:  ldind.u2
+  IL_002d:  ldc.i4.s   114
+  IL_002f:  beq.s      IL_0045
+  IL_0031:  ldarg.0
+  IL_0032:  ldstr      ""str""
+  IL_0037:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
+  IL_003c:  call       ""bool System.MemoryExtensions.SequenceEqual<char>(System.Span<char>, System.ReadOnlySpan<char>)""
+  IL_0041:  brtrue.s   IL_0049
+  IL_0043:  br.s       IL_004d
+  IL_0045:  ldc.i4.2
+  IL_0046:  stloc.0
+  IL_0047:  br.s       IL_004f
+  IL_0049:  ldc.i4.1
+  IL_004a:  stloc.0
+  IL_004b:  br.s       IL_004f
+  IL_004d:  ldc.i4.0
+  IL_004e:  stloc.0
+  IL_004f:  ldloc.0
+  IL_0050:  ret
+}");
         }
 
         [Fact, WorkItem(50301, "https://github.com/dotnet/roslyn/issues/50301")]
