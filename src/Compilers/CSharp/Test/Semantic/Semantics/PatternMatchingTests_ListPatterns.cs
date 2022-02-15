@@ -3657,6 +3657,36 @@ class C
 class C
 {
     public string Length => throw null;
+    public int this[int i] => throw null;
+
+    public void M()
+    {
+        _ = this is [1];
+        _ = this[^1];
+    }
+}
+";
+        var compilation = CreateCompilation(new[] { source, TestSources.Index });
+        compilation.VerifyEmitDiagnostics(
+            // (9,21): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
+            //         _ = this is [1];
+            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[1]").WithArguments("C").WithLocation(9, 21),
+            // (9,21): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+            //         _ = this is [1];
+            Diagnostic(ErrorCode.ERR_BadArgType, "[1]").WithArguments("1", "System.Index", "int").WithLocation(9, 21),
+            // (10,18): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+            //         _ = this[^1];
+            Diagnostic(ErrorCode.ERR_BadArgType, "^1").WithArguments("1", "System.Index", "int").WithLocation(10, 18)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_StringLength_SystemIndexIndexer()
+    {
+        var source = @"
+class C
+{
+    public string Length => throw null;
     public int this[System.Index i] => throw null;
 
     public void M()
@@ -7745,13 +7775,16 @@ _ = new C()[..]; // 5
 
 class C
 {
-    public int Length => 0;
+    public int Length { set { } }
     public int this[System.Index i] { set { } }
     public int this[System.Range r] { set { } }
 }
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         comp.VerifyEmitDiagnostics(
+            // (2,16): error CS8985: List patterns may not be used for a value of type 'C'. No suitable 'Length' or 'Count' property was found.
+            // _ = new C() is [var x, .. var y]; // 1, 2, 3
+            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[var x, .. var y]").WithArguments("C").WithLocation(2, 16),
             // (2,16): error CS0154: The property or indexer 'C.this[Index]' cannot be used in this context because it lacks the get accessor
             // _ = new C() is [var x, .. var y]; // 1, 2, 3
             Diagnostic(ErrorCode.ERR_PropertyLacksGet, "[var x, .. var y]").WithArguments("C.this[System.Index]").WithLocation(2, 16),
@@ -7763,6 +7796,38 @@ class C
             Diagnostic(ErrorCode.ERR_PropertyLacksGet, "new C()[^1]").WithArguments("C.this[System.Index]").WithLocation(3, 5),
             // (4,5): error CS0154: The property or indexer 'C.this[Range]' cannot be used in this context because it lacks the get accessor
             // _ = new C()[..]; // 5
+            Diagnostic(ErrorCode.ERR_PropertyLacksGet, "new C()[..]").WithArguments("C.this[System.Range]").WithLocation(4, 5)
+            );
+    }
+
+    [Fact]
+    public void ListPattern_SetOnlyIndexers_LengthWithGetter()
+    {
+        var source = @"
+_ = new C() is [var x, .. var y]; // 1, 2
+_ = new C()[^1]; // 3
+_ = new C()[..]; // 4
+
+class C
+{
+    public int Length => 0;
+    public int this[System.Index i] { set { } }
+    public int this[System.Range r] { set { } }
+}
+";
+        var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
+        comp.VerifyEmitDiagnostics(
+            // (2,16): error CS0154: The property or indexer 'C.this[Index]' cannot be used in this context because it lacks the get accessor
+            // _ = new C() is [var x, .. var y]; // 1, 2
+            Diagnostic(ErrorCode.ERR_PropertyLacksGet, "[var x, .. var y]").WithArguments("C.this[System.Index]").WithLocation(2, 16),
+            // (2,24): error CS0154: The property or indexer 'C.this[Range]' cannot be used in this context because it lacks the get accessor
+            // _ = new C() is [var x, .. var y]; // 1, 2
+            Diagnostic(ErrorCode.ERR_PropertyLacksGet, ".. var y").WithArguments("C.this[System.Range]").WithLocation(2, 24),
+            // (3,5): error CS0154: The property or indexer 'C.this[Index]' cannot be used in this context because it lacks the get accessor
+            // _ = new C()[^1]; // 3
+            Diagnostic(ErrorCode.ERR_PropertyLacksGet, "new C()[^1]").WithArguments("C.this[System.Index]").WithLocation(3, 5),
+            // (4,5): error CS0154: The property or indexer 'C.this[Range]' cannot be used in this context because it lacks the get accessor
+            // _ = new C()[..]; // 4
             Diagnostic(ErrorCode.ERR_PropertyLacksGet, "new C()[..]").WithArguments("C.this[System.Range]").WithLocation(4, 5)
             );
     }

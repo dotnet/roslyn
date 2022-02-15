@@ -289,7 +289,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundListPatternReceiverPlaceholder? receiverPlaceholder;
             BoundListPatternIndexPlaceholder? argumentPlaceholder;
 
-            if (inputType.IsErrorType())
+            if (inputType.IsDynamic())
+            {
+                Error(diagnostics, ErrorCode.ERR_UnsupportedTypeForListPattern, node, inputType);
+            }
+
+            if (inputType.IsErrorType() || inputType.IsDynamic())
             {
                 hasErrors = true;
                 elementType = inputType;
@@ -337,13 +342,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool BindLengthAndIndexerForListPattern(SyntaxNode node, TypeSymbol inputType, uint inputValEscape, BindingDiagnosticBag diagnostics,
             out BoundExpression indexerAccess, out BoundExpression lengthAccess, out BoundListPatternReceiverPlaceholder? receiverPlaceholder, out BoundListPatternIndexPlaceholder argumentPlaceholder)
         {
-            bool hasErrors = false;
-            if (inputType.IsDynamic())
-            {
-                hasErrors |= true;
-                Error(diagnostics, ErrorCode.ERR_UnsupportedTypeForListPattern, node, inputType);
-            }
+            Debug.Assert(!inputType.IsDynamic());
 
+            bool hasErrors = false;
             receiverPlaceholder = new BoundListPatternReceiverPlaceholder(node, GetValEscape(inputType, inputValEscape), inputType) { WasCompilerGenerated = true };
             if (inputType.IsSZArray())
             {
@@ -360,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var foundLengthOrCount = TryBindLengthOrCount(node, receiverPlaceholder, out lengthAccess, diagnostics);
-                if (!foundLengthOrCount && !hasErrors)
+                if (!foundLengthOrCount)
                 {
                     hasErrors = true;
                     Error(diagnostics, ErrorCode.ERR_ListPatternRequiresLength, node, inputType);
