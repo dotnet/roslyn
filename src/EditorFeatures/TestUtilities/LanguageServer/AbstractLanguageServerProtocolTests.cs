@@ -452,7 +452,7 @@ namespace Roslyn.Test.Utilities
         {
             public readonly TestWorkspace TestWorkspace;
             private readonly Dictionary<string, IList<LSP.Location>> _locations;
-            private readonly VisualStudioInProcLanguageServer _languageServer;
+            private readonly LanguageServerTarget _languageServer;
             private readonly JsonRpc _clientRpc;
 
             public LSP.ClientCapabilities ClientCapabilities { get; }
@@ -500,7 +500,7 @@ namespace Roslyn.Test.Utilities
                 return server;
             }
 
-            private static VisualStudioInProcLanguageServer CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace, WellKnownLspServerKinds serverKind)
+            private static LanguageServerTarget CreateLanguageServer(Stream inputStream, Stream outputStream, TestWorkspace workspace, WellKnownLspServerKinds serverKind)
             {
                 var dispatcherFactory = workspace.ExportProvider.GetExportedValue<RequestDispatcherFactory>();
                 var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
@@ -514,18 +514,18 @@ namespace Roslyn.Test.Utilities
 
                 var globalOptions = workspace.GetService<IGlobalOptionService>();
 
-                var languageServer = new VisualStudioInProcLanguageServer(
+                var languageServer = new LanguageServerTarget(
                     dispatcherFactory,
                     jsonRpc,
                     capabilitiesProvider,
                     lspWorkspaceRegistrationService,
+                    new LspMiscellaneousFilesWorkspace(NoOpLspLogger.Instance),
                     globalOptions,
                     listenerProvider,
                     NoOpLspLogger.Instance,
                     ProtocolConstants.RoslynLspLanguages,
                     clientName: null,
-                    serverKind,
-                    new LspMiscellaneousFilesWorkspace(NoOpLspLogger.Instance));
+                    serverKind);
 
                 jsonRpc.StartListening();
                 return languageServer;
@@ -595,7 +595,7 @@ namespace Roslyn.Test.Utilities
 
             internal LspWorkspaceManager GetManager() => _languageServer.GetTestAccessor().GetQueueAccessor().GetLspWorkspaceManager();
 
-            internal VisualStudioInProcLanguageServer.TestAccessor GetServerAccessor() => _languageServer.GetTestAccessor();
+            internal LanguageServerTarget.TestAccessor GetServerAccessor() => _languageServer.GetTestAccessor();
 
             public void Dispose()
             {

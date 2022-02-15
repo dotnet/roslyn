@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
-        protected void ShutdownImpl()
+        private void ShutdownImpl()
         {
             Contract.ThrowIfTrue(_shuttingDown, "Shutdown has already been called.");
 
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
         }
 
-        protected void ExitImpl()
+        private void ExitImpl()
         {
             try
             {
@@ -288,6 +288,35 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             if (Logger is IDisposable disposableLogger)
                 disposableLogger.Dispose();
+        }
+
+        internal TestAccessor GetTestAccessor() => new(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly LanguageServerTarget _server;
+
+            internal TestAccessor(LanguageServerTarget server)
+            {
+                _server = server;
+            }
+
+            internal RequestExecutionQueue.TestAccessor GetQueueAccessor()
+                => _server.Queue.GetTestAccessor();
+
+            internal LspWorkspaceManager.TestAccessor GetManagerAccessor()
+                => _server.Queue.GetTestAccessor().GetLspWorkspaceManager().GetTestAccessor();
+
+            internal RequestDispatcher.TestAccessor GetDispatcherAccessor()
+                => _server.RequestDispatcher.GetTestAccessor();
+
+            internal JsonRpc GetServerRpc() => _server.JsonRpc;
+
+            internal bool HasShutdownStarted() => _server.HasShutdownStarted;
+
+            internal void ShutdownServer() => _server.ShutdownImpl();
+
+            internal void ExitServer() => _server.ExitImpl();
         }
     }
 }
