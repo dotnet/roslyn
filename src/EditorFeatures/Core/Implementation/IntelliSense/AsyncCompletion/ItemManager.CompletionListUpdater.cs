@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private sealed class CompletionListUpdater
         {
             private readonly CompletionSessionData _sessionData;
-            private readonly AsyncCompletionSessionDataSnapshot _data;
+            private readonly AsyncCompletionSessionDataSnapshot _snapshotData;
             private readonly RecentItemsManager _recentItemsManager;
 
             private readonly ITrackingSpan _applicableToSpan;
@@ -48,8 +49,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             private readonly Func<ImmutableArray<(RoslynCompletionItem, PatternMatch?)>, string, ImmutableArray<RoslynCompletionItem>> _filterMethod;
 
-            private CompletionTriggerReason InitialTriggerReason => _data.InitialTrigger.Reason;
-            private CompletionTriggerReason UpdateTriggerReason => _data.Trigger.Reason;
+            private CompletionTriggerReason InitialTriggerReason => _snapshotData.InitialTrigger.Reason;
+            private CompletionTriggerReason UpdateTriggerReason => _snapshotData.Trigger.Reason;
 
             // We might need to handle large amount of items with import completion enabled,
             // so use a dedicated pool to minimize/avoid array allocations (especially in LOH)
@@ -61,24 +62,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             public CompletionListUpdater(
                 ITrackingSpan applicableToSpan,
                 CompletionSessionData sessionData,
-                AsyncCompletionSessionDataSnapshot data,
+                AsyncCompletionSessionDataSnapshot snapshotData,
                 RecentItemsManager recentItemsManager,
                 IGlobalOptionService globalOptions)
             {
                 _sessionData = sessionData;
-                _data = data;
+                _snapshotData = snapshotData;
                 _recentItemsManager = recentItemsManager;
 
                 _applicableToSpan = applicableToSpan;
-                _filterText = applicableToSpan.GetText(_data.Snapshot);
+                _filterText = applicableToSpan.GetText(_snapshotData.Snapshot);
 
-                _hasSuggestedItemOptions = sessionData.HasSuggestionItemOptions || _data.DisplaySuggestionItem;
+                _hasSuggestedItemOptions = sessionData.HasSuggestionItemOptions || _snapshotData.DisplaySuggestionItem;
 
                 // We prefer using the original snapshot, which should always be available from items provided by Roslyn's CompletionSource.
                 // Only use data.Snapshot in the theoretically possible but rare case when all items we are handling are from some non-Roslyn CompletionSource.
-                var snapshotForDocument = TryGetInitialTriggerLocation(_data, out var intialTriggerLocation)
+                var snapshotForDocument = TryGetInitialTriggerLocation(_snapshotData, out var intialTriggerLocation)
                     ? intialTriggerLocation.Snapshot
-                    : _data.Snapshot;
+                    : _snapshotData.Snapshot;
 
                 _document = snapshotForDocument?.TextBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
                 if (_document != null)
@@ -179,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 //
                 // We'll bring up the completion list here (as VB has completion on <space>).
                 // If the user then types '3', we don't want to match against Int32.
-                if (_filterText.Length > 0 && char.IsNumber(_filterText[0]) && !IsAfterDot(_data.Snapshot, _applicableToSpan))
+                if (_filterText.Length > 0 && char.IsNumber(_filterText[0]) && !IsAfterDot(_snapshotData.Snapshot, _applicableToSpan))
                 {
                     // Dismiss the session.
                     return true;
@@ -208,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             private void AddCompletionItems(List<MatchResult<VSCompletionItem>> list, CancellationToken cancellationToken)
             {
                 // FilterStateHelper is used to decide whether a given item should be included in the list based on the state of filter/expander buttons.
-                var filterHelper = new FilterStateHelper(_data.SelectedFilters);
+                var filterHelper = new FilterStateHelper(_snapshotData.SelectedFilters);
                 filterHelper.LogTargetTypeFilterTelemetry(_sessionData);
 
                 // We want to sort the items by pattern matching results while preserving the original alphabetical order for items with
@@ -222,20 +223,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 var roslynFilterReason = Helpers.GetFilterReason(UpdateTriggerReason);
 
                 // Filter items based on the selected filters and matching.
-                foreach (var item in _data.InitialSortedList)
+                foreach (var item in _snapshotData.InitialSortedList)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
                     if (filterHelper.ShouldBeFilteredOut(item))
                         continue;
 
-                    var roslynItem = GetOrAddRoslynCompletionItem(item);
-                    if (CompletionHelper.TryCreateMatchResult(_completionHelper, roslynItem, item, _filterText,
+                    if (CompletionItemData.TryGetData(item, out var itemData))
+                    {
+                        if (CompletionHelper.TryCreateMatchResult(_completionHelper, itemData.RoslynItem, item, _filterText,
                             roslynInitialTriggerKind, roslynFilterReason, _recentItemsManager.RecentItems, _highlightMatchingPortions, currentIndex,
                             out var matchResult))
+                        {
+                            list.Add(matchResult);
+                            currentIndex++;
+                        }
+                    }
+                    else
                     {
-                        list.Add(matchResult);
-                        currentIndex++;
+                        // All items passed in should contain a CompletionItemData object in the property bag,
+                        // which is guaranteed in `ItemManager.SortCompletionListAsync`.
+                        throw ExceptionUtilities.Unreachable;
                     }
                 }
 
@@ -309,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     }
                 }
 
-                var typedChar = _data.Trigger.Character;
+                var typedChar = _snapshotData.Trigger.Character;
 
                 // Check that it is a filter symbol. We can be called for a non-filter symbol.
                 // If inserting a non-filter character (neither IsPotentialFilterCharacter, nor Helpers.IsFilterCharacter),
@@ -470,7 +479,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // selection.
                 return new FilteredCompletionModel(
                     items: ImmutableArray<CompletionItemWithHighlight>.Empty, selectedItemIndex: 0,
-                    filters: _data.SelectedFilters, selectionHint: UpdateSelectionHint.SoftSelected, centerSelection: true, uniqueItem: null);
+                    filters: _snapshotData.SelectedFilters, selectionHint: UpdateSelectionHint.SoftSelected, centerSelection: true, uniqueItem: null);
             }
 
             private ImmutableArray<CompletionFilterWithState> GetUpdatedFilters(IReadOnlyList<MatchResult<VSCompletionItem>> items, CancellationToken cancellationToken)
@@ -488,7 +497,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                 // When no items are available for a given filter, it becomes unavailable.
                 // Expanders always appear available as long as it's presented.
-                return _data.SelectedFilters.SelectAsArray(n => n.WithAvailability(n.Filter is CompletionExpander || filters.Contains(n.Filter)));
+                return _snapshotData.SelectedFilters.SelectAsArray(n => n.WithAvailability(n.Filter is CompletionExpander || filters.Contains(n.Filter)));
             }
 
             /// <summary>
@@ -548,10 +557,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             private static bool TryGetInitialTriggerLocation(AsyncCompletionSessionDataSnapshot data, out SnapshotPoint intialTriggerLocation)
             {
-                var firstItem = data.InitialSortedList.FirstOrDefault(static item => item.Properties.ContainsProperty(CompletionSource.TriggerLocation));
-                if (firstItem != null)
+                foreach (var item in data.InitialSortedList)
                 {
-                    return firstItem.Properties.TryGetProperty(CompletionSource.TriggerLocation, out intialTriggerLocation);
+                    if (CompletionItemData.TryGetData(item, out var itemData) && itemData.IsProvidedByRoslynCompletionSource)
+                    {
+                        intialTriggerLocation = itemData.TriggerLocation.Value;
+                        return true;
+                    }
                 }
 
                 intialTriggerLocation = default;
@@ -651,7 +663,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             private ItemSelection UpdateSelectionBasedOnSuggestedDefaults(IReadOnlyList<MatchResult<VSCompletionItem>> items, ItemSelection itemSelection, CancellationToken cancellationToken)
             {
                 // Editor doesn't provide us a list of "default" items.
-                if (_data.Defaults.IsDefaultOrEmpty)
+                if (_snapshotData.Defaults.IsDefaultOrEmpty)
                     return itemSelection;
 
                 // "Preselect" is only used when we have high confidence with the selection, so don't override it.
@@ -708,7 +720,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     }
                 }
 
-                foreach (var defaultText in _data.Defaults)
+                foreach (var defaultText in _snapshotData.Defaults)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 

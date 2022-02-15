@@ -18,8 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
     /// </summary>
     internal sealed class CompletionSessionData
     {
-        private const string SessionDataName = "RoslynCompletionSessionData";
-
+        private const string RoslynCompletionSessionData = nameof(RoslynCompletionSessionData);
         public bool TargetTypeFilterExperimentEnabled { get; set; }
         public bool TargetTypeFilterSelected { get; set; }
         public bool HasSuggestionItemOptions { get; set; }
@@ -30,7 +29,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         public Optional<Task<(CompletionContext, RoslynCompletionList)>> ExpandedItemsTask { get; set; }
         public Optional<ImmutableArray<char>> ExcludedCommitCharacters { get; set; }
 
+        private CompletionSessionData()
+        {
+        }
+
         public static CompletionSessionData GetOrCreateSessionData(IAsyncCompletionSession session)
-            => session.Properties.GetOrCreateSingletonProperty(SessionDataName, static () => new CompletionSessionData());
+            => session.Properties.GetOrCreateSingletonProperty(RoslynCompletionSessionData, static () => new CompletionSessionData());
     }
 }

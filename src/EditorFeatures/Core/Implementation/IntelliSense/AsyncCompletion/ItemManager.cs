@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
     internal sealed partial class ItemManager : IAsyncCompletionItemManager
     {
         public const string AggressiveDefaultsMatchingOptionName = "AggressiveDefaultsMatchingOption";
-        private const string CombinedSortedList = nameof(CombinedSortedList);
 
         private readonly RecentItemsManager _recentItemsManager;
         private readonly IGlobalOptionService _globalOptions;
@@ -44,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             }
 
             // Sort by default comparer of Roslyn CompletionItem
-            var sortedItems = data.InitialList.OrderBy(GetOrAddRoslynCompletionItem).ToImmutableArray();
+            var sortedItems = data.InitialList.OrderBy(CompletionItemData.GetOrAddDummyRoslynItem).ToImmutableArray();
             return Task.FromResult(sortedItems);
         }
 
@@ -103,22 +102,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var updater = new CompletionListUpdater(session.ApplicableToSpan, sessionData, data, _recentItemsManager, _globalOptions);
             return updater.UpdateCompletionList(cancellationToken);
-        }
-
-        private static RoslynCompletionItem GetOrAddRoslynCompletionItem(VSCompletionItem vsItem)
-        {
-            if (!vsItem.Properties.TryGetProperty(CompletionSource.RoslynItem, out RoslynCompletionItem roslynItem))
-            {
-                roslynItem = RoslynCompletionItem.Create(
-                    displayText: vsItem.DisplayText,
-                    filterText: vsItem.FilterText,
-                    sortText: vsItem.SortText,
-                    displayTextSuffix: vsItem.Suffix);
-
-                vsItem.Properties.AddProperty(CompletionSource.RoslynItem, roslynItem);
-            }
-
-            return roslynItem;
         }
     }
 }

@@ -261,7 +261,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 // If the feature flag is off, return an InsertText.
                 else
                 {
-                    completionItem.InsertText = item.Properties.ContainsKey("InsertionText") ? item.Properties["InsertionText"] : completeDisplayText;
+                    completionItem.InsertText = item.Properties.ContainsKey(CommonCompletionItem.InsertionText)
+                        ? item.Properties[CommonCompletionItem.InsertionText]
+                        : completeDisplayText;
                 }
 
                 var commitCharacters = GetCommitCharacters(item, commitCharacterRulesCache, supportsVSExtensions);
