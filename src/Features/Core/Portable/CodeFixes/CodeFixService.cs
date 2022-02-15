@@ -703,6 +703,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 fixAllState = new FixAllState(
                     fixAllProvider: fixAllProviderInfo.FixAllProvider,
                     document: document,
+                    project: document.Project,
                     codeFixProvider: codeFixProvider,
                     scope: FixAllScope.Document,
                     codeActionEquivalenceKey: fixes[0].Action.EquivalenceKey,

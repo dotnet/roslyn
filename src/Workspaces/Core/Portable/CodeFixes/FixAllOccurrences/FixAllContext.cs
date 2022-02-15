@@ -85,11 +85,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Document document,
             CodeFixProvider codeFixProvider,
             FixAllScope scope,
-            string codeActionEquivalenceKey,
+            string? codeActionEquivalenceKey,
             IEnumerable<string> diagnosticIds,
             DiagnosticProvider fixAllDiagnosticProvider,
             CancellationToken cancellationToken)
-            : this(new FixAllState(null, document, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider),
+            : this(new FixAllState(
+                    fixAllProvider: null,
+                    document ?? throw new ArgumentNullException(nameof(document)),
+                    document.Project,
+                    codeFixProvider ?? throw new ArgumentNullException(nameof(codeFixProvider)),
+                    scope,
+                    codeActionEquivalenceKey,
+                    PublicContract.RequireNonNullItems(diagnosticIds, nameof(diagnosticIds)),
+                    fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider))),
                   new ProgressTracker(), cancellationToken)
         {
             if (document == null)
@@ -115,17 +123,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Project project,
             CodeFixProvider codeFixProvider,
             FixAllScope scope,
-            string codeActionEquivalenceKey,
+            string? codeActionEquivalenceKey,
             IEnumerable<string> diagnosticIds,
             DiagnosticProvider fixAllDiagnosticProvider,
             CancellationToken cancellationToken)
-            : this(new FixAllState(null, project, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider),
+            : this(new FixAllState(
+                    fixAllProvider: null,
+                    document: null,
+                    project ?? throw new ArgumentNullException(nameof(project)),
+                    codeFixProvider ?? throw new ArgumentNullException(nameof(codeFixProvider)),
+                    scope,
+                    codeActionEquivalenceKey,
+                    PublicContract.RequireNonNullItems(diagnosticIds, nameof(diagnosticIds)),
+                    fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider))),
                   new ProgressTracker(), cancellationToken)
         {
-            if (project == null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
         }
 
         internal FixAllContext(
