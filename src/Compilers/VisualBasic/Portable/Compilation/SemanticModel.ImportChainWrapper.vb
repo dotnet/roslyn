@@ -25,6 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     aliases As ImmutableArray(Of IAliasSymbol),
                     [imports] As ImmutableArray(Of INamespaceOrTypeSymbol),
                     xmlNamespaces As ImmutableArray(Of String))
+                Debug.Assert(aliases.Length > 0 OrElse [imports].Length > 0 OrElse xmlNamespaces.Length > 0)
                 Me.Parent = parent
                 Me.Aliases = aliases
                 Me.Imports = [imports]

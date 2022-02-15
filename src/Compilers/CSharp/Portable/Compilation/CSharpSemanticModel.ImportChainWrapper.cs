@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -26,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<IAliasSymbol> externAliases,
                 ImmutableArray<INamespaceOrTypeSymbol> imports)
             {
+                Debug.Assert(aliases.Length > 0 || externAliases.Length > 0 || imports.Length > 0);
                 Parent = parent;
                 Aliases = aliases;
                 ExternAliases = externAliases;
