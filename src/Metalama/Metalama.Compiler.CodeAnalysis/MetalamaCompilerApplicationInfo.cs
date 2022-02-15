@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using Metalama.Backstage.Diagnostics;
 using Metalama.Backstage.Extensibility;
+using Metalama.Backstage.Utilities;
 
 namespace Metalama.Compiler
 {
@@ -16,12 +17,15 @@ namespace Metalama.Compiler
     /// </summary>
     internal class MetalamaCompilerApplicationInfo : IApplicationInfo
     {
+        private readonly bool _ignoreUnattendedProcess;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="MetalamaCompilerApplicationInfo"/> class.
         /// </summary>
         /// <exception cref="InvalidOperationException">Some of the required assembly metadata were not found.</exception>
-        public MetalamaCompilerApplicationInfo(bool isLongRunningProcess)
+        public MetalamaCompilerApplicationInfo(bool isLongRunningProcess, bool ignoreUnattendedProcess)
         {
+            _ignoreUnattendedProcess = ignoreUnattendedProcess;
             var metadataAttributes =
                 typeof(MetalamaCompilerApplicationInfo).Assembly.GetCustomAttributes(typeof(AssemblyMetadataAttribute),
                     inherit: false);
@@ -78,6 +82,7 @@ namespace Metalama.Compiler
         public DateTime BuildDate { get; }
 
         public ProcessKind ProcessKind => ProcessKind.Compiler;
+        public bool IsUnattendedProcess(ILoggerFactory loggerFactory) => !_ignoreUnattendedProcess && ProcessUtilities.IsCurrentProcessUnattended(loggerFactory);
         public bool IsLongRunningProcess { get; }
 
         /// <inheritdoc />

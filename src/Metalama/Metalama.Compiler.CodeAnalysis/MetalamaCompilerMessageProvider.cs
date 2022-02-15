@@ -17,7 +17,8 @@ namespace Metalama.Compiler
         ERR_InvalidIntrinsicUse = 6,
         WRN_LicensingMessage = 7,
         ERR_InvalidLicenseOverall = 8,
-        ERR_InvalidLicenseForProducingTransformedOutput
+        ERR_InvalidLicenseForProducingTransformedOutput = 9,
+        ERR_LicensingMessage = 10,
     }
 
     internal sealed class MetalamaCompilerMessageProvider : CommonMessageProvider
@@ -201,6 +202,7 @@ namespace Metalama.Compiler
             ERR_InvalidLicenseForProducingTransformedOutput => DiagnosticSeverity.Error,
             WRN_NoTransformedOutputPathWhenDebuggingTransformed or
             WRN_LicensingMessage => DiagnosticSeverity.Warning,
+            ERR_LicensingMessage => DiagnosticSeverity.Error,
              
             _ => throw new ArgumentOutOfRangeException(nameof(code))
         };
@@ -215,6 +217,7 @@ namespace Metalama.Compiler
                 WRN_NoTransformedOutputPathWhenDebuggingTransformed => "Output directory for transformed files is not set, even though debugging transformed code is enabled.",
                 ERR_InvalidIntrinsicUse => "Argument is not valid for Metalama intrinsic method.",
                 WRN_LicensingMessage => "Licensing warning.",
+                ERR_LicensingMessage => "Licensing error.",
                 ERR_InvalidLicenseOverall => "Cannot start Metalama: invalid license.",
                 ERR_InvalidLicenseForProducingTransformedOutput => "Cannot generate the transformed code: this feature is not available in Metalama Essentials.",
                 _ => throw new ArgumentOutOfRangeException(nameof(code))
@@ -237,6 +240,7 @@ namespace Metalama.Compiler
                 WRN_NoTransformedOutputPathWhenDebuggingTransformed => "Output directory for transformed files is not set, even though debugging transformed code is enabled. This will lead to warnings and errors that point to nonsensical file locations.",
                 ERR_InvalidIntrinsicUse => "Argument '{0}' is not valid for Metalama intrinsic method '{1}'.",
                 WRN_LicensingMessage => "{0}",
+                ERR_LicensingMessage => "{0}",
                 ERR_InvalidLicenseOverall => "Cannot start Metalama: invalid license.",
                 ERR_InvalidLicenseForProducingTransformedOutput => "Cannot generate the transformed code: this feature is not available in Metalama Essentials.", 
                 _ => throw new ArgumentOutOfRangeException(nameof(code))

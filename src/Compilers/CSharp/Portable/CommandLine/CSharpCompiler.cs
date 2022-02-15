@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         
         
 
-        private (string[] AdditionalLicenses, bool SkipUserLicenses) GetLicensingOptions(AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider)
+        private (string[] AdditionalLicenses, bool SkipImplicitLicenses) GetLicensingOptions(AnalyzerConfigOptionsProvider analyzerConfigOptionsProvider)
         {
             // Load license keys from build options.
             string[] additionalLicenses;
@@ -433,10 +433,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ignoreUserLicenses = false;
             }
-
+            
             return (additionalLicenses, ignoreUserLicenses);
-
-
         }
 
         protected virtual bool RequiresMetalamaSupportServices => true;
@@ -461,9 +459,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var licenseOptions = this.GetLicensingOptions(analyzerConfigProvider);
                 serviceProviderBuilder.AddBackstageServices(
-                    new MetalamaCompilerApplicationInfo(this.IsLongRunningProcess),
+                    new MetalamaCompilerApplicationInfo(this.IsLongRunningProcess, licenseOptions.SkipImplicitLicenses),
                     inputCompilation.AssemblyName,
-                    licenseOptions.SkipUserLicenses,
+                    !licenseOptions.SkipImplicitLicenses,
+                    licenseOptions.SkipImplicitLicenses,
                     licenseOptions.AdditionalLicenses,
                     this.RequiresMetalamaSupportServices);
             }
@@ -522,8 +521,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var licensingMessage in licenseManager.Messages)
                     {
+                        int messageId = (int) (licensingMessage.IsError ? MetalamaErrorCode.ERR_LicensingMessage : MetalamaErrorCode.WRN_LicensingMessage);
                         diagnostics.Add(Diagnostic.Create(MetalamaCompilerMessageProvider.Instance,
-                            (int)MetalamaErrorCode.WRN_LicensingMessage, licensingMessage.Text));
+                            messageId, licensingMessage.Text));
                     }
                 }
                 
