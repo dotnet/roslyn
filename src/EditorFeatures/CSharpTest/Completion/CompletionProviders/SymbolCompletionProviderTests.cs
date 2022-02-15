@@ -11532,5 +11532,256 @@ class Test
             await VerifyItemExistsAsync(source, "P1");
             await VerifyItemExistsAsync(source, "E1");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(58081, "https://github.com/dotnet/roslyn/issues/58081")]
+        public async Task CompletionOnPointerParameter()
+        {
+            var source = @"
+struct TestStruct
+{
+    public int X;
+    public int Y { get; }
+    public void Method() { }
+}
+
+unsafe class Test
+{
+    void TestMethod(TestStruct* a)
+    {
+        a->$$
+    }
+}
+";
+            await VerifyItemExistsAsync(source, "X");
+            await VerifyItemExistsAsync(source, "Y");
+            await VerifyItemExistsAsync(source, "Method");
+            await VerifyItemExistsAsync(source, "ToString");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(58081, "https://github.com/dotnet/roslyn/issues/58081")]
+        public async Task CompletionOnAwaitedPointerParameter()
+        {
+            var source = @"
+struct TestStruct
+{
+    public int X;
+    public int Y { get; }
+    public void Method() { }
+}
+
+unsafe class Test
+{
+    async void TestMethod(TestStruct* a)
+    {
+        await a->$$
+    }
+}
+";
+            await VerifyItemExistsAsync(source, "X");
+            await VerifyItemExistsAsync(source, "Y");
+            await VerifyItemExistsAsync(source, "Method");
+            await VerifyItemExistsAsync(source, "ToString");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(58081, "https://github.com/dotnet/roslyn/issues/58081")]
+        public async Task CompletionOnLambdaPointerParameter()
+        {
+            var source = @"
+struct TestStruct
+{
+    public int X;
+    public int Y { get; }
+    public void Method() { }
+}
+
+unsafe class Test
+{
+    delegate void TestLambda(TestStruct* a);
+
+    TestLambda TestMethod()
+    {
+        return a => a->$$
+    }
+}
+";
+            await VerifyItemExistsAsync(source, "X");
+            await VerifyItemExistsAsync(source, "Y");
+            await VerifyItemExistsAsync(source, "Method");
+            await VerifyItemExistsAsync(source, "ToString");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(58081, "https://github.com/dotnet/roslyn/issues/58081")]
+        public async Task CompletionOnOverloadedLambdaPointerParameter()
+        {
+
+            var source = @"
+struct TestStruct1
+{
+    public int X;
+}
+
+struct TestStruct2
+{
+    public int Y;
+}
+
+unsafe class Test
+{
+    delegate void TestLambda1(TestStruct1* a);
+    delegate void TestLambda2(TestStruct2* a);
+
+    void Overloaded(TestLambda1 lambda)
+    {
+    }
+
+    void Overloaded(TestLambda2 lambda)
+    {
+    }
+
+    void TestMethod()
+        => Overloaded(a => a->$$);
+}
+";
+            await VerifyItemExistsAsync(source, "X");
+            await VerifyItemExistsAsync(source, "Y");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(58081, "https://github.com/dotnet/roslyn/issues/58081")]
+        public async Task CompletionOnOverloadedLambdaPointerParameterWithExplicitType()
+        {
+
+            var source = @"
+struct TestStruct1
+{
+    public int X;
+}
+
+struct TestStruct2
+{
+    public int Y;
+}
+
+unsafe class Test
+{
+    delegate void TestLambda1(TestStruct1* a);
+    delegate void TestLambda2(TestStruct2* a);
+
+    void Overloaded(TestLambda1 lambda)
+    {
+    }
+
+    void Overloaded(TestLambda2 lambda)
+    {
+    }
+
+    void TestMethod()
+        => Overloaded((TestStruct1* a) => a->$$);
+}
+";
+            await VerifyItemExistsAsync(source, "X");
+            await VerifyItemIsAbsentAsync(source, "Y");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(58081, "https://github.com/dotnet/roslyn/issues/58081")]
+        public async Task CompletionOnPointerParameterWithSimpleMemberAccess()
+        {
+            var source = @"
+struct TestStruct
+{
+    public int X;
+    public int Y { get; }
+    public void Method() { }
+}
+
+unsafe class Test
+{
+    void TestMethod(TestStruct* a)
+    {
+        a.$$
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(source, "X");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(58081, "https://github.com/dotnet/roslyn/issues/58081")]
+        public async Task CompletionOnOverloadedLambdaPointerParameterWithSimpleMemberAccess()
+        {
+
+            var source = @"
+struct TestStruct1
+{
+    public int X;
+}
+
+struct TestStruct2
+{
+    public int Y;
+}
+
+unsafe class Test
+{
+    delegate void TestLambda1(TestStruct1* a);
+    delegate void TestLambda2(TestStruct2* a);
+
+    void Overloaded(TestLambda1 lambda)
+    {
+    }
+
+    void Overloaded(TestLambda2 lambda)
+    {
+    }
+
+    void TestMethod()
+        => Overloaded(a => a.$$);
+}
+";
+            await VerifyItemIsAbsentAsync(source, "X");
+            await VerifyItemIsAbsentAsync(source, "Y");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(58081, "https://github.com/dotnet/roslyn/issues/58081")]
+        public async Task CompletionOnOverloadedLambdaPointerParameterWithSimpleMemberAccessAndExplicitType()
+        {
+
+            var source = @"
+struct TestStruct1
+{
+    public int X;
+}
+
+struct TestStruct2
+{
+    public int Y;
+}
+
+unsafe class Test
+{
+    delegate void TestLambda1(TestStruct1* a);
+    delegate void TestLambda2(TestStruct2* a);
+
+    void Overloaded(TestLambda1 lambda)
+    {
+    }
+
+    void Overloaded(TestLambda2 lambda)
+    {
+    }
+
+    void TestMethod()
+        => Overloaded((TestStruct1* a) => a.$$);
+}
+";
+            await VerifyItemIsAbsentAsync(source, "X");
+            await VerifyItemIsAbsentAsync(source, "Y");
+        }
     }
 }

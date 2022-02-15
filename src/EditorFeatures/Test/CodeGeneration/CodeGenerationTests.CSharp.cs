@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
     public C();
 }";
                 await TestAddConstructorAsync(input, expected,
-                    codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
+                    context: new CodeGenerationContext(generateMethodBodies: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -365,7 +365,7 @@ class C
     public event System.Action E;
 }";
                 await TestAddEventAsync(input, expected,
-                    codeGenerationOptions: new CodeGenerationOptions(addImports: false));
+                    context: new CodeGenerationContext(addImports: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -400,8 +400,8 @@ class C
         }
     }
 }";
-                var options = new CodeGenerationOptions(reuseSyntax: true);
-                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, codeGenerationOptions: options);
+                var context = new CodeGenerationContext(reuseSyntax: true);
+                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, context: context);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -414,7 +414,7 @@ class C
 }";
                 await TestAddEventAsync(input, expected,
                     modifiers: new Editing.DeclarationModifiers(isUnsafe: true),
-                    codeGenerationOptions: new CodeGenerationOptions(addImports: false));
+                    context: new CodeGenerationContext(addImports: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -437,7 +437,7 @@ class C
                 await TestAddEventAsync(input, expected,
                     addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, ImmutableArray<SyntaxNode>.Empty),
                     removeMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, ImmutableArray<SyntaxNode>.Empty),
-                    codeGenerationOptions: new CodeGenerationOptions(addImports: false));
+                    context: new CodeGenerationContext(addImports: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -472,8 +472,8 @@ class C
         return 0;
     }
 }";
-                var options = new CodeGenerationOptions(reuseSyntax: true);
-                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, codeGenerationOptions: options);
+                var context = new CodeGenerationContext(reuseSyntax: true);
+                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, context: context);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -551,7 +551,7 @@ class C
 }";
                 await TestAddMethodAsync(input, expected,
                     returnType: typeof(int),
-                    codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
+                    context: new CodeGenerationContext(generateMethodBodies: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -1003,8 +1003,8 @@ class C
         }
     }
 }";
-                var options = new CodeGenerationOptions(reuseSyntax: true);
-                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, codeGenerationOptions: options);
+                var context = new CodeGenerationContext(reuseSyntax: true);
+                await TestGenerateFromSourceSymbolAsync(sourceGenerated, input, expected, onlyGenerateMembers: true, context: context);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -1016,8 +1016,7 @@ class C
                     type: typeof(string),
                     parameters: Parameters(Parameter(typeof(int), "i")),
                     getStatements: "return String.Empty;",
-                    isIndexer: true,
-                    codeGenerationOptions: new CodeGenerationOptions(parseOptions: CSharpParseOptions.Default));
+                    isIndexer: true);
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -1538,7 +1537,7 @@ namespace N
 }";
                 await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
                     forceLanguage: LanguageNames.CSharp,
-                    codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
+                    context: new CodeGenerationContext(generateMethodBodies: false));
             }
         }
 
@@ -1557,7 +1556,7 @@ public static class [|C|]
     public static void ExtMethod1(this string s, int y, string z);
 }";
             await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
-                codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false),
+                context: new CodeGenerationContext(generateMethodBodies: false),
                 onlyGenerateMembers: true);
         }
 
@@ -1589,7 +1588,7 @@ End Namespace
     }
 }";
             await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
-                codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false));
+                context: new CodeGenerationContext(generateMethodBodies: false));
         }
 
         [WorkItem(812738, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/812738")]
@@ -1607,7 +1606,7 @@ End Class";
     public void Goo(int x, ref int y, ref object z);
 }";
             await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
-                codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false),
+                context: new CodeGenerationContext(generateMethodBodies: false),
                 onlyGenerateMembers: true);
         }
 
@@ -1642,7 +1641,7 @@ namespace N
     }
 }";
             await TestGenerateFromSourceSymbolAsync(generationSource, initial, expected,
-                codeGenerationOptions: new CodeGenerationOptions(generateMethodBodies: false),
+                context: new CodeGenerationContext(generateMethodBodies: false),
                 onlyGenerateMembers: true);
         }
     }

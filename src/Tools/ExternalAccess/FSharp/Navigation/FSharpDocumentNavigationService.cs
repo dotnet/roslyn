@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
         {
         }
 
+        [Obsolete("Call overload that takes a CancellationToken", error: false)]
         public bool CanNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan)
             => CanNavigateToSpan(workspace, documentId, textSpan, CancellationToken.None);
 
@@ -32,6 +33,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
             return service.CanNavigateToSpan(workspace, documentId, textSpan, cancellationToken);
         }
 
+        [Obsolete("Call overload that takes a CancellationToken", error: false)]
         public bool CanNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset)
             => CanNavigateToLineAndOffset(workspace, documentId, lineNumber, offset, CancellationToken.None);
 
@@ -41,6 +43,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
             return service.CanNavigateToLineAndOffset(workspace, documentId, lineNumber, offset, cancellationToken);
         }
 
+        [Obsolete("Call overload that takes a CancellationToken", error: false)]
         public bool CanNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace)
             => CanNavigateToPosition(workspace, documentId, position, virtualSpace, CancellationToken.None);
 
@@ -50,31 +53,34 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation
             return service.CanNavigateToPosition(workspace, documentId, position, virtualSpace, cancellationToken);
         }
 
+        [Obsolete("Call overload that takes a CancellationToken", error: false)]
         public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options)
-            => TryNavigateToSpan(workspace, documentId, textSpan, options, CancellationToken.None);
+            => TryNavigateToSpan(workspace, documentId, textSpan, CancellationToken.None);
 
-        public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet options, CancellationToken cancellationToken)
+        public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.TryNavigateToSpan(workspace, documentId, textSpan, options, cancellationToken);
+            return service.TryNavigateToSpan(workspace, documentId, textSpan, NavigationOptions.Default with { PreferProvisionalTab = true }, cancellationToken);
         }
 
+        [Obsolete("Call overload that takes a CancellationToken", error: false)]
         public bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, OptionSet options)
-            => TryNavigateToLineAndOffset(workspace, documentId, lineNumber, offset, options, CancellationToken.None);
+            => TryNavigateToLineAndOffset(workspace, documentId, lineNumber, offset, CancellationToken.None);
 
-        public bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, OptionSet options, CancellationToken cancellationToken)
+        public bool TryNavigateToLineAndOffset(Workspace workspace, DocumentId documentId, int lineNumber, int offset, CancellationToken cancellationToken)
         {
             var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.TryNavigateToLineAndOffset(workspace, documentId, lineNumber, offset, options, cancellationToken);
+            return service.TryNavigateToLineAndOffset(workspace, documentId, lineNumber, offset, NavigationOptions.Default with { PreferProvisionalTab = true }, cancellationToken);
         }
 
+        [Obsolete("Call overload that takes a CancellationToken", error: false)]
         public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, OptionSet options)
-            => TryNavigateToPosition(workspace, documentId, position, virtualSpace, options, CancellationToken.None);
+            => TryNavigateToPosition(workspace, documentId, position, virtualSpace, CancellationToken.None);
 
-        public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, OptionSet options, CancellationToken cancellationToken)
+        public bool TryNavigateToPosition(Workspace workspace, DocumentId documentId, int position, int virtualSpace, CancellationToken cancellationToken)
         {
             var service = workspace.Services.GetService<IDocumentNavigationService>();
-            return service.TryNavigateToPosition(workspace, documentId, position, virtualSpace, options, cancellationToken);
+            return service.TryNavigateToPosition(workspace, documentId, position, virtualSpace, NavigationOptions.Default with { PreferProvisionalTab = true }, cancellationToken);
         }
     }
 }

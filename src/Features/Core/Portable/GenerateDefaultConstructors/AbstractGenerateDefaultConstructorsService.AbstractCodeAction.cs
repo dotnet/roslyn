@@ -44,7 +44,8 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
                     _document.Project.Solution,
                     _state.ClassType,
                     _constructors.Select(CreateConstructorDefinition),
-                    cancellationToken: cancellationToken).ConfigureAwait(false);
+                    CodeGenerationContext.Default,
+                    cancellationToken).ConfigureAwait(false);
 
                 return result;
             }

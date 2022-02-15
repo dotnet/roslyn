@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.Wa
         public PullMemberUpWarningViewModel(PullMembersUpOptions options)
             => WarningMessageContainer = GenerateMessage(options);
 
-        private ImmutableArray<string> GenerateMessage(PullMembersUpOptions options)
+        private static ImmutableArray<string> GenerateMessage(PullMembersUpOptions options)
         {
             var warningMessagesBuilder = ImmutableArray.CreateBuilder<string>();
 

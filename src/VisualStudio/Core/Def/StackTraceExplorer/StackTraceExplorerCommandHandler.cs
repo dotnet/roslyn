@@ -6,6 +6,7 @@ using System;
 using System.ComponentModel.Design;
 using System.IO.Packaging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.VisualStudio.LanguageServices.Setup;
@@ -25,12 +26,11 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
         {
             _package = package;
             _threadingContext = package.ComponentModel.GetService<IThreadingContext>();
+            var globalOptions = package.ComponentModel.GetService<IGlobalOptionService>();
 
-            var workspace = package.ComponentModel.GetService<VisualStudioWorkspace>();
-            var optionService = workspace.Services.GetRequiredService<IOptionService>();
-            optionService.OptionChanged += OptionService_OptionChanged;
+            globalOptions.OptionChanged += OptionService_OptionChanged;
 
-            var enabled = workspace.CurrentSolution.Options.GetOption(StackTraceExplorerOptions.OpenOnFocus);
+            var enabled = globalOptions.GetOption(StackTraceExplorerOptionsMetadata.OpenOnFocus);
             if (enabled)
             {
                 AdviseBroadcastMessages();
@@ -63,6 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                     await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
                     var windowFrame = (IVsWindowFrame)window.Frame;
                     ErrorHandler.ThrowOnFailure(windowFrame.Show());
+                    Logger.Log(FunctionId.StackTraceToolWindow_ShowOnActivated, logLevel: LogLevel.Information);
                 }
             });
 
@@ -110,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
         private void OptionService_OptionChanged(object sender, OptionChangedEventArgs e)
         {
-            if (e.Option == StackTraceExplorerOptions.OpenOnFocus && e.Value is not null)
+            if (e.Option == StackTraceExplorerOptionsMetadata.OpenOnFocus && e.Value is not null)
             {
                 var enabled = (bool)e.Value;
                 if (enabled)

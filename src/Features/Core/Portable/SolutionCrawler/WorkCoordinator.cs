@@ -76,14 +76,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _registration.Workspace.WorkspaceChanged += OnWorkspaceChanged;
                     _registration.Workspace.DocumentOpened += OnDocumentOpened;
                     _registration.Workspace.DocumentClosed += OnDocumentClosed;
+
+                    // subscribe to active document changed event for active file background analysis scope.
+                    _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentSwitched;
                 }
 
                 // subscribe to option changed event after all required fields are set
                 // otherwise, we can get null exception when running OnOptionChanged handler
                 _optionService.OptionChanged += OnOptionChanged;
-
-                // subscribe to active document changed event for active file background analysis scope.
-                _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentChanged;
             }
 
             public int CorrelationId => _registration.CorrelationId;
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             public void Shutdown(bool blockingShutdown)
             {
                 _optionService.OptionChanged -= OnOptionChanged;
-                _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentChanged;
+                _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentSwitched;
 
                 // detach from the workspace
                 _registration.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
@@ -151,12 +151,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _registration.Workspace.WorkspaceChanged += OnWorkspaceChanged;
                         _registration.Workspace.DocumentOpened += OnDocumentOpened;
                         _registration.Workspace.DocumentClosed += OnDocumentClosed;
+                        _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentSwitched;
                     }
                     else
                     {
                         _registration.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
                         _registration.Workspace.DocumentOpened -= OnDocumentOpened;
                         _registration.Workspace.DocumentClosed -= OnDocumentClosed;
+                        _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentSwitched;
                     }
 
                     SolutionCrawlerLogger.LogOptionChanged(CorrelationId, value);
@@ -205,20 +207,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
             }
 
-            private void OnActiveDocumentChanged(object? sender, DocumentId? activeDocumentId)
+            private void OnActiveDocumentSwitched(object? sender, DocumentId? activeDocumentId)
             {
-                var solution = _registration.GetSolutionToAnalyze();
-                if (solution.GetProject(activeDocumentId?.ProjectId) is not { } activeProject)
+                if (activeDocumentId == null)
                     return;
 
-                RoslynDebug.AssertNotNull(activeDocumentId);
-                var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScope(activeProject);
-                if (analysisScope == BackgroundAnalysisScope.ActiveFile)
-                {
-                    // When the active document changes and we are only analyzing the active file, trigger a document
-                    // changed event to reanalyze the newly-active file.
-                    EnqueueFullDocumentEvent(solution, activeDocumentId, InvocationReasons.DocumentChanged, nameof(OnActiveDocumentChanged));
-                }
+                var solution = _registration.GetSolutionToAnalyze();
+                EnqueueFullDocumentEvent(solution, activeDocumentId, InvocationReasons.ActiveDocumentSwitched, eventName: nameof(OnActiveDocumentSwitched));
             }
 
             private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs args)
@@ -771,7 +766,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             {
                                 var project = solution.GetProject(documentId.ProjectId);
                                 if (project != null)
-                                    yield return (project, documentId);
+                                {
+                                    // ReanalyzeScopes are created and held in a queue before they are processed later; it's possible the document
+                                    // that we queued for is no longer present.
+                                    if (project.ContainsDocument(documentId))
+                                        yield return (project, documentId);
+                                }
+
                                 break;
                             }
                     }

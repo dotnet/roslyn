@@ -27,6 +27,11 @@ namespace Microsoft.CodeAnalysis.Host
     internal interface IProjectCacheHostService : IProjectCacheService
     {
         /// <summary>
+        /// The length of the source file above which a recoverable tree is created.
+        /// </summary>
+        int MinimumLengthForRecoverableTree { get; }
+
+        /// <summary>
         /// If caching is enabled for <see cref="ProjectId"/> key, the instance is added to 
         /// a conditional weak table.  
         /// 

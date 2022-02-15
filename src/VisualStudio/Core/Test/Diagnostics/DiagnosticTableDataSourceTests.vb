@@ -482,53 +482,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Sub
 
         <Fact>
-        Public Sub TestBingHelpLink()
-            Using workspace = TestWorkspace.CreateVisualBasic(String.Empty)
-                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
-                Dim documentId = workspace.CurrentSolution.Projects.First().DocumentIds.First()
-                Dim projectId = documentId.ProjectId
-
-                Dim item1 = CreateItem(projectId, documentId, DiagnosticSeverity.Error)
-                Dim provider = New TestDiagnosticService(item1)
-
-                Dim tableManagerProvider = New TestTableManagerProvider()
-
-                Dim table = VisualStudioDiagnosticListTableWorkspaceEventListener.VisualStudioDiagnosticListTable.TestAccessor.Create(workspace, globalOptions, provider, tableManagerProvider)
-                provider.RaiseDiagnosticsUpdated(workspace)
-
-                Dim manager = DirectCast(table.TableManager, TestTableManagerProvider.TestTableManager)
-                Dim source = DirectCast(manager.Sources.First(), AbstractRoslynTableDataSource(Of DiagnosticTableItem, DiagnosticsUpdatedArgs))
-                Dim sinkAndSubscription = manager.Sinks_TestOnly.First()
-
-                Dim sink = DirectCast(sinkAndSubscription.Key, TestTableManagerProvider.TestTableManager.TestSink)
-                Dim snapshot = sink.Entries.First().GetCurrentSnapshot()
-                Assert.Equal(1, snapshot.Count)
-
-                Dim helpLink As Object = Nothing
-                Assert.True(snapshot.TryGetValue(0, StandardTableKeyNames.HelpLink, helpLink))
-
-                Assert.Equal($"https://bingdev.cloudapp.net/BingUrl.svc/Get?selectedText=test%20format&mainLanguage=Visual%20Basic&requestId={BrowserHelper.EscapedRequestId}&errorCode=test", helpLink.ToString())
-            End Using
-        End Sub
-
-        <Fact>
-        Public Async Function TestBingHelpLink_NoCustomType() As Task
-            Using workspace = TestWorkspace.CreateCSharp("class A { int 111a; }")
-                Dim diagnostic = (Await workspace.CurrentSolution.Projects.First().GetCompilationAsync()).GetDiagnostics().First(Function(d) d.Id = "CS1519")
-
-                Dim helpMessage = diagnostic.GetBingHelpMessage(workspace.Options)
-                Assert.Equal("Invalid token '111' in class, record, struct, or interface member declaration", helpMessage)
-
-                ' turn off custom type search
-                Dim optionServices = workspace.Services.GetService(Of IOptionService)()
-                optionServices.SetOptions(optionServices.GetOptions().WithChangedOption(InternalDiagnosticsOptions.PutCustomTypeInBingSearch, False))
-
-                Dim helpMessage2 = diagnostic.GetBingHelpMessage(optionServices.GetOptions())
-                Assert.Equal("Invalid token '{0}' in class, record, struct, or interface member declaration", helpMessage2)
-            End Using
-        End Function
-
-        <Fact>
         Public Sub TestErrorSource()
             Using workspace = TestWorkspace.CreateCSharp(String.Empty)
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)()
@@ -709,7 +662,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                             diagnostic1.Id,
                             diagnostic1.Category,
                             diagnostic1.Message,
-                            diagnostic1.ENUMessageForBingSearch,
                             diagnostic1.Severity,
                             diagnostic1.DefaultSeverity,
                             diagnostic1.IsEnabledByDefault,
@@ -743,7 +695,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                             diagnostic2.Id,
                             diagnostic2.Category,
                             diagnostic2.Message,
-                            diagnostic2.ENUMessageForBingSearch,
                             diagnostic2.Severity,
                             diagnostic2.Severity,
                             diagnostic2.IsEnabledByDefault,
@@ -793,7 +744,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Function
 
-        Private Sub RunCompilerAnalyzer(workspace As TestWorkspace)
+        Private Shared Sub RunCompilerAnalyzer(workspace As TestWorkspace)
             Dim snapshot = workspace.CurrentSolution
 
             Dim analyzerService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.ExportProvider.GetExportedValue(Of IDiagnosticAnalyzerService)())
@@ -804,16 +755,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             service.GetTestAccessor().WaitUntilCompletion(workspace, SpecializedCollections.SingletonEnumerable(analyzerService.CreateIncrementalAnalyzer(workspace)).WhereNotNull().ToImmutableArray())
         End Sub
 
-        Private Function CreateItem(documentId As DocumentId, Optional severity As DiagnosticSeverity = DiagnosticSeverity.Error) As DiagnosticData
+        Private Shared Function CreateItem(documentId As DocumentId, Optional severity As DiagnosticSeverity = DiagnosticSeverity.Error) As DiagnosticData
             Return CreateItem(documentId.ProjectId, documentId, severity)
         End Function
 
-        Private Function CreateItem(projectId As ProjectId, documentId As DocumentId, Optional severity As DiagnosticSeverity = DiagnosticSeverity.Error, Optional link As String = Nothing) As DiagnosticData
+        Private Shared Function CreateItem(projectId As ProjectId, documentId As DocumentId, Optional severity As DiagnosticSeverity = DiagnosticSeverity.Error, Optional link As String = Nothing) As DiagnosticData
             Return New DiagnosticData(
                 id:="test",
                 category:="test",
                 message:="test",
-                enuMessageForBingSearch:="test format",
                 severity:=severity,
                 defaultSeverity:=severity,
                 isEnabledByDefault:=True,
@@ -841,14 +791,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
             <Obsolete>
             Public Function GetDiagnostics(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticData) Implements IDiagnosticService.GetDiagnostics
-                Return GetPushDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, InternalDiagnosticsOptions.NormalDiagnosticMode, cancellationToken).AsTask().WaitAndGetResult_CanCallOnBackground(cancellationToken)
+                Return GetPushDiagnosticsAsync(workspace, projectId, documentId, id, includeSuppressedDiagnostics, DiagnosticMode.Default, cancellationToken).AsTask().WaitAndGetResult_CanCallOnBackground(cancellationToken)
             End Function
 
-            Public Function GetPullDiagnosticsAsync(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, diagnosticMode As Option2(Of DiagnosticMode), cancellationToken As CancellationToken) As ValueTask(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticService.GetPullDiagnosticsAsync
+            Public Function GetPullDiagnosticsAsync(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, diagnosticMode As DiagnosticMode, cancellationToken As CancellationToken) As ValueTask(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticService.GetPullDiagnosticsAsync
                 Return New ValueTask(Of ImmutableArray(Of DiagnosticData))(GetDiagnostics(workspace, projectId, documentId, includeSuppressedDiagnostics))
             End Function
 
-            Public Function GetPushDiagnosticsAsync(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, diagnosticMode As Option2(Of DiagnosticMode), cancellationToken As CancellationToken) As ValueTask(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticService.GetPushDiagnosticsAsync
+            Public Function GetPushDiagnosticsAsync(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, diagnosticMode As DiagnosticMode, cancellationToken As CancellationToken) As ValueTask(Of ImmutableArray(Of DiagnosticData)) Implements IDiagnosticService.GetPushDiagnosticsAsync
                 Return New ValueTask(Of ImmutableArray(Of DiagnosticData))(GetDiagnostics(workspace, projectId, documentId, includeSuppressedDiagnostics))
             End Function
 
@@ -876,11 +826,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Return diagnostics
             End Function
 
-            Public Function GetPullDiagnosticBuckets(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, diagnosticMode As Option2(Of DiagnosticMode), cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticBucket) Implements IDiagnosticService.GetPullDiagnosticBuckets
+            Public Function GetPullDiagnosticBuckets(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, diagnosticMode As DiagnosticMode, cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticBucket) Implements IDiagnosticService.GetPullDiagnosticBuckets
                 Return GetDiagnosticsBuckets(workspace, projectId, documentId)
             End Function
 
-            Public Function GetPushDiagnosticBuckets(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, diagnosticMode As Option2(Of DiagnosticMode), cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticBucket) Implements IDiagnosticService.GetPushDiagnosticBuckets
+            Public Function GetPushDiagnosticBuckets(workspace As Workspace, projectId As ProjectId, documentId As DocumentId, diagnosticMode As DiagnosticMode, cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticBucket) Implements IDiagnosticService.GetPushDiagnosticBuckets
                 Return GetDiagnosticsBuckets(workspace, projectId, documentId)
             End Function
 

@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Operations;
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var visibleSymbols = semanticModel.LookupSymbols(location.SpanStart);
 
             // Local function parameter is allowed to shadow variables since C# 8.
-            if (((CSharpCompilation)semanticModel.Compilation).LanguageVersion.MapSpecifiedToEffectiveVersion() >= LanguageVersion.CSharp8)
+            if (semanticModel.Compilation.LanguageVersion().MapSpecifiedToEffectiveVersion() >= LanguageVersion.CSharp8)
             {
                 if (SyntaxFacts.IsParameterList(container) && SyntaxFacts.IsLocalFunctionStatement(container.Parent))
                 {
@@ -73,9 +74,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 semanticModel.SyntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken),
                 attributes: true, cancellationToken: cancellationToken, semanticModelOpt: semanticModel);
         }
-
-        public bool IsInExpressionTree(SemanticModel semanticModel, SyntaxNode node, INamedTypeSymbol expressionTypeOpt, CancellationToken cancellationToken)
-            => node.IsInExpressionTree(semanticModel, expressionTypeOpt, cancellationToken);
 
         public bool IsStatementContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {

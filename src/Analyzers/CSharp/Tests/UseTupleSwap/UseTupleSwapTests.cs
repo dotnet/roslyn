@@ -8,6 +8,8 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.UseTupleSwap;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseTupleSwap
@@ -440,6 +442,32 @@ class C
             {
                 TestCode = code,
                 FixedCode = code,
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseLocalFunction)]
+        [WorkItem(58759, "https://github.com/dotnet/roslyn/issues/58759")]
+        public async Task TestTopLevelStatements()
+        {
+            await new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+                LanguageVersion = LanguageVersion.CSharp9,
+                TestState =
+                {
+                    Sources =
+                    {
+                        @"
+[|var|] temp = args[0];
+args[0] = args[1];
+args[1] = temp;
+",
+                    },
+                    OutputKind = OutputKind.ConsoleApplication,
+                },
+                FixedCode = @"
+(args[1], args[0]) = (args[0], args[1]);
+",
             }.RunAsync();
         }
     }

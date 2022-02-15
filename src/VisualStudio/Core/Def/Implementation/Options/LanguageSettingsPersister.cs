@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Setup;
@@ -29,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
     internal sealed class LanguageSettingsPersister : ForegroundThreadAffinitizedObject, IVsTextManagerEvents4, IOptionPersister
     {
         private readonly IVsTextManager4 _textManager;
-        private readonly IGlobalOptionService _optionService;
+        private readonly IGlobalOptionService _globalOptions;
 
 #pragma warning disable IDE0052 // Remove unread private members - https://github.com/dotnet/roslyn/issues/46167
         private readonly ComEventSink _textManagerEvents2Sink;
@@ -50,31 +51,38 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public LanguageSettingsPersister(
             IThreadingContext threadingContext,
             IVsTextManager4 textManager,
-            IGlobalOptionService optionService)
+            IGlobalOptionService globalOptions)
             : base(threadingContext, assertIsForeground: true)
         {
             _textManager = textManager;
-            _optionService = optionService;
+            _globalOptions = globalOptions;
 
-            // TODO: make this configurable
-            _languageMap = BidirectionalMap<string, Tuple<Guid>>.Empty.Add(LanguageNames.CSharp, Tuple.Create(Guids.CSharpLanguageServiceId))
-                                                               .Add(LanguageNames.VisualBasic, Tuple.Create(Guids.VisualBasicLanguageServiceId))
-                                                               .Add(InternalLanguageNames.TypeScript, Tuple.Create(new Guid("4a0dddb5-7a95-4fbf-97cc-616d07737a77")))
-                                                               .Add("F#", Tuple.Create(new Guid("BC6DD5A5-D4D6-4dab-A00D-A51242DBAF1B")))
-                                                               .Add("Xaml", Tuple.Create(new Guid("CD53C9A1-6BC2-412B-BE36-CC715ED8DD41")));
+            var languageMap = BidirectionalMap<string, Tuple<Guid>>.Empty;
 
-            foreach (var languageGuid in _languageMap.Values)
+            InitializeSettingsForLanguage(LanguageNames.CSharp, Guids.CSharpLanguageServiceId);
+            InitializeSettingsForLanguage(LanguageNames.VisualBasic, Guids.VisualBasicLanguageServiceId);
+            InitializeSettingsForLanguage(InternalLanguageNames.TypeScript, new Guid("4a0dddb5-7a95-4fbf-97cc-616d07737a77"));
+            InitializeSettingsForLanguage("F#", new Guid("BC6DD5A5-D4D6-4dab-A00D-A51242DBAF1B"));
+            InitializeSettingsForLanguage("Xaml", new Guid("CD53C9A1-6BC2-412B-BE36-CC715ED8DD41"));
+
+            void InitializeSettingsForLanguage(string languageName, Guid languageGuid)
             {
                 var languagePreferences = new LANGPREFERENCES3[1];
-                languagePreferences[0].guidLang = languageGuid.Item1;
+                languagePreferences[0].guidLang = languageGuid;
 
                 // The function can potentially fail if that language service isn't installed
                 if (ErrorHandler.Succeeded(_textManager.GetUserPreferences4(pViewPrefs: null, pLangPrefs: languagePreferences, pColorPrefs: null)))
                 {
-                    RefreshLanguageSettings(languagePreferences);
+                    RefreshLanguageSettings(languagePreferences, languageName);
+                    languageMap = languageMap.Add(languageName, Tuple.Create(languageGuid));
+                }
+                else
+                {
+                    FatalError.ReportWithDumpAndCatch(new InvalidOperationException("GetUserPreferences4 failed"), ErrorSeverity.Diagnostic);
                 }
             }
 
+            _languageMap = languageMap;
             _textManagerEvents2Sink = ComEventSink.Advise<IVsTextManagerEvents4>(_textManager, this);
         }
 
@@ -84,8 +92,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             FormattingOptions.TabSize,
             FormattingOptions.SmartIndent,
             FormattingOptions.IndentationSize,
-            CompletionOptions.Metadata.HideAdvancedMembers,
-            CompletionOptions.Metadata.TriggerOnTyping,
+            CompletionOptionsStorage.HideAdvancedMembers,
+            CompletionOptionsStorage.TriggerOnTyping,
             SignatureHelpViewOptions.ShowSignatureHelp,
             NavigationBarViewOptions.ShowNavigationBar
         };
@@ -108,13 +116,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             this.AssertIsForeground();
             if (_languageMap.TryGetKey(Tuple.Create(langPrefs[0].guidLang), out var languageName))
             {
-                foreach (var option in _supportedOptions)
-                {
-                    var keyWithLanguage = new OptionKey(option, languageName);
-                    var newValue = GetValueForOption(option, langPrefs[0]);
+                RefreshLanguageSettings(langPrefs, languageName);
+            }
+        }
 
-                    _optionService.RefreshOption(keyWithLanguage, newValue);
-                }
+        private void RefreshLanguageSettings(LANGPREFERENCES3[] langPrefs, string languageName)
+        {
+            this.AssertIsForeground();
+
+            foreach (var option in _supportedOptions)
+            {
+                var keyWithLanguage = new OptionKey(option, languageName);
+                var newValue = GetValueForOption(option, langPrefs[0]);
+
+                _globalOptions.RefreshOption(keyWithLanguage, newValue);
             }
         }
 
@@ -144,11 +159,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                         return FormattingOptions.IndentStyle.Smart;
                 }
             }
-            else if (option == CompletionOptions.Metadata.HideAdvancedMembers)
+            else if (option == CompletionOptionsStorage.HideAdvancedMembers)
             {
                 return languagePreference.fHideAdvancedAutoListMembers != 0;
             }
-            else if (option == CompletionOptions.Metadata.TriggerOnTyping)
+            else if (option == CompletionOptionsStorage.TriggerOnTyping)
             {
                 return languagePreference.fAutoListMembers != 0;
             }
@@ -195,11 +210,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                         break;
                 }
             }
-            else if (option == CompletionOptions.Metadata.HideAdvancedMembers)
+            else if (option == CompletionOptionsStorage.HideAdvancedMembers)
             {
                 languagePreference.fHideAdvancedAutoListMembers = Convert.ToUInt32((bool)value ? 1 : 0);
             }
-            else if (option == CompletionOptions.Metadata.TriggerOnTyping)
+            else if (option == CompletionOptionsStorage.TriggerOnTyping)
             {
                 languagePreference.fAutoListMembers = Convert.ToUInt32((bool)value ? 1 : 0);
             }
@@ -222,7 +237,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             // This particular serializer is a bit strange, since we have to initially read things out on the UI thread.
             // Therefore, we refresh the values in the constructor, meaning that this should never get called for our values.
 
-            Contract.ThrowIfTrue(_supportedOptions.Contains(optionKey.Option) && _languageMap.ContainsKey(optionKey.Language));
+            if (_supportedOptions.Contains(optionKey.Option) && _languageMap.ContainsKey(optionKey.Language))
+            {
+                FatalError.ReportWithDumpAndCatch(new InvalidOperationException("Unexpected call to " + nameof(LanguageSettingsPersister) + "." + nameof(TryFetch)), ErrorSeverity.Diagnostic);
+            }
 
             value = null;
             return false;

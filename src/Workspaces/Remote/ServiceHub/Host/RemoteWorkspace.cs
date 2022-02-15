@@ -65,8 +65,6 @@ namespace Microsoft.CodeAnalysis.Remote
             var exportProvider = (IMefHostExportProvider)Services.HostServices;
             RegisterDocumentOptionProviders(exportProvider.GetExports<IDocumentOptionsProviderFactory, OrderableMetadata>());
 
-            SetOptions(Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0));
-
             _registrationService = Services.GetService<ISolutionCrawlerRegistrationService>();
             _registrationService?.Register(this);
         }
