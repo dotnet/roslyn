@@ -2,11 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -66,12 +63,15 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         protected abstract string GetFullyQualifiedContainerName(TMemberDeclarationSyntax memberDeclaration, string rootNamespace);
 
         protected abstract void AddDeclaredSymbolInfosWorker(
-            SyntaxNode container, TMemberDeclarationSyntax memberDeclaration, StringTable stringTable, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, Dictionary<string, string> aliases, Dictionary<string, ArrayBuilder<int>> extensionMethodInfo, string containerDisplayName, string fullyQualifiedContainerName, CancellationToken cancellationToken);
+            SyntaxNode container, TMemberDeclarationSyntax memberDeclaration, StringTable stringTable, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, Dictionary<string, string?> aliases, Dictionary<string, ArrayBuilder<int>> extensionMethodInfo, string containerDisplayName, string fullyQualifiedContainerName, CancellationToken cancellationToken);
+        protected abstract void AddSynthesizedDeclaredSymbolInfos(
+            SyntaxNode container, TMemberDeclarationSyntax memberDeclaration, StringTable stringTable, ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos, string containerDisplayName, string fullyQualifiedContainerName, CancellationToken cancellationToken);
+
         /// <summary>
-        /// Get the name of the target type of specified extension method declaration. 
-        /// The node provided must be an extension method declaration,  i.e. calling `TryGetDeclaredSymbolInfo()` 
-        /// on `node` should return a `DeclaredSymbolInfo` of kind `ExtensionMethod`. 
-        /// If the return value is null, then it means this is a "complex" method (as described at <see cref="SyntaxTreeIndex.ExtensionMethodInfo"/>).
+        /// Get the name of the target type of specified extension method declaration. The node provided must be an
+        /// extension method declaration,  i.e. calling `TryGetDeclaredSymbolInfo()` on `node` should return a
+        /// `DeclaredSymbolInfo` of kind `ExtensionMethod`. If the return value is null, then it means this is a
+        /// "complex" method (as described at <see cref="TopLevelSyntaxTreeIndex.ExtensionMethodInfo"/>).
         /// </summary>
         protected abstract string GetReceiverTypeName(TMemberDeclarationSyntax node);
         protected abstract bool TryGetAliasesFromUsingDirective(TUsingDirectiveSyntax node, out ImmutableArray<(string aliasName, string name)> aliases);
@@ -133,21 +133,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         protected static Dictionary<string, string> AllocateAliasMap()
             => s_aliasMapPool.Allocate();
 
-        protected static void AppendTokens(SyntaxNode node, StringBuilder builder)
-        {
-            foreach (var child in node.ChildNodesAndTokens())
-            {
-                if (child.IsToken)
-                {
-                    builder.Append(child.AsToken().Text);
-                }
-                else
-                {
-                    AppendTokens(child.AsNode(), builder);
-                }
-            }
-        }
-
         protected static void Intern(StringTable stringTable, ArrayBuilder<string> builder)
         {
             for (int i = 0, n = builder.Count; i < n; i++)
@@ -165,9 +150,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         {
             var project = document.Project;
             var stringTable = SyntaxTreeIndex.GetStringTable(project);
-            var rootNamespace = this.GetRootNamespace(project.CompilationOptions);
+            var rootNamespace = this.GetRootNamespace(project.CompilationOptions!);
 
-            using var _1 = PooledDictionary<string, string>.GetInstance(out var aliases);
+            using var _1 = PooledDictionary<string, string?>.GetInstance(out var aliases);
 
             foreach (var usingAlias in GetUsingAliases((TCompilationUnitSyntax)root))
             {
@@ -185,7 +170,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             StringTable stringTable,
             string rootNamespace,
             ArrayBuilder<DeclaredSymbolInfo> declaredSymbolInfos,
-            Dictionary<string, string> aliases,
+            Dictionary<string, string?> aliases,
             Dictionary<string, ArrayBuilder<int>> extensionMethodInfo,
             string containerDisplayName,
             string fullyQualifiedContainerName,
@@ -223,6 +208,15 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         memberDeclaration, child, stringTable, rootNamespace, declaredSymbolInfos, aliases, extensionMethodInfo,
                         innerContainerDisplayName, innerFullyQualifiedContainerName, cancellationToken);
                 }
+
+                AddSynthesizedDeclaredSymbolInfos(
+                    container,
+                    memberDeclaration,
+                    stringTable,
+                    declaredSymbolInfos,
+                    innerContainerDisplayName,
+                    innerFullyQualifiedContainerName,
+                    cancellationToken);
             }
             else if (memberDeclaration is TEnumDeclarationSyntax enumDeclaration)
             {
@@ -319,7 +313,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             arrayBuilder.Add(declaredSymbolInfoIndex);
         }
 
-        private static void AddAliases(Dictionary<string, string> allAliases, ImmutableArray<(string aliasName, string name)> aliases)
+        private static void AddAliases(Dictionary<string, string?> allAliases, ImmutableArray<(string aliasName, string name)> aliases)
         {
             foreach (var (aliasName, name) in aliases)
             {

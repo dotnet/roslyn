@@ -132,11 +132,6 @@
         <target state="translated">后退</target>
         <note />
       </trans-unit>
-      <trans-unit id="Background_analysis_scope_colon">
-        <source>Background analysis scope:</source>
-        <target state="translated">后台分析范围:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Beginning_of_line">
         <source>Beginning of line</source>
         <target state="translated">行首</target>
@@ -242,6 +237,11 @@
         <target state="translated">颜色提示</target>
         <note />
       </trans-unit>
+      <trans-unit id="Colorize_JSON_strings">
+        <source>Colorize JSON strings</source>
+        <target state="new">Colorize JSON strings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
         <source>Colorize regular expressions</source>
         <target state="translated">为正规表达式着色</target>
@@ -290,6 +290,11 @@
       <trans-unit id="Default_Entire_Solution">
         <source>Default (Entire Solution)</source>
         <target state="translated">默认(整个解决方案)</target>
+        <note>This text is a menu command</note>
+      </trans-unit>
+      <trans-unit id="Default_None">
+        <source>Default (None)</source>
+        <target state="new">Default (None)</target>
         <note>This text is a menu command</note>
       </trans-unit>
       <trans-unit id="Default_Open_Documents">
@@ -397,6 +402,11 @@
         <target state="translated">整个解决方案</target>
         <note />
       </trans-unit>
+      <trans-unit id="Entire_solution_and_external_sources">
+        <source>Entire Solution and External Sources</source>
+        <target state="new">Entire Solution and External Sources</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Error">
         <source>Error</source>
         <target state="translated">错误</target>
@@ -410,6 +420,11 @@
       <trans-unit id="Evaluating_0_tasks_in_queue">
         <source>Evaluating ({0} tasks in queue)</source>
         <target state="translated">正在评估(队列中有 {0} 个任务)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="External_sources">
+        <source>External Sources</source>
+        <target state="new">External Sources</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_Base_Class">
@@ -540,6 +555,11 @@
       <trans-unit id="Item_origin">
         <source>Item origin</source>
         <target state="translated">项来源</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="JSON_strings">
+        <source>JSON strings</source>
+        <target state="new">JSON strings</target>
         <note />
       </trans-unit>
       <trans-unit id="Keep">
@@ -1087,6 +1107,11 @@
         <target state="translated">将 {0} 重命名为 {1}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Report_invalid_JSON_strings">
+        <source>Report invalid JSON strings</source>
+        <target state="new">Report invalid JSON strings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Report_invalid_regular_expressions">
         <source>Report invalid regular expressions</source>
         <target state="translated">报告无效的正规表达式</target>
@@ -1130,6 +1155,11 @@
       <trans-unit id="Run_Code_Analysis_on_0">
         <source>Run Code Analysis on {0}</source>
         <target state="translated">对 {0} 运行 Code Analysis</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run_background_code_analysis_for_colon">
+        <source>Run background code analysis for:</source>
+        <target state="new">Run background code analysis for:</target>
         <note />
       </trans-unit>
       <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">

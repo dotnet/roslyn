@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
@@ -52,10 +53,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var workspace = document.Project.Solution.Workspace;
-            var navigationService = VSTypeScriptDocumentNavigationServiceWrapper.Create(workspace);
-            navigationService.TryNavigateToPosition(
-                workspace, document.Id, navigationSpan.Start,
-                virtualSpace: 0, options: null, cancellationToken: cancellationToken);
+            var navigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
+            navigationService.TryNavigateToPosition(workspace, document.Id, navigationSpan.Start, virtualSpace: 0, NavigationOptions.Default, cancellationToken);
 
             return true;
         }

@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// <summary>
         /// Produce the diagnostics for the specified document.
         /// </summary>
-        protected abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, Document document, Option2<DiagnosticMode> diagnosticMode, CancellationToken cancellationToken);
+        protected abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, Document document, DiagnosticMode diagnosticMode, CancellationToken cancellationToken);
 
         /// <summary>
         /// Generate the right diagnostic tags for a particular diagnostic.
@@ -225,14 +225,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             ClientCapabilities clientCapabilities,
             CancellationToken cancellationToken)
         {
-            var diagnosticMode = _serverKind switch
+            var diagnosticModeOption = _serverKind switch
             {
                 WellKnownLspServerKinds.LiveShareLspServer => s_liveShareDiagnosticMode,
                 WellKnownLspServerKinds.RazorLspServer => s_razorDiagnosticMode,
                 _ => InternalDiagnosticsOptions.NormalDiagnosticMode,
             };
 
-            var isPull = context.GlobalOptions.IsPullDiagnostics(diagnosticMode);
+            var diagnosticMode = context.GlobalOptions.GetDiagnosticMode(diagnosticModeOption);
+            var isPull = diagnosticMode == DiagnosticMode.Pull;
 
             context.TraceInformation($"Getting '{(isPull ? "pull" : "push")}' diagnostics with mode '{diagnosticMode}'");
 
@@ -376,7 +377,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 {
                     Source = "Roslyn",
                     Code = diagnosticData.Id,
-                    CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(diagnosticData.HelpLink),
+                    CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(diagnosticData.GetValidHelpLinkUri()),
                     Message = diagnosticData.Message,
                     Severity = ConvertDiagnosticSeverity(diagnosticData.Severity),
                     Range = ProtocolConversions.LinePositionToRange(DiagnosticData.GetLinePositionSpan(diagnosticData.DataLocation, text, useMappedSpan)),

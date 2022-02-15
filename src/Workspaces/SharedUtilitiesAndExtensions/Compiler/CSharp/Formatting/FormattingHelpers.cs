@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return true;
                 }
 
-                if (parent is ObjectCreationExpressionSyntax)
+                if (parent is BaseObjectCreationExpressionSyntax)
                 {
                     if (initializer.Expressions.Count <= 0)
                     {
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return true;
                 }
 
-                if (parent is ObjectCreationExpressionSyntax)
+                if (parent is BaseObjectCreationExpressionSyntax)
                 {
                     return !IsInitializerForObjectOrAnonymousObjectCreationExpression(initializer);
                 }
@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 if (parent is ArrayCreationExpressionSyntax ||
                     parent is ImplicitArrayCreationExpressionSyntax ||
                     parent is EqualsValueClauseSyntax ||
-                    parent is ObjectCreationExpressionSyntax ||
+                    parent is BaseObjectCreationExpressionSyntax ||
                     parent.IsKind(SyntaxKind.SimpleAssignmentExpression))
                 {
                     return true;

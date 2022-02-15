@@ -54,12 +54,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         {
             Action? navigationAction = null;
             string? tooltip = null;
-            if (workspace is object
-                && diagnostic.HelpLink is { } helpLink
-                && Uri.TryCreate(helpLink, UriKind.Absolute, out var helpLinkUri))
+            if (workspace != null)
             {
-                navigationAction = new QuickInfoHyperLink(workspace, helpLinkUri).NavigationAction;
-                tooltip = helpLink;
+                var helpLinkUri = diagnostic.GetValidHelpLinkUri();
+                if (helpLinkUri != null)
+                {
+                    navigationAction = new QuickInfoHyperLink(workspace, helpLinkUri).NavigationAction;
+                    tooltip = diagnostic.HelpLink;
+                }
             }
 
             var diagnosticIdTextRun = navigationAction is null

@@ -231,6 +231,210 @@ public class X
     }
 
     [Fact]
+    [WorkItem(57731, "https://github.com/dotnet/roslyn/issues/57731")]
+    public void ListPattern_Codegen()
+    {
+        var source = @"
+public class X
+{
+    static int Test1(int[] x)
+    {
+        switch (x)
+        {
+            case [.., 1] and [1, ..]: return 0;
+        }
+
+        return 1;
+    }
+    static int Test2(int[] x)
+    {
+        switch (x)
+        {
+            case [2, ..] and [.., 1]: return 0;
+        }
+
+        return 3;
+    }
+    static int Test3(int[] x)
+    {
+        switch (x)
+        {
+            case [2, ..]: return 4;
+            case [.., 1]: return 5;
+        }
+
+        return 3;
+    }
+    static int Test4(int[] x)
+    {
+        switch (x)
+        {
+            case [2, ..]: return 4;
+            case [.., 1]: return 5;
+            case [6, .., 7]: return 8;
+        }
+
+        return 3;
+    }
+}
+";
+        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
+        var verifier = CompileAndVerify(new[] { source, TestSources.Index, TestSources.Range }, parseOptions: TestOptions.RegularWithListPatterns,
+            options: TestOptions.ReleaseDll, verify: Verification.FailsILVerify);
+        verifier.VerifyDiagnostics();
+        AssertEx.Multiple(
+            () => verifier.VerifyIL("X.Test1", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_001b
+  IL_0003:  ldarg.0
+  IL_0004:  ldlen
+  IL_0005:  conv.i4
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  blt.s      IL_001b
+  IL_000b:  ldarg.0
+  IL_000c:  ldloc.0
+  IL_000d:  ldc.i4.1
+  IL_000e:  sub
+  IL_000f:  ldelem.i4
+  IL_0010:  ldc.i4.1
+  IL_0011:  bne.un.s   IL_001b
+  IL_0013:  ldarg.0
+  IL_0014:  ldc.i4.0
+  IL_0015:  ldelem.i4
+  IL_0016:  ldc.i4.1
+  IL_0017:  bne.un.s   IL_001b
+  IL_0019:  ldc.i4.0
+  IL_001a:  ret
+  IL_001b:  ldc.i4.1
+  IL_001c:  ret
+}"),
+            () => verifier.VerifyIL("X.Test2", @"
+{
+  // Code size       29 (0x1d)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_001b
+  IL_0003:  ldarg.0
+  IL_0004:  ldlen
+  IL_0005:  conv.i4
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  blt.s      IL_001b
+  IL_000b:  ldarg.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ldelem.i4
+  IL_000e:  ldc.i4.2
+  IL_000f:  bne.un.s   IL_001b
+  IL_0011:  ldarg.0
+  IL_0012:  ldloc.0
+  IL_0013:  ldc.i4.1
+  IL_0014:  sub
+  IL_0015:  ldelem.i4
+  IL_0016:  ldc.i4.1
+  IL_0017:  bne.un.s   IL_001b
+  IL_0019:  ldc.i4.0
+  IL_001a:  ret
+  IL_001b:  ldc.i4.3
+  IL_001c:  ret
+}"),
+            () => verifier.VerifyIL("X.Test3", @"
+{
+  // Code size       33 (0x21)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_001f
+  IL_0003:  ldarg.0
+  IL_0004:  ldlen
+  IL_0005:  conv.i4
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  blt.s      IL_001f
+  IL_000b:  ldarg.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ldelem.i4
+  IL_000e:  ldc.i4.2
+  IL_000f:  beq.s      IL_001b
+  IL_0011:  ldarg.0
+  IL_0012:  ldloc.0
+  IL_0013:  ldc.i4.1
+  IL_0014:  sub
+  IL_0015:  ldelem.i4
+  IL_0016:  ldc.i4.1
+  IL_0017:  beq.s      IL_001d
+  IL_0019:  br.s       IL_001f
+  IL_001b:  ldc.i4.4
+  IL_001c:  ret
+  IL_001d:  ldc.i4.5
+  IL_001e:  ret
+  IL_001f:  ldc.i4.3
+  IL_0020:  ret
+}"),
+            () => verifier.VerifyIL("X.Test4", @"
+{
+  // Code size       51 (0x33)
+  .maxstack  3
+  .locals init (int V_0,
+              int V_1,
+              int V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0031
+  IL_0003:  ldarg.0
+  IL_0004:  ldlen
+  IL_0005:  conv.i4
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  blt.s      IL_0031
+  IL_000b:  ldarg.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ldelem.i4
+  IL_000e:  stloc.1
+  IL_000f:  ldloc.1
+  IL_0010:  ldc.i4.2
+  IL_0011:  beq.s      IL_002b
+  IL_0013:  ldarg.0
+  IL_0014:  ldloc.0
+  IL_0015:  ldc.i4.1
+  IL_0016:  sub
+  IL_0017:  ldelem.i4
+  IL_0018:  stloc.2
+  IL_0019:  ldloc.2
+  IL_001a:  ldc.i4.1
+  IL_001b:  beq.s      IL_002d
+  IL_001d:  ldloc.0
+  IL_001e:  ldc.i4.2
+  IL_001f:  blt.s      IL_0031
+  IL_0021:  ldloc.1
+  IL_0022:  ldc.i4.6
+  IL_0023:  bne.un.s   IL_0031
+  IL_0025:  ldloc.2
+  IL_0026:  ldc.i4.7
+  IL_0027:  beq.s      IL_002f
+  IL_0029:  br.s       IL_0031
+  IL_002b:  ldc.i4.4
+  IL_002c:  ret
+  IL_002d:  ldc.i4.5
+  IL_002e:  ret
+  IL_002f:  ldc.i4.8
+  IL_0030:  ret
+  IL_0031:  ldc.i4.3
+  IL_0032:  ret
+}
+")
+        );
+    }
+
+    [Fact]
     public void ListPattern_LangVer()
     {
         var source = @"
@@ -2389,9 +2593,10 @@ class X
     } 
 }
 ";
+        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
         var compilation = CreateCompilation(new[] { source, TestSources.Index }, options: TestOptions.ReleaseExe);
         compilation.VerifyEmitDiagnostics();
-        CompileAndVerify(compilation, expectedOutput: "123");
+        CompileAndVerify(compilation, expectedOutput: "123", verify: Verification.FailsILVerify);
     }
 
     [Fact]
@@ -2557,6 +2762,41 @@ class X
             // (44,13): error CS8518: An expression of type '<anonymous type: T t>' can never match the provided pattern.
             //         _ = new { t } is { t.Length: -1 }; // 8
             Diagnostic(ErrorCode.ERR_IsPatternImpossible, "new { t } is { t.Length: -1 }").WithArguments("<anonymous type: T t>").WithLocation(44, 13)
+            );
+    }
+
+    [Fact, WorkItem(59466, "https://github.com/dotnet/roslyn/issues/59466")]
+    public void AlwaysTruePattern()
+    {
+        var source = @"
+_ = new S() is [..var y];
+y.ToString();
+
+_ = new S() is [..];
+_ = new S() is [..[..]];
+_ = new S() is not [..];
+
+struct S
+{
+    public int Length => 1;
+    public int this[int i] => 42;
+    public S this[System.Range r] => default;
+}
+";
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(source);
+        comp.VerifyEmitDiagnostics(
+            // (2,5): warning CS8794: An expression of type 'S' always matches the provided pattern.
+            // _ = new S() is [..var y];
+            Diagnostic(ErrorCode.WRN_IsPatternAlways, "new S() is [..var y]").WithArguments("S").WithLocation(2, 5),
+            // (5,5): warning CS8794: An expression of type 'S' always matches the provided pattern.
+            // _ = new S() is [..];
+            Diagnostic(ErrorCode.WRN_IsPatternAlways, "new S() is [..]").WithArguments("S").WithLocation(5, 5),
+            // (6,5): warning CS8794: An expression of type 'S' always matches the provided pattern.
+            // _ = new S() is [..[..]];
+            Diagnostic(ErrorCode.WRN_IsPatternAlways, "new S() is [..[..]]").WithArguments("S").WithLocation(6, 5),
+            // (7,5): error CS8518: An expression of type 'S' can never match the provided pattern.
+            // _ = new S() is not [..];
+            Diagnostic(ErrorCode.ERR_IsPatternImpossible, "new S() is not [..]").WithArguments("S").WithLocation(7, 5)
             );
     }
 
@@ -3531,7 +3771,8 @@ public class C
 ";
         var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         compilation.VerifyDiagnostics();
-        CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
+        CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: Verification.FailsILVerify);
     }
 
     [Fact]
@@ -5101,7 +5342,8 @@ public class C
 ";
         var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         compilation.VerifyEmitDiagnostics();
-        var verifier = CompileAndVerify(compilation, expectedOutput: "(item value, rest value)");
+        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
+        var verifier = CompileAndVerify(compilation, expectedOutput: "(item value, rest value)", verify: Verification.FailsILVerify);
 
         verifier.VerifyIL("C.M", @"
 {
@@ -5189,7 +5431,8 @@ public class C
 ";
         var compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         compilation.VerifyEmitDiagnostics();
-        var verifier = CompileAndVerify(compilation, expectedOutput: "(item value, rest value)");
+        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
+        var verifier = CompileAndVerify(compilation, expectedOutput: "(item value, rest value)", verify: Verification.FailsILVerify);
 
         verifier.VerifyIL("C.M", @"
 {
@@ -5278,7 +5521,8 @@ class C
             Console.Write((x, y));
     }
 }";
-        CompileAndVerify(new[] { src, TestSources.Index, TestSources.Range }, expectedOutput: "Index Range (42, 43)");
+        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
+        CompileAndVerify(new[] { src, TestSources.Index, TestSources.Range }, expectedOutput: "Index Range (42, 43)", verify: Verification.FailsILVerify);
     }
 
     [Fact]
@@ -5317,7 +5561,8 @@ if (""abc"" is [var first, ..var rest])
     System.Console.Write((first, rest).ToString());
 }
 ";
-        CompileAndVerify(new[] { src, TestSources.Index, TestSources.Range }, expectedOutput: "(a, bc)");
+        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
+        CompileAndVerify(new[] { src, TestSources.Index, TestSources.Range }, expectedOutput: "(a, bc)", verify: Verification.FailsILVerify);
     }
 
     [Fact]
@@ -7201,7 +7446,8 @@ class C : Base
     }
 }
 ";
-        var verifier = CompileAndVerify(new[] { source, TestSources.Index }, options: TestOptions.DebugDll);
+        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
+        var verifier = CompileAndVerify(new[] { source, TestSources.Index }, options: TestOptions.DebugDll, verify: Verification.FailsILVerify);
         verifier.VerifyIL("C.M", @"
 {
   // Code size      105 (0x69)
@@ -7298,7 +7544,8 @@ class C : Base
     }
 }
 ";
-        var verifier = CompileAndVerify(new[] { source, TestSources.Index });
+        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
+        var verifier = CompileAndVerify(new[] { source, TestSources.Index }, verify: Verification.FailsILVerify);
         verifier.VerifyIL("C.M", @"
 {
   // Code size       78 (0x4e)
@@ -7447,7 +7694,8 @@ public class C
             );
 
         compilation = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
-        var verifier = CompileAndVerify(compilation, expectedOutput: "(2, 3)");
+        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
+        var verifier = CompileAndVerify(compilation, expectedOutput: "(2, 3)", verify: Verification.FailsILVerify);
         verifier.VerifyDiagnostics();
         // Note: no Index or Range involved
         verifier.VerifyIL("C.M", @"
@@ -7693,7 +7941,8 @@ class C
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "(42, 42)");
+        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
+        CompileAndVerify(comp, expectedOutput: "(42, 42)", verify: Verification.FailsILVerify);
     }
 
     [Fact]
@@ -7739,7 +7988,8 @@ class C
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "(42, 42)");
+        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
+        CompileAndVerify(comp, expectedOutput: "(42, 42)", verify: Verification.FailsILVerify);
     }
 
     [Fact]
@@ -7753,7 +8003,8 @@ if (""42"" is [var x, var y])
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "(4, 2)");
+        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
+        CompileAndVerify(comp, expectedOutput: "(4, 2)", verify: Verification.FailsILVerify);
     }
 
     [Fact]
@@ -7768,7 +8019,8 @@ if (new[] { 4, 2 } is [var x, _])
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "(4, 2)");
+        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
+        CompileAndVerify(comp, expectedOutput: "(4, 2)", verify: Verification.FailsILVerify);
     }
 
     [Theory]
@@ -7789,7 +8041,8 @@ if (new[] {data} is {pattern})
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "(4, 4)");
+        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
+        CompileAndVerify(comp, expectedOutput: "(4, 4)", verify: Verification.FailsILVerify);
     }
 
     [Fact]
@@ -7810,7 +8063,8 @@ class C
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "(42, 42)");
+        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
+        CompileAndVerify(comp, expectedOutput: "(42, 42)", verify: Verification.FailsILVerify);
     }
 
     [Fact]
@@ -7831,7 +8085,8 @@ class C
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "(42, 42)");
+        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
+        CompileAndVerify(comp, expectedOutput: "(42, 42)", verify: Verification.FailsILVerify);
     }
 
     [Fact]
@@ -7845,7 +8100,8 @@ if (""0420"" is [_, .. var x, _])
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
         comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "42");
+        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' } 
+        CompileAndVerify(comp, expectedOutput: "42", verify: Verification.FailsILVerify);
     }
 
     [Fact, WorkItem(57728, "https://github.com/dotnet/roslyn/issues/57728")]
@@ -7866,7 +8122,8 @@ class C
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray }, options: TestOptions.ReleaseExe);
         comp.VerifyEmitDiagnostics();
-        var verifier = CompileAndVerify(comp, expectedOutput: "(4, 2, 4, 2)");
+        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
+        var verifier = CompileAndVerify(comp, expectedOutput: "(4, 2, 4, 2)", verify: Verification.FailsILVerify);
         // we use Array.Length to get the length, but should be using ldlen
         // Tracked by https://github.com/dotnet/roslyn/issues/57728
         verifier.VerifyIL("C.Main", @"
@@ -7958,7 +8215,8 @@ if (new[] {data} is {pattern})
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray });
         comp.VerifyEmitDiagnostics();
-        CompileAndVerify(comp, expectedOutput: "(4, 2, 2, 4, 2, 2)");
+        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of 'System.Index', Expected = address of 'System.Index' }
+        CompileAndVerify(comp, expectedOutput: "(4, 2, 2, 4, 2, 2)", verify: Verification.FailsILVerify);
     }
 
     [Fact]
@@ -7979,7 +8237,8 @@ class C
 }
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range, TestSources.GetSubArray }, options: TestOptions.ReleaseDll);
-        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        // ILVerify: Unexpected type on the stack. { Offset = 20, Found = readonly address of '[...]System.Index', Expected = address of '[...]System.Index' }
+        var verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify).VerifyDiagnostics();
 
         verifier.VerifyIL("C.M", @"
 {
@@ -8055,7 +8314,7 @@ class C : Interface
 }
 ";
         var comp = CreateCompilation(new[] { source, TestSources.Index, TestSources.Range });
-        var verifier = CompileAndVerify(comp, expectedOutput: "(42, 43)");
+        var verifier = CompileAndVerify(comp, expectedOutput: "(42, 43)", verify: Verification.FailsILVerify);
         verifier.VerifyDiagnostics();
     }
 

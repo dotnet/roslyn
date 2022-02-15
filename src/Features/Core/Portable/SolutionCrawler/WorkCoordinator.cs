@@ -57,29 +57,33 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 _eventProcessingQueue = new TaskQueue(listener, TaskScheduler.Default);
 
-                var activeFileBackOffTimeSpan = SolutionCrawlerTimeSpan.ActiveFileWorkerBackOff;
-                var allFilesWorkerBackOffTimeSpan = SolutionCrawlerTimeSpan.AllFilesWorkerBackOff;
-                var entireProjectWorkerBackOffTimeSpan = SolutionCrawlerTimeSpan.EntireProjectWorkerBackOff;
+                var activeFileBackOffTimeSpan = InternalSolutionCrawlerOptions.ActiveFileWorkerBackOffTimeSpan;
+                var allFilesWorkerBackOffTimeSpan = InternalSolutionCrawlerOptions.AllFilesWorkerBackOffTimeSpan;
+                var entireProjectWorkerBackOffTimeSpan = InternalSolutionCrawlerOptions.EntireProjectWorkerBackOffTimeSpan;
 
                 _documentAndProjectWorkerProcessor = new IncrementalAnalyzerProcessor(
                     listener, analyzerProviders, initializeLazily, _registration,
                     activeFileBackOffTimeSpan, allFilesWorkerBackOffTimeSpan, entireProjectWorkerBackOffTimeSpan, _shutdownToken);
 
-                var semanticBackOffTimeSpan = SolutionCrawlerTimeSpan.SemanticChangeBackOff;
-                var projectBackOffTimeSpan = SolutionCrawlerTimeSpan.ProjectPropagationBackOff;
+                var semanticBackOffTimeSpan = InternalSolutionCrawlerOptions.SemanticChangeBackOffTimeSpan;
+                var projectBackOffTimeSpan = InternalSolutionCrawlerOptions.ProjectPropagationBackOffTimeSpan;
 
                 _semanticChangeProcessor = new SemanticChangeProcessor(listener, _registration, _documentAndProjectWorkerProcessor, semanticBackOffTimeSpan, projectBackOffTimeSpan, _shutdownToken);
 
-                _registration.Workspace.WorkspaceChanged += OnWorkspaceChanged;
-                _registration.Workspace.DocumentOpened += OnDocumentOpened;
-                _registration.Workspace.DocumentClosed += OnDocumentClosed;
+                // if option is on
+                if (_optionService.GetOption(InternalSolutionCrawlerOptions.SolutionCrawler))
+                {
+                    _registration.Workspace.WorkspaceChanged += OnWorkspaceChanged;
+                    _registration.Workspace.DocumentOpened += OnDocumentOpened;
+                    _registration.Workspace.DocumentClosed += OnDocumentClosed;
+
+                    // subscribe to active document changed event for active file background analysis scope.
+                    _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentSwitched;
+                }
 
                 // subscribe to option changed event after all required fields are set
                 // otherwise, we can get null exception when running OnOptionChanged handler
                 _optionService.OptionChanged += OnOptionChanged;
-
-                // subscribe to active document changed event for active file background analysis scope.
-                _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentChanged;
             }
 
             public int CorrelationId => _registration.CorrelationId;
@@ -97,7 +101,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             public void Shutdown(bool blockingShutdown)
             {
                 _optionService.OptionChanged -= OnOptionChanged;
-                _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentChanged;
+                _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentSwitched;
 
                 // detach from the workspace
                 _registration.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
@@ -136,6 +140,37 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             private void OnOptionChanged(object? sender, OptionChangedEventArgs e)
             {
+                // if solution crawler got turned off or on.
+                if (e.Option == InternalSolutionCrawlerOptions.SolutionCrawler)
+                {
+                    Contract.ThrowIfNull(e.Value);
+
+                    var value = (bool)e.Value;
+                    if (value)
+                    {
+                        _registration.Workspace.WorkspaceChanged += OnWorkspaceChanged;
+                        _registration.Workspace.DocumentOpened += OnDocumentOpened;
+                        _registration.Workspace.DocumentClosed += OnDocumentClosed;
+                        _documentTrackingService.ActiveDocumentChanged += OnActiveDocumentSwitched;
+                    }
+                    else
+                    {
+                        _registration.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
+                        _registration.Workspace.DocumentOpened -= OnDocumentOpened;
+                        _registration.Workspace.DocumentClosed -= OnDocumentClosed;
+                        _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentSwitched;
+                    }
+
+                    SolutionCrawlerLogger.LogOptionChanged(CorrelationId, value);
+                    return;
+                }
+
+                if (!_optionService.GetOption(InternalSolutionCrawlerOptions.SolutionCrawler))
+                {
+                    // Bail out if solution crawler is disabled.
+                    return;
+                }
+
                 ReanalyzeOnOptionChange(sender, e);
             }
 
@@ -172,20 +207,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
             }
 
-            private void OnActiveDocumentChanged(object? sender, DocumentId? activeDocumentId)
+            private void OnActiveDocumentSwitched(object? sender, DocumentId? activeDocumentId)
             {
-                var solution = _registration.GetSolutionToAnalyze();
-                if (solution.GetProject(activeDocumentId?.ProjectId) is not { } activeProject)
+                if (activeDocumentId == null)
                     return;
 
-                RoslynDebug.AssertNotNull(activeDocumentId);
-                var analysisScope = SolutionCrawlerOptions.GetBackgroundAnalysisScope(activeProject);
-                if (analysisScope == BackgroundAnalysisScope.ActiveFile)
-                {
-                    // When the active document changes and we are only analyzing the active file, trigger a document
-                    // changed event to reanalyze the newly-active file.
-                    EnqueueFullDocumentEvent(solution, activeDocumentId, InvocationReasons.DocumentChanged, nameof(OnActiveDocumentChanged));
-                }
+                var solution = _registration.GetSolutionToAnalyze();
+                EnqueueFullDocumentEvent(solution, activeDocumentId, InvocationReasons.ActiveDocumentSwitched, eventName: nameof(OnActiveDocumentSwitched));
             }
 
             private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs args)

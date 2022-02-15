@@ -29,20 +29,68 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
-            var backingFields = symbol.ContainingType.GetMembers()
-                                      .OfType<IFieldSymbol>()
-                                      .Where(f => symbol.Equals(f.AssociatedSymbol))
-                                      .ToImmutableArray<ISymbol>();
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
 
-            var result = backingFields;
+            CascadeToBackingFields(symbol, result);
+            CascadeToAccessors(symbol, result);
+            CascadeToPrimaryConstructorParameters(symbol, result, cancellationToken);
 
-            if (symbol.GetMethod != null)
-                result = result.Add(symbol.GetMethod);
+            return Task.FromResult(result.ToImmutable());
+        }
 
-            if (symbol.SetMethod != null)
-                result = result.Add(symbol.SetMethod);
+        private static void CascadeToBackingFields(IPropertySymbol symbol, ArrayBuilder<ISymbol> result)
+        {
+            foreach (var member in symbol.ContainingType.GetMembers())
+            {
+                if (member is IFieldSymbol field &&
+                    symbol.Equals(field.AssociatedSymbol))
+                {
+                    result.Add(field);
+                }
+            }
+        }
 
-            return Task.FromResult(result);
+        private static void CascadeToAccessors(IPropertySymbol symbol, ArrayBuilder<ISymbol> result)
+        {
+            result.AddIfNotNull(symbol.GetMethod);
+            result.AddIfNotNull(symbol.SetMethod);
+        }
+
+        private static void CascadeToPrimaryConstructorParameters(IPropertySymbol property, ArrayBuilder<ISymbol> result, CancellationToken cancellationToken)
+        {
+            if (property is
+                {
+                    IsStatic: false,
+                    DeclaringSyntaxReferences.Length: > 0,
+                    ContainingType:
+                    {
+                        IsRecord: true,
+                        DeclaringSyntaxReferences.Length: > 0,
+                    } containingType,
+                })
+            {
+                // OK, we have a property in a record.  See if we can find a primary constructor that has a parameter that synthesized this
+                var containingTypeSyntaxes = containingType.DeclaringSyntaxReferences.SelectAsArray(r => r.GetSyntax(cancellationToken));
+                foreach (var constructor in containingType.Constructors)
+                {
+                    if (constructor.DeclaringSyntaxReferences.Length > 0)
+                    {
+                        var constructorSyntax = constructor.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+                        if (containingTypeSyntaxes.Contains(constructorSyntax))
+                        {
+                            // OK found the primary construct.  Try to find a parameter that corresponds to this property.
+                            foreach (var parameter in constructor.Parameters)
+                            {
+                                if (property.Name.Equals(parameter.Name) &&
+                                    property.Equals(parameter.GetAssociatedSynthesizedRecordProperty(cancellationToken)))
+                                {
+                                    result.Add(parameter);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         protected sealed override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
