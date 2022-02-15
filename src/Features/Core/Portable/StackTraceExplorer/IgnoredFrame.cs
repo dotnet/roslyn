@@ -13,8 +13,6 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
             _originalText = originalText;
         }
 
-        public override bool IsStackFrame => false;
-
         public override string ToString()
         {
             return _originalText;

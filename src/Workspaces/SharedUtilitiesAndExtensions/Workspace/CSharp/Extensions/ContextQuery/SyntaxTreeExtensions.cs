@@ -1184,13 +1184,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         }
 
         public static bool IsPossibleLambdaParameterModifierContext(
-            this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition)
+            this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
         {
             var token = tokenOnLeftOfPosition;
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            if (token.IsKind(SyntaxKind.OpenParenToken) ||
-                token.IsKind(SyntaxKind.CommaToken))
+            if (token.Kind() is SyntaxKind.OpenParenToken or SyntaxKind.CommaToken)
             {
                 if (token.Parent.IsKind(SyntaxKind.ParameterList) &&
                     token.Parent.IsParentKind(SyntaxKind.ParenthesizedLambdaExpression))
@@ -1198,15 +1197,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     return true;
                 }
 
-                // TODO(cyrusn): Tie into semantic analysis system to only 
-                // consider this a lambda if this is a location where the
-                // lambda's type would be inferred because of a delegate
-                // or Expression<T> type.
-                if (token.Parent.IsKind(SyntaxKind.ParenthesizedExpression) ||
-                    token.Parent.IsKind(SyntaxKind.TupleExpression))
-                {
+                // TODO(cyrusn): Tie into semantic analysis system to only consider this a lambda if this is a location
+                // where the lambda's type would be inferred because of a delegate or Expression<T> type.
+                //
+                // ERROR tolerance.  Cast expressions can show up with partially written lambdas like so:
+                //
+                //      var lambda = (x$$)
+                //      NextStatement();
+                //
+                // Check if the expression of the cast is on the same line as us or not to see if we want to
+                // consider this a lambda, or just a cast.
+
+                if (token.Parent?.Kind() is SyntaxKind.ParenthesizedExpression or SyntaxKind.TupleExpression or SyntaxKind.CastExpression)
                     return true;
-                }
             }
 
             return false;
@@ -1218,14 +1221,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var token = tokenOnLeftOfPosition;
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            if (token.IsKind(SyntaxKind.OpenParenToken) ||
-                token.IsKind(SyntaxKind.CommaToken))
+            if (token.Kind() is SyntaxKind.OpenParenToken or SyntaxKind.CommaToken &&
+                token.Parent.IsKind(SyntaxKind.ParameterList) &&
+                token.Parent.IsParentKind(SyntaxKind.AnonymousMethodExpression))
             {
-                if (token.Parent.IsKind(SyntaxKind.ParameterList) &&
-                    token.Parent.IsParentKind(SyntaxKind.AnonymousMethodExpression))
-                {
-                    return true;
-                }
+                return true;
             }
 
             return false;
@@ -1237,16 +1237,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             var token = tokenOnLeftOfPosition;
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            if (token.IsKind(SyntaxKind.RefKeyword) ||
-                token.IsKind(SyntaxKind.InKeyword) ||
-                token.IsKind(SyntaxKind.OutKeyword))
+            if (token.Kind() is SyntaxKind.RefKeyword or SyntaxKind.InKeyword or SyntaxKind.OutKeyword)
             {
                 position = token.SpanStart;
                 tokenOnLeftOfPosition = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             }
 
             if (IsAnonymousMethodParameterModifierContext(syntaxTree, position, tokenOnLeftOfPosition) ||
-                IsPossibleLambdaParameterModifierContext(syntaxTree, position, tokenOnLeftOfPosition))
+                IsPossibleLambdaParameterModifierContext(syntaxTree, position, tokenOnLeftOfPosition, cancellationToken))
             {
                 return true;
             }
@@ -2656,8 +2654,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // $"{ |
             // $@"{ |
+            // $"""{ |
             // $"{x} { |
             // $@"{x} { |
+            // $"""{x} { |
             if (token.IsKind(SyntaxKind.OpenBraceToken))
             {
                 return token.Parent.IsKind(SyntaxKind.Interpolation, out InterpolationSyntax? interpolation)
@@ -2752,9 +2752,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             // Not if the position is a numeric literal
             if (token.IsKind(SyntaxKind.NumericLiteralToken))
-            {
                 return false;
-            }
 
             if (token.GetAncestor<BlockSyntax>() == null &&
                 token.GetAncestor<ArrowExpressionClauseSyntax>() == null)
@@ -2779,16 +2777,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
                 var type = token.GetAncestors<TypeSyntax>().LastOrDefault();
                 if (type == null)
-                {
                     return true;
-                }
 
-                if (type.IsKind(SyntaxKind.GenericName) ||
-                    type.IsKind(SyntaxKind.AliasQualifiedName) ||
-                    type.IsKind(SyntaxKind.PredefinedType))
-                {
+                if (type.Kind() is SyntaxKind.GenericName or SyntaxKind.AliasQualifiedName or SyntaxKind.PredefinedType)
                     return false;
-                }
 
                 ExpressionSyntax nameExpr = type;
                 if (IsRightSideName(nameExpr))
@@ -2799,27 +2791,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 // If this name is the start of a local variable declaration context, we
                 // shouldn't show is or as. For example: for(var |
                 if (syntaxTree.IsLocalVariableDeclarationContext(token.SpanStart, syntaxTree.FindTokenOnLeftOfPosition(token.SpanStart, cancellationToken), cancellationToken))
-                {
                     return false;
-                }
 
                 // Not on the left hand side of an object initializer
-                if (CodeAnalysis.CSharpExtensions.IsKind(token, SyntaxKind.IdentifierToken) &&
+                if (token.IsKind(SyntaxKind.IdentifierToken) &&
                     token.Parent.IsKind(SyntaxKind.IdentifierName) &&
-                    (token.Parent.IsParentKind(SyntaxKind.ObjectInitializerExpression) || token.Parent.IsParentKind(SyntaxKind.CollectionInitializerExpression)))
+                    token.Parent.Parent?.Kind() is SyntaxKind.ObjectInitializerExpression or SyntaxKind.CollectionInitializerExpression)
                 {
                     return false;
                 }
 
                 // Not after an 'out' declaration expression. For example: M(out var |
-                if (CodeAnalysis.CSharpExtensions.IsKind(token, SyntaxKind.IdentifierToken) &&
+                if (token.Kind() is SyntaxKind.IdentifierToken &&
                     token.Parent.IsKind(SyntaxKind.IdentifierName))
                 {
-                    if (token.Parent.IsParentKind(SyntaxKind.Argument, out ArgumentSyntax? argument) &&
-                        argument.RefOrOutKeyword.IsKind(SyntaxKind.OutKeyword))
-                    {
+                    if (token.Parent.Parent is ArgumentSyntax { RefOrOutKeyword.RawKind: (int)SyntaxKind.OutKeyword })
                         return false;
-                    }
                 }
 
                 if (token.Text == SyntaxFacts.GetText(SyntaxKind.AsyncKeyword))
@@ -2836,14 +2823,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     }
                 }
 
+                // case X $$
+                //
+                // while `X` is in an expr context, it's a limited one that doesn't support the full breadth of operators like these.
+                var tokenBeforeName = syntaxTree.FindTokenOnLeftOfPosition(nameExpr.SpanStart, cancellationToken);
+                if (tokenBeforeName.Kind() == SyntaxKind.CaseKeyword)
+                    return false;
+
                 // Now, make sure the name was actually in a location valid for
                 // an expression.  If so, then we know we can follow it.
-                if (syntaxTree.IsExpressionContext(nameExpr.SpanStart, syntaxTree.FindTokenOnLeftOfPosition(nameExpr.SpanStart, cancellationToken), attributes: false, cancellationToken: cancellationToken))
-                {
+                if (syntaxTree.IsExpressionContext(nameExpr.SpanStart, tokenBeforeName, attributes: false, cancellationToken))
                     return true;
-                }
-
-                return false;
             }
 
             return false;

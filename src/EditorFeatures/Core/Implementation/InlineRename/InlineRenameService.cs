@@ -6,10 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     [Export(typeof(IInlineRenameService))]
     [Export(typeof(InlineRenameService))]
-    internal class InlineRenameService : IInlineRenameService
+    internal sealed class InlineRenameService : IInlineRenameService
     {
         private readonly IThreadingContext _threadingContext;
         private readonly IUIThreadOperationExecutor _uiThreadOperationExecutor;
@@ -33,6 +35,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly IFeatureServiceFactory _featureServiceFactory;
         private InlineRenameSession? _activeRenameSession;
 
+        internal readonly IGlobalOptionService GlobalOptions;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public InlineRenameService(
@@ -41,6 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             ITextBufferAssociatedViewService textBufferAssociatedViewService,
             ITextBufferFactoryService textBufferFactoryService,
             IFeatureServiceFactory featureServiceFactory,
+            IGlobalOptionService globalOptions,
             [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
@@ -51,6 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _featureServiceFactory = featureServiceFactory;
             _refactorNotifyServices = refactorNotifyServices;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.Rename);
+            GlobalOptions = globalOptions;
         }
 
         public InlineRenameSessionInfo StartInlineSession(
@@ -80,12 +86,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             var snapshot = document.GetTextSynchronously(cancellationToken).FindCorrespondingEditorTextSnapshot();
             Contract.ThrowIfNull(snapshot, "The document used for starting the inline rename session should still be open and associated with a snapshot.");
 
+            var options = new SymbolRenameOptions(
+                RenameOverloads: renameInfo.MustRenameOverloads || GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameOverloads),
+                RenameInStrings: GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameInStrings),
+                RenameInComments: GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameInComments),
+                RenameFile: GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameFile));
+
+            var previewChanges = GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.PreviewChanges);
+
             ActiveSession = new InlineRenameSession(
                 _threadingContext,
                 this,
                 document.Project.Solution.Workspace,
                 renameInfo.TriggerSpan.ToSnapshotSpan(snapshot),
                 renameInfo,
+                options,
+                previewChanges,
                 _uiThreadOperationExecutor,
                 _textBufferAssociatedViewService,
                 _textBufferFactoryService,

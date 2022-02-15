@@ -246,7 +246,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return controlService.CreateDisposableToolTip(document, textBuffer, contentSpan, EnvironmentColors.ToolWindowBackgroundBrushKey);
             }
 
-            private void SetStaticClassifications(ITextBuffer textBuffer, ImmutableArray<ClassifiedSpan> classifiedSpans)
+            private static void SetStaticClassifications(ITextBuffer textBuffer, ImmutableArray<ClassifiedSpan> classifiedSpans)
             {
                 var key = PredefinedPreviewTaggerKeys.StaticClassificationSpansKey;
                 textBuffer.Properties.RemoveProperty(key);
@@ -293,7 +293,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return false;
             }
 
-            public Task NavigateToAsync(bool isPreview, bool shouldActivate, CancellationToken cancellationToken)
+            public Task NavigateToAsync(NavigationOptions options, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfFalse(CanNavigateTo());
 
@@ -301,17 +301,14 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // this is because the file path given to the table control isn't a real file path to a file
                 // on disk.
 
-                var solution = _excerptResult.Document.Project.Solution;
-                var workspace = solution.Workspace;
+                var workspace = _excerptResult.Document.Project.Solution.Workspace;
                 var documentNavigationService = workspace.Services.GetRequiredService<IDocumentNavigationService>();
 
                 return documentNavigationService.TryNavigateToSpanAsync(
                     workspace,
                     _excerptResult.Document.Id,
                     _excerptResult.Span,
-                    solution.Options
-                        .WithChangedOption(NavigationOptions.PreferProvisionalTab, isPreview)
-                        .WithChangedOption(NavigationOptions.ActivateTab, shouldActivate),
+                    options,
                     cancellationToken);
             }
         }

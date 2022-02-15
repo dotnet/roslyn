@@ -91,6 +91,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly Dictionary<string, List<VisualStudioProject>> _projectSystemNameToProjectsMap = new();
 
+        /// <summary>
+        /// Only safe to use on the UI thread.
+        /// </summary>
         private readonly Dictionary<string, UIContext?> _languageToProjectExistsUIContext = new();
 
         /// <summary>
@@ -543,7 +546,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return true;
         }
 
-        private string? GetAnalyzerPath(AnalyzerReference analyzerReference)
+        private static string? GetAnalyzerPath(AnalyzerReference analyzerReference)
             => analyzerReference.FullPath;
 
         protected override void ApplyCompilationOptionsChanged(ProjectId projectId, CompilationOptions options)
@@ -625,7 +628,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private string? GetMetadataPath(MetadataReference metadataReference)
+        private static string? GetMetadataPath(MetadataReference metadataReference)
         {
             if (metadataReference is PortableExecutableReference fileMetadata)
             {
@@ -879,7 +882,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private bool IsWebsite(EnvDTE.Project project)
+        private static bool IsWebsite(EnvDTE.Project project)
             => project.Kind == VsWebSite.PrjKind.prjKindVenusProject;
 
         private IEnumerable<string> FilterFolderForProjectType(EnvDTE.Project project, IEnumerable<string> folders)
@@ -1281,7 +1284,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// The <see cref="VisualStudioWorkspace"/> currently supports only a subset of <see cref="DocumentInfo"/> 
         /// changes.
         /// </summary>
-        private void FailIfDocumentInfoChangesNotSupported(CodeAnalysis.Document document, DocumentInfo updatedInfo)
+        private static void FailIfDocumentInfoChangesNotSupported(CodeAnalysis.Document document, DocumentInfo updatedInfo)
         {
             if (document.SourceCodeKind != updatedInfo.SourceCodeKind)
             {
@@ -1671,12 +1674,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // Try to update the UI context info.  But cancel that work if we're shutting down.
             var listenerProvider = Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
-            var asyncToken = listenerProvider.GetListener().BeginAsyncOperation(nameof(RefreshProjectExistsUIContextForLanguage));
+            var asyncToken = listenerProvider.GetListener().BeginAsyncOperation(nameof(RefreshProjectExistsUIContextForLanguageAsync));
             _threadingContext.RunWithShutdownBlockAsync(async cancellationToken =>
             {
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
-                RefreshProjectExistsUIContextForLanguage(languageName);
-                asyncToken.Dispose();
+                try
+                {
+                    await RefreshProjectExistsUIContextForLanguageAsync(languageName, cancellationToken).ConfigureAwait(false);
+                }
+                finally
+                {
+                    asyncToken.Dispose();
+                }
             });
         }
 
@@ -2077,24 +2085,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 (projectId, targetIdentifier));
         }
 
-        internal void RefreshProjectExistsUIContextForLanguage(string language)
+        internal async Task RefreshProjectExistsUIContextForLanguageAsync(string language, CancellationToken cancellationToken)
         {
-            // We must assert the call is on the foreground as setting UIContext.IsActive would otherwise do a COM RPC.
-            _foregroundObject.AssertIsForeground();
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
 
-            using (_gate.DisposableWait())
-            {
-                var uiContext =
-                    _languageToProjectExistsUIContext.GetOrAdd(
-                        language,
-                        l => Services.GetLanguageServices(l).GetService<IProjectExistsUIContextProviderLanguageService>()?.GetUIContext());
+            var uiContext = _languageToProjectExistsUIContext.GetOrAdd(
+                language,
+                language => Services.GetLanguageServices(language).GetService<IProjectExistsUIContextProviderLanguageService>()?.GetUIContext());
 
-                // UIContexts can be "zombied" if UIContexts aren't supported because we're in a command line build or in other scenarios.
-                if (uiContext != null && !uiContext.IsZombie)
-                {
-                    uiContext.IsActive = CurrentSolution.Projects.Any(p => p.Language == language);
-                }
-            }
+            // UIContexts can be "zombied" if UIContexts aren't supported because we're in a command line build or in
+            // other scenarios.
+            if (uiContext == null || uiContext.IsZombie)
+                return;
+
+            // Note: it's safe to read CurrentSolution here outside of any sort of lock.  We do all work here on the UI
+            // thread, so that acts as a natural ordering mechanism here.  If, say, a BG piece of work was mutating this
+            // solution (either adding or removing a project) then that work will also have enqueued the next refresh
+            // operation on the UI thread.  So we'll always eventually reach a fixed point where the task for that
+            // language will check the latest CurrentSolution we have and will set the IsActive bit accordingly.
+            uiContext.IsActive = this.CurrentSolution.Projects.Any(p => p.Language == language);
         }
     }
 }

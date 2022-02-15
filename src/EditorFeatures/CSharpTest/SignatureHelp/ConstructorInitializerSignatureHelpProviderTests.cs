@@ -698,5 +698,72 @@ class C : D
 
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: true);
         }
+
+        [Theory]
+        [InlineData("1$$", 0)]
+        [InlineData(",$$", 1)]
+        [InlineData(",$$,", 1)]
+        [InlineData(",,$$", 2)]
+        [InlineData("i2: 1, $$,", 0)]
+        [InlineData("i2: 1, i1: $$,", 0)]
+        [InlineData("i2: 1, $$, i1: 2", 2)]
+        [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")]
+        public async Task PickCorrectOverload_NamesAndEmptyPositions(string arguments, int expectedParameterIndex)
+        {
+            var markup = $@"
+class Program
+{{
+    Program() [|: this({arguments}|])
+    {{
+    }}
+    Program(int i1, int i2, int i3) {{ }}
+}}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("Program(int i1, int i2, int i3)", currentParameterIndex: expectedParameterIndex, isSelected: true),
+            };
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Theory]
+        [InlineData("1$$", 0, 0)]
+        [InlineData("1$$, ", 0, 0)]
+        [InlineData("1, $$", 1, 0)]
+        [InlineData("s: $$", 1, 0)]
+        [InlineData("s: string.Empty$$", 1, 0)]
+        [InlineData("s: string.Empty$$, ", 1, 0)]
+        [InlineData("s: string.Empty, $$", 0, 0)]
+        [InlineData("string.Empty$$", 0, 1)]
+        [InlineData("string.Empty$$, ", 0, 1)]
+        [InlineData("string.Empty,$$", 1, 1)]
+        [InlineData("$$, ", 0, 0)]
+        [InlineData(",$$", 1, 0)]
+        [InlineData("$$, s: string.Empty", 0, 0)]
+        [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(6713, "https://github.com/dotnet/roslyn/issues/6713")]
+        public async Task PickCorrectOverload_Incomplete(string arguments, int expectedParameterIndex, int expecteSelectedIndex)
+        {
+            var markup = $@"
+class Program
+{{
+    Program() [|: this({arguments}|])
+    {{
+    }}
+    Program(int i, string s) {{ }}
+    Program(string s, string s2) {{ }}
+}}";
+
+            var index = 0;
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("Program(int i, string s)", currentParameterIndex: expectedParameterIndex, isSelected: expecteSelectedIndex == index++),
+                new SignatureHelpTestItem("Program(string s, string s2)", currentParameterIndex: expectedParameterIndex, isSelected: expecteSelectedIndex == index++),
+            };
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
     }
 }

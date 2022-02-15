@@ -197,9 +197,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void Activate()
             => GetDTE().ActiveDocument.Activate();
 
-        public bool IsProjectItemDirty()
-            => GetDTE().ActiveDocument.ProjectItem.IsDirty;
-
         public string GetText()
             => ExecuteOnActiveView(view => view.TextSnapshot.GetText());
 
@@ -340,24 +337,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         /// This method does not wait for async operations before
         /// querying the editor
         /// </remarks>
-        public Signature[] GetSignatures()
-            => ExecuteOnActiveView(view =>
-            {
-                var broker = GetComponentModelService<ISignatureHelpBroker>();
-
-                var sessions = broker.GetSessions(view);
-                if (sessions.Count != 1)
-                {
-                    throw new InvalidOperationException($"Expected exactly one session in the signature help, but found {sessions.Count}");
-                }
-
-                return sessions[0].Signatures.Select(s => new Signature(s)).ToArray();
-            });
-
-        /// <remarks>
-        /// This method does not wait for async operations before
-        /// querying the editor
-        /// </remarks>
         public Signature GetCurrentSignature()
             => ExecuteOnActiveView(view =>
             {
@@ -474,9 +453,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 }
             }
         }
-
-        public void MessageBox(string message)
-            => ExecuteOnActiveView(view => System.Windows.MessageBox.Show(message));
 
         public void VerifyDialog(string dialogAutomationId, bool isOpen)
         {
@@ -798,6 +774,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void GoToImplementation()
             => ExecuteCommand(WellKnownCommandNames.Edit_GoToImplementation);
+
+        public void GoToBase()
+            => ExecuteCommand(WellKnownCommandNames.Edit_GoToBase);
 
         /// <summary>
         /// Gets the spans where a particular tag appears in the active text view.

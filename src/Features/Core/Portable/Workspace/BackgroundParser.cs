@@ -208,14 +208,6 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     try
                     {
-                        if (SolutionCrawlerOptions.GetBackgroundAnalysisScope(document.Project) == BackgroundAnalysisScope.ActiveFile
-                            && _documentTrackingService?.TryGetActiveDocument() != document.Id)
-                        {
-                            // Active file analysis is enabled, but the document for parsing is not the current
-                            // document. Return immediately without parsing.
-                            return;
-                        }
-
                         await document.GetSyntaxTreeAsync(CancellationToken.None).ConfigureAwait(false);
                     }
                     finally

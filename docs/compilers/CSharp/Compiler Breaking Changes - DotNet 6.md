@@ -108,3 +108,24 @@ These are _function_type_conversions_.
         }
     }
     ```
+
+4. In Visual Studio 17.1, `struct` type declarations with field initializers must include an explicitly declared constructor. Additionally, all fields must be definitely assigned in `struct` instance constructors that do not have a `: this()` initializer so any previously unassigned fields must be assigned from the added constructor or from field initializers.
+
+    For instance, the following results in an error in 17.1:
+    ```csharp
+    struct S
+    {
+        int X = 1; // error: struct with field initializers must include an explicitly declared constructor
+        int Y;
+    }
+    ```
+
+    The error could be resolved by adding a constructor and assigning the other field.
+    ```csharp
+    struct S
+    {
+        int X = 1;
+        int Y;
+        public S() { Y = 0; } // ok
+    }
+    ```

@@ -5,13 +5,13 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeCleanup
 {
@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             Document document,
             EnabledDiagnosticOptions enabledDiagnostics,
             IProgressTracker progressTracker,
+            CodeActionOptions options,
             CancellationToken cancellationToken)
         {
             // add one item for the 'format' action we'll do last
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             }
 
             document = await ApplyCodeFixesAsync(
-                document, enabledDiagnostics.Diagnostics, progressTracker, cancellationToken).ConfigureAwait(false);
+                document, enabledDiagnostics.Diagnostics, progressTracker, options, cancellationToken).ConfigureAwait(false);
 
             // do the remove usings after code fix, as code fix might remove some code which can results in unused usings.
             if (organizeUsings)
@@ -100,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
         private async Task<Document> ApplyCodeFixesAsync(
             Document document, ImmutableArray<DiagnosticSet> enabledDiagnosticSets,
-            IProgressTracker progressTracker, CancellationToken cancellationToken)
+            IProgressTracker progressTracker, CodeActionOptions options, CancellationToken cancellationToken)
         {
             // Add a progress item for each enabled option we're going to fixup.
             progressTracker.AddItems(enabledDiagnosticSets.Length);
@@ -111,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
                 progressTracker.Description = diagnosticSet.Description;
                 document = await ApplyCodeFixesForSpecificDiagnosticIdsAsync(
-                    document, diagnosticSet.DiagnosticIds, progressTracker, cancellationToken).ConfigureAwait(false);
+                    document, diagnosticSet.DiagnosticIds, progressTracker, options, cancellationToken).ConfigureAwait(false);
 
                 // Mark this option as being completed.
                 progressTracker.ItemCompleted();
@@ -121,14 +122,14 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
         }
 
         private async Task<Document> ApplyCodeFixesForSpecificDiagnosticIdsAsync(
-            Document document, ImmutableArray<string> diagnosticIds, IProgressTracker progressTracker, CancellationToken cancellationToken)
+            Document document, ImmutableArray<string> diagnosticIds, IProgressTracker progressTracker, CodeActionOptions options, CancellationToken cancellationToken)
         {
             foreach (var diagnosticId in diagnosticIds)
             {
                 using (Logger.LogBlock(FunctionId.CodeCleanup_ApplyCodeFixesAsync, diagnosticId, cancellationToken))
                 {
                     document = await _codeFixService.ApplyCodeFixesForSpecificDiagnosticIdAsync(
-                        document, diagnosticId, progressTracker, cancellationToken).ConfigureAwait(false);
+                        document, diagnosticId, progressTracker, options, cancellationToken).ConfigureAwait(false);
                 }
             }
 

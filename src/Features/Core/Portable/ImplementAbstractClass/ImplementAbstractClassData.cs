@@ -105,16 +105,19 @@ namespace Microsoft.CodeAnalysis.ImplementAbstractClass
                         FeaturesResources.Base_classes_contain_inaccessible_unimplemented_members)));
             }
 
-            var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var updatedClassNode = CodeGenerator.AddMemberDeclarations(
+            var context = new CodeGenerationContext(
+                contextLocation: classNodeToAddMembersTo.GetLocation(),
+                autoInsertionLocation: groupMembers,
+                sortMembers: groupMembers);
+
+            var codeGenerator = _document.GetRequiredLanguageService<ICodeGenerationService>();
+            var options = await CodeGenerationOptions.FromDocumentAsync(context, _document, cancellationToken).ConfigureAwait(false);
+
+            var updatedClassNode = codeGenerator.AddMembers(
                 classNodeToAddMembersTo,
                 memberDefinitions,
-                _document.Project.Solution.Workspace,
-                new CodeGenerationOptions(
-                    contextLocation: classNodeToAddMembersTo.GetLocation(),
-                    autoInsertionLocation: groupMembers,
-                    sortMembers: groupMembers,
-                    options: options));
+                options,
+                cancellationToken);
 
             var root = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = root.ReplaceNode(_classNode, updatedClassNode);

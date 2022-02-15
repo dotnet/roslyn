@@ -12,6 +12,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Editor;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Navigation;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -82,7 +83,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                         allowCancellation: true,
                         showProgress: false);
 
-                    await supportsNavigation.NavigateToAsync(e.IsPreview, e.ShouldActivate, context.UserCancellationToken).ConfigureAwait(false);
+                    var options = new NavigationOptions(PreferProvisionalTab: e.IsPreview, ActivateTab: e.ShouldActivate);
+                    await supportsNavigation.NavigateToAsync(options, context.UserCancellationToken).ConfigureAwait(false);
                 }
             }
         }

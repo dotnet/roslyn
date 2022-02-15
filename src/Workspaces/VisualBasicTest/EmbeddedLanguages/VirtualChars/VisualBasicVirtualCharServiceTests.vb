@@ -29,6 +29,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.EmbeddedLanguages.Virtual
         Private Shared Sub Test(stringText As String, expected As String)
             Dim token = GetStringToken(stringText)
             Dim virtualChars = VisualBasicVirtualCharService.Instance.TryConvertToVirtualChars(token)
+            For Each ch In virtualChars
+                For i = ch.Span.Start To ch.Span.End - 1
+                    Assert.Equal(ch, virtualChars.Find(i))
+                Next
+            Next
             Dim actual = ConvertToString(virtualChars)
             Assert.Equal(expected, actual)
         End Sub

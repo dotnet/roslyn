@@ -12,6 +12,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -250,7 +251,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 }
 
                 // TODO: Apply location mapping when creating the TODO item (https://github.com/dotnet/roslyn/issues/36217)
-                private LinePosition GetLineColumn(TodoTableItem item)
+                private static LinePosition GetLineColumn(TodoTableItem item)
                 {
                     return VisualStudioVenusSpanMappingService.GetAdjustedLineColumn(
                         item.Workspace,
@@ -261,8 +262,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                         item.Data.MappedColumn);
                 }
 
-                public override bool TryNavigateTo(int index, bool previewTab, bool activate, CancellationToken cancellationToken)
-                    => TryNavigateToItem(index, previewTab, activate, cancellationToken);
+                public override bool TryNavigateTo(int index, NavigationOptions options, CancellationToken cancellationToken)
+                    => TryNavigateToItem(index, options, cancellationToken);
             }
         }
     }

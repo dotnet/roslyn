@@ -1688,5 +1688,41 @@ class C
     }
 }");
         }
+
+        [WorkItem(58898, "https://github.com/dotnet/roslyn/issues/58898")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseConditionalExpression)]
+        public async Task TestRemoveRedundantCast()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        Guid? id;
+
+        [||]if (true)
+        {
+            id = Guid.NewGuid();
+        }
+        else
+        {
+            id = Guid.Empty;
+        }
+    }
+}",
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        var id = true ? Guid.NewGuid() : (Guid?)Guid.Empty;
+    }
+}", new TestParameters(options: PreferImplicitTypeAlways));
+        }
     }
 }

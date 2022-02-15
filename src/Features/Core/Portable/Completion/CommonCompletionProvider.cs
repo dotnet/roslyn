@@ -34,10 +34,12 @@ namespace Microsoft.CodeAnalysis.Completion
         public sealed override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)
         {
             Debug.Fail("For backwards API compat only, should not be called");
-            return ShouldTriggerCompletionImpl(text, caretPosition, trigger, CompletionOptions.From(options, Language));
+
+            // Publicly available options do not affect this API.
+            return ShouldTriggerCompletionImpl(text, caretPosition, trigger, CompletionOptions.Default);
         }
 
-        internal override bool ShouldTriggerCompletion(HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options)
+        internal override bool ShouldTriggerCompletion(HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options, OptionSet passThroughOptions)
             => ShouldTriggerCompletionImpl(text, caretPosition, trigger, options);
 
         private bool ShouldTriggerCompletionImpl(SourceText text, int caretPosition, CompletionTrigger trigger, in CompletionOptions options)
@@ -54,7 +56,9 @@ namespace Microsoft.CodeAnalysis.Completion
         public sealed override Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
             Debug.Fail("For backwards API compat only, should not be called");
-            return GetDescriptionAsync(document, item, CompletionOptions.From(document.Project), SymbolDescriptionOptions.From(document.Project), cancellationToken);
+
+            // Publicly available options do not affect this API.
+            return GetDescriptionAsync(document, item, CompletionOptions.Default, SymbolDescriptionOptions.Default, cancellationToken);
         }
 
         internal override async Task<CompletionDescription?> GetDescriptionAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)

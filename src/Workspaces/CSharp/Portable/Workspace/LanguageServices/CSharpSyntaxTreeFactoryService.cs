@@ -23,22 +23,20 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class CSharpSyntaxTreeFactoryServiceFactory : ILanguageServiceFactory
     {
         private static readonly CSharpParseOptions _parseOptionWithLatestLanguageVersion = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
-        private readonly IGlobalOptionService _optionService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpSyntaxTreeFactoryServiceFactory(IGlobalOptionService optionService)
+        public CSharpSyntaxTreeFactoryServiceFactory()
         {
-            _optionService = optionService;
         }
 
         public ILanguageService CreateLanguageService(HostLanguageServices provider)
-            => new CSharpSyntaxTreeFactoryService(_optionService, provider);
+            => new CSharpSyntaxTreeFactoryService(provider);
 
         private partial class CSharpSyntaxTreeFactoryService : AbstractSyntaxTreeFactoryService
         {
-            public CSharpSyntaxTreeFactoryService(IGlobalOptionService optionService, HostLanguageServices languageServices)
-                : base(optionService, languageServices)
+            public CSharpSyntaxTreeFactoryService(HostLanguageServices languageServices)
+                : base(languageServices)
             {
             }
 

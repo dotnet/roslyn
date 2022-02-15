@@ -27,8 +27,8 @@ internal class ExperimentalWorkspacePullDiagnosticHandlerProvider : AbstractRequ
         _analyzerService = analyzerService;
     }
 
-    public override ImmutableArray<IRequestHandler> CreateRequestHandlers()
+    public override ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
     {
-        return ImmutableArray.Create<IRequestHandler>(new ExperimentalWorkspacePullDiagnosticsHandler(_diagnosticService, _analyzerService));
+        return ImmutableArray.Create<IRequestHandler>(new ExperimentalWorkspacePullDiagnosticsHandler(serverKind, _diagnosticService, _analyzerService));
     }
 }

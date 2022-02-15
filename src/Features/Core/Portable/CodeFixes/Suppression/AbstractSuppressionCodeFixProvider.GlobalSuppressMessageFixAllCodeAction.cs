@@ -11,10 +11,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Formatting;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
@@ -120,10 +121,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             protected override async Task<Document> GetChangedSuppressionDocumentAsync(CancellationToken cancellationToken)
             {
                 var suppressionsDoc = await GetOrCreateSuppressionsDocumentAsync(cancellationToken).ConfigureAwait(false);
-                var workspace = suppressionsDoc.Project.Solution.Workspace;
+                var services = suppressionsDoc.Project.Solution.Workspace.Services;
                 var suppressionsRoot = await suppressionsDoc.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var compilation = await suppressionsDoc.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var addImportsService = suppressionsDoc.GetRequiredLanguageService<IAddImportsService>();
+                var options = await SyntaxFormattingOptions.FromDocumentAsync(suppressionsDoc, cancellationToken).ConfigureAwait(false);
 
                 foreach (var (targetSymbol, diagnostics) in _diagnosticsBySymbol)
                 {
@@ -132,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                         Contract.ThrowIfFalse(!diagnostic.IsSuppressed);
                         suppressionsRoot = Fixer.AddGlobalSuppressMessageAttribute(
                             suppressionsRoot, targetSymbol, _suppressMessageAttribute, diagnostic,
-                            workspace, compilation, addImportsService, cancellationToken);
+                            services, options, addImportsService, cancellationToken);
                     }
                 }
 

@@ -11722,7 +11722,13 @@ System.NotImplementedException: 28
    at TestAnalyzer.get_SupportedDiagnostics()
    at Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.AnalyzerExecutionContext.<>c__DisplayClass20_0.<ComputeDiagnosticDescriptors>b__0(Object _)
    at Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteAndCatchIfThrows_NoLock[TArg](DiagnosticAnalyzer analyzer, Action`1 analyze, TArg argument, Nullable`1 info)
------", outputWithoutPaths);
+-----
+Analyzer 'TestAnalyzer' threw the following exception:
+'System.NotImplementedException: 28
+   at TestAnalyzer.get_SupportedDiagnostics()
+   at Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.CreateDisablingMessage(DiagnosticAnalyzer analyzer, String analyzerName)
+-----
+'.", outputWithoutPaths);
 
             Assert.Equal(0, result.ExitCode);
         }
@@ -12497,6 +12503,11 @@ dotnet_diagnostic.{diagnosticId}.severity = warning
 dotnet_analyzer_diagnostic.category-{category}.severity = error";
             TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Warn);
 
+            // Verify category based configuration to warning + /warnaserror reports errors.
+            analyzerConfigText = $@"
+[*.cs]
+dotnet_analyzer_diagnostic.category-{category}.severity = warning";
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, warnAsError: true, expectedDiagnosticSeverity: ReportDiagnostic.Error);
 
             // Verify disabled by default analyzer is not enabled by category based configuration.
             analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: false, defaultSeverity);
@@ -12577,6 +12588,12 @@ dotnet_diagnostic.{diagnosticId}.severity = warning
 dotnet_analyzer_diagnostic.severity = error";
             TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, expectedDiagnosticSeverity: ReportDiagnostic.Warn);
 
+            // Verify bulk configuration to warning + /warnaserror reports errors.
+            analyzerConfigText = $@"
+[*.cs]
+dotnet_analyzer_diagnostic.severity = warning";
+            TestBulkAnalyzerConfigurationCore(analyzer, analyzerConfigText, errorlog, warnAsError: true, expectedDiagnosticSeverity: ReportDiagnostic.Error);
+
             // Verify disabled by default analyzer is not enabled by bulk configuration.
             analyzer = new NamedTypeAnalyzerWithConfigurableEnabledByDefault(isEnabledByDefault: false, defaultSeverity);
             analyzerConfigText = $@"
@@ -12654,7 +12671,8 @@ dotnet_analyzer_diagnostic.severity = suggestion";
             bool errorlog,
             ReportDiagnostic expectedDiagnosticSeverity,
             string rulesetText = null,
-            bool noWarn = false)
+            bool noWarn = false,
+            bool warnAsError = false)
         {
             var diagnosticId = analyzer.Descriptor.Id;
             var dir = Temp.CreateDirectory();
@@ -12670,6 +12688,11 @@ dotnet_analyzer_diagnostic.severity = suggestion";
             if (noWarn)
             {
                 arguments = arguments.Append($"/nowarn:{diagnosticId}");
+            }
+
+            if (warnAsError)
+            {
+                arguments = arguments.Append($"/warnaserror");
             }
 
             if (errorlog)

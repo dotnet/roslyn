@@ -224,7 +224,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotBeMadeNullable">
         <source>'{0}' cannot be made nullable.</source>
-        <target state="new">'{0}' cannot be made nullable.</target>
+        <target state="translated">'{0}' は null 許容にすることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotClone">
@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotUseRefInUnmanagedCallersOnly">
         <source>Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.</source>
-        <target state="new">Cannot use 'ref', 'in', or 'out' in the signature of a method attributed with 'UnmanagedCallersOnly'.</target>
+        <target state="translated">"UnmanagedCallersOnly" の属性が設定されたメソッドのシグネチャでは、"ref"、"in"、または "out" を使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotUseSelfAsInterpolatedStringHandlerArgument">
@@ -357,6 +357,11 @@
         <target state="translated">'not' または 'or' パターンの中で変数を宣言することはできません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DiscardCannotBeNullChecked">
+        <source>Discard parameter cannot be null-checked.</source>
+        <target state="new">Discard parameter cannot be null-checked.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
         <source>The discard pattern is not permitted as a case label in a switch statement. Use 'case var _:' for a discard pattern, or 'case @_:' for a constant named '_'.</source>
         <target state="translated">この破棄パターンは switch ステートメントの case ラベルとして許可されていません。破棄パターンに 'case var _:' を使用するか、'_' という定数に'case @_:' をご使用ください。</target>
@@ -405,6 +410,11 @@
       <trans-unit id="ERR_ElseCannotStartStatement">
         <source>'else' cannot start a statement.</source>
         <target state="translated">'else' でステートメントを開始することはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_EncUpdateFailedDelegateTypeChanged">
+        <source>Cannot update because an inferred delegate type has changed.</source>
+        <target state="new">Cannot update because an inferred delegate type has changed.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
@@ -469,7 +479,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsPatternImplicitIndexer">
         <source>An expression tree may not contain a pattern System.Index or System.Range indexer access</source>
-        <target state="new">An expression tree may not contain a pattern System.Index or System.Range indexer access</target>
+        <target state="translated">式ツリーに、System.Index または System.Range インデクサー アクセスのパターンを含めることはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsRangeExpression">
@@ -597,6 +607,11 @@
         <target state="translated">このパラメーターに対応する位置にあるメンバー '{0}' が非表示になっています。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_IllegalAtSequence">
+        <source>Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.</source>
+        <target state="new">Sequence of '@' characters is not allowed. A verbatim string or identifier can only have one '@' character and a raw string cannot have any.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
         <source>The suppression operator is not allowed in this context</source>
         <target state="translated">このコンテキストでは抑制演算子が許可されていません</target>
@@ -630,11 +645,6 @@
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.</source>
         <target state="translated">'in' 修飾子を持つ引数を、動的ディスパッチされる式で使用することはできません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_IncorrectNullCheckSyntax">
-        <source>Incorrect parameter null checking syntax. Should be '!!'.</source>
-        <target state="new">Incorrect parameter null checking syntax. Should be '!!'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InheritingFromRecordWithSealedToString">
@@ -699,7 +709,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers">
         <source>Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.</source>
-        <target state="new">Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.</target>
+        <target state="translated">インデックス付けされているインスタンスを参照する補間された文字列ハンドラーの変換は、インデクサー メンバー初期化子では使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
@@ -774,12 +784,22 @@
       </trans-unit>
       <trans-unit id="ERR_LambdaExplicitReturnTypeVar">
         <source>The contextual keyword 'var' cannot be used as an explicit lambda return type</source>
-        <target state="new">The contextual keyword 'var' cannot be used as an explicit lambda return type</target>
+        <target state="translated">コンテキスト キーワード "var" を明示的なラムダ戻り値の型として使用することはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LambdaWithAttributesToExpressionTree">
         <source>A lambda expression with attributes cannot be converted to an expression tree</source>
-        <target state="new">A lambda expression with attributes cannot be converted to an expression tree</target>
+        <target state="translated">属性を含むラムダ式は、式ツリーに変換できません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LineContainsDifferentWhitespace">
+        <source>Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</source>
+        <target state="new">Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LineDoesNotStartWithSameWhitespace">
+        <source>Line does not start with the same whitespace as the closing line of the raw string literal.</source>
+        <target state="new">Line does not start with the same whitespace as the closing line of the raw string literal.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineSpanDirectiveEndLessThanStart">
@@ -799,7 +819,7 @@
       </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">
         <source>Slice patterns may only be used once and directly inside a list pattern.</source>
-        <target state="new">Slice patterns may only be used once and directly inside a list pattern.</target>
+        <target state="translated">スライス パターンは、1 回限り、リスト パターン内で直接使用される可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingAddressOf">
@@ -859,7 +879,7 @@
       </trans-unit>
       <trans-unit id="ERR_MustNullCheckInImplementation">
         <source>Parameter '{0}' can only have exclamation-point null checking in implementation methods.</source>
-        <target state="new">Parameter '{0}' can only have exclamation-point null checking in implementation methods.</target>
+        <target state="translated">パラメーター '{0}' には、実装メソッドで感嘆符 null チェックのみを指定できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
@@ -869,7 +889,7 @@
       </trans-unit>
       <trans-unit id="ERR_NewlinesAreNotAllowedInsideANonVerbatimInterpolatedString">
         <source>Newlines inside a non-verbatim interpolated string are not supported in C# {0}. Please use language version {1} or greater.</source>
-        <target state="new">Newlines inside a non-verbatim interpolated string are not supported in C# {0}. Please use language version {1} or greater.</target>
+        <target state="translated">非逐語的な補間された文字列内の改行は、C# {0} ではサポートされていません。{1} またはそれ以上の言語バージョンを使用してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
@@ -904,7 +924,7 @@
       </trans-unit>
       <trans-unit id="ERR_NonNullableValueTypeIsNullChecked">
         <source>Parameter '{0}' is a non-nullable value type and cannot be null-checked.</source>
-        <target state="new">Parameter '{0}' is a non-nullable value type and cannot be null-checked.</target>
+        <target state="translated">パラメーター '{0}' は null 非許容の値の型であるため、null チェックできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonPrivateAPIInRecord">
@@ -927,6 +947,16 @@
         <target state="translated">パラメーターなしの構造体コンストラクターは 'パブリック' でなければなりません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NotEnoughCloseBracesForRawString">
+        <source>The interpolation must end with the same number of closing braces as the number of '$' characters that the raw string literal started with.</source>
+        <target state="new">The interpolation must end with the same number of closing braces as the number of '$' characters that the raw string literal started with.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NotEnoughQuotesForRawString">
+        <source>Not enough quotes for raw string literal.</source>
+        <target state="new">Not enough quotes for raw string literal.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NotInstanceInvalidInterpolatedStringHandlerArgumentName">
         <source>'{0}' is not an instance method, the receiver cannot be an interpolated string handler argument.</source>
         <target state="translated">'{0}' はインスタンス メソッドではありません。レシーバーを、補間された文字列ハンドラー引数にすることはできません。</target>
@@ -937,9 +967,9 @@
         <target state="translated">'{0}' ではオーバーライドを許可する必要があります。これが含まれているレコードが sealed ではないためです。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NullCheckingOnByRefParameter">
-        <source>By-reference parameter '{0}' cannot be null-checked.</source>
-        <target state="new">By-reference parameter '{0}' cannot be null-checked.</target>
+      <trans-unit id="ERR_NullCheckingOnOutParameter">
+        <source>'out' parameter '{0}' cannot be null-checked.</source>
+        <target state="new">'out' parameter '{0}' cannot be null-checked.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">
@@ -1062,6 +1092,26 @@
         <target state="translated">プロパティ サブパターンには、一致させるプロパティまたはフィールドへの参照が必要です。例: '{{ Name: {0} }}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RawStringDelimiterOnOwnLine">
+        <source>Raw string literal delimiter must be on its own line.</source>
+        <target state="new">Raw string literal delimiter must be on its own line.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RawStringInVerbatimInterpolatedStrings">
+        <source>Multi-line raw string literals are only allowed in verbatim interpolated strings.</source>
+        <target state="new">Multi-line raw string literals are only allowed in verbatim interpolated strings.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RawStringMustContainContent">
+        <source>Multi-line raw string literals must contain at least one line of content.</source>
+        <target state="new">Multi-line raw string literals must contain at least one line of content.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RawStringNotInDirectives">
+        <source>Raw string literals are not allowed in preprocessor directives.</source>
+        <target state="new">Raw string literals are not allowed in preprocessor directives.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ReAbstractionInNoPIAType">
         <source>Type '{0}' cannot be embedded because it has a re-abstraction of a member from base interface. Consider setting the 'Embed Interop Types' property to false.</source>
         <target state="translated">型 '{0}' には基底インターフェイスからのメンバーの再抽象化があるため、この型を埋め込むことはできません。'相互運用型の埋め込み' プロパティを false に設定することをご検討ください。</target>
@@ -1079,7 +1129,7 @@
       </trans-unit>
       <trans-unit id="ERR_RecordStructConstructorCallsDefaultConstructor">
         <source>A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</source>
-        <target state="new">A constructor declared in a 'record struct' with parameter list must have a 'this' initializer that calls the primary constructor or an explicitly declared constructor.</target>
+        <target state="translated">パラメーター リストを含む "record struct" で宣言されたコンストラクターには、プライマリ コンストラクターまたは明示的に宣言されたコンストラクターを呼び出す "this" 初期化子が必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
@@ -1222,9 +1272,14 @@
         <target state="translated">stdin 引数 '-' が指定されていますが、入力が標準入力ストリームからリダイレクトされていません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_StringMustStartWithQuoteCharacter">
+        <source>String must start with quote character: "</source>
+        <target state="new">String must start with quote character: "</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StructHasInitializersAndNoDeclaredConstructor">
         <source>A 'struct' with field initializers must include an explicitly declared constructor.</source>
-        <target state="new">A 'struct' with field initializers must include an explicitly declared constructor.</target>
+        <target state="translated">フィールド初期化子を持つ 'struct' には、明示的に宣言されたコンストラクターを含める必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
@@ -1245,6 +1300,21 @@
       <trans-unit id="ERR_SwitchGoverningExpressionRequiresParens">
         <source>Parentheses are required around the switch governing expression.</source>
         <target state="translated">switch を制御する式の周囲にはかっこが必要です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TooManyCloseBracesForRawString">
+        <source>The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive closing braces as content.</source>
+        <target state="new">The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive closing braces as content.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TooManyOpenBracesForRawString">
+        <source>The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive opening braces as content.</source>
+        <target state="new">The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive opening braces as content.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TooManyQuotesForRawString">
+        <source>The raw string literal does not start with enough quote characters to allow this many consecutive quote characters as content.</source>
+        <target state="new">The raw string literal does not start with enough quote characters to allow this many consecutive quote characters as content.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TopLevelStatementAfterNamespaceOrType">
@@ -1294,12 +1364,17 @@
       </trans-unit>
       <trans-unit id="ERR_UnsupportedTypeForListPattern">
         <source>List patterns may not be used for a value of type '{0}'.</source>
-        <target state="new">List patterns may not be used for a value of type '{0}'.</target>
+        <target state="translated">リスト パターンは、'{0}' 型の値に使用されない可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsupportedTypeForSlicePattern">
         <source>Slice patterns may not be used for a value of type '{0}'.</source>
-        <target state="new">Slice patterns may not be used for a value of type '{0}'.</target>
+        <target state="translated">スライス パターンは、'{0}' 型の値に使用されない可能性があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnterminatedRawString">
+        <source>Unterminated raw string literal.</source>
+        <target state="new">Unterminated raw string literal.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_WrongArityAsyncReturn">
@@ -1377,11 +1452,6 @@
         <target state="translated">ラムダ戻り値の型</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureLengthPattern">
-        <source>length pattern</source>
-        <target state="new">length pattern</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureLineSpanDirective">
         <source>line span directive</source>
         <target state="translated">line span ディレクティブ</target>
@@ -1389,12 +1459,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureListPattern">
         <source>list pattern</source>
-        <target state="new">list pattern</target>
+        <target state="translated">リスト パターン</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNewLinesInInterpolations">
         <source>newlines in interpolations</source>
-        <target state="new">newlines in interpolations</target>
+        <target state="translated">補間における改行</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureParameterlessStructConstructors">
@@ -1405,6 +1475,11 @@
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
         <source>positional fields in records</source>
         <target state="translated">レコード内の位置指定フィールド</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRawStringLiterals">
+        <source>raw string literals</source>
+        <target state="new">raw string literals</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRecordStructs">
@@ -1444,7 +1519,7 @@
       </trans-unit>
       <trans-unit id="IDS_ParameterNullChecking">
         <source>parameter null-checking</source>
-        <target state="new">parameter null-checking</target>
+        <target state="translated">パラメーターの null チェック</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AnalyzerReferencesFramework">
@@ -1529,12 +1604,12 @@
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow">
         <source>The operation may overflow '{0}' at runtime (use 'unchecked' syntax to override)</source>
-        <target state="new">The operation may overflow '{0}' at runtime (use 'unchecked' syntax to override)</target>
+        <target state="translated">実行時に操作がオーバーフロー '{0}' する可能性があります (オーバーライドするには 'unchecked' 構文を使用してください)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow_Title">
         <source>The operation may overflow at runtime (use 'unchecked' syntax to override)</source>
-        <target state="new">The operation may overflow at runtime (use 'unchecked' syntax to override)</target>
+        <target state="translated">実行時に操作がオーバーフローする可能性があります (オーバーライドするには 'unchecked' 構文を使用してください)</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">
@@ -1559,42 +1634,42 @@
       </trans-unit>
       <trans-unit id="WRN_LowerCaseTypeName">
         <source>The type name '{0}' only contains lower-cased ascii characters. Such names may become reserved for the language.</source>
-        <target state="new">The type name '{0}' only contains lower-cased ascii characters. Such names may become reserved for the language.</target>
+        <target state="translated">型名 '{0}' には、小文字の ASCII 文字のみが含まれています。このような名前は、プログラミング言語用に予約されている可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_LowerCaseTypeName_Title">
         <source>The type name only contains lower-cased ascii characters. Such names may become reserved for the language.</source>
-        <target state="new">The type name only contains lower-cased ascii characters. Such names may become reserved for the language.</target>
+        <target state="translated">型名には、小文字の ASCII 文字のみが含まれています。このような名前は、プログラミング言語用に予約されている可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MethGrpToNonDel">
         <source>Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</source>
-        <target state="new">Converting method group '{0}' to non-delegate type '{1}'. Did you intend to invoke the method?</target>
+        <target state="translated">メソッド グループ '{0}' を非デリゲート型 '{1}' に変換中です。このメソッドを呼び出すつもりでしたか?</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MethGrpToNonDel_Title">
         <source>Converting method group to non-delegate type</source>
-        <target state="new">Converting method group to non-delegate type</target>
+        <target state="translated">メソッド グループを非デリゲート型に変換しています</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullCheckedHasDefaultNull">
         <source>Parameter '{0}' is null-checked but is null by default.</source>
-        <target state="new">Parameter '{0}' is null-checked but is null by default.</target>
+        <target state="translated">パラメーター '{0}' は null チェックされていますが、既定では null です。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullCheckedHasDefaultNull_Title">
         <source>Parameter is null-checked but is null by default.</source>
-        <target state="new">Parameter is null-checked but is null by default.</target>
+        <target state="translated">パラメーターは null チェックされていますが、既定では null です。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullCheckingOnNullableType">
         <source>Nullable type '{0}' is null-checked and will throw if null.</source>
-        <target state="new">Nullable type '{0}' is null-checked and will throw if null.</target>
+        <target state="translated">Null 許容型 '{0}' は null チェックされており、null の場合はスローされます。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullCheckingOnNullableType_Title">
         <source>Nullable type is null-checked and will throw if null.</source>
-        <target state="new">Nullable type is null-checked and will throw if null.</target>
+        <target state="translated">Null 許容型は null チェックされており、null の場合はスローされます。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -1609,7 +1684,7 @@
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter">
         <source>Parameter '{0}' occurs after '{1}' in the parameter list, but is used as an argument for interpolated string handler conversions. This will require the caller to reorder parameters with named arguments at the call site. Consider putting the interpolated string handler parameter after all arguments involved.</source>
-        <target state="needs-review-translation">パラメーター リスト内の {1} の後にパラメーター {0} が発生しますが、補間された文字列ハンドラー変換の引数として使用されます。呼び出し元が呼び出しサイトで名前付き引数を使用してパラメーターを並べ替える必要があります。関係するすべての引数の後に、補間された文字列ハンドラーのパラメーターを指定することを検討してください。</target>
+        <target state="translated">パラメーター リスト内の '{1}' の後にパラメーター '{0}' が発生しますが、補間された文字列ハンドラーの変換の引数として使用されます。呼び出し元が呼び出しサイトで名前付き引数を使用してパラメーターを並べ替える必要があります。関係するすべての引数の後に、補間された文字列ハンドラーのパラメーターを指定することを検討してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterOccursAfterInterpolatedStringHandlerParameter_Title">

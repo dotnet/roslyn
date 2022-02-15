@@ -2360,6 +2360,11 @@ foundParent:;
             throw ExceptionUtilities.Unreachable;
         }
 
+        internal override bool ShouldSkipSyntaxNodeAnalysis(SyntaxNode node, ISymbol containingSymbol)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
         /// <summary>
         /// The incremental binder is used when binding statements. Whenever a statement
         /// is bound, it checks the bound node cache to see if that statement was bound, 

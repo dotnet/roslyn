@@ -49,16 +49,10 @@ namespace Microsoft.CodeAnalysis.AddPackage
             var symbolSearchService = _symbolSearchService ?? workspaceServices.GetService<ISymbolSearchService>();
             var installerService = _packageInstallerService ?? workspaceServices.GetService<IPackageInstallerService>();
 
-            var language = document.Project.Language;
-
-            var options = document.Project.Solution.Options;
-            var searchNugetPackages = options.GetOption(
-                SymbolSearchOptions.SuggestForTypesInNuGetPackages, language);
-
             var codeActions = ArrayBuilder<CodeAction>.GetInstance();
             if (symbolSearchService != null &&
                 installerService != null &&
-                searchNugetPackages &&
+                context.Options.SearchOptions.SearchNuGetPackages &&
                 installerService.IsEnabled(document.Project.Id))
             {
                 var packageSources = PackageSourceHelper.GetPackageSources(installerService.TryGetPackageSources());

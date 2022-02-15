@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -54,6 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             public readonly StreamingFindUsagesPresenter Presenter;
             private readonly IFindAllReferencesWindow _findReferencesWindow;
+            private readonly IGlobalOptionService _globalOptions;
             protected readonly IWpfTableControl2 TableControl;
 
             private readonly AsyncBatchingWorkQueue<(int current, int maximum)> _progressQueue;
@@ -113,6 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                  StreamingFindUsagesPresenter presenter,
                  IFindAllReferencesWindow findReferencesWindow,
                  ImmutableArray<ITableColumnDefinition> customColumns,
+                 IGlobalOptionService globalOptions,
                  bool includeContainingTypeAndMemberColumns,
                  bool includeKindColumn)
             {
@@ -120,6 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 Presenter = presenter;
                 _findReferencesWindow = findReferencesWindow;
+                _globalOptions = globalOptions;
                 TableControl = (IWpfTableControl2)findReferencesWindow.TableControl;
                 TableControl.GroupingsChanged += OnTableControlGroupingsChanged;
 
@@ -153,6 +157,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     presenter._asyncListener,
                     CancellationTokenSource.Token);
             }
+
+            public override ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
+                => ValueTaskFactory.FromResult(_globalOptions.GetFindUsagesOptions(language));
 
             private static ImmutableArray<string> SelectCustomColumnsToInclude(ImmutableArray<ITableColumnDefinition> customColumns, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
             {
@@ -374,7 +381,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     additionalProperties);
             }
 
-            private async Task<(ExcerptResult, SourceText)> ExcerptAsync(
+            private static async Task<(ExcerptResult, SourceText)> ExcerptAsync(
                 SourceText sourceText, DocumentSpan documentSpan, ClassificationOptions options, CancellationToken cancellationToken)
             {
                 var excerptService = documentSpan.Document.Services.GetService<IDocumentExcerptService>();
@@ -463,7 +470,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return ValueTaskFactory.CompletedTask;
             }
 
-            protected DefinitionItem CreateNoResultsDefinitionItem(string message)
+            protected static DefinitionItem CreateNoResultsDefinitionItem(string message)
                 => DefinitionItem.CreateNonNavigableItem(
                     GlyphTags.GetTags(Glyph.StatusInformation),
                     ImmutableArray.Create(new TaggedText(TextTags.Text, message)));

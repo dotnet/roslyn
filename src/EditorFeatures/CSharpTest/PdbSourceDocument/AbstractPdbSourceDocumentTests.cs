@@ -96,17 +96,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
                 buildReferenceAssembly,
                 windowsPdb: false);
 
-            await GenerateFileAndVerifyAsync(project, symbol, source, expectedSpan, expectNullResult);
+            await GenerateFileAndVerifyAsync(project, symbol, sourceLocation, source, expectedSpan, expectNullResult);
         }
 
         protected static async Task GenerateFileAndVerifyAsync(
             Project project,
             ISymbol symbol,
+            Location sourceLocation,
             string expected,
             Text.TextSpan expectedSpan,
             bool expectNullResult)
         {
-            var (actual, actualSpan) = await GetGeneratedSourceTextAsync(project, symbol, expectNullResult);
+            var (actual, actualSpan) = await GetGeneratedSourceTextAsync(project, symbol, sourceLocation, expectNullResult);
 
             if (actual is null)
                 return;
@@ -121,6 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
         protected static async Task<(SourceText?, TextSpan)> GetGeneratedSourceTextAsync(
             Project project,
             ISymbol symbol,
+            Location sourceLocation,
             bool expectNullResult)
         {
             using var workspace = (TestWorkspace)project.Solution.Workspace;
@@ -138,6 +140,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
                 else
                 {
                     Assert.NotSame(NullResultMetadataAsSourceFileProvider.NullResult, file);
+                }
+
+                if (sourceLocation == Location.OnDisk)
+                {
+                    Assert.True(file.DocumentTitle.Contains($"[{FeaturesResources.external}]"));
+                }
+                else
+                {
+                    Assert.True(file.DocumentTitle.Contains($"[{FeaturesResources.embedded}]"));
                 }
 
                 AssertEx.NotNull(file, $"No source document was found in the pdb for the symbol.");
