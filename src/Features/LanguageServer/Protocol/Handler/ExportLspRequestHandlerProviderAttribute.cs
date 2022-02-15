@@ -18,20 +18,35 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     {
         public Type[] HandlerTypes { get; }
 
-        public ExportLspRequestHandlerProviderAttribute(string contractName, Type first, params Type[] handlerTypes) : base(contractName, typeof(AbstractRequestHandlerProvider))
+        /// <summary>
+        /// Exports an <see cref="AbstractRequestHandlerProvider"/> and specifies the contract + types this provider
+        /// is associated with.
+        /// </summary>
+        /// <param name="contractName">
+        /// The contract name this provider is exported.  Used by <see cref="AbstractRequestDispatcherFactory"/>
+        /// when importing handlers to ensure that it only imports handlers that match this contract.
+        /// This is important to ensure that we only load relevant providers (e.g. don't load Xaml providers when creating the c# server).
+        /// </param>
+        /// <param name="firstHandlerType">
+        /// The concrete type of the <see cref="IRequestHandler"/> provided in <see cref="AbstractRequestHandlerProvider.CreateRequestHandlers(WellKnownLspServerKinds)"/>
+        /// </param>
+        /// <param name="additionalHandlerTypes">
+        /// Additional <see cref="IRequestHandler"/> if <see cref="AbstractRequestHandlerProvider.CreateRequestHandlers(WellKnownLspServerKinds)"/>
+        /// provides more than one handler at once.
+        /// </param>
+        public ExportLspRequestHandlerProviderAttribute(string contractName, Type firstHandlerType, params Type[] additionalHandlerTypes) : base(contractName, typeof(AbstractRequestHandlerProvider))
         {
-            HandlerTypes = handlerTypes.Concat(new[] { first }).ToArray();
+            HandlerTypes = additionalHandlerTypes.Concat(new[] { firstHandlerType }).ToArray();
         }
     }
 
     /// <summary>
-    /// Defines an easy to use subclass for ExportLspRequestHandlerProviderAttribute that contains
-    /// all the language names that the default Roslyn servers support.
+    /// Defines an easy to use subclass for ExportLspRequestHandlerProviderAttribute with the roslyn languages contract name.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class), MetadataAttribute]
     internal class ExportRoslynLanguagesLspRequestHandlerProviderAttribute : ExportLspRequestHandlerProviderAttribute
     {
-        public ExportRoslynLanguagesLspRequestHandlerProviderAttribute(Type first, params Type[] handlerTypes) : base(ProtocolConstants.RoslynLspLanguagesContract, first, handlerTypes)
+        public ExportRoslynLanguagesLspRequestHandlerProviderAttribute(Type firstHandlerType, params Type[] additionalHandlerTypes) : base(ProtocolConstants.RoslynLspLanguagesContract, firstHandlerType, additionalHandlerTypes)
         {
         }
     }

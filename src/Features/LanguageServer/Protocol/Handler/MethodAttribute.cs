@@ -12,8 +12,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     internal class MethodAttribute : Attribute
     {
         /// <summary>
-        /// Contains the method and concrete type of the request handler that implements <see cref="IRequestHandler{RequestType, ResponseType}"/>.
-        /// The type and method are passed to StreamJsonRpc to create RPC targets without actually instantiating the handler.
+        /// Contains the method that this <see cref="IRequestHandler"/> implements.
         /// </summary>
         public string Method { get; }
 
