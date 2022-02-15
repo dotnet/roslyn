@@ -29,33 +29,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        [InlineData("", true)]
-        [InlineData("csharp_style_prefer_parameter_null_checking = true", true)]
-        [InlineData("csharp_style_prefer_parameter_null_checking = false", false)]
-        public async Task TestSimpleReferenceType(string editorConfig, bool useParameterNullChecking)
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestSimpleReferenceType()
         {
-            var fixedCode = useParameterNullChecking ? @"
-using System;
-
-class C
-{
-    public C(string s!!)
-    {
-    }
-}" : @"
-using System;
-
-class C
-{
-    public C(string s)
-    {
-        if (s is null)
-        {
-            throw new ArgumentNullException(nameof(s));
-        }
-    }
-}";
             await new VerifyCS.Test
             {
                 LanguageVersion = LanguageVersionExtensions.CSharpNext,
@@ -68,10 +44,49 @@ class C
     {
     }
 }",
-                FixedCode = fixedCode,
-                EditorConfig = $@"
+                FixedCode = @"
+using System;
+
+class C
+{
+    public C(string s!!)
+    {
+    }
+}",
+            }.RunAsync();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestDoNotPreferParameterNullChecking()
+        {
+            await new VerifyCS.Test
+            {
+                LanguageVersion = LanguageVersionExtensions.CSharpNext,
+                TestCode = @"
+using System;
+
+class C
+{
+    public C([||]string s)
+    {
+    }
+}",
+                FixedCode = @"
+using System;
+
+class C
+{
+    public C(string s)
+    {
+        if (s is null)
+        {
+            throw new ArgumentNullException(nameof(s));
+        }
+    }
+}",
+                EditorConfig = @"
 [*]
-{editorConfig}
+csharp_style_prefer_parameter_null_checking = false
 ",
             }.RunAsync();
         }
