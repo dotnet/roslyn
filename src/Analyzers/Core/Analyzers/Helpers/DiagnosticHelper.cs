@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static string? GetHelpLinkForDiagnosticId(string id)
         {
-            if (id == "LAMA0001")
+            if (id == "LAMA0601")
             {
                 // TODO: Add documentation for Regex analyzer
                 // Tracked with https://github.com/dotnet/roslyn/issues/48530
