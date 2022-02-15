@@ -6,7 +6,6 @@ Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -34,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' When the same SemanticModel object is used, the answers exhibit reference-equality.  
     ''' </para>
     ''' </remarks>
-    Friend MustInherit Class VBSemanticModel
+    Partial Friend MustInherit Class VBSemanticModel
         Inherits SemanticModel
 
         ''' <summary> 
@@ -3412,8 +3411,7 @@ _Default:
         Protected NotOverridable Overrides Function GetImportChainCore(position As Integer, cancellationToken As CancellationToken) As IImportChain
             CheckPosition(position)
             Dim binder = Me.GetEnclosingBinder(position)
-            Dim importChain = TryCast(binder, IImportChain)
-            Return If(importChain, binder.NextImportChain)
+            Return ImportChainWrapper.Convert(binder)
         End Function
 
         Protected NotOverridable Overrides Function IsAccessibleCore(position As Integer, symbol As ISymbol) As Boolean

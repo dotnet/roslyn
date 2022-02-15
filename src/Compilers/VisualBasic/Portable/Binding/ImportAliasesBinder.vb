@@ -23,10 +23,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' </summary>
     Friend Class ImportAliasesBinder
         Inherits Binder
-        Implements IImportChain
 
         Private ReadOnly _importedAliases As IReadOnlyDictionary(Of String, AliasAndImportsClausePosition)
-        Private _lazyImportChainAliases As ImmutableArray(Of IAliasSymbol)
 
         Public Sub New(containingBinder As Binder, importedAliases As IReadOnlyDictionary(Of String, AliasAndImportsClausePosition))
             MyBase.New(containingBinder)
@@ -42,6 +40,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                           (TypeOf containingBinder.ContainingBinder.ContainingBinder Is SourceFileBinder OrElse
                            TypeOf containingBinder.ContainingBinder.ContainingBinder Is SourceModuleBinder)))
         End Sub
+
+        Public Function GetImportChainData() As ImmutableArray(Of IAliasSymbol)
+            Dim result = ArrayBuilder(Of IAliasSymbol).GetInstance(_importedAliases.Count)
+            For Each kvp In _importedAliases
+                result.Add(kvp.Value.Alias)
+            Next
+
+            Return result.ToImmutableAndFree()
+        End Function
 
         Friend Overrides Sub LookupInSingleBinder(lookupResult As LookupResult,
                                                      name As String,
@@ -85,37 +92,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property AdditionalContainingMembers As ImmutableArray(Of Symbol)
             Get
                 Return ImmutableArray(Of Symbol).Empty
-            End Get
-        End Property
-
-        Private ReadOnly Property ParentImportChain As IImportChain Implements IImportChain.Parent
-            Get
-                Return NextImportChain
-            End Get
-        End Property
-
-        Private ReadOnly Property Aliases As ImmutableArray(Of IAliasSymbol) Implements IImportChain.Aliases
-            Get
-                If _lazyImportChainAliases.IsDefault Then
-                    InterlockedOperations.Initialize(_lazyImportChainAliases, ComputeImportChainAliases())
-                End If
-
-                Return _lazyImportChainAliases
-            End Get
-        End Property
-
-        Private Function ComputeImportChainAliases() As ImmutableArray(Of IAliasSymbol)
-            Dim result = ArrayBuilder(Of IAliasSymbol).GetInstance(_importedAliases.Count)
-            For Each kvp In _importedAliases
-                result.Add(kvp.Value.Alias)
-            Next
-
-            Return result.ToImmutableAndFree()
-        End Function
-
-        Private ReadOnly Property [Imports] As ImmutableArray(Of INamespaceOrTypeSymbol) Implements IImportChain.Imports
-            Get
-                Return ImmutableArray(Of INamespaceOrTypeSymbol).Empty
             End Get
         End Property
     End Class

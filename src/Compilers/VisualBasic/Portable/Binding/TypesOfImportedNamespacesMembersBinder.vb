@@ -22,10 +22,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' </summary>
     Friend Class TypesOfImportedNamespacesMembersBinder
         Inherits Binder
-        Implements IImportChain
 
         Private ReadOnly _importedSymbols As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition)
-        Private _lazyImportChainImports As ImmutableArray(Of INamespaceOrTypeSymbol)
 
         Public Sub New(containingBinder As Binder,
                        importedSymbols As ImmutableArray(Of NamespaceOrTypeAndImportsClausePosition))
@@ -55,6 +53,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             Next
         End Sub
+
+        Public Function GetImportChainData() As ImmutableArray(Of INamespaceOrTypeSymbol)
+            Return _importedSymbols.SelectAsArray(Function(n) DirectCast(n.NamespaceOrType, INamespaceOrTypeSymbol))
+        End Function
 
         ''' <summary>
         ''' Collect extension methods with the given name that are in scope in this binder.
@@ -100,30 +102,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             Next
         End Sub
-
-        Private ReadOnly Property ParentImportChain As IImportChain Implements IImportChain.Parent
-            Get
-                Return NextImportChain
-            End Get
-        End Property
-
-        Private ReadOnly Property Aliases As ImmutableArray(Of IAliasSymbol) Implements IImportChain.Aliases
-            Get
-                Return ImmutableArray(Of IAliasSymbol).Empty
-            End Get
-        End Property
-
-        Private ReadOnly Property [Imports] As ImmutableArray(Of INamespaceOrTypeSymbol) Implements IImportChain.Imports
-            Get
-                If _lazyImportChainImports.IsDefault Then
-                    InterlockedOperations.Initialize(
-                        _lazyImportChainImports,
-                        _importedSymbols.SelectAsArray(Function(i) DirectCast(i.NamespaceOrType, INamespaceOrTypeSymbol)))
-                End If
-
-                Return _lazyImportChainImports
-            End Get
-        End Property
     End Class
 
 End Namespace

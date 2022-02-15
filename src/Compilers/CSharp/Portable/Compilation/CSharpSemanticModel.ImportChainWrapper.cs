@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal abstract partial class CSharpSemanticModel
     {
-        private class ImportChainWrapper : IImportChain
+        private sealed class ImportChainWrapper : IImportChain
         {
             public IImportChain? Parent { get; }
 
