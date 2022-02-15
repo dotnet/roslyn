@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' When the same SemanticModel object is used, the answers exhibit reference-equality.  
     ''' </para>
     ''' </remarks>
-    Partial Friend MustInherit Class VBSemanticModel
+    Friend MustInherit Class VBSemanticModel
         Inherits SemanticModel
 
         ''' <summary> 
