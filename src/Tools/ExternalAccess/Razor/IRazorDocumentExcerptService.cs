@@ -9,6 +9,12 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
+    [Obsolete("Use IRazorDocumentExcerptServiceImplementation instead")]
+    internal interface IRazorDocumentExcerptService
+    {
+        Task<RazorExcerptResult?> TryExcerptAsync(Document document, TextSpan span, RazorExcerptMode mode, CancellationToken cancellationToken);
+    }
+
     internal interface IRazorDocumentExcerptServiceImplementation
     {
         Task<RazorExcerptResult?> TryExcerptAsync(Document document, TextSpan span, RazorExcerptMode mode, RazorClassificationOptionsWrapper options, CancellationToken cancellationToken);

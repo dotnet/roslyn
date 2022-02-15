@@ -135,8 +135,6 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
 
             var solution = await openAsync(msbuildWorkspace);
 
-            var options = GeneratorOptions.Default;
-
             await logFile.WriteLineAsync($"Load completed in {solutionLoadStopwatch.Elapsed.ToDisplayString()}.");
             var lsifGenerator = Generator.CreateAndWriteCapabilitiesVertex(lsifWriter);
 
@@ -153,7 +151,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                     await logFile.WriteLineAsync($"Fetch of compilation for {project.FilePath} completed in {compilationCreationStopwatch.Elapsed.ToDisplayString()}.");
 
                     var generationForProjectStopwatch = Stopwatch.StartNew();
-                    await lsifGenerator.GenerateForCompilationAsync(compilation, project.FilePath, project.LanguageServices, options);
+                    await lsifGenerator.GenerateForCompilationAsync(compilation, project.FilePath, project.LanguageServices, project.Solution.Options);
                     generationForProjectStopwatch.Stop();
 
                     totalTimeInGenerationPhase += generationForProjectStopwatch.Elapsed;

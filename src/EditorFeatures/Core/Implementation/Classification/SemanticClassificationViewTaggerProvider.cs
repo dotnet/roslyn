@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView),
                 TaggerEventSources.OnWorkspaceChanged(subjectBuffer, this.AsyncListener),
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
-                TaggerEventSources.OnOptionChanged(subjectBuffer, ClassificationOptionsStorage.ClassifyReassignedVariables));
+                TaggerEventSources.OnOptionChanged(subjectBuffer, ClassificationOptions.Metadata.ClassifyReassignedVariables));
         }
 
         protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textView, ITextBuffer subjectBuffer)
@@ -126,9 +126,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 return Task.CompletedTask;
             }
 
-            var classificationOptions = _globalOptions.GetClassificationOptions(document.Project.Language);
             return SemanticClassificationUtilities.ProduceTagsAsync(
-                context, spanToTag, classificationService, _typeMap, classificationOptions, cancellationToken);
+                context, spanToTag, classificationService, _typeMap, cancellationToken);
         }
     }
 }

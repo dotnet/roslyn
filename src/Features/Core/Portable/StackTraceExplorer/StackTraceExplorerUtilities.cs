@@ -5,9 +5,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -63,7 +61,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
                     var method = await TryGetBestMatchAsync(project, fullyQualifiedTypeName, methodNode, methodArguments, methodTypeArguments, cancellationToken).ConfigureAwait(false);
                     if (method is not null)
                     {
-                        return GetDefinition(method);
+                        return await GetDefinitionAsync(method).ConfigureAwait(false);
                     }
                 }
                 else
@@ -81,7 +79,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
                 var method = await TryGetBestMatchAsync(project, fullyQualifiedTypeName, methodNode, methodArguments, methodTypeArguments, cancellationToken).ConfigureAwait(false);
                 if (method is not null)
                 {
-                    return GetDefinition(method);
+                    return await GetDefinitionAsync(method).ConfigureAwait(false);
                 }
             }
 
@@ -91,7 +89,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
             // Local Functions
             //
 
-            DefinitionItem GetDefinition(IMethodSymbol method)
+            Task<DefinitionItem> GetDefinitionAsync(IMethodSymbol method)
             {
                 ISymbol symbol = method;
                 if (symbolPart == StackFrameSymbolPart.ContainingType)
@@ -99,10 +97,7 @@ namespace Microsoft.CodeAnalysis.StackTraceExplorer
                     symbol = method.ContainingType;
                 }
 
-                return symbol.ToNonClassifiedDefinitionItem(
-                    solution,
-                    FindReferencesSearchOptions.Default with { UnidirectionalHierarchyCascade = true },
-                    includeHiddenLocations: true);
+                return symbol.ToNonClassifiedDefinitionItemAsync(solution, includeHiddenLocations: true, cancellationToken);
             }
         }
 
