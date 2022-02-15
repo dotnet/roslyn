@@ -2514,7 +2514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expressionBody: expressionBody);
         }
 
-        /// <summary>Creates a new ConversionOperatorDeclarationSyntax instance.</summary>
+        /// <summary>Creates a new <see cref="ConversionOperatorDeclarationSyntax"/> instance.</summary>
         public static ConversionOperatorDeclarationSyntax ConversionOperatorDeclaration(
             SyntaxList<AttributeListSyntax> attributeLists,
             SyntaxTokenList modifiers,
@@ -2610,7 +2610,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expressionBody: expressionBody);
         }
 
-        /// <summary>Creates a new OperatorDeclarationSyntax instance.</summary>
+        /// <summary>Creates a new <see cref="OperatorDeclarationSyntax"/> instance.</summary>
         public static OperatorDeclarationSyntax OperatorDeclaration(
             SyntaxList<AttributeListSyntax> attributeLists,
             SyntaxTokenList modifiers,
@@ -2808,7 +2808,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions?)options, path, diagnosticOptions, isGeneratedCode, cancellationToken);
         }
 
-        /// <summary>Creates a new OperatorMemberCrefSyntax instance.</summary>
+        /// <summary>Creates a new <see cref="OperatorMemberCrefSyntax"/> instance.</summary>
         public static OperatorMemberCrefSyntax OperatorMemberCref(SyntaxToken operatorKeyword, SyntaxToken operatorToken, CrefParameterListSyntax? parameters)
         {
             return SyntaxFactory.OperatorMemberCref(
@@ -2818,7 +2818,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameters: parameters);
         }
 
-        /// <summary>Creates a new ConversionOperatorMemberCrefSyntax instance.</summary>
+        /// <summary>Creates a new <see cref="ConversionOperatorMemberCrefSyntax"/> instance.</summary>
         public static ConversionOperatorMemberCrefSyntax ConversionOperatorMemberCref(SyntaxToken implicitOrExplicitKeyword, SyntaxToken operatorKeyword, TypeSyntax type, CrefParameterListSyntax? parameters)
         {
             return SyntaxFactory.ConversionOperatorMemberCref(

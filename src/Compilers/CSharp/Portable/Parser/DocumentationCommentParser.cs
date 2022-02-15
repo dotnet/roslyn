@@ -988,7 +988,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             Debug.Assert(CurrentToken.Kind == SyntaxKind.OperatorKeyword);
             SyntaxToken operatorKeyword = EatToken();
-            SyntaxToken checkedKeyword = TryEatToken(SyntaxKind.CheckedKeyword);
+            SyntaxToken checkedKeyword = TryEatToken(SyntaxKind.CheckedKeyword); // PROTOTYPE(CheckedUserDefinedOperators) : consider gracefully recovering from erroneous use of 'unchecked' at this location 
 
             SyntaxToken operatorToken;
 
@@ -1081,7 +1081,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             SyntaxToken implicitOrExplicit = EatToken();
 
             SyntaxToken operatorKeyword = EatToken(SyntaxKind.OperatorKeyword);
-            SyntaxToken checkedKeyword = TryEatToken(SyntaxKind.CheckedKeyword);
+            SyntaxToken checkedKeyword = TryEatToken(SyntaxKind.CheckedKeyword); // PROTOTYPE(CheckedUserDefinedOperators) : consider gracefully recovering from erroneous use of 'unchecked' at this location 
 
             TypeSyntax type = ParseCrefType(typeArgumentsMustBeIdentifiers: false);
 

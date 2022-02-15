@@ -3305,14 +3305,14 @@ parse_member_name:;
 
                 if (style.IsMissing)
                 {
-                    bool possibleConversion = true;
+                    bool possibleConversion;
 
                     if (this.CurrentToken.Kind != SyntaxKind.OperatorKeyword ||
                         explicitInterfaceOpt?.DotToken.IsMissing == true)
                     {
                         possibleConversion = false;
                     }
-                    else if (this.PeekToken(1).Kind == SyntaxKind.CheckedKeyword)
+                    else if (this.PeekToken(1).Kind == SyntaxKind.CheckedKeyword) // PROTOTYPE(CheckedUserDefinedOperators) : consider gracefully recovering from erroneous use of 'unchecked' at this location 
                     {
                         possibleConversion = !SyntaxFacts.IsAnyOverloadableOperator(this.PeekToken(2).Kind);
                     }
@@ -3356,7 +3356,7 @@ parse_member_name:;
                 }
 
                 opKeyword = this.EatToken(SyntaxKind.OperatorKeyword);
-                var checkedKeyword = this.TryEatToken(SyntaxKind.CheckedKeyword);
+                var checkedKeyword = this.TryEatToken(SyntaxKind.CheckedKeyword); // PROTOTYPE(CheckedUserDefinedOperators) : consider gracefully recovering from erroneous use of 'unchecked' at this location 
 
                 this.Release(ref point);
                 point = GetResetPoint();
@@ -3481,7 +3481,7 @@ parse_member_name:;
             ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt)
         {
             var opKeyword = this.EatToken(SyntaxKind.OperatorKeyword);
-            var checkedKeyword = this.TryEatToken(SyntaxKind.CheckedKeyword);
+            var checkedKeyword = this.TryEatToken(SyntaxKind.CheckedKeyword); // PROTOTYPE(CheckedUserDefinedOperators) : consider gracefully recovering from erroneous use of 'unchecked' at this location 
             SyntaxToken opToken;
             int opTokenErrorOffset;
             int opTokenErrorWidth;
