@@ -9,12 +9,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -29,15 +28,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
     [ProvidesMethod(Methods.TextDocumentHoverName)]
-    internal sealed class HoverHandler : AbstractStatelessRequestHandler<TextDocumentPositionParams, Hover?>
+    internal class HoverHandler : AbstractStatelessRequestHandler<TextDocumentPositionParams, Hover?>
     {
-        private readonly IGlobalOptionService _globalOptions;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public HoverHandler(IGlobalOptionService globalOptions)
+        public HoverHandler()
         {
-            _globalOptions = globalOptions;
         }
 
         public override string Method => Methods.TextDocumentHoverName;
@@ -54,16 +50,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
             var quickInfoService = document.Project.LanguageServices.GetRequiredService<QuickInfoService>();
-            var options = _globalOptions.GetSymbolDescriptionOptions(document.Project.Language);
+            var options = SymbolDescriptionOptions.From(document.Project);
             var info = await quickInfoService.GetQuickInfoAsync(document, position, options, cancellationToken).ConfigureAwait(false);
             if (info == null)
             {
                 return null;
             }
 
-            var classificationOptions = _globalOptions.GetClassificationOptions(document.Project.Language);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return await GetHoverAsync(info, text, document.Project.Language, document, classificationOptions, context.ClientCapabilities, cancellationToken).ConfigureAwait(false);
+            return await GetHoverAsync(info, text, document.Project.Language, document, context.ClientCapabilities, cancellationToken).ConfigureAwait(false);
         }
 
         internal static async Task<Hover?> GetHoverAsync(
@@ -85,7 +80,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return await GetHoverAsync(info, text, semanticModel.Language, document: null, classificationOptions: null, clientCapabilities: null, cancellationToken).ConfigureAwait(false);
+            return await GetHoverAsync(info, text, semanticModel.Language, document: null, clientCapabilities: null, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<Hover> GetHoverAsync(
@@ -93,12 +88,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             SourceText text,
             string language,
             Document? document,
-            ClassificationOptions? classificationOptions,
             ClientCapabilities? clientCapabilities,
             CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(document is null == (classificationOptions == null));
-
             var supportsVSExtensions = clientCapabilities.HasVisualStudioLspCapability();
 
             if (supportsVSExtensions)
@@ -107,7 +99,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     ? null
                     : new IntellisenseQuickInfoBuilderContext(
                         document,
-                        classificationOptions!.Value,
                         threadingContext: null,
                         operationExecutor: null,
                         asynchronousOperationListener: null,

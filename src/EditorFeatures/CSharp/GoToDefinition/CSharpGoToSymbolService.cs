@@ -7,12 +7,11 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
 {
     [ExportLanguageService(typeof(IGoToSymbolService), LanguageNames.CSharp), Shared]
-    internal sealed class CSharpGoToSymbolService : AbstractGoToSymbolService
+    internal class CSharpGoToSymbolService : AbstractGoToSymbolService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

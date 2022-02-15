@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -24,12 +23,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 {
     internal partial class CopyPasteAndPrintingClassificationBufferTaggerProvider
     {
-        private sealed class Tagger : ForegroundThreadAffinitizedObject, IAccurateTagger<IClassificationTag>, IDisposable
+        private class Tagger : ForegroundThreadAffinitizedObject, IAccurateTagger<IClassificationTag>, IDisposable
         {
             private readonly CopyPasteAndPrintingClassificationBufferTaggerProvider _owner;
             private readonly ITextBuffer _subjectBuffer;
             private readonly ITaggerEventSource _eventSource;
-            private readonly IGlobalOptionService _globalOptions;
 
             // State for the tagger.  Can be accessed from any thread.  Access should be protected by _gate.
 
@@ -40,13 +38,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             public Tagger(
                 CopyPasteAndPrintingClassificationBufferTaggerProvider owner,
                 ITextBuffer subjectBuffer,
-                IAsynchronousOperationListener asyncListener,
-                IGlobalOptionService globalOptions)
+                IAsynchronousOperationListener asyncListener)
                 : base(owner.ThreadingContext)
             {
                 _owner = owner;
                 _subjectBuffer = subjectBuffer;
-                _globalOptions = globalOptions;
 
                 // Note: because we use frozen-partial documents for semantic classification, we may end up with incomplete
                 // semantics (esp. during solution load).  Because of this, we also register to hear when the full
@@ -113,10 +109,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 if (document == null)
                     return Array.Empty<ITagSpan<IClassificationTag>>();
 
-                var classificationService = document.GetLanguageService<IClassificationService>();
-                if (classificationService == null)
-                    return Array.Empty<ITagSpan<IClassificationTag>>();
-
                 // We want to classify from the start of the first requested span to the end of the 
                 // last requested span.
                 var spanToTag = new SnapshotSpan(snapshot, Span.FromBounds(spans.First().Start, spans.Last().End));
@@ -133,10 +125,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 {
                     // Our cache is not there, or is out of date.  We need to compute the up to date results.
                     var context = new TaggerContext<IClassificationTag>(document, snapshot);
-                    var options = _globalOptions.GetClassificationOptions(document.Project.Language);
-
-                    ThreadingContext.JoinableTaskFactory.Run(
-                        () => SemanticClassificationUtilities.ProduceTagsAsync(context, new DocumentSnapshotSpan(document, spanToTag), classificationService, _owner._typeMap, options, cancellationToken));
+                    this.ThreadingContext.JoinableTaskFactory.Run(
+                        () => ProduceTagsAsync(context, new DocumentSnapshotSpan(document, spanToTag), _owner._typeMap, cancellationToken));
 
                     cachedTaggedSpan = spanToTag;
                     cachedTags = new TagSpanIntervalTree<IClassificationTag>(snapshot.TextBuffer, SpanTrackingMode.EdgeExclusive, context.tagSpans);
@@ -160,6 +150,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     cachedTaggedSpan = _cachedTaggedSpan;
                     cachedTags = _cachedTags;
                 }
+            }
+
+            private static Task ProduceTagsAsync(
+                TaggerContext<IClassificationTag> context, DocumentSnapshotSpan documentSpan, ClassificationTypeMap typeMap, CancellationToken cancellationToken)
+            {
+                var classificationService = documentSpan.Document.GetLanguageService<IClassificationService>();
+                return classificationService != null
+                    ? SemanticClassificationUtilities.ProduceTagsAsync(context, documentSpan, classificationService, typeMap, cancellationToken)
+                    : Task.CompletedTask;
             }
         }
     }

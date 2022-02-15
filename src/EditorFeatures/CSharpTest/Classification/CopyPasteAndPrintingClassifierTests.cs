@@ -32,13 +32,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             using var workspace = TestWorkspace.CreateCSharp("class C { C c; }");
             var document = workspace.Documents.First();
 
-            var listenerProvider = workspace.GetService<IAsynchronousOperationListenerProvider>();
+            var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
             var provider = new CopyPasteAndPrintingClassificationBufferTaggerProvider(
-                workspace.GetService<IThreadingContext>(),
-                workspace.GetService<ClassificationTypeMap>(),
-                listenerProvider,
-                workspace.GlobalOptions);
+                workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
+                workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
+                listenerProvider);
 
             var tagger = provider.CreateTagger<IClassificationTag>(document.GetTextBuffer())!;
             using var disposable = (IDisposable)tagger;

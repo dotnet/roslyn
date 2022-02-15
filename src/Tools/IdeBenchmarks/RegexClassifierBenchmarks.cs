@@ -84,11 +84,12 @@ class Program
             var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
 
             var results = ArrayBuilder<ClassifiedSpan>.GetInstance();
+            var options = ClassificationOptions.From(document.Project);
 
             await service.AddSemanticClassificationsAsync(
                 document,
                 span,
-                ClassificationOptions.Default,
+                options,
                 extensionManager.CreateNodeExtensionGetter(classifiers, c => c.SyntaxNodeTypes),
                 extensionManager.CreateTokenExtensionGetter(classifiers, c => c.SyntaxTokenKinds),
                 results,

@@ -3,11 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Options.Providers;
 
 namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 {
@@ -29,18 +31,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
         public bool DisableProjectCacheService
             => _globalOptions.GetOption(OptionsMetadata.DisableProjectCacheService);
 
-        internal sealed class OptionsMetadata
+        [ExportSolutionOptionProvider, Shared]
+        internal sealed class OptionsMetadata : IOptionProvider
         {
             /// <summary>
             /// Disables if the workspace creates recoverable trees when from its <see cref="ISyntaxTreeFactoryService"/>s.
             /// </summary>
             public static readonly Option2<bool> DisableRecoverableTrees = new(
-                "WorkspaceConfigurationOptions", "DisableRecoverableTrees", defaultValue: false,
+                nameof(WorkspaceConfigurationOptions), nameof(DisableRecoverableTrees), defaultValue: false,
                 new FeatureFlagStorageLocation("Roslyn.DisableRecoverableTrees"));
 
             public static readonly Option2<bool> DisableProjectCacheService = new(
-                "WorkspaceConfigurationOptions", "DisableProjectCacheService", defaultValue: false,
+                nameof(WorkspaceConfigurationOptions), nameof(DisableProjectCacheService), defaultValue: false,
                 new FeatureFlagStorageLocation("Roslyn.DisableProjectCacheService"));
+
+            ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
+                DisableRecoverableTrees,
+                DisableProjectCacheService);
+
+            [ImportingConstructor]
+            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+            public OptionsMetadata()
+            {
+            }
         }
     }
 }

@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.ValueTracking;
@@ -42,7 +41,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         private readonly IClassificationFormatMapService _classificationFormatMapService;
         private readonly IGlyphService _glyphService;
         private readonly IEditorFormatMapService _formatMapService;
-        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -52,8 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             ClassificationTypeMap typeMap,
             IClassificationFormatMapService classificationFormatMapService,
             IGlyphService glyphService,
-            IEditorFormatMapService formatMapService,
-            IGlobalOptionService globalOptions)
+            IEditorFormatMapService formatMapService)
         {
             _serviceProvider = (IAsyncServiceProvider)serviceProvider;
             _threadingContext = threadingContext;
@@ -61,7 +58,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             _classificationFormatMapService = classificationFormatMapService;
             _glyphService = glyphService;
             _formatMapService = formatMapService;
-            _globalOptions = globalOptions;
         }
 
         public string DisplayName => "Go to value tracking";
@@ -158,11 +154,11 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             var childItems = await valueTrackingService.TrackValueSourceAsync(solution, item, cancellationToken).ConfigureAwait(false);
 
             var childViewModels = await childItems.SelectAsArrayAsync((item, cancellationToken) =>
-                ValueTrackedTreeItemViewModel.CreateAsync(solution, item, toolWindow.ViewModel, _glyphService, valueTrackingService, _globalOptions, _threadingContext, cancellationToken), cancellationToken).ConfigureAwait(false);
+                ValueTrackedTreeItemViewModel.CreateAsync(solution, item, toolWindow.ViewModel, _glyphService, valueTrackingService, _threadingContext, cancellationToken), cancellationToken).ConfigureAwait(false);
 
             RoslynDebug.AssertNotNull(location.SourceTree);
             var document = solution.GetRequiredDocument(location.SourceTree);
-            var options = _globalOptions.GetClassificationOptions(document.Project.Language);
+            var options = ClassificationOptions.From(document.Project);
 
             var sourceText = await location.SourceTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(document, location.SourceSpan, options, cancellationToken).ConfigureAwait(false);

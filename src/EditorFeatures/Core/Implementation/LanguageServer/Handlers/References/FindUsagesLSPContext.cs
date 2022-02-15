@@ -111,8 +111,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
                 // Creating a new VSReferenceItem for the definition
                 var definitionItem = await GenerateVSReferenceItemAsync(
-                    definitionId: _id, definition.SourceSpans.FirstOrNull(),
-                    definition.DisplayableProperties, definition.GetClassifiedText(),
+                    _id, definitionId: _id, _document, _position, definition.SourceSpans.FirstOrNull(),
+                    definition.DisplayableProperties, _metadataAsSourceFileService, definition.GetClassifiedText(),
                     definition.Tags.GetFirstGlyph(), symbolUsageInfo: null, isWrittenTo: false, cancellationToken).ConfigureAwait(false);
 
                 if (definitionItem != null)
@@ -159,8 +159,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
 
                 // Creating a new VSReferenceItem for the reference
                 var referenceItem = await GenerateVSReferenceItemAsync(
-                    definitionId, reference.SourceSpan,
-                    reference.AdditionalProperties, definitionText: null,
+                    _id, definitionId, _document, _position, reference.SourceSpan,
+                    reference.AdditionalProperties, _metadataAsSourceFileService, definitionText: null,
                     definitionGlyph: Glyph.None, reference.SymbolUsageInfo, reference.IsWrittenTo, cancellationToken).ConfigureAwait(false);
 
                 if (referenceItem != null)
@@ -170,21 +170,25 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
             }
         }
 
-        private async Task<VSInternalReferenceItem?> GenerateVSReferenceItemAsync(
+        private static async Task<VSInternalReferenceItem?> GenerateVSReferenceItemAsync(
+            int id,
             int? definitionId,
+            Document document,
+            int position,
             DocumentSpan? documentSpan,
             ImmutableDictionary<string, string> properties,
+            IMetadataAsSourceFileService metadataAsSourceFileService,
             ClassifiedTextElement? definitionText,
             Glyph definitionGlyph,
             SymbolUsageInfo? symbolUsageInfo,
             bool isWrittenTo,
             CancellationToken cancellationToken)
         {
-            var location = await ComputeLocationAsync(documentSpan, cancellationToken).ConfigureAwait(false);
+            var location = await ComputeLocationAsync(document, position, documentSpan, metadataAsSourceFileService, cancellationToken).ConfigureAwait(false);
 
             // Getting the text for the Text property. If we somehow can't compute the text, that means we're probably dealing with a metadata
             // reference, and those don't show up in the results list in Roslyn FAR anyway.
-            var text = await ComputeTextAsync(definitionId, documentSpan, definitionText, isWrittenTo, cancellationToken).ConfigureAwait(false);
+            var text = await ComputeTextAsync(id, definitionId, documentSpan, definitionText, isWrittenTo, cancellationToken).ConfigureAwait(false);
             if (text == null)
             {
                 return null;
@@ -198,7 +202,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 DefinitionText = definitionText,    // Only definitions should have a non-null DefinitionText
                 DefinitionIcon = definitionGlyph.GetImageElement(),
                 DisplayPath = location?.Uri.LocalPath,
-                Id = _id,
+                Id = id,
                 Kind = symbolUsageInfo.HasValue ? ProtocolConversions.SymbolUsageInfoToReferenceKinds(symbolUsageInfo.Value) : Array.Empty<VSInternalReferenceKind>(),
                 ResolutionStatus = VSInternalResolutionStatusKind.ConfirmedAsReference,
                 Text = text,
@@ -223,125 +227,130 @@ namespace Microsoft.CodeAnalysis.LanguageServer.CustomProtocol
                 result.ContainingType = referenceContainingType;
 
             return result;
-        }
 
-        private async Task<LSP.Location?> ComputeLocationAsync(DocumentSpan? documentSpan, CancellationToken cancellationToken)
-        {
-            // If we have no document span, our location may be in metadata.
-            if (documentSpan != null)
+            // Local functions
+            static async Task<LSP.Location?> ComputeLocationAsync(
+                Document document,
+                int position,
+                DocumentSpan? documentSpan,
+                IMetadataAsSourceFileService metadataAsSourceFileService,
+                CancellationToken cancellationToken)
             {
-                // We do have a document span, so compute location normally.
-                return await ProtocolConversions.DocumentSpanToLocationAsync(documentSpan.Value, cancellationToken).ConfigureAwait(false);
-            }
-
-            // If we have no document span, our location may be in metadata or may be a namespace.
-            var symbol = await SymbolFinder.FindSymbolAtPositionAsync(_document, _position, cancellationToken).ConfigureAwait(false);
-            if (symbol == null || symbol.Locations.IsEmpty || symbol.Kind == SymbolKind.Namespace)
-            {
-                // Either:
-                // (1) We couldn't find the location in metadata and it's not in any of our known documents.
-                // (2) The symbol is a namespace (and therefore has no location).
-                return null;
-            }
-
-            var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(
-                _document.Project, symbol, signaturesOnly: true, allowDecompilation: false, cancellationToken).ConfigureAwait(false);
-
-            var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
-
-            if (string.IsNullOrEmpty(declarationFile.FilePath))
-            {
-                return null;
-            }
-
-            try
-            {
-                return new LSP.Location
+                // If we have no document span, our location may be in metadata.
+                if (documentSpan != null)
                 {
-                    Uri = ProtocolConversions.GetUriFromFilePath(declarationFile.FilePath),
-                    Range = ProtocolConversions.LinePositionToRange(linePosSpan),
-                };
-            }
-            catch (UriFormatException e) when (FatalError.ReportAndCatch(e))
-            {
-                // We might reach this point if the file path is formatted incorrectly.
-                return null;
-            }
-        }
-
-        private async Task<ClassifiedTextElement?> ComputeTextAsync(
-            int? definitionId,
-            DocumentSpan? documentSpan,
-            ClassifiedTextElement? definitionText,
-            bool isWrittenTo,
-            CancellationToken cancellationToken)
-        {
-            // General case
-            if (documentSpan != null)
-            {
-                var document = documentSpan.Value.Document;
-                var options = await GetOptionsAsync(document.Project.Language, cancellationToken).ConfigureAwait(false);
-
-                var classifiedSpansAndHighlightSpan = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
-                    documentSpan.Value, options.ClassificationOptions, cancellationToken).ConfigureAwait(false);
-
-                var classifiedSpans = classifiedSpansAndHighlightSpan.ClassifiedSpans;
-                var docText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var classifiedTextRuns = GetClassifiedTextRuns(_id, definitionId, documentSpan.Value, isWrittenTo, classifiedSpans, docText);
-
-                return new ClassifiedTextElement(classifiedTextRuns.ToArray());
-            }
-
-            // Certain definitions may not have a DocumentSpan, such as namespace and metadata definitions
-            if (_id == definitionId)
-            {
-                return definitionText;
-            }
-
-            return null;
-        }
-
-        private static ClassifiedTextRun[] GetClassifiedTextRuns(
-            int id,
-            int? definitionId,
-            DocumentSpan documentSpan,
-            bool isWrittenTo,
-            ImmutableArray<ClassifiedSpan> classifiedSpans,
-            SourceText docText)
-        {
-            using var _ = ArrayBuilder<ClassifiedTextRun>.GetInstance(out var classifiedTextRuns);
-            foreach (var span in classifiedSpans)
-            {
-                // Default case: Don't highlight. For example, if the user invokes FAR on 'x' in 'var x = 1', then 'var',
-                // '=', and '1' should not be highlighted.
-                string? markerTagType = null;
-
-                // Case 1: Highlight this span of text. For example, if the user invokes FAR on 'x' in 'var x = 1',
-                // then 'x' should be highlighted.
-                if (span.TextSpan == documentSpan.SourceSpan)
-                {
-                    // Case 1a: Highlight a definition
-                    if (id == definitionId)
-                    {
-                        markerTagType = DefinitionHighlightTag.TagId;
-                    }
-                    // Case 1b: Highlight a written reference
-                    else if (isWrittenTo)
-                    {
-                        markerTagType = WrittenReferenceHighlightTag.TagId;
-                    }
-                    // Case 1c: Highlight a read reference
-                    else
-                    {
-                        markerTagType = ReferenceHighlightTag.TagId;
-                    }
+                    // We do have a document span, so compute location normally.
+                    return await ProtocolConversions.DocumentSpanToLocationAsync(documentSpan.Value, cancellationToken).ConfigureAwait(false);
                 }
 
-                classifiedTextRuns.Add(new ClassifiedTextRun(
-                    span.ClassificationType, docText.ToString(span.TextSpan), ClassifiedTextRunStyle.Plain, markerTagType));
+                // If we have no document span, our location may be in metadata or may be a namespace.
+                var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
+                if (symbol == null || symbol.Locations.IsEmpty || symbol.Kind == SymbolKind.Namespace)
+                {
+                    // Either:
+                    // (1) We couldn't find the location in metadata and it's not in any of our known documents.
+                    // (2) The symbol is a namespace (and therefore has no location).
+                    return null;
+                }
+
+                var declarationFile = await metadataAsSourceFileService.GetGeneratedFileAsync(
+                    document.Project, symbol, signaturesOnly: true, allowDecompilation: false, cancellationToken).ConfigureAwait(false);
+
+                var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
+
+                if (string.IsNullOrEmpty(declarationFile.FilePath))
+                {
+                    return null;
+                }
+
+                try
+                {
+                    return new LSP.Location
+                    {
+                        Uri = ProtocolConversions.GetUriFromFilePath(declarationFile.FilePath),
+                        Range = ProtocolConversions.LinePositionToRange(linePosSpan),
+                    };
+                }
+                catch (UriFormatException e) when (FatalError.ReportAndCatch(e))
+                {
+                    // We might reach this point if the file path is formatted incorrectly.
+                    return null;
+                }
             }
 
-            return classifiedTextRuns.ToArray();
+            static async Task<ClassifiedTextElement?> ComputeTextAsync(
+                int id, int? definitionId,
+                DocumentSpan? documentSpan,
+                ClassifiedTextElement? definitionText,
+                bool isWrittenTo,
+                CancellationToken cancellationToken)
+            {
+                // General case
+                if (documentSpan != null)
+                {
+                    var document = documentSpan.Value.Document;
+                    var classificationOptions = ClassificationOptions.From(document.Project);
+
+                    var classifiedSpansAndHighlightSpan = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
+                        documentSpan.Value, classificationOptions, cancellationToken).ConfigureAwait(false);
+
+                    var classifiedSpans = classifiedSpansAndHighlightSpan.ClassifiedSpans;
+                    var docText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var classifiedTextRuns = GetClassifiedTextRuns(id, definitionId, documentSpan.Value, isWrittenTo, classifiedSpans, docText);
+
+                    return new ClassifiedTextElement(classifiedTextRuns.ToArray());
+                }
+                // Certain definitions may not have a DocumentSpan, such as namespace and metadata definitions
+                else if (id == definitionId)
+                {
+                    return definitionText;
+                }
+
+                return null;
+
+                // Nested local functions
+                static ClassifiedTextRun[] GetClassifiedTextRuns(
+                    int id, int? definitionId,
+                    DocumentSpan documentSpan,
+                    bool isWrittenTo,
+                    ImmutableArray<ClassifiedSpan> classifiedSpans,
+                    SourceText docText)
+                {
+                    using var _ = ArrayBuilder<ClassifiedTextRun>.GetInstance(out var classifiedTextRuns);
+                    foreach (var span in classifiedSpans)
+                    {
+                        // Default case: Don't highlight. For example, if the user invokes FAR on 'x' in 'var x = 1', then 'var',
+                        // '=', and '1' should not be highlighted.
+                        string? markerTagType = null;
+
+                        // Case 1: Highlight this span of text. For example, if the user invokes FAR on 'x' in 'var x = 1',
+                        // then 'x' should be highlighted.
+                        if (span.TextSpan == documentSpan.SourceSpan)
+                        {
+                            // Case 1a: Highlight a definition
+                            if (id == definitionId)
+                            {
+                                markerTagType = DefinitionHighlightTag.TagId;
+                            }
+                            // Case 1b: Highlight a written reference
+                            else if (isWrittenTo)
+                            {
+                                markerTagType = WrittenReferenceHighlightTag.TagId;
+                            }
+                            // Case 1c: Highlight a read reference
+                            else
+                            {
+                                markerTagType = ReferenceHighlightTag.TagId;
+                            }
+                        }
+
+                        classifiedTextRuns.Add(new ClassifiedTextRun(
+                            span.ClassificationType, docText.ToString(span.TextSpan), ClassifiedTextRunStyle.Plain, markerTagType));
+                    }
+
+                    return classifiedTextRuns.ToArray();
+                }
+            }
         }
 
         private ValueTask ReportReferencesAsync(ImmutableArray<VSInternalReferenceItem> referencesToReport, CancellationToken cancellationToken)
