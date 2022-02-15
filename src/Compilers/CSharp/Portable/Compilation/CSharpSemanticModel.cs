@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// exhibit reference-equality.  
     /// </para>
     /// </remarks>
-    internal abstract class CSharpSemanticModel : SemanticModel
+    internal abstract partial class CSharpSemanticModel : SemanticModel
     {
         /// <summary>
         /// The compilation this object was obtained from.
@@ -5289,7 +5289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             position = CheckAndAdjustPosition(position);
             var binder = GetEnclosingBinder(position);
-            return binder?.ImportChain;
+            return ImportChainWrapper.Convert(binder?.ImportChain);
         }
 
         protected sealed override bool IsAccessibleCore(int position, ISymbol symbol)

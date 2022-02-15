@@ -9,7 +9,8 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Represents a chain of symbols that are imported to a particular position in a source file.  Symbols may be
     /// imported, but may not necessarily be available at that location (for example, an alias symbol hidden by another
-    /// symbol).
+    /// symbol).  There is no guarantee that the same chain will be returned from successive calls to <see
+    /// cref="SemanticModel.GetImportChain"/>
     /// </summary>
     public interface IImportChain
     {
@@ -26,9 +27,21 @@ namespace Microsoft.CodeAnalysis
         ImmutableArray<IAliasSymbol> Aliases { get; }
 
         /// <summary>
-        /// Types or namespaces imported at the list of the chain.  This corresponse to <c>using Namespace;</c> or
+        /// Aliases defined at this level of the chain.  This corresponds to <c>extern alias X;</c> in C#.  It will be
+        /// empty in Visual Basic.
+        /// </summary>
+        ImmutableArray<IAliasSymbol> ExternAliases { get; }
+
+        /// <summary>
+        /// Types or namespaces imported at this level of the chain.  This corresponds to <c>using Namespace;</c> or
         /// <c>using static Type;</c> in C#, or <c>Imports TypeOrNamespace</c> in Visual Basic.
         /// </summary>
         ImmutableArray<INamespaceOrTypeSymbol> Imports { get; }
+
+        /// <summary>
+        /// Xml namespaces imported at this level of the chain.  This corresponds to <c>Imports &lt;xmlns:prefix =
+        /// "name"&gt;</c> in Visual Basic.  It will be empty in C#.
+        /// </summary>
+        ImmutableArray<string> XmlNamespaces { get; }
     }
 }

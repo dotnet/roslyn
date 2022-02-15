@@ -1,5 +1,11 @@
 *REMOVED*override abstract Microsoft.CodeAnalysis.Diagnostic.Equals(object? obj) -> bool
 Microsoft.CodeAnalysis.Compilation.GetTypesByMetadataName(string! fullyQualifiedMetadataName) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.INamedTypeSymbol!>
+Microsoft.CodeAnalysis.IImportChain
+Microsoft.CodeAnalysis.IImportChain.Aliases.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IAliasSymbol!>
+Microsoft.CodeAnalysis.IImportChain.ExternAliases.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IAliasSymbol!>
+Microsoft.CodeAnalysis.IImportChain.Imports.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.INamespaceOrTypeSymbol!>
+Microsoft.CodeAnalysis.IImportChain.Parent.get -> Microsoft.CodeAnalysis.IImportChain?
+Microsoft.CodeAnalysis.IImportChain.XmlNamespaces.get -> System.Collections.Immutable.ImmutableArray<string!>
 Microsoft.CodeAnalysis.IOperation.ChildOperations.get -> Microsoft.CodeAnalysis.IOperation.OperationList
 Microsoft.CodeAnalysis.IOperation.OperationList
 Microsoft.CodeAnalysis.IOperation.OperationList.Any() -> bool

@@ -13,15 +13,12 @@ using Microsoft.CodeAnalysis.PooledObjects;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    internal sealed class ImportChain : Cci.IImportScope, IImportChain
+    internal sealed class ImportChain : Cci.IImportScope
     {
         public readonly Imports Imports;
         public readonly ImportChain ParentOpt;
 
         private ImmutableArray<Cci.UsedNamespaceOrType> _lazyTranslatedImports;
-
-        private ImmutableArray<IAliasSymbol> _lazyImportChainAliases;
-        private ImmutableArray<INamespaceOrTypeSymbol> _lazyImportChainImports;
 
         public ImportChain(Imports imports, ImportChain parentOpt)
         {
@@ -158,42 +155,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         Cci.IImportScope Cci.IImportScope.Parent => ParentOpt;
-
-        public IImportChain Parent => ParentOpt;
-
-        public ImmutableArray<IAliasSymbol> Aliases
-        {
-            get
-            {
-                if (_lazyImportChainAliases.IsDefault)
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyImportChainAliases, ComputeImportChainAliases());
-
-                return _lazyImportChainAliases;
-
-                ImmutableArray<IAliasSymbol> ComputeImportChainAliases()
-                {
-                    var result = ArrayBuilder<IAliasSymbol>.GetInstance(this.Imports.UsingAliases.Count);
-                    foreach (var kvp in this.Imports.UsingAliases)
-                        result.Add(kvp.Value.Alias.GetPublicSymbol());
-
-                    return result.ToImmutableAndFree();
-                }
-            }
-        }
-
-        ImmutableArray<INamespaceOrTypeSymbol> IImportChain.Imports
-        {
-            get
-            {
-                if (_lazyImportChainImports.IsDefault)
-                {
-                    ImmutableInterlocked.InterlockedInitialize(
-                        ref _lazyImportChainImports,
-                        this.Imports.Usings.SelectAsArray(n => n.NamespaceOrType.GetPublicSymbol()));
-                }
-
-                return _lazyImportChainImports;
-            }
-        }
     }
 }
