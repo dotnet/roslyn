@@ -19,13 +19,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public Type[] HandlerTypes { get; }
 
         /// <summary>
-        /// Exports an <see cref="AbstractRequestHandlerProvider"/> and specifies the contract + types this provider
-        /// is associated with.
+        /// Exports an <see cref="AbstractRequestHandlerProvider"/> and specifies the contract and
+        /// <see cref="IRequestHandler"/> types this provider is associated with.
         /// </summary>
         /// <param name="contractName">
         /// The contract name this provider is exported.  Used by <see cref="AbstractRequestDispatcherFactory"/>
         /// when importing handlers to ensure that it only imports handlers that match this contract.
-        /// This is important to ensure that we only load relevant providers (e.g. don't load Xaml providers when creating the c# server).
+        /// This is important to ensure that we only load relevant providers (e.g. don't load Xaml providers when creating the c# server),
+        /// otherwise we will get dll load RPS regressions for the <see cref="HandlerTypes"/>
         /// </param>
         /// <param name="firstHandlerType">
         /// The concrete type of the <see cref="IRequestHandler"/> provided in <see cref="AbstractRequestHandlerProvider.CreateRequestHandlers(WellKnownLspServerKinds)"/>
