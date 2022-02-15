@@ -184,7 +184,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
             if (symbol is IDiscardSymbol)
             {
-                text = Keyword("_");
+                text = Keyword("discard");
                 return true;
             }
 
