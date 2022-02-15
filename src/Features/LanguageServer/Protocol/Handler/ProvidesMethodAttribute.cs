@@ -8,7 +8,7 @@ using System.Composition;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+    [AttributeUsage(AttributeTargets.Class)]
     internal class MethodAttribute : Attribute
     {
         /// <summary>

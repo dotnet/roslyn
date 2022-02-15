@@ -14,23 +14,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// New handler instances are created for each LSP server and re-created whenever the 
     /// server restarts.
     /// 
-    /// Note that the instances of <see cref="AbstractRequestHandlerProvider"/> are all created
-    /// upfront, so any dependencies they import will also be instantiated upfront.
+    /// Each <see cref="AbstractRequestHandlerProvider"/> can create multiple <see cref="IRequestHandler"/>
+    /// instances in order to share state between different LSP methods.
+    /// E.g. completion requests can share a cache with completion resolve requests for the same LSP server.
     /// </summary>
     internal abstract class AbstractRequestHandlerProvider
     {
-        public abstract ImmutableArray<LazyRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind);
-
-        protected static LazyRequestHandler CreateLazyRequestHandlerMetadata<T>(Func<T> creationFunc) where T : IRequestHandler
-        {
-            return new LazyRequestHandler(typeof(T), new Lazy<IRequestHandler>(() => creationFunc()));
-        }
-
-        protected static ImmutableArray<LazyRequestHandler> CreateSingleRequestHandler<T>(Func<T> creationFunc) where T : IRequestHandler
-        {
-            return ImmutableArray.Create(CreateLazyRequestHandlerMetadata(creationFunc));
-        }
+        /// <summary>
+        /// Instantiates new handler instances and returns them.
+        /// </summary>
+        public abstract ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind);
     }
-
-    internal record struct LazyRequestHandler(Type RequestHandlerType, Lazy<IRequestHandler> RequestHandler);
 }

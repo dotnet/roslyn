@@ -24,21 +24,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     /// <remarks>
     /// Same as C# and VB but for XAML. See also <seealso cref="Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActionsHandlerProvider"/>.
     /// </remarks>
-    [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
+    [ExportXamlLspRequestHandlerProvider(typeof(CodeActionsHandler), typeof(CodeActionResolveHandler), typeof(RunCodeActionHandler)), Shared]
     internal class CodeActionsHandlerProvider : AbstractRequestHandlerProvider
     {
-        private readonly Lazy<ICodeFixService> _codeFixService;
-        private readonly Lazy<ICodeRefactoringService> _codeRefactoringService;
-        private readonly Lazy<IThreadingContext> _threadingContext;
-        private readonly Lazy<IGlobalOptionService> _globalOptions;
+        private readonly ICodeFixService _codeFixService;
+        private readonly ICodeRefactoringService _codeRefactoringService;
+        private readonly IThreadingContext _threadingContext;
+        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CodeActionsHandlerProvider(
-            Lazy<ICodeFixService> codeFixService,
-            Lazy<ICodeRefactoringService> codeRefactoringService,
-            Lazy<IThreadingContext> threadingContext,
-            Lazy<IGlobalOptionService> globalOptions)
+            ICodeFixService codeFixService,
+            ICodeRefactoringService codeRefactoringService,
+            IThreadingContext threadingContext,
+            IGlobalOptionService globalOptions)
         {
             _codeFixService = codeFixService;
             _codeRefactoringService = codeRefactoringService;
@@ -46,13 +46,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             _globalOptions = globalOptions;
         }
 
-        public override ImmutableArray<LazyRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
+        public override ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
         {
-            var codeActionsCache = new Lazy<CodeActionsCache>(() => new());
-            return ImmutableArray.Create(
-                CreateLazyRequestHandlerMetadata(() => new CodeActionsHandler(codeActionsCache.Value, _codeFixService.Value, _codeRefactoringService.Value, _globalOptions.Value)),
-                CreateLazyRequestHandlerMetadata(() => new CodeActionResolveHandler(codeActionsCache.Value, _codeFixService.Value, _codeRefactoringService.Value, _globalOptions.Value)),
-                CreateLazyRequestHandlerMetadata(() => new RunCodeActionHandler(codeActionsCache.Value, _codeFixService.Value, _codeRefactoringService.Value, _globalOptions.Value, _threadingContext.Value)));
+            var codeActionsCache = new CodeActionsCache();
+            return ImmutableArray.Create<IRequestHandler>(
+                new CodeActionsHandler(codeActionsCache, _codeFixService, _codeRefactoringService, _globalOptions),
+                new CodeActionResolveHandler(codeActionsCache, _codeFixService, _codeRefactoringService, _globalOptions),
+                new RunCodeActionHandler(codeActionsCache, _codeFixService, _codeRefactoringService, _globalOptions, _threadingContext));
         }
     }
 }

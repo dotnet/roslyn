@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -30,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public XamlRequestDispatcherFactory(
-            [ImportMany] IEnumerable<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders,
+            [ImportMany(StringConstants.XamlLspLanguagesContract)] IEnumerable<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders,
             XamlProjectService projectService,
             [Import(AllowDefault = true)] IXamlLanguageServerFeedbackService? feedbackService)
             : base(requestHandlerProviders)
@@ -39,9 +40,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
             _feedbackService = feedbackService;
         }
 
-        public override RequestDispatcher CreateRequestDispatcher(ImmutableArray<string> supportedLanguages, WellKnownLspServerKinds serverKind)
+        public override RequestDispatcher CreateRequestDispatcher(WellKnownLspServerKinds serverKind)
         {
-            return new XamlRequestDispatcher(_projectService, _requestHandlerProviders, _feedbackService, supportedLanguages, serverKind);
+            return new XamlRequestDispatcher(_projectService, _requestHandlerProviders, _feedbackService, serverKind);
         }
 
         private class XamlRequestDispatcher : RequestDispatcher
@@ -53,8 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
                 XamlProjectService projectService,
                 ImmutableArray<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders,
                 IXamlLanguageServerFeedbackService? feedbackService,
-                ImmutableArray<string> languageNames,
-                WellKnownLspServerKinds serverKind) : base(requestHandlerProviders, languageNames, serverKind)
+                WellKnownLspServerKinds serverKind) : base(requestHandlerProviders, serverKind)
             {
                 _projectService = projectService;
                 _feedbackService = feedbackService;
@@ -88,6 +88,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
                     }
                 }
             }
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Class), MetadataAttribute]
+    internal class ExportXamlLspRequestHandlerProviderAttribute : ExportLspRequestHandlerProviderAttribute
+    {
+        public ExportXamlLspRequestHandlerProviderAttribute(Type first, params Type[] handlerTypes) : base(StringConstants.XamlLspLanguagesContract, first, handlerTypes)
+        {
         }
     }
 }

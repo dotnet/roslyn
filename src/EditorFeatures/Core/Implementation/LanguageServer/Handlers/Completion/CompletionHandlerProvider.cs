@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
+    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(CompletionHandler), typeof(CompletionResolveHandler)), Shared]
     internal class CompletionHandlerProvider : AbstractRequestHandlerProvider
     {
         private readonly IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> _completionProviders;
@@ -30,12 +30,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _completionProviders = completionProviders;
         }
 
-        public override ImmutableArray<LazyRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
+        public override ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
         {
-            var completionCache = new CompletionListCache();
-            return ImmutableArray.Create(
-                CreateLazyRequestHandlerMetadata(() => new CompletionHandler(_globalOptions, _completionProviders, completionCache)),
-                CreateLazyRequestHandlerMetadata(() => new CompletionResolveHandler(_globalOptions, completionCache)));
+            var completionListCache = new CompletionListCache();
+            return ImmutableArray.Create<IRequestHandler>(
+                new CompletionHandler(_globalOptions, _completionProviders, completionListCache),
+                new CompletionResolveHandler(_globalOptions, completionListCache));
         }
     }
 }

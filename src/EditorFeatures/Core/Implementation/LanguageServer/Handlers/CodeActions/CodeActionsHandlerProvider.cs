@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// Exports all the code action handlers together to ensure they
     /// share the same code actions cache state.
     /// </summary>
-    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
+    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(CodeActionsHandler), typeof(CodeActionResolveHandler), typeof(RunCodeActionHandler)), Shared]
     internal class CodeActionsHandlerProvider : AbstractRequestHandlerProvider
     {
         private readonly ICodeFixService _codeFixService;
@@ -41,13 +41,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _globalOptions = globalOptions;
         }
 
-        public override ImmutableArray<LazyRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
+        public override ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
         {
-            var codeActionsCache = new Lazy<CodeActionsCache>(() => new());
-            return ImmutableArray.Create(
-                CreateLazyRequestHandlerMetadata(() => new CodeActionsHandler(codeActionsCache.Value, _codeFixService, _codeRefactoringService, _globalOptions)),
-                CreateLazyRequestHandlerMetadata(() => new CodeActionResolveHandler(codeActionsCache.Value, _codeFixService, _codeRefactoringService, _globalOptions)),
-                CreateLazyRequestHandlerMetadata(() => new RunCodeActionHandler(codeActionsCache.Value, _codeFixService, _codeRefactoringService, _globalOptions, _threadingContext)));
+            var codeActionsCache = new CodeActionsCache();
+            return ImmutableArray.Create<IRequestHandler>(
+                new CodeActionsHandler(codeActionsCache, _codeFixService, _codeRefactoringService, _globalOptions),
+                new CodeActionResolveHandler(codeActionsCache, _codeFixService, _codeRefactoringService, _globalOptions),
+                new RunCodeActionHandler(codeActionsCache, _codeFixService, _codeRefactoringService, _globalOptions, _threadingContext));
         }
     }
 }

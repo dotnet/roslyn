@@ -15,7 +15,7 @@ using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
-    [Shared, ExportRoslynLanguagesLspRequestHandlerProvider, PartNotDiscoverable]
+    [Shared, ExportRoslynLanguagesLspRequestHandlerProvider(typeof(LongRunningNonMutatingRequestHandler)), PartNotDiscoverable]
     [Method(MethodName)]
     internal class LongRunningNonMutatingRequestHandler : AbstractStatelessRequestHandler<TestRequest, TestResponse>
     {

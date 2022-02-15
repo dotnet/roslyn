@@ -23,7 +23,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(RequestType request);
         public abstract Task<ResponseType> HandleRequestAsync(RequestType request, RequestContext context, CancellationToken cancellationToken);
 
-        public override ImmutableArray<LazyRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
-            => ImmutableArray.Create(new LazyRequestHandler(this.GetType(), new Lazy<IRequestHandler>(() => this)));
+        public override ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
+        {
+            return ImmutableArray.Create<IRequestHandler>(this);
+        }
     }
 }

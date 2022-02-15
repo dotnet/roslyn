@@ -13,7 +13,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
-    [Shared, ExportRoslynLanguagesLspRequestHandlerProvider, PartNotDiscoverable]
+    [Shared, ExportRoslynLanguagesLspRequestHandlerProvider(typeof(FailingMutatingRequestHandler)), PartNotDiscoverable]
     [Method(MethodName)]
     internal class FailingMutatingRequestHandler : AbstractStatelessRequestHandler<TestRequest, TestResponse>
     {

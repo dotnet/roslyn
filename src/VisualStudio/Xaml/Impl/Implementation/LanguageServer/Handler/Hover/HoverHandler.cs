@@ -21,7 +21,7 @@ using Microsoft.VisualStudio.Text.Adornments;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
-    [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
+    [ExportXamlLspRequestHandlerProvider(typeof(HoverHandler)), Shared]
     [Method(Methods.TextDocumentHoverName)]
     internal class HoverHandler : AbstractStatelessRequestHandler<TextDocumentPositionParams, Hover?>
     {

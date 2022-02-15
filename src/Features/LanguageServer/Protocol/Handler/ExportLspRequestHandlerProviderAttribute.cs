@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -15,14 +16,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [AttributeUsage(AttributeTargets.Class), MetadataAttribute]
     internal class ExportLspRequestHandlerProviderAttribute : ExportAttribute
     {
-        /// <summary>
-        /// The document languages that this handler supports.
-        /// </summary>
-        public string[] LanguageNames { get; }
+        public Type[] HandlerTypes { get; }
 
-        public ExportLspRequestHandlerProviderAttribute(params string[] languageNames) : base(typeof(AbstractRequestHandlerProvider))
+        public ExportLspRequestHandlerProviderAttribute(string contractName, Type first, params Type[] handlerTypes) : base(contractName, typeof(AbstractRequestHandlerProvider))
         {
-            LanguageNames = languageNames;
+            HandlerTypes = handlerTypes.Concat(new[] { first }).ToArray();
         }
     }
 
@@ -33,7 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [AttributeUsage(AttributeTargets.Class), MetadataAttribute]
     internal class ExportRoslynLanguagesLspRequestHandlerProviderAttribute : ExportLspRequestHandlerProviderAttribute
     {
-        public ExportRoslynLanguagesLspRequestHandlerProviderAttribute() : base(ProtocolConstants.RoslynLspLanguages.ToArray())
+        public ExportRoslynLanguagesLspRequestHandlerProviderAttribute(Type first, params Type[] handlerTypes) : base(ProtocolConstants.RoslynLspLanguagesContract, first, handlerTypes)
         {
         }
     }

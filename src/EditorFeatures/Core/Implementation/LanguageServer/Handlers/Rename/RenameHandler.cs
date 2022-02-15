@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// we no longer reference the <see cref="IInlineRenameService"/>
     /// See https://github.com/dotnet/roslyn/issues/55142
     /// </summary>
-    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
+    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(RenameHandler)), Shared]
     [Method(LSP.Methods.TextDocumentRenameName)]
     internal class RenameHandler : AbstractStatelessRequestHandler<LSP.RenameParams, WorkspaceEdit?>
     {

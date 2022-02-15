@@ -15,31 +15,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     internal class RequestHandlerProviderMetadataView
     {
-        public ImmutableArray<string> LanguageNames { get; set; }
+        public ImmutableArray<Type> HandlerTypes { get; set; }
 
         public RequestHandlerProviderMetadataView(IDictionary<string, object> metadata)
         {
-            var languageMetadata = metadata[nameof(ExportLspRequestHandlerProviderAttribute.LanguageNames)];
-            LanguageNames = ConvertMetadataToArray(languageMetadata);
-        }
-
-        /// <summary>
-        /// When multiple of the same attribute are defined on a class, the metadata
-        /// is aggregated into an array.  However, when just one of the same attribute is defined,
-        /// the metadata is not aggregated and is just a string.
-        /// MEF cannot construct the metadata object when it sees just the string type with AllowMultiple = true,
-        /// so we override and construct it ourselves here.
-        /// </summary>
-        private static ImmutableArray<string> ConvertMetadataToArray(object metadata)
-        {
-            if (metadata is string[] arrayData)
-            {
-                return arrayData.ToImmutableArray();
-            }
-            else
-            {
-                return ImmutableArray.Create((string)metadata);
-            }
+            var handlerMetadata = (Type[])metadata[nameof(ExportLspRequestHandlerProviderAttribute.HandlerTypes)];
+            HandlerTypes = handlerMetadata.ToImmutableArray();
         }
     }
 }

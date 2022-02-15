@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             WellKnownLspServerKinds serverKind)
         {
             GlobalOptions = globalOptions;
-            RequestDispatcher = requestDispatcherFactory.CreateRequestDispatcher(supportedLanguages, serverKind);
+            RequestDispatcher = requestDispatcherFactory.CreateRequestDispatcher(serverKind);
 
             _capabilitiesProvider = capabilitiesProvider;
             WorkspaceRegistrationService = workspaceRegistrationService;

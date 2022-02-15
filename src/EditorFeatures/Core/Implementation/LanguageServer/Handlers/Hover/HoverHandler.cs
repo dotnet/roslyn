@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// no longer references VS icon or classified text run types.
     /// See https://github.com/dotnet/roslyn/issues/55142
     /// </summary>
-    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
+    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(HoverHandler)), Shared]
     [Method(Methods.TextDocumentHoverName)]
     internal class HoverHandler : AbstractStatelessRequestHandler<TextDocumentPositionParams, Hover?>
     {

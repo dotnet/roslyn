@@ -10,23 +10,25 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
-    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
+    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(DocumentPullDiagnosticHandler)), Shared]
     internal class DocumentPullDiagnosticHandlerProvider : AbstractRequestHandlerProvider
     {
-        private readonly Lazy<IDiagnosticService> _diagnosticService;
-        private readonly Lazy<IDiagnosticAnalyzerService> _analyzerService;
+        private readonly IDiagnosticService _diagnosticService;
+        private readonly IDiagnosticAnalyzerService _analyzerService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DocumentPullDiagnosticHandlerProvider(
-            Lazy<IDiagnosticService> diagnosticService,
-            Lazy<IDiagnosticAnalyzerService> analyzerService)
+            IDiagnosticService diagnosticService,
+            IDiagnosticAnalyzerService analyzerService)
         {
             _diagnosticService = diagnosticService;
             _analyzerService = analyzerService;
         }
 
-        public override ImmutableArray<LazyRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
-            => CreateSingleRequestHandler(() => new DocumentPullDiagnosticHandler(serverKind, _diagnosticService.Value, _analyzerService.Value));
+        public override ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
+        {
+            return ImmutableArray.Create<IRequestHandler>(new DocumentPullDiagnosticHandler(serverKind, _diagnosticService, _analyzerService));
+        }
     }
 }

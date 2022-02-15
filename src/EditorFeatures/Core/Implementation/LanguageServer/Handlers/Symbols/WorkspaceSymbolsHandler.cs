@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// TODO - This must be moved to the MS.CA.LanguageServer.Protocol project once
     /// we no longer reference VS icon types.
     /// </summary>
-    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
+    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(WorkspaceSymbolsHandler)), Shared]
     [Method(Methods.WorkspaceSymbolName)]
     internal class WorkspaceSymbolsHandler : AbstractStatelessRequestHandler<WorkspaceSymbolParams, SymbolInformation[]?>
     {
