@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
@@ -27,7 +26,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         private readonly IUIThreadOperationExecutor _operationExecutor;
         private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
         private readonly IAsynchronousOperationListener _listener;
-        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -35,14 +33,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             IThreadingContext threadingContext,
             IUIThreadOperationExecutor operationExecutor,
             IAsynchronousOperationListenerProvider listenerProvider,
-            Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
-            IGlobalOptionService globalOptions)
+            Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
         {
             _threadingContext = threadingContext;
             _operationExecutor = operationExecutor;
             _streamingPresenter = streamingPresenter;
             _listener = listenerProvider.GetListener(FeatureAttribute.QuickInfo);
-            _globalOptions = globalOptions;
         }
 
         public IAsyncQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer)
@@ -51,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 return null;
 
             return new QuickInfoSource(
-                textBuffer, _threadingContext, _operationExecutor, _listener, _streamingPresenter, _globalOptions);
+                textBuffer, _threadingContext, _operationExecutor, _listener, _streamingPresenter);
         }
     }
 }

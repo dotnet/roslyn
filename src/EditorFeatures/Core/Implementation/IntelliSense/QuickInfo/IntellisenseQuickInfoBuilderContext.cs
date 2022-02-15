@@ -6,7 +6,6 @@ using System;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
@@ -18,14 +17,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
     {
         public IntellisenseQuickInfoBuilderContext(
             Document document,
-            ClassificationOptions classificationOptions,
             IThreadingContext? threadingContext,
             IUIThreadOperationExecutor? operationExecutor,
             IAsynchronousOperationListener? asynchronousOperationListener,
             Lazy<IStreamingFindUsagesPresenter>? streamingPresenter)
         {
             Document = document;
-            ClassificationOptions = classificationOptions;
             ThreadingContext = threadingContext;
             OperationExecutor = operationExecutor;
             StreamingPresenter = streamingPresenter;
@@ -33,7 +30,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         }
 
         public Document Document { get; }
-        public ClassificationOptions ClassificationOptions { get; }
         public IThreadingContext? ThreadingContext { get; }
         public IUIThreadOperationExecutor? OperationExecutor { get; }
         public IAsynchronousOperationListener? AsynchronousOperationListener { get; }

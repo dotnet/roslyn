@@ -41,10 +41,12 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
             public async ValueTask OnReferenceFoundAsync(Document document, TextSpan span, CancellationToken cancellationToken)
             {
-                var options = await _context.GetOptionsAsync(document.Project.Language, cancellationToken).ConfigureAwait(false);
+                // TODO:
+                // var options = await _context.GetOptionsAsync(document.Project.Language, cancellationToken).ConfigureAwait(false);
+                var classificationOptions = ClassificationOptions.From(document.Project);
 
                 var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
-                    document, span, options.ClassificationOptions, cancellationToken).ConfigureAwait(false);
+                    document, span, classificationOptions, cancellationToken).ConfigureAwait(false);
 
                 await _context.OnReferenceFoundAsync(
                     new SourceReferenceItem(_definition, documentSpan, SymbolUsageInfo.None), cancellationToken).ConfigureAwait(false);
@@ -103,11 +105,10 @@ namespace Microsoft.CodeAnalysis.FindUsages
                     if (!_definitionToItem.TryGetValue(group, out var definitionItem))
                     {
                         definitionItem = await group.ToClassifiedDefinitionItemAsync(
-                            _context,
                             _solution,
-                            _options,
                             isPrimary: _definitionToItem.Count == 0,
                             includeHiddenLocations: false,
+                            _options,
                             cancellationToken).ConfigureAwait(false);
 
                         _definitionToItem[group] = definitionItem;

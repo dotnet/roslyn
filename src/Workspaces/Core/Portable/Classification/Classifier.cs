@@ -26,9 +26,8 @@ namespace Microsoft.CodeAnalysis.Classification
             CancellationToken cancellationToken = default)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            // public options do not affect classification:
-            return GetClassifiedSpans(document.Project.Solution.Workspace.Services, semanticModel, textSpan, ClassificationOptions.Default, cancellationToken);
+            var options = ClassificationOptions.From(document.Project);
+            return GetClassifiedSpans(document.Project.Solution.Workspace.Services, semanticModel, textSpan, options, cancellationToken);
         }
 
         /// <summary>
@@ -45,10 +44,7 @@ namespace Microsoft.CodeAnalysis.Classification
             TextSpan textSpan,
             Workspace workspace,
             CancellationToken cancellationToken = default)
-        {
-            // public options do not affect classification:
-            return GetClassifiedSpans(workspace.Services, semanticModel, textSpan, ClassificationOptions.Default, cancellationToken);
-        }
+            => GetClassifiedSpans(workspace.Services, semanticModel, textSpan, ClassificationOptions.From(workspace.CurrentSolution.Options, semanticModel.Language), cancellationToken);
 
         internal static IEnumerable<ClassifiedSpan> GetClassifiedSpans(
             HostWorkspaceServices workspaceServices,
