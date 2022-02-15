@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
                 elseBlock:=Nothing)
         End Function
 
-        Protected Overrides Function TryAddNullCheckToParameterDeclaration(document As Document, parameterSyntax As ParameterSyntax, cancellationToken As CancellationToken) As Document
+        Protected Overrides Function TryAddNullCheckToParameterDeclarationAsync(document As Document, parameterSyntax As ParameterSyntax, cancellationToken As CancellationToken) As Task(Of Document)
             Return Nothing
         End Function
     End Class
