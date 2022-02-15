@@ -28,8 +28,8 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-    private static CSharpCompilation CreateCompilationWithRequiredMembers(CSharpTestSource source, CSharpParseOptions? parseOptions = null, CSharpCompilationOptions? options = null, TargetFramework tfm = TargetFramework.NetCoreApp)
-        => CreateCompilation(new[] { source, RequiredMemberAttribute }, options: options, parseOptions: parseOptions);
+    private static CSharpCompilation CreateCompilationWithRequiredMembers(CSharpTestSource source, CSharpParseOptions? parseOptions = null, CSharpCompilationOptions? options = null, string? assemblyName = null)
+        => CreateCompilation(new[] { source, RequiredMemberAttribute }, options: options, parseOptions: parseOptions, assemblyName: assemblyName);
 
     private static Action<ModuleSymbol> ValidateRequiredMembersInModule(string[] memberPaths, string expectedAttributeLayout)
     {
@@ -39,19 +39,23 @@ namespace System.Runtime.CompilerServices
             {
                 var actualAttributes = RequiredMemberAttributesVisitor.GetString(peModule);
                 AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedAttributeLayout, actualAttributes);
-                return;
             }
 
             foreach (var memberPath in memberPaths)
             {
                 var member = module.GlobalNamespace.GetMember(memberPath);
+                AssertEx.NotNull(member, $"Member {memberPath} was not found");
                 Assert.True(member is PropertySymbol or FieldSymbol, $"Unexpected member symbol type {member.Kind}");
                 Assert.True(member.IsRequired());
-
                 if (module is SourceModuleSymbol)
                 {
                     Assert.All(member.GetAttributes(), attr => AssertEx.NotEqual("System.Runtime.CompilerServices.RequiredMemberAttribute", attr.AttributeClass.ToTestDisplayString()));
                 }
+                else
+                {
+                    AssertEx.Any(member.GetAttributes(), attr => attr.AttributeClass.ToTestDisplayString() == "System.Runtime.CompilerServices.RequiredMemberAttribute");
+                }
+                Assert.True(((NamedTypeSymbol)member.ContainingSymbol).HasDeclaredRequiredMembers);
             }
         };
     }
@@ -404,65 +408,106 @@ class C
         );
     }
 
-    [Fact]
-    public void RequiredMemberAttributeEmitted_OverrideRequiredProperty_MissingRequiredOnOverride01()
+    [Theory]
+    [CombinatorialData]
+    public void RequiredMemberAttributeEmitted_OverrideRequiredProperty_MissingRequiredOnOverride01(bool useMetadataReference)
     {
-        var comp = CreateCompilationWithRequiredMembers(@"
-class Base
+        var @base = @"
+public class Base
 {
     public virtual required int Prop { get; set; }
-}
+}";
+
+        var derived = @"
 class Derived : Base
 {
     public override int Prop { get; set; }
 }
-");
+";
+
+        var comp = CreateCompilationWithRequiredMembers(@base + derived);
 
         comp.VerifyDiagnostics(
-            // (8,25): error CS9501: 'Derived.Prop': cannot remove 'required' from 'Base.Prop' when overriding
+            // (8,25): error CS9501: 'Derived.Prop' must be required because it overrides required member 'Base.Prop'
             //     public override int Prop { get; set; }
             Diagnostic(ErrorCode.ERR_OverrideMustHaveRequired, "Prop").WithArguments("Derived.Prop", "Base.Prop").WithLocation(8, 25)
         );
+
+        var baseComp = CreateCompilationWithRequiredMembers(@base);
+        baseComp.VerifyDiagnostics();
+
+        comp = CreateCompilation(derived, references: new[] { useMetadataReference ? baseComp.ToMetadataReference() : baseComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(
+            // (4,25): error CS9501: 'Derived.Prop' must be required because it overrides required member 'Base.Prop'
+            //     public override int Prop { get; set; }
+            Diagnostic(ErrorCode.ERR_OverrideMustHaveRequired, "Prop").WithArguments("Derived.Prop", "Base.Prop").WithLocation(4, 25)
+        );
     }
 
-    [Fact]
-    public void RequiredMemberAttributeEmitted_OverrideRequiredProperty_MissingRequiredOnOverride02()
+    [Theory]
+    [CombinatorialData]
+    public void RequiredMemberAttributeEmitted_OverrideRequiredProperty_MissingRequiredOnOverride02(bool useMetadataReference)
     {
-        var comp = CreateCompilationWithRequiredMembers(@"
-class Base
+        var @base = @"
+public class Base
 {
     public virtual int Prop { get; set; }
-}
-class Derived : Base
+}";
+
+        var derived = @"
+public class Derived : Base
 {
     public override required int Prop { get; set; }
-}
+}";
+
+        var derivedDerived = @"
 class DerivedDerived : Derived
 {
     public override int Prop { get; set; }
 }
-");
+";
+
+        var comp = CreateCompilationWithRequiredMembers(@base + derived + derivedDerived);
 
         comp.VerifyDiagnostics(
-            // (12,25): error CS9501: 'DerivedDerived.Prop': cannot remove 'required' from 'Derived.Prop' when overriding
+            // (12,25): error CS9501: 'DerivedDerived.Prop' must be required because it overrides required member 'Derived.Prop'
             //     public override int Prop { get; set; }
             Diagnostic(ErrorCode.ERR_OverrideMustHaveRequired, "Prop").WithArguments("DerivedDerived.Prop", "Derived.Prop").WithLocation(12, 25)
         );
+
+        var baseComp = CreateCompilationWithRequiredMembers(@base);
+        baseComp.VerifyDiagnostics();
+
+        MetadataReference baseReference = useMetadataReference ? baseComp.ToMetadataReference() : baseComp.EmitToImageReference();
+        var derivedComp = CreateCompilation(derived, references: new[] { baseReference });
+        derivedComp.VerifyDiagnostics();
+
+        comp = CreateCompilation(derivedDerived, new[] { baseReference, useMetadataReference ? derivedComp.ToMetadataReference() : derivedComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(
+            // (4,25): error CS9501: 'DerivedDerived.Prop' must be required because it overrides required member 'Derived.Prop'
+            //     public override int Prop { get; set; }
+            Diagnostic(ErrorCode.ERR_OverrideMustHaveRequired, "Prop").WithArguments("DerivedDerived.Prop", "Derived.Prop").WithLocation(4, 25)
+        );
     }
 
-    [Fact]
-    public void RequiredMemberAttributeEmitted_OverrideRequiredProperty()
+    [Theory]
+    [CombinatorialData]
+    public void RequiredMemberAttributeEmitted_OverrideRequiredProperty(bool useMetadataReference)
     {
-        var comp = CreateCompilationWithRequiredMembers(@"
-class Base
+        var @base = @"
+public class Base
 {
     public virtual required int Prop { get; set; }
 }
+";
+
+        string derived = @"
 class Derived : Base
 {
     public override required int Prop { get; set; }
 }
-");
+";
+        var comp = CreateCompilationWithRequiredMembers(@base + derived);
 
         var expectedRequiredMembers = new[] { "Base.Prop", "Derived.Prop" };
 
@@ -475,25 +520,45 @@ class Derived : Base
         var symbolValidator = ValidateRequiredMembersInModule(expectedRequiredMembers, expectedAttributeLayout);
         var verifier = CompileAndVerify(comp, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
         verifier.VerifyDiagnostics();
+
+        var baseComp = CreateCompilationWithRequiredMembers(@base, assemblyName: "test");
+        baseComp.VerifyDiagnostics();
+
+        comp = CreateCompilation(derived, new[] { useMetadataReference ? baseComp.ToMetadataReference() : baseComp.EmitToImageReference() });
+        expectedAttributeLayout = @"
+[RequiredMember] Derived
+    [RequiredMember] System.Int32 Derived.Prop { get; set; }
+";
+        symbolValidator = ValidateRequiredMembersInModule(new[] { "Derived.Prop" }, expectedAttributeLayout);
+        verifier = CompileAndVerify(comp, symbolValidator: symbolValidator, sourceSymbolValidator: symbolValidator);
+        verifier.VerifyDiagnostics();
     }
 
-    [Fact]
-    public void RequiredMemberAttributeEmitted_AddRequiredOnOverride()
+    [Theory]
+    [CombinatorialData]
+    public void RequiredMemberAttributeEmitted_AddRequiredOnOverride(bool useMetadataReference)
     {
-        var comp = CreateCompilationWithRequiredMembers(@"
-class Base
+        var @base = @"
+public class Base
 {
     public virtual int Prop { get; set; }
 }
-class Derived : Base
+";
+
+        var derived = @"
+public class Derived : Base
 {
     public override required int Prop { get; set; }
 }
+";
+
+        var derivedDerived = @"
 class DerivedDerived : Derived
 {
     public override required int Prop { get; set; }
 }
-");
+";
+        var comp = CreateCompilationWithRequiredMembers(@base + derived + derivedDerived);
 
         var expectedRequiredMembers = new[] { "Derived.Prop", "DerivedDerived.Prop" };
 
@@ -506,6 +571,22 @@ class DerivedDerived : Derived
 
         var symbolValidator = ValidateRequiredMembersInModule(expectedRequiredMembers, expectedAttributeLayout);
         var verifier = CompileAndVerify(comp, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+        verifier.VerifyDiagnostics();
+
+        var baseComp = CreateCompilationWithRequiredMembers(@base);
+        baseComp.VerifyDiagnostics();
+        var baseReference = useMetadataReference ? baseComp.ToMetadataReference() : baseComp.EmitToImageReference();
+
+        var derivedComp = CreateCompilation(derived, new[] { baseReference });
+        derivedComp.VerifyDiagnostics();
+
+        comp = CreateCompilation(derivedDerived, new[] { baseReference, useMetadataReference ? derivedComp.ToMetadataReference() : derivedComp.EmitToImageReference() });
+        expectedAttributeLayout = @"
+[RequiredMember] DerivedDerived
+    [RequiredMember] System.Int32 DerivedDerived.Prop { get; set; }
+";
+        symbolValidator = ValidateRequiredMembersInModule(new[] { "DerivedDerived.Prop" }, expectedAttributeLayout);
+        verifier = CompileAndVerify(comp, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
         verifier.VerifyDiagnostics();
     }
 
@@ -540,19 +621,23 @@ Outer
         );
     }
 
-    [Fact]
-    public void RequiredMemberAttributeEmitted_AbstractProperty()
+    [Theory]
+    [CombinatorialData]
+    public void RequiredMemberAttributeEmitted_AbstractProperty(bool useMetadataReference)
     {
-        var comp = CreateCompilationWithRequiredMembers(@"
-abstract class Base
+        var @base = @"
+public abstract class Base
 {
     public required abstract int Prop { get; set; }
-}
+}";
+
+        var derived = @"
 class Derived : Base
 {
     public override required int Prop { get; set; }
 }
-");
+";
+        var comp = CreateCompilationWithRequiredMembers(@base + derived);
 
         var expectedRequiredMembers = new[] { "Base.Prop", "Derived.Prop" };
 
@@ -566,18 +651,37 @@ class Derived : Base
         var symbolValidator = ValidateRequiredMembersInModule(expectedRequiredMembers, expectedAttributeLayout);
         var verifier = CompileAndVerify(comp, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
         verifier.VerifyDiagnostics();
+
+        var baseComp = CreateCompilationWithRequiredMembers(@base, assemblyName: "base");
+        baseComp.VerifyDiagnostics();
+        var baseReference = useMetadataReference ? baseComp.ToMetadataReference() : baseComp.EmitToImageReference();
+
+        comp = CreateCompilation(derived, new[] { baseReference }, assemblyName: "derived");
+
+        expectedAttributeLayout = @"
+[RequiredMember] Derived
+    [RequiredMember] System.Int32 Derived.Prop { get; set; }
+";
+
+        symbolValidator = ValidateRequiredMembersInModule(new[] { "Derived.Prop" }, expectedAttributeLayout);
+        verifier = CompileAndVerify(comp, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator);
+        verifier.VerifyDiagnostics();
     }
 
-    [Fact]
-    public void HidingRequiredMembers()
+    [Theory]
+    [CombinatorialData]
+    public void HidingRequiredMembers(bool useMetadataReference)
     {
-        var comp = CreateCompilationWithRequiredMembers(@"
+        var @base =
+@"
 #pragma warning disable CS0649 // Never assigned
-class Base
+public class Base
 {
     public required int Field;
     public required int Prop { get; set; }
-}
+}";
+
+        var derived = @"
 class Derived1 : Base
 {
     public new int Field; // 1
@@ -593,7 +697,8 @@ class Derived3 : Base
     public int Field; // 1
     public int Prop { get; set; } // 2
 }
-");
+";
+        var comp = CreateCompilationWithRequiredMembers(@base + derived);
 
         comp.VerifyDiagnostics(
             // (10,20): error CS9502: Required member 'Base.Field' cannot be hidden by 'Derived1.Field'.
@@ -617,6 +722,34 @@ class Derived3 : Base
             // (21,16): error CS9502: Required member 'Base.Prop' cannot be hidden by 'Derived3.Prop'.
             //     public int Prop { get; set; } // 2
             Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeHidden, "Prop").WithArguments("Base.Prop", "Derived3.Prop").WithLocation(21, 16)
+        );
+
+        var baseComp = CreateCompilationWithRequiredMembers(@base);
+        baseComp.VerifyDiagnostics();
+
+        comp = CreateCompilation("#pragma warning disable CS0649 // Never assigned" + derived, new[] { useMetadataReference ? baseComp.ToMetadataReference() : baseComp.EmitToImageReference() });
+        comp.VerifyDiagnostics(
+            // (4,20): error CS9502: Required member 'Base.Field' cannot be hidden by 'Derived1.Field'.
+            //     public new int Field; // 1
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeHidden, "Field").WithArguments("Base.Field", "Derived1.Field").WithLocation(4, 20),
+            // (5,20): error CS9502: Required member 'Base.Prop' cannot be hidden by 'Derived1.Prop'.
+            //     public new int Prop { get; set; } // 2
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeHidden, "Prop").WithArguments("Base.Prop", "Derived1.Prop").WithLocation(5, 20),
+            // (9,20): error CS9502: Required member 'Base.Prop' cannot be hidden by 'Derived2.Prop'.
+            //     public new int Prop; // 3
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeHidden, "Prop").WithArguments("Base.Prop", "Derived2.Prop").WithLocation(9, 20),
+            // (10,20): error CS9502: Required member 'Base.Field' cannot be hidden by 'Derived2.Field'.
+            //     public new int Field { get; set; } // 4
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeHidden, "Field").WithArguments("Base.Field", "Derived2.Field").WithLocation(10, 20),
+            // (14,16): warning CS0108: 'Derived3.Field' hides inherited member 'Base.Field'. Use the new keyword if hiding was intended.
+            //     public int Field; // 1
+            Diagnostic(ErrorCode.WRN_NewRequired, "Field").WithArguments("Derived3.Field", "Base.Field").WithLocation(14, 16),
+            // (14,16): error CS9502: Required member 'Base.Field' cannot be hidden by 'Derived3.Field'.
+            //     public int Field; // 1
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeHidden, "Field").WithArguments("Base.Field", "Derived3.Field").WithLocation(14, 16),
+            // (15,16): error CS9502: Required member 'Base.Prop' cannot be hidden by 'Derived3.Prop'.
+            //     public int Prop { get; set; } // 2
+            Diagnostic(ErrorCode.ERR_RequiredMemberCannotBeHidden, "Prop").WithArguments("Base.Prop", "Derived3.Prop").WithLocation(15, 16)
         );
     }
 

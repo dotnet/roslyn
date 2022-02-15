@@ -908,7 +908,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (overriddenMember is PropertySymbol { IsRequired: true } && overridingMember is PropertySymbol { IsRequired: false })
                 {
-                    // '{0}': cannot remove 'required' from '{1}' when overriding
+                    // '{0}' must be required because it overrides required member '{1}'
                     diagnostics.Add(ErrorCode.ERR_OverrideMustHaveRequired, overridingMemberLocation, overridingMember, overriddenMember);
                 }
                 else

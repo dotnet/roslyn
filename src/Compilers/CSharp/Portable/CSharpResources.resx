@@ -6948,7 +6948,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>required members</value>
   </data>
   <data name="ERR_OverrideMustHaveRequired" xml:space="preserve">
-    <value>'{0}': cannot remove 'required' from '{1}' when overriding</value>
+    <value>'{0}' must be required because it overrides required member '{1}'</value>
   </data>
   <data name="ERR_RequiredMemberCannotBeHidden" xml:space="preserve">
     <value>Required member '{0}' cannot be hidden by '{1}'.</value>

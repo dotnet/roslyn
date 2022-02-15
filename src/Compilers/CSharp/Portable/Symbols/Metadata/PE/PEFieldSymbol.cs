@@ -29,15 +29,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private struct PackedFlags
         {
             // Layout:
-            // |..............................|vvvvv|
+            // |............................|rr|vvvvv|
             //
             // f = FlowAnalysisAnnotations. 5 bits (4 value bits + 1 completion bit).
+            // r = Required members. 2 bits (1 value bit + 1 completion bit).
 
             private const int HasDisallowNullAttribute = 0x1 << 0;
             private const int HasAllowNullAttribute = 0x1 << 1;
             private const int HasMaybeNullAttribute = 0x1 << 2;
             private const int HasNotNullAttribute = 0x1 << 3;
             private const int FlowAnalysisAnnotationsCompletionBit = 0x1 << 4;
+
+            private const int HasRequiredMemberAttribute = 0x1 << 5;
+            private const int RequiredMemberCompletionBit = 0x1 << 6;
 
             private int _bits;
 
@@ -66,6 +70,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var result = (theBits & FlowAnalysisAnnotationsCompletionBit) != 0;
                 Debug.Assert(value == 0 || result);
                 return result;
+            }
+
+            public bool SetHasRequiredMemberAttribute(bool isRequired)
+            {
+                int bitsToSet = RequiredMemberCompletionBit | (isRequired ? HasRequiredMemberAttribute : 0);
+                return ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
+            }
+
+            public bool TryGetHasRequiredMemberAttribute(out bool hasRequiredMemberAttribute)
+            {
+                if ((_bits & RequiredMemberCompletionBit) != 0)
+                {
+                    hasRequiredMemberAttribute = (_bits & HasRequiredMemberAttribute) != 0;
+                    return true;
+                }
+
+                hasRequiredMemberAttribute = false;
+                return false;
             }
         }
 
@@ -588,7 +610,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get { return null; }
         }
 
-        // PROTOTYPE(req): Implement
-        internal override bool IsRequired => false;
+        internal override bool IsRequired
+        {
+            get
+            {
+                if (!_packedFlags.TryGetHasRequiredMemberAttribute(out bool hasRequiredMemberAttribute))
+                {
+                    hasRequiredMemberAttribute = ContainingPEModule.Module.HasAttribute(_handle, AttributeDescription.RequiredMemberAttribute);
+                    _packedFlags.SetHasRequiredMemberAttribute(hasRequiredMemberAttribute);
+                }
+
+                return hasRequiredMemberAttribute;
+            }
+        }
     }
 }
