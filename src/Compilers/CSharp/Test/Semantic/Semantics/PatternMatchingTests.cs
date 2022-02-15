@@ -8,7 +8,6 @@ using System;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -7361,7 +7360,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "in catch");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void PatternMatchReadOnlySpanCharOnConstantString()
         {
             var source =
@@ -7379,7 +7378,7 @@ class C
     static void Test(ReadOnlySpan<char> chars) => Console.WriteLine(chars is ""test string"");
 }
 ";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"False
 True
@@ -7399,7 +7398,7 @@ False")
 }");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void SwitchReadOnlySpanCharOnConstantString()
         {
             var source =
@@ -7426,7 +7425,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"0
 1
@@ -7489,7 +7488,7 @@ class C
         Console.WriteLine(number);
     }
 }";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"2")
                 .VerifyIL("C.Main",
@@ -7533,7 +7532,7 @@ class C
         }
 
         // Similar to above but switching on a field of a ref struct.
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void SwitchReadOnlySpanChar_RefStructField()
         {
             var source =
@@ -7568,7 +7567,7 @@ class C
         Console.WriteLine(number);
     }
 }";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"0
 1
@@ -7614,7 +7613,7 @@ class C
 }");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void SwitchReadOnlySpanCharOnConstantStringUsingHash()
         {
             var source =
@@ -7653,7 +7652,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"0
 1
@@ -7827,7 +7826,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"0
 1
@@ -7884,7 +7883,7 @@ class C
 }");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void PatternMatchReadOnlySpanCharOnConstantStringInOrAndAndNot()
         {
             var source =
@@ -7907,7 +7906,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"or: False
 and: False
@@ -7980,7 +7979,7 @@ not: True")
 }");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void RecursivePatternMatchReadOnlySpanCharOnConstantString()
         {
             var source =
@@ -8003,7 +8002,7 @@ ref struct S
     public ReadOnlySpan<char> Span { get; set; }
     public bool Prop { get; set; }
 }";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"True
 False
@@ -8037,7 +8036,7 @@ False")
 }");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void PatternMatchReadOnlySpanCharOnConstantStringMissingMemoryExtensions()
         {
             var source =
@@ -8048,7 +8047,7 @@ class C
     static bool M(ReadOnlySpan<char> chars) => chars is """";
 }
 ";
-            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.RegularPreview)
+            CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics(
                     // (5,57): error CS0656: Missing compiler required member 'System.MemoryExtensions.SequenceEqual'
                     //     static bool M(ReadOnlySpan<char> chars) => chars is "";
@@ -8058,7 +8057,7 @@ class C
                     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""""").WithArguments("System.MemoryExtensions", "AsSpan").WithLocation(5, 57));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void SwitchReadOnlySpanCharOnConstantStringMissingMemoryExtensions()
         {
             var source =
@@ -8077,7 +8076,7 @@ class C
     }
 }
 ";
-            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.RegularPreview)
+            CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics(
                     // (8,13): error CS0656: Missing compiler required member 'System.MemoryExtensions.SequenceEqual'
                     //             "" => 0,
@@ -8146,7 +8145,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""str""").WithArguments("System.ReadOnlySpan`1", "get_Length").WithLocation(9, 24));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void PatternMatchReadOnlySpanCharOnConstantStringCSharp10()
         {
             var source =
@@ -8164,13 +8163,13 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
                 // (5,57): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static bool M(ReadOnlySpan<char> chars) => chars is "";
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(5, 57));
 
-            comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"True
@@ -8189,7 +8188,7 @@ False");
 }");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void SwitchReadOnlySpanCharOnConstantStringCSharp10()
         {
             var source =
@@ -8206,13 +8205,13 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
                 // (4,63): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static bool M(ReadOnlySpan<char> chars) => chars switch { "" => true, _ => false };
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(4, 63));
 
-            comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"True
@@ -8249,14 +8248,14 @@ class C
 {
     static bool M(ReadOnlySpan<char> chars) => chars is null;
 }";
-            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, parseOptions: TestOptions.RegularPreview)
+            CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics(
                     // (5,57): error CS0150: A constant value is expected
                     //     static bool M(ReadOnlySpan<char> chars) => chars is null;
                     Diagnostic(ErrorCode.ERR_ConstantExpected, "null").WithLocation(5, 57));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void PatternMatchReadOnlySpanCharOnNull_02()
         {
             var source =
@@ -8265,14 +8264,14 @@ class C
 {
     static bool M(ReadOnlySpan<char> chars) => chars is (object)null;
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics(
                 // (4,57): error CS0266: Cannot implicitly convert type 'object' to 'System.ReadOnlySpan<char>'. An explicit conversion exists (are you missing a cast?)
                 //     static bool M(ReadOnlySpan<char> chars) => chars is (object)null;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "System.ReadOnlySpan<char>").WithLocation(4, 57));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void PatternMatchReadOnlySpanCharOnNull_03()
         {
             var source =
@@ -8288,7 +8287,7 @@ class C
         Console.WriteLine(M(""str""));
     }
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"True
@@ -8307,7 +8306,7 @@ False");
 }");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void PatternMatchReadOnlySpanCharOnNull_04()
         {
             var source =
@@ -8324,7 +8323,7 @@ class C
         Console.WriteLine(M(""str""));
     }
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"True
@@ -8353,14 +8352,14 @@ class C
 {
     static bool M(ReadOnlySpan<char> chars) => chars switch { null => true, _ => false };
 }";
-            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, parseOptions: TestOptions.RegularPreview)
+            CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics(
                     // (5,63): error CS0150: A constant value is expected
                     //     static bool M(ReadOnlySpan<char> chars) => chars switch { null => true, _ => false };
                     Diagnostic(ErrorCode.ERR_ConstantExpected, "null").WithLocation(5, 63));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void SwitchReadOnlySpanCharOnNull_02()
         {
             var source =
@@ -8369,14 +8368,14 @@ class C
 {
     static bool M(ReadOnlySpan<char> chars) => chars switch { (object)null => true, _ => false };
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics(
                 // (4,63): error CS0266: Cannot implicitly convert type 'object' to 'System.ReadOnlySpan<char>'. An explicit conversion exists (are you missing a cast?)
                 //     static bool M(ReadOnlySpan<char> chars) => chars switch { (object)null => true, _ => false };
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "System.ReadOnlySpan<char>").WithLocation(4, 63));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void SwitchReadOnlySpanCharOnNull_03()
         {
             var source =
@@ -8392,7 +8391,7 @@ class C
         Console.WriteLine(M(""str""));
     }
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"True
@@ -8419,7 +8418,7 @@ False");
 }");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void SwitchReadOnlySpanCharOnNull_04()
         {
             var source =
@@ -8436,7 +8435,7 @@ class C
         Console.WriteLine(M(""str""));
     }
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"True
@@ -8463,7 +8462,7 @@ False");
 }");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void MatchReadOnlySpanCharOnImpossiblePatterns()
         {
             var source =
@@ -8478,7 +8477,7 @@ class C
         _ = chars is """" and ("" "" or not """");
     }
 }";
-            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, parseOptions: TestOptions.RegularPreview)
+            CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics(
                     // (7,13): error CS8518: An expression of type 'ReadOnlySpan<char>' can never match the provided pattern.
                     //         _ = chars is "" and " ";
@@ -8491,7 +8490,7 @@ class C
                     Diagnostic(ErrorCode.ERR_IsPatternImpossible, @"chars is """" and ("" "" or not """")").WithArguments("System.ReadOnlySpan<char>").WithLocation(9, 13));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void PatternMatchReadOnlySpanCharOnPossiblePatterns()
         {
             var source =
@@ -8514,7 +8513,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics(
                     // (16,35): warning CS8794: An expression of type 'ReadOnlySpan<char>' always matches the provided pattern.
                     //         Console.WriteLine("4." + (chars is "" or not ""));
@@ -8582,7 +8581,7 @@ class C
 }");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void SwitchReadOnlySpanCharOnDuplicateString()
         {
             var source =
@@ -8596,14 +8595,14 @@ class C
         _ => false,
     };
 }";
-            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, parseOptions: TestOptions.RegularPreview)
+            CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics(
                     // (7,9): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                     //         "" => false,
                     Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"""""").WithLocation(7, 9));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void PatternMatchSpanCharOnConstantString()
         {
             var source =
@@ -8623,7 +8622,7 @@ class C
     static void Test(Span<char> chars) => Console.WriteLine(chars is ""test string"");
 }
 ";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"False
 True
@@ -8643,7 +8642,7 @@ False")
 }");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void SwitchSpanCharOnConstantString()
         {
             var source =
@@ -8672,7 +8671,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"0
 1
@@ -8715,7 +8714,7 @@ class C
         }
 
         // Similar to above but switching on a local value rather than a parameter.
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void SwitchSpanChar_Local()
         {
             var source =
@@ -8736,7 +8735,7 @@ class C
         Console.WriteLine(number);
     }
 }";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"2")
                 .VerifyIL("C.Main",
@@ -8781,7 +8780,7 @@ class C
         }
 
         // Similar to above but switching on a field of a ref struct.
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void SwitchSpanChar_RefStructField()
         {
             var source =
@@ -8817,7 +8816,7 @@ class C
         Console.WriteLine(number);
     }
 }";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"0
 1
@@ -8863,7 +8862,7 @@ class C
 }");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void SwitchSpanCharOnConstantStringUsingHash()
         {
             var source =
@@ -8904,7 +8903,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"0
 1
@@ -9080,7 +9079,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"0
 1
@@ -9137,7 +9136,7 @@ class C
 }");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void PatternMatchSpanCharOnConstantStringInOrAndAndNot()
         {
             var source =
@@ -9161,7 +9160,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"or: True
 and: False
@@ -9231,7 +9230,7 @@ not: True")
 }");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void RecursivePatternMatchSpanCharOnConstantString()
         {
             var source =
@@ -9256,7 +9255,7 @@ ref struct S
     public Span<char> Span { get; set; }
     public bool Prop { get; set; }
 }";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"True
 False
@@ -9290,7 +9289,7 @@ False")
 }");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void PatternMatchSpanCharOnConstantStringMissingMemoryExtensions()
         {
             var source =
@@ -9301,7 +9300,7 @@ class C
     static bool M(Span<char> chars) => chars is """";
 }
 ";
-            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.RegularPreview)
+            CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics(
                     // (5,49): error CS0656: Missing compiler required member 'System.MemoryExtensions.SequenceEqual'
                     //     static bool M(Span<char> chars) => chars is "";
@@ -9311,7 +9310,7 @@ class C
                     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""""").WithArguments("System.MemoryExtensions", "AsSpan").WithLocation(5, 49));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void SwitchSpanCharOnConstantStringMissingMemoryExtensions()
         {
             var source =
@@ -9330,7 +9329,7 @@ class C
     }
 }
 ";
-            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, parseOptions: TestOptions.RegularPreview)
+            CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics(
                     // (8,13): error CS0656: Missing compiler required member 'System.MemoryExtensions.SequenceEqual'
                     //             "" => 0,
@@ -9403,7 +9402,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""str""").WithArguments("System.Span`1", "get_Length").WithLocation(9, 24));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void PatternMatchSpanCharOnConstantStringCSharp10()
         {
             var source =
@@ -9420,13 +9419,13 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
                 // (5,49): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static bool M(Span<char> chars) => chars is "";
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(5, 49));
 
-            comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"True
@@ -9444,7 +9443,7 @@ False");
 }");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void SwitchSpanCharOnConstantStringCSharp10()
         {
             var source =
@@ -9461,13 +9460,13 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics(
                 // (5,55): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static bool M(Span<char> chars) => chars switch { "" => true, _ => false };
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(5, 55));
 
-            comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"True
@@ -9493,7 +9492,7 @@ False");
 }");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void PatternMatchSpanCharOnNull_01()
         {
             var source =
@@ -9503,7 +9502,7 @@ class C
 {
     static bool M(Span<char> chars) => chars is null;
 }";
-            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, parseOptions: TestOptions.RegularPreview)
+            CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics(
                     // (5,49): error CS0150: A constant value is expected
                     //     static bool M(Span<char> chars) => chars is null;
@@ -9519,14 +9518,14 @@ class C
 {
     static bool M(Span<char> chars) => chars is (object)null;
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics(
                 // (4,49): error CS0266: Cannot implicitly convert type 'object' to 'System.Span<char>'. An explicit conversion exists (are you missing a cast?)
                 //     static bool M(Span<char> chars) => chars is (object)null;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "System.Span<char>").WithLocation(4, 49));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void PatternMatchSpanCharOnNull_03()
         {
             var source =
@@ -9542,7 +9541,7 @@ class C
         Console.WriteLine(M(""str"".ToArray()));
     }
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"True
@@ -9560,7 +9559,7 @@ False");
 }");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void PatternMatchSpanCharOnNull_04()
         {
             var source =
@@ -9577,7 +9576,7 @@ class C
         Console.WriteLine(M(""str"".ToArray()));
     }
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"True
@@ -9595,7 +9594,7 @@ False");
 }");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void SwitchSpanCharOnNull_01()
         {
             var source =
@@ -9605,7 +9604,7 @@ class C
 {
     static bool M(Span<char> chars) => chars switch { null => true, _ => false };
 }";
-            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, parseOptions: TestOptions.RegularPreview)
+            CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics(
                     // (5,55): error CS0150: A constant value is expected
                     //     static bool M(Span<char> chars) => chars switch { null => true, _ => false };
@@ -9621,14 +9620,14 @@ class C
 {
     static bool M(Span<char> chars) => chars switch { (object)null => true, _ => false };
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics(
                 // (4,55): error CS0266: Cannot implicitly convert type 'object' to 'System.Span<char>'. An explicit conversion exists (are you missing a cast?)
                 //     static bool M(Span<char> chars) => chars switch { (object)null => true, _ => false };
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "System.Span<char>").WithLocation(4, 55));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void SwitchSpanCharOnNull_03()
         {
             var source =
@@ -9644,7 +9643,7 @@ class C
         Console.WriteLine(M(""str"".ToArray()));
     }
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"True
@@ -9670,7 +9669,7 @@ False");
 }");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void SwitchSpanCharOnNull_04()
         {
             var source =
@@ -9687,7 +9686,7 @@ class C
         Console.WriteLine(M(""str"".ToArray()));
     }
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput:
 @"True
@@ -9713,7 +9712,7 @@ False");
 }");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void MatchSpanCharOnImpossiblePatterns()
         {
             var source =
@@ -9728,7 +9727,7 @@ class C
         _ = chars is """" and ("" "" or not """");
     }
 }";
-            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, parseOptions: TestOptions.RegularPreview)
+            CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics(
                     // (7,13): error CS8518: An expression of type 'Span<char>' can never match the provided pattern.
                     //         _ = chars is "" and " ";
@@ -9741,7 +9740,7 @@ class C
                     Diagnostic(ErrorCode.ERR_IsPatternImpossible, @"chars is """" and ("" "" or not """")").WithArguments("System.Span<char>").WithLocation(9, 13));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void PatternMatchSpanCharOnPossiblePatterns()
         {
             var source =
@@ -9766,7 +9765,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
+            var compilation = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics(
                     // (18,35): warning CS8794: An expression of type 'Span<char>' always matches the provided pattern.
                     //         Console.WriteLine("4." + (chars is "" or not ""));
@@ -9834,7 +9833,7 @@ class C
 }");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void SwitchSpanCharOnDuplicateString()
         {
             var source =
@@ -9848,14 +9847,14 @@ class C
         _ => false,
     };
 }";
-            CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, parseOptions: TestOptions.RegularPreview)
+            CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
                 .VerifyEmitDiagnostics(
                     // (7,9): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                     //         "" => false,
                     Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"""""").WithLocation(7, 9));
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void PatternMatchSpanOfT()
         {
             var source =
@@ -9865,7 +9864,7 @@ class Program
     static bool F1<T>(ReadOnlySpan<T> span) => span is """";
     static bool F2<T>(Span<T> span) => span is """";
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
             comp.VerifyEmitDiagnostics(
                 // (4,56): error CS8121: An expression of type 'ReadOnlySpan<T>' cannot be handled by a pattern of type 'string'.
                 //     static bool F1<T>(ReadOnlySpan<T> span) => span is "";
@@ -9910,7 +9909,9 @@ class Program
         };
     }
 }";
-            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetCoreApp, references: new[] { Net50.SystemMemory }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext, expectedOutput:
+            var comp = CreateCompilationWithSpanAndMemoryExtensions(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput:
 @"0
 1
 0
