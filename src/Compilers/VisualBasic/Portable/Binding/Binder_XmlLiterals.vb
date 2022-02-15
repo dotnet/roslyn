@@ -1434,7 +1434,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function GetImportChainData() As ImmutableArray(Of String)
             Dim result = ArrayBuilder(Of String).GetInstance(_namespaces.Count)
-
             For Each kvp In _namespaces
                 result.Add(kvp.Value.XmlNamespace)
             Next
