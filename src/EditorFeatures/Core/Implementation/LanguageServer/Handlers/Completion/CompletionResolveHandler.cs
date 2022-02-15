@@ -67,9 +67,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return completionItem;
             }
 
-            var options = _globalOptions.GetCompletionOptions(document.Project.Language);
-            var displayOptions = SymbolDescriptionOptions.From(document.Project);
-            var description = await completionService.GetDescriptionAsync(document, selectedItem, options, displayOptions, cancellationToken).ConfigureAwait(false)!;
+            var completionOptions = _globalOptions.GetCompletionOptions(document.Project.Language);
+            var displayOptions = _globalOptions.GetSymbolDescriptionOptions(document.Project.Language);
+            var description = await completionService.GetDescriptionAsync(document, selectedItem, completionOptions, displayOptions, cancellationToken).ConfigureAwait(false)!;
             if (description != null)
             {
                 var supportsVSExtensions = context.ClientCapabilities.HasVisualStudioLspCapability();
