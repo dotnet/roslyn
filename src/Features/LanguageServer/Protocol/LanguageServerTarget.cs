@@ -89,7 +89,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 var delegatingEntryPoint = new DelegatingEntryPoint(metadata.MethodName, this);
 
                 var entryPointMethod = delegatingEntryPoint.GetType().GetMethod(nameof(DelegatingEntryPoint.EntryPointAsync));
-                entryPointMethod = entryPointMethod!.MakeGenericMethod(metadata.RequestType, metadata.ResponseType);
+                Contract.ThrowIfNull(entryPointMethod, $"{delegatingEntryPoint.GetType().FullName} is missing method {nameof(DelegatingEntryPoint.EntryPointAsync)}");
+                entryPointMethod = entryPointMethod.MakeGenericMethod(metadata.RequestType, metadata.ResponseType);
 
                 JsonRpc.AddLocalRpcMethod(entryPointMethod, delegatingEntryPoint, new JsonRpcMethodAttribute(metadata.MethodName) { UseSingleObjectParameterDeserialization = true });
             }
