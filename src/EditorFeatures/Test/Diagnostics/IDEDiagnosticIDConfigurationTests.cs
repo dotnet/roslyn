@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ConfigureSeverityL
         {
             if (diagnosticId is "IDE0043" // Intentionally undocumented because it's being removed in favor of CA2241
                 or "IDE1007" or "RemoveUnnecessaryImportsFixable"
-                or "RE0001") // Tracked by https://github.com/dotnet/roslyn/issues/48530
+                or "LAMA0001") // Tracked by https://github.com/dotnet/roslyn/issues/48530
             {
                 Assert.True(helpLinkUri == string.Empty, $"Expected empty help link for {diagnosticId}");
                 return;
@@ -438,8 +438,8 @@ dotnet_diagnostic.IDE2003.severity = %value%
 # IDE2004
 dotnet_diagnostic.IDE2004.severity = %value%
 
-# RE0001
-dotnet_diagnostic.RE0001.severity = %value%
+# LAMA0001
+dotnet_diagnostic.LAMA0001.severity = %value%
 ";
 
             VerifyConfigureSeverityCore(expected, LanguageNames.CSharp);
@@ -596,8 +596,8 @@ dotnet_diagnostic.IDE2000.severity = %value%
 # IDE2003
 dotnet_diagnostic.IDE2003.severity = %value%
 
-# RE0001
-dotnet_diagnostic.RE0001.severity = %value%
+# LAMA0001
+dotnet_diagnostic.LAMA0001.severity = %value%
 ";
             VerifyConfigureSeverityCore(expected, LanguageNames.VisualBasic);
         }
@@ -1022,7 +1022,7 @@ dotnet_style_allow_statement_immediately_after_block_experimental = true
 # IDE2004, AllowBlankLineAfterColonInConstructorInitializer
 csharp_style_allow_blank_line_after_colon_in_constructor_initializer_experimental = true
 
-# RE0001
+# LAMA0001
 No editorconfig based code style option
 ";
 
@@ -1222,7 +1222,7 @@ dotnet_style_allow_multiple_blank_lines_experimental = true
 # IDE2003, AllowStatementImmediatelyAfterBlock
 dotnet_style_allow_statement_immediately_after_block_experimental = true
 
-# RE0001
+# LAMA0001
 No editorconfig based code style option
 ";
 

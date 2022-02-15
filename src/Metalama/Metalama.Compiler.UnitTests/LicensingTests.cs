@@ -61,7 +61,7 @@ build_property.MetalamaDebugTransformedCode = {(debugTransformedCode ? "True" : 
             var output = outWriter.ToString().Trim();
 
             Assert.NotEqual(0, exitCode);
-            Assert.Contains("RE0008", output);
+            Assert.Contains("LAMA0008", output);
         }
 
         [Fact]
@@ -75,7 +75,7 @@ build_property.MetalamaDebugTransformedCode = {(debugTransformedCode ? "True" : 
             var output = outWriter.ToString().Trim();
 
             Assert.NotEqual(0, exitCode);
-            Assert.Contains($"RE0009", output);
+            Assert.Contains($"LAMA0009", output);
         }
 
         public override void Dispose()

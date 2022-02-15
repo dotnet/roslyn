@@ -9,23 +9,24 @@ namespace Metalama.Compiler
 {
     internal enum MetalamaErrorCode
     {
-        ERR_TransformerFailed = 1,
-        ERR_TransformerNotFound = 2,
-        ERR_TransformerCycleFound = 3,
-        ERR_TransformersNotOrdered = 4,
-        WRN_NoTransformedOutputPathWhenDebuggingTransformed = 5,
-        ERR_InvalidIntrinsicUse = 6,
-        WRN_LicensingMessage = 7,
-        ERR_InvalidLicenseOverall = 8,
-        ERR_InvalidLicenseForProducingTransformedOutput = 9,
-        ERR_LicensingMessage = 10,
+        // The diagnostics code ranges with LAMA prefix are reserved in Metalama\Metalama.Framework.Engine\Diagnostics\Ranges.md.
+        ERR_TransformerFailed = 601,
+        ERR_TransformerNotFound = 602,
+        ERR_TransformerCycleFound = 603,
+        ERR_TransformersNotOrdered = 604,
+        WRN_NoTransformedOutputPathWhenDebuggingTransformed = 605,
+        ERR_InvalidIntrinsicUse = 606,
+        WRN_LicensingMessage = 607,
+        ERR_InvalidLicenseOverall = 608,
+        ERR_InvalidLicenseForProducingTransformedOutput = 609,
+        ERR_LicensingMessage = 610,
     }
 
     internal sealed class MetalamaCompilerMessageProvider : CommonMessageProvider
     {
         public static MetalamaCompilerMessageProvider Instance { get; } = new MetalamaCompilerMessageProvider();
 
-        public override string CodePrefix => "RE";
+        public override string CodePrefix => "LAMA";
 
         public override Type ErrorCodeType => typeof(MetalamaErrorCode);
 

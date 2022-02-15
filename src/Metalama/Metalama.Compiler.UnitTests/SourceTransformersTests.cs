@@ -216,8 +216,8 @@ config_transformer_class_name = ConfigTestClass
 
             // verify TransformerOrderTransformer2 executed before TransformerOrderTransformer1
             Assert.Matches(@"(?s)
-error RE0001: Transformer 'TransformerOrderTransformer2' failed: System.Exception: .*
-error RE0001: Transformer 'TransformerOrderTransformer1' failed: System.Exception: ", output);
+error LAMA0001: Transformer 'TransformerOrderTransformer2' failed: System.Exception: .*
+error LAMA0001: Transformer 'TransformerOrderTransformer1' failed: System.Exception: ", output);
 
             CleanupAllGeneratedFiles(src.Path);
         }
