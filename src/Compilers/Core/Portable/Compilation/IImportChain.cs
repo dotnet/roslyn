@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -43,5 +44,30 @@ namespace Microsoft.CodeAnalysis
         /// "name"&gt;</c> in Visual Basic.  It will be empty in C#.
         /// </summary>
         ImmutableArray<string> XmlNamespaces { get; }
+    }
+
+    internal sealed class ImportChainNode : IImportChain
+    {
+        public IImportChain? Parent { get; }
+
+        public ImmutableArray<IAliasSymbol> Aliases { get; }
+        public ImmutableArray<IAliasSymbol> ExternAliases { get; }
+        public ImmutableArray<INamespaceOrTypeSymbol> Imports { get; }
+        public ImmutableArray<string> XmlNamespaces { get; }
+
+        public ImportChainNode(
+            IImportChain? parent,
+            ImmutableArray<IAliasSymbol> aliases,
+            ImmutableArray<IAliasSymbol> externAliases,
+            ImmutableArray<INamespaceOrTypeSymbol> imports,
+            ImmutableArray<string> xmlNamespaces)
+        {
+            Debug.Assert(aliases.Length > 0 || externAliases.Length > 0 || imports.Length > 0 || xmlNamespaces.Length > 0);
+            Parent = parent;
+            Aliases = aliases;
+            ExternAliases = externAliases;
+            Imports = imports;
+            XmlNamespaces = xmlNamespaces;
+        }
     }
 }

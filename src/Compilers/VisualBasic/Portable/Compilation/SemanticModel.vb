@@ -3411,7 +3411,76 @@ _Default:
         Protected NotOverridable Overrides Function GetImportChainCore(position As Integer, cancellationToken As CancellationToken) As IImportChain
             CheckPosition(position)
             Dim binder = Me.GetEnclosingBinder(position)
-            Return ImportChainWrapper.Convert(binder)
+            Return ConvertToImportChain(binder)
+        End Function
+
+        Private Shared Function ConvertToImportChain(binder As Binder) As IImportChain
+            ' The binder chain has the following in it (walking from the innermost level outwards)
+            '
+            ' 1. Optional binders for the compilation unit of the present source file.
+            ' 2. SourceFileBinder.  Required.
+            ' 3. Optional binders for the imports brought in by the compilation options.
+            '
+            ' Both '1' and '3' are the same binders.  Specifically:
+            '
+            ' a. XmlNamespaceImportsBinder. Optional.  Present if source file has xml imports present.
+            ' b. ImportAliasesBinder. Optional.  Present if source file has import aliases present.
+            ' c. TypesOfImportedNamespacesMembersBinder.  Optional.  Present if source file has member imports present.
+            '
+            ' As such, we can walk upwards looking for any of these binders if present until we hit the end of the
+            ' binder chain.  We know which set we're in depending on if we've seen the SourceFileBinder or not.
+            '
+            ' This also means that in VB the max length of the import chain is two, while in C# it can be unbounded
+            ' in length.
+
+            Dim typesOfImportedNamespacesMembers As TypesOfImportedNamespacesMembersBinder = Nothing
+            Dim importAliases As ImportAliasesBinder = Nothing
+            Dim xmlNamespaceImports As XmlNamespaceImportsBinder = Nothing
+
+            While binder IsNot Nothing
+                If TypeOf binder Is SourceFileBinder Then
+                    ' We hit the source file binder.  That means anything we found up till now were the imports for
+                    ' this file.
+                    Return CreateImportChainNode(
+                        ConvertToImportChain(binder.ContainingBinder),
+                        typesOfImportedNamespacesMembers, importAliases, xmlNamespaceImports)
+                End If
+
+                typesOfImportedNamespacesMembers = If(typesOfImportedNamespacesMembers, TryCast(binder, TypesOfImportedNamespacesMembersBinder))
+                importAliases = If(importAliases, TryCast(binder, ImportAliasesBinder))
+                xmlNamespaceImports = If(xmlNamespaceImports, TryCast(binder, XmlNamespaceImportsBinder))
+
+                binder = binder.ContainingBinder
+            End While
+
+            ' We hit the end of the binder chain.  Anything we found up till now are the compilation option imports
+            Return CreateImportChainNode(
+                parent:=Nothing, typesOfImportedNamespacesMembers, importAliases, xmlNamespaceImports)
+        End Function
+
+        Private Shared Function CreateImportChainNode(
+                parent As IImportChain,
+                typesOfImportedNamespacesMembers As TypesOfImportedNamespacesMembersBinder,
+                importAliases As ImportAliasesBinder,
+                xmlNamespaceImports As XmlNamespaceImportsBinder) As IImportChain
+
+            If typesOfImportedNamespacesMembers Is Nothing AndAlso importAliases Is Nothing AndAlso xmlNamespaceImports Is Nothing Then
+                Return parent
+            End If
+
+            Dim aliases = If(importAliases IsNot Nothing,
+                    importAliases.GetImportChainData(),
+                    ImmutableArray(Of IAliasSymbol).Empty)
+
+            Dim [imports] = If(typesOfImportedNamespacesMembers IsNot Nothing,
+                    typesOfImportedNamespacesMembers.GetImportChainData(),
+                    ImmutableArray(Of INamespaceOrTypeSymbol).Empty)
+
+            Dim xmlNamespaces = If(xmlNamespaceImports IsNot Nothing,
+                    xmlNamespaceImports.GetImportChainData(),
+                    ImmutableArray(Of String).Empty)
+
+            Return New ImportChainNode(parent, aliases, externAliases:=ImmutableArray(Of IAliasSymbol).Empty, [imports], xmlNamespaces)
         End Function
 
         Protected NotOverridable Overrides Function IsAccessibleCore(position As Integer, symbol As ISymbol) As Boolean

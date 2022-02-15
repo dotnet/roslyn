@@ -5289,7 +5289,38 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             position = CheckAndAdjustPosition(position);
             var binder = GetEnclosingBinder(position);
-            return ImportChainWrapper.Convert(binder?.ImportChain);
+            return ConvertToImportChain(binder?.ImportChain);
+
+            static IImportChain ConvertToImportChain(ImportChain chain)
+            {
+                // Skip by any empty items in the chain.
+                while (chain != null && chain.Imports.IsEmpty)
+                    chain = chain.ParentOpt;
+
+                // If we reached the end, there's nothing to return
+                if (chain == null)
+                    return null;
+
+                var imports = chain.Imports;
+                return new ImportChainNode(
+                    ConvertToImportChain(chain.ParentOpt),
+                    ConvertAliases(imports),
+                    imports.ExternAliases.SelectAsArray(static e => e.Alias.GetPublicSymbol()),
+                    imports.Usings.SelectAsArray(static n => n.NamespaceOrType.GetPublicSymbol()),
+                    xmlNamespaces: ImmutableArray<string>.Empty);
+            }
+
+            static ImmutableArray<IAliasSymbol> ConvertAliases(Imports imports)
+            {
+                if (imports.UsingAliases.IsEmpty)
+                    return ImmutableArray<IAliasSymbol>.Empty;
+
+                var aliases = ArrayBuilder<IAliasSymbol>.GetInstance(imports.UsingAliases.Count);
+                foreach (var kvp in imports.UsingAliases)
+                    aliases.Add(kvp.Value.Alias.GetPublicSymbol());
+
+                return aliases.ToImmutableAndFree();
+            }
         }
 
         protected sealed override bool IsAccessibleCore(int position, ISymbol symbol)
