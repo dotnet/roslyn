@@ -26,11 +26,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             /// </summary>
             [SuppressMessage("Documentation", "CA1200:Avoid using cref tags with a prefix", Justification = "Required to avoid ambiguous reference warnings.")]
             public readonly INamedTypeSymbol RangeType;
+            public readonly INamedTypeSymbol? ExpressionOfTType;
+
             private readonly ConcurrentDictionary<IMethodSymbol, MemberInfo> _methodToMemberInfo = new();
 
-            private InfoCache(INamedTypeSymbol rangeType, INamedTypeSymbol stringType)
+            private InfoCache(INamedTypeSymbol rangeType, INamedTypeSymbol stringType, INamedTypeSymbol? expressionOfTType)
             {
                 RangeType = rangeType;
+                ExpressionOfTType = expressionOfTType;
 
                 // Always allow using System.Range indexers with System.String.Substring.  The
                 // compiler has hard-coded knowledge on how to use this type, even if there is no
@@ -50,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 
             public static bool TryCreate(Compilation compilation, [NotNullWhen(true)] out InfoCache? infoCache)
             {
-                var rangeType = compilation.GetBestTypeByMetadataName("System.Range");
+                var rangeType = compilation.GetBestTypeByMetadataName(typeof(Range).FullName!);
                 if (rangeType == null || !rangeType.IsAccessibleWithin(compilation.Assembly))
                 {
                     infoCache = null;
@@ -58,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 }
 
                 var stringType = compilation.GetSpecialType(SpecialType.System_String);
-                infoCache = new InfoCache(rangeType, stringType);
+                infoCache = new InfoCache(rangeType, stringType, compilation.ExpressionOfTType());
                 return true;
             }
 

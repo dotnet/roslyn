@@ -92,6 +92,9 @@ namespace Microsoft.CodeAnalysis.Wrapping
             protected abstract Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync();
 
             protected string GetSmartIndentationAfter(SyntaxNodeOrToken nodeOrToken)
+                => GetIndentationAfter(nodeOrToken, FormattingOptions.IndentStyle.Smart);
+
+            protected string GetIndentationAfter(SyntaxNodeOrToken nodeOrToken, FormattingOptions.IndentStyle indentStyle)
             {
                 var newSourceText = OriginalSourceText.WithChanges(new TextChange(new TextSpan(nodeOrToken.Span.End, 0), NewLine));
                 newSourceText = newSourceText.WithChanges(
@@ -102,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                 var originalLineNumber = newSourceText.Lines.GetLineFromPosition(nodeOrToken.Span.End).LineNumber;
                 var desiredIndentation = indentationService.GetIndentation(
                     newDocument, originalLineNumber + 1,
-                    FormattingOptions.IndentStyle.Smart,
+                    indentStyle,
                     CancellationToken);
 
                 return desiredIndentation.GetIndentationString(newSourceText, UseTabs, TabSize);

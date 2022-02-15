@@ -2190,5 +2190,55 @@ class C { }",
                 Verbatim("\""),
                 Punctuation.Semicolon);
         }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(55313, "https://github.com/dotnet/roslyn/issues/55313")]
+        public async Task TestStaticConstructorClass(TestHost testHost)
+        {
+            await TestAsync(
+@"
+class C
+{
+    static C() { }
+}",
+                testHost,
+Keyword("class"),
+Class("C"),
+Punctuation.OpenCurly,
+Keyword("static"),
+Class("C"),
+Static("C"),
+Punctuation.OpenParen,
+Punctuation.CloseParen,
+Punctuation.OpenCurly,
+Punctuation.CloseCurly,
+Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(55313, "https://github.com/dotnet/roslyn/issues/55313")]
+        public async Task TestStaticConstructorInterface(TestHost testHost)
+        {
+            await TestAsync(
+@"
+interface C
+{
+    static C() { }
+}",
+                testHost,
+Keyword("interface"),
+Interface("C"),
+Punctuation.OpenCurly,
+Keyword("static"),
+Interface("C"),
+Static("C"),
+Punctuation.OpenParen,
+Punctuation.CloseParen,
+Punctuation.OpenCurly,
+Punctuation.CloseCurly,
+Punctuation.CloseCurly);
+        }
     }
 }

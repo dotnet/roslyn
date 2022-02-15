@@ -50,8 +50,20 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
                     ref _lazyExcerptService,
                     static documentServiceProvider =>
                     {
-                        var razorExcerptService = documentServiceProvider.GetService<IRazorDocumentExcerptService>();
-                        return razorExcerptService is not null ? new RazorDocumentExcerptServiceWrapper(razorExcerptService) : null;
+                        var impl = documentServiceProvider.GetService<IRazorDocumentExcerptServiceImplementation>();
+                        if (impl != null)
+                        {
+                            return new RazorDocumentExcerptServiceWrapper(impl);
+                        }
+
+#pragma warning disable CS0612, CS0618 // Type or member is obsolete
+                        var legacyImpl = documentServiceProvider.GetService<IRazorDocumentExcerptService>();
+                        if (legacyImpl != null)
+                        {
+                            return new RazorDocumentExcerptServiceWrapper(legacyImpl);
+                        }
+#pragma warning restore
+                        return null;
                     },
                     _innerDocumentServiceProvider);
 

@@ -3100,13 +3100,46 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Probable_JSON_string_detected" xml:space="preserve">
     <value>Probable JSON string detected</value>
   </data>
-  <data name="Enable_JSON_editor_features" xml:space="preserve">
-    <value>Enable JSON editor features</value>
+  <data name="Enable_all_JSON_editor_features" xml:space="preserve">
+    <value>Enable all JSON editor features</value>
   </data>
   <data name="Invalid_regex_pattern" xml:space="preserve">
     <value>Invalid regex pattern</value>
   </data>
   <data name="Invalid_JSON_pattern" xml:space="preserve">
     <value>Invalid JSON pattern</value>
+  </data>
+  <data name="Unwrap_initializer" xml:space="preserve">
+    <value>Unwrap initializer</value>
+  </data>
+  <data name="Wrap_initializer" xml:space="preserve">
+    <value>Wrap initializer</value>
+  </data>
+  <data name="Wrap_long_initializer" xml:space="preserve">
+    <value>Wrap long initializer</value>
+  </data>
+  <data name="Indent_all_elements" xml:space="preserve">
+    <value>Indent all elements</value>
+  </data>
+  <data name="Unwrap_all_elements" xml:space="preserve">
+    <value>Unwrap all elements</value>
+  </data>
+  <data name="Cannot_navigate_to_the_symbol_under_the_caret" xml:space="preserve">
+    <value>Cannot navigate to the symbol under the caret.</value>
+  </data>
+  <data name="_0_bases" xml:space="preserve">
+    <value>'{0}' bases</value>
+  </data>
+  <data name="_0_implementations" xml:space="preserve">
+    <value>'{0}' implementations</value>
+  </data>
+  <data name="_0_references" xml:space="preserve">
+    <value>'{0}' references</value>
+  </data>
+  <data name="The_symbol_has_no_base" xml:space="preserve">
+    <value>The symbol has no base.</value>
+  </data>
+  <data name="The_symbol_has_no_implementations" xml:space="preserve">
+    <value>The symbol has no implementations.</value>
   </data>
 </root>

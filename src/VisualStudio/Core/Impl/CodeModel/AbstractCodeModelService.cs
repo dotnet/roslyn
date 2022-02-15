@@ -494,7 +494,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             // RenameSymbolAsync may be implemented using OOP, which has known cases for requiring the UI thread to do work. Use JTF
             // to keep the rename action from deadlocking.
-            var newSolution = _threadingContext.JoinableTaskFactory.Run(() => Renamer.RenameSymbolAsync(oldSolution, symbol, newName, oldSolution.Options));
+            var newSolution = _threadingContext.JoinableTaskFactory.Run(() => Renamer.RenameSymbolAsync(oldSolution, symbol, new SymbolRenameOptions(), newName));
             var changedDocuments = newSolution.GetChangedDocuments(oldSolution);
 
             // Notify third parties of the coming rename operation and let exceptions propagate out
@@ -1075,6 +1075,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
             var newContainerNode = insertNodeIntoContainer(insertionIndex, node, containerNode);
             var newRoot = root.ReplaceNode(containerNode, newContainerNode);
+
+            Contract.ThrowIfTrue(object.ReferenceEquals(root, newRoot), $"We failed to insert the node into the tree; this might be if {nameof(containerNode)} came from a different snapshot.");
+
             document = document.WithSyntaxRoot(newRoot);
 
             if (!batchMode)

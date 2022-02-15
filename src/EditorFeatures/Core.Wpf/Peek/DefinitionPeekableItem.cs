@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
 
                 foreach (var declaration in sourceLocations)
                 {
-                    var declarationLocation = declaration.GetLineSpan();
+                    var declarationLocation = declaration.GetMappedLineSpan();
 
                     var entityOfInterestSpan = PeekHelpers.GetEntityOfInterestSpan(symbol, workspace, declaration, cancellationToken);
                     resultCollection.Add(PeekHelpers.CreateDocumentPeekResult(declarationLocation.Path, declarationLocation.Span, entityOfInterestSpan, _peekableItem.PeekResultFactory));

@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DecompiledSource;
-using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -56,14 +55,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             _metadataAsSourceFileService = metadataAsSourceFileService;
         }
 
-        public bool TryNavigateToSymbol(ISymbol symbol, Project project, OptionSet? options, CancellationToken cancellationToken)
+        public bool TryNavigateToSymbol(ISymbol symbol, Project project, NavigationOptions options, CancellationToken cancellationToken)
         {
             if (project == null || symbol == null)
             {
                 return false;
             }
 
-            options ??= project.Solution.Options;
             symbol = symbol.OriginalDefinition;
 
             // Prefer visible source locations if possible.
@@ -118,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return ThreadingContext.JoinableTaskFactory.Run(() => TryNavigateToMetadataAsync(project, symbol, options, cancellationToken));
         }
 
-        private async Task<bool> TryNavigateToMetadataAsync(Project project, ISymbol symbol, OptionSet options, CancellationToken cancellationToken)
+        private async Task<bool> TryNavigateToMetadataAsync(Project project, ISymbol symbol, NavigationOptions options, CancellationToken cancellationToken)
         {
             var allowDecompilation = _globalOptions.GetOption(FeatureOnOffOptions.NavigateToDecompiledSources);
 
@@ -162,7 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     editorWorkspace,
                     openedDocument.Id,
                     result.IdentifierLocation.SourceSpan,
-                    options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true),
+                    options with { PreferProvisionalTab = true },
                     cancellationToken);
             }
 
