@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             public bool TryGetHasRequiredMemberAttribute(out bool hasRequiredMemberAttribute)
             {
-                if ((_bits & RequiredMemberCompletionBit) == RequiredMemberCompletionBit)
+                if ((_bits & RequiredMemberCompletionBit) != 0)
                 {
                     hasRequiredMemberAttribute = (_bits & HasRequiredMemberAttribute) != 0;
                     return true;

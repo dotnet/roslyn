@@ -428,7 +428,7 @@ class Derived : Base
         var comp = CreateCompilationWithRequiredMembers(@base + derived);
 
         comp.VerifyDiagnostics(
-            // (8,25): error CS9501: 'Derived.Prop': cannot remove 'required' from 'Base.Prop' when overriding
+            // (8,25): error CS9501: 'Derived.Prop' must be required because it overrides required member 'Base.Prop'
             //     public override int Prop { get; set; }
             Diagnostic(ErrorCode.ERR_OverrideMustHaveRequired, "Prop").WithArguments("Derived.Prop", "Base.Prop").WithLocation(8, 25)
         );
@@ -438,7 +438,7 @@ class Derived : Base
 
         comp = CreateCompilation(derived, references: new[] { useMetadataReference ? baseComp.ToMetadataReference() : baseComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
-            // (4,25): error CS9501: 'Derived.Prop': cannot remove 'required' from 'Base.Prop' when overriding
+            // (4,25): error CS9501: 'Derived.Prop' must be required because it overrides required member 'Base.Prop'
             //     public override int Prop { get; set; }
             Diagnostic(ErrorCode.ERR_OverrideMustHaveRequired, "Prop").WithArguments("Derived.Prop", "Base.Prop").WithLocation(4, 25)
         );
@@ -470,7 +470,7 @@ class DerivedDerived : Derived
         var comp = CreateCompilationWithRequiredMembers(@base + derived + derivedDerived);
 
         comp.VerifyDiagnostics(
-            // (12,25): error CS9501: 'DerivedDerived.Prop': cannot remove 'required' from 'Derived.Prop' when overriding
+            // (12,25): error CS9501: 'DerivedDerived.Prop' must be required because it overrides required member 'Derived.Prop'
             //     public override int Prop { get; set; }
             Diagnostic(ErrorCode.ERR_OverrideMustHaveRequired, "Prop").WithArguments("DerivedDerived.Prop", "Derived.Prop").WithLocation(12, 25)
         );
@@ -484,7 +484,7 @@ class DerivedDerived : Derived
 
         comp = CreateCompilation(derivedDerived, new[] { baseReference, useMetadataReference ? derivedComp.ToMetadataReference() : derivedComp.EmitToImageReference() });
         comp.VerifyDiagnostics(
-            // (4,25): error CS9501: 'DerivedDerived.Prop': cannot remove 'required' from 'Derived.Prop' when overriding
+            // (4,25): error CS9501: 'DerivedDerived.Prop' must be required because it overrides required member 'Derived.Prop'
             //     public override int Prop { get; set; }
             Diagnostic(ErrorCode.ERR_OverrideMustHaveRequired, "Prop").WithArguments("DerivedDerived.Prop", "Derived.Prop").WithLocation(4, 25)
         );

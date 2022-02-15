@@ -983,8 +983,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideMustHaveRequired">
-        <source>'{0}': cannot remove 'required' from '{1}' when overriding</source>
-        <target state="new">'{0}': cannot remove 'required' from '{1}' when overriding</target>
+        <source>'{0}' must be required because it overrides required member '{1}'</source>
+        <target state="new">'{0}' must be required because it overrides required member '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideRefConstraintNotSatisfied">
