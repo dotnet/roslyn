@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;

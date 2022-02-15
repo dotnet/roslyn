@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
         public Compilation Compilation { get; }
         public HostLanguageServices LanguageServices { get; }
         public string ProjectFilePath { get; }
-        public GeneratorOptions Options { get; }
+        public OptionSet Options { get; }
 
-        public CompilerInvocation(Compilation compilation, HostLanguageServices languageServices, string projectFilePath, GeneratorOptions options)
+        public CompilerInvocation(Compilation compilation, HostLanguageServices languageServices, string projectFilePath, OptionSet options)
         {
             Compilation = compilation;
             LanguageServices = languageServices;
@@ -101,11 +101,11 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 analyzerReferences: parsedCommandLine.AnalyzerReferences.Select(r => new AnalyzerFileReference(r.FilePath, analyzerLoader)))
                 .WithAnalyzerConfigDocuments(parsedCommandLine.AnalyzerConfigPaths.Select(CreateDocumentInfo));
 
-            var solution = workspace.CurrentSolution.AddProject(projectInfo);
-            var compilation = await solution.GetRequiredProject(projectId).GetRequiredCompilationAsync(CancellationToken.None);
-            var options = GeneratorOptions.Default;
+            workspace.AddProject(projectInfo);
 
-            return new CompilerInvocation(compilation, languageServices, invocationInfo.ProjectFilePath, options);
+            var compilation = await workspace.CurrentSolution.GetProject(projectId)!.GetRequiredCompilationAsync(CancellationToken.None);
+
+            return new CompilerInvocation(compilation, languageServices, invocationInfo.ProjectFilePath, workspace.CurrentSolution.Options);
 
             // Local methods:
             DocumentInfo CreateDocumentInfo(string unmappedPath)

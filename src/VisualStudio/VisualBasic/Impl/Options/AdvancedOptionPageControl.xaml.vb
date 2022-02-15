@@ -107,9 +107,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(EnableLineCommit, FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic)
             BindToOption(AutomaticInsertionOfInterfaceAndMustOverrideMembers, FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers, LanguageNames.VisualBasic)
             BindToOption(RenameTrackingPreview, FeatureOnOffOptions.RenameTrackingPreview, LanguageNames.VisualBasic)
-            BindToOption(ShowRemarksInQuickInfo, QuickInfoOptionsStorage.ShowRemarksInQuickInfo, LanguageNames.VisualBasic)
+            BindToOption(ShowRemarksInQuickInfo, QuickInfoOptions.Metadata.ShowRemarksInQuickInfo, LanguageNames.VisualBasic)
             BindToOption(Report_invalid_placeholders_in_string_dot_format_calls, ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic)
-            BindToOption(Underline_reassigned_variables, ClassificationOptionsStorage.ClassifyReassignedVariables, LanguageNames.VisualBasic)
+            BindToOption(Underline_reassigned_variables, ClassificationOptions.Metadata.ClassifyReassignedVariables, LanguageNames.VisualBasic)
 
             ' Go To Definition
             BindToOption(NavigateToObjectBrowser, VisualStudioNavigationOptions.NavigateToObjectBrowser, LanguageNames.VisualBasic)
@@ -120,12 +120,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                          End Function)
 
             ' Regular expressions
-            BindToOption(Colorize_regular_expressions, ClassificationOptionsStorage.ColorizeRegexPatterns, LanguageNames.VisualBasic)
+            BindToOption(Colorize_regular_expressions, ClassificationOptions.Metadata.ColorizeRegexPatterns, LanguageNames.VisualBasic)
             BindToOption(Report_invalid_regular_expressions, RegularExpressionsOptions.ReportInvalidRegexPatterns, LanguageNames.VisualBasic)
             BindToOption(Highlight_related_regular_expression_components_under_cursor, RegularExpressionsOptions.HighlightRelatedRegexComponentsUnderCursor, LanguageNames.VisualBasic)
             BindToOption(Show_completion_list, CompletionOptionsStorage.ProvideRegexCompletions, LanguageNames.VisualBasic)
 
-            BindToOption(Colorize_JSON_strings, ClassificationOptionsStorage.ColorizeJsonPatterns, LanguageNames.VisualBasic)
+            BindToOption(Colorize_JSON_strings, ClassificationOptions.Metadata.ColorizeJsonPatterns, LanguageNames.VisualBasic)
             BindToOption(Report_invalid_JSON_strings, JsonFeatureOptions.ReportInvalidJsonPatterns, LanguageNames.VisualBasic)
             BindToOption(Highlight_related_JSON_components_under_cursor, JsonFeatureOptions.HighlightRelatedJsonComponentsUnderCursor, LanguageNames.VisualBasic)
 
@@ -146,14 +146,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(DisplayAllHintsWhilePressingAltF1, InlineHintsViewOptions.DisplayAllHintsWhilePressingAltF1)
             BindToOption(ColorHints, InlineHintsViewOptions.ColorHints, LanguageNames.VisualBasic)
 
-            BindToOption(DisplayInlineParameterNameHints, InlineHintsOptionsStorage.EnabledForParameters, LanguageNames.VisualBasic)
-            BindToOption(ShowHintsForLiterals, InlineHintsOptionsStorage.ForLiteralParameters, LanguageNames.VisualBasic)
-            BindToOption(ShowHintsForNewExpressions, InlineHintsOptionsStorage.ForObjectCreationParameters, LanguageNames.VisualBasic)
-            BindToOption(ShowHintsForEverythingElse, InlineHintsOptionsStorage.ForOtherParameters, LanguageNames.VisualBasic)
-            BindToOption(ShowHintsForIndexers, InlineHintsOptionsStorage.ForIndexerParameters, LanguageNames.VisualBasic)
-            BindToOption(SuppressHintsWhenParameterNameMatchesTheMethodsIntent, InlineHintsOptionsStorage.SuppressForParametersThatMatchMethodIntent, LanguageNames.VisualBasic)
-            BindToOption(SuppressHintsWhenParameterNamesDifferOnlyBySuffix, InlineHintsOptionsStorage.SuppressForParametersThatDifferOnlyBySuffix, LanguageNames.VisualBasic)
-            BindToOption(SuppressHintsWhenParameterNamesMatchArgumentNames, InlineHintsOptionsStorage.SuppressForParametersThatMatchArgumentName, LanguageNames.VisualBasic)
+            BindToOption(DisplayInlineParameterNameHints, InlineParameterHintsOptions.Metadata.EnabledForParameters, LanguageNames.VisualBasic)
+            BindToOption(ShowHintsForLiterals, InlineParameterHintsOptions.Metadata.ForLiteralParameters, LanguageNames.VisualBasic)
+            BindToOption(ShowHintsForNewExpressions, InlineParameterHintsOptions.Metadata.ForObjectCreationParameters, LanguageNames.VisualBasic)
+            BindToOption(ShowHintsForEverythingElse, InlineParameterHintsOptions.Metadata.ForOtherParameters, LanguageNames.VisualBasic)
+            BindToOption(ShowHintsForIndexers, InlineParameterHintsOptions.Metadata.ForIndexerParameters, LanguageNames.VisualBasic)
+            BindToOption(SuppressHintsWhenParameterNameMatchesTheMethodsIntent, InlineParameterHintsOptions.Metadata.SuppressForParametersThatMatchMethodIntent, LanguageNames.VisualBasic)
+            BindToOption(SuppressHintsWhenParameterNamesDifferOnlyBySuffix, InlineParameterHintsOptions.Metadata.SuppressForParametersThatDifferOnlyBySuffix, LanguageNames.VisualBasic)
+            BindToOption(SuppressHintsWhenParameterNamesMatchArgumentNames, InlineParameterHintsOptions.Metadata.SuppressForParametersThatMatchArgumentName, LanguageNames.VisualBasic)
 
             BindToOption(ShowInheritanceMargin, FeatureOnOffOptions.ShowInheritanceMargin, LanguageNames.VisualBasic,
                          Function()
@@ -179,7 +179,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         End Sub
 
         Private Sub UpdateInlineHintsOptions()
-            Dim enabledForParameters = Me.OptionStore.GetOption(InlineHintsOptionsStorage.EnabledForParameters, LanguageNames.VisualBasic) <> False
+            Dim enabledForParameters = Me.OptionStore.GetOption(InlineParameterHintsOptions.Metadata.EnabledForParameters, LanguageNames.VisualBasic) <> False
             ShowHintsForLiterals.IsEnabled = enabledForParameters
             ShowHintsForNewExpressions.IsEnabled = enabledForParameters
             ShowHintsForEverythingElse.IsEnabled = enabledForParameters
@@ -190,12 +190,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         End Sub
 
         Private Sub DisplayInlineParameterNameHints_Checked()
-            Me.OptionStore.SetOption(InlineHintsOptionsStorage.EnabledForParameters, LanguageNames.VisualBasic, True)
+            Me.OptionStore.SetOption(InlineParameterHintsOptions.Metadata.EnabledForParameters, LanguageNames.VisualBasic, True)
             UpdateInlineHintsOptions()
         End Sub
 
         Private Sub DisplayInlineParameterNameHints_Unchecked()
-            Me.OptionStore.SetOption(InlineHintsOptionsStorage.EnabledForParameters, LanguageNames.VisualBasic, False)
+            Me.OptionStore.SetOption(InlineParameterHintsOptions.Metadata.EnabledForParameters, LanguageNames.VisualBasic, False)
             UpdateInlineHintsOptions()
         End Sub
     End Class

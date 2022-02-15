@@ -5,7 +5,6 @@
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.GoToBase
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.GoToBase
     <ExportLanguageService(GetType(IGoToBaseService), LanguageNames.VisualBasic), [Shared]>
@@ -15,7 +14,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GoToBase
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
-            MyBase.New()
         End Sub
     End Class
 End Namespace

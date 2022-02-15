@@ -12,7 +12,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -507,16 +506,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (service == null)
                 return null;
 
-            var completionOptions = _globalOptions.GetCompletionOptions(document.Project.Language);
-            var displayOptions = _globalOptions.GetSymbolDescriptionOptions(document.Project.Language);
-            var description = await service.GetDescriptionAsync(document, roslynItem, completionOptions, displayOptions, cancellationToken).ConfigureAwait(false);
+            var options = _globalOptions.GetCompletionOptions(document.Project.Language);
+            var displayOptions = SymbolDescriptionOptions.From(document.Project);
+            var description = await service.GetDescriptionAsync(document, roslynItem, options, displayOptions, cancellationToken).ConfigureAwait(false);
             if (description == null)
                 return null;
 
-            var classificationOptions = _globalOptions.GetClassificationOptions(document.Project.Language);
-
             var context = new IntellisenseQuickInfoBuilderContext(
-                document, classificationOptions, ThreadingContext, _operationExecutor, _asyncListener, _streamingPresenter);
+                document, ThreadingContext, _operationExecutor, _asyncListener, _streamingPresenter);
 
             var elements = IntelliSense.Helpers.BuildInteractiveTextElements(description.TaggedParts, context).ToArray();
             if (elements.Length == 0)

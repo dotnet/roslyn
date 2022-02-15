@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.ValueTracking;
@@ -42,7 +41,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         private readonly IClassificationFormatMapService _classificationFormatMapService;
         private readonly IGlyphService _glyphService;
         private readonly IEditorFormatMapService _formatMapService;
-        private readonly IGlobalOptionService _globalOptions;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -52,8 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             ClassificationTypeMap typeMap,
             IClassificationFormatMapService classificationFormatMapService,
             IGlyphService glyphService,
-            IEditorFormatMapService formatMapService,
-            IGlobalOptionService globalOptions)
+            IEditorFormatMapService formatMapService)
         {
             _serviceProvider = (IAsyncServiceProvider)serviceProvider;
             _threadingContext = threadingContext;
@@ -61,7 +58,6 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             _classificationFormatMapService = classificationFormatMapService;
             _glyphService = glyphService;
             _formatMapService = formatMapService;
-            _globalOptions = globalOptions;
         }
 
         public string DisplayName => "Go to value tracking";
@@ -124,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 {
                     foreach (var child in children)
                     {
-                        var root = await ValueTrackedTreeItemViewModel.CreateAsync(solution, child, children: ImmutableArray<TreeItemViewModel>.Empty, toolWindow.ViewModel, _glyphService, valueTrackingService, _globalOptions, _threadingContext, cancellationToken).ConfigureAwait(false);
+                        var root = await ValueTrackedTreeItemViewModel.CreateAsync(solution, child, children: ImmutableArray<TreeItemViewModel>.Empty, toolWindow.ViewModel, _glyphService, valueTrackingService, _threadingContext, cancellationToken).ConfigureAwait(false);
                         rootItems.Add(root);
                     }
                 }
@@ -133,11 +129,11 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                     using var _1 = CodeAnalysis.PooledObjects.ArrayBuilder<TreeItemViewModel>.GetInstance(out var childItems);
                     foreach (var child in children)
                     {
-                        var childViewModel = await ValueTrackedTreeItemViewModel.CreateAsync(solution, child, children: ImmutableArray<TreeItemViewModel>.Empty, toolWindow.ViewModel, _glyphService, valueTrackingService, _globalOptions, _threadingContext, cancellationToken).ConfigureAwait(false);
+                        var childViewModel = await ValueTrackedTreeItemViewModel.CreateAsync(solution, child, children: ImmutableArray<TreeItemViewModel>.Empty, toolWindow.ViewModel, _glyphService, valueTrackingService, _threadingContext, cancellationToken).ConfigureAwait(false);
                         childItems.Add(childViewModel);
                     }
 
-                    var root = await ValueTrackedTreeItemViewModel.CreateAsync(solution, parent, childItems.ToImmutable(), toolWindow.ViewModel, _glyphService, valueTrackingService, _globalOptions, _threadingContext, cancellationToken).ConfigureAwait(false);
+                    var root = await ValueTrackedTreeItemViewModel.CreateAsync(solution, parent, childItems.ToImmutable(), toolWindow.ViewModel, _glyphService, valueTrackingService, _threadingContext, cancellationToken).ConfigureAwait(false);
                     rootItems.Add(root);
                 }
             }
