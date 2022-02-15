@@ -46,6 +46,9 @@ namespace Microsoft.CodeAnalysis
         ImmutableArray<string> XmlNamespaces { get; }
     }
 
+    /// <summary>
+    /// Simple POCO implementation of the import chain, usable by both C# and VB.
+    /// </summary>
     internal sealed class ImportChainNode : IImportChain
     {
         public IImportChain? Parent { get; }

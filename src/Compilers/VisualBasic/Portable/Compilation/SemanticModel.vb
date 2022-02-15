@@ -3439,8 +3439,9 @@ _Default:
 
             While binder IsNot Nothing
                 If TypeOf binder Is SourceFileBinder Then
-                    ' We hit the source file binder.  That means anything we found up till now were the imports for
-                    ' this file.
+                    ' We hit the source file binder.  That means anything we found up till now were the imports for this
+                    ' file.  Recurse and try to create the outer optional node, and then create a potential node for
+                    ' this level to chain onto that.
                     Return CreateImportChainNode(
                         ConvertToImportChain(binder.ContainingBinder),
                         typesOfImportedNamespacesMembers, importAliases, xmlNamespaceImports)
@@ -3464,23 +3465,18 @@ _Default:
                 importAliases As ImportAliasesBinder,
                 xmlNamespaceImports As XmlNamespaceImportsBinder) As IImportChain
 
+            ' If we hit none of these binders, then we have no node to add to the chain. Note: these binders are only
+            ' created as long as they are non-empty.  So once we hit one we know we must have data for a chain node.
             If typesOfImportedNamespacesMembers Is Nothing AndAlso importAliases Is Nothing AndAlso xmlNamespaceImports Is Nothing Then
                 Return parent
             End If
 
-            Dim aliases = If(importAliases IsNot Nothing,
-                    importAliases.GetImportChainData(),
-                    ImmutableArray(Of IAliasSymbol).Empty)
-
-            Dim [imports] = If(typesOfImportedNamespacesMembers IsNot Nothing,
-                    typesOfImportedNamespacesMembers.GetImportChainData(),
-                    ImmutableArray(Of INamespaceOrTypeSymbol).Empty)
-
-            Dim xmlNamespaces = If(xmlNamespaceImports IsNot Nothing,
-                    xmlNamespaceImports.GetImportChainData(),
-                    ImmutableArray(Of String).Empty)
-
-            Return New ImportChainNode(parent, aliases, externAliases:=ImmutableArray(Of IAliasSymbol).Empty, [imports], xmlNamespaces)
+            Return New ImportChainNode(
+                parent,
+                If(importAliases?.GetImportChainData(), ImmutableArray(Of IAliasSymbol).Empty),
+                externAliases:=ImmutableArray(Of IAliasSymbol).Empty,
+                If(typesOfImportedNamespacesMembers?.GetImportChainData(), ImmutableArray(Of INamespaceOrTypeSymbol).Empty),
+                If(xmlNamespaceImports?.GetImportChainData(), ImmutableArray(Of String).Empty))
         End Function
 
         Protected NotOverridable Overrides Function IsAccessibleCore(position As Integer, symbol As ISymbol) As Boolean
