@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// exhibit reference-equality.  
     /// </para>
     /// </remarks>
-    internal abstract partial class CSharpSemanticModel : SemanticModel
+    internal abstract class CSharpSemanticModel : SemanticModel
     {
         /// <summary>
         /// The compilation this object was obtained from.
