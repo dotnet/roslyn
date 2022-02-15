@@ -4,27 +4,22 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages;
+using Microsoft.CodeAnalysis.CSharp.Regex;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
 {
-    public class ValidateRegexStringTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    using VerifyCS = CSharpCodeFixVerifier<CSharpRegexDiagnosticAnalyzer, EmptyCodeFixProvider>;
+
+    public class ValidateRegexStringTests
     {
-        public ValidateRegexStringTests(ITestOutputHelper logger)
-           : base(logger)
-        {
-        }
-
-        internal override (DiagnosticAnalyzer, CodeFixProvider?) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpRegexDiagnosticAnalyzer(), null);
-
         private static OptionsCollection OptionOn()
             => new(LanguageNames.CSharp)
             {
@@ -34,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EmbeddedLanguages
         [Fact, Trait(Traits.Feature, Traits.Features.ValidateRegexString)]
         public async Task TestWarning1()
         {
-            await TestDiagnosticInfoAsync(@"
+            var source = @"
 using System.Text.RegularExpressions;
 
 class Program
@@ -43,17 +38,19 @@ class Program
     {
         var r = new Regex(@""[|)|]"");
     }     
-}",
-                options: OptionOn(),
-                diagnosticId: AbstractRegexDiagnosticAnalyzer.DiagnosticId,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
-                diagnosticMessage: string.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens));
+}";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                Options = OptionOn(),
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ValidateRegexString)]
         public async Task TestWarning2()
         {
-            await TestDiagnosticInfoAsync(@"
+            var source = @"
 using System.Text.RegularExpressions;
 
 class Program
@@ -62,26 +59,34 @@ class Program
     {
         var r = new Regex(""[|\u0029|]"");
     }     
-}",
-                options: OptionOn(),
-                diagnosticId: AbstractRegexDiagnosticAnalyzer.DiagnosticId,
-                diagnosticSeverity: DiagnosticSeverity.Warning,
-                diagnosticMessage: string.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens));
+}";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                Options = OptionOn(),
+            }.RunAsync();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ValidateRegexString)]
         public async Task TestWarningMissing1()
         {
-            await TestDiagnosticMissingAsync(@"
+            var source = @"
 using System.Text.RegularExpressions;
 
 class Program
 {
     void Main()
     {
-        var r = new Regex(@""[|\u0029|]"");
+        var r = new Regex(@""\u0029"");
     }     
-}");
+}";
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                Options = OptionOn(),
+            }.RunAsync();
         }
     }
 }

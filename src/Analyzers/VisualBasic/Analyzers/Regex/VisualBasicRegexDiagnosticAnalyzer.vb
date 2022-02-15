@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
+Namespace Microsoft.CodeAnalysis.VisualBasic.Regex
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend Class VisualBasicRegexDiagnosticAnalyzer
         Inherits AbstractRegexDiagnosticAnalyzer

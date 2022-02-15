@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
 
-namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages
+namespace Microsoft.CodeAnalysis.CSharp.Regex
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class CSharpRegexDiagnosticAnalyzer : AbstractRegexDiagnosticAnalyzer
