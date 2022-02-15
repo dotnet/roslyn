@@ -4618,7 +4618,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AddInitializers(builder.InstanceInitializers, instanceInitializers);
             AddInitializers(builder.StaticInitializers, staticInitializers);
 
-            // local functions
             static ErrorCode getMisplacedMemberError(SyntaxNode node)
             {
                 if (node.Parent is CompilationUnitSyntax compilationUnit &&
