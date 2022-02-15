@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             CancellationToken cancellationToken)
         {
             // First see if we can adopt the '!!' parameter null checking syntax.
-            var modifiedDocument = TryAddNullCheckToParameterDeclaration(document, parameterSyntax, cancellationToken);
+            var modifiedDocument = await TryAddNullCheckToParameterDeclarationAsync(document, parameterSyntax, cancellationToken).ConfigureAwait(false);
             if (modifiedDocument != null)
             {
                 return modifiedDocument;
