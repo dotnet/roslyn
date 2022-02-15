@@ -2,21 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.GoToBase
 {
-    internal abstract class AbstractGoToBaseService : IGoToBaseService
+    internal abstract partial class AbstractGoToBaseService : IGoToBaseService
     {
-        protected AbstractGoToBaseService()
-        {
-        }
-
         public async Task FindBasesAsync(IFindUsagesContext context, Document document, int position, CancellationToken cancellationToken)
         {
             var symbolAndProjectOpt = await FindUsagesHelpers.GetRelevantSymbolAndProjectAtPositionAsync(
@@ -51,7 +48,7 @@ namespace Microsoft.CodeAnalysis.GoToBase
                 if (sourceDefinition != null)
                 {
                     var definitionItem = await sourceDefinition.ToClassifiedDefinitionItemAsync(
-                        context, solution, FindReferencesSearchOptions.Default, isPrimary: true, includeHiddenLocations: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        solution, isPrimary: true, includeHiddenLocations: false, FindReferencesSearchOptions.Default, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                     await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
                     found = true;
@@ -59,7 +56,7 @@ namespace Microsoft.CodeAnalysis.GoToBase
                 else if (baseSymbol.Locations.Any(l => l.IsInMetadata))
                 {
                     var definitionItem = baseSymbol.ToNonClassifiedDefinitionItem(
-                        solution, FindReferencesSearchOptions.Default, includeHiddenLocations: true);
+                        solution, includeHiddenLocations: true);
                     await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
                     found = true;
                 }

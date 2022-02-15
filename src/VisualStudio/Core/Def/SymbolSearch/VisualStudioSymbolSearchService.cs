@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Settings;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.Settings;
 using Roslyn.Utilities;
@@ -46,9 +47,11 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         private ISymbolSearchUpdateEngine _lazyUpdateEngine;
 
         private readonly VisualStudioWorkspaceImpl _workspace;
+        private readonly SVsServiceProvider _serviceProvider;
         private readonly IPackageInstallerService _installerService;
-        private readonly string _localSettingsDirectory;
-        private readonly LogService _logService;
+
+        private string _localSettingsDirectory;
+        private LogService _logService;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -61,30 +64,34 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             : base(globalOptions,
                    listenerProvider,
                    threadingContext,
-                   workspace,
-                   featureEnabledOption: SymbolSearchGlobalOptions.Enabled,
-                   perLanguageOptions: ImmutableArray.Create(SymbolSearchOptionsStorage.SearchReferenceAssemblies, SymbolSearchOptionsStorage.SearchNuGetPackages))
+                   SymbolSearchGlobalOptions.Enabled,
+                   ImmutableArray.Create(SymbolSearchOptionsStorage.SearchReferenceAssemblies, SymbolSearchOptionsStorage.SearchNuGetPackages))
         {
             _workspace = workspace;
+            _serviceProvider = serviceProvider;
             _installerService = workspace.Services.GetService<IPackageInstallerService>();
-            _localSettingsDirectory = new ShellSettingsManager(serviceProvider).GetApplicationDataFolder(ApplicationDataFolder.LocalSettings);
-
-            _logService = new LogService(threadingContext, (IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog)));
         }
 
-        protected override Task EnableServiceAsync(CancellationToken cancellationToken)
+        protected override async Task EnableServiceAsync(CancellationToken cancellationToken)
         {
+            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            _localSettingsDirectory = new ShellSettingsManager(_serviceProvider).GetApplicationDataFolder(ApplicationDataFolder.LocalSettings);
+
+            _logService = new LogService(this.ThreadingContext, (IVsActivityLog)_serviceProvider.GetService(typeof(SVsActivityLog)));
+
             // When our service is enabled hook up to package source changes.
             // We need to know when the list of sources have changed so we can
             // kick off the work to process them.
             _installerService.PackageSourcesChanged += OnPackageSourcesChanged;
-            return Task.CompletedTask;
+
+            // Kick off the initial work to pull down the nuget index.
+            this.StartWorking();
         }
 
         private void OnPackageSourcesChanged(object sender, EventArgs e)
             => StartWorking();
 
-        protected override void StartWorking()
+        private void StartWorking()
         {
             // Always pull down the nuget.org index.  It contains the MS reference assembly index
             // inside of it.

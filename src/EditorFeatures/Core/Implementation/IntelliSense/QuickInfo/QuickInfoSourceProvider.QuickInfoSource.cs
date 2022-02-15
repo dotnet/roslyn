@@ -7,7 +7,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -15,7 +14,6 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -29,29 +27,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 {
     internal partial class QuickInfoSourceProvider
     {
-        private sealed class QuickInfoSource : IAsyncQuickInfoSource
+        private class QuickInfoSource : IAsyncQuickInfoSource
         {
             private readonly ITextBuffer _subjectBuffer;
             private readonly IThreadingContext _threadingContext;
             private readonly IUIThreadOperationExecutor _operationExecutor;
             private readonly IAsynchronousOperationListener _asyncListener;
             private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
-            private readonly IGlobalOptionService _globalOptions;
 
             public QuickInfoSource(
                 ITextBuffer subjectBuffer,
                 IThreadingContext threadingContext,
                 IUIThreadOperationExecutor operationExecutor,
                 IAsynchronousOperationListener asyncListener,
-                Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
-                IGlobalOptionService globalOptions)
+                Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
             {
                 _subjectBuffer = subjectBuffer;
                 _threadingContext = threadingContext;
                 _operationExecutor = operationExecutor;
                 _asyncListener = asyncListener;
                 _streamingPresenter = streamingPresenter;
-                _globalOptions = globalOptions;
             }
 
             public async Task<IntellisenseQuickInfoItem> GetQuickInfoItemAsync(IAsyncQuickInfoSession session, CancellationToken cancellationToken)
@@ -75,16 +70,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        var options = _globalOptions.GetSymbolDescriptionOptions(document.Project.Language);
+                        var options = SymbolDescriptionOptions.From(document.Project);
                         var item = await service.GetQuickInfoAsync(document, triggerPoint.Value, options, cancellationToken).ConfigureAwait(false);
                         if (item != null)
                         {
                             var textVersion = snapshot.Version;
                             var trackingSpan = textVersion.CreateTrackingSpan(item.Span.ToSpan(), SpanTrackingMode.EdgeInclusive);
-                            var classificationOptions = _globalOptions.GetClassificationOptions(document.Project.Language);
-
                             return await IntellisenseQuickInfoBuilder.BuildItemAsync(
-                                trackingSpan, item, document, classificationOptions,
+                                trackingSpan, item, document,
                                 _threadingContext, _operationExecutor,
                                 _asyncListener, _streamingPresenter, cancellationToken).ConfigureAwait(false);
                         }

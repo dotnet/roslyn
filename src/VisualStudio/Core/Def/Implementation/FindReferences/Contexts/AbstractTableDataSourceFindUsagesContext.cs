@@ -352,7 +352,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 CancellationToken cancellationToken)
             {
                 var document = documentSpan.Document;
-                var options = _globalOptions.GetClassificationOptions(document.Project.Language);
+                var options = ClassificationOptions.From(document.Project);
                 var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var (excerptResult, lineText) = await ExcerptAsync(sourceText, documentSpan, options, cancellationToken).ConfigureAwait(false);
 
@@ -387,7 +387,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 var excerptService = documentSpan.Document.Services.GetService<IDocumentExcerptService>();
                 if (excerptService != null)
                 {
-                    var result = await excerptService.TryExcerptAsync(documentSpan.Document, documentSpan.SourceSpan, ExcerptMode.SingleLine, options, cancellationToken).ConfigureAwait(false);
+                    var result = await excerptService.TryExcerptAsync(documentSpan.Document, documentSpan.SourceSpan, ExcerptMode.SingleLine, cancellationToken).ConfigureAwait(false);
                     if (result != null)
                     {
                         return (result.Value, AbstractDocumentSpanEntry.GetLineContainingPosition(result.Value.Content, result.Value.MappedSpan.Start));

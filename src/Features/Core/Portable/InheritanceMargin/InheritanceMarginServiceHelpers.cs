@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             ImmutableArray<(SymbolKey symbolKey, int lineNumber)> symbolKeyAndLineNumbers,
             CancellationToken cancellationToken)
         {
-            var remoteClient = await RemoteHostClient.TryGetClientAsync(solution.Workspace.Services, cancellationToken).ConfigureAwait(false);
+            var remoteClient = await RemoteHostClient.TryGetClientAsync(solution.Workspace, cancellationToken).ConfigureAwait(false);
             if (remoteClient != null)
             {
                 // Here the line number is also passed to the remote process. It is done in this way because
@@ -363,7 +362,10 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
             targetSymbol = symbolInSource ?? targetSymbol;
 
             // Right now the targets are not shown in a classified way.
-            var definition = ToSlimDefinitionItem(targetSymbol, solution);
+            var definition = await ToSlimDefinitionItemAsync(
+                targetSymbol,
+                solution,
+                cancellationToken: cancellationToken).ConfigureAwait(false);
 
             var displayName = targetSymbol.ToDisplayString(s_displayFormat);
 
@@ -501,16 +503,16 @@ namespace Microsoft.CodeAnalysis.InheritanceMargin
         /// Otherwise, create the full non-classified DefinitionItem. Because in such case we want to display all the locations to the user
         /// by reusing the FAR window.
         /// </summary>
-        private static DefinitionItem ToSlimDefinitionItem(ISymbol symbol, Solution solution)
+        private static async Task<DefinitionItem> ToSlimDefinitionItemAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
             RoslynDebug.Assert(IsNavigableSymbol(symbol));
             var locations = symbol.Locations;
             if (locations.Length > 1)
             {
-                return symbol.ToNonClassifiedDefinitionItem(
+                return await symbol.ToNonClassifiedDefinitionItemAsync(
                     solution,
-                    FindReferencesSearchOptions.Default with { UnidirectionalHierarchyCascade = true },
-                    includeHiddenLocations: false);
+                    includeHiddenLocations: false,
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
             }
 
             if (locations.Length == 1)

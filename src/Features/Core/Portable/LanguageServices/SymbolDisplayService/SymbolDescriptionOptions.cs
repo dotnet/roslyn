@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.QuickInfo;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
@@ -15,5 +16,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
           = new(
               QuickInfoOptions: QuickInfoOptions.Default,
               ClassificationOptions: ClassificationOptions.Default);
+
+        public static SymbolDescriptionOptions From(Project project)
+            => From(project.Solution.Options, project.Language);
+
+        public static SymbolDescriptionOptions From(OptionSet options, string language)
+            => new(
+                QuickInfoOptions: QuickInfoOptions.From(options, language),
+                ClassificationOptions: ClassificationOptions.From(options, language));
     }
 }
