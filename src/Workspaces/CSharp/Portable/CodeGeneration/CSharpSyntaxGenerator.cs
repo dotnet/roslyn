@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -1682,14 +1683,46 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             };
         }
 
-        internal override SyntaxNode WithExplicitInterfaceImplementations(SyntaxNode declaration, ImmutableArray<ISymbol> explicitInterfaceImplementations)
+        internal override SyntaxNode WithExplicitInterfaceImplementations(
+                SyntaxNode declaration,
+                ImmutableArray<ISymbol> explicitInterfaceImplementations,
+                bool removeDefaults)
             => WithAccessibility(declaration switch
             {
-                MethodDeclarationSyntax member => member.WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations)),
-                PropertyDeclarationSyntax member => member.WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations)),
-                EventDeclarationSyntax member => member.WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations)),
+                MethodDeclarationSyntax method
+                    => WithoutContraints(method.ReplaceNodes(method.ParameterList.Parameters, (_, p) => RemoveDefaultValue(p, removeDefaults))
+                                               .WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations))),
+                PropertyDeclarationSyntax member
+                    => member.WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations)),
+                EventDeclarationSyntax member
+                    => member.WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations)),
                 _ => declaration,
             }, Accessibility.NotApplicable);
+
+        private static MethodDeclarationSyntax WithoutContraints(MethodDeclarationSyntax method)
+        {
+            if (method.ConstraintClauses.Count == 0)
+                return method;
+
+            return method.WithConstraintClauses(default)
+                         .WithParameterList(method.ParameterList.WithTrailingTrivia(
+                            method.ParameterList.GetTrailingTrivia().Add(SyntaxFactory.ElasticMarker).AddRange(method.ConstraintClauses.Last().GetTrailingTrivia())));
+        }
+
+        private static SyntaxNode RemoveDefaultValue(ParameterSyntax parameter, bool removeDefaults)
+        {
+            if (!removeDefaults)
+                return parameter;
+
+            if (parameter.Default == null)
+                return parameter;
+
+            parameter = parameter.WithDefault(null);
+            if (!parameter.Identifier.TrailingTrivia.Any(t => t.IsSingleOrMultiLineComment()))
+                parameter = parameter.WithIdentifier(parameter.Identifier.WithoutTrailingTrivia());
+
+            return parameter;
+        }
 
         private static ExplicitInterfaceSpecifierSyntax CreateExplicitInterfaceSpecifier(ImmutableArray<ISymbol> explicitInterfaceImplementations)
             => SyntaxFactory.ExplicitInterfaceSpecifier(explicitInterfaceImplementations[0].ContainingType.GenerateNameSyntax());
@@ -2008,12 +2041,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var newParameters = AsParameterList(parameters);
 
             var currentList = declaration.GetParameterList();
-            if (currentList == null)
-            {
-                currentList = declaration.IsKind(SyntaxKind.IndexerDeclaration)
-                    ? SyntaxFactory.BracketedParameterList()
-                    : SyntaxFactory.ParameterList();
-            }
+            currentList ??= declaration.IsKind(SyntaxKind.IndexerDeclaration)
+                ? SyntaxFactory.BracketedParameterList()
+                : SyntaxFactory.ParameterList();
 
             var newList = currentList.WithParameters(currentList.Parameters.InsertRange(index, newParameters.Parameters));
             return WithParameterList(declaration, newList);

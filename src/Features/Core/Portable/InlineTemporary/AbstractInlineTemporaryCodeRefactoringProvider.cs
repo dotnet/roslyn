@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.InlineTemporary
                 // Do not cascade when finding references to this local.  Cascading can cause us to find linked
                 // references as well which can throw things off for us.  For inline variable, we only care about the
                 // direct real references in this project context.
-                var options = FindReferencesSearchOptions.Default.With(cascade: false);
+                var options = FindReferencesSearchOptions.Default with { Cascade = false };
 
                 var findReferencesResult = await SymbolFinder.FindReferencesAsync(
                     local, document.Project.Solution, options, cancellationToken).ConfigureAwait(false);

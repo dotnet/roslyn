@@ -18,14 +18,18 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
     [TestService]
     internal partial class FindReferencesWindowInProcess
     {
-        public async Task<ImmutableArray<ITableEntryHandle2>> GetContentsAsync(string windowCaption, CancellationToken cancellationToken)
+        // Guid of the FindRefs window.  Defined here:
+        // https://devdiv.visualstudio.com/DevDiv/_git/VS?path=/src/env/ErrorList/Pkg/Guids.cs&version=GBmain&line=24
+        private const string FindReferencesWindowGuid = "{a80febb4-e7e0-4147-b476-21aaf2453969}";
+
+        public async Task<ImmutableArray<ITableEntryHandle2>> GetContentsAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.FindReferences, cancellationToken);
 
             // Find the tool window
-            var tableControl = await GetFindReferencesWindowAsync(windowCaption, cancellationToken);
+            var tableControl = await GetFindReferencesWindowAsync(cancellationToken);
 
             // Remove all grouping
             var columnStates = tableControl.ColumnStates;
@@ -53,13 +57,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             return forcedUpdateResult.AllEntries.Cast<ITableEntryHandle2>().ToImmutableArray();
         }
 
-        private async Task<IWpfTableControl2> GetFindReferencesWindowAsync(string windowCaption, CancellationToken cancellationToken)
+        private async Task<IWpfTableControl2> GetFindReferencesWindowAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE80.DTE2>(cancellationToken);
 
-            var toolWindow = dte.ToolWindows.GetToolWindow(windowCaption);
+            var toolWindow = dte.ToolWindows.GetToolWindow(FindReferencesWindowGuid);
 
             // Dig through to get the Find References control.
             var toolWindowType = toolWindow.GetType();

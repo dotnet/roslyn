@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Dim completionService = New TestCompletionService(workspace)
 
                 Dim list = Await completionService.GetCompletionsAsync(
-                    document, caretPosition:=0, options:=CompletionOptions.Default, trigger:=CompletionTrigger.Invoke)
+                    document, caretPosition:=0, CompletionOptions.Default, OptionValueSet.Empty, CompletionTrigger.Invoke)
 
                 Assert.NotEmpty(list.Items)
                 Assert.True(list.Items.Length = 1, "Completion list contained more than one item")

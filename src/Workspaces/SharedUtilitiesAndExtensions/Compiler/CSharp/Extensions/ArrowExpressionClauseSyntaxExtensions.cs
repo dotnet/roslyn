@@ -41,9 +41,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             if (arrowExpression.ArrowToken.TrailingTrivia.Any(t => t.IsSingleOrMultiLineComment()))
-            {
                 statement = statement.WithPrependedLeadingTrivia(arrowExpression.ArrowToken.TrailingTrivia);
-            }
+
+            if (arrowExpression.ArrowToken.LeadingTrivia.Any(t => t.IsSingleOrMultiLineComment()))
+                statement = statement.WithPrependedLeadingTrivia(arrowExpression.ArrowToken.LeadingTrivia);
 
             return true;
         }

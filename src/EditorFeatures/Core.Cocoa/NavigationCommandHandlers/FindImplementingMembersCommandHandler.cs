@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands.Navigation;
@@ -30,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
         AbstractNavigationCommandHandler<FindImplementingMembersCommandArgs>
     {
         private readonly IAsynchronousOperationListener _asyncListener;
+        private readonly IGlobalOptionService _globalOptions;
 
         public override string DisplayName => nameof(FindImplementingMembersCommandHandler);
 
@@ -37,12 +39,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FindImplementingMembersCommandHandler(
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            IAsynchronousOperationListenerProvider listenerProvider,
+            IGlobalOptionService globalOptions)
             : base(streamingPresenters)
         {
             Contract.ThrowIfNull(listenerProvider);
 
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.FindReferences);
+            _globalOptions = globalOptions;
         }
 
         protected override bool TryExecuteCommand(int caretPosition, Document document, CommandExecutionContext context)
@@ -142,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationCommandHandlers
                 if (impl == null)
                     continue;
 
-                var definitionItem = impl.ToNonClassifiedDefinitionItem(project.Solution, true);
+                var definitionItem = impl.ToNonClassifiedDefinitionItem(project.Solution, includeHiddenLocations: true);
                 await context.OnDefinitionFoundAsync(definitionItem, cancellationToken).ConfigureAwait(false);
             }
         }

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
     internal class FindReferencesCommandHandler : ICommandHandler<FindReferencesCommandArgs>
     {
         private readonly IStreamingFindUsagesPresenter _streamingPresenter;
-
+        private readonly IGlobalOptionService _globalOptions;
         private readonly IAsynchronousOperationListener _asyncListener;
 
         public string DisplayName => EditorFeaturesResources.Find_References;
@@ -39,11 +40,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
         public FindReferencesCommandHandler(
             IStreamingFindUsagesPresenter streamingPresenter,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             Contract.ThrowIfNull(listenerProvider);
 
             _streamingPresenter = streamingPresenter;
+            _globalOptions = globalOptions;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.FindReferences);
         }
 
@@ -133,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
                 {
                     try
                     {
-                        await findUsagesService.FindReferencesAsync(document, caretPosition, context, cancellationToken).ConfigureAwait(false);
+                        await findUsagesService.FindReferencesAsync(context, document, caretPosition, cancellationToken).ConfigureAwait(false);
                     }
                     finally
                     {

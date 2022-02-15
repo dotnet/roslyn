@@ -157,6 +157,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
             => SemanticFacts.FindParameterForArgument(semanticModel, argumentNode, cancellationToken);
 
+        public IParameterSymbol FindParameterForAttributeArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
+            => SemanticFacts.FindParameterForAttributeArgument(semanticModel, argumentNode, cancellationToken);
+
         public ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
             => SemanticFacts.GetBestOrAllSymbols(semanticModel, node, token, cancellationToken);
 

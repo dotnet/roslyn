@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             CompletionListCache completionListCache,
             CancellationToken cancellationToken)
         {
-            var completionList = await completionService.GetCompletionsAsync(document, position, completionOptions, completionTrigger, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var completionList = await completionService.GetCompletionsAsync(document, position, completionOptions, document.Project.Solution.Options, completionTrigger, cancellationToken: cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
             if (completionList.Items.IsEmpty)
             {
@@ -545,7 +545,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return completionItem.Rules.MatchPriority == MatchPriority.Preselect && completionItem.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection;
         }
 
-        internal static CompletionOptions GetCompletionOptions(Document document)
+        internal CompletionOptions GetCompletionOptions(Document document)
         {
             // Filter out unimported types for now as there are two issues with providing them:
             // 1.  LSP client does not currently provide a way to provide detail text on the completion item to show the namespace.
@@ -553,7 +553,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // 2.  We need to figure out how to provide the text edits along with the completion item or provide them in the resolve request.
             //     https://devdiv.visualstudio.com/DevDiv/_workitems/edit/985860/
             // 3.  LSP client should support completion filters / expanders
-            return CompletionOptions.From(document.Project) with
+            return _globalOptions.GetCompletionOptions(document.Project.Language) with
             {
                 ShowItemsFromUnimportedNamespaces = false,
                 ExpandedCompletionBehavior = ExpandedCompletionMode.NonExpandedItemsOnly

@@ -38,7 +38,12 @@
     <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="$(MicrosoftVisualStudioImageCatalogVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Language" Version="$(MicrosoftVisualStudioLanguageVersion)" />
     <!-- No warn on NU1701 until the LSP client targets netstandard2.0 https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1369985/ -->
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client" Version="$(MicrosoftVisualStudioLanguageServerClientVersion)" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Client" Version="$(MicrosoftVisualStudioLanguageServerClientVersion)" PrivateAssets="all" NoWarn="NU1701" />
+    <!-- Explicit reference to Shell.15.0 et. al. with NU1701 only until the LSP client targets netstandard2.0 https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1369985/ -->
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" PrivateAssets="all" ExcludeAssets="all" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" PrivateAssets="all" ExcludeAssets="all" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.GraphModel" Version="$(MicrosoftVisualStudioGraphModelVersion)" PrivateAssets="all" ExcludeAssets="all" NoWarn="NU1701" />
+    <PackageReference Include="Microsoft.VisualStudio.Imaging" Version="$(MicrosoftVisualStudioImagingVersion)" PrivateAssets="all" ExcludeAssets="all" NoWarn="NU1701" />
     <PackageReference Include="Microsoft.ServiceHub.Client" Version="$(MicrosoftServiceHubClientVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Contracts" Version="$(MicrosoftVisualStudioDebuggerContractsVersion)" />
@@ -107,6 +112,7 @@
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.IntelliCode" Key="$(IntelliCodeKey)" Partner="IntelliCode" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" Partner="UnitTesting" Key="$(UnitTestingKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager.Core" Partner="UnitTesting" Key="$(UnitTestingKey)" />
+    <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.Orchestrator" Partner="UnitTesting" Key="$(UnitTestingKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery" Partner="UnitTesting" Key="$(UnitTestingKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery.Core" Partner="UnitTesting" Key="$(UnitTestingKey)" />
   </ItemGroup>

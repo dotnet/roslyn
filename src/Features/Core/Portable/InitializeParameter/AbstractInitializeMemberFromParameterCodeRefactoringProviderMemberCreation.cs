@@ -40,10 +40,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         where TExpressionSyntax : SyntaxNode
     {
         protected abstract SyntaxNode? TryGetLastStatement(IBlockOperation? blockStatementOpt);
-
         protected abstract Accessibility DetermineDefaultFieldAccessibility(INamedTypeSymbol containingType);
-
         protected abstract Accessibility DetermineDefaultPropertyAccessibility();
+
+        protected override bool SupportsRecords(ParseOptions options)
+            => false;
 
         protected override Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
             Document document, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation? blockStatementOpt,

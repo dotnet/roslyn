@@ -11,8 +11,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.QuickInfo;
@@ -23,12 +25,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
     [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
     [ProvidesMethod(Methods.TextDocumentHoverName)]
-    internal class HoverHandler : AbstractStatelessRequestHandler<TextDocumentPositionParams, Hover?>
+    internal sealed class HoverHandler : AbstractStatelessRequestHandler<TextDocumentPositionParams, Hover?>
     {
+        private readonly IGlobalOptionService _globalOptions;
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public HoverHandler()
+        public HoverHandler(IGlobalOptionService globalOptions)
         {
+            _globalOptions = globalOptions;
         }
 
         public override string Method => Methods.TextDocumentHoverName;
@@ -63,7 +68,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
             var descriptionBuilder = new List<TaggedText>(info.Description);
             if (info.Symbol != null)
             {
-                var description = await info.Symbol.GetDescriptionAsync(document, cancellationToken).ConfigureAwait(false);
+                var options = _globalOptions.GetSymbolDescriptionOptions(document.Project.Language);
+                var description = await info.Symbol.GetDescriptionAsync(document, options, cancellationToken).ConfigureAwait(false);
                 if (description.Any())
                 {
                     if (descriptionBuilder.Any())
