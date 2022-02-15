@@ -8380,4 +8380,81 @@ switch (a)
             Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "[1,2,3]").WithLocation(15, 10)
             );
     }
+
+    [Fact, WorkItem(58738, "https://github.com/dotnet/roslyn/issues/58738")]
+    public void ListPattern_AbstractFlowPass_isBoolTest()
+    {
+        var source = @"
+var a = new[] { 1 };
+
+if (a is [var x] and x is [1])
+{
+}
+
+if ((a is [var y] and y) is .. 1)
+{
+}
+
+var b = new[] { true };
+if ((b is [var z] and z) is [true])
+{
+}
+";
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(new[] { source, TestSources.GetSubArray });
+        comp.VerifyEmitDiagnostics(
+            // (4,22): error CS0029: Cannot implicitly convert type 'int' to 'int[]'
+            // if (a is [var x] and x is [1])
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("int", "int[]").WithLocation(4, 22),
+            // (4,27): error CS0021: Cannot apply indexing with [] to an expression of type 'bool'
+            // if (a is [var x] and x is [1])
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[1]").WithArguments("bool").WithLocation(4, 27),
+            // (8,23): error CS0029: Cannot implicitly convert type 'int' to 'int[]'
+            // if ((a is [var y] and y) is .. 1)
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "y").WithArguments("int", "int[]").WithLocation(8, 23),
+            // (8,29): error CS0021: Cannot apply indexing with [] to an expression of type 'bool'
+            // if ((a is [var y] and y) is .. 1)
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, ".. 1").WithArguments("bool").WithLocation(8, 29),
+            // (13,23): error CS0029: Cannot implicitly convert type 'bool' to 'bool[]'
+            // if ((b is [var z] and z) is [true])
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "z").WithArguments("bool", "bool[]").WithLocation(13, 23),
+            // (13,29): error CS0021: Cannot apply indexing with [] to an expression of type 'bool'
+            // if ((b is [var z] and z) is [true])
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[true]").WithArguments("bool").WithLocation(13, 29)
+            );
+    }
+
+    [Fact, WorkItem(58738, "https://github.com/dotnet/roslyn/issues/58738")]
+    public void ListPattern_AbstractFlowPass_patternMatchesNull()
+    {
+        var source = @"
+var a = new[] { 1 };
+
+if (a?.M(out var i) is [1])
+    i.ToString();
+else
+    i.ToString(); // 1
+
+if (a?.M(out var j) is .. 1) // 2, 3
+    j.ToString();
+else
+    j.ToString();
+
+public static class Extension
+{
+    public static T M<T>(this T t, out int i) => throw null;
+}
+";
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(new[] { source, TestSources.GetSubArray });
+        comp.VerifyEmitDiagnostics(
+            // (7,5): error CS0165: Use of unassigned local variable 'i'
+            //     i.ToString(); // 1
+            Diagnostic(ErrorCode.ERR_UseDefViolation, "i").WithArguments("i").WithLocation(7, 5),
+            // (9,24): error CS8980: Slice patterns may only be used once and directly inside a list pattern.
+            // if (a?.M(out var j) is .. 1) // 2, 3
+            Diagnostic(ErrorCode.ERR_MisplacedSlicePattern, ".. 1").WithLocation(9, 24),
+            // (9,27): error CS0029: Cannot implicitly convert type 'int' to 'int[]'
+            // if (a?.M(out var j) is .. 1) // 2, 3
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "int[]").WithLocation(9, 27)
+            );
+    }
 }
