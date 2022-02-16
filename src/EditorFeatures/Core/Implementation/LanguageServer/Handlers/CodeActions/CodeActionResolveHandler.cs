@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// EditorFeatures references in <see cref="RunCodeActionHandler"/> are removed.
     /// See https://github.com/dotnet/roslyn/issues/55142
     /// </summary>
+    [Method(LSP.Methods.CodeActionResolveName)]
     internal class CodeActionResolveHandler : IRequestHandler<LSP.CodeAction, LSP.CodeAction>
     {
         private readonly CodeActionsCache _codeActionsCache;
@@ -50,8 +51,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _codeRefactoringService = codeRefactoringService;
             _globalOptions = globalOptions;
         }
-
-        public string Method => LSP.Methods.CodeActionResolveName;
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
