@@ -97,13 +97,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     scope,
                     codeActionEquivalenceKey,
                     PublicContract.RequireNonNullItems(diagnosticIds, nameof(diagnosticIds)),
-                    fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider))),
+                    fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider)),
+                    _ => CodeActionOptions.Default),
                   new ProgressTracker(), cancellationToken)
         {
-            if (document == null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
         }
 
         /// <summary>
@@ -135,7 +132,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     scope,
                     codeActionEquivalenceKey,
                     PublicContract.RequireNonNullItems(diagnosticIds, nameof(diagnosticIds)),
-                    fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider))),
+                    fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider)),
+                    _ => CodeActionOptions.Default),
                   new ProgressTracker(), cancellationToken)
         {
         }
