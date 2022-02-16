@@ -39,8 +39,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             new((d1, d2) => DiagnosticId.CompareOrdinal(d1.Id, d2.Id));
 
         private readonly IDiagnosticAnalyzerService _diagnosticService;
+        private readonly ImmutableArray<Lazy<CodeFixProvider, CodeChangeProviderMetadata>> _fixers;
+        private readonly Dictionary<string, List<Lazy<CodeFixProvider, CodeChangeProviderMetadata>>> _fixersPerLanguageMap;
 
-        private readonly Func<Workspace, ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>>>> _getWorkspaceFixersMap;
         private ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>>>? _lazyWorkspaceFixersMap;
         private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, ImmutableDictionary<DiagnosticId, List<CodeFixProvider>>> _projectFixersMap;
 
@@ -48,7 +49,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private ImmutableDictionary<CodeFixProvider, ImmutableArray<DiagnosticId>> _fixerToFixableIdsMap = ImmutableDictionary<CodeFixProvider, ImmutableArray<DiagnosticId>>.Empty;
         private readonly Lazy<ImmutableDictionary<CodeFixProvider, CodeChangeProviderMetadata>> _lazyFixerToMetadataMap;
 
-        private readonly Func<Workspace, ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<CodeFixProvider, int>>>> _getFixerPriorityMap;
         private ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<CodeFixProvider, int>>>? _lazyFixerPriorityMap;
 
         private readonly ConditionalWeakTable<AnalyzerReference, ProjectCodeFixProvider> _analyzerReferenceToFixersMap;
@@ -70,15 +70,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             _errorLoggers = loggers;
             _diagnosticService = diagnosticAnalyzerService;
 
+            _fixers = fixers.ToImmutableArray();
+            _fixersPerLanguageMap = _fixers.ToPerLanguageMapWithMultipleLanguages();
+
             _lazyFixerToMetadataMap = new(() => fixers.Where(service => service.IsValueCreated).ToImmutableDictionary(service => service.Value, service => service.Metadata));
-            var fixersPerLanguageMap = fixers.ToPerLanguageMapWithMultipleLanguages();
             var configurationProvidersPerLanguageMap = configurationProviders.ToPerLanguageMapWithMultipleLanguages();
 
-            _getWorkspaceFixersMap = workspace => GetFixerPerLanguageMap(fixersPerLanguageMap, workspace);
             _configurationProvidersMap = GetConfigurationProvidersPerLanguageMap(configurationProvidersPerLanguageMap);
-
-            // REVIEW: currently, fixer's priority is statically defined by the fixer itself. might considering making it more dynamic or configurable.
-            _getFixerPriorityMap = workspace => GetFixerPriorityPerLanguageMap(fixersPerLanguageMap, workspace);
 
             // Per-project fixers
             _projectFixersMap = new ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, ImmutableDictionary<string, List<CodeFixProvider>>>();
@@ -306,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             if (_lazyWorkspaceFixersMap == null)
             {
-                var workspaceFixersMap = _getWorkspaceFixersMap(document.Project.Solution.Workspace);
+                var workspaceFixersMap = GetFixerPerLanguageMap(document.Project.Solution.Workspace);
                 Interlocked.CompareExchange(ref _lazyWorkspaceFixersMap, workspaceFixersMap, null);
             }
 
@@ -317,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         {
             if (_lazyFixerPriorityMap == null)
             {
-                var fixersPriorityByLanguageMap = _getFixerPriorityMap(document.Project.Solution.Workspace);
+                var fixersPriorityByLanguageMap = GetFixerPriorityPerLanguageMap(document.Project.Solution.Workspace);
                 Interlocked.CompareExchange(ref _lazyFixerPriorityMap, fixersPriorityByLanguageMap, null);
             }
 
@@ -846,18 +844,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         }
 
         private ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>>> GetFixerPerLanguageMap(
-            Dictionary<LanguageKind, List<Lazy<CodeFixProvider, CodeChangeProviderMetadata>>> fixersPerLanguage,
             Workspace workspace)
         {
             var fixerMap = ImmutableDictionary.Create<LanguageKind, Lazy<ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>>>();
             var extensionManager = workspace.Services.GetService<IExtensionManager>();
-            foreach (var languageKindAndFixers in fixersPerLanguage)
+            foreach (var (diagnosticId, lazyFixers) in _fixersPerLanguageMap)
             {
                 var lazyMap = new Lazy<ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>>(() =>
                 {
                     var mutableMap = new Dictionary<DiagnosticId, List<CodeFixProvider>>();
 
-                    foreach (var lazyFixer in languageKindAndFixers.Value)
+                    foreach (var lazyFixer in lazyFixers)
                     {
                         if (!TryGetWorkspaceFixer(lazyFixer, workspace, logExceptionWithInfoBar: true, out var fixer))
                         {
@@ -885,7 +882,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     return immutableMap.ToImmutable();
                 }, isThreadSafe: true);
 
-                fixerMap = fixerMap.Add(languageKindAndFixers.Key, lazyMap);
+                fixerMap = fixerMap.Add(diagnosticId, lazyMap);
             }
 
             return fixerMap;
@@ -916,19 +913,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
         }
 
-        private ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<CodeFixProvider, int>>> GetFixerPriorityPerLanguageMap(
-            Dictionary<LanguageKind, List<Lazy<CodeFixProvider, CodeChangeProviderMetadata>>> fixersPerLanguage,
-            Workspace workspace)
+        private ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<CodeFixProvider, int>>> GetFixerPriorityPerLanguageMap(Workspace workspace)
         {
             var languageMap = ImmutableDictionary.CreateBuilder<LanguageKind, Lazy<ImmutableDictionary<CodeFixProvider, int>>>();
-            foreach (var languageAndFixers in fixersPerLanguage)
+            foreach (var (diagnosticId, lazyFixers) in _fixersPerLanguageMap)
             {
                 var lazyMap = new Lazy<ImmutableDictionary<CodeFixProvider, int>>(() =>
                 {
                     var priorityMap = ImmutableDictionary.CreateBuilder<CodeFixProvider, int>();
 
-                    var lazyFixers = ExtensionOrderer.Order(languageAndFixers.Value);
-                    for (var i = 0; i < lazyFixers.Count; i++)
+                    var fixers = ExtensionOrderer.Order(lazyFixers);
+                    for (var i = 0; i < fixers.Count; i++)
                     {
                         if (!TryGetWorkspaceFixer(lazyFixers[i], workspace, logExceptionWithInfoBar: false, out var fixer))
                         {
@@ -941,7 +936,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     return priorityMap.ToImmutable();
                 }, isThreadSafe: true);
 
-                languageMap.Add(languageAndFixers.Key, lazyMap);
+                languageMap.Add(diagnosticId, lazyMap);
             }
 
             return languageMap.ToImmutable();
