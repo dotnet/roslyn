@@ -150,43 +150,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Func<string, IDisposable?> addOperationScope,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            // REVIEW: this is the first and simplest design. basically, when ctrl+. is pressed, it asks diagnostic service to give back
-            // current diagnostics for the given span, and it will use that to get fixes. internally diagnostic service will either return cached information
-            // (if it is up-to-date) or synchronously do the work at the spot.
-            //
-            // this design's weakness is that each side don't have enough information to narrow down works to do. it will most likely always do more works than needed.
-            // sometimes way more than it is needed. (compilation)
-
-            // group diagnostics by their diagnostics span
-            // invariant: later code gathers & runs CodeFixProviders for diagnostics with one identical diagnostics span (that gets set later as CodeFixCollection's TextSpan)
-            // order diagnostics by span.
-            var aggregatedDiagnostics = new SortedDictionary<TextSpan, List<DiagnosticData>>();
-
-            // For 'CodeActionPriorityRequest.Normal' or 'CodeActionPriorityRequest.Low', we do not compute suppression/configuration fixes,
-            // those fixes have a dedicated request priority 'CodeActionPriorityRequest.Lowest'.
-            // Hence, for Normal or Low priority, we only need to execute analyzers which can report at least one fixable diagnostic
-            // that can have a non-suppression/configuration fix.
-            // Note that for 'CodeActionPriorityRequest.High', we only run compiler analyzer, which always has fixable diagnostics,
-            // so we can pass in null. 
-            var shouldIncludeDiagnostic = priority is CodeActionRequestPriority.Normal or CodeActionRequestPriority.Low
-                ? GetFixableDiagnosticFilter(document)
-                : null;
-
             // We only need to compute suppression/configuration fixes when request priority is
             // 'CodeActionPriorityRequest.Lowest' or 'CodeActionPriorityRequest.None'.
             var includeSuppressionFixes = priority is CodeActionRequestPriority.Lowest or CodeActionRequestPriority.None;
 
-            var diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
-                document, range, shouldIncludeDiagnostic, includeSuppressionFixes, priority, addOperationScope, cancellationToken).ConfigureAwait(false);
-            foreach (var diagnostic in diagnostics)
-            {
-                if (diagnostic.IsSuppressed)
-                    continue;
-
-                var list = aggregatedDiagnostics.GetOrAdd(diagnostic.GetTextSpan(), static _ => new List<DiagnosticData>());
-                list.Add(diagnostic);
-            }
-
+            var aggregatedDiagnostics = await GetSpanToDiagnosticsAsync(
+                document, range, priority, addOperationScope, includeSuppressionFixes, cancellationToken).ConfigureAwait(false);
             if (aggregatedDiagnostics.Count == 0)
                 yield break;
 
@@ -219,8 +188,50 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     }
                 }
             }
+        }
 
-            yield break;
+        private async Task<SortedDictionary<TextSpan, List<DiagnosticData>>> GetSpanToDiagnosticsAsync(
+            Document document,
+            TextSpan range,
+            CodeActionRequestPriority priority,
+            Func<string, IDisposable?> addOperationScope,
+            bool includeSuppressionFixes,
+            CancellationToken cancellationToken)
+        {
+            // REVIEW: this is the first and simplest design. basically, when ctrl+. is pressed, it asks diagnostic service to give back
+            // current diagnostics for the given span, and it will use that to get fixes. internally diagnostic service will either return cached information
+            // (if it is up-to-date) or synchronously do the work at the spot.
+            //
+            // this design's weakness is that each side don't have enough information to narrow down works to do. it will most likely always do more works than needed.
+            // sometimes way more than it is needed. (compilation)
+
+            // For 'CodeActionPriorityRequest.Normal' or 'CodeActionPriorityRequest.Low', we do not compute suppression/configuration fixes,
+            // those fixes have a dedicated request priority 'CodeActionPriorityRequest.Lowest'.
+            // Hence, for Normal or Low priority, we only need to execute analyzers which can report at least one fixable diagnostic
+            // that can have a non-suppression/configuration fix.
+            // Note that for 'CodeActionPriorityRequest.High', we only run compiler analyzer, which always has fixable diagnostics,
+            // so we can pass in null. 
+            var shouldIncludeDiagnostic = priority is CodeActionRequestPriority.Normal or CodeActionRequestPriority.Low
+                ? GetFixableDiagnosticFilter(document)
+                : null;
+
+            var diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
+                document, range, shouldIncludeDiagnostic, includeSuppressionFixes, priority, addOperationScope, cancellationToken).ConfigureAwait(false);
+
+            // group diagnostics by their diagnostics span
+            // invariant: later code gathers & runs CodeFixProviders for diagnostics with one identical diagnostics span (that gets set later as CodeFixCollection's TextSpan)
+            // order diagnostics by span.
+            var spanToDiagnostics = new SortedDictionary<TextSpan, List<DiagnosticData>>();
+            foreach (var diagnostic in diagnostics)
+            {
+                if (diagnostic.IsSuppressed)
+                    continue;
+
+                var list = spanToDiagnostics.GetOrAdd(diagnostic.GetTextSpan(), static _ => new List<DiagnosticData>());
+                list.Add(diagnostic);
+            }
+
+            return spanToDiagnostics;
 
             // Local functions
             Func<string, bool> GetFixableDiagnosticFilter(Document document)
