@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Composition;
 using System.IO;
 using System.Linq;
@@ -33,7 +34,7 @@ internal class TestSnippetInfoService : ISnippetInfoService
         }
 
         var testSnippetsXml = XDocument.Load(snippetsFile);
-        var snippets = InlineCompletionsHandler.CodeSnippet.ReadSnippets(testSnippetsXml);
+        var snippets = XmlSnippetParser.CodeSnippet.ReadSnippets(testSnippetsXml);
         Contract.ThrowIfNull(snippets);
 
         var snippetInfos = snippets.Value.Select(s => new SnippetInfo(s.Shortcut, s.Title, s.Title, snippetsFile));

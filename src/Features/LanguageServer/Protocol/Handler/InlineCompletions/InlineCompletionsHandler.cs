@@ -5,14 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -22,15 +18,14 @@ using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions.XmlSnippetParser;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 
 /// <summary>
 /// Supports built in legacy snippets for razor scenarios.
 /// </summary>
-[ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-[ProvidesMethod(VSInternalMethods.TextDocumentInlineCompletionName)]
-internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandler<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList?>
+internal partial class InlineCompletionsHandler : IRequestHandler<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList?>
 {
     /// <summary>
     /// The set of built in snippets from, typically found in
@@ -42,24 +37,25 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
         "if", "indexer", "interface", "invoke", "iterator", "iterindex", "lock", "mbox", "namespace", "#if", "#region", "prop",
         "propfull", "propg", "sim", "struct", "svm", "switch", "try", "tryf", "unchecked", "unsafe", "using", "while");
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public InlineCompletionsHandler()
+    private readonly XmlSnippetParser _xmlSnippetParser;
+
+    public string Method => VSInternalMethods.TextDocumentInlineCompletionName;
+
+    public bool MutatesSolutionState => false;
+
+    public bool RequiresLSPSolution => true;
+
+    public InlineCompletionsHandler(XmlSnippetParser xmlSnippetParser)
     {
+        _xmlSnippetParser = xmlSnippetParser;
     }
 
-    public override string Method => VSInternalMethods.TextDocumentInlineCompletionName;
-
-    public override bool MutatesSolutionState => false;
-
-    public override bool RequiresLSPSolution => true;
-
-    public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalInlineCompletionRequest request)
+    public TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalInlineCompletionRequest request)
     {
         return request.TextDocument;
     }
 
-    public override async Task<VSInternalInlineCompletionList?> HandleRequestAsync(VSInternalInlineCompletionRequest request, RequestContext context, CancellationToken cancellationToken)
+    public async Task<VSInternalInlineCompletionList?> HandleRequestAsync(VSInternalInlineCompletionRequest request, RequestContext context, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(context.Document);
 
@@ -90,25 +86,9 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
 
         var matchingSnippetInfo = snippetInfo.First(s => wordText.Equals(s.Shortcut, StringComparison.OrdinalIgnoreCase));
 
-        var matchingSnippet = RetrieveSnippetFromXml(matchingSnippetInfo, context);
-        if (matchingSnippet == null)
-        {
-            return null;
-        }
-
-        // We currently only support snippet expansions, the others require selection support which is not applicable here.
-        if (!matchingSnippet.IsExpansionSnippet())
-        {
-            return null;
-        }
-
-        var expansion = new ExpansionTemplate(matchingSnippet);
-
-        // Parse the snippet XML
-        var parsedSnippet = expansion.Parse(context);
+        var parsedSnippet = _xmlSnippetParser.GetParsedXmlSnippet(matchingSnippetInfo, context);
         if (parsedSnippet == null)
         {
-            context.TraceError($"Could not parse code from snippet {matchingSnippet.Title}");
             return null;
         }
 
@@ -267,28 +247,5 @@ internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandle
         }
 
         return (functionSnippetBuilder.ToString(), fieldOffsets.ToImmutableDictionary(), caretSpan);
-    }
-
-    private static CodeSnippet? RetrieveSnippetFromXml(SnippetInfo snippetInfo, RequestContext context)
-    {
-        context.TraceInformation($"Reading XML for {snippetInfo.Title} with path {snippetInfo.Path}");
-
-        var path = snippetInfo.Path;
-        if (path == null)
-        {
-            context.TraceInformation($"Missing file path for snippet {snippetInfo.Title}");
-            return null;
-        }
-
-        if (!File.Exists(path))
-        {
-            context.TraceInformation($"Snippet {snippetInfo.Title} has an invalid file path: {snippetInfo.Path}");
-            return null;
-        }
-
-        // Load the xml for the snippet from disk.
-        // Any exceptions thrown here we allow to bubble up and let the queue log it.
-        var snippet = CodeSnippet.ReadSnippetFromFile(snippetInfo.Path, snippetInfo.Title, context);
-        return snippet;
     }
 }
