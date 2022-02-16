@@ -6,7 +6,9 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -20,13 +22,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     [Method(Methods.TextDocumentSemanticTokensRangeName)]
     internal class SemanticTokensRangeHandler : AbstractStatelessRequestHandler<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>
     {
+        private readonly IGlobalOptionService _globalOptions;
+
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SemanticTokensRangeHandler()
+        public SemanticTokensRangeHandler(IGlobalOptionService globalOptions)
         {
+            _globalOptions = globalOptions;
         }
 
         public override LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.SemanticTokensRangeParams request)
@@ -43,6 +48,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             Contract.ThrowIfNull(request.TextDocument, "TextDocument is null.");
             Contract.ThrowIfNull(context.Document, "Document is null.");
 
+            var options = _globalOptions.GetClassificationOptions(context.Document.Project.Language);
+
             // The results from the range handler should not be cached since we don't want to cache
             // partial token results. In addition, a range request is only ever called with a whole
             // document request, so caching range results is unnecessary since the whole document
@@ -51,6 +58,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 context.Document,
                 SemanticTokensHelpers.TokenTypeToIndex,
                 request.Range,
+                options,
                 includeSyntacticClassifications: context.Document.IsRazorDocument(),
                 cancellationToken).ConfigureAwait(false);
 

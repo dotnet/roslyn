@@ -4,6 +4,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications
@@ -115,7 +116,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.GetTextBuffer())
                 Dim excerptService = service.GetService(Of IDocumentExcerptService)
 
-                Dim result = Await excerptService.TryExcerptAsync(workspace.CurrentSolution.GetDocument(subjectDocument.Id), GetNamedSpan(subjectDocument), ExcerptMode.SingleLine, CancellationToken.None)
+                Dim result = Await excerptService.TryExcerptAsync(workspace.CurrentSolution.GetDocument(subjectDocument.Id), GetNamedSpan(subjectDocument), ExcerptMode.SingleLine, ClassificationOptions.Default, CancellationToken.None)
                 Assert.True(result.HasValue)
 
                 Dim content = result.Value.Content.ToString()
@@ -154,7 +155,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 Dim excerptService = service.GetService(Of IDocumentExcerptService)
 
                 ' make sure single line buffer doesn't throw on ExcerptMode.Tooltip
-                Dim result = Await excerptService.TryExcerptAsync(workspace.CurrentSolution.GetDocument(subjectDocument.Id), GetNamedSpan(subjectDocument), ExcerptMode.Tooltip, CancellationToken.None)
+                Dim result = Await excerptService.TryExcerptAsync(workspace.CurrentSolution.GetDocument(subjectDocument.Id), GetNamedSpan(subjectDocument), ExcerptMode.Tooltip, ClassificationOptions.Default, CancellationToken.None)
                 Assert.True(result.HasValue)
 
                 Dim content = result.Value.Content.ToString()
@@ -201,7 +202,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.GetTextBuffer())
                 Dim excerptService = service.GetService(Of IDocumentExcerptService)
 
-                Dim result = Await excerptService.TryExcerptAsync(workspace.CurrentSolution.GetDocument(subjectDocument.Id), GetNamedSpan(subjectDocument), ExcerptMode.Tooltip, CancellationToken.None)
+                Dim result = Await excerptService.TryExcerptAsync(workspace.CurrentSolution.GetDocument(subjectDocument.Id), GetNamedSpan(subjectDocument), ExcerptMode.Tooltip, ClassificationOptions.Default, CancellationToken.None)
                 Assert.True(result.HasValue)
 
                 Dim content = result.Value.Content.ToString()
@@ -254,7 +255,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
                 Dim service = New ContainedDocument.DocumentServiceProvider(projectedDocument.GetTextBuffer())
                 Dim excerptService = service.GetService(Of IDocumentExcerptService)
 
-                Dim result = Await excerptService.TryExcerptAsync(workspace.CurrentSolution.GetDocument(subjectDocument.Id), GetNamedSpan(subjectDocument), ExcerptMode.SingleLine, CancellationToken.None)
+                Dim result = Await excerptService.TryExcerptAsync(workspace.CurrentSolution.GetDocument(subjectDocument.Id), GetNamedSpan(subjectDocument), ExcerptMode.SingleLine, ClassificationOptions.Default, CancellationToken.None)
                 Assert.True(result.HasValue)
 
                 Dim content = result.Value.Content.ToString()
