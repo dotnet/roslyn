@@ -75,32 +75,38 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 return;
             }
 
-            var document = e.Solution.GetDocument(e.DocumentId);
+            var asyncToken = AsyncListener.BeginAsyncOperation(nameof(OnDiagnosticsUpdatedAsync));
+            _ = OnDiagnosticsUpdatedAsync(e.Id, e.Workspace, e.Solution, e.DocumentId).CompletesAsyncOperation(asyncToken);
 
-            // If we couldn't find a normal document, and all features are enabled for source generated documents,
-            // attempt to locate a matching source generated document in the project.
-            if (document is null
-                && e.Workspace.Services.GetService<ISyntaxTreeConfigurationService>() is { EnableOpeningSourceGeneratedFilesInWorkspace: true }
-                && e.Solution.GetProject(e.DocumentId.ProjectId) is { } project)
+            static async Task OnDiagnosticsUpdatedAsync(object updateGroupId, Workspace workspace, Solution solution, DocumentId documentId)
             {
-                document = ThreadingContext.JoinableTaskFactory.Run(() => project.GetSourceGeneratedDocumentAsync(e.DocumentId, CancellationToken.None).AsTask());
-            }
+                var document = solution.GetDocument(documentId);
 
-            // Open documents *should* always have their SourceText available, but we cannot guarantee
-            // (i.e. assert) that they do.  That's because we're not on the UI thread here, so there's
-            // a small risk that between calling .IsOpen the file may then close, which then would
-            // cause TryGetText to fail.  However, that's ok.  In that case, if we do need to tag this
-            // document, we'll just use the current editor snapshot.  If that's the same, then the tags
-            // will be hte same.  If it is different, we'll eventually hear about the new diagnostics 
-            // for it and we'll reach our fixed point.
-            if (document != null && document.IsOpen())
-            {
-                // This should always be fast since the document is open.
-                var sourceText = document.State.GetTextSynchronously(cancellationToken: default);
-                snapshot = sourceText.FindCorrespondingEditorTextSnapshot();
-                if (snapshot != null)
+                // If we couldn't find a normal document, and all features are enabled for source generated documents,
+                // attempt to locate a matching source generated document in the project.
+                if (document is null
+                    && workspace.Services.GetService<ISyntaxTreeConfigurationService>() is { EnableOpeningSourceGeneratedFilesInWorkspace: true }
+                    && solution.GetProject(documentId.ProjectId) is { } project)
                 {
-                    _diagnosticIdToTextSnapshot.GetValue(e.Id, _ => snapshot);
+                    document = await project.GetSourceGeneratedDocumentAsync(documentId, CancellationToken.None).ConfigureAwait(false);
+                }
+
+                // Open documents *should* always have their SourceText available, but we cannot guarantee
+                // (i.e. assert) that they do.  That's because we're not on the UI thread here, so there's
+                // a small risk that between calling .IsOpen the file may then close, which then would
+                // cause TryGetText to fail.  However, that's ok.  In that case, if we do need to tag this
+                // document, we'll just use the current editor snapshot.  If that's the same, then the tags
+                // will be hte same.  If it is different, we'll eventually hear about the new diagnostics 
+                // for it and we'll reach our fixed point.
+                if (document != null && document.IsOpen())
+                {
+                    // This should always be fast since the document is open.
+                    var sourceText = document.State.GetTextSynchronously(cancellationToken: default);
+                    var snapshot = sourceText.FindCorrespondingEditorTextSnapshot();
+                    if (snapshot != null)
+                    {
+                        _diagnosticIdToTextSnapshot.GetValue(updateGroupId, _ => snapshot);
+                    }
                 }
             }
         }
