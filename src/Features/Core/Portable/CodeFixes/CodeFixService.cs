@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private readonly ImmutableArray<Lazy<CodeFixProvider, CodeChangeProviderMetadata>> _fixers;
         private readonly Dictionary<string, List<Lazy<CodeFixProvider, CodeChangeProviderMetadata>>> _fixersPerLanguageMap;
 
-        private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, ImmutableDictionary<DiagnosticId, List<CodeFixProvider>>> _projectFixersMap = new();
+        private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>> _projectFixersMap = new();
 
         // Shared by project fixers and workspace fixers.
         private readonly Lazy<ImmutableDictionary<CodeFixProvider, CodeChangeProviderMetadata>> _lazyFixerToMetadataMap;
@@ -183,51 +183,33 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 if (diagnostic.IsSuppressed)
                     continue;
 
-                cancellationToken.ThrowIfCancellationRequested();
-
-                aggregatedDiagnostics.GetOrAdd(diagnostic.GetTextSpan(), _ => new List<DiagnosticData>()).Add(diagnostic);
+                var list = aggregatedDiagnostics.GetOrAdd(diagnostic.GetTextSpan(), static _ => new List<DiagnosticData>());
+                list.Add(diagnostic);
             }
 
             if (aggregatedDiagnostics.Count == 0)
                 return ImmutableArray<CodeFixCollection>.Empty;
 
             // Order diagnostics by DiagnosticId so the fixes are in a deterministic order.
-            foreach (var diagnosticsWithSpan in aggregatedDiagnostics.Values)
-            {
-                diagnosticsWithSpan.Sort(s_diagnosticDataComparisonById);
-            }
+            foreach (var (_, diagnosticList) in aggregatedDiagnostics)
+                diagnosticList.Sort(s_diagnosticDataComparisonById);
 
             // append fixes for all diagnostics with the same diagnostics span
-            using var resultDisposer = ArrayBuilder<CodeFixCollection>.GetInstance(out var result);
+            using var _1 = ArrayBuilder<CodeFixCollection>.GetInstance(out var result);
 
             // 'CodeActionRequestPriority.Lowest' is used when the client only wants suppression/configuration fixes.
             if (priority != CodeActionRequestPriority.Lowest)
             {
-                foreach (var spanAndDiagnostic in aggregatedDiagnostics)
-                {
-                    await AppendFixesAsync(
-                        document, spanAndDiagnostic.Key, spanAndDiagnostic.Value, fixAllForInSpan: false,
-                        priority, options, result, addOperationScope, cancellationToken).ConfigureAwait(false);
-                }
-            }
-
-            if (result.Count > 0 && TryGetWorkspaceFixersPriorityMap(document, out var fixersForLanguage))
-            {
-                // sort the result to the order defined by the fixers
-#pragma warning disable IDE0007 // Use implicit type - Explicit type is need to suppress an incorrect nullable warning on dereferencing the map.
-                ImmutableDictionary<CodeFixProvider, int> priorityMap = fixersForLanguage.Value;
-#pragma warning restore IDE0007 // Use implicit type
-                result.Sort((d1, d2) => GetValue(d1).CompareTo(GetValue(d2)));
-
-                int GetValue(CodeFixCollection c)
-                    => priorityMap.TryGetValue((CodeFixProvider)c.Provider, out var value) ? value : int.MaxValue;
+                await AppendFixesAsync(
+                    document, aggregatedDiagnostics, fixAllForInSpan: false,
+                    priority, options, result, addOperationScope, cancellationToken).ConfigureAwait(false);
             }
 
             // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict CodeFixes in Interactive
             if (document.Project.Solution.Workspace.Kind != WorkspaceKind.Interactive && includeSuppressionFixes)
             {
                 // Ensure that we do not register duplicate configuration fixes.
-                using var _ = PooledHashSet<string>.GetInstance(out var registeredConfigurationFixTitles);
+                using var _2 = PooledHashSet<string>.GetInstance(out var registeredConfigurationFixTitles);
                 foreach (var (span, diagnosticList) in aggregatedDiagnostics)
                 {
                     await AppendConfigurationsAsync(
@@ -254,16 +236,22 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
         }
 
-        public async Task<CodeFixCollection?> GetDocumentFixAllForIdInSpanAsync(Document document, TextSpan range, string diagnosticId, CodeActionOptions options, CancellationToken cancellationToken)
+        public async Task<CodeFixCollection?> GetDocumentFixAllForIdInSpanAsync(
+            Document document, TextSpan range, string diagnosticId, CodeActionOptions options, CancellationToken cancellationToken)
         {
             var diagnostics = (await _diagnosticService.GetDiagnosticsForSpanAsync(document, range, diagnosticId, includeSuppressedDiagnostics: false, cancellationToken: cancellationToken).ConfigureAwait(false)).ToList();
             if (diagnostics.Count == 0)
-            {
                 return null;
-            }
 
             using var resultDisposer = ArrayBuilder<CodeFixCollection>.GetInstance(out var result);
-            await AppendFixesAsync(document, range, diagnostics, fixAllForInSpan: true, CodeActionRequestPriority.None, options, result, addOperationScope: _ => null, cancellationToken).ConfigureAwait(false);
+            var spanToDiagnostics = new SortedDictionary<TextSpan, List<DiagnosticData>>
+            {
+                {range, diagnostics },
+            };
+
+            await AppendFixesAsync(
+                document, spanToDiagnostics, fixAllForInSpan: true, CodeActionRequestPriority.None,
+                options, result, addOperationScope: static _ => null, cancellationToken).ConfigureAwait(false);
 
             // TODO: Just get the first fix for now until we have a way to config user's preferred fix
             // https://github.com/dotnet/roslyn/issues/27066
@@ -356,8 +344,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private async Task AppendFixesAsync(
             Document document,
-            TextSpan span,
-            IEnumerable<DiagnosticData> diagnostics,
+            SortedDictionary<TextSpan, List<DiagnosticData>> spanToDiagnostics,
             bool fixAllForInSpan,
             CodeActionRequestPriority priority,
             CodeActionOptions options,
@@ -371,39 +358,47 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var hasAnyProjectFixer = projectFixersMap.Any();
 
             if (!hasAnySharedFixer && !hasAnyProjectFixer)
-            {
                 return;
-            }
-
-            var allFixers = new List<CodeFixProvider>();
 
             // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict CodeFixes in Interactive
             var isInteractive = document.Project.Solution.Workspace.Kind == WorkspaceKind.Interactive;
 
             // gather CodeFixProviders for all distinct diagnostics found for current span
-            foreach (var diagnosticId in diagnostics.Select(d => d.Id).Distinct())
+            using var _1 = ArrayBuilder<CodeFixProvider>.GetInstance(out var allFixers);
+            using var _2 = PooledDictionary<CodeFixProvider, List<(TextSpan range, List<DiagnosticData> diagnostics)>>.GetInstance(out var fixerToRangesAndDiagnostics);
+
+            foreach (var (range, diagnostics) in spanToDiagnostics)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // Prioritize NuGet based project code fixers over VSIX based workspace code fixers.
-                if (hasAnyProjectFixer && projectFixersMap.TryGetValue(diagnosticId, out var projectFixers))
+                foreach (var diagnosticId in diagnostics.Select(d => d.Id).Distinct())
                 {
-                    Debug.Assert(!isInteractive);
-                    allFixers.AddRange(projectFixers);
-                }
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                if (hasAnySharedFixer && fixerMap!.Value.TryGetValue(diagnosticId, out var workspaceFixers))
-                {
-                    if (isInteractive)
+                    // Prioritize NuGet based project code fixers over VSIX based workspace code fixers.
+                    if (hasAnyProjectFixer && projectFixersMap.TryGetValue(diagnosticId, out var projectFixers))
                     {
-                        allFixers.AddRange(workspaceFixers.Where(IsInteractiveCodeFixProvider));
+                        Debug.Assert(!isInteractive);
+                        AddAllFixers(projectFixers, range, diagnostics);
                     }
-                    else
+
+                    if (hasAnySharedFixer && fixerMap!.Value.TryGetValue(diagnosticId, out var workspaceFixers))
                     {
-                        allFixers.AddRange(workspaceFixers);
+                        if (isInteractive)
+                        {
+                            AddAllFixers(workspaceFixers.WhereAsArray(IsInteractiveCodeFixProvider), range, diagnostics);
+                        }
+                        else
+                        {
+                            AddAllFixers(workspaceFixers, range, diagnostics);
+                        }
                     }
                 }
             }
+
+            allFixers.RemoveDuplicates();
+
+            // Now, sort the fixers so that the ones that are ordered before others get their chance to run first.
+            if (TryGetWorkspaceFixersPriorityMap(document, out var fixersForLanguage))
+                allFixers.Sort(new FixerComparer(fixersForLanguage.Value));
 
             var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
 
@@ -420,39 +415,42 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             try
             {
-                foreach (var fixer in allFixers.Distinct())
+                foreach (var fixer in allFixers)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
                     if (priority != CodeActionRequestPriority.None && priority != fixer.RequestPriority)
                         continue;
 
-                    await AppendFixesOrConfigurationsAsync(
-                        document, span, diagnostics, fixAllForInSpan, result, fixer,
-                        hasFix: d => this.GetFixableDiagnosticIds(fixer, extensionManager).Contains(d.Id),
-                        getFixes: dxs =>
-                        {
-                            var fixerName = fixer.GetType().Name;
-                            FixerToMetadataMap.TryGetValue(fixer, out var fixerMetadata);
-
-                            using (addOperationScope(fixerName))
-                            using (RoslynEventSource.LogInformationalBlock(FunctionId.CodeFixes_GetCodeFixesAsync, fixerName, cancellationToken))
+                    foreach (var (span, diagnostics) in fixerToRangesAndDiagnostics[fixer])
+                    {
+                        await AppendFixesOrConfigurationsAsync(
+                            document, span, diagnostics, fixAllForInSpan, result, fixer,
+                            hasFix: d => this.GetFixableDiagnosticIds(fixer, extensionManager).Contains(d.Id),
+                            getFixes: dxs =>
                             {
-                                if (fixAllForInSpan)
+                                var fixerName = fixer.GetType().Name;
+                                FixerToMetadataMap.TryGetValue(fixer, out var fixerMetadata);
+
+                                using (addOperationScope(fixerName))
+                                using (RoslynEventSource.LogInformationalBlock(FunctionId.CodeFixes_GetCodeFixesAsync, fixerName, cancellationToken))
                                 {
-                                    var primaryDiagnostic = dxs.First();
-                                    return GetCodeFixesAsync(document, primaryDiagnostic.Location.SourceSpan, fixer, fixerMetadata, options,
-                                        ImmutableArray.Create(primaryDiagnostic), uniqueDiagosticToEquivalenceKeysMap,
-                                        diagnosticAndEquivalenceKeyToFixersMap, cancellationToken);
+                                    if (fixAllForInSpan)
+                                    {
+                                        var primaryDiagnostic = dxs.First();
+                                        return GetCodeFixesAsync(document, primaryDiagnostic.Location.SourceSpan, fixer, fixerMetadata, options,
+                                            ImmutableArray.Create(primaryDiagnostic), uniqueDiagosticToEquivalenceKeysMap,
+                                            diagnosticAndEquivalenceKeyToFixersMap, cancellationToken);
+                                    }
+                                    else
+                                    {
+                                        return GetCodeFixesAsync(document, span, fixer, fixerMetadata, options, dxs,
+                                            uniqueDiagosticToEquivalenceKeysMap, diagnosticAndEquivalenceKeyToFixersMap, cancellationToken);
+                                    }
                                 }
-                                else
-                                {
-                                    return GetCodeFixesAsync(document, span, fixer, fixerMetadata, options, dxs,
-                                        uniqueDiagosticToEquivalenceKeysMap, diagnosticAndEquivalenceKeyToFixersMap, cancellationToken);
-                                }
-                            }
-                        },
-                        cancellationToken: cancellationToken).ConfigureAwait(false);
+                            },
+                            cancellationToken).ConfigureAwait(false);
+                    }
 
                     // Just need the first result if we are doing fix all in span
                     if (fixAllForInSpan && result.Any())
@@ -465,6 +463,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 {
                     pooledSet.Free();
                 }
+            }
+
+            return;
+
+            void AddAllFixers(
+                ImmutableArray<CodeFixProvider> fixers,
+                TextSpan range,
+                List<DiagnosticData> diagnostics)
+            {
+                allFixers.AddRange(fixers);
+                foreach (var fixer in fixers)
+                    fixerToRangesAndDiagnostics.GetOrAdd(fixer, static _ => new()).Add((range, diagnostics));
             }
         }
 
@@ -611,7 +621,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             // If the fix provider supports fix all occurrences, then get the corresponding FixAllProviderInfo and fix all context.
-            var fixAllProviderInfo = extensionManager.PerformFunction<FixAllProviderInfo?>(fixer, () => ImmutableInterlocked.GetOrAdd(ref _fixAllProviderMap, fixer, FixAllProviderInfo.Create), defaultValue: null);
+            var fixAllProviderInfo = extensionManager.PerformFunction(
+                fixer, () => ImmutableInterlocked.GetOrAdd(ref _fixAllProviderMap, fixer, FixAllProviderInfo.Create), defaultValue: null);
 
             FixAllState? fixAllState = null;
             var supportedScopes = ImmutableArray<FixAllScope>.Empty;
@@ -620,8 +631,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 var codeFixProvider = (fixer as CodeFixProvider) ?? new WrapperCodeFixProvider((IConfigurationFixProvider)fixer, diagnostics.Select(d => d.Id));
 
                 var diagnosticIds = diagnostics.Where(fixAllProviderInfo.CanBeFixed)
-                                          .Select(d => d.Id)
-                                          .ToImmutableHashSet();
+                                               .Select(d => d.Id)
+                                               .ToImmutableHashSet();
 
                 // When computing FixAll for unnecessary pragma suppression diagnostic,
                 // we need to include suppressed diagnostics, as well as reported compiler and analyzer diagnostics.
@@ -932,37 +943,59 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return languageMap.ToImmutable();
         }
 
-        private ImmutableDictionary<DiagnosticId, List<CodeFixProvider>> GetProjectFixers(Project project)
+        private ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>> GetProjectFixers(Project project)
         {
             // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict CodeFixes in Interactive
             return project.Solution.Workspace.Kind == WorkspaceKind.Interactive
-                ? ImmutableDictionary<DiagnosticId, List<CodeFixProvider>>.Empty
+                ? ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>.Empty
                 : _projectFixersMap.GetValue(project.AnalyzerReferences, _ => ComputeProjectFixers(project));
         }
 
-        private ImmutableDictionary<DiagnosticId, List<CodeFixProvider>> ComputeProjectFixers(Project project)
+        private ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>> ComputeProjectFixers(Project project)
         {
             var extensionManager = project.Solution.Workspace.Services.GetService<IExtensionManager>();
 
-            var builder = ImmutableDictionary.CreateBuilder<DiagnosticId, List<CodeFixProvider>>();
-            foreach (var reference in project.AnalyzerReferences)
+            using var _ = PooledDictionary<DiagnosticId, ArrayBuilder<CodeFixProvider>>.GetInstance(out var builder);
+            try
             {
-                var projectCodeFixerProvider = _analyzerReferenceToFixersMap.GetValue(reference, _createProjectCodeFixProvider);
-                foreach (var fixer in projectCodeFixerProvider.GetExtensions(project.Language))
+                foreach (var reference in project.AnalyzerReferences)
                 {
-                    var fixableIds = this.GetFixableDiagnosticIds(fixer, extensionManager);
-                    foreach (var id in fixableIds)
+                    var projectCodeFixerProvider = _analyzerReferenceToFixersMap.GetValue(reference, _createProjectCodeFixProvider);
+                    foreach (var fixer in projectCodeFixerProvider.GetExtensions(project.Language))
                     {
-                        if (string.IsNullOrWhiteSpace(id))
-                            continue;
+                        var fixableIds = this.GetFixableDiagnosticIds(fixer, extensionManager);
+                        foreach (var id in fixableIds)
+                        {
+                            if (string.IsNullOrWhiteSpace(id))
+                                continue;
 
-                        var list = builder.GetOrAdd(id, static _ => new List<CodeFixProvider>());
-                        list.Add(fixer);
+                            var list = builder.GetOrAdd(id, static _ => ArrayBuilder<CodeFixProvider>.GetInstance());
+                            list.Add(fixer);
+                        }
                     }
                 }
-            }
 
-            return builder.ToImmutable();
+                return builder.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.ToImmutable());
+            }
+            finally
+            {
+                foreach (var kvp in builder)
+                    kvp.Value.Free();
+            }
+        }
+
+        private sealed class FixerComparer : IComparer<CodeFixProvider>
+        {
+            private readonly ImmutableDictionary<CodeFixProvider, int> _priorityMap;
+
+            public FixerComparer(ImmutableDictionary<CodeFixProvider, int> priorityMap)
+                => _priorityMap = priorityMap;
+
+            public int Compare([AllowNull] CodeFixProvider x, [AllowNull] CodeFixProvider y)
+                => GetValue(x).CompareTo(GetValue(y));
+
+            private int GetValue(CodeFixProvider provider)
+                => _priorityMap.TryGetValue(provider, out var value) ? value : int.MaxValue;
         }
     }
 }
