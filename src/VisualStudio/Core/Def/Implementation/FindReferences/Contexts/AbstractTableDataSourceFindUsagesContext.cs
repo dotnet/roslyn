@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -54,6 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
             public readonly StreamingFindUsagesPresenter Presenter;
             private readonly IFindAllReferencesWindow _findReferencesWindow;
+            private readonly IGlobalOptionService _globalOptions;
             protected readonly IWpfTableControl2 TableControl;
 
             private readonly AsyncBatchingWorkQueue<(int current, int maximum)> _progressQueue;
@@ -113,6 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                  StreamingFindUsagesPresenter presenter,
                  IFindAllReferencesWindow findReferencesWindow,
                  ImmutableArray<ITableColumnDefinition> customColumns,
+                 IGlobalOptionService globalOptions,
                  bool includeContainingTypeAndMemberColumns,
                  bool includeKindColumn)
             {
@@ -120,6 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 Presenter = presenter;
                 _findReferencesWindow = findReferencesWindow;
+                _globalOptions = globalOptions;
                 TableControl = (IWpfTableControl2)findReferencesWindow.TableControl;
                 TableControl.GroupingsChanged += OnTableControlGroupingsChanged;
 
@@ -153,6 +157,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     presenter._asyncListener,
                     CancellationTokenSource.Token);
             }
+
+            public override ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
+                => ValueTaskFactory.FromResult(_globalOptions.GetFindUsagesOptions(language));
 
             private static ImmutableArray<string> SelectCustomColumnsToInclude(ImmutableArray<ITableColumnDefinition> customColumns, bool includeContainingTypeAndMemberColumns, bool includeKindColumn)
             {
@@ -345,7 +352,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 CancellationToken cancellationToken)
             {
                 var document = documentSpan.Document;
-                var options = ClassificationOptions.From(document.Project);
+                var options = _globalOptions.GetClassificationOptions(document.Project.Language);
                 var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var (excerptResult, lineText) = await ExcerptAsync(sourceText, documentSpan, options, cancellationToken).ConfigureAwait(false);
 
@@ -380,7 +387,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 var excerptService = documentSpan.Document.Services.GetService<IDocumentExcerptService>();
                 if (excerptService != null)
                 {
-                    var result = await excerptService.TryExcerptAsync(documentSpan.Document, documentSpan.SourceSpan, ExcerptMode.SingleLine, cancellationToken).ConfigureAwait(false);
+                    var result = await excerptService.TryExcerptAsync(documentSpan.Document, documentSpan.SourceSpan, ExcerptMode.SingleLine, options, cancellationToken).ConfigureAwait(false);
                     if (result != null)
                     {
                         return (result.Value, AbstractDocumentSpanEntry.GetLineContainingPosition(result.Value.Content, result.Value.MappedSpan.Start));

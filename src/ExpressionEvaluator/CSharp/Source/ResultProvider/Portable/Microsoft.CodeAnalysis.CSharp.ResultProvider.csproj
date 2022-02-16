@@ -5,8 +5,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider</AssemblyName>
-    <!-- We need to support Windows OneCore, which runs Core CLR 1.0 (Windows OneCore) -->
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <ApplyNgenOptimization>full</ApplyNgenOptimization>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">

@@ -102,18 +102,23 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             CancellationToken cancellationToken)
         {
             if (parameter.IsThis)
-            {
                 return ImmutableArray<ISymbol>.Empty;
-            }
 
-            using var _1 = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
 
             await CascadeBetweenAnonymousFunctionParametersAsync(solution, parameter, symbols, cancellationToken).ConfigureAwait(false);
             CascadeBetweenPropertyAndAccessorParameters(parameter, symbols);
             CascadeBetweenDelegateMethodParameters(parameter, symbols);
             CascadeBetweenPartialMethodParameters(parameter, symbols);
+            CascadeBetweenPrimaryConstructorParameterAndProperties(parameter, symbols, cancellationToken);
 
             return symbols.ToImmutable();
+        }
+
+        private static void CascadeBetweenPrimaryConstructorParameterAndProperties(
+            IParameterSymbol parameter, ArrayBuilder<ISymbol> symbols, CancellationToken cancellationToken)
+        {
+            symbols.AddIfNotNull(parameter.GetAssociatedSynthesizedRecordProperty(cancellationToken));
         }
 
         private static async Task CascadeBetweenAnonymousFunctionParametersAsync(

@@ -1212,5 +1212,21 @@ public static class Program
     }
 }", "with");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.F1Help)]
+        public async Task TestDiscard()
+        {
+            await Test_KeywordAsync(
+@"
+class C
+{
+    void M()
+    {
+        [||]_ = Goo();
+    }
+
+    object Goo() => null;
+}", "discard");
+        }
     }
 }

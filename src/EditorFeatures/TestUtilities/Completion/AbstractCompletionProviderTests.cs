@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             int position,
             RoslynCompletion.CompletionTrigger triggerInfo,
             CompletionOptions? options = null)
-            => service.GetCompletionsAsync(document, position, options ?? GetCompletionOptions(), triggerInfo, GetRoles(document));
+            => service.GetCompletionsAsync(document, position, options ?? GetCompletionOptions(), OptionValueSet.Empty, triggerInfo, GetRoles(document));
 
         private protected async Task CheckResultsAsync(
             Document document, int position, string expectedItemOrNull,
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
 
             var options = GetCompletionOptions();
-            var displayOptions = SymbolDescriptionOptions.From(document.Project);
+            var displayOptions = SymbolDescriptionOptions.Default;
             var completionService = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(completionService, document, position, trigger, options);
             var items = completionList.Items;
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
             MarkupTestFile.GetPosition(expectedCodeAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);
 
-            var options = CompletionOptions.From(document.Project);
+            var options = GetCompletionOptions();
 
             if (commitChar.HasValue &&
                 !CommitManager.IsCommitCharacter(service.GetRules(options), completionItem, commitChar.Value))
@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             MarkupTestFile.GetPosition(expectedCodeAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);
 
             var workspace = workspaceFixture.Target.GetWorkspace();
-            var options = CompletionOptions.From(workspace.CurrentSolution.Options, service.Language);
+            var options = GetCompletionOptions();
 
             if (commitChar.HasValue &&
                 !CommitManager.IsCommitCharacter(service.GetRules(options), completionItem, commitChar.Value))
@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var commitChar = commitCharOpt ?? '\t';
 
             var text = await document.GetTextAsync();
-            var options = CompletionOptions.From(document.Project);
+            var options = GetCompletionOptions();
 
             if (commitChar == '\t' ||
                 CommitManager.IsCommitCharacter(service.GetRules(options), firstItem, commitChar))
@@ -773,15 +773,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             return VerifyItemWithReferenceWorkerAsync(xmlString, expectedItem, expectedSymbols);
         }
 
-        protected static string CreateMarkupForSingleProject(string markup, string referencedCode, string sourceLanguage)
+        protected static string CreateMarkupForSingleProject(
+            string sourceCode,
+            string referencedCode,
+            string sourceLanguage,
+            string sourceFileName = "SourceDocument",
+            string referencedFileName = "ReferencedDocument")
         {
             return string.Format(@"
 <Workspace>
-    <Project Language=""{0}"" CommonReferences=""true"">
-        <Document FilePath=""SourceDocument"">{1}</Document>
-        <Document FilePath=""ReferencedDocument"">{2}</Document>
+    <Project Language=""{0}"" CommonReferences=""true"" Name=""ProjectName"">
+        <Document FilePath=""{3}"">{1}</Document>
+        <Document FilePath=""{4}"">{2}</Document>
     </Project>    
-</Workspace>", sourceLanguage, SecurityElement.Escape(markup), SecurityElement.Escape(referencedCode));
+</Workspace>", sourceLanguage, SecurityElement.Escape(sourceCode), SecurityElement.Escape(referencedCode), sourceFileName, referencedFileName);
         }
 
         private async Task VerifyItemWithReferenceWorkerAsync(
@@ -795,7 +800,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var document = solution.GetDocument(documentId);
 
                 var options = GetCompletionOptions();
-                var displayOptions = SymbolDescriptionOptions.From(document.Project);
+                var displayOptions = SymbolDescriptionOptions.Default;
                 var triggerInfo = RoslynCompletion.CompletionTrigger.Invoke;
 
                 var completionService = GetCompletionService(document.Project);
@@ -851,7 +856,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var solution = testWorkspace.CurrentSolution;
                 var documentId = testWorkspace.Documents.Single(d => d.Name == "SourceDocument").Id;
                 var document = solution.GetDocument(documentId);
-                var displayOptions = SymbolDescriptionOptions.From(document.Project);
+                var displayOptions = SymbolDescriptionOptions.Default;
 
                 var triggerInfo = RoslynCompletion.CompletionTrigger.Invoke;
                 var completionService = GetCompletionService(document.Project);
@@ -883,7 +888,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var textContainer = testWorkspace.Documents.First().GetTextBuffer().AsTextContainer();
                 var currentContextDocumentId = testWorkspace.GetDocumentIdInCurrentContext(textContainer);
                 var document = solution.GetDocument(currentContextDocumentId);
-                var displayOptions = SymbolDescriptionOptions.From(document.Project);
+                var displayOptions = SymbolDescriptionOptions.Default;
 
                 var triggerInfo = RoslynCompletion.CompletionTrigger.Invoke;
                 var completionService = GetCompletionService(document.Project);
@@ -1037,7 +1042,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                     TriggerInArgumentLists = showCompletionInArgumentLists
                 };
 
-                var isTextualTriggerCharacterResult = service.ShouldTriggerCompletion(document.Project, document.Project.LanguageServices, text, position + 1, trigger, options, GetRoles(document));
+                var isTextualTriggerCharacterResult = service.ShouldTriggerCompletion(document.Project, document.Project.LanguageServices, text, position + 1, trigger, options, document.Project.Solution.Options, GetRoles(document));
 
                 if (expectedTriggerCharacter)
                 {
@@ -1067,7 +1072,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         protected async Task VerifyCommitCharactersAsync(string initialMarkup, string textTypedSoFar, char[] validChars, char[] invalidChars = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
         {
             Assert.NotNull(validChars);
-            invalidChars = invalidChars ?? new[] { 'x' };
+            invalidChars ??= new[] { 'x' };
 
             using (var workspace = CreateWorkspace(initialMarkup))
             {
@@ -1077,7 +1082,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var documentId = workspace.GetDocumentId(hostDocument);
                 var document = workspace.CurrentSolution.GetDocument(documentId);
                 var position = hostDocument.CursorPosition.Value;
-                var options = CompletionOptions.From(document.Project);
+                var options = GetCompletionOptions();
 
                 var service = GetCompletionService(document.Project);
                 var completionList = await GetCompletionListAsync(service, document, position, RoslynCompletion.CompletionTrigger.Invoke);

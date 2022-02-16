@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
             var syntaxPath = new SyntaxPath(node);
 
             // Rename the method to remove the 'Async' suffix, then remove the 'async' keyword.
-            var newSolution = await Renamer.RenameSymbolAsync(solution, methodSymbol, newName, solution.Options, cancellationToken).ConfigureAwait(false);
+            var newSolution = await Renamer.RenameSymbolAsync(solution, methodSymbol, new SymbolRenameOptions(), newName, cancellationToken).ConfigureAwait(false);
             var newDocument = newSolution.GetDocument(document.Id);
             var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             if (syntaxPath.TryResolve(newRoot, out SyntaxNode newNode))

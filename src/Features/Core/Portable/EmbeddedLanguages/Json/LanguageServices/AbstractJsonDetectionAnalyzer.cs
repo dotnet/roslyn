@@ -75,9 +75,13 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
                 else
                 {
                     var token = child.AsToken();
-                    if (token.RawKind == _info.StringLiteralTokenKind &&
-                        detector.TryParseString(token, context.SemanticModel, cancellationToken) == null &&
-                        IsProbablyJson(token))
+
+                    // If we have a string, and it's not being passed to a known JSON api (and it doesn't have a
+                    // lang=json comment), but it is parseable as JSON with enough structure that we are confident it is
+                    // json, then report that json features could light up here.
+                    if (_info.IsAnyStringLiteral(token.RawKind) &&
+                        detector.TryParseString(token, context.SemanticModel, includeProbableStrings: false, cancellationToken) == null &&
+                        detector.IsProbablyJson(token, out _))
                     {
                         var chars = _info.VirtualCharService.TryConvertToVirtualChars(token);
                         var strictTree = JsonParser.TryParse(chars, JsonOptions.Strict);
@@ -85,46 +89,17 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageService
                             ? s_strictProperties
                             : ImmutableDictionary<string, string?>.Empty;
 
+                        // Show this as a hidden diagnostic so the user can enable json features explicitly if they
+                        // want, but do not spam them with a ... notification if they don't want it.
                         context.ReportDiagnostic(DiagnosticHelper.Create(
                             this.Descriptor,
                             token.GetLocation(),
-                            ReportDiagnostic.Info,
+                            ReportDiagnostic.Hidden,
                             additionalLocations: null,
                             properties));
                     }
                 }
             }
-        }
-
-        public bool IsProbablyJson(SyntaxToken token)
-        {
-            var chars = _info.VirtualCharService.TryConvertToVirtualChars(token);
-            var tree = JsonParser.TryParse(chars, JsonOptions.Loose);
-            if (tree == null || !tree.Diagnostics.IsEmpty)
-                return false;
-
-            return ContainsProbableJsonObject(tree.Root);
-        }
-
-        private static bool ContainsProbableJsonObject(JsonNode node)
-        {
-            if (node.Kind == JsonKind.Object)
-            {
-                var objNode = (JsonObjectNode)node;
-                if (objNode.Sequence.Length >= 1)
-                    return true;
-            }
-
-            foreach (var child in node)
-            {
-                if (child.IsNode)
-                {
-                    if (ContainsProbableJsonObject(child.Node))
-                        return true;
-                }
-            }
-
-            return false;
         }
     }
 }

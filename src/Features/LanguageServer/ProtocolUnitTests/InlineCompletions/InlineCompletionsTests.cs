@@ -63,7 +63,7 @@ public class InlineCompletionsTests : AbstractLanguageServerProtocolTests
     }
 
     [Fact]
-    public async Task TestSnippetUsesDocumentOptions()
+    public async Task TestSnippetUsesOptionsFromRequest()
     {
         var markup =
 @"class A
@@ -79,7 +79,7 @@ public class InlineCompletionsTests : AbstractLanguageServerProtocolTests
    $0
   }";
 
-        await VerifyMarkupAndExpected(markup, expectedSnippet, indentationSize: 1);
+        await VerifyMarkupAndExpected(markup, expectedSnippet, options: new LSP.FormattingOptions { TabSize = 1, InsertSpaces = true });
     }
 
     [Fact]
@@ -226,18 +226,14 @@ class A
         await VerifyMarkupAndExpected(markup, expectedSnippet);
     }
 
-    private async Task VerifyMarkupAndExpected(string markup, string expected, int indentationSize = 4)
+    private async Task VerifyMarkupAndExpected(string markup, string expected, LSP.FormattingOptions? options = null)
     {
         using var testLspServer = await CreateTestLspServerAsync(markup);
         var locationTyped = testLspServer.GetLocations("tab").Single();
 
         var document = testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single();
-        var newSolution = document.Project.Solution.WithOptions(testLspServer.TestWorkspace.Options
-            .WithChangedOption(FormattingOptions.IndentationSize, document.Project.Language, indentationSize));
-        testLspServer.TestWorkspace.TryApplyChanges(newSolution);
-        await WaitForWorkspaceOperationsAsync(testLspServer.TestWorkspace);
 
-        var result = await GetInlineCompletionsAsync(testLspServer, locationTyped);
+        var result = await GetInlineCompletionsAsync(testLspServer, locationTyped, options ?? new LSP.FormattingOptions { InsertSpaces = true, TabSize = 4 });
 
         AssertEx.NotNull(result);
         Assert.Single(result.Items);
@@ -250,7 +246,8 @@ class A
 
     private static async Task<LSP.VSInternalInlineCompletionList> GetInlineCompletionsAsync(
             TestLspServer testLspServer,
-            LSP.Location locationTyped)
+            LSP.Location locationTyped,
+            LSP.FormattingOptions options)
     {
         var request = new LSP.VSInternalInlineCompletionRequest
         {
@@ -260,7 +257,8 @@ class A
                 TriggerKind = LSP.VSInternalInlineCompletionTriggerKind.Explicit
             },
             Position = locationTyped.Range.Start,
-            TextDocument = CreateTextDocumentIdentifier(locationTyped.Uri)
+            TextDocument = CreateTextDocumentIdentifier(locationTyped.Uri),
+            Options = options
         };
 
         var response = await testLspServer.ExecuteRequestAsync<LSP.VSInternalInlineCompletionRequest, LSP.VSInternalInlineCompletionList>(LSP.VSInternalMethods.TextDocumentInlineCompletionName,

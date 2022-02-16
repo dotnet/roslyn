@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override ImmutableHashSet<char> TriggerCharacters { get; }
 
-        internal sealed override bool ShouldTriggerCompletion(HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options)
+        internal sealed override bool ShouldTriggerCompletion(HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CompletionOptions options, OptionSet passThroughOptions)
         {
             foreach (var language in GetLanguageProviders(languageServices))
             {

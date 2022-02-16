@@ -49,6 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             public const int AnalysisScopeCurrentDocument = 0x0132;
             public const int AnalysisScopeOpenDocuments = 0x0133;
             public const int AnalysisScopeEntireSolution = 0x0134;
+            public const int AnalysisScopeNone = 0x0137;
 
             public const int GoToImplementation = 0x0200;
 

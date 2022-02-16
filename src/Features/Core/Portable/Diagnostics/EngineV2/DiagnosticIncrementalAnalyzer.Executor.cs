@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,12 +26,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         /// Also returns empty diagnostics for suppressed analyzer.
         /// Returns null if the diagnostics need to be computed.
         /// </summary>
-        private async Task<DocumentAnalysisData?> TryGetCachedDocumentAnalysisDataAsync(
-            TextDocument document, StateSet stateSet, AnalysisKind kind, CancellationToken cancellationToken)
+        private static DocumentAnalysisData? TryGetCachedDocumentAnalysisData(
+            TextDocument document, StateSet stateSet,
+            AnalysisKind kind, VersionStamp version,
+            BackgroundAnalysisScope analysisScope, bool isActiveDocument,
+            bool isOpenDocument, bool isGeneratedRazorDocument,
+            CancellationToken cancellationToken)
         {
+            Debug.Assert(isActiveDocument || isOpenDocument || isGeneratedRazorDocument);
+
             try
             {
-                var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
                 var state = stateSet.GetOrCreateActiveFileState(document.Id);
                 var existingData = state.GetAnalysisData(kind);
 
@@ -39,8 +45,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return existingData;
                 }
 
-                // Perf optimization: Check whether analyzer is suppressed and avoid getting diagnostics if suppressed.
-                if (DiagnosticAnalyzerInfoCache.IsAnalyzerSuppressed(stateSet.Analyzer, document.Project))
+                // Perf optimization: Check whether analyzer is suppressed for project or document and avoid getting diagnostics if suppressed.
+                if (!AnalyzerHelper.IsAnalyzerEnabledForProject(stateSet.Analyzer, document.Project) ||
+                    !IsAnalyzerEnabledForDocument(stateSet.Analyzer, analysisScope, isActiveDocument, isOpenDocument, isGeneratedRazorDocument))
                 {
                     return new DocumentAnalysisData(version, existingData.Items, ImmutableArray<DiagnosticData>.Empty);
                 }
@@ -50,6 +57,49 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
             {
                 throw ExceptionUtilities.Unreachable;
+            }
+
+            static bool IsAnalyzerEnabledForDocument(
+                DiagnosticAnalyzer analyzer,
+                BackgroundAnalysisScope analysisScope,
+                bool isActiveDocument,
+                bool isOpenDocument,
+                bool isGeneratedRazorDocument)
+            {
+                Debug.Assert(!isActiveDocument || isOpenDocument || isGeneratedRazorDocument);
+
+                if (isGeneratedRazorDocument)
+                {
+                    // This is a generated Razor document, and they always want all analyzer diagnostics.
+                    return true;
+                }
+
+                if (analyzer.IsCompilerAnalyzer())
+                {
+                    // Compiler analyzer is treated specially.
+                    // It is executed for all documents (open and closed) for 'BackgroundAnalysisScope.FullSolution'
+                    // and executed for just open documents for other analysis scopes.
+                    return analysisScope == BackgroundAnalysisScope.FullSolution || isOpenDocument;
+                }
+                else
+                {
+                    return analysisScope switch
+                    {
+                        // Analyzers are disabled for all documents.
+                        BackgroundAnalysisScope.None => false,
+
+                        // Analyzers are enabled for active document.
+                        BackgroundAnalysisScope.ActiveFile => isActiveDocument,
+
+                        // Analyzers are enabled for all open documents.
+                        BackgroundAnalysisScope.OpenFiles => isOpenDocument,
+
+                        // Analyzers are enabled for all documents.
+                        BackgroundAnalysisScope.FullSolution => true,
+
+                        _ => throw ExceptionUtilities.UnexpectedValue(analysisScope)
+                    };
+                }
             }
         }
 

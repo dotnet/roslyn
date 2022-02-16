@@ -4,17 +4,18 @@
 
 using System;
 using System.Composition;
-using System.Threading.Tasks;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InitializeParameter;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
@@ -34,6 +35,13 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         public CSharpAddParameterCheckCodeRefactoringProvider()
         {
         }
+
+        protected override ISyntaxFacts SyntaxFacts
+            => CSharpSyntaxFacts.Instance;
+
+        // We need to be at least on c# 11 to support using !! with records.
+        protected override bool SupportsRecords(ParseOptions options)
+            => options.LanguageVersion().IsCSharp11OrAbove();
 
         protected override bool IsFunctionDeclaration(SyntaxNode node)
             => InitializeParameterHelpers.IsFunctionDeclaration(node);
@@ -97,11 +105,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         protected override Document? TryAddNullCheckToParameterDeclaration(Document document, ParameterSyntax parameterSyntax, CancellationToken cancellationToken)
         {
             var tree = parameterSyntax.SyntaxTree;
-            var options = (CSharpParseOptions)tree.Options;
-            if (options.LanguageVersion < LanguageVersionExtensions.CSharpNext)
-            {
+            if (!tree.Options.LanguageVersion().IsCSharp11OrAbove())
                 return null;
-            }
 
             // We expect the syntax tree to already be in memory since we already have a node from the tree
             var syntaxRoot = tree.GetRoot(cancellationToken);

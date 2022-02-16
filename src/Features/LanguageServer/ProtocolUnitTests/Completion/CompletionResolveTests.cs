@@ -460,7 +460,7 @@ link text";
                 return Task.FromResult(CompletionChange.Create(textChange, newPosition: 0));
             }
 
-            internal override bool ShouldTriggerCompletion(Project project, HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CodeAnalysis.Completion.CompletionOptions options, ImmutableHashSet<string> roles = null)
+            internal override bool ShouldTriggerCompletion(Project project, HostLanguageServices languageServices, SourceText text, int caretPosition, CompletionTrigger trigger, CodeAnalysis.Completion.CompletionOptions options, OptionSet passthroughOptions, ImmutableHashSet<string> roles = null)
                 => false;
 
             internal override CompletionRules GetRules(CodeAnalysis.Completion.CompletionOptions options)

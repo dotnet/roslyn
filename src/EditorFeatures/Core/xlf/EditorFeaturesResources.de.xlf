@@ -327,11 +327,6 @@
         <target state="translated">Die Ergebnisse sind möglicherweise unvollständig, da die Projektmappe noch Projekte lädt.</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_symbol_has_no_base">
-        <source>The symbol has no base.</source>
-        <target state="translated">Das Symbol verfügt über keine Basis.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Toggle_Block_Comment">
         <source>Toggle Block Comment</source>
         <target state="translated">Kommentarblock ein/aus</target>
@@ -600,11 +595,6 @@
       <trans-unit id="You_cannot_rename_this_element_because_it_is_in_a_location_that_cannot_be_navigated_to">
         <source>You cannot rename this element because it is in a location that cannot be navigated to.</source>
         <target state="translated">Dieses Element kann nicht umbenannt werden, weil es sich an einem Speicherort befindet, zu dem nicht navigiert werden kann.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_bases">
-        <source>'{0}' bases</source>
-        <target state="translated">Basiswerte: "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">

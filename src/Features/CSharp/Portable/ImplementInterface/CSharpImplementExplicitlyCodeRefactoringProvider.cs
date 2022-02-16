@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             //
             // This can save a lot of extra time spent finding callers, especially for methods with
             // high fan-out (like IDisposable.Dispose()).
-            var findRefsOptions = FindReferencesSearchOptions.Default.With(cascade: false);
+            var findRefsOptions = FindReferencesSearchOptions.Default with { Cascade = false };
             var references = await SymbolFinder.FindReferencesAsync(
                 implMember, solution, findRefsOptions, cancellationToken).ConfigureAwait(false);
 
@@ -144,7 +145,39 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface
             }
         }
 
-        protected override SyntaxNode ChangeImplementation(SyntaxGenerator generator, SyntaxNode decl, ISymbol interfaceMember)
-            => generator.WithExplicitInterfaceImplementations(decl, ImmutableArray.Create(interfaceMember));
+        protected override SyntaxNode ChangeImplementation(SyntaxGenerator generator, SyntaxNode decl, ISymbol implMember, ISymbol interfaceMember)
+        {
+            // If these signatures match on default values, then remove the defaults when converting to explicit
+            // (they're not legal in C#). If they don't match on defaults, then keep them in so that the user gets a
+            // warning (from us and the compiler) and considers what to do about this.
+            var removeDefaults = AllDefaultValuesMatch(implMember, interfaceMember);
+            return generator.WithExplicitInterfaceImplementations(decl, ImmutableArray.Create(interfaceMember), removeDefaults);
+        }
+
+        private static bool AllDefaultValuesMatch(ISymbol implMember, ISymbol interfaceMember)
+        {
+            if (implMember is IMethodSymbol { Parameters: var implParameters } &&
+                interfaceMember is IMethodSymbol { Parameters: var interfaceParameters })
+            {
+                for (int i = 0, n = Math.Max(implParameters.Length, interfaceParameters.Length); i < n; i++)
+                {
+                    if (!DefaultValueMatches(implParameters[i], interfaceParameters[i]))
+                        return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool DefaultValueMatches(IParameterSymbol parameterSymbol1, IParameterSymbol parameterSymbol2)
+        {
+            if (parameterSymbol1.HasExplicitDefaultValue != parameterSymbol2.HasExplicitDefaultValue)
+                return false;
+
+            if (parameterSymbol1.HasExplicitDefaultValue)
+                return Equals(parameterSymbol1.ExplicitDefaultValue, parameterSymbol2.ExplicitDefaultValue);
+
+            return true;
+        }
     }
 }

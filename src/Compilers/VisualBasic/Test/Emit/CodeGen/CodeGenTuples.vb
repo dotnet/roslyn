@@ -5011,7 +5011,7 @@ Class C
 End Class
 
     </file>
-</compilation>, references:={ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef_v46}, expectedOutput:=<![CDATA[42]]>)
+</compilation>, references:={ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef_v46}, expectedOutput:=<![CDATA[42]]>, verify:=Verification.FailsILVerify)
 
             verifier.VerifyDiagnostics()
             verifier.VerifyIL("C.VB$StateMachine_2_Test(Of SM$T).MoveNext()", <![CDATA[
@@ -5130,7 +5130,7 @@ Class C
     End Function
 End Class
     </file>
-</compilation>, references:={ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef_v46}, expectedOutput:=<![CDATA[(42, 42)]]>)
+</compilation>, references:={ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef_v46}, expectedOutput:=<![CDATA[(42, 42)]]>, verify:=Verification.FailsILVerify)
 
             verifier.VerifyDiagnostics()
             verifier.VerifyIL("C.VB$StateMachine_2_Test(Of SM$T).MoveNext()", <![CDATA[
@@ -5278,7 +5278,10 @@ End Namespace
 
         <Fact>
         Public Sub LongTupleWithSubstitution()
-
+            ' ILVerify:
+            ' Failed to load type 'System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1' from assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+            ' Failed to load type 'System.Runtime.CompilerServices.YieldAwaitable' from assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+            ' Failed to load type 'System.Runtime.CompilerServices.IAsyncStateMachine' from assembly 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
             Dim verifier = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -5296,7 +5299,7 @@ Class C
     End Function
 End Class
     </file>
-</compilation>, references:={ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef_v46}, expectedOutput:=<![CDATA[42]]>)
+</compilation>, references:={ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef_v46}, expectedOutput:=<![CDATA[42]]>, verify:=Verification.FailsILVerify)
 
             verifier.VerifyDiagnostics()
 

@@ -4,7 +4,9 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindUsages
 {
@@ -13,7 +15,11 @@ namespace Microsoft.CodeAnalysis.FindUsages
         public IStreamingProgressTracker ProgressTracker { get; }
 
         protected FindUsagesContext()
-            => this.ProgressTracker = new StreamingProgressTracker(this.ReportProgressAsync);
+        {
+            ProgressTracker = new StreamingProgressTracker(ReportProgressAsync);
+        }
+
+        public abstract ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken);
 
         public virtual ValueTask ReportMessageAsync(string message, CancellationToken cancellationToken) => default;
 
