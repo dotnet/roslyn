@@ -14,8 +14,11 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
     {
         private const string FeatureName = "ForceLowMemoryMode";
 
-        public static readonly Option2<bool> Enabled = new(FeatureName, "Enabled", defaultValue: false);
-        public static readonly Option2<int> SizeInMegabytes = new(FeatureName, "SizeInMegabytes", defaultValue: 500);
+        public static readonly Option2<bool> Enabled = new(FeatureName, "Enabled", defaultValue: false,
+            storageLocation: new LocalUserProfileStorageLocation(@"Roslyn\ForceLowMemoryMode\Enabled"));
+
+        public static readonly Option2<int> SizeInMegabytes = new(FeatureName, "SizeInMegabytes", defaultValue: 500,
+            storageLocation: new LocalUserProfileStorageLocation(@"Roslyn\ForceLowMemoryMode\SizeInMegabytes"));
 
         private readonly IGlobalOptionService _globalOptions;
         private MemoryHogger? _hogger;
