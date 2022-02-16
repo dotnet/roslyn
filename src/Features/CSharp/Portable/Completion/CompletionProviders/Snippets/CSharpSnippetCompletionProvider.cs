@@ -31,12 +31,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
         }
 
         internal override string Language => LanguageNames.CSharp;
-
-        public override async Task<SyntaxToken> GetTokenFromDocumentAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            var syntaxContext = (CSharpSyntaxContext)document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
-            return syntaxContext.LeftToken;
-        }
     }
 }

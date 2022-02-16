@@ -10,8 +10,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
 {
     internal abstract class AbstractSnippetCompletionProvider : CommonCompletionProvider
     {
-        public abstract Task<SyntaxToken> GetTokenFromDocumentAsync(Document document, int position, CancellationToken cancellationToken);
-
         public AbstractSnippetCompletionProvider()
         {
 
@@ -25,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             var span = item.Span;
 
             var snippetProvider = service.GetSnippetProvider(new SnippetData(item.DisplayText));
-            var snippet = await snippetProvider!.GetSnippetAsync(document, span, tokenSpanStart, tokenSpanEnd, cancellationToken).ConfigureAwait(false);
+            var snippet = await snippetProvider.GetSnippetAsync(document, span, tokenSpanStart, tokenSpanEnd, cancellationToken).ConfigureAwait(false);
 
             return CompletionChange.Create(snippet.TextChange, newPosition: snippet.CursorPosition, includesCommitCharacter: true);
         }
@@ -53,7 +51,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
                 }
 
                 var snippetValue = snippetData.Value;
-                var token = await GetTokenFromDocumentAsync(document, position, cancellationToken).ConfigureAwait(false);
                 var completionItem = SnippetCompletionItem.Create(
                     displayText: snippetValue.DisplayName,
                     displayTextSuffix: "",

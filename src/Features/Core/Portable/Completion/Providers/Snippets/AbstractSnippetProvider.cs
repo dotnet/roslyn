@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             var change = Utilities.Collapse(newText, changesArray);
             var annotatedRootForCursor = await AnnotateRootForCursorAsync(reformattedDocument, span, _cursorAnnotation, cancellationToken).ConfigureAwait(false);
             reformattedDocument = reformattedDocument.WithSyntaxRoot(annotatedRootForCursor);
-            var caretTarget = annotatedRootForCursor.GetAnnotatedNodes(_cursorAnnotation).FirstOrDefault();
+            var caretTarget = annotatedRootForCursor.GetAnnotatedNodes(_cursorAnnotation).SingleOrDefault();
             return new Snippet(
                 snippetType: GetSnippetDisplayName(),
                 textChange: change,

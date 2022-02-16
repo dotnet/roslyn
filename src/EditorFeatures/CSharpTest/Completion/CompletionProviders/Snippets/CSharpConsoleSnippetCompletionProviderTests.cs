@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders.Snippets
 {
-    public class CSharpSnippetCompletionProviderTests : AbstractCSharpCompletionProviderTests
+    public class CSharpConsoleSnippetCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
         internal override Type GetCompletionProviderType()
             => typeof(CSharpSnippetCompletionProvider);
@@ -88,7 +88,7 @@ class Program
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task InsertConsoleSnippetInNamespaceTest()
+        public async Task NoConsoleSnippetInBlockNamespaceTest()
         {
             var markupBeforeCommit =
 @"
@@ -102,6 +102,23 @@ namespace Namespace
         }
     }
 }";
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, "Write to the Console");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NoConsoleSnippetInFileScopedNamespaceTest()
+        {
+            var markupBeforeCommit =
+@"
+namespace Namespace;
+$$
+class Program
+{
+    public async Task MethodAsync()
+    {
+    }
+}
+";
             await VerifyItemIsAbsentAsync(markupBeforeCommit, "Write to the Console");
         }
 
@@ -209,6 +226,126 @@ Func<int, int, bool> testForEquality = (x, y) =>
     return x == y;
 };";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Write to the Console", expectedCodeAfterCommit);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NoConsoleSnippetInSwitchExpression()
+        {
+            var markupBeforeCommit =
+@"class Program
+{
+    public void Method()
+    {
+       var operation = 2;  
+  
+        var result = operation switch  
+        {
+            $$
+            1 => ""Case 1"",  
+            2 => ""Case 2"",  
+            3 => ""Case 3"",  
+            4 => ""Case 4"",  
+        };
+    }
+}";
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, "Write to the Console");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NoConsoleSnippetInSingleLambdaExpression()
+        {
+            var markupBeforeCommit =
+@"class Program
+{
+    public void Method()
+    {
+       Func<int, int> f = x => $$;
+    }
+}";
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, "Write to the Console");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NoConsoleSnippetInStringTest()
+        {
+            var markupBeforeCommit =
+@"class Program
+{
+    public void Method()
+    {
+        var str = ""$$"";
+    }
+}";
+
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, "Write to the Console");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NoConsoleSnippetInObjectInitializerTest()
+        {
+            var markupBeforeCommit =
+@"class Program
+{
+    public void Method()
+    {
+        var str = new Test($$);
+    }
+}
+
+class Test
+{
+    private string val;
+
+    public Test(string val)
+    {
+        this.val = val;
+    }
+}";
+
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, "Write to the Console");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NoConsoleSnippetInParameterListTest()
+        {
+            var markupBeforeCommit =
+@"class Program
+{
+    public void Method(int x, $$)
+    {
+    }
+}";
+
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, "Write to the Console");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NoConsoleSnippetInRecordDeclarationTest()
+        {
+            var markupBeforeCommit =
+@"public record Person
+{
+    $$
+    public string FirstName { get; init; } = default!;
+    public string LastName { get; init; } = default!;
+};";
+
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, "Write to the Console");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NoConsoleSnippetInVariableDeclarationTest()
+        {
+            var markupBeforeCommit =
+@"class Program
+{
+    public void Method()
+    {
+        var x = $$
+    }
+}";
+
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, "Write to the Console");
         }
     }
 }

@@ -45,14 +45,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
 
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
             var syntaxContext = (CSharpSyntaxContext)document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
-            var isInsideMethod = syntaxContext.LeftToken.GetAncestors<SyntaxNode>()
-                .Any(node => node.IsKind(SyntaxKind.MethodDeclaration) ||
-                             node.IsKind(SyntaxKind.ConstructorDeclaration) ||
-                             node.IsKind(SyntaxKind.LocalFunctionStatement) ||
-                             node.IsKind(SyntaxKind.AnonymousMethodExpression) ||
-                             node.IsKind(SyntaxKind.ParenthesizedLambdaExpression)) || syntaxContext.IsGlobalStatementContext;
 
-            if (!isInsideMethod)
+            if (!ShouldDisplaySnippet(syntaxContext))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool ShouldDisplaySnippet(CSharpSyntaxContext context)
+        {
+            var token = context.LeftToken;
+            var isDirectlyInUndesirableLocation = token.GetAncestors<SyntaxNode>()
+                .Any(node => node.IsKind(SyntaxKind.ParameterList) ||
+                             node.IsKind(SyntaxKind.SimpleLambdaExpression) ||
+                             node.IsKind(SyntaxKind.ArgumentList) ||
+                             node.IsKind(SyntaxKind.RecordDeclaration) ||
+                             node.IsKind(SyntaxKind.ObjectCreationExpression) ||
+                             node.IsKind(SyntaxKind.SwitchExpression));
+
+            if (isDirectlyInUndesirableLocation)
+            {
+                return false;
+            }
+
+            var isInsideMethod = token.GetAncestors<SyntaxNode>()
+               .Any(node => node.IsKind(SyntaxKind.MethodDeclaration) ||
+                            node.IsKind(SyntaxKind.ConstructorDeclaration) ||
+                            node.IsKind(SyntaxKind.LocalFunctionStatement) ||
+                            node.IsKind(SyntaxKind.AnonymousMethodExpression) ||
+                            node.IsKind(SyntaxKind.ParenthesizedLambdaExpression));
+
+            var isInNamespace = token.GetAncestors<SyntaxNode>()
+                .Any(node => node.IsKind(SyntaxKind.NamespaceDeclaration) ||
+                             node.IsKind(SyntaxKind.FileScopedNamespaceDeclaration));
+
+            var isInParenthesizedLambdaExpression = token.GetAncestors<SyntaxNode>().Any(node => node.IsKind(SyntaxKind.ParenthesizedExpression));
+            var isInVariableDeclaration = token.GetAncestors<SyntaxNode>().Any(node => node.IsKind(SyntaxKind.VariableDeclaration));
+
+            if (isInVariableDeclaration && !isInParenthesizedLambdaExpression)
+            {
+                return false;
+            }
+
+            if (isInNamespace && !isInsideMethod)
+            {
+                return false;
+            }
+
+            if (!isInsideMethod && !context.IsGlobalStatementContext)
             {
                 return false;
             }

@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
 {
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
             return syntaxContext.LeftToken.Span;
         }
 
-        public ISnippetProvider? GetSnippetProvider(SnippetData data)
+        public ISnippetProvider GetSnippetProvider(SnippetData data)
         {
             foreach (var provider in _snippetProvider)
             {
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
                 }
             }
 
-            return null;
+            throw ExceptionUtilities.UnexpectedValue(data.DisplayName);
         }
 
         public async Task<ImmutableArray<SnippetData?>> GetSnippetsAsync(Document document, int position, CancellationToken cancellationToken)
