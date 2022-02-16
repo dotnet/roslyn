@@ -394,8 +394,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 }
             }
 
-            allFixers.RemoveDuplicates();
-
             // Now, sort the fixers so that the ones that are ordered before others get their chance to run first.
             if (allFixers.Count >= 2 && TryGetWorkspaceFixersPriorityMap(document, out var fixersForLanguage))
                 allFixers.Sort(new FixerComparer(allFixers, fixersForLanguage.Value));
@@ -472,9 +470,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 TextSpan range,
                 List<DiagnosticData> diagnostics)
             {
-                allFixers.AddRange(fixers);
                 foreach (var fixer in fixers)
+                {
+                    if (allFixers.Contains(fixer))
+                        continue;
+
+                    allFixers.Add(fixer);
                     fixerToRangesAndDiagnostics.GetOrAdd(fixer, static _ => new()).Add((range, diagnostics));
+                }
             }
         }
 
@@ -1003,16 +1006,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 Contract.ThrowIfNull(y);
 
                 // If the fixers specify an explicit ordering between each other, then respect that.
-                var comparison = GetValue(x).CompareTo(GetValue(y));
-                if (comparison != 0)
-                    return comparison;
+                if (_priorityMap.TryGetValue(x, out var xOrder) &&
+                    _priorityMap.TryGetValue(y, out var yOrder))
+                {
+                    return xOrder - yOrder;
+                }
 
                 // Otherwise, keep things in the same order that they were in the list (i.e. keep things stable).
                 return _fixerToIndex[x] - _fixerToIndex[y];
             }
-
-            private int GetValue(CodeFixProvider provider)
-                => _priorityMap.TryGetValue(provider, out var value) ? value : int.MaxValue;
         }
     }
 }
