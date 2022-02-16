@@ -917,6 +917,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!IsConditionalState);
 
+            // Local functions below need to handle all patterns that come through here
+            Debug.Assert(node.Pattern is
+                BoundTypePattern or BoundRecursivePattern or BoundITuplePattern or BoundRelationalPattern or
+                BoundDeclarationPattern or BoundConstantPattern or BoundNegatedPattern or BoundBinaryPattern or
+                BoundDeclarationPattern or BoundDiscardPattern or BoundListPattern or BoundSlicePattern);
+
             bool negated = node.Pattern.IsNegated(out var pattern);
             Debug.Assert(negated == node.IsNegated);
 
@@ -976,6 +982,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundRelationalPattern:
                     case BoundDeclarationPattern { IsVar: false }:
                     case BoundConstantPattern { ConstantValue: { IsNull: false } }:
+                    case BoundListPattern:
+                    case BoundSlicePattern: // Only occurs in error cases
                         return false;
                     case BoundConstantPattern { ConstantValue: { IsNull: true } }:
                         return true;
@@ -1035,6 +1043,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundITuplePattern:
                     case BoundRelationalPattern:
                     case BoundDeclarationPattern:
+                    case BoundListPattern:
+                    case BoundSlicePattern: // Only occurs in error cases
                         return null;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
