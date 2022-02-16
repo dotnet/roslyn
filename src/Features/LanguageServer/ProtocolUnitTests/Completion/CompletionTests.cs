@@ -303,6 +303,31 @@ class A
         }
 
         [Fact]
+        public async Task TestGetDateAndTimeCompletionOnGuid()
+        {
+            var markup =
+@"using System;
+class A
+{
+    void M()
+    {
+        Guid.NewGuid().ToString(""{|caret:|});
+    }
+}";
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+            var completionParams = CreateCompletionParams(
+                testLspServer.GetLocations("caret").Single(),
+                invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
+                triggerCharacter: "\"",
+                triggerKind: LSP.CompletionTriggerKind.TriggerCharacter);
+
+            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
+
+            var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
+            Assert.Null(results);
+        }
+
+        [Fact]
         [WorkItem(50964, "https://github.com/dotnet/roslyn/issues/50964")]
         public async Task TestGetRegexCompletionsAsync()
         {
