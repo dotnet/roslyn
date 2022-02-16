@@ -5,8 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
@@ -35,11 +33,6 @@ namespace Microsoft.CodeAnalysis.Remote
             FeatureName, nameof(OOP64Bit), defaultValue: true,
             storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(OOP64Bit)));
 
-        // use Server GC for 64-bit OOP
-        public static readonly Option2<bool> OOPServerGC = new(
-            FeatureName, nameof(OOPServerGC), defaultValue: false,
-            storageLocation: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(OOPServerGC)));
-
         public static readonly Option2<bool> OOPServerGCFeatureFlag = new(
             FeatureName, nameof(OOPServerGCFeatureFlag), defaultValue: false,
             new FeatureFlagStorageLocation("Roslyn.OOPServerGC"));
@@ -52,7 +45,6 @@ namespace Microsoft.CodeAnalysis.Remote
         ImmutableArray<IOption> IOptionProvider.Options { get; } = ImmutableArray.Create<IOption>(
             SolutionChecksumMonitorBackOffTimeSpanInMS,
             OOP64Bit,
-            OOPServerGC,
             OOPServerGCFeatureFlag,
             OOPCoreClrFeatureFlag);
 
@@ -61,21 +53,5 @@ namespace Microsoft.CodeAnalysis.Remote
         public RemoteHostOptions()
         {
         }
-
-        public static bool IsServiceHubProcessServerGC(IGlobalOptionService globalOptions)
-            => globalOptions.GetOption(OOPServerGC) || globalOptions.GetOption(OOPServerGCFeatureFlag);
-
-        /// <summary>
-        /// Determines whether ServiceHub out-of-process execution is enabled for Roslyn.
-        /// </summary>
-        public static bool IsUsingServiceHubOutOfProcess(IGlobalOptionService globalOptions)
-            => Environment.Is64BitOperatingSystem && globalOptions.GetOption(OOP64Bit);
-
-        public static bool IsServiceHubProcessCoreClr(IGlobalOptionService globalOptions)
-            => globalOptions.GetOption(OOPCoreClrFeatureFlag);
-
-        public static bool IsCurrentProcessRunningOnCoreClr()
-            => !RuntimeInformation.FrameworkDescription.StartsWith(".NET Framework") &&
-               !RuntimeInformation.FrameworkDescription.StartsWith(".NET Native");
     }
 }
