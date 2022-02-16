@@ -1999,6 +1999,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         WRN_CompileTimeCheckedOverflow = 8973,
         WRN_MethGrpToNonDel = 8974,
+        ERR_RecordStructConstructorCallsDefaultConstructor = 8982,
 
         #endregion
 
