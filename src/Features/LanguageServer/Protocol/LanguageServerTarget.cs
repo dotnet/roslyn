@@ -73,6 +73,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 serverKind);
             _queue.RequestServerShutdown += RequestExecutionQueue_Errored;
 
+            var entryPointMethod = typeof(DelegatingEntryPoint).GetMethod(nameof(DelegatingEntryPoint.EntryPointAsync));
+            Contract.ThrowIfNull(entryPointMethod, $"{typeof(DelegatingEntryPoint).FullName} is missing method {nameof(DelegatingEntryPoint.EntryPointAsync)}");
+
             foreach (var metadata in _requestDispatcher.GetRegisteredMethods())
             {
                 // Instead of concretely defining methods for each LSP method, we instead dynamically construct
@@ -84,11 +87,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 // StreamJsonRpc to do the deserialization to handle streaming requests using IProgress<T>.
                 var delegatingEntryPoint = new DelegatingEntryPoint(metadata.MethodName, this);
 
-                var entryPointMethod = delegatingEntryPoint.GetType().GetMethod(nameof(DelegatingEntryPoint.EntryPointAsync));
-                Contract.ThrowIfNull(entryPointMethod, $"{delegatingEntryPoint.GetType().FullName} is missing method {nameof(DelegatingEntryPoint.EntryPointAsync)}");
-                entryPointMethod = entryPointMethod.MakeGenericMethod(metadata.RequestType, metadata.ResponseType);
+                var genericEntryPointMethod = entryPointMethod.MakeGenericMethod(metadata.RequestType, metadata.ResponseType);
 
-                _jsonRpc.AddLocalRpcMethod(entryPointMethod, delegatingEntryPoint, new JsonRpcMethodAttribute(metadata.MethodName) { UseSingleObjectParameterDeserialization = true });
+                _jsonRpc.AddLocalRpcMethod(genericEntryPointMethod, delegatingEntryPoint, new JsonRpcMethodAttribute(metadata.MethodName) { UseSingleObjectParameterDeserialization = true });
             }
         }
 
