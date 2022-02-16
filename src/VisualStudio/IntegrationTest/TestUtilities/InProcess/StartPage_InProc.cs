@@ -21,22 +21,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public static StartPage_InProc Create()
             => new StartPage_InProc();
 
-        public bool IsEnabled()
-        {
-            return InvokeOnUIThread(cancellationToken =>
-            {
-                var property = GetProperty();
-                if (new Version(property.DTE.Version).Major == 16)
-                {
-                    return (int)property.Value == VS2019ShowStartWindow;
-                }
-                else
-                {
-                    return (int)property.Value == ShowStartPage;
-                }
-            });
-        }
-
         public void SetEnabled(bool enabled)
         {
             InvokeOnUIThread(cancellationToken =>

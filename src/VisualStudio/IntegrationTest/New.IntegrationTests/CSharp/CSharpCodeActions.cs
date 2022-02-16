@@ -159,10 +159,10 @@ class C
 
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.CodeActionAsync("Delegate invocation can be simplified.", applyFix: true, ensureExpectedItemsAreOrdered: true, blockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.CodeActionAsync("Simplify delegate invocation", applyFix: true, ensureExpectedItemsAreOrdered: true, blockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
             await TestServices.Editor.PlaceCaretAsync("temp2", 0, 0, extendSelection: false, selectBlock: false, HangMitigatingCancellationToken);
             await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.CodeActionAsync("Delegate invocation can be simplified.", applyFix: true, ensureExpectedItemsAreOrdered: true, blockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.CodeActionAsync("Simplify delegate invocation", applyFix: true, ensureExpectedItemsAreOrdered: true, blockUntilComplete: true, cancellationToken: HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync("First?.", cancellationToken: HangMitigatingCancellationToken);
             await TestServices.EditorVerifier.TextContainsAsync("Second?.", cancellationToken: HangMitigatingCancellationToken);
         }

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.VisualStudio.Text;
@@ -29,6 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         private bool _initialized = false;
 
         protected VisualStudioWorkspace Workspace { get; }
+        protected IGlobalOptionService GlobalOptions { get; }
 
         protected virtual Task InitializeServiceForOpenedDocumentAsync(Document document)
             => Task.CompletedTask;
@@ -40,11 +42,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         public AbstractCreateServicesOnTextViewConnection(
             VisualStudioWorkspace workspace,
+            IGlobalOptionService globalOptions,
             IAsynchronousOperationListenerProvider listenerProvider,
             IThreadingContext threadingContext,
             string languageName)
         {
             Workspace = workspace;
+            GlobalOptions = globalOptions;
+
             _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
             _threadingContext = threadingContext;
             _languageName = languageName;

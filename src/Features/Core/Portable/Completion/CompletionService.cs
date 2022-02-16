@@ -78,6 +78,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="caretPosition">The position of the caret after the triggering action.</param>
         /// <param name="trigger">The potential triggering action.</param>
         /// <param name="options">Options.</param>
+        /// <param name="passThroughOptions">Options originating either from external caller of the <see cref="CompletionService"/> or set externally to <see cref="Solution.Options"/>.</param>
         /// <param name="roles">Optional set of roles associated with the editor state.</param>
         /// <remarks>
         /// We pass the project here to retrieve information about the <see cref="Project.AnalyzerReferences"/>,
@@ -91,10 +92,11 @@ namespace Microsoft.CodeAnalysis.Completion
             int caretPosition,
             CompletionTrigger trigger,
             CompletionOptions options,
+            OptionSet passThroughOptions,
             ImmutableHashSet<string>? roles = null)
         {
             Debug.Fail("Backward compat only, should not be called");
-            return ShouldTriggerCompletion(text, caretPosition, trigger, roles, options.ToSet(languageServices.Language));
+            return ShouldTriggerCompletion(text, caretPosition, trigger, roles, passThroughOptions);
         }
 
         /// <summary>
@@ -143,13 +145,13 @@ namespace Microsoft.CodeAnalysis.Completion
              Document document,
              int caretPosition,
              CompletionOptions options,
+             OptionSet passThroughOptions,
              CompletionTrigger trigger = default,
              ImmutableHashSet<string>? roles = null,
              CancellationToken cancellationToken = default)
         {
 #pragma warning disable RS0030 // Do not use banned APIs
-            return await GetCompletionsAsync(document, caretPosition, trigger, roles,
-                options.ToSet(document.Project.Language), cancellationToken).ConfigureAwait(false) ?? CompletionList.Empty;
+            return await GetCompletionsAsync(document, caretPosition, trigger, roles, passThroughOptions, cancellationToken).ConfigureAwait(false) ?? CompletionList.Empty;
 #pragma warning restore
         }
 

@@ -327,11 +327,6 @@
         <target state="translated">솔루션이 아직 프로젝트를 로드하는 중이므로 결과가 불완전할 수 있습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_symbol_has_no_base">
-        <source>The symbol has no base.</source>
-        <target state="translated">기호에 베이스가 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Toggle_Block_Comment">
         <source>Toggle Block Comment</source>
         <target state="translated">블록 주석 토글</target>
@@ -600,11 +595,6 @@
       <trans-unit id="You_cannot_rename_this_element_because_it_is_in_a_location_that_cannot_be_navigated_to">
         <source>You cannot rename this element because it is in a location that cannot be navigated to.</source>
         <target state="translated">이 요소는 탐색할 수 없는 위치에 있으므로 이름을 바꿀 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_bases">
-        <source>'{0}' bases</source>
-        <target state="translated">'{0}' 기본</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">

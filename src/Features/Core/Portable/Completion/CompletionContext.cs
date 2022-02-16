@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.Completion
         private readonly List<CompletionItem> _items;
 
         private CompletionItem? _suggestionModeItem;
-        private OptionSet? _lazyOptionSet;
         private bool _isExclusive;
 
         internal CompletionProvider Provider { get; }
@@ -44,10 +43,11 @@ namespace Microsoft.CodeAnalysis.Completion
         [Obsolete("Not used anymore. Use CompletionListSpan instead.", error: true)]
         public TextSpan DefaultItemSpan { get; }
 
+#pragma warning disable RS0030 // Do not used banned APIs
         /// <summary>
         /// The span of the document the completion list corresponds to.  It will be set initially to
         /// the result of <see cref="CompletionService.GetDefaultCompletionListSpan"/>, but it can
-        /// be overwritten during <see cref="CompletionService.GetCompletionsAsync(Document, int, CompletionOptions, CompletionTrigger, ImmutableHashSet{string}, CancellationToken)"/>.
+        /// be overwritten during <see cref="CompletionService.GetCompletionsAsync(Document, int, CompletionTrigger, ImmutableHashSet{string}, OptionSet, CancellationToken)"/>.
         /// The purpose of the span is to:
         ///     1. Signify where the completions should be presented.
         ///     2. Designate any existing text in the document that should be used for filtering.
@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.Completion
         ///        item is committed.
         /// </summary>
         public TextSpan CompletionListSpan { get; set; }
+#pragma warning restore
 
         /// <summary>
         /// The triggering action that caused completion to be started.
@@ -92,6 +93,11 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         /// <summary>
+        /// The options that completion was started with.
+        /// </summary>
+        public OptionSet Options { get; }
+
+        /// <summary>
         /// Creates a <see cref="CompletionContext"/> instance.
         /// </summary>
         public CompletionContext(
@@ -100,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Completion
             int position,
             TextSpan defaultSpan,
             CompletionTrigger trigger,
-            OptionSet options,
+            OptionSet? options,
             CancellationToken cancellationToken)
             : this(provider ?? throw new ArgumentNullException(nameof(provider)),
                    document ?? throw new ArgumentNullException(nameof(document)),
@@ -111,7 +117,9 @@ namespace Microsoft.CodeAnalysis.Completion
                    CompletionOptions.Default,
                    cancellationToken)
         {
-            _lazyOptionSet = options ?? throw new ArgumentNullException(nameof(options));
+#pragma warning disable RS0030 // Do not used banned APIs
+            Options = options ?? OptionValueSet.Empty;
+#pragma warning restore
         }
 
         /// <summary>
@@ -134,13 +142,11 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionOptions = options;
             CancellationToken = cancellationToken;
             _items = new List<CompletionItem>();
-        }
 
-        /// <summary>
-        /// The options that completion was started with.
-        /// </summary>
-        public OptionSet Options
-            => _lazyOptionSet ??= OptionValueSet.Empty;
+#pragma warning disable RS0030 // Do not used banned APIs
+            Options = OptionValueSet.Empty;
+#pragma warning restore
+        }
 
         internal IReadOnlyList<CompletionItem> Items => _items;
 

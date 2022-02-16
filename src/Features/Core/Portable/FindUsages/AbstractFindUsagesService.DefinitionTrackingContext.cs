@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// definitions found to third parties in case they want to add any additional definitions
         /// to the results we present.
         /// </summary>
-        private class DefinitionTrackingContext : IFindUsagesContext
+        private sealed class DefinitionTrackingContext : IFindUsagesContext
         {
             private readonly IFindUsagesContext _underlyingContext;
             private readonly object _gate = new();
@@ -29,6 +29,9 @@ namespace Microsoft.CodeAnalysis.FindUsages
 
             public DefinitionTrackingContext(IFindUsagesContext underlyingContext)
                 => _underlyingContext = underlyingContext;
+
+            public ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
+                => _underlyingContext.GetOptionsAsync(language, cancellationToken);
 
             public IStreamingProgressTracker ProgressTracker
                 => _underlyingContext.ProgressTracker;
