@@ -477,6 +477,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                             return lazy.Metadata;
                     }
 
+                    // Note: it feels very strange that we could ever not find a fixer in our list.  However, this
+                    // occurs in testing scenarios.  I'm not sure if the tests represent a bogus potential input, or if
+                    // this is something that can actually occur in practice and we want to keep working.
                     return null;
                 },
                 _fixers);
