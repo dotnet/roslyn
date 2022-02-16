@@ -29,8 +29,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InitializeParameter
             await VerifyCS.VerifyRefactoringAsync(code, code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestSimpleReferenceType()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        [InlineData("csharp_style_prefer_parameter_null_checking = true")]
+        [InlineData("")]
+        public async Task TestSimpleReferenceType(string editorConfig)
         {
             await new VerifyCS.Test
             {
@@ -53,6 +55,10 @@ class C
     {
     }
 }",
+                EditorConfig = $@"
+[*]
+{editorConfig}
+"
             }.RunAsync();
         }
 
