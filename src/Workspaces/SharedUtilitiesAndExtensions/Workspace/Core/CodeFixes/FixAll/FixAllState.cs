@@ -58,23 +58,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public FixAllState WithScope(FixAllScope scope)
             => With(scope: scope);
 
-        public FixAllState WithCodeActionEquivalenceKey(string codeActionEquivalenceKey)
+        public FixAllState WithCodeActionEquivalenceKey(string? codeActionEquivalenceKey)
             => With(codeActionEquivalenceKey: codeActionEquivalenceKey);
 
-        public FixAllState WithProject(Project project)
-            => With(project: project);
-
-        public FixAllState WithDocument(Document? document)
-            => With(document: document);
+        public FixAllState WithDocumentAndProject(Document? document, Project project)
+            => With(documentAndProject: (document, project));
 
         public FixAllState With(
-            Optional<Document?> document = default,
-            Optional<Project> project = default,
+            Optional<(Document? document, Project project)> documentAndProject = default,
             Optional<FixAllScope> scope = default,
             Optional<string?> codeActionEquivalenceKey = default)
         {
-            var newDocument = document.HasValue ? document.Value : Document;
-            var newProject = project.HasValue ? project.Value : Project;
+            var (newDocument, newProject) = documentAndProject.HasValue ? documentAndProject.Value : (Document, Project);
             var newScope = scope.HasValue ? scope.Value : Scope;
             var newCodeActionEquivalenceKey = codeActionEquivalenceKey.HasValue ? codeActionEquivalenceKey.Value : CodeActionEquivalenceKey;
 

@@ -245,11 +245,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         internal FixAllContext WithScope(FixAllScope scope)
             => this.WithState(State.WithScope(scope));
 
-        internal FixAllContext WithProject(Project project)
-            => this.WithState(State.WithProject(project));
-
-        internal FixAllContext WithDocument(Document? document)
-            => this.WithState(State.WithDocument(document));
+        internal FixAllContext WithDocumentAndProject(Document? document, Project project)
+            => this.WithState(State.WithDocumentAndProject(document, project));
 
         private FixAllContext WithState(FixAllState state)
             => this.State == state ? this : new FixAllContext(state, ProgressTracker, CancellationToken);
