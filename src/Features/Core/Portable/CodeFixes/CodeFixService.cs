@@ -154,20 +154,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // 'CodeActionPriorityRequest.Lowest' or 'CodeActionPriorityRequest.None'.
             var includeSuppressionFixes = priority is CodeActionRequestPriority.Lowest or CodeActionRequestPriority.None;
 
-            var aggregatedDiagnostics = await GetSpanToDiagnosticsAsync(
+            var spanToDiagnostics = await GetSpanToDiagnosticsAsync(
                 document, range, priority, addOperationScope, includeSuppressionFixes, cancellationToken).ConfigureAwait(false);
-            if (aggregatedDiagnostics.Count == 0)
+            if (spanToDiagnostics.Count == 0)
                 yield break;
 
             // Order diagnostics by DiagnosticId so the fixes are in a deterministic order.
-            foreach (var (_, diagnosticList) in aggregatedDiagnostics)
+            foreach (var (_, diagnosticList) in spanToDiagnostics)
                 diagnosticList.Sort(s_diagnosticDataComparisonById);
 
             // 'CodeActionRequestPriority.Lowest' is used when the client only wants suppression/configuration fixes.
             if (priority != CodeActionRequestPriority.Lowest)
             {
                 await foreach (var collection in StreamFixesAsync(
-                    document, aggregatedDiagnostics, fixAllForInSpan: false,
+                    document, spanToDiagnostics, fixAllForInSpan: false,
                     priority, options, addOperationScope, cancellationToken).ConfigureAwait(false))
                 {
                     yield return collection;
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 // Ensure that we do not register duplicate configuration fixes.
                 using var _2 = PooledHashSet<string>.GetInstance(out var registeredConfigurationFixTitles);
-                foreach (var (span, diagnosticList) in aggregatedDiagnostics)
+                foreach (var (span, diagnosticList) in spanToDiagnostics)
                 {
                     await foreach (var codeFixCollection in StreamConfigurationFixesAsync(
                         document, span, diagnosticList, registeredConfigurationFixTitles, cancellationToken).ConfigureAwait(false))
