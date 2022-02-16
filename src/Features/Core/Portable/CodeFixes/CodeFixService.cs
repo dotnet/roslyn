@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private readonly ImmutableArray<Lazy<CodeFixProvider, CodeChangeProviderMetadata>> _fixers;
         private readonly ImmutableDictionary<string, ImmutableArray<Lazy<CodeFixProvider, CodeChangeProviderMetadata>>> _fixersPerLanguageMap;
 
-        private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, ImmutableDictionary<DiagnosticId, List<CodeFixProvider>>> _projectFixersMap = new();
+        private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>> _projectFixersMap = new();
 
         // Shared by project fixers and workspace fixers.
         private readonly ConditionalWeakTable<AnalyzerReference, ProjectCodeFixProvider> _analyzerReferenceToFixersMap = new();
@@ -857,7 +857,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 var lazyMap = new Lazy<ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>>(() =>
                 {
-                    var mutableMap = new Dictionary<DiagnosticId, List<CodeFixProvider>>();
+                    using var _ = PooledDictionary<DiagnosticId, ArrayBuilder<CodeFixProvider>>.GetInstance(out var mutableMap);
 
                     foreach (var lazyFixer in lazyFixers)
                     {
@@ -873,18 +873,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                                 continue;
                             }
 
-                            var list = mutableMap.GetOrAdd(id, static _ => new List<CodeFixProvider>());
+                            var list = mutableMap.GetOrAdd(id, static _ => ArrayBuilder<CodeFixProvider>.GetInstance());
                             list.Add(fixer);
                         }
                     }
 
-                    var immutableMap = ImmutableDictionary.CreateBuilder<DiagnosticId, ImmutableArray<CodeFixProvider>>();
-                    foreach (var (diagnosticId, fixers) in mutableMap)
-                    {
-                        immutableMap.Add(diagnosticId, fixers.AsImmutableOrEmpty());
-                    }
-
-                    return immutableMap.ToImmutable();
+                    return mutableMap.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.ToImmutableAndFree());
                 }, isThreadSafe: true);
 
                 fixerMap = fixerMap.Add(diagnosticId, lazyMap);
@@ -949,19 +943,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return languageMap.ToImmutable();
         }
 
-        private ImmutableDictionary<DiagnosticId, List<CodeFixProvider>> GetProjectFixers(Project project)
+        private ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>> GetProjectFixers(Project project)
         {
             // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict CodeFixes in Interactive
             return project.Solution.Workspace.Kind == WorkspaceKind.Interactive
-                ? ImmutableDictionary<DiagnosticId, List<CodeFixProvider>>.Empty
+                ? ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>.Empty
                 : _projectFixersMap.GetValue(project.AnalyzerReferences, _ => ComputeProjectFixers(project));
         }
 
-        private ImmutableDictionary<DiagnosticId, List<CodeFixProvider>> ComputeProjectFixers(Project project)
+        private ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>> ComputeProjectFixers(Project project)
         {
             var extensionManager = project.Solution.Workspace.Services.GetService<IExtensionManager>();
 
-            var builder = ImmutableDictionary.CreateBuilder<DiagnosticId, List<CodeFixProvider>>();
+            using var _ = PooledDictionary<DiagnosticId, ArrayBuilder<CodeFixProvider>>.GetInstance(out var builder);
             foreach (var reference in project.AnalyzerReferences)
             {
                 var projectCodeFixerProvider = _analyzerReferenceToFixersMap.GetValue(reference, _createProjectCodeFixProvider);
@@ -973,13 +967,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                         if (string.IsNullOrWhiteSpace(id))
                             continue;
 
-                        var list = builder.GetOrAdd(id, static _ => new List<CodeFixProvider>());
+                        var list = builder.GetOrAdd(id, static _ => ArrayBuilder<CodeFixProvider>.GetInstance());
                         list.Add(fixer);
                     }
                 }
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableDictionary(kvp => kvp.Key, kvp.Value.ToImmutableAndFree());
         }
     }
 }
