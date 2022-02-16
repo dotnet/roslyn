@@ -959,32 +959,24 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var extensionManager = project.Solution.Workspace.Services.GetService<IExtensionManager>();
 
             using var _ = PooledDictionary<DiagnosticId, ArrayBuilder<CodeFixProvider>>.GetInstance(out var builder);
-            try
+            foreach (var reference in project.AnalyzerReferences)
             {
-                foreach (var reference in project.AnalyzerReferences)
+                var projectCodeFixerProvider = _analyzerReferenceToFixersMap.GetValue(reference, _createProjectCodeFixProvider);
+                foreach (var fixer in projectCodeFixerProvider.GetExtensions(project.Language))
                 {
-                    var projectCodeFixerProvider = _analyzerReferenceToFixersMap.GetValue(reference, _createProjectCodeFixProvider);
-                    foreach (var fixer in projectCodeFixerProvider.GetExtensions(project.Language))
+                    var fixableIds = this.GetFixableDiagnosticIds(fixer, extensionManager);
+                    foreach (var id in fixableIds)
                     {
-                        var fixableIds = this.GetFixableDiagnosticIds(fixer, extensionManager);
-                        foreach (var id in fixableIds)
-                        {
-                            if (string.IsNullOrWhiteSpace(id))
-                                continue;
+                        if (string.IsNullOrWhiteSpace(id))
+                            continue;
 
-                            var list = builder.GetOrAdd(id, static _ => ArrayBuilder<CodeFixProvider>.GetInstance());
-                            list.Add(fixer);
-                        }
+                        var list = builder.GetOrAdd(id, static _ => ArrayBuilder<CodeFixProvider>.GetInstance());
+                        list.Add(fixer);
                     }
                 }
+            }
 
-                return builder.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.ToImmutable());
-            }
-            finally
-            {
-                foreach (var kvp in builder)
-                    kvp.Value.Free();
-            }
+            return builder.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.ToImmutableAndFree());
         }
 
         private sealed class FixerComparer : IComparer<CodeFixProvider>
