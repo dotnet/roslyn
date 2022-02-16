@@ -450,11 +450,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                                 }
                             },
                             cancellationToken).ConfigureAwait(false);
-                    }
 
-                    // Just need the first result if we are doing fix all in span
-                    if (fixAllForInSpan && result.Any())
-                        return;
+                        // Just need the first result if we are doing fix all in span
+                        if (fixAllForInSpan && result.Any())
+                            return;
+                    }
                 }
             }
             finally
