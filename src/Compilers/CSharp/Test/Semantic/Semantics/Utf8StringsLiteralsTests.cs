@@ -79,7 +79,7 @@ class C
 { 0x68 0x65 0x6C 0x6C 0x6F }
 { 0x64 0x6F 0x67 }
 { 0x63 0x61 0x74 }
-").VerifyDiagnostics();
+", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C.Test1()", @"
 {
@@ -125,7 +125,7 @@ class C
 { 0x68 0x65 0x6C 0x6C 0x6F }
 { 0x64 0x6F 0x67 }
 { 0x63 0x61 0x74 }
-").VerifyDiagnostics();
+", verify: Verification.Fails).VerifyDiagnostics();
 
             comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
@@ -171,7 +171,7 @@ cat
 { 0x68 0x65 0x6C 0x6C 0x6F }
 { 0x64 0x6F 0x67 }
 { 0x63 0x61 0x74 }
-").VerifyDiagnostics();
+", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C.Test1()", @"
 {
@@ -217,7 +217,7 @@ cat
 { 0x68 0x65 0x6C 0x6C 0x6F }
 { 0x64 0x6F 0x67 }
 { 0x63 0x61 0x74 }
-").VerifyDiagnostics();
+", verify: Verification.Fails).VerifyDiagnostics();
 
             comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
@@ -359,7 +359,7 @@ class C
 { 0x68 0x65 0x6C 0x6C 0x6F }
 { 0x64 0x6F 0x67 }
 { 0x63 0x61 0x74 }
-").VerifyDiagnostics();
+", verify: Verification.Fails).VerifyDiagnostics();
 
             comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
 
@@ -367,7 +367,7 @@ class C
 { 0x68 0x65 0x6C 0x6C 0x6F }
 { 0x64 0x6F 0x67 }
 { 0x63 0x61 0x74 }
-").VerifyDiagnostics();
+", verify: Verification.Fails).VerifyDiagnostics();
 
             comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
@@ -490,7 +490,7 @@ class C
             CompileAndVerify(comp, expectedOutput: @"
 { 0x68 0x65 0x6C 0x6C 0x6F }
 { 0x63 0x61 0x74 }
-").VerifyDiagnostics();
+", verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -582,7 +582,7 @@ class C
 ";
             var comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
             comp.MakeMemberMissing(WellKnownMember.System_Span_T__ctor_Pointer);
-            var verifier = CompileAndVerify(comp, expectedOutput: "{ 0x64 0x6F 0x67 }").VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "{ 0x64 0x6F 0x67 }", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C.Test2()", @"
 {
@@ -616,7 +616,7 @@ class C
 ";
             var comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
             comp.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer);
-            var verifier = CompileAndVerify(comp, expectedOutput: "{ 0x63 0x61 0x74 }").VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "{ 0x63 0x61 0x74 }", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C.Test3()", @"
 {
@@ -661,7 +661,7 @@ class C
 -1
 0
 0
-").VerifyDiagnostics();
+", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C.Test1()", @"
 {
@@ -702,7 +702,7 @@ class C
 -1
 0
 0
-").VerifyDiagnostics();
+", verify: Verification.Fails).VerifyDiagnostics();
 
             comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
@@ -795,7 +795,7 @@ class C
 -1
 0
 0
-").VerifyDiagnostics();
+", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C.Test1()", @"
 {
@@ -832,7 +832,7 @@ class C
 -1
 0
 0
-").VerifyDiagnostics();
+", verify: Verification.Fails).VerifyDiagnostics();
 
             comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
 
@@ -840,7 +840,7 @@ class C
 -1
 0
 0
-").VerifyDiagnostics();
+", verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
@@ -1184,7 +1184,7 @@ class C
 { 0xF0 0x9F 0x98 0x80 }
 { 0xF0 0x9F 0x98 0x80 }
 { 0xF0 0x9F 0x98 0x80 }
-").VerifyDiagnostics();
+", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C.Test1()", @"
 {
@@ -1253,7 +1253,7 @@ class C
 { 0xF0 0x9F 0x98 0x80 }
 { 0xF0 0x9F 0x98 0x80 }
 { 0xF0 0x9F 0x98 0x80 }
-").VerifyDiagnostics();
+", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C.Test1()", @"
 {
@@ -1326,7 +1326,7 @@ class C
 { 0xF0 0x9F 0x98 0x80 }
 { 0xF0 0x9F 0x98 0x80 }
 { 0xF0 0x9F 0x98 0x80 }
-").VerifyDiagnostics();
+", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C.Test1()", @"
 {
@@ -2428,7 +2428,7 @@ class C
 { 0x68 0x65 0x6C 0x6C 0x6F }
 { 0x64 0x6F 0x67 }
 { 0x63 0x61 0x74 }
-").VerifyDiagnostics();
+", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C.Test1()", @"
 {
@@ -2474,7 +2474,7 @@ class C
 { 0x68 0x65 0x6C 0x6C 0x6F }
 { 0x64 0x6F 0x67 }
 { 0x63 0x61 0x74 }
-").VerifyDiagnostics();
+", verify: Verification.Fails).VerifyDiagnostics();
 
             comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
@@ -2518,7 +2518,7 @@ class C
 { 0x68 0x65 0x6C 0x6C 0x6F }
 { 0x64 0x6F 0x67 }
 { 0x63 0x61 0x74 }
-").VerifyDiagnostics();
+", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C.Test1()", @"
 {
@@ -2564,7 +2564,7 @@ class C
 { 0x68 0x65 0x6C 0x6C 0x6F }
 { 0x64 0x6F 0x67 }
 { 0x63 0x61 0x74 }
-").VerifyDiagnostics();
+", verify: Verification.Fails).VerifyDiagnostics();
 
             comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
@@ -2608,7 +2608,7 @@ class C
 { 0x68 0x65 0x6C 0x6C 0x6F }
 { 0x64 0x6F 0x67 }
 { 0x63 0x61 0x74 }
-").VerifyDiagnostics();
+", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C.Test1()", @"
 {
@@ -2654,7 +2654,7 @@ class C
 { 0x68 0x65 0x6C 0x6C 0x6F }
 { 0x64 0x6F 0x67 }
 { 0x63 0x61 0x74 }
-").VerifyDiagnostics();
+", verify: Verification.Fails).VerifyDiagnostics();
 
             comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
@@ -2713,7 +2713,7 @@ class C
 { 0x68 0x65 0x6C 0x6C 0x6F }
 { 0x64 0x6F 0x67 }
 { 0x63 0x61 0x74 }
-").VerifyDiagnostics();
+", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C.Test1()", @"
 {
@@ -2759,7 +2759,7 @@ class C
 { 0x68 0x65 0x6C 0x6C 0x6F }
 { 0x64 0x6F 0x67 }
 { 0x63 0x61 0x74 }
-").VerifyDiagnostics();
+", verify: Verification.Fails).VerifyDiagnostics();
 
             comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular10);
             comp.VerifyDiagnostics(
@@ -2848,7 +2848,7 @@ class C
 { 0x68 0x65 0x6C 0x6C 0x6F }
 { 0x64 0x6F 0x67 }
 { 0x63 0x61 0x74 }
-").VerifyDiagnostics();
+", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C.Test1()", @"
 {
@@ -2906,7 +2906,7 @@ class C
 ";
             var comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
             comp.MakeMemberMissing(WellKnownMember.System_Span_T__ctor_Pointer);
-            var verifier = CompileAndVerify(comp, expectedOutput: "{ 0x64 0x6F 0x67 }").VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "{ 0x64 0x6F 0x67 }", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C.Test2()", @"
 {
@@ -2940,7 +2940,7 @@ class C
 ";
             var comp = CreateCompilation(source + HelpersSource, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
             comp.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer);
-            var verifier = CompileAndVerify(comp, expectedOutput: "{ 0x63 0x61 0x74 }").VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "{ 0x63 0x61 0x74 }", verify: Verification.Fails).VerifyDiagnostics();
 
             verifier.VerifyIL("C.Test3()", @"
 {
