@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FixMultipleOccurrencesService(IGlobalOptionService globalOptions, IAsynchronousOperationListenerProvider listenerProvider)
+        public FixMultipleOccurrencesService(IAsynchronousOperationListenerProvider listenerProvider)
         {
             listenerProvider.GetListener(FeatureAttribute.LightBulb);
         }
