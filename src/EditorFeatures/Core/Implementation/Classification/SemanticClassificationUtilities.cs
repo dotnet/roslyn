@@ -33,13 +33,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             DocumentSnapshotSpan spanToTag,
             IClassificationService classificationService,
             ClassificationTypeMap typeMap,
+            ClassificationOptions options,
             CancellationToken cancellationToken)
         {
             var document = spanToTag.Document;
             if (document == null)
                 return;
-
-            var options = ClassificationOptions.From(document.Project);
 
             // Don't block getting classifications on building the full compilation.  This may take a significant amount
             // of time and can cause a very latency sensitive operation (copying) to block the user while we wait on this

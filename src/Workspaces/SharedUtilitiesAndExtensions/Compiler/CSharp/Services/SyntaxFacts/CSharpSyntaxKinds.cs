@@ -36,6 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public int InterpolatedStringTextToken => (int)SyntaxKind.InterpolatedStringTextToken;
         public int QuestionToken => (int)SyntaxKind.QuestionToken;
         public int StringLiteralToken => (int)SyntaxKind.StringLiteralToken;
+        public int? SingleLineRawStringLiteralToken => (int)SyntaxKind.SingleLineRawStringLiteralToken;
+        public int? MultiLineRawStringLiteralToken => (int)SyntaxKind.MultiLineRawStringLiteralToken;
 
         public int DelegateKeyword => (int)SyntaxKind.DelegateKeyword;
         public int IfKeyword => (int)SyntaxKind.IfKeyword;
@@ -62,6 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public int ConditionalAccessExpression => (int)SyntaxKind.ConditionalAccessExpression;
         public int ConditionalExpression => (int)SyntaxKind.ConditionalExpression;
         public int? ImplicitObjectCreationExpression => (int)SyntaxKind.ImplicitObjectCreationExpression;
+        public int? IndexExpression => (int)SyntaxKind.IndexExpression;
         public int InvocationExpression => (int)SyntaxKind.InvocationExpression;
         public int LogicalAndExpression => (int)SyntaxKind.LogicalAndExpression;
         public int LogicalOrExpression => (int)SyntaxKind.LogicalOrExpression;
@@ -69,6 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public int ObjectCreationExpression => (int)SyntaxKind.ObjectCreationExpression;
         public int ParenthesizedExpression => (int)SyntaxKind.ParenthesizedExpression;
         public int QueryExpression => (int)SyntaxKind.QueryExpression;
+        public int? RangeExpression => (int)SyntaxKind.RangeExpression;
         public int ReferenceEqualsExpression => (int)SyntaxKind.EqualsExpression;
         public int ReferenceNotEqualsExpression => (int)SyntaxKind.NotEqualsExpression;
         public int SimpleMemberAccessExpression => (int)SyntaxKind.SimpleMemberAccessExpression;
@@ -96,6 +100,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
 
         public int Attribute => (int)SyntaxKind.Attribute;
         public int ClassDeclaration => (int)SyntaxKind.ClassDeclaration;
+        public int? RecordDeclaration => (int)SyntaxKind.RecordDeclaration;
+        public int? RecordStructDeclaration => (int)SyntaxKind.RecordStructDeclaration;
         public int Parameter => (int)SyntaxKind.Parameter;
         public int TypeConstraint => (int)SyntaxKind.TypeConstraint;
         public int VariableDeclarator => (int)SyntaxKind.VariableDeclarator;

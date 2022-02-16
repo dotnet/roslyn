@@ -57,12 +57,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
             Return UseInitializerHelpers.GetNewObjectCreation(
                 objectCreation,
                 SyntaxFactory.ObjectMemberInitializer(
-                    CreateFieldInitializers(matches)))
+                    CreateFieldInitializers(objectCreation, matches)))
         End Function
 
         Private Shared Function CreateFieldInitializers(
+                objectCreation As ObjectCreationExpressionSyntax,
                 matches As ImmutableArray(Of Match(Of ExpressionSyntax, StatementSyntax, MemberAccessExpressionSyntax, AssignmentStatementSyntax))) As SeparatedSyntaxList(Of FieldInitializerSyntax)
-            Dim nodesAndTokens = New List(Of SyntaxNodeOrToken)
+            Dim nodesAndTokens = ArrayBuilder(Of SyntaxNodeOrToken).GetInstance()
+
+            AddExistingItems(objectCreation, nodesAndTokens)
 
             For i = 0 To matches.Length - 1
                 Dim match = matches(i)
@@ -87,7 +90,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
                 End If
             Next
 
-            Return SyntaxFactory.SeparatedList(Of FieldInitializerSyntax)(nodesAndTokens)
+            Dim result = SyntaxFactory.SeparatedList(Of FieldInitializerSyntax)(nodesAndTokens)
+            nodesAndTokens.Free()
+            Return result
         End Function
     End Class
 End Namespace

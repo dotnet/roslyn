@@ -34,14 +34,14 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.L
         public RegexSyntaxClassifier(EmbeddedLanguageInfo info)
         {
             _info = info;
-            SyntaxTokenKinds = ImmutableArray.Create(info.StringLiteralTokenKind);
+            SyntaxTokenKinds = _info.AllStringLiteralKinds;
         }
 
         public override void AddClassifications(
             SyntaxToken token, SemanticModel semanticModel, ClassificationOptions options,
             ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            if (_info.StringLiteralTokenKind != token.RawKind)
+            if (!_info.IsAnyStringLiteral(token.RawKind))
                 return;
 
             if (!options.ColorizeRegexPatterns)

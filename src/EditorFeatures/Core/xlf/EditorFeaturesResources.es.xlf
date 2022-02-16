@@ -12,6 +12,11 @@
         <target state="translated">Aplicando cambios</target>
         <note />
       </trans-unit>
+      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
+        <source>Cannot navigate to the symbol under the caret.</source>
+        <target state="new">Cannot navigate to the symbol under the caret.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Change_configuration">
         <source>Change configuration</source>
         <target state="translated">Configuración de cambio</target>
@@ -322,11 +327,6 @@
         <target state="translated">Los resultados pueden estar incompletos porque la solución aún está cargando proyectos.</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_symbol_has_no_base">
-        <source>The symbol has no base.</source>
-        <target state="translated">El símbolo no tiene base.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Toggle_Block_Comment">
         <source>Toggle Block Comment</source>
         <target state="translated">Alternar comentario de bloque</target>
@@ -595,11 +595,6 @@
       <trans-unit id="You_cannot_rename_this_element_because_it_is_in_a_location_that_cannot_be_navigated_to">
         <source>You cannot rename this element because it is in a location that cannot be navigated to.</source>
         <target state="translated">No se puede cambiar el nombre de este elemento porque está en una ubicación a la que no se puede navegar.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_bases">
-        <source>'{0}' bases</source>
-        <target state="translated">Bases de "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_conflict_s_will_be_resolved">
@@ -1017,11 +1012,6 @@
         <target state="translated">Dando formato al texto seleccionado actualmente...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
-        <source>Cannot navigate to the symbol under the caret.</source>
-        <target state="translated">No se puede navegar al símbolo que hay debajo del símbolo de intercalación.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Go_to_Definition">
         <source>Go to Definition</source>
         <target state="translated">Ir a definición</target>
@@ -1429,11 +1419,6 @@ Do you want to proceed?</source>
         <target state="translated">Ir a implementación</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_symbol_has_no_implementations">
-        <source>The symbol has no implementations.</source>
-        <target state="translated">El símbolo no tiene implementaciones.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="New_name_colon_0">
         <source>New name: {0}</source>
         <target state="translated">Nuevo nombre: {0}</target>
@@ -1457,16 +1442,6 @@ Do you want to proceed?</source>
       <trans-unit id="Suggestion_ellipses">
         <source>Suggestion ellipses (…)</source>
         <target state="translated">Puntos suspensivos de sugerencia (…)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_references">
-        <source>'{0}' references</source>
-        <target state="translated">'Referencias de "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_implementations">
-        <source>'{0}' implementations</source>
-        <target state="translated">'Implementaciones de "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_declarations">

@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -20,11 +21,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private readonly Solution _solution;
 
+        // IDE options for each encountered language
+        private ImmutableDictionary<string, IdeAnalyzerOptions> _ideOptionsCache;
+
         public WorkspaceAnalyzerOptions(AnalyzerOptions options, Solution solution)
             : base(options.AdditionalFiles, options.AnalyzerConfigOptionsProvider)
         {
             _solution = solution;
+            _ideOptionsCache = ImmutableDictionary<string, IdeAnalyzerOptions>.Empty;
         }
+
+        public IdeAnalyzerOptions GetIdeOptions(string language)
+            => ImmutableInterlocked.GetOrAdd(
+                ref _ideOptionsCache,
+                language,
+                static (language, solution) => new IdeAnalyzerOptions(
+                    FadeOutUnusedImports: solution.Options.GetOption(Fading.FadingOptions.Metadata.FadeOutUnusedImports, language),
+                    FadeOutUnreachableCode: solution.Options.GetOption(Fading.FadingOptions.Metadata.FadeOutUnreachableCode, language),
+                    ReportInvalidPlaceholdersInStringDotFormatCalls: solution.Options.GetOption(ValidateFormatString.ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, language),
+                    ReportInvalidRegexPatterns: solution.Options.GetOption(Features.EmbeddedLanguages.RegularExpressions.LanguageServices.RegularExpressionsOptions.ReportInvalidRegexPatterns, language)),
+                _solution);
 
         public HostWorkspaceServices Services => _solution.Workspace.Services;
 
@@ -60,9 +76,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public override int GetHashCode()
-        {
-            return Hash.Combine(_solution.Workspace,
-                Hash.Combine(_solution.WorkspaceVersion, base.GetHashCode()));
-        }
+            => Hash.Combine(_solution.Workspace,
+               Hash.Combine(_solution.WorkspaceVersion, base.GetHashCode()));
     }
 }

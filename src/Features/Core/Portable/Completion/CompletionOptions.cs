@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.Completion
         bool ProvideDateAndTimeCompletions = true,
         bool ProvideRegexCompletions = true,
         bool ForceExpandedCompletionIndexCreation = false,
-        bool BlockOnExpandedCompletion = false,
         bool FilterOutOfScopeLocals = true,
         bool ShowXmlDocCommentCompletion = true,
         ExpandedCompletionMode ExpandedCompletionBehavior = ExpandedCompletionMode.AllItems)
@@ -34,5 +33,16 @@ namespace Microsoft.CodeAnalysis.Completion
             => new(
                 FilterOutOfScopeLocals: FilterOutOfScopeLocals,
                 HideAdvancedMembers: HideAdvancedMembers);
+
+        /// <summary>
+        /// Whether items from unimported namespaces should be included in the completion list.
+        /// This takes into consideration the experiment we are running in addition to the value
+        /// from user facing options.
+        /// </summary>
+        public bool ShouldShowItemsFromUnimportNamspaces()
+        {
+            // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 
+            return ShowItemsFromUnimportedNamespaces ?? TypeImportCompletion;
+        }
     }
 }
