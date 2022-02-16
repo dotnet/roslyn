@@ -34,8 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public Project Project => State.Project;
 
         /// <summary>
-        /// Document within which fix all occurrences was triggered.
-        /// Can be null if the context was created using <see cref="FixAllContext.FixAllContext(Project, CodeFixProvider, FixAllScope, string, IEnumerable{string}, DiagnosticProvider, CancellationToken)"/>.
+        /// Document within which fix all occurrences was triggered, null if the <see cref="FixAllContext"/> is scoped to a project.
         /// </summary>
         public Document? Document => State.Document;
 
