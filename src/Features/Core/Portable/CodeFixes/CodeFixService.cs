@@ -1009,7 +1009,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 if (_priorityMap.TryGetValue(x, out var xOrder) &&
                     _priorityMap.TryGetValue(y, out var yOrder))
                 {
-                    return xOrder - yOrder;
+                    var comparison = xOrder - yOrder;
+                    if (comparison != 0)
+                        return comparison;
                 }
 
                 // Otherwise, keep things in the same order that they were in the list (i.e. keep things stable).
