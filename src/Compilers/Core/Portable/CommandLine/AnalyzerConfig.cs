@@ -298,7 +298,8 @@ namespace Microsoft.CodeAnalysis
             }
 
             /// <summary>
-            /// The name as present directly in the section specification of the editorconfig file.
+            /// For regular files, the name as present directly in the section specification of the editorconfig file. For sections in
+            /// global configs, this is the unescaped full file path.
             /// </summary>
             public string Name { get; }
 
