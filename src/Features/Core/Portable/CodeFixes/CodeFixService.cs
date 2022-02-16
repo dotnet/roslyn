@@ -992,7 +992,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 => _priorityMap = priorityMap;
 
             public int Compare([AllowNull] CodeFixProvider x, [AllowNull] CodeFixProvider y)
-                => GetValue(x).CompareTo(GetValue(y));
+                => GetValue(x!).CompareTo(GetValue(y!));
 
             private int GetValue(CodeFixProvider provider)
                 => _priorityMap.TryGetValue(provider, out var value) ? value : int.MaxValue;
