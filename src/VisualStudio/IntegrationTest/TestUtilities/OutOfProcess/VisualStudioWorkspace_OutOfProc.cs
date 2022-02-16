@@ -99,10 +99,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void SetEnableOpeningSourceGeneratedFilesInWorkspaceExperiment(bool value)
         {
-            SetOption(
-                optionName: VisualStudioSyntaxTreeConfigurationService.OptionsMetadata.EnableOpeningSourceGeneratedFilesInWorkspace.Name,
-                feature: VisualStudioSyntaxTreeConfigurationService.OptionsMetadata.EnableOpeningSourceGeneratedFilesInWorkspace.Feature,
-                value: value);
+            SetGlobalOption(
+                WellKnownGlobalOption.VisualStudioSyntaxTreeConfigurationService_EnableOpeningSourceGeneratedFilesInWorkspace,
+                language: null,
+                value);
         }
 
         public void SetFeatureOption(string feature, string optionName, string? language, string? valueString)
