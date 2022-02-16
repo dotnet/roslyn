@@ -4,11 +4,13 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.OrganizeImports;
@@ -16,16 +18,19 @@ using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeCleanup
 {
     internal abstract class AbstractCodeCleanupService : ICodeCleanupService
     {
         private readonly ICodeFixService _codeFixService;
+        private readonly IDiagnosticAnalyzerService _diagnosticService;
 
-        protected AbstractCodeCleanupService(ICodeFixService codeFixService)
+        protected AbstractCodeCleanupService(ICodeFixService codeFixService, IDiagnosticAnalyzerService diagnosticAnalyzerService)
         {
             _codeFixService = codeFixService;
+            _diagnosticService = diagnosticAnalyzerService;
         }
 
         protected abstract string OrganizeImportsDescription { get; }
@@ -38,7 +43,13 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             CodeActionOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
-            // add one item for the 'format' action we'll do last
+            // add one item for the code fixers we get from nuget, we'll do last
+            if (enabledDiagnostics.RunThirdPartyFixers)
+            {
+                progressTracker.AddItems(1);
+            }
+
+            // add one item for the 'format' action
             if (enabledDiagnostics.FormatDocument)
             {
                 progressTracker.AddItems(1);
@@ -74,6 +85,13 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                     document = await Formatter.FormatAsync(document, formattingOptions, cancellationToken).ConfigureAwait(false);
                     progressTracker.ItemCompleted();
                 }
+            }
+
+            if (enabledDiagnostics.RunThirdPartyFixers)
+            {
+                document = await ApplyThirdPartyCodeFixesAsync(
+                    document, progressTracker, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                progressTracker.ItemCompleted();
             }
 
             return document;
@@ -162,7 +180,48 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             return solution.GetDocument(document.Id) ?? throw new NotSupportedException(FeaturesResources.Removal_of_document_not_supported);
         }
 
+        private async Task<Document> ApplyThirdPartyCodeFixesAsync(Document document, IProgressTracker progressTracker, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        {
+            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var range = new TextSpan(0, tree.Length);
+
+            // Compute diagnostics for everything that is not an IDE analyzer
+            var allDiagnostics = (await _diagnosticService.GetDiagnosticsForSpanAsync(document, range,
+                shouldIncludeDiagnostic: static diagnosticId => !(IDEDiagnosticIdToOptionMappingHelper.IsKnownIDEDiagnosticId(diagnosticId)),
+                includeSuppressedDiagnostics: false,
+                cancellationToken: cancellationToken).ConfigureAwait(false));
+
+            // ensure more than just compiler diagnostics were returned
+            var diagnostics = allDiagnostics.WhereAsArray(d => !IsCompilerDiagnostic(d.Id));
+            if (!diagnostics.Any())
+            {
+                return document;
+            }
+
+            foreach (var diagnosticId in diagnostics.SelectAsArray(static d => d.Id).Distinct())
+            {
+                // Apply codefixes for diagnostics with a severity of warning or higher
+                document = await _codeFixService.ApplyCodeFixesForSpecificDiagnosticIdAsync(document, diagnosticId, DiagnosticSeverity.Warning, progressTracker, fallbackOptions, cancellationToken).ConfigureAwait(false);
+            }
+
+            return document;
+
+            static bool IsCompilerDiagnostic(string errorId)
+            {
+                if (!string.IsNullOrEmpty(errorId) && errorId.Length > 2)
+                {
+                    var prefix = errorId.Substring(0, 2);
+                    if (prefix.Equals("CS", StringComparison.OrdinalIgnoreCase) || prefix.Equals("BC", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var suffix = errorId.Substring(2);
+                        return int.TryParse(suffix, out _);
+                    }
+                }
+
+                return false;
+            }
+        }
         public EnabledDiagnosticOptions GetAllDiagnostics()
-            => new EnabledDiagnosticOptions(formatDocument: true, GetDiagnosticSets(), new OrganizeUsingsSet(isRemoveUnusedImportEnabled: true, isSortImportsEnabled: true));
+            => new EnabledDiagnosticOptions(formatDocument: true, runThirdPartyFixers: true, GetDiagnosticSets(), new OrganizeUsingsSet(isRemoveUnusedImportEnabled: true, isSortImportsEnabled: true));
     }
 }

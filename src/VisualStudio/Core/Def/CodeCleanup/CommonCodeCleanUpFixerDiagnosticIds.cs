@@ -329,5 +329,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
         [HelpLink($"https://docs.microsoft.com/dotnet/fundamentals/code-analysis/style-rules/{IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId}")]
         [LocalizedName(typeof(FeaturesResources), nameof(FeaturesResources.Apply_unused_value_preferences))]
         public static readonly FixIdDefinition? ValueAssignedIsUnusedDiagnosticId;
+
+        [Export]
+        [FixId(AbstractCodeCleanUpFixer.ApplyThirdPartyFixersId)]
+        [Name(AbstractCodeCleanUpFixer.ApplyThirdPartyFixersId)]
+        [Order(After = IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)]
+        [ConfigurationKey("unused")]
+        [HelpLink($"https://microsoft.com/")]
+        [LocalizedName(typeof(ServicesVSResources), nameof(ServicesVSResources.Fix_analyzer_warnings_and_errors))]
+        public static readonly FixIdDefinition? ThirdPartyAnalyzers;
     }
 }

@@ -41,6 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
         protected internal const string FormatDocumentFixId = nameof(FormatDocumentFixId);
         protected internal const string RemoveUnusedImportsFixId = nameof(RemoveUnusedImportsFixId);
         protected internal const string SortImportsFixId = nameof(SortImportsFixId);
+        protected internal const string ApplyThirdPartyFixersId = nameof(ApplyThirdPartyFixersId);
 
         private readonly IThreadingContext _threadingContext;
         private readonly VisualStudioWorkspaceImpl _workspace;
@@ -347,8 +348,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup
             var isFormatDocumentEnabled = enabledFixIds.IsFixIdEnabled(FormatDocumentFixId);
             var isRemoveUnusedUsingsEnabled = enabledFixIds.IsFixIdEnabled(RemoveUnusedImportsFixId);
             var isSortUsingsEnabled = enabledFixIds.IsFixIdEnabled(SortImportsFixId);
+            var isApplyThirdPartyFixersEnabled = enabledFixIds.IsFixIdEnabled(ApplyThirdPartyFixersId);
             var enabledDiagnostics = new EnabledDiagnosticOptions(
                 isFormatDocumentEnabled,
+                isApplyThirdPartyFixersEnabled,
                 enabedDiagnosticSets.ToImmutableArray(),
                 new OrganizeUsingsSet(isRemoveUnusedUsingsEnabled, isSortUsingsEnabled));
 

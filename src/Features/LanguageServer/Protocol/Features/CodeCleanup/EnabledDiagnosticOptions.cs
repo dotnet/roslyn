@@ -14,14 +14,15 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
     internal sealed class EnabledDiagnosticOptions
     {
         public bool FormatDocument { get; }
-
+        public bool RunThirdPartyFixers { get; }
         public ImmutableArray<DiagnosticSet> Diagnostics { get; }
 
         public OrganizeUsingsSet OrganizeUsings { get; }
 
-        public EnabledDiagnosticOptions(bool formatDocument, ImmutableArray<DiagnosticSet> diagnostics, OrganizeUsingsSet organizeUsings)
+        public EnabledDiagnosticOptions(bool formatDocument, bool runThirdPartyFixers, ImmutableArray<DiagnosticSet> diagnostics, OrganizeUsingsSet organizeUsings)
         {
             FormatDocument = formatDocument;
+            RunThirdPartyFixers = runThirdPartyFixers;
             Diagnostics = diagnostics;
             OrganizeUsings = organizeUsings;
         }
