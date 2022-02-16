@@ -360,8 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var foundLengthOrCount = TryBindLengthOrCount(node, receiverPlaceholder, out lengthAccess, diagnostics);
-                if (!foundLengthOrCount)
+                if (!TryBindLengthOrCount(node, receiverPlaceholder, out lengthAccess, diagnostics))
                 {
                     hasErrors = true;
                     Error(diagnostics, ErrorCode.ERR_ListPatternRequiresLength, node, inputType);
