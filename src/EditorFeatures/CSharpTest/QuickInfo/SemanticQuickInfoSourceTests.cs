@@ -8192,5 +8192,40 @@ Hello world {{$$x}}
         Hello world
     """""""));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestArgsInTopLevel()
+        {
+            var markup =
+@"
+forach (var arg in $$args)
+{
+}
+";
+
+            await TestWithOptionsAsync(
+                Options.Regular, markup,
+                MainDescription($"({FeaturesResources.parameter}) string[] args"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task TestArgsInNormalProgram()
+        {
+            var markup =
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        foreach (var arg in $$args)
+        {
+        }
+    }
+}
+";
+
+            await TestAsync(markup,
+                MainDescription($"({FeaturesResources.parameter}) string[] args"));
+        }
     }
 }
