@@ -302,7 +302,7 @@ class A
             AssertJsonEquals(expected, results.Items.First());
         }
 
-        [Fact]
+        [Fact, WorkItem(59453, "https://github.com/dotnet/roslyn/issues/59453")]
         public async Task TestGetDateAndTimeCompletionOnGuid()
         {
             var markup =

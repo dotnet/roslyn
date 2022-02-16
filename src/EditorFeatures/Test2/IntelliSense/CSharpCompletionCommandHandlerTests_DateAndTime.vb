@@ -113,6 +113,7 @@ class c
         End Function
 
         <WpfTheory, CombinatorialData, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(59453, "https://github.com/dotnet/roslyn/issues/59453")>
         Public Async Function ExplicitInvokeNotInGuid(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document><![CDATA[
