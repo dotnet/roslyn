@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (item is null)
                 throw new ArgumentNullException(nameof(item));
 
-            if (!CompletionItemData.TryGetData(item, out var itemData) && !itemData.IsProvidedByRoslynCompletionSource)
+            if (!CompletionItemData.TryGetData(item, out var itemData) || !itemData.IsProvidedByRoslynCompletionSource)
                 return null;
 
             Contract.ThrowIfNull(itemData.TriggerLocation);

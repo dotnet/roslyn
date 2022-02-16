@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 _applicableToSpan = applicableToSpan;
                 _filterText = applicableToSpan.GetText(_snapshotData.Snapshot);
 
-                _hasSuggestedItemOptions = sessionData.HasSuggestionItemOptions || _snapshotData.DisplaySuggestionItem;
+                _hasSuggestedItemOptions = _sessionData.HasSuggestionItemOptions || _snapshotData.DisplaySuggestionItem;
 
                 // We prefer using the original snapshot, which should always be available from items provided by Roslyn's CompletionSource.
                 // Only use data.Snapshot in the theoretically possible but rare case when all items we are handling are from some non-Roslyn CompletionSource.
