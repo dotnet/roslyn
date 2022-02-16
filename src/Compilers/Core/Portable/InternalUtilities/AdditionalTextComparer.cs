@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            if (xText.Length != yText.Length)
+            if (xText is null || yText is null || xText.Length != yText.Length)
             {
                 return false;
             }
