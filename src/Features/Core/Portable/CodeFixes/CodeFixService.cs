@@ -46,12 +46,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         // Shared by project fixers and workspace fixers.
         private readonly Lazy<ImmutableDictionary<CodeFixProvider, CodeChangeProviderMetadata>> _lazyFixerToMetadataMap;
-
         private readonly ConditionalWeakTable<AnalyzerReference, ProjectCodeFixProvider> _analyzerReferenceToFixersMap = new();
         private readonly ConditionalWeakTable<AnalyzerReference, ProjectCodeFixProvider>.CreateValueCallback _createProjectCodeFixProvider = r => new ProjectCodeFixProvider(r);
-
         private readonly ImmutableDictionary<LanguageKind, Lazy<ImmutableArray<IConfigurationFixProvider>>> _configurationProvidersMap;
-        private readonly IEnumerable<Lazy<IErrorLoggerService>> _errorLoggers;
+        private readonly ImmutableArray<Lazy<IErrorLoggerService>> _errorLoggers;
 
         private ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>>>? _lazyWorkspaceFixersMap;
         private ImmutableDictionary<LanguageKind, Lazy<ImmutableDictionary<CodeFixProvider, int>>>? _lazyFixerPriorityMap;
@@ -67,8 +65,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             [ImportMany] IEnumerable<Lazy<CodeFixProvider, CodeChangeProviderMetadata>> fixers,
             [ImportMany] IEnumerable<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>> configurationProviders)
         {
-            _errorLoggers = loggers;
             _diagnosticService = diagnosticAnalyzerService;
+            _errorLoggers = loggers.ToImmutableArray();
 
             _fixers = fixers.ToImmutableArray();
             _fixersPerLanguageMap = _fixers.ToPerLanguageMapWithMultipleLanguages();
@@ -162,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // group diagnostics by their diagnostics span
             // invariant: later code gathers & runs CodeFixProviders for diagnostics with one identical diagnostics span (that gets set later as CodeFixCollection's TextSpan)
             // order diagnostics by span.
-            SortedDictionary<TextSpan, List<DiagnosticData>>? aggregatedDiagnostics = null;
+            var aggregatedDiagnostics = new SortedDictionary<TextSpan, List<DiagnosticData>>();
 
             // For 'CodeActionPriorityRequest.Normal' or 'CodeActionPriorityRequest.Low', we do not compute suppression/configuration fixes,
             // those fixes have a dedicated request priority 'CodeActionPriorityRequest.Lowest'.
@@ -187,11 +185,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                aggregatedDiagnostics ??= new SortedDictionary<TextSpan, List<DiagnosticData>>();
                 aggregatedDiagnostics.GetOrAdd(diagnostic.GetTextSpan(), _ => new List<DiagnosticData>()).Add(diagnostic);
             }
 
-            if (aggregatedDiagnostics == null)
+            if (aggregatedDiagnostics.Count == 0)
                 return ImmutableArray<CodeFixCollection>.Empty;
 
             // Order diagnostics by DiagnosticId so the fixes are in a deterministic order.
@@ -793,8 +790,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                    AddImport.AbstractAddImportCodeFixProvider;
         }
 
-        private static readonly Func<DiagnosticId, List<CodeFixProvider>> s_createList = _ => new List<CodeFixProvider>();
-
         private ImmutableArray<DiagnosticId> GetFixableDiagnosticIds(CodeFixProvider fixer, IExtensionManager? extensionManager)
         {
             // If we are passed a null extension manager it means we do not have access to a document so there is nothing to
@@ -861,7 +856,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                                 continue;
                             }
 
-                            var list = mutableMap.GetOrAdd(id, s_createList);
+                            var list = mutableMap.GetOrAdd(id, static _ => new List<CodeFixProvider>());
                             list.Add(fixer);
                         }
                     }
@@ -942,13 +937,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict CodeFixes in Interactive
             return project.Solution.Workspace.Kind == WorkspaceKind.Interactive
                 ? ImmutableDictionary<DiagnosticId, List<CodeFixProvider>>.Empty
-                : _projectFixersMap.GetValue(project.AnalyzerReferences, pId => ComputeProjectFixers(project));
+                : _projectFixersMap.GetValue(project.AnalyzerReferences, _ => ComputeProjectFixers(project));
         }
 
         private ImmutableDictionary<DiagnosticId, List<CodeFixProvider>> ComputeProjectFixers(Project project)
         {
             var extensionManager = project.Solution.Workspace.Services.GetService<IExtensionManager>();
-            ImmutableDictionary<DiagnosticId, List<CodeFixProvider>>.Builder? builder = null;
+
+            var builder = ImmutableDictionary.CreateBuilder<DiagnosticId, List<CodeFixProvider>>();
             foreach (var reference in project.AnalyzerReferences)
             {
                 var projectCodeFixerProvider = _analyzerReferenceToFixersMap.GetValue(reference, _createProjectCodeFixProvider);
@@ -958,20 +954,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     foreach (var id in fixableIds)
                     {
                         if (string.IsNullOrWhiteSpace(id))
-                        {
                             continue;
-                        }
 
-                        builder ??= ImmutableDictionary.CreateBuilder<DiagnosticId, List<CodeFixProvider>>();
-                        var list = builder.GetOrAdd(id, s_createList);
+                        var list = builder.GetOrAdd(id, static _ => new List<CodeFixProvider>());
                         list.Add(fixer);
                     }
                 }
-            }
-
-            if (builder == null)
-            {
-                return ImmutableDictionary<DiagnosticId, List<CodeFixProvider>>.Empty;
             }
 
             return builder.ToImmutable();
