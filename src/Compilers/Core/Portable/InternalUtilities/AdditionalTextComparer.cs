@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -32,21 +32,42 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            var xText = x.GetText();
-            var yText = y.GetText();
-
-            if (xText is null || yText is null || xText.Length != yText.Length)
+            try
             {
-                return false;
-            }
+                var xText = GetTextOrNullIfBinary(x);
+                var yText = GetTextOrNullIfBinary(y);
 
-            return ByteSequenceComparer.Equals(xText.GetChecksum(), yText.GetChecksum());
+                if (xText is null || yText is null || xText.Length != yText.Length)
+                {
+                    return false;
+                }
+
+                return ByteSequenceComparer.Equals(xText.GetChecksum(), yText.GetChecksum());
+            }
+            catch (InvalidDataException)
+            {
+                // Either x, y, or both
+                throw;
+            }
         }
 
         public int GetHashCode(AdditionalText obj)
         {
             return Hash.Combine(PathUtilities.Comparer.GetHashCode(obj.Path),
                                 ByteSequenceComparer.GetHashCode(obj.GetText()?.GetChecksum() ?? ImmutableArray<byte>.Empty));
+        }
+
+        private static SourceText? GetTextOrNullIfBinary(AdditionalText text)
+        {
+            try
+            {
+                return text.GetText();
+            }
+            catch (InvalidDataException)
+            {
+                // InvalidDataException is thrown when the underlying text is binary
+                return null;
+            }
         }
     }
 }
