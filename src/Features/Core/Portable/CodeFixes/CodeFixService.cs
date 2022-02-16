@@ -973,7 +973,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 }
             }
 
-            return builder.ToImmutableDictionary(kvp => kvp.Key, kvp.Value.ToImmutableAndFree());
+            return builder.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.ToImmutableAndFree());
         }
     }
 }
