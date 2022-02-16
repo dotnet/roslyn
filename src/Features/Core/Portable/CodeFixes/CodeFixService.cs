@@ -398,11 +398,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 }
             }
 
-            allFixers.RemoveDuplicates();
-
             // Now, sort the fixers so that the ones that are ordered before others get their chance to run first.
-            if (TryGetWorkspaceFixersPriorityMap(document, out var fixersForLanguage))
-                allFixers.Sort(new FixerComparer(fixersForLanguage.Value));
+            if (allFixers.Count >= 2 && TryGetWorkspaceFixersPriorityMap(document, out var fixersForLanguage))
+                allFixers.Sort(new FixerComparer(allFixers, fixersForLanguage.Value));
 
             var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
 
@@ -481,9 +479,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 TextSpan range,
                 List<DiagnosticData> diagnostics)
             {
-                allFixers.AddRange(fixers);
                 foreach (var fixer in fixers)
+                {
+                    if (allFixers.Contains(fixer))
+                        continue;
+
+                    allFixers.Add(fixer);
                     fixerToRangesAndDiagnostics.GetOrAdd(fixer, static _ => new()).Add((range, diagnostics));
+                }
             }
         }
 
@@ -963,46 +966,56 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var extensionManager = project.Solution.Workspace.Services.GetService<IExtensionManager>();
 
             using var _ = PooledDictionary<DiagnosticId, ArrayBuilder<CodeFixProvider>>.GetInstance(out var builder);
-            try
+            foreach (var reference in project.AnalyzerReferences)
             {
-                foreach (var reference in project.AnalyzerReferences)
+                var projectCodeFixerProvider = _analyzerReferenceToFixersMap.GetValue(reference, _createProjectCodeFixProvider);
+                foreach (var fixer in projectCodeFixerProvider.GetExtensions(project.Language))
                 {
-                    var projectCodeFixerProvider = _analyzerReferenceToFixersMap.GetValue(reference, _createProjectCodeFixProvider);
-                    foreach (var fixer in projectCodeFixerProvider.GetExtensions(project.Language))
+                    var fixableIds = this.GetFixableDiagnosticIds(fixer, extensionManager);
+                    foreach (var id in fixableIds)
                     {
-                        var fixableIds = this.GetFixableDiagnosticIds(fixer, extensionManager);
-                        foreach (var id in fixableIds)
-                        {
-                            if (string.IsNullOrWhiteSpace(id))
-                                continue;
+                        if (string.IsNullOrWhiteSpace(id))
+                            continue;
 
-                            var list = builder.GetOrAdd(id, static _ => ArrayBuilder<CodeFixProvider>.GetInstance());
-                            list.Add(fixer);
-                        }
+                        var list = builder.GetOrAdd(id, static _ => ArrayBuilder<CodeFixProvider>.GetInstance());
+                        list.Add(fixer);
                     }
                 }
+            }
 
-                return builder.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.ToImmutable());
-            }
-            finally
-            {
-                foreach (var kvp in builder)
-                    kvp.Value.Free();
-            }
+            return builder.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.ToImmutableAndFree());
         }
 
         private sealed class FixerComparer : IComparer<CodeFixProvider>
         {
+            private readonly Dictionary<CodeFixProvider, int> _fixerToIndex;
             private readonly ImmutableDictionary<CodeFixProvider, int> _priorityMap;
 
-            public FixerComparer(ImmutableDictionary<CodeFixProvider, int> priorityMap)
-                => _priorityMap = priorityMap;
+            public FixerComparer(
+                ArrayBuilder<CodeFixProvider> allFixers,
+                ImmutableDictionary<CodeFixProvider, int> priorityMap)
+            {
+                _fixerToIndex = allFixers.Select((fixer, index) => (fixer, index)).ToDictionary(t => t.fixer, t => t.index);
+                _priorityMap = priorityMap;
+            }
 
             public int Compare([AllowNull] CodeFixProvider x, [AllowNull] CodeFixProvider y)
-                => GetValue(x!).CompareTo(GetValue(y!));
+            {
+                Contract.ThrowIfNull(x);
+                Contract.ThrowIfNull(y);
 
-            private int GetValue(CodeFixProvider provider)
-                => _priorityMap.TryGetValue(provider, out var value) ? value : int.MaxValue;
+                // If the fixers specify an explicit ordering between each other, then respect that.
+                if (_priorityMap.TryGetValue(x, out var xOrder) &&
+                    _priorityMap.TryGetValue(y, out var yOrder))
+                {
+                    var comparison = xOrder - yOrder;
+                    if (comparison != 0)
+                        return comparison;
+                }
+
+                // Otherwise, keep things in the same order that they were in the list (i.e. keep things stable).
+                return _fixerToIndex[x] - _fixerToIndex[y];
+            }
         }
     }
 }
