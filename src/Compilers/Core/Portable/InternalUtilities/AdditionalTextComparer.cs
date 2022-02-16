@@ -32,23 +32,22 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            try
-            {
-                var xText = GetTextOrNullIfBinary(x);
-                var yText = GetTextOrNullIfBinary(y);
+            var xText = GetTextOrNullIfBinary(x);
+            var yText = GetTextOrNullIfBinary(y);
 
-                if (xText is null || yText is null || xText.Length != yText.Length)
-                {
-                    return false;
-                }
-
-                return ByteSequenceComparer.Equals(xText.GetChecksum(), yText.GetChecksum());
-            }
-            catch (InvalidDataException)
+            // If xText and yText are both null, then the additional text is observably not changed
+            // and can be treated as equal.
+            if (xText is null && yText is null)
             {
-                // Either x, y, or both
-                throw;
+                return true;
             }
+
+            if (xText.Length != yText.Length)
+            {
+                return false;
+            }
+
+            return ByteSequenceComparer.Equals(xText.GetChecksum(), yText.GetChecksum());
         }
 
         public int GetHashCode(AdditionalText obj)
