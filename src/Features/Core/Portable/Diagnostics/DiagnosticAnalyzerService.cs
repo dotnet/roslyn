@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Diagnostics.EngineV2;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -35,7 +34,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public IAsynchronousOperationListener Listener { get; }
 
-        private readonly IWorkspaceThreadingService? _workspaceThreadingService;
         private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer> _map;
         private readonly ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>.CreateValueCallback _createIncrementalAnalyzer;
 
@@ -43,13 +41,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DiagnosticAnalyzerService(
             IDiagnosticUpdateSourceRegistrationService registrationService,
-            IAsynchronousOperationListenerProvider listenerProvider,
-            [Import(AllowDefault = true)] IWorkspaceThreadingService? workspaceThreadingService)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             AnalyzerInfoCache = new DiagnosticAnalyzerInfoCache();
             Listener = listenerProvider.GetListener(FeatureAttribute.DiagnosticService);
 
-            _workspaceThreadingService = workspaceThreadingService;
             _map = new ConditionalWeakTable<Workspace, DiagnosticIncrementalAnalyzer>();
             _createIncrementalAnalyzer = CreateIncrementalAnalyzerCallback;
             _eventMap = new EventMap();

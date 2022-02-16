@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
@@ -34,7 +33,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         private readonly StateManager _stateManager;
         private readonly InProcOrRemoteHostAnalyzerRunner _diagnosticAnalyzerRunner;
         private readonly IDocumentTrackingService _documentTrackingService;
-        private readonly IWorkspaceThreadingService? _workspaceThreadingService;
         private ConditionalWeakTable<Project, CompilationWithAnalyzers?> _projectCompilationsWithAnalyzers;
 
         internal DiagnosticAnalyzerService AnalyzerService { get; }
@@ -45,14 +43,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             DiagnosticAnalyzerService analyzerService,
             int correlationId,
             Workspace workspace,
-            DiagnosticAnalyzerInfoCache analyzerInfoCache,
-            IWorkspaceThreadingService? workspaceThreadingService)
+            DiagnosticAnalyzerInfoCache analyzerInfoCache)
         {
             Contract.ThrowIfNull(analyzerService);
 
             AnalyzerService = analyzerService;
             Workspace = workspace;
-            _workspaceThreadingService = workspaceThreadingService;
             _documentTrackingService = workspace.Services.GetRequiredService<IDocumentTrackingService>();
 
             _correlationId = correlationId;

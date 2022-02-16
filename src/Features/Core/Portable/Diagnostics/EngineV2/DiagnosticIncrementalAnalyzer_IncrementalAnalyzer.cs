@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return;
             }
 
-            AnalyzerService.RaiseBulkDiagnosticsUpdated(raiseEvents =>
+            AnalyzerService.RaiseBulkDiagnosticsUpdated(async raiseEvents =>
             {
                 foreach (var stateSet in stateSets)
                 {
@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     if (oldAnalysisResult.IsEmpty && !newAnalysisResult.IsEmpty)
                     {
                         // add new diagnostics
-                        RaiseProjectDiagnosticsCreated(project, stateSet, oldAnalysisResult, newAnalysisResult, raiseEvents);
+                        await RaiseProjectDiagnosticsCreatedAsync(project, stateSet, oldAnalysisResult, newAnalysisResult, raiseEvents, CancellationToken.None).ConfigureAwait(false);
                         continue;
                     }
 
@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     RaiseProjectDiagnosticsRemoved(stateSet, oldAnalysisResult.ProjectId, documentsToRemove, handleActiveFile: false, raiseEvents);
 
                     // next update or create new ones
-                    RaiseProjectDiagnosticsCreated(project, stateSet, oldAnalysisResult, newAnalysisResult, raiseEvents);
+                    await RaiseProjectDiagnosticsCreatedAsync(project, stateSet, oldAnalysisResult, newAnalysisResult, raiseEvents, CancellationToken.None).ConfigureAwait(false);
                 }
             });
         }
@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             RaiseDiagnosticsCreated(document, stateSet, kind, newItems, raiseEvents);
         }
 
-        private void RaiseProjectDiagnosticsCreated(Project project, StateSet stateSet, DiagnosticAnalysisResult oldAnalysisResult, DiagnosticAnalysisResult newAnalysisResult, Action<DiagnosticsUpdatedArgs> raiseEvents)
+        private async Task RaiseProjectDiagnosticsCreatedAsync(Project project, StateSet stateSet, DiagnosticAnalysisResult oldAnalysisResult, DiagnosticAnalysisResult newAnalysisResult, Action<DiagnosticsUpdatedArgs> raiseEvents, CancellationToken cancellationToken)
         {
             RoslynDebug.Assert(newAnalysisResult.DocumentIds != null);
 
@@ -550,14 +550,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (document is null
                     && project.Solution.Workspace.Services.GetService<ISyntaxTreeConfigurationService>() is { EnableOpeningSourceGeneratedFilesInWorkspace: true })
                 {
-                    if (_workspaceThreadingService is not null)
-                    {
-                        document = _workspaceThreadingService.Run(() => project.GetSourceGeneratedDocumentAsync(documentId, CancellationToken.None).AsTask());
-                    }
-                    else
-                    {
-                        document = project.GetSourceGeneratedDocumentAsync(documentId, CancellationToken.None).AsTask().WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
-                    }
+                    document = await project.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
                 }
 
                 if (document == null)
