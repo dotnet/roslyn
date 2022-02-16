@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 var pooledBuilder = PooledStringBuilder.GetInstance();
                 var builder = pooledBuilder.Builder;
                 builder.Append(" { ");
-                var x = errorArguments.Select(a => a.Name + " = " + a.Value.ToString()).ToArray();
+                var x = errorArguments.Select(a => printErrorArgument(a)).ToArray();
                 for (int i = 0; i < x.Length; i++)
                 {
                     if (i > 0)
@@ -370,6 +370,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 builder.Append(" }");
 
                 return pooledBuilder.ToStringAndFree();
+            }
+
+            static string printErrorArgument(ILVerify.ErrorArgument errorArgument)
+            {
+                var name = errorArgument.Name;
+
+                string value;
+                if (name == "Offset" && errorArgument.Value is int i)
+                {
+                    value = "0x" + Convert.ToString(i, 16);
+                }
+                else
+                {
+                    value = errorArgument.Value.ToString();
+                }
+
+                return name + " = " + value;
             }
         }
 
