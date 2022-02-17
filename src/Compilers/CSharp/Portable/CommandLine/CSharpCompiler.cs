@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     string? consumerNamespace = inputCompilation.AssemblyName ?? "";
 
-                    if (!licenseManager.CanConsumeFeatures(LicensedFeatures.Community, consumerNamespace))
+                    if (!licenseManager.CanConsumeFeatures(LicensedFeatures.Essentials, consumerNamespace))
                     {
                         diagnostics.Add(Diagnostic.Create(MetalamaCompilerMessageProvider.Instance,
                             (int)MetalamaErrorCode.ERR_InvalidLicenseOverall));
