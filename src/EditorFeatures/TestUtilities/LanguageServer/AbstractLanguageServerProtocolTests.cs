@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
@@ -44,6 +43,7 @@ namespace Roslyn.Test.Utilities
         private static readonly TestComposition s_composition = EditorTestCompositions.LanguageServerProtocolWpf
             .AddParts(typeof(TestDocumentTrackingService))
             .AddParts(typeof(TestWorkspaceRegistrationService))
+            .AddParts(typeof(TestSyntaxTreeConfigurationService))
             .RemoveParts(typeof(MockWorkspaceEventListenerProvider));
 
         private class TestSpanMapperProvider : IDocumentServiceProvider
@@ -284,10 +284,10 @@ namespace Roslyn.Test.Utilities
         /// Creates an LSP server backed by a workspace instance with a solution containing the markup.
         /// </summary>
         protected Task<TestLspServer> CreateTestLspServerAsync(string markup, LSP.ClientCapabilities? clientCapabilities = null)
-            => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.CSharp, clientCapabilities);
+            => CreateTestLspServerAsync(new string[] { markup }, Array.Empty<string>(), LanguageNames.CSharp, clientCapabilities);
 
         protected Task<TestLspServer> CreateVisualBasicTestLspServerAsync(string markup, LSP.ClientCapabilities? clientCapabilities = null)
-            => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.VisualBasic, clientCapabilities);
+            => CreateTestLspServerAsync(new string[] { markup }, Array.Empty<string>(), LanguageNames.VisualBasic, clientCapabilities);
 
         protected Task<TestLspServer> CreateMultiProjectLspServerAsync(string xmlMarkup, LSP.ClientCapabilities? clientCapabilities = null)
             => CreateTestLspServerAsync(TestWorkspace.Create(xmlMarkup, composition: Composition), clientCapabilities, WellKnownLspServerKinds.AlwaysActiveVSLspServer);
@@ -296,17 +296,27 @@ namespace Roslyn.Test.Utilities
         /// Creates an LSP server backed by a workspace instance with a solution containing the specified documents.
         /// </summary>
         protected Task<TestLspServer> CreateTestLspServerAsync(string[] markups, LSP.ClientCapabilities? clientCapabilities = null)
-            => CreateTestLspServerAsync(markups, LanguageNames.CSharp, clientCapabilities);
+            => CreateTestLspServerAsync(markups, Array.Empty<string>(), LanguageNames.CSharp, clientCapabilities);
 
         private protected Task<TestLspServer> CreateTestLspServerAsync(string markup, LSP.ClientCapabilities clientCapabilities, WellKnownLspServerKinds serverKind)
-            => CreateTestLspServerAsync(new string[] { markup }, LanguageNames.CSharp, clientCapabilities, serverKind);
+            => CreateTestLspServerAsync(new string[] { markup }, Array.Empty<string>(), LanguageNames.CSharp, clientCapabilities, serverKind);
 
-        private Task<TestLspServer> CreateTestLspServerAsync(string[] markups, string languageName, LSP.ClientCapabilities? clientCapabilities, WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer)
+        /// <summary>
+        /// Creates an LSP server backed by a workspace instance with a solution containing the specified documents.
+        /// </summary>
+        protected Task<TestLspServer> CreateTestLspServerAsync(string[] markups, string[] sourceGeneratedMarkups, LSP.ClientCapabilities? clientCapabilities = null)
+            => CreateTestLspServerAsync(markups, sourceGeneratedMarkups, LanguageNames.CSharp, clientCapabilities);
+
+        private Task<TestLspServer> CreateTestLspServerAsync(string[] markups, string[] sourceGeneratedMarkups, string languageName, LSP.ClientCapabilities? clientCapabilities, WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer)
         {
+            var exportProvider = Composition.ExportProviderFactory.CreateExportProvider();
+            var syntaxTreeConfigurationService = exportProvider.GetExportedValue<TestSyntaxTreeConfigurationService>();
+            syntaxTreeConfigurationService.EnableOpeningSourceGeneratedFilesInWorkspace = true;
+
             var workspace = languageName switch
             {
-                LanguageNames.CSharp => TestWorkspace.CreateCSharp(markups, composition: Composition),
-                LanguageNames.VisualBasic => TestWorkspace.CreateVisualBasic(markups, composition: Composition),
+                LanguageNames.CSharp => TestWorkspace.CreateCSharp(markups, sourceGeneratedMarkups, exportProvider: exportProvider),
+                LanguageNames.VisualBasic => TestWorkspace.CreateVisualBasic(markups, sourceGeneratedMarkups, exportProvider: exportProvider),
                 _ => throw new ArgumentException($"language name {languageName} is not valid for a test workspace"),
             };
 
@@ -319,6 +329,9 @@ namespace Roslyn.Test.Utilities
 
             foreach (var document in workspace.Documents)
             {
+                if (document.IsSourceGenerated)
+                    continue;
+
                 solution = solution.WithDocumentFilePath(document.Id, GetDocumentFilePathFromName(document.Name));
             }
 
@@ -374,13 +387,13 @@ namespace Roslyn.Test.Utilities
             workspace.TryApplyChanges(newSolution);
         }
 
-        public static Dictionary<string, IList<LSP.Location>> GetAnnotatedLocations(TestWorkspace workspace, Solution solution)
+        public static async Task<Dictionary<string, IList<LSP.Location>>> GetAnnotatedLocationsAsync(TestWorkspace workspace, Solution solution)
         {
             var locations = new Dictionary<string, IList<LSP.Location>>();
             foreach (var testDocument in workspace.Documents)
             {
-                var document = solution.GetRequiredDocument(testDocument.Id);
-                var text = document.GetTextSynchronously(CancellationToken.None);
+                var document = await solution.GetRequiredDocumentAsync(testDocument.Id, includeSourceGenerated: true, CancellationToken.None);
+                var text = await document.GetTextAsync(CancellationToken.None);
                 foreach (var (name, spans) in testDocument.AnnotatedSpans)
                 {
                     var locationsForName = locations.GetValueOrDefault(name, new List<LSP.Location>());
@@ -457,11 +470,11 @@ namespace Roslyn.Test.Utilities
 
             public LSP.ClientCapabilities ClientCapabilities { get; }
 
-            private TestLspServer(TestWorkspace testWorkspace, LSP.ClientCapabilities clientCapabilities, WellKnownLspServerKinds serverKind = WellKnownLspServerKinds.AlwaysActiveVSLspServer)
+            private TestLspServer(TestWorkspace testWorkspace, Dictionary<string, IList<LSP.Location>> locations, LSP.ClientCapabilities clientCapabilities, WellKnownLspServerKinds serverKind)
             {
                 TestWorkspace = testWorkspace;
                 ClientCapabilities = clientCapabilities;
-                _locations = GetAnnotatedLocations(testWorkspace, testWorkspace.CurrentSolution);
+                _locations = locations;
 
                 var (clientStream, serverStream) = FullDuplexStream.CreatePair();
                 _languageServer = CreateLanguageServer(serverStream, serverStream, TestWorkspace, serverKind);
@@ -490,7 +503,8 @@ namespace Roslyn.Test.Utilities
 
             internal static async Task<TestLspServer> CreateAsync(TestWorkspace testWorkspace, LSP.ClientCapabilities clientCapabilities, WellKnownLspServerKinds serverKind)
             {
-                var server = new TestLspServer(testWorkspace, clientCapabilities, serverKind);
+                var locations = await GetAnnotatedLocationsAsync(testWorkspace, testWorkspace.CurrentSolution);
+                var server = new TestLspServer(testWorkspace, locations, clientCapabilities, serverKind);
 
                 await server.ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(LSP.Methods.InitializeName, new LSP.InitializeParams
                 {

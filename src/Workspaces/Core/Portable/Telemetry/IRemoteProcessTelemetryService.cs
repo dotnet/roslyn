@@ -25,6 +25,6 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Configures recoverable syntax tree creation in the process.
         /// Called as soon as the remote process is created but can't guarantee that syntax trees have not been created beforehand.
         /// </summary>
-        ValueTask SetSyntaxTreeConfigurationOptionsAsync(bool disableRecoverableTrees, bool disableProjectCacheService, CancellationToken cancellationToken);
+        ValueTask SetSyntaxTreeConfigurationOptionsAsync(bool disableRecoverableTrees, bool disableProjectCacheService, bool enableOpeningSourceGeneratedFilesInWorkspace, CancellationToken cancellationToken);
     }
 }
