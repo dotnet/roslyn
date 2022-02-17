@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // this is one of the literal parts
                         Debug.Assert(part is BoundLiteral && part.ConstantValue is { StringValue: { } });
-                        part = _factory.StringLiteral(ConstantValueUtils.UnescapeInterpolatedStringLiteral(part.ConstantValue.StringValue));
+                        part = _factory.StringLiteral(part.ConstantValue.StringValue);
                     }
 
                     result = result == null ?

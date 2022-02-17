@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing;
@@ -1850,7 +1851,7 @@ int M(out int val)
                     Diagnostic(ErrorCode.ERR_LineContainsDifferentWhitespace, " 	").WithArguments(@"\t", @"\u0020").WithLocation(4, 1));
     }
 
-    [Fact]
+    [Fact, WorkItem(59603, "https://github.com/dotnet/roslyn/issues/59603")]
     public void TestWhitespaceMismatch5()
     {
         RenderAndVerify(
@@ -1859,7 +1860,7 @@ int M(out int val)
                     Diagnostic(ErrorCode.ERR_LineContainsDifferentWhitespace, "").WithArguments(@"\f", @"\v").WithLocation(4, 1));
     }
 
-    [Fact]
+    [Fact, WorkItem(59603, "https://github.com/dotnet/roslyn/issues/59603")]
     public void TestThreeDollarTwoCurly_SingleLine()
     {
         RenderAndVerify(@"

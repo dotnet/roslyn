@@ -154,18 +154,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case SyntaxKind.InterpolatedStringText:
                             {
                                 var text = ((InterpolatedStringTextSyntax)content).TextToken.ValueText;
-                                builder.Add(new BoundLiteral(content, ConstantValue.Create(text, SpecialType.System_String), stringType));
+                                // Raw string literals have no escapes.  So there is no need to manipulate their value texts.
+                                if (!isRawInterpolatedString)
+                                {
+                                    text = ConstantValueUtils.UnescapeInterpolatedStringLiteral(text);
+                                }
+
+                                var constantValue = ConstantValue.Create(text, SpecialType.System_String);
+                                builder.Add(new BoundLiteral(content, constantValue, stringType));
                                 if (isResultConstant)
                                 {
-                                    if (!isRawInterpolatedString)
-                                    {
-                                        text = ConstantValueUtils.UnescapeInterpolatedStringLiteral(text);
-                                    }
-
-                                    var constantVal = ConstantValue.Create(text, SpecialType.System_String);
-                                    resultConstant = (resultConstant is null)
-                                        ? constantVal
-                                        : FoldStringConcatenation(BinaryOperatorKind.StringConcatenation, resultConstant, constantVal);
+                                    resultConstant = resultConstant is null
+                                        ? constantValue
+                                        : FoldStringConcatenation(BinaryOperatorKind.StringConcatenation, resultConstant, constantValue);
                                 }
                                 continue;
                             }
@@ -754,7 +755,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var boundLiteral = (BoundLiteral)part;
                         Debug.Assert(boundLiteral.ConstantValue != null && boundLiteral.ConstantValue.IsString);
-                        var literalText = ConstantValueUtils.UnescapeInterpolatedStringLiteral(boundLiteral.ConstantValue.StringValue);
+                        var literalText = boundLiteral.ConstantValue.StringValue;
                         methodName = BoundInterpolatedString.AppendLiteralMethod;
                         argumentsBuilder.Add(boundLiteral.Update(ConstantValue.Create(literalText), boundLiteral.Type));
                         isLiteral = true;
