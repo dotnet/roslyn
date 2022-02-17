@@ -132,11 +132,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
 
         private static async Task<LSP.VSInternalCodeAction> RunGetCodeActionResolveAsync(
             TestLspServer testLspServer,
-            VSInternalCodeAction unresolvedCodeAction,
-            LSP.ClientCapabilities clientCapabilities = null)
+            VSInternalCodeAction unresolvedCodeAction)
         {
             var result = (VSInternalCodeAction)await testLspServer.ExecuteRequestAsync<LSP.CodeAction, LSP.CodeAction>(
-                LSP.Methods.CodeActionResolveName, unresolvedCodeAction, clientCapabilities, null, CancellationToken.None);
+                LSP.Methods.CodeActionResolveName, unresolvedCodeAction, CancellationToken.None);
             return result;
         }
 

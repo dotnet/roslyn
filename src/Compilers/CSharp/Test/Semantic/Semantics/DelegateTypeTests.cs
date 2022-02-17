@@ -3264,9 +3264,9 @@ interface IRouteBuilder
 }
 static class AppBuilderExtensions
 {
-    public static IAppBuilder Map(this IAppBuilder app, PathSring path, Action<IAppBuilder> callback)
+    public static IAppBuilder Map(this IAppBuilder app, PathString path, Action<IAppBuilder> callback)
     {
-        Console.WriteLine(""AppBuilderExtensions.Map(this IAppBuilder app, PathSring path, Action<IAppBuilder> callback)"");
+        Console.WriteLine(""AppBuilderExtensions.Map(this IAppBuilder app, PathString path, Action<IAppBuilder> callback)"");
         return app;
     }
 }
@@ -3278,20 +3278,20 @@ static class RouteBuilderExtensions
         return routes;
     }
 }
-struct PathSring
+struct PathString
 {
-    public PathSring(string? path)
+    public PathString(string? path)
     {
         Path = path;
     }
     public string? Path { get; }
-    public static implicit operator PathSring(string? s) => new PathSring(s);
-    public static implicit operator string?(PathSring path) => path.Path;
+    public static implicit operator PathString(string? s) => new PathString(s);
+    public static implicit operator string?(PathString path) => path.Path;
 }";
 
             var expectedOutput =
-@"AppBuilderExtensions.Map(this IAppBuilder app, PathSring path, Action<IAppBuilder> callback)
-AppBuilderExtensions.Map(this IAppBuilder app, PathSring path, Action<IAppBuilder> callback)
+@"AppBuilderExtensions.Map(this IAppBuilder app, PathString path, Action<IAppBuilder> callback)
+AppBuilderExtensions.Map(this IAppBuilder app, PathString path, Action<IAppBuilder> callback)
 ";
             CompileAndVerify(source, parseOptions: TestOptions.Regular9, expectedOutput: expectedOutput);
             CompileAndVerify(source, parseOptions: TestOptions.Regular10, expectedOutput: expectedOutput);
