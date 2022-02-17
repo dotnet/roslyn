@@ -1255,33 +1255,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        /// <summary>
-        /// Adds an additional output path that can be used for automatic conversion of metadata references to P2P references.
-        /// Any projects with metadata references to the path given here will be converted to project-to-project references.
-        /// </summary>
-        public void AddOutputPath(string outputPath)
-        {
-            if (string.IsNullOrEmpty(outputPath))
-            {
-                throw new ArgumentException($"{nameof(outputPath)} isn't a valid path.", nameof(outputPath));
-            }
-
-            _workspace.AddProjectOutputPath(Id, outputPath);
-        }
-
-        /// <summary>
-        /// Removes an additional output path that was added by <see cref="AddOutputPath(string)"/>.
-        /// </summary>
-        public void RemoveOutputPath(string outputPath)
-        {
-            if (string.IsNullOrEmpty(outputPath))
-            {
-                throw new ArgumentException($"{nameof(outputPath)} isn't a valid path.", nameof(outputPath));
-            }
-
-            _workspace.RemoveProjectOutputPath(Id, outputPath);
-        }
-
         public void ReorderSourceFiles(ImmutableArray<string> filePaths)
             => _sourceFiles.ReorderFiles(filePaths);
 
