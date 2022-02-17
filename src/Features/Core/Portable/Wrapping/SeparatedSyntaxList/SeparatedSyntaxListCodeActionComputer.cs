@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 _afterOpenTokenIndentationTrivia = afterOpenTokenIndentationTrivia;
                 _singleIndentationTrivia = singleIndentationTrivia;
 
-                _shouldMoveOpenBraceToNewLine = service.ShouldMoveOpenBraceToNewLine(options);
+                _shouldMoveOpenBraceToNewLine = service.ShouldMoveOpenBraceToNewLine(options.FormattingOptions);
                 _shouldMoveCloseBraceToNewLine = service.ShouldMoveCloseBraceToNewLine;
             }
 
@@ -104,8 +104,8 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 
                 var generator = SyntaxGenerator.GetGenerator(document);
 
-                var useTabs = options.FormattingOptions.GetOption(FormattingOptions2.UseTabs);
-                var tabSize = options.FormattingOptions.GetOption(FormattingOptions2.TabSize);
+                var useTabs = options.FormattingOptions.UseTabs;
+                var tabSize = options.FormattingOptions.TabSize;
 
                 var openToken = listSyntax.GetFirstToken();
                 var afterOpenTokenOffset = sourceText.GetOffset(openToken.Span.End);
@@ -211,7 +211,6 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 var parentTitle = Wrapper.Wrap_long_list;
                 using var _ = ArrayBuilder<WrapItemsAction>.GetInstance(out var codeActions);
 
-<<<<<<< HEAD
                 if (this.Wrapper.Supports_WrapLongGroup_UnwrapFirst)
                 {
                     // MethodName(int a, int b, int c,
@@ -219,16 +218,8 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                     //            int g, int h, int i,
                     //            int j)
                     codeActions.Add(await GetWrapLongLineCodeActionAsync(
-                        parentTitle, WrappingStyle.UnwrapFirst_AlignRest).ConfigureAwait(false));
+                        parentTitle, WrappingStyle.UnwrapFirst_AlignRest, cancellationToken).ConfigureAwait(false));
                 }
-=======
-                // MethodName(int a, int b, int c,
-                //            int d, int e, int f,
-                //            int g, int h, int i,
-                //            int j)
-                codeActions.Add(await GetWrapLongLineCodeActionAsync(
-                    parentTitle, WrappingStyle.UnwrapFirst_AlignRest, cancellationToken).ConfigureAwait(false));
->>>>>>> 1ce822a3564 (Indenter refactoring)
 
                 // MethodName(
                 //     int a, int b, int c, int d, int e,
@@ -236,22 +227,14 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 codeActions.Add(await GetWrapLongLineCodeActionAsync(
                     parentTitle, WrappingStyle.WrapFirst_IndentRest, cancellationToken).ConfigureAwait(false));
 
-<<<<<<< HEAD
                 if (this.Wrapper.Supports_WrapLongGroup_UnwrapFirst)
                 {
                     // MethodName(int a, int b, int c, 
                     //     int d, int e, int f, int g,
                     //     int h, int i, int j)
                     codeActions.Add(await GetWrapLongLineCodeActionAsync(
-                    parentTitle, WrappingStyle.UnwrapFirst_IndentRest).ConfigureAwait(false));
-                }
-=======
-                // MethodName(int a, int b, int c, 
-                //     int d, int e, int f, int g,
-                //     int h, int i, int j)
-                codeActions.Add(await GetWrapLongLineCodeActionAsync(
                     parentTitle, WrappingStyle.UnwrapFirst_IndentRest, cancellationToken).ConfigureAwait(false));
->>>>>>> 1ce822a3564 (Indenter refactoring)
+                }
 
                 // The wrap-all and wrap-long code action titles are not unique.  i.e. we show them
                 // as:
@@ -352,7 +335,6 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 
                 using var _ = ArrayBuilder<WrapItemsAction>.GetInstance(out var codeActions);
 
-<<<<<<< HEAD
                 if (this.Wrapper.Supports_WrapEveryGroup_UnwrapFirst)
                 {
                     // MethodName(int a,
@@ -360,16 +342,8 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                     //            ...
                     //            int j);
                     codeActions.Add(await GetWrapEveryNestedCodeActionAsync(
-                        parentTitle, WrappingStyle.UnwrapFirst_AlignRest).ConfigureAwait(false));
+                        parentTitle, WrappingStyle.UnwrapFirst_AlignRest, cancellationToken).ConfigureAwait(false));
                 }
-=======
-                // MethodName(int a,
-                //            int b,
-                //            ...
-                //            int j);
-                codeActions.Add(await GetWrapEveryNestedCodeActionAsync(
-                    parentTitle, WrappingStyle.UnwrapFirst_AlignRest, cancellationToken).ConfigureAwait(false));
->>>>>>> 1ce822a3564 (Indenter refactoring)
 
                 // MethodName(
                 //     int a,
@@ -379,7 +353,6 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                 codeActions.Add(await GetWrapEveryNestedCodeActionAsync(
                     parentTitle, WrappingStyle.WrapFirst_IndentRest, cancellationToken).ConfigureAwait(false));
 
-<<<<<<< HEAD
                 if (this.Wrapper.Supports_WrapEveryGroup_UnwrapFirst)
                 {
                     // MethodName(int a,
@@ -387,16 +360,8 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                     //     ...
                     //     int j)
                     codeActions.Add(await GetWrapEveryNestedCodeActionAsync(
-                        parentTitle, WrappingStyle.UnwrapFirst_IndentRest).ConfigureAwait(false));
+                        parentTitle, WrappingStyle.UnwrapFirst_IndentRest, cancellationToken).ConfigureAwait(false));
                 }
-=======
-                // MethodName(int a,
-                //     int b,
-                //     ...
-                //     int j)
-                codeActions.Add(await GetWrapEveryNestedCodeActionAsync(
-                    parentTitle, WrappingStyle.UnwrapFirst_IndentRest, cancellationToken).ConfigureAwait(false));
->>>>>>> 1ce822a3564 (Indenter refactoring)
 
                 // See comment in GetWrapLongTopLevelCodeActionAsync for explanation of why we're
                 // not inlinable.
