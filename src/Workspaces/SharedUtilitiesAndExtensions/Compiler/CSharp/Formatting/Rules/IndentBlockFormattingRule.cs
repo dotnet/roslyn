@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var bracePair = node.GetBracePair();
 
             // don't put block indentation operation if the block only contains label statement
-            if (!bracePair.IsValidBracePair())
+            if (!bracePair.IsValidBracketOrBracePair())
             {
                 return;
             }
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             var bracketPair = node.GetBracketPair();
 
-            if (!bracketPair.IsValidBracePair())
+            if (!bracketPair.IsValidBracketOrBracePair())
             {
                 return;
             }
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 // Brackets in list patterns are formatted like blocks, so align close bracket with open bracket
                 AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(list, bracketPair);
 
-                AddIndentBlockOperation(list, bracketPair.openBrace.GetNextToken(includeZeroWidth: true), bracketPair.closeBrace.GetPreviousToken(includeZeroWidth: true));
+                AddIndentBlockOperation(list, bracketPair.openBracket.GetNextToken(includeZeroWidth: true), bracketPair.closeBracket.GetPreviousToken(includeZeroWidth: true));
             }
         }
 

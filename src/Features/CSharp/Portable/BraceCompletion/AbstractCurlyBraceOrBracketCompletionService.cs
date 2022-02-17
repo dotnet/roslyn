@@ -30,7 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
         protected abstract ImmutableArray<AbstractFormattingRule> GetBraceFormattingIndentationRulesAfterReturn(IndentationOptions options);
 
-        public override async Task<BraceCompletionResult?> GetTextChangesAfterCompletionAsync(BraceCompletionContext context, IndentationOptions options, CancellationToken cancellationToken)
+        protected abstract int AdjustFormattingEndPoint(SourceText text, SyntaxNode root, int startPoint, int endPoint);
+
+        public sealed override async Task<BraceCompletionResult?> GetTextChangesAfterCompletionAsync(BraceCompletionContext context, IndentationOptions options, CancellationToken cancellationToken)
         {
             // After the closing brace is completed we need to format the span from the opening point to the closing point.
             // E.g. when the user triggers completion for an if statement ($$ is the caret location) we insert braces to get
@@ -83,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             return true;
         }
 
-        public override async Task<BraceCompletionResult?> GetTextChangeAfterReturnAsync(
+        public sealed override async Task<BraceCompletionResult?> GetTextChangeAfterReturnAsync(
             BraceCompletionContext context,
             IndentationOptions options,
             CancellationToken cancellationToken)
@@ -262,8 +264,5 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 return document.WithSyntaxRoot(root);
             }
         }
-
-        protected virtual int AdjustFormattingEndPoint(SourceText text, SyntaxNode root, int startPoint, int endPoint)
-            => endPoint;
     }
 }

@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
@@ -39,14 +40,17 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
 
         protected override bool IsValidClosingBraceToken(SyntaxToken token) => token.IsKind(SyntaxKind.CloseBracketToken);
 
+        protected override int AdjustFormattingEndPoint(SourceText text, SyntaxNode root, int startPoint, int endPoint)
+            => endPoint;
+
         protected override ImmutableArray<AbstractFormattingRule> GetBraceFormattingIndentationRulesAfterReturn(IndentationOptions options)
         {
-            return ImmutableArray.Create(BraceCompletionFormattingRule.Instance);
+            return ImmutableArray.Create(BracketCompletionFormattingRule.Instance);
         }
 
-        private sealed class BraceCompletionFormattingRule : BaseFormattingRule
+        private sealed class BracketCompletionFormattingRule : BaseFormattingRule
         {
-            public static readonly AbstractFormattingRule Instance = new BraceCompletionFormattingRule();
+            public static readonly AbstractFormattingRule Instance = new BracketCompletionFormattingRule();
 
             public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
             {
@@ -64,13 +68,13 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             {
                 base.AddAlignTokensOperations(list, node, in nextOperation);
 
-                var bracePair = node.GetBracketPair();
-                if (bracePair.IsValidBracePair() && node is ListPatternSyntax)
+                var bracketPair = node.GetBracketPair();
+                if (bracketPair.IsValidBracketOrBracePair() && node is ListPatternSyntax)
                 {
                     // For list patterns we format brackets as though they are a block, so ensure the close bracket
-                    // is aligned with the open brack
-                    AddAlignIndentationOfTokensToBaseTokenOperation(list, node, bracePair.openBrace,
-                        SpecializedCollections.SingletonEnumerable(bracePair.closeBrace), AlignTokensOption.AlignIndentationOfTokensToFirstTokenOfBaseTokenLine);
+                    // is aligned with the open bracket
+                    AddAlignIndentationOfTokensToBaseTokenOperation(list, node, bracketPair.openBracket,
+                        SpecializedCollections.SingletonEnumerable(bracketPair.closeBracket), AlignTokensOption.AlignIndentationOfTokensToFirstTokenOfBaseTokenLine);
                 }
             }
         }
