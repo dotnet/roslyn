@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -200,7 +198,9 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
                     result.Add(Edit.DeleteBetween(comma, comma.GetNextToken()));
                 }
 
-                result.Add(Edit.DeleteBetween(_listItems.Last(), _listSyntax.GetLastToken()));
+                var last = _listItems.GetWithSeparators().Last();
+                if (last.IsNode)
+                    result.Add(Edit.DeleteBetween(last, _listSyntax.GetLastToken()));
 
                 return result.ToImmutable();
             }
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 
                 for (var i = 0; i < itemsAndSeparators.Count; i += 2)
                 {
-                    var item = itemsAndSeparators[i].AsNode();
+                    var item = itemsAndSeparators[i].AsNode()!;
 
                     // Figure out where we'd be after this item.
                     currentOffset += item.Span.Length;
@@ -318,11 +318,11 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 
                 if (this.Wrapper.ShouldMoveCloseBraceToNewLine)
                 {
-                    result.Add(Edit.UpdateBetween(_listItems.Last(), NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetLastToken()));
+                    result.Add(Edit.UpdateBetween(itemsAndSeparators.Last(), NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetLastToken()));
                 }
                 else
                 {
-                    result.Add(Edit.DeleteBetween(_listItems.Last(), _listSyntax.GetLastToken()));
+                    result.Add(Edit.DeleteBetween(itemsAndSeparators.Last(), _listSyntax.GetLastToken()));
                 }
 
                 return result.ToImmutable();
@@ -403,29 +403,29 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 
                 var itemsAndSeparators = _listItems.GetWithSeparators();
 
-                for (var i = 0; i < itemsAndSeparators.Count; i += 2)
+                for (var i = 1; i < itemsAndSeparators.Count; i += 2)
                 {
-                    var item = itemsAndSeparators[i].AsNode();
+                    var comma = itemsAndSeparators[i].AsToken();
+
+                    var item = itemsAndSeparators[i - 1];
+                    result.Add(Edit.DeleteBetween(item, comma));
+
                     if (i < itemsAndSeparators.Count - 1)
                     {
-                        // intermediary item
-                        var comma = itemsAndSeparators[i + 1].AsToken();
-                        result.Add(Edit.DeleteBetween(item, comma));
-
                         // Always wrap between this comma and the next item.
                         result.Add(Edit.UpdateBetween(
-                            comma, NewLineTrivia, indentationTrivia, itemsAndSeparators[i + 2]));
+                            comma, NewLineTrivia, indentationTrivia, itemsAndSeparators[i + 1]));
                     }
                 }
 
                 if (_shouldMoveCloseBraceToNewLine)
                 {
-                    result.Add(Edit.UpdateBetween(_listItems.Last(), NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetLastToken()));
+                    result.Add(Edit.UpdateBetween(itemsAndSeparators.Last(), NewLineTrivia, _braceIndentationTrivia, _listSyntax.GetLastToken()));
                 }
                 else
                 {
                     // last item.  Delete whatever is between it and the close token of the list.
-                    result.Add(Edit.DeleteBetween(_listItems.Last(), _listSyntax.GetLastToken()));
+                    result.Add(Edit.DeleteBetween(itemsAndSeparators.Last(), _listSyntax.GetLastToken()));
                 }
 
                 return result.ToImmutable();
