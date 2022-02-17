@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
     /// </summary>
     internal abstract class AbstractRegexDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
-        public const string DiagnosticId = "RE0001";
+        public const string DiagnosticId = "LAMA0601";
 
         private readonly EmbeddedLanguageInfo _info;
 

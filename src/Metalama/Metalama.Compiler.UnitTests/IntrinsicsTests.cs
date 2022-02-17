@@ -300,7 +300,7 @@ class G
 
             var comp = CreateCompilation(code, _references);
             comp.VerifyEmitDiagnostics(
-                // (6,32): error RE0006: Argument 'null' is not valid for Metalama.Compiler intrinsic method 'Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(string)'.
+                // (6,32): error LAMA0606: Argument 'null' is not valid for Metalama.Compiler intrinsic method 'Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(string)'.
                 //     RuntimeMethodHandle M() => Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(null);
                 Diagnostic(MetalamaErrorCode.ERR_InvalidIntrinsicUse, "Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(null)").WithArguments("null", "Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(string)").WithLocation(6, 32));
         }
@@ -318,7 +318,7 @@ class G
 
             var comp = CreateCompilation(code, _references);
             comp.VerifyEmitDiagnostics(
-                // (6,32): error RE0006: Argument '"incorrect"' is not valid for Metalama.Compiler intrinsic method 'Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(string)'.
+                // (6,32): error LAMA0606: Argument '"incorrect"' is not valid for Metalama.Compiler intrinsic method 'Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(string)'.
                 //     RuntimeMethodHandle M() => Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle("incorrect");
                 Diagnostic(MetalamaErrorCode.ERR_InvalidIntrinsicUse, @"Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(""incorrect"")").WithArguments("\"incorrect\"", "Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(string)").WithLocation(6, 32));
         }
@@ -340,7 +340,7 @@ class G
 
             var comp = CreateCompilation(code, _references);
             comp.VerifyEmitDiagnostics(
-                // (9,16): error RE0006: Argument 'docId' is not valid for Metalama.Compiler intrinsic method 'Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(string)'.
+                // (9,16): error LAMA0606: Argument 'docId' is not valid for Metalama.Compiler intrinsic method 'Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(string)'.
                 //         return Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(docId);
                 Diagnostic(MetalamaErrorCode.ERR_InvalidIntrinsicUse, "Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(docId)").WithArguments("docId", "Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(string)").WithLocation(9, 16));
         }
@@ -364,7 +364,7 @@ class G
 
             var comp = CreateCompilation(code, _references);
             comp.VerifyEmitDiagnostics(
-                // (12,32): error RE0006: Argument '"M:C.op_Explicit"' is not valid for Metalama.Compiler intrinsic method 'Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(string)'.
+                // (12,32): error LAMA0606: Argument '"M:C.op_Explicit"' is not valid for Metalama.Compiler intrinsic method 'Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(string)'.
                 //     RuntimeMethodHandle M() => Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle("M:C.op_Explicit");
                 Diagnostic(MetalamaErrorCode.ERR_InvalidIntrinsicUse, @"Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(""M:C.op_Explicit"")").WithArguments("\"M:C.op_Explicit\"", "Metalama.Compiler.Intrinsics.GetRuntimeMethodHandle(string)").WithLocation(12, 32));
         }
