@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var isNonVerbatimInterpolatedString = node.StringStartToken.Kind() != SyntaxKind.InterpolatedVerbatimStringStartToken;
+                var isRawInterpolatedString = node.StringStartToken.Kind() is SyntaxKind.InterpolatedSingleLineRawStringStartToken or SyntaxKind.InterpolatedMultiLineRawStringStartToken;
                 var newLinesInInterpolationsAllowed = this.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNewLinesInInterpolations);
 
                 var intType = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
@@ -156,7 +157,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 builder.Add(new BoundLiteral(content, ConstantValue.Create(text, SpecialType.System_String), stringType));
                                 if (isResultConstant)
                                 {
-                                    var constantVal = ConstantValue.Create(ConstantValueUtils.UnescapeInterpolatedStringLiteral(text), SpecialType.System_String);
+                                    if (!isRawInterpolatedString)
+                                    {
+                                        text = ConstantValueUtils.UnescapeInterpolatedStringLiteral(text);
+                                    }
+
+                                    var constantVal = ConstantValue.Create(text, SpecialType.System_String);
                                     resultConstant = (resultConstant is null)
                                         ? constantVal
                                         : FoldStringConcatenation(BinaryOperatorKind.StringConcatenation, resultConstant, constantVal);

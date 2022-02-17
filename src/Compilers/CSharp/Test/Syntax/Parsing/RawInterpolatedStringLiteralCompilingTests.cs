@@ -36,7 +36,7 @@ public class RawInterpolatedStringLiteralCompilingTests : CompilingTestBase
     private void RenderAndVerify(string markup, string expectedOutput, string? normalize)
     {
         var text = Render(markup, normalize);
-        ParseAllPrefixes(text);
+        // ParseAllPrefixes(text);
         CompileAndVerify(text, expectedOutput: Render(expectedOutput, normalize), trimOutput: false);
     }
 
@@ -1857,5 +1857,23 @@ int M(out int val)
 "class C\r\n{\r\nconst string s = $\"\"\"\r\n\f\r\n\v\"\"\";\r\n}",
                     // (4,1): error CS9003: Line contains different whitespace than the closing line of the raw string literal: '\f' versus '\v'
                     Diagnostic(ErrorCode.ERR_LineContainsDifferentWhitespace, "").WithArguments(@"\f", @"\v").WithLocation(4, 1));
+    }
+
+    [Fact]
+    public void TestThreeDollarTwoCurly_SingleLine()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $$$""""""{{1 + 2}}"""""");", expectedOutput: "{{1 + 2}}");
+    }
+
+    [Fact]
+    public void TestThreeDollarTwoCurly_MultiLine()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $$$""""""
+    {{1 + 2}}
+    """""");", expectedOutput: "{{1 + 2}}");
     }
 }
