@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// references to VS Icon types are removed.
     /// See https://github.com/dotnet/roslyn/issues/55142
     /// </summary>
+    [Method(LSP.Methods.TextDocumentCompletionName)]
     internal class CompletionHandler : IRequestHandler<LSP.CompletionParams, LSP.CompletionList?>
     {
         private readonly IGlobalOptionService _globalOptions;
@@ -38,8 +39,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly ImmutableHashSet<char> _vbTriggerCharacters;
 
         private readonly CompletionListCache _completionListCache;
-
-        public string Method => LSP.Methods.TextDocumentCompletionName;
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;

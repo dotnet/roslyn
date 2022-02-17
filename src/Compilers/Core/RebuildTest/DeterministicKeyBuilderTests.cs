@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         }
 
         /// <summary>
-        /// Disabling determinism should mean all calls to GetDeteriministicKey return different values.
+        /// Disabling determinism should mean all calls to GetDeterministicKey return different values.
         /// </summary>
         [Fact]
         public void CompilationOptionsDeterministicOff()
