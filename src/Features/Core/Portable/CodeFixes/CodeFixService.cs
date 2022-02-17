@@ -15,7 +15,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -40,12 +39,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private readonly IDiagnosticAnalyzerService _diagnosticService;
         private readonly ImmutableArray<Lazy<CodeFixProvider, CodeChangeProviderMetadata>> _fixers;
-        private readonly Dictionary<string, List<Lazy<CodeFixProvider, CodeChangeProviderMetadata>>> _fixersPerLanguageMap;
+        private readonly ImmutableDictionary<string, ImmutableArray<Lazy<CodeFixProvider, CodeChangeProviderMetadata>>> _fixersPerLanguageMap;
 
         private readonly ConditionalWeakTable<IReadOnlyList<AnalyzerReference>, ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>> _projectFixersMap = new();
 
         // Shared by project fixers and workspace fixers.
-        private readonly Lazy<ImmutableDictionary<CodeFixProvider, CodeChangeProviderMetadata>> _lazyFixerToMetadataMap;
         private readonly ConditionalWeakTable<AnalyzerReference, ProjectCodeFixProvider> _analyzerReferenceToFixersMap = new();
         private readonly ConditionalWeakTable<AnalyzerReference, ProjectCodeFixProvider>.CreateValueCallback _createProjectCodeFixProvider = r => new ProjectCodeFixProvider(r);
         private readonly ImmutableDictionary<LanguageKind, Lazy<ImmutableArray<IConfigurationFixProvider>>> _configurationProvidersMap;
@@ -56,6 +54,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         private ImmutableDictionary<CodeFixProvider, ImmutableArray<DiagnosticId>> _fixerToFixableIdsMap = ImmutableDictionary<CodeFixProvider, ImmutableArray<DiagnosticId>>.Empty;
         private ImmutableDictionary<object, FixAllProviderInfo?> _fixAllProviderMap = ImmutableDictionary<object, FixAllProviderInfo?>.Empty;
+        private ImmutableDictionary<CodeFixProvider, CodeChangeProviderMetadata?> _fixerToMetadataMap = ImmutableDictionary<CodeFixProvider, CodeChangeProviderMetadata?>.Empty;
 
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -71,12 +70,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             _fixers = fixers.ToImmutableArray();
             _fixersPerLanguageMap = _fixers.ToPerLanguageMapWithMultipleLanguages();
 
-            _lazyFixerToMetadataMap = new(() => fixers.Where(service => service.IsValueCreated).ToImmutableDictionary(service => service.Value, service => service.Metadata));
-
             _configurationProvidersMap = GetConfigurationProvidersPerLanguageMap(configurationProviders);
         }
-
-        private ImmutableDictionary<CodeFixProvider, CodeChangeProviderMetadata> FixerToMetadataMap => _lazyFixerToMetadataMap.Value;
 
         public async Task<FirstDiagnosticResult> GetMostSevereFixableDiagnosticAsync(
             Document document, TextSpan range, CancellationToken cancellationToken)
@@ -440,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                             getFixes: dxs =>
                             {
                                 var fixerName = fixer.GetType().Name;
-                                FixerToMetadataMap.TryGetValue(fixer, out var fixerMetadata);
+                                var fixerMetadata = TryGetMetadata(fixer);
 
                                 using (addOperationScope(fixerName))
                                 using (RoslynEventSource.LogInformationalBlock(FunctionId.CodeFixes_GetCodeFixesAsync, fixerName, cancellationToken))
@@ -491,6 +486,27 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     fixerToRangesAndDiagnostics.GetOrAdd(fixer, static _ => new()).Add((range, diagnostics));
                 }
             }
+        }
+
+        private CodeChangeProviderMetadata? TryGetMetadata(CodeFixProvider fixer)
+        {
+            return ImmutableInterlocked.GetOrAdd(
+                ref _fixerToMetadataMap,
+                fixer,
+                static (fixer, fixers) =>
+                {
+                    foreach (var lazy in fixers)
+                    {
+                        if (lazy.IsValueCreated && lazy.Value == fixer)
+                            return lazy.Metadata;
+                    }
+
+                    // Note: it feels very strange that we could ever not find a fixer in our list.  However, this
+                    // occurs in testing scenarios.  I'm not sure if the tests represent a bogus potential input, or if
+                    // this is something that can actually occur in practice and we want to keep working.
+                    return null;
+                },
+                _fixers);
         }
 
         private static async Task<ImmutableArray<CodeFix>> GetCodeFixesAsync(
@@ -878,7 +894,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 var lazyMap = new Lazy<ImmutableDictionary<DiagnosticId, ImmutableArray<CodeFixProvider>>>(() =>
                 {
-                    var mutableMap = new Dictionary<DiagnosticId, List<CodeFixProvider>>();
+                    using var _ = PooledDictionary<DiagnosticId, ArrayBuilder<CodeFixProvider>>.GetInstance(out var mutableMap);
 
                     foreach (var lazyFixer in lazyFixers)
                     {
@@ -894,18 +910,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                                 continue;
                             }
 
-                            var list = mutableMap.GetOrAdd(id, static _ => new List<CodeFixProvider>());
+                            var list = mutableMap.GetOrAdd(id, static _ => ArrayBuilder<CodeFixProvider>.GetInstance());
                             list.Add(fixer);
                         }
                     }
 
-                    var immutableMap = ImmutableDictionary.CreateBuilder<DiagnosticId, ImmutableArray<CodeFixProvider>>();
-                    foreach (var (diagnosticId, fixers) in mutableMap)
-                    {
-                        immutableMap.Add(diagnosticId, fixers.AsImmutableOrEmpty());
-                    }
-
-                    return immutableMap.ToImmutable();
+                    return mutableMap.ToImmutableDictionary(kvp => kvp.Key, kvp => kvp.Value.ToImmutableAndFree());
                 }, isThreadSafe: true);
 
                 fixerMap = fixerMap.Add(diagnosticId, lazyMap);
@@ -928,7 +938,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             return configurationFixerMap.ToImmutable();
 
-            static ImmutableArray<IConfigurationFixProvider> GetConfigurationFixProviders(List<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>> languageKindAndFixers)
+            static ImmutableArray<IConfigurationFixProvider> GetConfigurationFixProviders(ImmutableArray<Lazy<IConfigurationFixProvider, CodeChangeProviderMetadata>> languageKindAndFixers)
             {
                 using var builderDisposer = ArrayBuilder<IConfigurationFixProvider>.GetInstance(out var builder);
                 var orderedLanguageKindAndFixers = ExtensionOrderer.Order(languageKindAndFixers);
