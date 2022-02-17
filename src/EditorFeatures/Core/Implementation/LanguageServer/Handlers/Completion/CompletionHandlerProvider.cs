@@ -11,13 +11,10 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.Options;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(LSP.Methods.TextDocumentCompletionName)]
-    [ProvidesMethod(LSP.Methods.TextDocumentCompletionResolveName)]
+    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(CompletionHandler), typeof(CompletionResolveHandler)), Shared]
     internal class CompletionHandlerProvider : AbstractRequestHandlerProvider
     {
         private readonly IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> _completionProviders;

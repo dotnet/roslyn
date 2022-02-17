@@ -469,8 +469,8 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
 
         var documentUri = testWorkspace.CurrentSolution.Projects.First().Documents.First().GetURI();
 
-        using var testLspServerOne = await TestLspServer.CreateAsync(testWorkspace);
-        using var testLspServerTwo = await TestLspServer.CreateAsync(testWorkspace);
+        using var testLspServerOne = await TestLspServer.CreateAsync(testWorkspace, clientCapabilities: new(), WellKnownLspServerKinds.AlwaysActiveVSLspServer);
+        using var testLspServerTwo = await TestLspServer.CreateAsync(testWorkspace, clientCapabilities: new(), WellKnownLspServerKinds.AlwaysActiveVSLspServer);
 
         Assert.NotEqual(testLspServerOne.GetManager(), testLspServerTwo.GetManager());
 

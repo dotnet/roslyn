@@ -91,7 +91,7 @@ class A
         private static async Task<LSP.DocumentHighlight[]> RunGetDocumentHighlightAsync(TestLspServer testLspServer, LSP.Location caret)
         {
             var results = await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.DocumentHighlight[]>(LSP.Methods.TextDocumentDocumentHighlightName,
-                CreateTextDocumentPositionParams(caret), new LSP.ClientCapabilities(), null, CancellationToken.None);
+                CreateTextDocumentPositionParams(caret), CancellationToken.None);
             Array.Sort(results, (h1, h2) =>
             {
                 var compareKind = h1.Kind.CompareTo(h2.Kind);

@@ -15,12 +15,10 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(Methods.TextDocumentFoldingRangeName)]
+    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(FoldingRangesHandler)), Shared]
+    [Method(Methods.TextDocumentFoldingRangeName)]
     internal sealed class FoldingRangesHandler : AbstractStatelessRequestHandler<FoldingRangeParams, FoldingRange[]?>
     {
-        public override string Method => Methods.TextDocumentFoldingRangeName;
-
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
 
