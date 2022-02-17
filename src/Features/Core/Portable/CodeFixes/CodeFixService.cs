@@ -75,10 +75,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Document document,
             CodeActionRequestPriority priority)
         {
-            // For 'CodeActionPriorityRequest.Normal' or 'CodeActionPriorityRequest.Low', we do not compute
-            // suppression/configuration fixes, those fixes have a dedicated request priority
-            // 'CodeActionPriorityRequest.Lowest'.
-
             // Hence, for Normal or Low priority, we only need to execute analyzers which can report at least one
             // fixable diagnostic that can have a non-suppression/configuration fix. Note that for
             // 'CodeActionPriorityRequest.High', we only run compiler analyzer, which always has fixable
