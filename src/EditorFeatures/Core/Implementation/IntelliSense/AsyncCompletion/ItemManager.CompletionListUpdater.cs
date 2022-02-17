@@ -559,7 +559,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             {
                 foreach (var item in data.InitialSortedList)
                 {
-                    if (CompletionItemData.TryGetData(item, out var itemData) && itemData.IsProvidedByRoslynCompletionSource)
+                    if (CompletionItemData.TryGetData(item, out var itemData) && itemData.TriggerLocation.HasValue)
                     {
                         intialTriggerLocation = itemData.TriggerLocation.Value;
                         return true;

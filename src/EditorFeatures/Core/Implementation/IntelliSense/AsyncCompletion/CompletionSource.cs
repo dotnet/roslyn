@@ -490,10 +490,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (item is null)
                 throw new ArgumentNullException(nameof(item));
 
-            if (!CompletionItemData.TryGetData(item, out var itemData) || !itemData.IsProvidedByRoslynCompletionSource)
+            if (!CompletionItemData.TryGetData(item, out var itemData) || !itemData.TriggerLocation.HasValue)
                 return null;
 
-            Contract.ThrowIfNull(itemData.TriggerLocation);
             var document = itemData.TriggerLocation.Value.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
                 return null;

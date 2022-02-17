@@ -12,8 +12,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
     {
         private const string RoslynCompletionItemData = nameof(RoslynCompletionItemData);
 
-        public bool IsProvidedByRoslynCompletionSource => TriggerLocation.HasValue;
-
         public static bool TryGetData(CompletionItem vsCompletionitem, out CompletionItemData data)
             => vsCompletionitem.Properties.TryGetProperty(RoslynCompletionItemData, out data);
 
@@ -22,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             if (TryGetData(vsItem, out var data))
                 return data.RoslynItem;
 
+            // TriggerLocation is null for items provided by non-roslyn completion source
             var roslynItem = CreateDummyRoslynItem(vsItem);
             AddData(vsItem, roslynItem, triggerLocation: null);
 
