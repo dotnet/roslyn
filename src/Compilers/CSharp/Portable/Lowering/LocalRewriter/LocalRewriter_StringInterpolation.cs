@@ -220,7 +220,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (fillin == null)
                 {
                     Debug.Assert(part is BoundLiteral && part.ConstantValue != null);
-                    // this is one of the literal parts
+                    // this is one of the literal parts.  If it contains a { or } then we need to escape those so that
+                    // they're treated the same way in string.Format.
                     stringBuilder.Append(ConstantValueUtils.EscapeInterpolatedStringLiteral(part.ConstantValue.StringValue));
                 }
                 else
