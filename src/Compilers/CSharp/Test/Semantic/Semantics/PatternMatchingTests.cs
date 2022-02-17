@@ -7885,34 +7885,34 @@ static class C
       IL_00df:  br.s       IL_013c
       IL_00e1:  stloc.s    V_9
       IL_00e3:  ldarg.0
-      IL_00e4:  ldfld      ""System.Exception C.<ExceptionFilterBroken>d__1.<ex>5__3""
-      IL_00e9:  callvirt   ""System.Exception System.Exception.InnerException.get""
-      IL_00ee:  stloc.s    V_6
-      IL_00f0:  ldloc.s    V_6
-      IL_00f2:  brfalse.s  IL_0120
-      IL_00f4:  ldloc.s    V_6
-      IL_00f6:  callvirt   ""string System.Exception.Message.get""
-      IL_00fb:  stloc.s    V_7
-      IL_00fd:  ldloc.s    V_7
-      IL_00ff:  ldstr      ""bad dog""
-      IL_0104:  call       ""bool string.op_Equality(string, string)""
-      IL_0109:  brtrue.s   IL_011b
-      IL_010b:  ldloc.s    V_7
-      IL_010d:  ldstr      ""dog bad""
-      IL_0112:  call       ""bool string.op_Equality(string, string)""
-      IL_0117:  brtrue.s   IL_011b
-      IL_0119:  br.s       IL_0120
-      IL_011b:  ldc.i4.1
-      IL_011c:  stloc.s    V_8
-      IL_011e:  br.s       IL_0123
-      IL_0120:  ldc.i4.0
-      IL_0121:  stloc.s    V_8
-      IL_0123:  ldarg.0
-      IL_0124:  ldloc.s    V_8
-      IL_0126:  stfld      ""bool C.<ExceptionFilterBroken>d__1.<>s__6""
+      IL_00e4:  ldloc.s    V_9
+      IL_00e6:  stfld      ""object C.<ExceptionFilterBroken>d__1.<>s__4""
+      IL_00eb:  ldarg.0
+      IL_00ec:  ldfld      ""System.Exception C.<ExceptionFilterBroken>d__1.<ex>5__3""
+      IL_00f1:  callvirt   ""System.Exception System.Exception.InnerException.get""
+      IL_00f6:  stloc.s    V_6
+      IL_00f8:  ldloc.s    V_6
+      IL_00fa:  brfalse.s  IL_0128
+      IL_00fc:  ldloc.s    V_6
+      IL_00fe:  callvirt   ""string System.Exception.Message.get""
+      IL_0103:  stloc.s    V_7
+      IL_0105:  ldloc.s    V_7
+      IL_0107:  ldstr      ""bad dog""
+      IL_010c:  call       ""bool string.op_Equality(string, string)""
+      IL_0111:  brtrue.s   IL_0123
+      IL_0113:  ldloc.s    V_7
+      IL_0115:  ldstr      ""dog bad""
+      IL_011a:  call       ""bool string.op_Equality(string, string)""
+      IL_011f:  brtrue.s   IL_0123
+      IL_0121:  br.s       IL_0128
+      IL_0123:  ldc.i4.1
+      IL_0124:  stloc.s    V_8
+      IL_0126:  br.s       IL_012b
+      IL_0128:  ldc.i4.0
+      IL_0129:  stloc.s    V_8
       IL_012b:  ldarg.0
-      IL_012c:  ldloc.s    V_9
-      IL_012e:  stfld      ""object C.<ExceptionFilterBroken>d__1.<>s__4""
+      IL_012c:  ldloc.s    V_8
+      IL_012e:  stfld      ""bool C.<ExceptionFilterBroken>d__1.<>s__6""
       IL_0133:  ldarg.0
       IL_0134:  ldfld      ""bool C.<ExceptionFilterBroken>d__1.<>s__6""
       IL_0139:  ldc.i4.0
