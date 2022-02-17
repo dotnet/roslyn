@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis
 
         System_MemoryExtensions__SequenceEqual_Span_T,
         System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T,
-        System_MemoryExtensions__AsSpanString,
+        System_MemoryExtensions__AsSpan_String,
 
         Count
 

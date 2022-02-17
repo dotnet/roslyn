@@ -3566,7 +3566,7 @@ namespace Microsoft.CodeAnalysis
                     1,
                     (byte)SignatureTypeCode.GenericMethodParameter, (byte)0,
 
-                // System_MemoryExtensions__AsSpanString
+                // System_MemoryExtensions__AsSpan_String
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                               // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_MemoryExtensions - WellKnownType.ExtSentinel),    // DeclaringTypeId
                 0,                                                                                                             // Arity
@@ -4022,7 +4022,7 @@ namespace Microsoft.CodeAnalysis
                 "ToStringAndClear",                         // System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear
                 "SequenceEqual",                            // System_MemoryExtensions__SequenceEqual_Span_T
                 "SequenceEqual",                            // System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T
-                "AsSpan",                                   // System_MemoryExtensions__AsSpanString
+                "AsSpan",                                   // System_MemoryExtensions__AsSpan_String
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

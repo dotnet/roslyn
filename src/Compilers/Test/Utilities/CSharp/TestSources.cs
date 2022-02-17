@@ -28,7 +28,7 @@ namespace System
         public Span(T[] arr)
         {
             this.arr = arr;
-            this.Length = arr.Length;
+            this.Length = arr is null ? 0 : arr.Length;
         }
 
         public void CopyTo(Span<T> other) { }
@@ -74,6 +74,8 @@ namespace System
 
         public static implicit operator Span<T>(T[] array) => new Span<T>(array);
 
+        public static implicit operator ReadOnlySpan<T>(Span<T> span) => new ReadOnlySpan<T>(span.arr);
+
         public Span<T> Slice(int offset, int length)
         {
             var copy = new T[length];
@@ -99,7 +101,7 @@ namespace System
         public ReadOnlySpan(T[] arr)
         {
             this.arr = arr;
-            this.Length = arr.Length;
+            this.Length = arr is null ? 0 : arr.Length;
         }
 
         public void CopyTo(Span<T> other) { }

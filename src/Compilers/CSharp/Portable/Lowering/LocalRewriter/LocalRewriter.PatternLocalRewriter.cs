@@ -363,6 +363,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private BoundExpression MakeNullCheck(SyntaxNode syntax, BoundExpression rewrittenExpr, BinaryOperatorKind operatorKind)
             {
+                if (rewrittenExpr.Type.IsSpanOrReadOnlySpanChar())
+                {
+                    return MakeSpanStringTest(rewrittenExpr, ConstantValue.Null);
+                }
+
                 if (rewrittenExpr.Type.IsPointerOrFunctionPointer())
                 {
                     TypeSymbol objectType = _factory.SpecialType(SpecialType.System_Object);
@@ -426,12 +431,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             private BoundExpression MakeSpanStringTest(BoundExpression input, ConstantValue value)
             {
                 var isReadOnlySpan = input.Type.IsReadOnlySpanChar();
+                // Binder.ConvertPatternExpression() has checked for these well-known members.
                 var sequenceEqual =
-                    (_factory.WellKnownMember(isReadOnlySpan
+                    ((MethodSymbol)_factory.WellKnownMember(isReadOnlySpan
                         ? WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T
-                        : WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T) as MethodSymbol)
-                    ?.Construct(_factory.SpecialType(SpecialType.System_Char));
-                var asSpan = _factory.WellKnownMember(WellKnownMember.System_MemoryExtensions__AsSpanString) as MethodSymbol;
+                        : WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T))
+                    .Construct(_factory.SpecialType(SpecialType.System_Char));
+                var asSpan = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_MemoryExtensions__AsSpan_String);
 
                 Debug.Assert(sequenceEqual != null && asSpan != null);
 

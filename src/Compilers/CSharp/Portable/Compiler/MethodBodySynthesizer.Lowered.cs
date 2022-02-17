@@ -42,6 +42,9 @@ start:
             return hashCode;
         }
 
+        /// <remarks>
+        /// This method should be kept consistent with <see cref="ComputeStringHash"/>
+        /// </remarks>
         internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             SyntheticBoundNodeFactory F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
@@ -56,8 +59,6 @@ start:
                 LabelSymbol start = F.GenerateLabel("start");
 
                 ParameterSymbol text = this.Parameters[0];
-
-                //  This method should be kept consistent with ComputeStringHash
 
                 //uint hashCode = 0;
                 //if (text != null)
@@ -126,8 +127,15 @@ start:
         }
     }
 
+    /// <summary>
+    /// The synthesized method for computing the hash from a ReadOnlySpan&lt;char&gt; or Span&lt;char&gt;.
+    /// Matches the corresponding method for string <see cref="SynthesizedStringSwitchHashMethod"/>.
+    /// </summary>
     internal sealed partial class SynthesizedSpanSwitchHashMethod : SynthesizedGlobalMethodSymbol
     {
+        /// <remarks>
+        /// This method should be kept consistent with <see cref="SynthesizedStringSwitchHashMethod.ComputeStringHash"/>
+        /// </remarks>
         internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             SyntheticBoundNodeFactory F = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
@@ -147,9 +155,6 @@ start:
 
                 LabelSymbol again = F.GenerateLabel("again");
                 LabelSymbol start = F.GenerateLabel("start");
-
-
-                //  This method should be kept consistent with SynthesizedStringSwitchHashMethod.ConstructStringHash
 
                 //  uint hashCode = unchecked((uint)2166136261);
 

@@ -1251,32 +1251,31 @@ oneMoreTime:
             }
 
             Cci.IMethodReference stringEqualityMethodRef = null;
-            Cci.IMethodReference lengthRef = null;
+            Cci.IMethodReference lengthMethodRef = null;
 
-            Cci.IMethodReference sequenceEqualsRef = null;
-            Cci.IMethodReference asSpanRef = null;
+            Cci.IMethodReference sequenceEqualsMethodRef = null;
+            Cci.IMethodReference asSpanMethodRef = null;
 
             if (isSpanOrReadOnlySpan)
             {
-                var sequenceEqualsTMethod = _module.Compilation.GetWellKnownTypeMember(isReadOnlySpan
+                // Binder.ConvertPatternExpression() has checked for these well-known members.
+                var sequenceEqualsTMethod = (MethodSymbol)_module.Compilation.GetWellKnownTypeMember(isReadOnlySpan
                     ? WellKnownMember.System_MemoryExtensions__SequenceEqual_ReadOnlySpan_T
-                    : WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T) as MethodSymbol;
-                var sequenceEqualsCharMethod = sequenceEqualsTMethod?.Construct(_module.Compilation.GetSpecialType(SpecialType.System_Char));
-                Debug.Assert(sequenceEqualsCharMethod != null && !sequenceEqualsCharMethod.HasUseSiteError);
-                sequenceEqualsRef = _module.Translate(sequenceEqualsCharMethod, null, _diagnostics);
+                    : WellKnownMember.System_MemoryExtensions__SequenceEqual_Span_T);
+                Debug.Assert(sequenceEqualsTMethod != null && !sequenceEqualsTMethod.HasUseSiteError);
+                var sequenceEqualsCharMethod = sequenceEqualsTMethod.Construct(_module.Compilation.GetSpecialType(SpecialType.System_Char));
+                sequenceEqualsMethodRef = _module.Translate(sequenceEqualsCharMethod, null, _diagnostics);
 
-                var asSpanMethod = _module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_MemoryExtensions__AsSpanString) as MethodSymbol;
+                var asSpanMethod = (MethodSymbol)_module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_MemoryExtensions__AsSpan_String);
                 Debug.Assert(asSpanMethod != null && !asSpanMethod.HasUseSiteError);
-                asSpanRef = _module.Translate(asSpanMethod, null, _diagnostics);
+                asSpanMethodRef = _module.Translate(asSpanMethod, null, _diagnostics);
 
-                var spanTLengthMethod = _module.Compilation.GetWellKnownTypeMember(isReadOnlySpan
+                var spanTLengthMethod = (MethodSymbol)_module.Compilation.GetWellKnownTypeMember(isReadOnlySpan
                     ? WellKnownMember.System_ReadOnlySpan_T__get_Length
-                    : WellKnownMember.System_Span_T__get_Length) as MethodSymbol;
-                var spanCharLengthMethod = spanTLengthMethod?.AsMember((NamedTypeSymbol)keyType);
-                if (spanCharLengthMethod != null && !spanCharLengthMethod.HasUseSiteError)
-                {
-                    lengthRef = _module.Translate(spanCharLengthMethod, null, _diagnostics);
-                }
+                    : WellKnownMember.System_Span_T__get_Length);
+                Debug.Assert(spanTLengthMethod != null && !spanTLengthMethod.HasUseSiteError);
+                var spanCharLengthMethod = spanTLengthMethod.AsMember((NamedTypeSymbol)keyType);
+                lengthMethodRef = _module.Translate(spanCharLengthMethod, null, _diagnostics);
             }
             else
             {
@@ -1287,7 +1286,7 @@ oneMoreTime:
                 var stringLengthMethod = _module.Compilation.GetSpecialTypeMember(SpecialMember.System_String__Length) as MethodSymbol;
                 if (stringLengthMethod != null && !stringLengthMethod.HasUseSiteError)
                 {
-                    lengthRef = _module.Translate(stringLengthMethod, syntaxNode, _diagnostics);
+                    lengthMethodRef = _module.Translate(stringLengthMethod, syntaxNode, _diagnostics);
                 }
             }
 
@@ -1303,7 +1302,7 @@ oneMoreTime:
                         _builder.EmitLoad(keyArg);
                         _builder.EmitBranch(ILOpCode.Brfalse, targetLabel, ILOpCode.Brtrue);
                     }
-                    else if (stringConstant.StringValue.Length == 0 && lengthRef != null)
+                    else if (stringConstant.StringValue.Length == 0 && lengthMethodRef != null)
                     {
                         // if (key != null && key.Length == 0)
                         //      goto targetLabel
@@ -1332,7 +1331,7 @@ oneMoreTime:
                         // Stack: key --> length
                         _builder.EmitOpCode(ILOpCode.Call, 0);
                         var diag = DiagnosticBag.GetInstance();
-                        _builder.EmitToken(lengthRef, null, diag);
+                        _builder.EmitToken(lengthMethodRef, null, diag);
                         Debug.Assert(diag.IsEmptyWithoutResolution);
                         diag.Free();
 
@@ -1343,7 +1342,7 @@ oneMoreTime:
                     {
                         if (isSpanOrReadOnlySpan)
                         {
-                            this.EmitCharCompareAndBranch(key, syntaxNode, stringConstant, targetLabel, sequenceEqualsRef, asSpanRef);
+                            this.EmitCharCompareAndBranch(key, syntaxNode, stringConstant, targetLabel, sequenceEqualsMethodRef, asSpanMethodRef);
                         }
                         else
                         {
