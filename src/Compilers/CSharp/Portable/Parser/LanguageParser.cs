@@ -2053,6 +2053,11 @@ tryAgain:
                     var missingType = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_NoEnumConstraint);
                     missingType = AddTrailingSkippedSyntax(missingType, this.EatToken());
                     return _syntaxFactory.TypeConstraint(missingType);
+                case SyntaxKind.DelegateKeyword:
+                    // TODO2
+                    var missingType = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_NoEnumConstraint);
+                    missingType = AddTrailingSkippedSyntax(missingType, this.EatToken());
+                    return _syntaxFactory.TypeConstraint(missingType);
                 default:
                     var type = this.ParseType();
                     return _syntaxFactory.TypeConstraint(type);
