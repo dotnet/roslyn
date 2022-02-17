@@ -79,9 +79,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return false;
             }
 
-            var sessionData = CompletionSessionData.GetOrCreateSessionData(session);
-            return !sessionData.ExcludedCommitCharacters.HasValue
-                || !sessionData.ExcludedCommitCharacters.Value.Contains(typedChar);
+            return !(session.Properties.TryGetProperty(CompletionSource.ExcludedCommitCharacters, out ImmutableArray<char> excludedCommitCharacter)
+                && excludedCommitCharacter.Contains(typedChar));
         }
 
         public AsyncCompletionData.CommitResult TryCommit(
@@ -106,15 +105,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return CommitResultUnhandled;
             }
 
-            if (!CompletionItemData.TryGetData(item, out var itemData) || !itemData.IsProvidedByRoslynCompletionSource)
+            if (!CompletionItemData.TryGetData(item, out var itemData))
             {
                 // Roslyn should not be called if the item committing was not provided by Roslyn.
                 return CommitResultUnhandled;
             }
-
-            // Need the trigger snapshot to calculate the span when the commit changes to be applied.
-            // They should always be available from items provided by Roslyn CompletionSource.
-            Contract.ThrowIfFalse(itemData.TriggerLocation.HasValue);
 
             var filterText = session.ApplicableToSpan.GetText(session.ApplicableToSpan.TextBuffer.CurrentSnapshot) + typeChar;
             if (Helpers.IsFilterCharacter(itemData.RoslynItem, typeChar, filterText))
@@ -125,7 +120,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var options = _globalOptions.GetCompletionOptions(document.Project.Language);
             var serviceRules = completionService.GetRules(options);
-            var sessionData = CompletionSessionData.GetOrCreateSessionData(session);
 
             // We can be called before for ShouldCommitCompletion. However, that call does not provide rules applied for the completion item.
             // Now we check for the commit character in the context of Rules that could change the list of commit characters.
@@ -137,15 +131,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
             }
 
-            if (!sessionData.CompletionListSpan.HasValue)
+            if (!itemData.TriggerLocation.HasValue)
+            {
+                // Need the trigger snapshot to calculate the span when the commit changes to be applied.
+                // They should always be available from items provided by Roslyn CompletionSource.
+                // Just to be defensive, if it's not found here, Roslyn should not make a commit.
+                return CommitResultUnhandled;
+            }
+
+            var triggerDocument = itemData.TriggerLocation.Value.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (triggerDocument == null)
             {
                 return CommitResultUnhandled;
             }
 
-            var completionListSpan = sessionData.CompletionListSpan.Value;
-
-            var triggerDocument = itemData.TriggerLocation.Value.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (triggerDocument == null)
+            var sessionData = CompletionSessionData.GetOrCreateSessionData(session);
+            if (!sessionData.CompletionListSpan.HasValue)
             {
                 return CommitResultUnhandled;
             }
@@ -166,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var commitChar = typeChar == '\0' ? null : (char?)typeChar;
             return Commit(
                 session, triggerDocument, completionService, subjectBuffer,
-                itemData.RoslynItem, completionListSpan, commitChar, itemData.TriggerLocation.Value.Snapshot, serviceRules,
+                itemData.RoslynItem, sessionData.CompletionListSpan.Value, commitChar, itemData.TriggerLocation.Value.Snapshot, serviceRules,
                 filterText, cancellationToken);
         }
 

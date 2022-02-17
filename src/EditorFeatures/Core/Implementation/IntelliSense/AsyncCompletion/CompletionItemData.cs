@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         public static RoslynCompletionItem GetOrAddDummyRoslynItem(CompletionItem vsItem)
         {
-            if (vsItem.Properties.TryGetProperty(RoslynCompletionItemData, out CompletionItemData data))
+            if (TryGetData(vsItem, out var data))
                 return data.RoslynItem;
 
             var roslynItem = CreateDummyRoslynItem(vsItem);

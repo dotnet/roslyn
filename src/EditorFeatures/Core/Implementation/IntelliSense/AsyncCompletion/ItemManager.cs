@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Roslyn.Utilities;
-using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 using VSCompletionItem = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data.CompletionItem;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion
@@ -70,14 +69,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 data = new AsyncCompletionSessionDataSnapshot(sessionData.CombinedSortedList.Value, data.Snapshot, data.Trigger, data.InitialTrigger, data.SelectedFilters,
                     data.IsSoftSelected, data.DisplaySuggestionItem, data.Defaults);
             }
-            else if (sessionData.ExpandedItemsTask.HasValue)
+            else if (sessionData.ExpandedItemsTask != null)
             {
-                var task = sessionData.ExpandedItemsTask.Value;
+                var task = sessionData.ExpandedItemsTask;
                 if (task.Status == TaskStatus.RanToCompletion)
                 {
                     // Make sure the task is removed when Adding expanded items,
                     // so duplicated items won't be added in subsequent list updates.
-                    sessionData.ExpandedItemsTask = new();
+                    sessionData.ExpandedItemsTask = null;
 
                     var (expandedContext, _) = await task.ConfigureAwait(false);
                     if (expandedContext.Items.Length > 0)
@@ -89,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                         var combinedList = itemsBuilder.MoveToImmutable();
 
                         // Add expanded items into a combined list, and save it to be used for future updates during the same session.
-                        sessionData.CombinedSortedList = new(combinedList);
+                        sessionData.CombinedSortedList = combinedList;
                         var combinedFilterStates = FilterSet.CombineFilterStates(expandedContext.Filters, data.SelectedFilters);
 
                         data = new AsyncCompletionSessionDataSnapshot(combinedList, data.Snapshot, data.Trigger, data.InitialTrigger, combinedFilterStates,

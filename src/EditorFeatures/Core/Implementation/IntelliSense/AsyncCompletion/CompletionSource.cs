@@ -43,6 +43,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         internal const string PotentialCommitCharacters = nameof(PotentialCommitCharacters);
         internal const string NonBlockingCompletion = nameof(NonBlockingCompletion);
 
+        // Don't change this property! Editor code currently has a dependency on it.
+        internal const string ExcludedCommitCharacters = nameof(ExcludedCommitCharacters);
+
         private static readonly ImmutableArray<ImageElement> s_warningImageAttributeImagesArray =
             ImmutableArray.Create(new ImageElement(Glyph.CompletionWarning.GetImageId(), EditorFeaturesResources.Warning_image_element));
 
@@ -263,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 var (context, list) = await GetCompletionContextWorkerAsync(document, trigger, triggerLocation,
                     options with { ExpandedCompletionBehavior = ExpandedCompletionMode.NonExpandedItemsOnly }, cancellationToken).ConfigureAwait(false);
 
-                UpdateSessionData(sessionData, list, triggerLocation);
+                UpdateSessionData(session, sessionData, list, triggerLocation);
                 return context;
             }
             else if (!_responsiveCompletionEnabled)
@@ -273,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 var (context, list) = await GetCompletionContextWorkerAsync(document, trigger, triggerLocation,
                     options with { ExpandedCompletionBehavior = ExpandedCompletionMode.AllItems }, cancellationToken).ConfigureAwait(false);
 
-                UpdateSessionData(sessionData, list, triggerLocation);
+                UpdateSessionData(session, sessionData, list, triggerLocation);
                 AsyncCompletionLogger.LogImportCompletionGetContext(isBlocking: true, delayed: false);
                 return context;
             }
@@ -301,13 +304,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // Now trigger and wait for core providers to return;
                 var (nonExpandedContext, nonExpandedCompletionList) = await GetCompletionContextWorkerAsync(document, trigger, triggerLocation,
                         options with { ExpandedCompletionBehavior = ExpandedCompletionMode.NonExpandedItemsOnly }, cancellationToken).ConfigureAwait(false);
-                UpdateSessionData(sessionData, nonExpandedCompletionList, triggerLocation);
+                UpdateSessionData(session, sessionData, nonExpandedCompletionList, triggerLocation);
 
                 if (expandedItemsTask.IsCompleted)
                 {
                     // the task of expanded item is completed, get the result and combine it with result of non-expanded items.
                     var (expandedContext, expandedCompletionList) = await expandedItemsTask.ConfigureAwait(false);
-                    UpdateSessionData(sessionData, expandedCompletionList, triggerLocation);
+                    UpdateSessionData(session, sessionData, expandedCompletionList, triggerLocation);
                     AsyncCompletionLogger.LogImportCompletionGetContext(isBlocking: false, delayed: false);
 
                     return CombineCompletionContext(nonExpandedContext, expandedContext);
@@ -319,7 +322,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     // after core providers completed (instead of how long it takes end-to-end).
                     stopwatch.Start();
 
-                    sessionData.ExpandedItemsTask = new(expandedItemsTask);
+                    sessionData.ExpandedItemsTask = expandedItemsTask;
                     AsyncCompletionLogger.LogImportCompletionGetContext(isBlocking: false, delayed: true);
 
                     return nonExpandedContext;
@@ -364,15 +367,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
                 // It's possible we didn't provide expanded items at the beginning of completion session because it was slow even if the feature is enabled.
                 // ExpandedItemsTask would be available in this case, so we just need to return its result.
-                if (sessionData.ExpandedItemsTask.HasValue)
+                if (sessionData.ExpandedItemsTask != null)
                 {
                     // Make sure the task is removed when returning expanded items,
                     // so duplicated items won't be added in subsequent list updates.
-                    var task = sessionData.ExpandedItemsTask.Value;
-                    sessionData.ExpandedItemsTask = new();
+                    var task = sessionData.ExpandedItemsTask;
+                    sessionData.ExpandedItemsTask = null;
 
                     var (expandedContext, expandedCompletionList) = await task.ConfigureAwait(false);
-                    UpdateSessionData(sessionData, expandedCompletionList, initialTriggerLocation);
+                    UpdateSessionData(session, sessionData, expandedCompletionList, initialTriggerLocation);
                     return expandedContext;
                 }
 
@@ -390,7 +393,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     };
 
                     var (context, completionList) = await GetCompletionContextWorkerAsync(document, intialTrigger, initialTriggerLocation, options, cancellationToken).ConfigureAwait(false);
-                    UpdateSessionData(sessionData, completionList, initialTriggerLocation);
+                    UpdateSessionData(session, sessionData, completionList, initialTriggerLocation);
 
                     return context;
                 }
@@ -446,7 +449,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             return (new(items, suggestionItemOptions, selectionHint: AsyncCompletionData.InitialSelectionHint.SoftSelection, filters), completionList);
         }
 
-        private static void UpdateSessionData(CompletionSessionData sessionData, CompletionList completionList, SnapshotPoint triggerLocation)
+        private static void UpdateSessionData(IAsyncCompletionSession session, CompletionSessionData sessionData, CompletionList completionList, SnapshotPoint triggerLocation)
         {
             // Store around the span this completion list applies to.  We'll use this later
             // to pass this value in when we're committing a completion list item.
@@ -461,12 +464,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var excludedCommitCharacters = GetExcludedCommitCharacters(completionList.Items);
             if (excludedCommitCharacters.Length > 0)
             {
-                if (sessionData.ExcludedCommitCharacters.HasValue)
+                if (session.Properties.TryGetProperty(ExcludedCommitCharacters, out ImmutableArray<char> excludedCommitCharactersBefore))
                 {
-                    excludedCommitCharacters = excludedCommitCharacters.Union(sessionData.ExcludedCommitCharacters.Value).ToImmutableArray();
+                    excludedCommitCharacters = excludedCommitCharacters.Union(excludedCommitCharactersBefore).ToImmutableArray();
                 }
 
-                sessionData.ExcludedCommitCharacters = excludedCommitCharacters;
+                session.Properties[ExcludedCommitCharacters] = excludedCommitCharacters;
             }
 
             // We need to remember the trigger location for when a completion service claims expanded items are available

@@ -9702,7 +9702,7 @@ class C
 
                 Dim session = Await state.GetCompletionSession()
                 Dim sessionData = CompletionSessionData.GetOrCreateSessionData(session)
-                Dim expandTask = sessionData.ExpandedItemsTask.GetValueOrNull()
+                Dim expandTask = sessionData.ExpandedItemsTask
 
                 Assert.NotNull(expandTask)
                 Assert.False(expandTask.IsCompleted)
@@ -9761,7 +9761,7 @@ class C
 
                 Dim session = Await state.GetCompletionSession()
                 Dim sessionData = CompletionSessionData.GetOrCreateSessionData(session)
-                Dim expandTask = sessionData.ExpandedItemsTask.GetValueOrNull()
+                Dim expandTask = sessionData.ExpandedItemsTask
 
                 Assert.NotNull(expandTask)
                 Assert.False(expandTask.IsCompleted)
@@ -9821,7 +9821,7 @@ class C
 
                 Dim session = Await state.GetCompletionSession()
                 Dim sessionData = CompletionSessionData.GetOrCreateSessionData(session)
-                Dim expandTask = sessionData.ExpandedItemsTask.GetValueOrNull()
+                Dim expandTask = sessionData.ExpandedItemsTask
 
                 Assert.NotNull(expandTask)
                 Assert.False(expandTask.IsCompleted)

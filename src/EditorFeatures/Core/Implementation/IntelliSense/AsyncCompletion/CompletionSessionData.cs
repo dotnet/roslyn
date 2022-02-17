@@ -23,11 +23,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         public bool TargetTypeFilterSelected { get; set; }
         public bool HasSuggestionItemOptions { get; set; }
 
-        public Optional<SnapshotPoint> ExpandedItemTriggerLocation { get; set; }
-        public Optional<TextSpan> CompletionListSpan { get; set; }
-        public Optional<ImmutableArray<CompletionItem>> CombinedSortedList { get; set; }
-        public Optional<Task<(CompletionContext, RoslynCompletionList)>> ExpandedItemsTask { get; set; }
-        public Optional<ImmutableArray<char>> ExcludedCommitCharacters { get; set; }
+        public SnapshotPoint? ExpandedItemTriggerLocation { get; set; }
+        public TextSpan? CompletionListSpan { get; set; }
+        public ImmutableArray<CompletionItem>? CombinedSortedList { get; set; }
+        public Task<(CompletionContext, RoslynCompletionList)>? ExpandedItemsTask { get; set; }
 
         private CompletionSessionData()
         {
