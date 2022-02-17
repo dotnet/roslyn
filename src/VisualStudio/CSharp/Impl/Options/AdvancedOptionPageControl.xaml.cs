@@ -77,16 +77,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Split_string_literals_on_enter, SplitStringLiteralOptions.Enabled, LanguageNames.CSharp);
 
             BindToOption(EnterOutliningMode, FeatureOnOffOptions.Outlining, LanguageNames.CSharp);
-            BindToOption(Show_outlining_for_declaration_level_constructs, BlockStructureOptions.Metadata.ShowOutliningForDeclarationLevelConstructs, LanguageNames.CSharp);
-            BindToOption(Show_outlining_for_code_level_constructs, BlockStructureOptions.Metadata.ShowOutliningForCodeLevelConstructs, LanguageNames.CSharp);
-            BindToOption(Show_outlining_for_comments_and_preprocessor_regions, BlockStructureOptions.Metadata.ShowOutliningForCommentsAndPreprocessorRegions, LanguageNames.CSharp);
-            BindToOption(Collapse_regions_when_collapsing_to_definitions, BlockStructureOptions.Metadata.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp);
+            BindToOption(Show_outlining_for_declaration_level_constructs, BlockStructureOptionsStorage.ShowOutliningForDeclarationLevelConstructs, LanguageNames.CSharp);
+            BindToOption(Show_outlining_for_code_level_constructs, BlockStructureOptionsStorage.ShowOutliningForCodeLevelConstructs, LanguageNames.CSharp);
+            BindToOption(Show_outlining_for_comments_and_preprocessor_regions, BlockStructureOptionsStorage.ShowOutliningForCommentsAndPreprocessorRegions, LanguageNames.CSharp);
+            BindToOption(Collapse_regions_when_collapsing_to_definitions, BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp);
 
             BindToOption(Fade_out_unused_usings, FadingOptions.Metadata.FadeOutUnusedImports, LanguageNames.CSharp);
             BindToOption(Fade_out_unreachable_code, FadingOptions.Metadata.FadeOutUnreachableCode, LanguageNames.CSharp);
 
-            BindToOption(Show_guides_for_declaration_level_constructs, BlockStructureOptions.Metadata.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.CSharp);
-            BindToOption(Show_guides_for_code_level_constructs, BlockStructureOptions.Metadata.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.CSharp);
+            BindToOption(Show_guides_for_declaration_level_constructs, BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.CSharp);
+            BindToOption(Show_guides_for_code_level_constructs, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.CSharp);
 
             BindToOption(GenerateXmlDocCommentsForTripleSlash, DocumentationCommentOptions.Metadata.AutoXmlDocCommentGeneration, LanguageNames.CSharp);
             BindToOption(InsertSlashSlashAtTheStartOfNewLinesWhenWritingSingleLineComments, SplitStringLiteralOptions.Enabled, LanguageNames.CSharp);
