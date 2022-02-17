@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (syntaxTreeConfigurationService != null)
                 {
                     await client.TryInvokeAsync<IRemoteProcessTelemetryService>(
-                        (service, cancellationToken) => service.SetSyntaxTreeConfigurationOptionsAsync(syntaxTreeConfigurationService.DisableRecoverableTrees, syntaxTreeConfigurationService.DisableProjectCacheService, cancellationToken),
+                        (service, cancellationToken) => service.SetSyntaxTreeConfigurationOptionsAsync(syntaxTreeConfigurationService.DisableRecoverableTrees, syntaxTreeConfigurationService.DisableProjectCacheService, syntaxTreeConfigurationService.EnableOpeningSourceGeneratedFilesInWorkspace, cancellationToken),
                         cancellationToken).ConfigureAwait(false);
                 }
 
