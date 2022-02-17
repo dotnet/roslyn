@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestGlobalMainAttribute()
         {
             var text = "[main:a]";
-            var file = this.ParseFile(text, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var file = this.ParseFile(text, TestOptions.RegularNext);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.AttributeLists.Count);
@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestGlobalMainAttribute_Verbatim()
         {
             var text = "[@main:a]";
-            var file = this.ParseFile(text, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            var file = this.ParseFile(text, TestOptions.RegularNext);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.AttributeLists.Count);
@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestGlobalMainAttribute_LangVersion()
         {
             var text = "[main:a]";
-            var file = this.ParseFile(text, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp10));
+            var file = this.ParseFile(text, TestOptions.Regular10);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.AttributeLists.Count);
@@ -626,6 +626,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // [main:a]
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "main:").WithArguments("main as an attribute target specifier").WithLocation(1, 2)
                 );
+        }
+
+        [Fact]
+        public void TestGlobalMainAttribute_LangVersion_Next()
+        {
+            var text = "[main:a]";
+            var file = this.ParseFile(text, TestOptions.RegularNext);
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.AttributeLists.Count);
+            Assert.Equal(text, file.ToString());
+
+            file.GetDiagnostics().Verify();
         }
 
         [Fact]
