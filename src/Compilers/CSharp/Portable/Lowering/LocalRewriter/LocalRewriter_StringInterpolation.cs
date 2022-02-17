@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(part is BoundLiteral && part.ConstantValue != null);
                     // this is one of the literal parts
-                    stringBuilder.Append(part.ConstantValue.StringValue);
+                    stringBuilder.Append(ConstantValueUtils.EscapeInterpolatedStringLiteral(part.ConstantValue.StringValue));
                 }
                 else
                 {

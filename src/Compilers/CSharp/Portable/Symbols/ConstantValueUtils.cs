@@ -90,6 +90,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return builder.ToStringAndFree();
         }
 
+        internal static string EscapeInterpolatedStringLiteral(string s)
+        {
+            var builder = PooledStringBuilder.GetInstance();
+            var stringBuilder = builder.Builder;
+            int formatLength = s.Length;
+            for (int i = 0; i < formatLength; i++)
+            {
+                char c = s[i];
+                stringBuilder.Append(c);
+                if (c is '{' or '}')
+                {
+                    stringBuilder.Append(c);
+                }
+            }
+
+            return builder.ToStringAndFree();
+        }
+
         internal static ConstantValue GetAndValidateConstantValue(
             BoundExpression boundValue,
             Symbol thisSymbol,
