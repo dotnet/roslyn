@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Wrapping
                     if (computer == null)
                         continue;
 
-                    var actions = await computer.GetTopLevelCodeActionsAsync().ConfigureAwait(false);
+                    var actions = await computer.GetTopLevelCodeActionsAsync(cancellationToken).ConfigureAwait(false);
                     if (actions.IsDefaultOrEmpty)
                         continue;
 

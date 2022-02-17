@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -65,16 +66,30 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
             /// </summary>
             private readonly SyntaxTriviaList _smartIndentTrivia;
 
-            public CallExpressionCodeActionComputer(
+            private CallExpressionCodeActionComputer(
                 AbstractChainedExpressionWrapper<TNameSyntax, TBaseArgumentListSyntax> service,
                 Document document,
                 SourceText originalSourceText,
-                DocumentOptionSet options,
+                IndentationOptions options,
                 ImmutableArray<ImmutableArray<SyntaxNodeOrToken>> chunks,
-                CancellationToken cancellationToken)
-                : base(service, document, originalSourceText, options, cancellationToken)
+                SyntaxTriviaList firstPeriodIndentationTrivia,
+                SyntaxTriviaList smartIndentTrivia)
+                : base(service, document, originalSourceText, options)
             {
                 _chunks = chunks;
+                _firstPeriodIndentationTrivia = firstPeriodIndentationTrivia;
+                _smartIndentTrivia = smartIndentTrivia;
+                _newlineBeforeOperatorTrivia = service.GetNewLineBeforeOperatorTrivia(NewLineTrivia);
+            }
+
+            public static async ValueTask<CallExpressionCodeActionComputer> CreateAsync(
+                AbstractChainedExpressionWrapper<TNameSyntax, TBaseArgumentListSyntax> service,
+                Document document,
+                ImmutableArray<ImmutableArray<SyntaxNodeOrToken>> chunks,
+                CancellationToken cancellationToken)
+            {
+                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var options = await IndentationOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
 
                 var generator = SyntaxGenerator.GetGenerator(document);
 
@@ -83,41 +98,44 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
                 // (i.e. <c>. name (arglist)</c>).
                 var firstPeriod = chunks[0][0];
 
-                _firstPeriodIndentationTrivia = new SyntaxTriviaList(generator.Whitespace(
-                    OriginalSourceText.GetOffset(firstPeriod.SpanStart).CreateIndentationString(UseTabs, TabSize)));
+                var useTabs = options.FormattingOptions.GetOption(FormattingOptions2.UseTabs);
+                var tabSize = options.FormattingOptions.GetOption(FormattingOptions2.TabSize);
 
-                _smartIndentTrivia = new SyntaxTriviaList(generator.Whitespace(
-                    GetSmartIndentationAfter(firstPeriod)));
+                var firstPeriodIndentationTrivia = new SyntaxTriviaList(generator.Whitespace(
+                    sourceText.GetOffset(firstPeriod.SpanStart).CreateIndentationString(useTabs, tabSize)));
 
-                _newlineBeforeOperatorTrivia = service.GetNewLineBeforeOperatorTrivia(NewLineTrivia);
+                var smartIndentTrivia = new SyntaxTriviaList(generator.Whitespace(
+                    await GetSmartIndentationAfterAsync(document, sourceText, options, service, firstPeriod, cancellationToken).ConfigureAwait(false)));
+
+                return new CallExpressionCodeActionComputer(service, document, sourceText, options, chunks, firstPeriodIndentationTrivia, smartIndentTrivia);
             }
 
-            protected override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync()
+            protected override async Task<ImmutableArray<WrappingGroup>> ComputeWrappingGroupsAsync(CancellationToken cancellationToken)
             {
                 using var _ = ArrayBuilder<WrapItemsAction>.GetInstance(out var actions);
 
-                await AddWrapCodeActionAsync(actions).ConfigureAwait(false);
-                await AddUnwrapCodeActionAsync(actions).ConfigureAwait(false);
-                await AddWrapLongCodeActionAsync(actions).ConfigureAwait(false);
+                await AddWrapCodeActionAsync(actions, cancellationToken).ConfigureAwait(false);
+                await AddUnwrapCodeActionAsync(actions, cancellationToken).ConfigureAwait(false);
+                await AddWrapLongCodeActionAsync(actions, cancellationToken).ConfigureAwait(false);
 
                 return ImmutableArray.Create(new WrappingGroup(isInlinable: true, actions.ToImmutable()));
             }
 
             // Pass 0 as the wrapping column as we effectively always want to wrap each chunk
             // Not just when the chunk would go past the wrapping column.
-            private async Task AddWrapCodeActionAsync(ArrayBuilder<WrapItemsAction> actions)
+            private async Task AddWrapCodeActionAsync(ArrayBuilder<WrapItemsAction> actions, CancellationToken cancellationToken)
             {
-                actions.Add(await TryCreateCodeActionAsync(GetWrapEdits(wrappingColumn: 0, align: false), FeaturesResources.Wrapping, FeaturesResources.Wrap_call_chain).ConfigureAwait(false));
-                actions.Add(await TryCreateCodeActionAsync(GetWrapEdits(wrappingColumn: 0, align: true), FeaturesResources.Wrapping, FeaturesResources.Wrap_and_align_call_chain).ConfigureAwait(false));
+                actions.Add(await TryCreateCodeActionAsync(GetWrapEdits(wrappingColumn: 0, align: false), FeaturesResources.Wrapping, FeaturesResources.Wrap_call_chain, cancellationToken).ConfigureAwait(false));
+                actions.Add(await TryCreateCodeActionAsync(GetWrapEdits(wrappingColumn: 0, align: true), FeaturesResources.Wrapping, FeaturesResources.Wrap_and_align_call_chain, cancellationToken).ConfigureAwait(false));
             }
 
-            private async Task AddUnwrapCodeActionAsync(ArrayBuilder<WrapItemsAction> actions)
-                => actions.Add(await TryCreateCodeActionAsync(GetUnwrapEdits(), FeaturesResources.Wrapping, FeaturesResources.Unwrap_call_chain).ConfigureAwait(false));
+            private async Task AddUnwrapCodeActionAsync(ArrayBuilder<WrapItemsAction> actions, CancellationToken cancellationToken)
+                => actions.Add(await TryCreateCodeActionAsync(GetUnwrapEdits(), FeaturesResources.Wrapping, FeaturesResources.Unwrap_call_chain, cancellationToken).ConfigureAwait(false));
 
-            private async Task AddWrapLongCodeActionAsync(ArrayBuilder<WrapItemsAction> actions)
+            private async Task AddWrapLongCodeActionAsync(ArrayBuilder<WrapItemsAction> actions, CancellationToken cancellationToken)
             {
-                actions.Add(await TryCreateCodeActionAsync(GetWrapEdits(WrappingColumn, align: false), FeaturesResources.Wrapping, FeaturesResources.Wrap_long_call_chain).ConfigureAwait(false));
-                actions.Add(await TryCreateCodeActionAsync(GetWrapEdits(WrappingColumn, align: true), FeaturesResources.Wrapping, FeaturesResources.Wrap_and_align_long_call_chain).ConfigureAwait(false));
+                actions.Add(await TryCreateCodeActionAsync(GetWrapEdits(WrappingColumn, align: false), FeaturesResources.Wrapping, FeaturesResources.Wrap_long_call_chain, cancellationToken).ConfigureAwait(false));
+                actions.Add(await TryCreateCodeActionAsync(GetWrapEdits(WrappingColumn, align: true), FeaturesResources.Wrapping, FeaturesResources.Wrap_and_align_long_call_chain, cancellationToken).ConfigureAwait(false));
             }
 
             private ImmutableArray<Edit> GetWrapEdits(int wrappingColumn, bool align)

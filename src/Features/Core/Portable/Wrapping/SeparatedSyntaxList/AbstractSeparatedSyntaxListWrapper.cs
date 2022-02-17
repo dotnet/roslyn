@@ -4,6 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -41,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
         }
 
         protected abstract bool ShouldMoveCloseBraceToNewLine { get; }
-        protected abstract bool ShouldMoveOpenBraceToNewLine(OptionSet options);
+        protected abstract bool ShouldMoveOpenBraceToNewLine(SyntaxFormattingOptions options);
 
         protected abstract TListSyntax? TryGetApplicableList(SyntaxNode node);
         protected abstract SeparatedSyntaxList<TListItemSyntax> GetListItems(TListSyntax listSyntax);
@@ -74,10 +75,8 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             if (containsUnformattableContent)
                 return null;
 
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            return new SeparatedSyntaxListCodeActionComputer(
-                this, document, sourceText, options, listSyntax, listItems, cancellationToken);
+            return await SeparatedSyntaxListCodeActionComputer.CreateAsync(
+                this, document, listSyntax, listItems, cancellationToken).ConfigureAwait(false);
         }
     }
 }

@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
             // Set the caret position to the properly indented column in the desired line.
             var newDocument = document.WithText(formattedText);
             var newDocumentText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var caretPosition = GetIndentedLinePosition(newDocument, newDocumentText, desiredCaretLine.LineNumber, cancellationToken);
+            var caretPosition = await GetIndentedLinePositionAsync(newDocument, newDocumentText, desiredCaretLine.LineNumber, cancellationToken).ConfigureAwait(false);
 
             // The new line edit is calculated against the original text, d0, to get text d1.
             // The formatting edits are calculated against d1 to get text d2.
@@ -160,16 +160,18 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
                 return text.Lines[closingBraceLineNumber - 1];
             }
 
-            static LinePosition GetIndentedLinePosition(Document document, SourceText sourceText, int lineNumber, CancellationToken cancellationToken)
+            static async ValueTask<LinePosition> GetIndentedLinePositionAsync(Document document, SourceText sourceText, int lineNumber, CancellationToken cancellationToken)
             {
                 var indentationService = document.GetRequiredLanguageService<IIndentationService>();
-                var indentation = indentationService.GetIndentation(document, lineNumber, cancellationToken);
+                var options = await IndentationOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+                var syntacticDoc = await SyntacticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+
+                var indentation = indentationService.GetIndentation(syntacticDoc, lineNumber, options.AutoFormattingOptions.IndentStyle, options, cancellationToken);
 
                 var baseLinePosition = sourceText.Lines.GetLinePosition(indentation.BasePosition);
                 var offsetOfBacePosition = baseLinePosition.Character;
                 var totalOffset = offsetOfBacePosition + indentation.Offset;
-                var indentedLinePosition = new LinePosition(lineNumber, totalOffset);
-                return indentedLinePosition;
+                return new LinePosition(lineNumber, totalOffset);
             }
 
             static ImmutableArray<TextChange> GetMergedChanges(TextChange newLineEdit, ImmutableArray<TextChange> formattingChanges, SourceText formattedText)

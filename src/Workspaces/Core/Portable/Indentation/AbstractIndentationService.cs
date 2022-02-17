@@ -5,11 +5,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Indentation
@@ -21,19 +18,22 @@ namespace Microsoft.CodeAnalysis.Indentation
 
         private IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document, int position, FormattingOptions.IndentStyle indentStyle)
         {
-            var workspace = document.Project.Solution.Workspace;
-            var formattingRuleFactory = workspace.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
+            var formattingRuleFactory = document.Project.Solution.Workspace.Services.GetRequiredService<IHostDependentFormattingRuleFactoryService>();
             var baseIndentationRule = formattingRuleFactory.CreateRule(document, position);
 
-            var formattingRules = new[] { baseIndentationRule, this.GetSpecializedIndentationFormattingRule(indentStyle) }.Concat(Formatter.GetDefaultFormattingRules(document));
-            return formattingRules;
+            return new[] { baseIndentationRule, GetSpecializedIndentationFormattingRule(indentStyle) }.Concat(Formatter.GetDefaultFormattingRules(document));
         }
 
         public IndentationResult GetIndentation(
-            Document document, int lineNumber,
-            FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken)
+            SyntacticDocument document,
+            int lineNumber,
+            FormattingOptions.IndentStyle indentStyle,
+            IndentationOptions options,
+            CancellationToken cancellationToken)
         {
-            var indenter = GetIndenter(document, lineNumber, indentStyle, cancellationToken);
+            var lineToBeIndented = document.Text.Lines[lineNumber];
+            var formattingRules = GetFormattingRules(document.Document, lineToBeIndented.Start, indentStyle);
+            var indenter = new Indenter(this, document, formattingRules, options, lineToBeIndented, cancellationToken);
 
             if (indentStyle == FormattingOptions.IndentStyle.None)
             {
@@ -49,19 +49,6 @@ namespace Microsoft.CodeAnalysis.Indentation
 
             // If the indenter can't produce a valid result, just default to 0 as our indentation.
             return indenter.GetDesiredIndentation(indentStyle) ?? default;
-        }
-
-        private Indenter GetIndenter(Document document, int lineNumber, FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken)
-        {
-            var options = IndentationOptions.FromDocumentAsync(document, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
-            var syntacticDoc = SyntacticDocument.CreateAsync(document, cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
-
-            var sourceText = syntacticDoc.Root.SyntaxTree.GetText(cancellationToken);
-            var lineToBeIndented = sourceText.Lines[lineNumber];
-
-            var formattingRules = GetFormattingRules(document, lineToBeIndented.Start, indentStyle);
-
-            return new Indenter(this, syntacticDoc, formattingRules, options, lineToBeIndented, cancellationToken);
         }
 
         /// <summary>

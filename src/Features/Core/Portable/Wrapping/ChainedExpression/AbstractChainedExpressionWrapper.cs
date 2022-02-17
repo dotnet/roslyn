@@ -107,10 +107,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.ChainedExpression
 
             // Looks good.  Create the action computer which will actually determine
             // the set of wrapping options to provide.
-            var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return new CallExpressionCodeActionComputer(
-                this, document, sourceText, options, chunks, cancellationToken);
+            return await CallExpressionCodeActionComputer.CreateAsync(this, document, chunks, cancellationToken).ConfigureAwait(false);
         }
 
         private ImmutableArray<ImmutableArray<SyntaxNodeOrToken>> GetChainChunks(SyntaxNode node)
