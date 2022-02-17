@@ -558,6 +558,30 @@ class B {";
         }
 
         [Theory, CombinatorialData]
+        public async Task TestWorkspaceDiagnosticsForSourceGeneratedFiles(bool useVSDiagnostics)
+        {
+            var markup1 =
+@"class A {";
+            var markup2 = "";
+            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+                markups: Array.Empty<string>(),
+                sourceGeneratedMarkups: new[] { markup1, markup2 },
+                BackgroundAnalysisScope.FullSolution,
+                useVSDiagnostics);
+
+            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
+
+            // Project.GetSourceGeneratedDocumentsAsync may not return documents in a deterministic order, so we sort
+            // the results here to ensure subsequent assertions are not dependent on the order of items provided by the
+            // project.
+            results = results.Sort((x, y) => x.Uri.ToString().CompareTo(y.Uri.ToString()));
+
+            Assert.Equal(2, results.Length);
+            Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
+            Assert.Empty(results[1].Diagnostics);
+        }
+
+        [Theory, CombinatorialData]
         public async Task TestWorkspaceDiagnosticsForRemovedDocument(bool useVSDiagnostics)
         {
             var markup1 =
@@ -1269,9 +1293,12 @@ class A {";
             return testLspServer;
         }
 
-        private async Task<TestLspServer> CreateTestWorkspaceWithDiagnosticsAsync(string[] markups, BackgroundAnalysisScope scope, bool useVSDiagnostics, bool pullDiagnostics = true)
+        private Task<TestLspServer> CreateTestWorkspaceWithDiagnosticsAsync(string[] markups, BackgroundAnalysisScope scope, bool useVSDiagnostics, bool pullDiagnostics = true)
+            => CreateTestWorkspaceWithDiagnosticsAsync(markups, Array.Empty<string>(), scope, useVSDiagnostics, pullDiagnostics);
+
+        private async Task<TestLspServer> CreateTestWorkspaceWithDiagnosticsAsync(string[] markups, string[] sourceGeneratedMarkups, BackgroundAnalysisScope scope, bool useVSDiagnostics, bool pullDiagnostics = true)
         {
-            var testLspServer = await CreateTestLspServerAsync(markups, useVSDiagnostics ? CapabilitiesWithVSExtensions : new LSP.ClientCapabilities());
+            var testLspServer = await CreateTestLspServerAsync(markups, sourceGeneratedMarkups, useVSDiagnostics ? CapabilitiesWithVSExtensions : new LSP.ClientCapabilities());
             InitializeDiagnostics(scope, testLspServer.TestWorkspace, pullDiagnostics ? DiagnosticMode.Pull : DiagnosticMode.Push);
             return testLspServer;
         }

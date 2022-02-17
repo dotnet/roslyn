@@ -2,31 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [Trait(Traits.Feature, Traits.Features.Organizing)]
     public class CSharpOrganizing : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpOrganizing(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpOrganizing))
+        public CSharpOrganizing()
+            : base(nameof(CSharpOrganizing))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Organizing)]
-        public void RemoveAndSort()
+        [IdeFact]
+        public async Task RemoveAndSort()
         {
-            SetUpEditor(@"$$
+            await SetUpEditorAsync(@"$$
 using C;
 using B;
 using A;
@@ -38,9 +34,9 @@ class Test
 }
 namespace A { public class CA { } }
 namespace B { public class CB { } }
-namespace C { public class CC { } }");
-            VisualStudio.ExecuteCommand("Edit.RemoveAndSort");
-            VisualStudio.Editor.Verify.TextContains(@"
+namespace C { public class CC { } }", HangMitigatingCancellationToken);
+            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.RemoveAndSort, HangMitigatingCancellationToken);
+            await TestServices.EditorVerifier.TextContainsAsync(@"
 using A;
 using C;
 
@@ -51,8 +47,7 @@ class Test
 }
 namespace A { public class CA { } }
 namespace B { public class CB { } }
-namespace C { public class CC { } }");
-
+namespace C { public class CC { } }", cancellationToken: HangMitigatingCancellationToken);
         }
     }
 }
