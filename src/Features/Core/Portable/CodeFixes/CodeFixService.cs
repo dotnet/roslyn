@@ -209,17 +209,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private static SortedDictionary<TextSpan, List<DiagnosticData>> ConvertToMap(
             ImmutableArray<DiagnosticData> diagnostics)
         {
-            // REVIEW: this is the first and simplest design. basically, when ctrl+. is pressed, it asks diagnostic
-            // service to give back current diagnostics for the given span, and it will use that to get fixes.
-            // internally diagnostic service will either return cached information (if it is up-to-date) or
-            // synchronously do the work at the spot.
-            //
-            // this design's weakness is that each side don't have enough information to narrow down works to do. it
-            // will most likely always do more works than needed. sometimes way more than it is needed. (compilation)
-
             // group diagnostics by their diagnostics span
-            // invariant: later code gathers & runs CodeFixProviders for diagnostics with one identical diagnostics span (that gets set later as CodeFixCollection's TextSpan)
-            // order diagnostics by span.
+            //
+            // invariant: later code gathers & runs CodeFixProviders for diagnostics with one identical diagnostics span
+            // (that gets set later as CodeFixCollection's TextSpan) order diagnostics by span.
             var spanToDiagnostics = new SortedDictionary<TextSpan, List<DiagnosticData>>();
             foreach (var diagnostic in diagnostics)
             {
