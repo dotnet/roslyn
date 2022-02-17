@@ -10,7 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Shared.Lightup;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -62,16 +62,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             if (type != null && type.IsReferenceType)
             {
+                // This is intended to be used by metadata-as-source only. Normal code generation (e.g, by codefixes) isn't affected by this.
                 var additionalAnnotation = type.NullableAnnotation switch
                 {
-                    NullableAnnotation.None => NullableSyntaxAnnotationEx.Oblivious,
-                    NullableAnnotation.Annotated => NullableSyntaxAnnotationEx.AnnotatedOrNotAnnotated,
-                    NullableAnnotation.NotAnnotated => NullableSyntaxAnnotationEx.AnnotatedOrNotAnnotated,
+                    NullableAnnotation.None => NullableSyntaxAnnotation.Oblivious,
+                    NullableAnnotation.Annotated => NullableSyntaxAnnotation.AnnotatedOrNotAnnotated,
+                    NullableAnnotation.NotAnnotated => NullableSyntaxAnnotation.AnnotatedOrNotAnnotated,
                     _ => throw ExceptionUtilities.UnexpectedValue(type.NullableAnnotation),
                 };
 
-                if (additionalAnnotation is not null)
-                    syntax = syntax.WithAdditionalAnnotations(additionalAnnotation);
+                syntax = syntax.WithAdditionalAnnotations(additionalAnnotation);
             }
 
             return syntax;

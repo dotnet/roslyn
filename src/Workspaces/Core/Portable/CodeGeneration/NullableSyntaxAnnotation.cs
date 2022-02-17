@@ -8,8 +8,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     /// <summary>
     /// Annotation placed on <see cref="ITypeSymbol"/>s that the <see cref="SyntaxGenerator"/> converts to a node. This
-    /// information tracks the original nullable state of the symbol and is used by metadata-as-source to determine if
-    /// it needs to add <c>#nullable</c> directives in the file.
+    /// information tracks the original nullable state of the symbol and is used ONLY by metadata-as-source to determine if
+    /// it needs to add <c>#nullable</c> directives in the file. This is not intended to be used by codefixes or refactorings.
     /// </summary>
     internal sealed class NullableSyntaxAnnotation
     {
