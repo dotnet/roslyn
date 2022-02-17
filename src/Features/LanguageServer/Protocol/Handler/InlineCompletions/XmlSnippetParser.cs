@@ -49,20 +49,17 @@ internal partial class XmlSnippetParser
         {
             context.TraceInformation($"Reading snippet for {matchingSnippetInfo.Title} with path {matchingSnippetInfo.Path}");
             parsedSnippet = GetAndParseSnippetFromFile(matchingSnippetInfo);
-            return parsedSnippet;
         }
         catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
         {
             context.TraceError($"Got exception parsing xml snippet {matchingSnippetInfo.Title} from file {matchingSnippetInfo.Path}");
             context.TraceException(ex);
-            return null;
         }
-        finally
-        {
-            // Add the snippet to the cache regardless of if we succeeded in parsing it.
-            // We're not likely to succeed in parsing on a second try if we failed initially, so we cache it to avoid repeatedly failing.
-            _parsedSnippetsCache.TryAdd(matchingSnippetInfo.Title, parsedSnippet);
-        }
+
+        // Add the snippet to the cache regardless of if we succeeded in parsing it.
+        // We're not likely to succeed in parsing on a second try if we failed initially, so we cache it to avoid repeatedly failing.
+        _parsedSnippetsCache.TryAdd(matchingSnippetInfo.Title, parsedSnippet);
+        return parsedSnippet;
     }
 
     private static ParsedXmlSnippet GetAndParseSnippetFromFile(SnippetInfo snippetInfo)
