@@ -6986,4 +6986,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_LineContainsDifferentWhitespace" xml:space="preserve">
     <value>Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</value>
   </data>
+  <data name="ERR_NoEnumConstraint" xml:space="preserve">
+    <value>Keyword 'enum' cannot be used as a constraint. Did you mean 'System.Enum'?</value>
+  </data>
 </root>
