@@ -4739,7 +4739,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
   Parts(3):
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: '{{ ')
         Text:
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""{{ "", IsImplicit) (Syntax: '{{ ')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""{ "", IsImplicit) (Syntax: '{{ ')
       IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{i}')
         Expression:
           ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
@@ -4749,7 +4749,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
           null
       IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: ' }}')
         Text:
-          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "" }}"", IsImplicit) (Syntax: ' }}')
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "" }"", IsImplicit) (Syntax: ' }}')
 ";
 
             VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
