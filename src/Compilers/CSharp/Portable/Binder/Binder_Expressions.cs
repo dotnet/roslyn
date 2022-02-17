@@ -1810,7 +1810,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 this.Compilation, name: "var", arity: 0, errorInfo: null, variableUsedBeforeDeclaration: true);
                             isNullableUnknown = true;
                         }
-                        else if ((localSymbol as SourceLocalSymbol)?.IsVar == true && localSymbol.ForbiddenZone?.Contains(node) == true)
+                        else if ((localSymbol.DeclarationKind == LocalDeclarationKind.DeconstructionVariable ||
+                                  localSymbol is SourceLocalSymbol { IsVar: true }) &&
+                                 localSymbol.ForbiddenZone?.Contains(node) == true)
                         {
                             // A var (type-inferred) local variable has been used in its own initialization (the "forbidden zone").
                             // There are many cases where this occurs, including:

@@ -9723,6 +9723,27 @@ class C
         }
 
         [Fact]
+        public void MixedDeclarationAndAssignmentForbiddenZone()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (int x1, (x1, int x2), x2) = (1, (2, 3), 4);
+    }
+}
+";
+            CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (6,19): error CS0841: Cannot use local variable 'x1' before it is declared
+                //         (int x1, (x1, int x2), x2) = (1, (2, 3), 4);
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(6, 19),
+                // (6,32): error CS0841: Cannot use local variable 'x2' before it is declared
+                //         (int x1, (x1, int x2), x2) = (1, (2, 3), 4);
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(6, 32));
+        }
+        
+        [Fact]
         public void MixedDeclarationAndAssignmentInForInitialization()
         {
             string source = @"
