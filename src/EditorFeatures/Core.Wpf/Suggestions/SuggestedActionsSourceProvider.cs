@@ -37,20 +37,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     [SuggestedActionPriority(DefaultOrderings.Lowest)]
     internal partial class SuggestedActionsSourceProvider : ISuggestedActionsSourceProvider
     {
-        private static readonly ImmutableArray<string> s_orderings = ImmutableArray.Create(
+        public static readonly ImmutableArray<string> Orderings = ImmutableArray.Create(
             DefaultOrderings.Highest,
             DefaultOrderings.Default,
             DefaultOrderings.Lowest);
-
-        static SuggestedActionsSourceProvider()
-        {
-            // Ensure that the list of orderings on this type matches the set we expose in s_orderings
-            var attributes = typeof(SuggestedActionsSourceProvider).GetCustomAttributes(inherit: false)
-                .OfType<SuggestedActionPriorityAttribute>()
-                .ToImmutableArray();
-            Contract.ThrowIfFalse(attributes.Length == s_orderings.Length);
-            Contract.ThrowIfFalse(attributes.Select(a => a.Priority).SetEquals(s_orderings));
-        }
 
         private static readonly Guid s_CSharpSourceGuid = new Guid("b967fea8-e2c3-4984-87d4-71a38f49e16a");
         private static readonly Guid s_visualBasicSourceGuid = new Guid("4de30e93-3e0c-40c2-a4ba-1124da4539f6");

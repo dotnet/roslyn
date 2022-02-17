@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 CodeActionOptions options,
                 CancellationToken cancellationToken)
             {
-                foreach (var order in s_orderings)
+                foreach (var order in Orderings)
                 {
                     var priority = TryGetPriority(order);
                     Contract.ThrowIfNull(priority);
