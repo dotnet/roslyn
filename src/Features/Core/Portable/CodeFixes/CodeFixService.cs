@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             using var resultDisposer = ArrayBuilder<CodeFixCollection>.GetInstance(out var result);
             var spanToDiagnostics = new SortedDictionary<TextSpan, List<DiagnosticData>>
             {
-                {range, diagnostics },
+                { range, diagnostics },
             };
 
             await AppendFixesAsync(
