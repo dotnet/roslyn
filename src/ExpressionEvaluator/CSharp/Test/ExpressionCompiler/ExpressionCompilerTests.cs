@@ -6977,16 +6977,73 @@ class C
                 var testData = new CompilationTestData();
                 var result = context.CompileExpression("field", out var error, testData);
 
+                // PROTOTYPE(semi-auto-props): Likely incorrect behavior.
+                Assert.Equal("error CS0103: The name 'field' does not exist in the current context", error);
+            });
+        }
+
+        [Fact]
+        public void FieldLocalInProperty()
+        {
+            var source =
+@"class C
+{
+    public int P
+    {
+        get
+        {
+            int field = 10;
+            return field;
+        }
+        set => field = value;
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics();
+            WithRuntimeInstance(compilation, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.get_P");
+                var testData = new CompilationTestData();
+                var result = context.CompileExpression("field", out var error, testData);
+
                 Assert.Null(error);
-                testData.GetMethodData("<>x.<>m0").VerifyIL(
-@"{
-  // Code size        7 (0x7)
+                testData.GetMethodData("<>x.<>m0").VerifyIL(@"{
+  // Code size        2 (0x2)
   .maxstack  1
-  .locals init (int V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<P>k__BackingField""
-  IL_0006:  ret
-}");
+  .locals init (int V_0, //field
+                int V_1)
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+ }");
+            });
+        }
+
+        [Fact]
+        public void EvaluateExpressionContainingField_PropertyUsesField()
+        {
+            var source =
+@"class C
+{
+    public int P
+    {
+        get
+        {
+            field = 10;
+            return field;
+        }
+        set => field = value;
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics();
+            WithRuntimeInstance(compilation, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.get_P");
+                var testData = new CompilationTestData();
+                var result = context.CompileExpression("field + 1", out var error, testData);
+
+                // PROTOTYPE(semi-auto-props): Likely incorrect behavior.
+                Assert.Equal("error CS0103: The name 'field' does not exist in the current context", error);
             });
         }
 

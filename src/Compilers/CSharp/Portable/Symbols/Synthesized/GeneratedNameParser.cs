@@ -170,18 +170,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             propertyName = null;
             return false;
         }
-
-        internal static bool TryParseBackingFieldName(string backingFieldName, [NotNullWhen(true)] out string? propertyName)
-        {
-            if (backingFieldName.StartsWith("<", StringComparison.Ordinal) &&
-                backingFieldName.EndsWith(">k__BackingField", StringComparison.Ordinal))
-            {
-                propertyName = backingFieldName.Substring(1, backingFieldName.Length - 17);
-                return true;
-            }
-
-            propertyName = null;
-            return false;
-        }
     }
 }

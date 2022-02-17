@@ -1724,8 +1724,6 @@ class C
             var fieldsToEmit = comp.GetTypeByMetadataName("C").GetFieldsToEmit();
             if (fieldAccessorFirst)
             {
-                // PROTOTYPE(semi-auto-props): We shouldn't be creating a symbol for duplicate accessor.
-                // Investigate why we got a symbol back.
                 Assert.Equal("System.Double C.<P>k__BackingField", fieldsToEmit.Single().ToTestDisplayString());
             }
             else
@@ -1742,6 +1740,7 @@ class C
             }
             else
             {
+                // PROTOTYPE(semi-auto-props): Is this correct behavior?
                 Assert.Null(fieldKeywordSymbolInfo.Symbol);
             }
 
