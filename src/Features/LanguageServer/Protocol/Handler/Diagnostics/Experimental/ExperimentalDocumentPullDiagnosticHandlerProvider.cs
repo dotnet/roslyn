@@ -10,8 +10,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Experimental;
 
-[ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-[ProvidesMethod(ExperimentalMethods.TextDocumentDiagnostic)]
+[ExportRoslynLanguagesLspRequestHandlerProvider(typeof(ExperimentalDocumentPullDiagnosticsHandler)), Shared]
 internal class ExperimentalDocumentPullDiagnosticHandlerProvider : AbstractRequestHandlerProvider
 {
     private readonly IDiagnosticService _diagnosticService;

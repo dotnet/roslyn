@@ -2,58 +2,60 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
-using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpUpgradeProject : AbstractUpdateProjectTest
+    [Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
+    public class CSharpUpgradeProject : AbstractUpgradeProjectTest
     {
-        public CSharpUpgradeProject(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+        private async Task InvokeFixAsync(string version, CancellationToken cancellationToken)
         {
-        }
-
-        private void InvokeFix(string version = "latest")
-        {
-            VisualStudio.Editor.SetText(@$"
+            await TestServices.Editor.SetTextAsync(@$"
 #error version:{version}
-");
-            VisualStudio.Editor.Activate();
+", cancellationToken);
+            await TestServices.Editor.ActivateAsync(cancellationToken);
 
-            VisualStudio.Editor.PlaceCaret($"version:{version}");
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeAction($"Upgrade this project to C# language version '{version}'", applyFix: true);
+            await TestServices.Editor.PlaceCaretAsync($"version:{version}", charsOffset: 0, cancellationToken);
+
+            // Suspend file change notification during code action application, since spurious file change notifications
+            // can cause silent failure to apply the code action if they occur within this block.
+            await using (var fileChangeRestorer = await TestServices.Shell.PauseFileChangesAsync(HangMitigatingCancellationToken))
+            {
+                await TestServices.Editor.InvokeCodeActionListAsync(cancellationToken);
+                await TestServices.EditorVerifier.CodeActionAsync($"Upgrade this project to C# language version '{version}'", applyFix: true, cancellationToken: cancellationToken);
+            }
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/38301"), Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
-        public void CPSProject_GeneralPropertyGroupUpdated()
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/38301")]
+        public async Task CPSProject_GeneralPropertyGroupUpdated()
         {
-            var project = new ProjectUtils.Project(ProjectName);
+            var project = ProjectName;
 
-            VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
-            VisualStudio.SolutionExplorer.AddProject(project, WellKnownProjectTemplates.CSharpNetStandardClassLibrary, LanguageNames.CSharp);
-            VisualStudio.SolutionExplorer.RestoreNuGetPackages(project);
+            await TestServices.SolutionExplorer.CreateSolutionAsync(SolutionName, HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.AddProjectAsync(project, WellKnownProjectTemplates.CSharpNetStandardClassLibrary, LanguageNames.CSharp, HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(project, HangMitigatingCancellationToken);
 
-            InvokeFix();
-            VerifyPropertyOutsideConfiguration(GetProjectFileElement(project), "LangVersion", "latest");
+            await InvokeFixAsync(version: "latest", HangMitigatingCancellationToken);
+            VerifyPropertyOutsideConfiguration(await GetProjectFileElementAsync(project, HangMitigatingCancellationToken), "LangVersion", "latest");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
-        public void LegacyProject_AllConfigurationsUpdated()
+        [IdeFact]
+        public async Task LegacyProject_AllConfigurationsUpdated()
         {
-            var project = new ProjectUtils.Project(ProjectName);
+            var project = ProjectName;
 
-            VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
-            VisualStudio.SolutionExplorer.AddCustomProject(project, ".csproj", $@"<?xml version=""1.0"" encoding=""utf-8""?>
+            await TestServices.SolutionExplorer.CreateSolutionAsync(SolutionName, HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.AddCustomProjectAsync(
+                project,
+                ".csproj",
+                $@"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project ToolsVersion=""15.0"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <Import Project=""$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"" Condition=""Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"" />
   <PropertyGroup>
@@ -85,21 +87,25 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
   <ItemGroup>
   </ItemGroup>
   <Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
-</Project>");
-            VisualStudio.SolutionExplorer.AddFile(project, "C.cs", open: true);
+</Project>",
+                HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.AddFileAsync(project, "C.cs", open: true, cancellationToken: HangMitigatingCancellationToken);
 
-            InvokeFix(version: "7.3");
-            VerifyPropertyInEachConfiguration(GetProjectFileElement(project), "LangVersion", "7.3");
+            await InvokeFixAsync(version: "7.3", HangMitigatingCancellationToken);
+            VerifyPropertyInEachConfiguration(await GetProjectFileElementAsync(project, HangMitigatingCancellationToken), "LangVersion", "7.3");
         }
 
+        [IdeFact]
         [WorkItem(23342, "https://github.com/dotnet/roslyn/issues/23342")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
-        public void LegacyProject_MultiplePlatforms_AllConfigurationsUpdated()
+        public async Task LegacyProject_MultiplePlatforms_AllConfigurationsUpdated()
         {
-            var project = new ProjectUtils.Project(ProjectName);
+            var project = ProjectName;
 
-            VisualStudio.SolutionExplorer.CreateSolution(SolutionName);
-            VisualStudio.SolutionExplorer.AddCustomProject(project, ".csproj", $@"<?xml version=""1.0"" encoding=""utf-8""?>
+            await TestServices.SolutionExplorer.CreateSolutionAsync(SolutionName, HangMitigatingCancellationToken);
+            await TestServices.SolutionExplorer.AddCustomProjectAsync(
+                project,
+                ".csproj",
+                $@"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project ToolsVersion=""15.0"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <Import Project=""$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"" Condition=""Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"" />
   <PropertyGroup>
@@ -134,12 +140,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
   <ItemGroup>
   </ItemGroup>
   <Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
-</Project>");
+</Project>",
+                HangMitigatingCancellationToken);
 
-            VisualStudio.SolutionExplorer.AddFile(project, "C.cs", open: true);
+            await TestServices.SolutionExplorer.AddFileAsync(project, "C.cs", open: true, cancellationToken: HangMitigatingCancellationToken);
 
-            InvokeFix(version: "7.3");
-            VerifyPropertyInEachConfiguration(GetProjectFileElement(project), "LangVersion", "7.3");
+            await InvokeFixAsync(version: "7.3", HangMitigatingCancellationToken);
+            VerifyPropertyInEachConfiguration(await GetProjectFileElementAsync(project, HangMitigatingCancellationToken), "LangVersion", "7.3");
         }
     }
 }

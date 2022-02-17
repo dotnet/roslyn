@@ -29,6 +29,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
         public bool DisableProjectCacheService
             => _globalOptions.GetOption(OptionsMetadata.DisableProjectCacheService);
 
+        public bool EnableOpeningSourceGeneratedFilesInWorkspace
+            => _globalOptions.GetOption(OptionsMetadata.EnableOpeningSourceGeneratedFilesInWorkspace)
+                ?? _globalOptions.GetOption(OptionsMetadata.EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag);
+
         internal sealed class OptionsMetadata
         {
             /// <summary>
@@ -39,8 +43,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
                 new FeatureFlagStorageLocation("Roslyn.DisableRecoverableTrees"));
 
             public static readonly Option2<bool> DisableProjectCacheService = new(
-                "WorkspaceConfigurationOptions", "DisableProjectCacheService", defaultValue: false,
+                "WorkspaceConfigurationOptions", nameof(DisableProjectCacheService), defaultValue: false,
                 new FeatureFlagStorageLocation("Roslyn.DisableProjectCacheService"));
+
+            /// <summary>
+            /// This option allows the user to enable this. We are putting this behind a feature flag for now since we could have extensions
+            /// surprised by this and we want some time to work through those issues.
+            /// </summary>
+            public static readonly Option2<bool?> EnableOpeningSourceGeneratedFilesInWorkspace = new(
+                "WorkspaceConfigurationOptions", nameof(EnableOpeningSourceGeneratedFilesInWorkspace), defaultValue: null,
+                new RoamingProfileStorageLocation("TextEditor.Roslyn.Specific.EnableOpeningSourceGeneratedFilesInWorkspaceExperiment"));
+
+            public static readonly Option2<bool> EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag = new(
+                "WorkspaceConfigurationOptions", nameof(EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag), defaultValue: false,
+                new FeatureFlagStorageLocation("Roslyn.SourceGeneratorsEnableOpeningInWorkspace"));
         }
     }
 }
