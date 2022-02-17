@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             _configurationProvidersMap = GetConfigurationProvidersPerLanguageMap(configurationProviders);
         }
 
-        private Func<string, bool>? GetFixableDiagnosticFilter(
+        private Func<string, bool>? GetShouldIncludeDiagnosticPredicate(
             Document document,
             CodeActionRequestPriority priority)
         {
@@ -102,9 +102,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public async Task<FirstFixResult> GetMostSevereFixAsync(
             Document document, TextSpan range, CodeActionRequestPriority priority, CodeActionOptions options, CancellationToken cancellationToken)
         {
-            var shouldInclude = GetFixableDiagnosticFilter(document, priority);
             var (allDiagnostics, upToDate) = await _diagnosticService.TryGetDiagnosticsForSpanAsync(
-                document, range, shouldInclude, includeSuppressedDiagnostics: false, priority, cancellationToken).ConfigureAwait(false);
+                document, range, GetShouldIncludeDiagnosticPredicate(document, priority),
+                includeSuppressedDiagnostics: false, priority, cancellationToken).ConfigureAwait(false);
 
             var spanToDiagnostics = ConvertToMap(allDiagnostics);
 
@@ -174,9 +174,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             // this design's weakness is that each side don't have enough information to narrow down works to do. it
             // will most likely always do more works than needed. sometimes way more than it is needed. (compilation)
 
-            var shouldIncludeDiagnostic = GetFixableDiagnosticFilter(document, priority);
             var diagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
-                document, range, shouldIncludeDiagnostic, includeSuppressionFixes, priority, addOperationScope, cancellationToken).ConfigureAwait(false);
+                document, range, GetShouldIncludeDiagnosticPredicate(document, priority),
+                includeSuppressionFixes, priority, addOperationScope, cancellationToken).ConfigureAwait(false);
 
             if (diagnostics.IsEmpty)
                 yield break;
