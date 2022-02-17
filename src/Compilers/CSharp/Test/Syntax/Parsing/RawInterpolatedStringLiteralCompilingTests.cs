@@ -37,7 +37,7 @@ public class RawInterpolatedStringLiteralCompilingTests : CompilingTestBase
     private void RenderAndVerify(string markup, string expectedOutput, string? normalize)
     {
         var text = Render(markup, normalize);
-        // ParseAllPrefixes(text);
+        ParseAllPrefixes(text);
         CompileAndVerify(text, expectedOutput: Render(expectedOutput, normalize), trimOutput: false);
     }
 
