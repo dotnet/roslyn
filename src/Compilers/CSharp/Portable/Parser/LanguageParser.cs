@@ -1559,6 +1559,15 @@ tryAgain:
                 _termState |= TerminatorState.IsEndOfRecordSignature;
                 recordModifier = eatRecordModifierIfAvailable();
             }
+            else if (keyword.Kind is SyntaxKind.StructKeyword or SyntaxKind.ClassKeyword &&
+                    CurrentToken.ContextualKind == SyntaxKind.RecordKeyword &&
+                    IsFeatureEnabled(MessageID.IDS_FeatureRecordStructs) &&
+                    PeekToken(1).Kind is not (SyntaxKind.LessThanToken or SyntaxKind.OpenBraceToken))
+            {
+                // Provide a specific diagnostic on `struct record` or `class record`
+                var misplacedRecord = this.AddError(this.EatToken(), ErrorCode.ERR_MisplacedRecord);
+                keyword = AddTrailingSkippedSyntax(keyword, misplacedRecord);
+            }
 
             var saveTerm = _termState;
             _termState |= TerminatorState.IsPossibleAggregateClauseStartOrStop;

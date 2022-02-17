@@ -2046,6 +2046,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_IllegalAtSequence = 9008,
         ERR_StringMustStartWithQuoteCharacter = 9009,
 
+        ERR_MisplacedRecord = 9012,
+
         #endregion
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)
