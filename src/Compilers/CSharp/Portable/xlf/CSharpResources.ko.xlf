@@ -818,8 +818,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_MisplacedRecord">
-        <source>Unexpected keyword 'record'. Did you mean 'struct record' or 'class record'?</source>
-        <target state="new">Unexpected keyword 'record'. Did you mean 'struct record' or 'class record'?</target>
+        <source>Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</source>
+        <target state="new">Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MisplacedSlicePattern">

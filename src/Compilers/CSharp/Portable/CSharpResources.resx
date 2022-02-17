@@ -6990,6 +6990,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Line contains different whitespace than the closing line of the raw string literal: '{0}' versus '{1}'</value>
   </data>
   <data name="ERR_MisplacedRecord" xml:space="preserve">
-    <value>Unexpected keyword 'record'. Did you mean 'struct record' or 'class record'?</value>
+    <value>Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?</value>
   </data>
 </root>

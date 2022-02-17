@@ -3150,7 +3150,7 @@ class C(int X, int Y)
         {
             var text = "struct record C(int X, int Y);";
             UsingTree(text, options: TestOptions.Regular10,
-                // (1,8): error CS9012: Unexpected keyword 'record'. Did you mean 'struct record' or 'class record'?
+                // (1,8): error CS9012: Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?
                 // struct record C(int X, int Y);
                 Diagnostic(ErrorCode.ERR_MisplacedRecord, "record").WithLocation(1, 8),
                 // (1,16): error CS1514: { expected
@@ -3356,7 +3356,7 @@ class C(int X, int Y)
         {
             var text = "struct record { }";
             UsingTree(text, options: TestOptions.Regular10,
-                // (1,8): error CS9012: Unexpected keyword 'record'. Did you mean 'struct record' or 'class record'?
+                // (1,8): error CS9012: Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?
                 // struct record { }
                 Diagnostic(ErrorCode.ERR_MisplacedRecord, "record").WithLocation(1, 8),
                 // (1,15): error CS1001: Identifier expected
@@ -3383,7 +3383,7 @@ class C(int X, int Y)
         {
             var text = "class record C(int X, int Y);";
             UsingTree(text, options: TestOptions.Regular10,
-                // (1,7): error CS9012: Unexpected keyword 'record'. Did you mean 'struct record' or 'class record'?
+                // (1,7): error CS9012: Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?
                 // class record C(int X, int Y);
                 Diagnostic(ErrorCode.ERR_MisplacedRecord, "record").WithLocation(1, 7),
                 // (1,15): error CS1514: { expected
