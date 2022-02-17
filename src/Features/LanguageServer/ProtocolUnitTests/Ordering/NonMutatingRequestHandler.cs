@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering
 {
     [Shared, ExportRoslynLanguagesLspRequestHandlerProvider(typeof(NonMutatingRequestHandler)), PartNotDiscoverable]
     [Method(MethodName)]
-    internal class NonMutatingRequestHandler : AbstractStatelessRequestHandler<TestRequest, TestResponse>
+    internal class NonMutatingRequestHandler : AbstractStatelessRequestHandlerAndProvider<TestRequest, TestResponse>
     {
         public const string MethodName = nameof(NonMutatingRequestHandler);
         private const int Delay = 100;

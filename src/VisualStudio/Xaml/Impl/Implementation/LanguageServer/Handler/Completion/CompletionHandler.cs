@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     /// </summary>
     [ExportXamlLspRequestHandlerProvider(typeof(CompletionHandler)), Shared]
     [Method(Methods.TextDocumentCompletionName)]
-    internal class CompletionHandler : AbstractStatelessRequestHandler<CompletionParams, CompletionList?>
+    internal class CompletionHandler : AbstractStatelessRequestHandlerAndProvider<CompletionParams, CompletionList?>
     {
         private const string CreateEventHandlerCommandTitle = "Create Event Handler";
 

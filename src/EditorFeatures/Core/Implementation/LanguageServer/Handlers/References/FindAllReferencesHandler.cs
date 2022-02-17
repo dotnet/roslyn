@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(FindAllReferencesHandler)), Shared]
     [Method(LSP.Methods.TextDocumentReferencesName)]
-    internal class FindAllReferencesHandler : AbstractStatelessRequestHandler<LSP.ReferenceParams, LSP.VSInternalReferenceItem[]?>
+    internal class FindAllReferencesHandler : AbstractStatelessRequestHandlerAndProvider<LSP.ReferenceParams, LSP.VSInternalReferenceItem[]?>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
         private readonly IAsynchronousOperationListener _asyncListener;

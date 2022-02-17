@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// This means that the handler can be shared between multiple servers
     /// and does not need to be re-instantiated on server restarts.
     /// </summary>
-    internal abstract class AbstractStatelessRequestHandler<RequestType, ResponseType> : AbstractRequestHandlerProvider, IRequestHandler<RequestType, ResponseType>
+    internal abstract class AbstractStatelessRequestHandlerAndProvider<RequestType, ResponseType> : AbstractRequestHandlerProvider, IRequestHandler<RequestType, ResponseType>
     {
         public abstract bool MutatesSolutionState { get; }
         public abstract bool RequiresLSPSolution { get; }

@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             var entryPointMethod = typeof(DelegatingEntryPoint).GetMethod(nameof(DelegatingEntryPoint.EntryPointAsync));
             Contract.ThrowIfNull(entryPointMethod, $"{typeof(DelegatingEntryPoint).FullName} is missing method {nameof(DelegatingEntryPoint.EntryPointAsync)}");
 
-            foreach (var metadata in _requestDispatcher.GetRegisteredMethods())
+            foreach (var (method, requestType, responseType) in _requestDispatcher.GetRegisteredMethods())
             {
                 // Instead of concretely defining methods for each LSP method, we instead dynamically construct
                 // the generic method info from the exported handler types.  This allows us to define multiple handlers for the same method
@@ -85,11 +85,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 //
                 // We also do not use the StreamJsonRpc support for JToken as the rpc method parameters because we want
                 // StreamJsonRpc to do the deserialization to handle streaming requests using IProgress<T>.
-                var delegatingEntryPoint = new DelegatingEntryPoint(metadata.MethodName, this);
+                var delegatingEntryPoint = new DelegatingEntryPoint(method, this);
 
-                var genericEntryPointMethod = entryPointMethod.MakeGenericMethod(metadata.RequestType, metadata.ResponseType);
+                var genericEntryPointMethod = entryPointMethod.MakeGenericMethod(requestType, responseType);
 
-                _jsonRpc.AddLocalRpcMethod(genericEntryPointMethod, delegatingEntryPoint, new JsonRpcMethodAttribute(metadata.MethodName) { UseSingleObjectParameterDeserialization = true });
+                _jsonRpc.AddLocalRpcMethod(genericEntryPointMethod, delegatingEntryPoint, new JsonRpcMethodAttribute(method) { UseSingleObjectParameterDeserialization = true });
             }
         }
 
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// Wrapper class to hold the method and properties from the <see cref="LanguageServerTarget"/>
         /// that the method info passed to streamjsonrpc is created from.
         /// </summary>
-        private class DelegatingEntryPoint
+        private sealed class DelegatingEntryPoint
         {
             private readonly string _method;
             private readonly LanguageServerTarget _target;

@@ -14,7 +14,7 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    internal readonly record struct RequestHandlerMetadata(string MethodName, Type RequestType, Type ResponseType);
+    internal readonly record struct RequestHandlerMetadata(Type RequestType, Type ResponseType, Lazy<IRequestHandler> Handler);
 
     /// <summary>
     /// Aggregates handlers for the specified languages and dispatches LSP requests
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     /// </summary>
     internal class RequestDispatcher
     {
-        private readonly ImmutableDictionary<RequestHandlerMetadata, Lazy<IRequestHandler>> _requestHandlers;
+        private readonly ImmutableDictionary<string, RequestHandlerMetadata> _requestHandlers;
 
         public RequestDispatcher(
             // Lazily imported handler providers to avoid instantiating providers until they are directly needed.
@@ -32,10 +32,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             _requestHandlers = CreateMethodToHandlerMap(requestHandlerProviders, serverKind);
         }
 
-        private static ImmutableDictionary<RequestHandlerMetadata, Lazy<IRequestHandler>> CreateMethodToHandlerMap(
+        private static ImmutableDictionary<string, RequestHandlerMetadata> CreateMethodToHandlerMap(
             IEnumerable<Lazy<AbstractRequestHandlerProvider, RequestHandlerProviderMetadataView>> requestHandlerProviders, WellKnownLspServerKinds serverKind)
         {
-            var requestHandlerDictionary = ImmutableDictionary.CreateBuilder<RequestHandlerMetadata, Lazy<IRequestHandler>>();
+            var requestHandlerDictionary = ImmutableDictionary.CreateBuilder<string, RequestHandlerMetadata>();
 
             // Store the request handlers in a dictionary from request name to handler instance.
             foreach (var handlerProvider in requestHandlerProviders)
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
                     // Using the lazy set of handlers, create a lazy instance that will resolve the set of handlers for the provider
                     // and then lookup the correct handler for the specified method.
-                    requestHandlerDictionary.Add(new RequestHandlerMetadata(method, requestType, responseType), new Lazy<IRequestHandler>(() => lazyProviders.Value[method]));
+                    requestHandlerDictionary.Add(method, new RequestHandlerMetadata(requestType, responseType, new Lazy<IRequestHandler>(() => lazyProviders.Value[method])));
                 }
             }
 
@@ -96,9 +96,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             CancellationToken cancellationToken) where TRequestType : class
         {
             // Get the handler matching the requested method.
-            var requestHandlerMetadata = new RequestHandlerMetadata(methodName, typeof(TRequestType), typeof(TResponseType));
-
-            var handler = _requestHandlers[requestHandlerMetadata].Value;
+            var handler = _requestHandlers[methodName].Handler.Value;
 
             var mutatesSolutionState = handler.MutatesSolutionState;
             var requiresLspSolution = handler.RequiresLSPSolution;
@@ -124,9 +122,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return queue.ExecuteAsync(mutatesSolutionState, requiresLSPSolution, handler, request, clientCapabilities, clientName, methodName, cancellationToken);
         }
 
-        public ImmutableArray<RequestHandlerMetadata> GetRegisteredMethods()
+        public ImmutableArray<(string Method, Type RequestType, Type ResponseType)> GetRegisteredMethods()
         {
-            return _requestHandlers.Keys.ToImmutableArray();
+            return _requestHandlers.SelectAsArray(kvp => (kvp.Key, kvp.Value.RequestType, kvp.Value.ResponseType));
         }
 
         internal TestAccessor GetTestAccessor()
@@ -140,7 +138,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 => _requestDispatcher = requestDispatcher;
 
             public IRequestHandler<RequestType, ResponseType> GetHandler<RequestType, ResponseType>(string methodName)
-                => (IRequestHandler<RequestType, ResponseType>)_requestDispatcher._requestHandlers.Single(handler => handler.Key.MethodName == methodName).Value.Value;
+                => (IRequestHandler<RequestType, ResponseType>)_requestDispatcher._requestHandlers.Single(handler => handler.Key == methodName).Value.Handler.Value;
         }
     }
 }

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     /// </summary>
     [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(SemanticTokensRangeHandler)), Shared]
     [Method(Methods.TextDocumentSemanticTokensRangeName)]
-    internal class SemanticTokensRangeHandler : AbstractStatelessRequestHandler<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>
+    internal class SemanticTokensRangeHandler : AbstractStatelessRequestHandlerAndProvider<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>
     {
         private readonly IGlobalOptionService _globalOptions;
 

@@ -22,8 +22,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
     [Command(StringConstants.CreateEventHandlerCommand)]
     internal class CreateEventCommandHandler : AbstractExecuteWorkspaceCommandHandler
     {
-        public override string Command => StringConstants.CreateEventHandlerCommand;
-
         public override bool MutatesSolutionState => false;
 
         public override bool RequiresLSPSolution => true;

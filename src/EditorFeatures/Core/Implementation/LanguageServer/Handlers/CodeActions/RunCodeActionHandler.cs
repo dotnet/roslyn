@@ -53,8 +53,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _threadingContext = threadingContext;
         }
 
-        public override string Command => CodeActionsHandler.RunCodeActionCommandName;
-
         public override bool MutatesSolutionState => true;
         public override bool RequiresLSPSolution => true;
 

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(RenameHandler)), Shared]
     [Method(LSP.Methods.TextDocumentRenameName)]
-    internal class RenameHandler : AbstractStatelessRequestHandler<LSP.RenameParams, WorkspaceEdit?>
+    internal class RenameHandler : AbstractStatelessRequestHandlerAndProvider<LSP.RenameParams, WorkspaceEdit?>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

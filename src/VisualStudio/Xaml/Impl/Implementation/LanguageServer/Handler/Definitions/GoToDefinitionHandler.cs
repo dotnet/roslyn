@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
 {
     [ExportXamlLspRequestHandlerProvider(typeof(GoToDefinitionHandler)), Shared]
     [Method(Methods.TextDocumentDefinitionName)]
-    internal class GoToDefinitionHandler : AbstractStatelessRequestHandler<TextDocumentPositionParams, LSP.Location[]>
+    internal class GoToDefinitionHandler : AbstractStatelessRequestHandlerAndProvider<TextDocumentPositionParams, LSP.Location[]>
     {
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
 

@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 {
     [ExportXamlLspRequestHandlerProvider(typeof(OnTypeRenameHandler)), Shared]
     [Method(Methods.TextDocumentLinkedEditingRangeName)]
-    internal class OnTypeRenameHandler : AbstractStatelessRequestHandler<LinkedEditingRangeParams, LinkedEditingRanges?>
+    internal class OnTypeRenameHandler : AbstractStatelessRequestHandlerAndProvider<LinkedEditingRangeParams, LinkedEditingRanges?>
     {
         // From https://www.w3.org/TR/xml/#NT-NameStartChar
         // Notes:

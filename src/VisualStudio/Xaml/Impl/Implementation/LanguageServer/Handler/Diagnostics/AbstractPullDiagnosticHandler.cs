@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
     /// <summary>
     /// Root type for both document and workspace diagnostic pull requests.
     /// </summary>
-    internal abstract class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport> : AbstractStatelessRequestHandler<TDiagnosticsParams, TReport[]?>
+    internal abstract class AbstractPullDiagnosticHandler<TDiagnosticsParams, TReport> : AbstractStatelessRequestHandlerAndProvider<TDiagnosticsParams, TReport[]?>
         where TReport : VSInternalDiagnosticReport
     {
         private readonly IXamlPullDiagnosticService _xamlDiagnosticService;
