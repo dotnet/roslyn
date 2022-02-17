@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 _useSubMenuName = useSubMenuName;
             }
 
-            protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
+            protected override async Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
             {
                 var services = _document.Project.Solution.Workspace.Services;
                 var declarationService = _document.GetRequiredLanguageService<ISymbolDeclarationService>();
@@ -65,7 +65,11 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 var syntaxTree = constructor.SyntaxTree;
                 var newRoot = syntaxTree.GetRoot(cancellationToken).ReplaceNode(constructor, newConstructor);
 
-                return _document.WithSyntaxRoot(newRoot);
+                // Make sure we get the document that contains the constructor we just updated
+                var constructorDocument = _document.Project.GetDocument(syntaxTree);
+                Contract.ThrowIfNull(constructorDocument);
+
+                return constructorDocument.WithSyntaxRoot(newRoot).Project.Solution;
             }
 
             private IEnumerable<SyntaxNode> CreateAssignStatements(ConstructorCandidate constructorCandidate)

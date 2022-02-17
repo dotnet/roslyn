@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
@@ -41,6 +42,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting
         }
 
         public Task<bool> TryNavigateToAsync(Workspace workspace, UnitTestingDefinitionItemWrapper definitionItem, bool showInPreviewTab, bool activateTab, CancellationToken cancellationToken)
-            => definitionItem.UnderlyingObject.TryNavigateToAsync(workspace, showInPreviewTab, activateTab, cancellationToken);
+            => definitionItem.UnderlyingObject.TryNavigateToAsync(workspace, new NavigationOptions(showInPreviewTab, activateTab), cancellationToken);
     }
 }

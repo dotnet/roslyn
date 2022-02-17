@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using EnvDTE;
+using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -200,7 +201,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 {
                 }
 
-                public override bool TryNavigateTo(int index, bool previewTab, bool activate, CancellationToken cancellationToken) => false;
+                public override bool TryNavigateTo(int index, NavigationOptions options, CancellationToken cancellationToken) => false;
 
                 public override bool TryGetValue(int index, string columnName, [NotNullWhen(true)] out object? content)
                 {

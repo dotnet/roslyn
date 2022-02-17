@@ -111,10 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             }
 
             // While navigating do not activate the tab, which will change focus from the tool window
-            var options = Workspace.CurrentSolution.Options
-                .WithChangedOption(new OptionKey(NavigationOptions.PreferProvisionalTab), true)
-                .WithChangedOption(new OptionKey(NavigationOptions.ActivateTab), false);
-
+            var options = new NavigationOptions(PreferProvisionalTab: true, ActivateTab: false);
             navigationService.TryNavigateToLineAndOffset(Workspace, DocumentId, LineSpan.Start, 0, options, ThreadingContext.DisposalToken);
         }
 

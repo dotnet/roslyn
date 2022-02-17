@@ -146,13 +146,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return CanMapFromSecondaryBufferToPrimaryBuffer(workspace, documentId, vsTextSpan);
         }
 
-        public async Task<bool> TryNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet? options, bool allowInvalidSpan, CancellationToken cancellationToken)
+        public async Task<bool> TryNavigateToSpanAsync(Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, bool allowInvalidSpan, CancellationToken cancellationToken)
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             return TryNavigateToSpan(workspace, documentId, textSpan, options, allowInvalidSpan, cancellationToken);
         }
 
-        public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, OptionSet? options, bool allowInvalidSpan, CancellationToken cancellationToken)
+        public bool TryNavigateToSpan(Workspace workspace, DocumentId documentId, TextSpan textSpan, NavigationOptions options, bool allowInvalidSpan, CancellationToken cancellationToken)
         {
             return TryNavigateToLocation(workspace,
                 documentId,
@@ -180,7 +180,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         public bool TryNavigateToLineAndOffset(
-            Workspace workspace, DocumentId documentId, int lineNumber, int offset, OptionSet? options, CancellationToken cancellationToken)
+            Workspace workspace, DocumentId documentId, int lineNumber, int offset, NavigationOptions options, CancellationToken cancellationToken)
         {
             return TryNavigateToLocation(workspace,
                 documentId,
@@ -204,7 +204,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         public bool TryNavigateToPosition(
-            Workspace workspace, DocumentId documentId, int position, int virtualSpace, OptionSet? options, CancellationToken cancellationToken)
+            Workspace workspace, DocumentId documentId, int position, int virtualSpace, NavigationOptions options, CancellationToken cancellationToken)
         {
             return TryNavigateToLocation(workspace,
                 documentId,
@@ -247,7 +247,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             DocumentId documentId,
             Func<Document, TextSpan> getTextSpanForMapping,
             Func<SourceText, VsTextSpan> getVsTextSpan,
-            OptionSet? options,
+            NavigationOptions options,
             CancellationToken cancellationToken)
         {
             // Navigation should not change the context of linked files and Shared Projects.
@@ -260,7 +260,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             var solution = workspace.CurrentSolution;
 
-            using (OpenNewDocumentStateScope(options ?? solution.Options))
+            using (OpenNewDocumentStateScope(options))
             {
                 var document = solution.GetDocument(documentId);
                 if (document == null)
@@ -468,13 +468,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private static bool CanMapFromSecondaryBufferToPrimaryBuffer(Workspace workspace, DocumentId documentId, VsTextSpan spanInSecondaryBuffer)
             => spanInSecondaryBuffer.TryMapSpanFromSecondaryBufferToPrimaryBuffer(workspace, documentId, out _);
 
-        private static IDisposable OpenNewDocumentStateScope(OptionSet options)
+        private static IDisposable OpenNewDocumentStateScope(NavigationOptions options)
         {
-            var state = options.GetOption(NavigationOptions.PreferProvisionalTab)
+            var state = options.PreferProvisionalTab
                 ? __VSNEWDOCUMENTSTATE.NDS_Provisional
                 : __VSNEWDOCUMENTSTATE.NDS_Permanent;
 
-            if (!options.GetOption(NavigationOptions.ActivateTab))
+            if (!options.ActivateTab)
             {
                 state |= __VSNEWDOCUMENTSTATE.NDS_NoActivate;
             }

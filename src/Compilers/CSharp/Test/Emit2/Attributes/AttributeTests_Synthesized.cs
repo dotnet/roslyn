@@ -1266,7 +1266,13 @@ public class Test
             }
             else
             {
-                CompileAndVerify(compilation, verify: outputKind.IsNetModule() ? Verification.Skipped : Verification.Passes, symbolValidator: module =>
+                // ILVerify: Failed to load type 'System.String' from assembly
+                // ILVerify: The format of a DLL or executable being loaded is invalid
+                var verify = outputKind.IsNetModule()
+                    ? Verification.Fails
+                    : Verification.FailsILVerify;
+
+                CompileAndVerify(compilation, verify: verify, symbolValidator: module =>
                 {
                     var assemblyAttributes = module.ContainingAssembly.GetAttributes();
                     Assert.Equal(0, assemblyAttributes.Length);

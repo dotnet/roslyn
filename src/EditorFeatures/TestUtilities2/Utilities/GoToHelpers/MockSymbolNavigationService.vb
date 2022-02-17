@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
         Public _triedSymbolNavigationNotify As Boolean
         Public _wouldNavigateToSymbol As Boolean
 
-        Public Function TryNavigateToSymbol(symbol As ISymbol, project As Project, Optional options As OptionSet = Nothing, Optional cancellationToken As CancellationToken = Nothing) As Boolean Implements ISymbolNavigationService.TryNavigateToSymbol
+        Public Function TryNavigateToSymbol(symbol As ISymbol, project As Project, options As NavigationOptions, cancellationToken As CancellationToken) As Boolean Implements ISymbolNavigationService.TryNavigateToSymbol
             _triedNavigationToSymbol = True
             Return True
         End Function

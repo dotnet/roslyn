@@ -24,6 +24,7 @@ Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Text.Projection
+Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
@@ -636,7 +637,7 @@ class C
                               showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.Preview)
 
                 state.SendTypeChars("w")
-                Await state.AssertSelectedCompletionItem(displayText:="with", isHardSelected:=False)
+                Await state.AssertSelectedCompletionItem(displayText:="with", isHardSelected:=True)
                 state.SendTab()
                 state.SendTypeChars(" { ")
                 Await state.AssertSelectedCompletionItem(displayText:="Property", isHardSelected:=False)
@@ -9700,8 +9701,10 @@ class C
                 Await state.AssertCompletionItemsDoNotContainAny("TestUnimportedItem")
 
                 Dim session = Await state.GetCompletionSession()
-                Dim expandTask As Task = Nothing
-                Assert.True(session.Properties.TryGetProperty(Of Task)(CompletionSource.ExpandedItemsTask, expandTask))
+                Dim sessionData = CompletionSessionData.GetOrCreateSessionData(session)
+                Dim expandTask = sessionData.ExpandedItemsTask
+
+                Assert.NotNull(expandTask)
                 Assert.False(expandTask.IsCompleted)
 
                 ' following up by typing a few more characters each triggers an list update
@@ -9757,8 +9760,10 @@ class C
                 Await state.AssertCompletionItemsDoNotContainAny("TestUnimportedItem")
 
                 Dim session = Await state.GetCompletionSession()
-                Dim expandTask As Task = Nothing
-                Assert.True(session.Properties.TryGetProperty(Of Task)(CompletionSource.ExpandedItemsTask, expandTask))
+                Dim sessionData = CompletionSessionData.GetOrCreateSessionData(session)
+                Dim expandTask = sessionData.ExpandedItemsTask
+
+                Assert.NotNull(expandTask)
                 Assert.False(expandTask.IsCompleted)
 
                 ' following up by typing more characters each triggers an list update
@@ -9786,6 +9791,76 @@ class C
                 state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
                 Await state.AssertCompletionItemsContain("TestUnimportedItem", "")
                 Await state.AssertSelectedCompletionItem("TestUnimportedItem", inlineDescription:="Test.Name.Spaces")
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestNonBlockingExpandCompletionDoesNotChangeItemOrder() As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+                                  $$
+                              </Document>,
+                              extraExportedTypes:={GetType(TestProvider)}.ToList())
+
+                Dim workspace = state.Workspace
+
+                Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
+                globalOptions.SetGlobalOption(New OptionKey(CompletionViewOptions.BlockForCompletionItems, LanguageNames.CSharp), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp), True)
+                state.Workspace.GlobalOptions.SetGlobalOption(New OptionKey(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation), True)
+
+                state.TextView.Options.SetOptionValue(DefaultOptions.ResponsiveCompletionOptionId, True)
+
+                Dim completionService = DirectCast(workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService(Of CompletionService)(), CompletionServiceWithProviders)
+                Dim provider = completionService.GetTestAccessor().GetAllProviders(ImmutableHashSet(Of String).Empty).OfType(Of TestProvider)().Single()
+
+                ' First we enable delay for expand item, and trigger completion with test provider blocked
+                ' this would ensure completion list don't have expand item until we release the checkpoint
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsDoNotContainAny("TestUnimportedItem")
+
+                Dim session = Await state.GetCompletionSession()
+                Dim sessionData = CompletionSessionData.GetOrCreateSessionData(session)
+                Dim expandTask = sessionData.ExpandedItemsTask
+
+                Assert.NotNull(expandTask)
+                Assert.False(expandTask.IsCompleted)
+
+                provider.Checkpoint.Release()
+                Await expandTask
+
+                ' Now delayed expand item task is completed, following up by typing and delete a character to trigger
+                ' update so the list would contains all items
+                Dim uiRender = state.WaitForUIRenderedAsync()
+                state.SendTypeChars("t")
+                Await state.AssertCompletionItemsContain("TestUnimportedItem", "")
+                state.SendBackspace()
+                Await uiRender
+                state.AssertCompletionItemExpander(isAvailable:=True, isSelected:=True)
+
+                ' Get the full list from session where delay happened
+                Dim list1 = state.GetCompletionItems()
+
+                state.SendEscape()
+                Await state.AssertNoCompletionSession()
+
+                ' Now disable expand item delay, so intial trigger should contain full list
+                state.TextView.Options.SetOptionValue(DefaultOptions.ResponsiveCompletionOptionId, False)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContain("TestUnimportedItem", "")
+
+                ' Get the full list from session where delay didn't happen
+                Dim list2 = state.GetCompletionItems()
+                Assert.Equal(list1.Count, list2.Count)
+
+                ' Two list of items should be identical in order.
+                For i As Integer = 0 To list1.Count - 1
+                    Dim item1 = list1(i)
+                    Dim item2 = list2(i)
+                    Assert.Equal(item1, item2)
+                Next
+
             End Using
         End Function
 
