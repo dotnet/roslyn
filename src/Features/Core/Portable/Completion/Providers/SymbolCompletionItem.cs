@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             if (insertionText != null)
             {
-                props = props.Add("InsertionText", insertionText);
+                props = props.Add(CommonCompletionItem.InsertionTextProperty, insertionText);
             }
 
             props = props.Add("ContextPosition", contextPosition.ToString());
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             => GetContextPosition(item);
 
         public static string GetInsertionText(CompletionItem item)
-            => item.Properties["InsertionText"];
+            => item.Properties[CommonCompletionItem.InsertionTextProperty];
 
         // COMPAT OVERLOAD: This is used by IntelliCode.
         public static CompletionItem CreateWithSymbolId(
