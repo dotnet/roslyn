@@ -437,10 +437,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         var result = await state.Target.Owner._codeFixService.GetMostSevereFixAsync(
                             document, range.Span.ToTextSpan(), priority, options, cancellationToken).ConfigureAwait(false);
 
-                        if (result != null)
+                        if (result.HasFix)
                         {
                             Logger.Log(FunctionId.SuggestedActions_HasSuggestedActionsAsync);
-                            return GetFixCategory(result.FirstDiagnostic.Severity);
+                            return GetFixCategory(result.CodeFixCollection.FirstDiagnostic.Severity);
+                        }
+
+                        if (!result.UpToDate)
+                        {
+                            // reset solution version number so that we can raise suggested action changed event
+                            Volatile.Write(ref state.Target.LastSolutionVersionReported, InvalidSolutionVersion);
+                            return null;
                         }
                     }
 

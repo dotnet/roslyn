@@ -3,22 +3,21 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
-    internal readonly struct FirstDiagnosticResult
+    internal readonly struct FirstFixResult
     {
-        public readonly bool PartialResult;
-        public readonly DiagnosticData? Diagnostic;
+        public readonly bool UpToDate;
+        public readonly CodeFixCollection? CodeFixCollection;
 
-        [MemberNotNullWhen(true, nameof(Diagnostic))]
-        public bool HasFix => Diagnostic != null;
+        [MemberNotNullWhen(true, nameof(CodeFixCollection))]
+        public bool HasFix => CodeFixCollection != null;
 
-        public FirstDiagnosticResult(bool partialResult, DiagnosticData? diagnostic)
+        public FirstFixResult(bool upToDate, CodeFixCollection? codeFixCollection)
         {
-            PartialResult = partialResult;
-            Diagnostic = diagnostic;
+            UpToDate = upToDate;
+            CodeFixCollection = codeFixCollection;
         }
     }
 }
