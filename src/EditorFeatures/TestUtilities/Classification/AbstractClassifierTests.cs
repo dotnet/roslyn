@@ -104,6 +104,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 
         protected async Task TestAsync(
             string code,
+            TestHost testHost,
+            ParseOptions? parseOptions,
+            params FormattedClassification[] expected)
+        {
+            await TestAsync(code, code, testHost, parseOptions, expected);
+        }
+
+        protected async Task TestAsync(
+            string code,
             string allCode,
             TestHost testHost,
             params FormattedClassification[] expected)

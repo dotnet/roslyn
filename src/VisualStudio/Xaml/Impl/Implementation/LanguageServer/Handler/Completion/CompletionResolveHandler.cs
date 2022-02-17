@@ -27,13 +27,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
     /// <summary>
     /// Handle a completion resolve request to add description.
     /// </summary>
-    [ExportLspRequestHandlerProvider(StringConstants.XamlLanguageName), Shared]
-    [ProvidesMethod(LSP.Methods.TextDocumentCompletionResolveName)]
+    [ExportXamlLspRequestHandlerProvider(typeof(CompletionResolveHandler)), Shared]
+    [Method(LSP.Methods.TextDocumentCompletionResolveName)]
     internal class CompletionResolveHandler : AbstractStatelessRequestHandler<LSP.CompletionItem, LSP.CompletionItem>
     {
         private readonly IGlobalOptionService _globalOptions;
-
-        public override string Method => LSP.Methods.TextDocumentCompletionResolveName;
 
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
