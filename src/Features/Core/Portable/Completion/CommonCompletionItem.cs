@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal static class CommonCompletionItem
     {
-        public const string Description = nameof(Description);
-        public const string InsertionText = nameof(InsertionText);
+        public const string DescriptionProperty = nameof(DescriptionProperty);
+        public const string InsertionTextProperty = nameof(InsertionTextProperty);
 
         public static CompletionItem Create(
             string displayText,
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Completion
             properties ??= ImmutableDictionary<string, string>.Empty;
             if (!description.IsDefault && description.Length > 0)
             {
-                properties = properties.Add(Description, EncodeDescription(description.ToTaggedText()));
+                properties = properties.Add(DescriptionProperty, EncodeDescription(description.ToTaggedText()));
             }
 
             return CompletionItem.Create(
@@ -62,11 +62,11 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         public static bool HasDescription(CompletionItem item)
-            => item.Properties.ContainsKey(Description);
+            => item.Properties.ContainsKey(DescriptionProperty);
 
         public static CompletionDescription GetDescription(CompletionItem item)
         {
-            if (item.Properties.TryGetValue(Description, out var encodedDescription))
+            if (item.Properties.TryGetValue(DescriptionProperty, out var encodedDescription))
             {
                 return DecodeDescription(encodedDescription);
             }
