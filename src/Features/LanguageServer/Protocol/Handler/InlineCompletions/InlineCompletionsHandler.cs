@@ -5,10 +5,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -25,8 +27,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 /// <summary>
 /// Supports built in legacy snippets for razor scenarios.
 /// </summary>
+[ExportRoslynLanguagesLspRequestHandlerProvider(typeof(InlineCompletionsHandler)), Shared]
 [Method(VSInternalMethods.TextDocumentInlineCompletionName)]
-internal partial class InlineCompletionsHandler : IRequestHandler<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList?>
+internal partial class InlineCompletionsHandler : AbstractStatelessRequestHandler<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList?>
 {
     /// <summary>
     /// The set of built in snippets from, typically found in
@@ -40,21 +43,23 @@ internal partial class InlineCompletionsHandler : IRequestHandler<VSInternalInli
 
     private readonly XmlSnippetParser _xmlSnippetParser;
 
-    public bool MutatesSolutionState => false;
+    public override bool MutatesSolutionState => false;
 
-    public bool RequiresLSPSolution => true;
+    public override bool RequiresLSPSolution => true;
 
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public InlineCompletionsHandler(XmlSnippetParser xmlSnippetParser)
     {
         _xmlSnippetParser = xmlSnippetParser;
     }
 
-    public TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalInlineCompletionRequest request)
+    public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalInlineCompletionRequest request)
     {
         return request.TextDocument;
     }
 
-    public async Task<VSInternalInlineCompletionList?> HandleRequestAsync(VSInternalInlineCompletionRequest request, RequestContext context, CancellationToken cancellationToken)
+    public override async Task<VSInternalInlineCompletionList?> HandleRequestAsync(VSInternalInlineCompletionRequest request, RequestContext context, CancellationToken cancellationToken)
     {
         Contract.ThrowIfNull(context.Document);
 
