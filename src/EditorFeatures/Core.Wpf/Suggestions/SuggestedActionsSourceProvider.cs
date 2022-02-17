@@ -6,18 +6,18 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Linq;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tags;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -37,6 +37,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
     [SuggestedActionPriority(DefaultOrderings.Lowest)]
     internal partial class SuggestedActionsSourceProvider : ISuggestedActionsSourceProvider
     {
+        private static readonly ImmutableArray<string> s_orderings = ImmutableArray.Create(
+            DefaultOrderings.Highest,
+            DefaultOrderings.Default,
+            DefaultOrderings.Lowest);
+
+        static SuggestedActionsSourceProvider()
+        {
+            // Ensure that the list of orderings on this type matches the set we expose in s_orderings
+            var attributes = typeof(SuggestedActionsSourceProvider).GetCustomAttributes(inherit: false)
+                .OfType<SuggestedActionPriorityAttribute>()
+                .ToImmutableArray();
+            Contract.ThrowIfFalse(attributes.Length == s_orderings.Length);
+            Contract.ThrowIfFalse(attributes.Select(a => a.Priority).SetEquals(s_orderings));
+        }
+
         private static readonly Guid s_CSharpSourceGuid = new Guid("b967fea8-e2c3-4984-87d4-71a38f49e16a");
         private static readonly Guid s_visualBasicSourceGuid = new Guid("4de30e93-3e0c-40c2-a4ba-1124da4539f6");
         private static readonly Guid s_xamlSourceGuid = new Guid("a0572245-2eab-4c39-9f61-06a6d8c5ddda");
@@ -100,5 +115,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 ? new AsyncSuggestedActionsSource(_threadingContext, _globalOptions, this, textView, textBuffer, _suggestedActionCategoryRegistry)
                 : new SyncSuggestedActionsSource(_threadingContext, _globalOptions, this, textView, textBuffer, _suggestedActionCategoryRegistry);
         }
+
+        private static CodeActionRequestPriority? TryGetPriority(string priority)
+            => priority switch
+            {
+                DefaultOrderings.Highest => CodeActionRequestPriority.High,
+                DefaultOrderings.Default => CodeActionRequestPriority.Normal,
+                DefaultOrderings.Lowest => CodeActionRequestPriority.Lowest,
+                _ => (CodeActionRequestPriority?)null,
+            };
     }
 }

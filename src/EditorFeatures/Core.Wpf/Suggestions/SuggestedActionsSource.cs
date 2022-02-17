@@ -414,29 +414,38 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 ReferenceCountedDisposable<State> state,
                 Document document,
                 SnapshotSpan range,
+                CodeActionOptions options,
                 CancellationToken cancellationToken)
             {
-                if (state.Target.Owner._codeFixService != null &&
-                    state.Target.SubjectBuffer.SupportsCodeFixes())
+                foreach (var order in s_orderings)
                 {
-                    var result = await state.Target.Owner._codeFixService.GetMostSevereFixableDiagnosticAsync(
-                            document, range.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
+                    var priority = TryGetPriority(order);
+                    Contract.ThrowIfNull(priority);
 
-                    if (result.HasFix)
-                    {
-                        Logger.Log(FunctionId.SuggestedActions_HasSuggestedActionsAsync);
-                        return GetFixCategory(result.Diagnostic.Severity);
-                    }
-
-                    if (result.PartialResult)
-                    {
-                        // reset solution version number so that we can raise suggested action changed event
-                        Volatile.Write(ref state.Target.LastSolutionVersionReported, InvalidSolutionVersion);
-                        return null;
-                    }
+                    var result = await GetFixLevelAsync(priority.Value).ConfigureAwait(false);
+                    if (result != null)
+                        return result;
                 }
 
                 return null;
+
+                async Task<string?> GetFixLevelAsync(CodeActionRequestPriority priority)
+                {
+                    if (state.Target.Owner._codeFixService != null &&
+                        state.Target.SubjectBuffer.SupportsCodeFixes())
+                    {
+                        var result = await state.Target.Owner._codeFixService.GetMostSevereFixAsync(
+                            document, range.Span.ToTextSpan(), priority, options, cancellationToken).ConfigureAwait(false);
+
+                        if (result != null)
+                        {
+                            Logger.Log(FunctionId.SuggestedActions_HasSuggestedActionsAsync);
+                            return GetFixCategory(result.FirstDiagnostic.Severity);
+                        }
+                    }
+
+                    return null;
+                }
             }
 
             private async Task<string?> TryGetRefactoringSuggestedActionCategoryAsync(
@@ -619,7 +628,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 var linkedToken = linkedTokenSource.Token;
 
-                var errorTask = Task.Run(() => GetFixLevelAsync(state, document, range, linkedToken), linkedToken);
+                var errorTask = Task.Run(() => GetFixLevelAsync(state, document, range, options, linkedToken), linkedToken);
 
                 var selection = await GetSpanAsync(state, range, linkedToken).ConfigureAwait(false);
 
