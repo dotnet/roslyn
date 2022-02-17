@@ -81,9 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 char c = s[i];
                 stringBuilder.Append(c);
-                if (c is '{' or '}' &&
-                    (i + 1) < formatLength &&
-                    s[i + 1] == c)
+                if (c is '{' or '}' && (i + 1) < formatLength && s[i + 1] == c)
                 {
                     i++;
                 }
@@ -95,10 +93,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var builder = PooledStringBuilder.GetInstance();
             var stringBuilder = builder.Builder;
-            int formatLength = s.Length;
-            for (int i = 0; i < formatLength; i++)
+            foreach (var c in s)
             {
-                char c = s[i];
                 stringBuilder.Append(c);
                 if (c is '{' or '}')
                 {
