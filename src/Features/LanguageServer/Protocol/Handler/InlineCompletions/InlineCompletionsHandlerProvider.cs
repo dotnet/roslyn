@@ -10,8 +10,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 
-[ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-[ProvidesMethod(VSInternalMethods.TextDocumentInlineCompletionName)]
+[ExportRoslynLanguagesLspRequestHandlerProvider(typeof(InlineCompletionsHandler)), Shared]
 internal class InlineCompletionsHandlerProvider : AbstractRequestHandlerProvider
 {
     private readonly XmlSnippetParser _snippetParser;

@@ -83,8 +83,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// </summary>
         private long _nextDocumentResultId;
 
-        public abstract string Method { get; }
-
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 

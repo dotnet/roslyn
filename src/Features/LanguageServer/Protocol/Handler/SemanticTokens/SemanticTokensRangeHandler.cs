@@ -18,13 +18,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
     /// <summary>
     /// Computes the semantic tokens for a given range.
     /// </summary>
-    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(Methods.TextDocumentSemanticTokensRangeName)]
-    internal sealed class SemanticTokensRangeHandler : AbstractStatelessRequestHandler<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>
+    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(SemanticTokensRangeHandler)), Shared]
+    [Method(Methods.TextDocumentSemanticTokensRangeName)]
+    internal class SemanticTokensRangeHandler : AbstractStatelessRequestHandler<LSP.SemanticTokensRangeParams, LSP.SemanticTokens>
     {
         private readonly IGlobalOptionService _globalOptions;
-
-        public override string Method => LSP.Methods.TextDocumentSemanticTokensRangeName;
 
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;

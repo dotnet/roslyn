@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// EditorFeatures references in <see cref="RunCodeActionHandler"/> are removed.
     /// See https://github.com/dotnet/roslyn/issues/55142
     /// </summary>
+    [Method(LSP.Methods.TextDocumentCodeActionName)]
     internal class CodeActionsHandler : IRequestHandler<LSP.CodeActionParams, LSP.CodeAction[]>
     {
         private readonly CodeActionsCache _codeActionsCache;
@@ -33,8 +34,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly IGlobalOptionService _globalOptions;
 
         internal const string RunCodeActionCommandName = "Roslyn.RunCodeAction";
-
-        public string Method => LSP.Methods.TextDocumentCodeActionName;
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;

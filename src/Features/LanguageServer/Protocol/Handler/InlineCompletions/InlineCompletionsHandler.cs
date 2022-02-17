@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlineCompletions;
 /// <summary>
 /// Supports built in legacy snippets for razor scenarios.
 /// </summary>
+[Method(VSInternalMethods.TextDocumentInlineCompletionName)]
 internal partial class InlineCompletionsHandler : IRequestHandler<VSInternalInlineCompletionRequest, VSInternalInlineCompletionList?>
 {
     /// <summary>
@@ -38,8 +39,6 @@ internal partial class InlineCompletionsHandler : IRequestHandler<VSInternalInli
         "propfull", "propg", "sim", "struct", "svm", "switch", "try", "tryf", "unchecked", "unsafe", "using", "while");
 
     private readonly XmlSnippetParser _xmlSnippetParser;
-
-    public string Method => VSInternalMethods.TextDocumentInlineCompletionName;
 
     public bool MutatesSolutionState => false;
 
