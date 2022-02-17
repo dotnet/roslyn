@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Storage;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -32,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             DocumentSnapshotSpan spanToTag,
             IClassificationService classificationService,
             ClassificationTypeMap typeMap,
+            ClassificationOptions options,
             CancellationToken cancellationToken)
         {
             var document = spanToTag.Document;
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             spanToTag = new DocumentSnapshotSpan(document, spanToTag.SnapshotSpan);
 
             var classified = await TryClassifyContainingMemberSpanAsync(
-                    context, spanToTag, classificationService, typeMap, cancellationToken).ConfigureAwait(false);
+                    context, spanToTag, classificationService, typeMap, options, cancellationToken).ConfigureAwait(false);
             if (classified)
             {
                 return;
@@ -61,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // We weren't able to use our specialized codepaths for semantic classifying. 
             // Fall back to classifying the full span that was asked for.
             await ClassifySpansAsync(
-                context, spanToTag, classificationService, typeMap, cancellationToken).ConfigureAwait(false);
+                context, spanToTag, classificationService, typeMap, options, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<bool> TryClassifyContainingMemberSpanAsync(
@@ -69,6 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             DocumentSnapshotSpan spanToTag,
             IClassificationService classificationService,
             ClassificationTypeMap typeMap,
+            ClassificationOptions options,
             CancellationToken cancellationToken)
         {
             var range = context.TextChangeRange;
@@ -126,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             // re-classify only the member we're inside.
             await ClassifySpansAsync(
-                context, subSpanToTag, classificationService, typeMap, cancellationToken).ConfigureAwait(false);
+                context, subSpanToTag, classificationService, typeMap, options, cancellationToken).ConfigureAwait(false);
             return true;
         }
 
@@ -135,6 +138,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             DocumentSnapshotSpan spanToTag,
             IClassificationService classificationService,
             ClassificationTypeMap typeMap,
+            ClassificationOptions options,
             CancellationToken cancellationToken)
         {
             try
@@ -150,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     await classificationService.AddSemanticClassificationsAsync(
                         document,
                         snapshotSpan.Span.ToTextSpan(),
-                        ClassificationOptions.From(document.Project),
+                        options,
                         classifiedSpans,
                         cancellationToken).ConfigureAwait(false);
 

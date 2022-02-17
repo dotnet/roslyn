@@ -122,7 +122,7 @@ stages:
     # Authenticate with service connections to be able to publish packages to external nuget feeds.
     - task: NuGetAuthenticate@0
       inputs:
-        nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering
+        nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk, devdiv/engineering, devdiv/dotnet-core-internal-tooling
 
     # Needed because the build fails the NuGet Tools restore without it
     - task: UseDotNet@2
@@ -296,7 +296,8 @@ stages:
       dependsOn:
         - OfficialBuild
       pool:
-        vmImage: windows-2019
+        name: NetCore1ESPool-Svc-Internal
+        demands: ImageOverride -equals Build.Server.Amd64.VS2019
 
 - stage: insert
   dependsOn:
@@ -307,7 +308,8 @@ stages:
   - job: insert
     displayName: Insert to VS
     pool:
-      vmImage: windows-2019
+      name: NetCore1ESPool-Svc-Internal
+      demands: ImageOverride -equals Build.Server.Amd64.VS2019
     steps:
     - powershell: |
         $branchName = "$(Build.SourceBranch)".Substring("refs/heads/".Length)

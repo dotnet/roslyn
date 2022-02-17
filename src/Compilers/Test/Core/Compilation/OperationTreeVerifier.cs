@@ -387,9 +387,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private void VisitChildren(IOperation operation)
         {
-            Debug.Assert(operation.Children.All(o => o != null));
+            Debug.Assert(operation.ChildOperations.All(o => o != null));
 
-            var children = operation.Children.ToImmutableArray();
+            var children = operation.ChildOperations.ToImmutableArray();
             if (!children.IsEmpty || operation.Kind != OperationKind.None)
             {
                 VisitArray(children, "Children", logElementCount: true);

@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Text;
 using System.Threading;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
@@ -3274,15 +3275,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override bool GenerateResourcesAndDocumentationComments(
+        internal override bool GenerateResources(
             CommonPEModuleBuilder moduleBuilder,
-            Stream? xmlDocStream,
             Stream? win32Resources,
             bool useRawWin32Resources,
-            string? outputNameOverride,
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             // Use a temporary bag so we don't have to refilter pre-existing diagnostics.
             DiagnosticBag? resourceDiagnostics = DiagnosticBag.GetInstance();
 
@@ -3294,11 +3295,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddedModulesResourceNames(resourceDiagnostics),
                 resourceDiagnostics);
 
-            if (!FilterAndAppendAndFreeDiagnostics(diagnostics, ref resourceDiagnostics, cancellationToken))
-            {
-                return false;
-            }
+            return FilterAndAppendAndFreeDiagnostics(diagnostics, ref resourceDiagnostics, cancellationToken);
+        }
 
+        internal override bool GenerateDocumentationComments(
+            Stream? xmlDocStream,
+            string? outputNameOverride,
+            DiagnosticBag diagnostics,
+            CancellationToken cancellationToken)
+        {
             cancellationToken.ThrowIfCancellationRequested();
 
             // Use a temporary bag so we don't have to refilter pre-existing diagnostics.

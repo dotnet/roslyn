@@ -794,5 +794,30 @@ class C
 }";
             await TestWithUseBlockBody(code, fixedCode);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        [WorkItem(53532, "https://github.com/dotnet/roslyn/issues/53532")]
+        public async Task TestUseBlockBodyTrivia1()
+        {
+            var code = @"
+using System;
+class C
+{
+    {|IDE0022:void M()
+        // Test
+        => Console.WriteLine();|}
+}";
+            var fixedCode = @"
+using System;
+class C
+{
+    void M()
+    {
+        // Test
+        Console.WriteLine();
+    }
+}";
+            await TestWithUseBlockBody(code, fixedCode);
+        }
     }
 }

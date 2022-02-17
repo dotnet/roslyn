@@ -51,8 +51,10 @@ static class C { }
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
             var range = new LSP.Range { Start = new Position(0, 0), End = new Position(2, 0) };
+            var options = ClassificationOptions.Default;
+
             var (results, _) = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
-                document, SemanticTokensHelpers.TokenTypeToIndex, range, includeSyntacticClassifications: true, CancellationToken.None);
+                document, SemanticTokensHelpers.TokenTypeToIndex, range, options, includeSyntacticClassifications: true, CancellationToken.None);
 
             var expectedResults = new LSP.SemanticTokens
             {
@@ -84,8 +86,9 @@ static class C { }
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
             var range = new LSP.Range { Start = new Position(1, 0), End = new Position(2, 0) };
+            var options = ClassificationOptions.Default;
             var (results, _) = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
-                document, SemanticTokensHelpers.TokenTypeToIndex, range, includeSyntacticClassifications: true, CancellationToken.None);
+                document, SemanticTokensHelpers.TokenTypeToIndex, range, options, includeSyntacticClassifications: true, CancellationToken.None);
 
             var expectedResults = new LSP.SemanticTokens
             {
@@ -110,15 +113,17 @@ static class C { }
             // Testing as a Razor doc so we get both syntactic + semantic results; otherwise the results would be empty.
             var markup =
 @"{|caret:|}class C { /* one
+
 two
 three */ }
 ";
             using var testLspServer = await CreateTestLspServerAsync(markup);
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
-            var range = new LSP.Range { Start = new Position(0, 0), End = new Position(3, 0) };
+            var range = new LSP.Range { Start = new Position(0, 0), End = new Position(4, 0) };
+            var options = ClassificationOptions.Default;
             var (results, _) = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
-                document, SemanticTokensHelpers.TokenTypeToIndex, range, includeSyntacticClassifications: true, CancellationToken.None);
+                document, SemanticTokensHelpers.TokenTypeToIndex, range, options, includeSyntacticClassifications: true, CancellationToken.None);
 
             var expectedResults = new LSP.SemanticTokens
             {
@@ -129,7 +134,7 @@ three */ }
                        0,     6,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.ClassName],   0, // 'C'
                        0,     2,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '{'
                        0,     2,     6,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Comment],      0, // '/* one'
-                       1,     0,     3,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Comment],      0, // 'two'
+                       2,     0,     3,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Comment],      0, // 'two'
                        1,     0,     8,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Comment],      0, // 'three */'
                        0,     9,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation], 0, // '}'
                 },
@@ -191,8 +196,9 @@ three"";
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
             var range = new LSP.Range { Start = new Position(0, 0), End = new Position(9, 0) };
+            var options = ClassificationOptions.Default;
             var (results, _) = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
-                document, SemanticTokensHelpers.TokenTypeToIndex, range, includeSyntacticClassifications: true, CancellationToken.None);
+                document, SemanticTokensHelpers.TokenTypeToIndex, range, options, includeSyntacticClassifications: true, CancellationToken.None);
 
             var expectedResults = new LSP.SemanticTokens
             {
@@ -243,8 +249,9 @@ class C
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
             var range = new LSP.Range { Start = new Position(0, 0), End = new Position(9, 0) };
+            var options = ClassificationOptions.Default;
             var (results, _) = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
-                document, SemanticTokensHelpers.TokenTypeToIndex, range, includeSyntacticClassifications: true, CancellationToken.None);
+                document, SemanticTokensHelpers.TokenTypeToIndex, range, options, includeSyntacticClassifications: true, CancellationToken.None);
 
             var expectedResults = new LSP.SemanticTokens
             {
@@ -252,9 +259,9 @@ class C
                 {
                     // Line | Char | Len | Token type                                                                         | Modifier
                        0,     0,     5,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Keyword],                0, // 'using'
-                       0,     6,     6,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Variable],               0, // 'System'
+                       0,     6,     6,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.NamespaceName],         0, // 'System'
                        0,     6,     1,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Operator],               0, // '.'
-                       0,     1,     4,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Variable],               0, // 'Text'
+                       0,     1,     4,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.NamespaceName],         0, // 'Text'
                        0,     4,     1,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Operator],               0, // '.'
                        0,     1,     18,   SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.NamespaceName],         0, // 'RegularExpressions'
                        0,     18,    1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // ';'
@@ -270,7 +277,7 @@ class C
                        0,     4,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.LocalName],             0, // 'x'
                        0,     2,     1,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Operator],               0, // '='
                        0,     2,     3,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Keyword],                0, // 'new'
-                       0,     4,     5,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.Variable],               0, // 'Regex'
+                       0,     4,     5,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.ClassName],             0, // 'Regex'
                        0,     5,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.Punctuation],           0, // '('
                        0,     1,     8,    SemanticTokensHelpers.TokenTypeToIndex[LSP.SemanticTokenTypes.String],                 0, // '"(abc)*"'
                        0,     1,     1,    SemanticTokensHelpers.TokenTypeToIndex[ClassificationTypeNames.RegexGrouping],         0, // '('

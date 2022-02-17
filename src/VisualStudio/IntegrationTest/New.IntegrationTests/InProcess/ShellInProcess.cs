@@ -2,39 +2,69 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.UnitTests;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
+using IAsyncDisposable = System.IAsyncDisposable;
 
-namespace Roslyn.VisualStudio.IntegrationTests.InProcess
+namespace Microsoft.VisualStudio.Extensibility.Testing
 {
-    internal class ShellInProcess : InProcComponent
+    internal partial class ShellInProcess
     {
-        public ShellInProcess(TestServices testServices)
-            : base(testServices)
-        {
-        }
-
-        public async Task<Version> GetVersionAsync(CancellationToken cancellationToken)
+        public async Task<PauseFileChangesRestorer> PauseFileChangesAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var shell = await GetRequiredGlobalServiceAsync<SVsShell, IVsShell>(cancellationToken);
-            shell.GetProperty((int)__VSSPROPID5.VSSPROPID_ReleaseVersion, out var versionProperty);
+            var fileChangeService = await GetRequiredGlobalServiceAsync<SVsFileChangeEx, IVsFileChangeEx3>(cancellationToken);
+            Assumes.Present(fileChangeService);
 
-            var fullVersion = versionProperty?.ToString() ?? "";
-            var firstSpace = fullVersion.IndexOf(' ');
-            if (firstSpace >= 0)
+            await fileChangeService.Pause();
+            return new PauseFileChangesRestorer(fileChangeService);
+        }
+
+        // This is based on WaitForQuiescenceAsync in the FileChangeService tests
+        public async Task WaitForFileChangeNotificationsAsync(CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var fileChangeService = await GetRequiredGlobalServiceAsync<SVsFileChangeEx, IVsFileChangeEx>(cancellationToken);
+            Assumes.Present(fileChangeService);
+
+            var jobSynchronizer = fileChangeService.GetPropertyValue("JobSynchronizer");
+            Assumes.Present(jobSynchronizer);
+
+            var type = jobSynchronizer.GetType();
+            var methodInfo = type.GetMethod("GetActiveSpawnedTasks", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            Assumes.Present(methodInfo);
+
+            while (true)
             {
-                // e.g. "17.1.31907.60 MAIN"
-                fullVersion = fullVersion[..firstSpace];
+                var tasks = (Task[])methodInfo.Invoke(jobSynchronizer, null);
+                if (!tasks.Any())
+                    return;
+
+                await Task.WhenAll(tasks);
+            }
+        }
+
+        public readonly struct PauseFileChangesRestorer : IAsyncDisposable
+        {
+            private readonly IVsFileChangeEx3 _fileChangeService;
+
+            public PauseFileChangesRestorer(IVsFileChangeEx3 fileChangeService)
+            {
+                _fileChangeService = fileChangeService;
             }
 
-            if (Version.TryParse(fullVersion, out var version))
-                return version;
-
-            throw new NotSupportedException($"Unexpected version format: {versionProperty}");
+            public async ValueTask DisposeAsync()
+            {
+                await _fileChangeService.Resume();
+            }
         }
     }
 }

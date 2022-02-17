@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
+Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editing
     <[UseExportProvider]>
     Public Class SyntaxGeneratorTests
         Private _g As SyntaxGenerator
@@ -2554,7 +2554,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub TestWithModifiers_Sealed()
+        Public Sub TestWithModifiers_Sealed_Class()
             Dim classBlock = DirectCast(Generator.ClassDeclaration("C"), ClassBlockSyntax)
             Dim classBlockWithModifiers = Generator.WithModifiers(classBlock, DeclarationModifiers.Sealed)
             VerifySyntax(Of ClassBlockSyntax)(classBlockWithModifiers, "NotInheritable Class C
@@ -2563,6 +2563,17 @@ End Class")
             Dim classStatement = classBlock.ClassStatement
             Dim classStatementWithModifiers = Generator.WithModifiers(classStatement, DeclarationModifiers.Sealed)
             VerifySyntax(Of ClassStatementSyntax)(classStatementWithModifiers, "NotInheritable Class C")
+        End Sub
+
+        <Fact, WorkItem(23410, "https://github.com/dotnet/roslyn/issues/23410")>
+        Public Sub TestWithModifiers_Sealed_Member()
+            Dim classBlock = DirectCast(Generator.ClassDeclaration("C"), ClassBlockSyntax)
+            classBlock = DirectCast(Generator.AddMembers(classBlock, Generator.WithModifiers(Generator.MethodDeclaration("Goo"), DeclarationModifiers.Sealed)), ClassBlockSyntax)
+            VerifySyntax(Of ClassBlockSyntax)(classBlock, "Class C
+
+    NotOverridable Sub Goo()
+    End Sub
+End Class")
         End Sub
 
         <Fact>
@@ -2678,7 +2689,7 @@ End Function")
 
             Assert.Equal(0, Generator.GetParameters(Generator.AddParameters(Generator.ClassDeclaration("c"), {Generator.ParameterDeclaration("p", Generator.IdentifierName("t"))})).Count)
             Assert.Equal(0, Generator.GetParameters(Generator.AddParameters(Generator.IdentifierName("x"), {Generator.ParameterDeclaration("p", Generator.IdentifierName("t"))})).Count)
-            Assert.Equal(0, Generator.GetParameters(Generator.AddParameters(Generator.PropertyDeclaration("p", Generator.IdentifierName("t")), {Generator.ParameterDeclaration("p", Generator.IdentifierName("t"))})).Count)
+            Assert.Equal(1, Generator.GetParameters(Generator.AddParameters(Generator.PropertyDeclaration("p", Generator.IdentifierName("t")), {Generator.ParameterDeclaration("p", Generator.IdentifierName("t"))})).Count)
         End Sub
 
         <Fact>

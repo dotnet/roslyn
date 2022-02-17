@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switchSections: switchSections,
                 defaultLabel: defaultLabel,
                 breakLabel: this.BreakLabel,
-                decisionDag: decisionDag);
+                reachabilityDecisionDag: decisionDag);
         }
 
         private void CheckSwitchErrors(

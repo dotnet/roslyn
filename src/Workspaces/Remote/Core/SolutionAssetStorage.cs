@@ -50,18 +50,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 : await solutionState.GetChecksumAsync(projectId, cancellationToken).ConfigureAwait(false);
             var context = SolutionReplicationContext.Create();
 
-            // The check of `fromPrimaryBranch: solution == solution.Workspace.CurrentSolution` may result in
-            // non-deterministic behavior.  Specifically, because this syncing is done in the BG, but change
-            // to .CurrentSolution can happen on another thread, it may be the case that 'fromPrimaryBranch'
-            // is true/false depending on the ordering of those ops.  That's ok sa this is just a hint to the
-            // remote side if they should cache this snapshot or not, and fork future syncs off of it.  We
-            // will always reach a fixed point here when the user pauses (which effectively always happens), so
-            // we're always going to get to the point that we do send `true` here and we cache a recent enough
-            // solution that we will then fork off of on the OOP side.
             var id = Interlocked.Increment(ref s_scopeId);
             var solutionInfo = new PinnedSolutionInfo(
                 id,
-                fromPrimaryBranch: solution == solution.Workspace.CurrentSolution,
+                fromPrimaryBranch: solutionState.BranchId == solutionState.Workspace.PrimaryBranchId,
                 solutionState.WorkspaceVersion,
                 solutionChecksum,
                 projectId);
