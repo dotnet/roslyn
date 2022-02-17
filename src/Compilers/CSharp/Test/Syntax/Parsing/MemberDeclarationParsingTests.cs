@@ -7174,5 +7174,168 @@ class C
             }
             EOF();
         }
+
+        [Fact, WorkItem(59495, "https://github.com/dotnet/roslyn/issues/59495")]
+        public void DelegateConstraint_OnType_First()
+        {
+            UsingNode(@"
+class C<T> where T : /*comment*/ delegate /*comment*/ { }
+", options: TestOptions.Regular,
+                // (2,34): error CS9011: Keyword 'delegate' cannot be used as a constraint. Did you mean 'System.Delegate'?
+                // class C<T> where T : /*comment*/ delegate /*comment*/ { }
+                Diagnostic(ErrorCode.ERR_NoDelegateConstraint, "delegate").WithLocation(2, 34)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        M(SyntaxKind.TypeConstraint);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(59495, "https://github.com/dotnet/roslyn/issues/59495")]
+        public void DelegateConstraint_OnType_AfterClass()
+        {
+            UsingNode(@"
+class C<T> where T : class, /*comment*/ delegate /*comment*/ { }
+", options: TestOptions.Regular,
+                // (2,41): error CS9011: Keyword 'delegate' cannot be used as a constraint. Did you mean 'System.Delegate'?
+                // class C<T> where T : class, /*comment*/ delegate /*comment*/ { }
+                Diagnostic(ErrorCode.ERR_NoDelegateConstraint, "delegate").WithLocation(2, 41)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.ClassConstraint);
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+                        N(SyntaxKind.CommaToken);
+                        M(SyntaxKind.TypeConstraint);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(59495, "https://github.com/dotnet/roslyn/issues/59495")]
+        public void DelegateConstraint_OnType_AfterType()
+        {
+            UsingNode(@"
+class C<T> where T : Type, /*comment*/ delegate /*comment*/ { }
+", options: TestOptions.Regular,
+                // (2,40): error CS9011: Keyword 'delegate' cannot be used as a constraint. Did you mean 'System.Delegate'?
+                // class C<T> where T : Type, /*comment*/ delegate /*comment*/ { }
+                Diagnostic(ErrorCode.ERR_NoDelegateConstraint, "delegate").WithLocation(2, 40)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.TypeParameterList);
+                    {
+                        N(SyntaxKind.LessThanToken);
+                        N(SyntaxKind.TypeParameter);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.GreaterThanToken);
+                    }
+                    N(SyntaxKind.TypeParameterConstraintClause);
+                    {
+                        N(SyntaxKind.WhereKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.TypeConstraint);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                        }
+                        N(SyntaxKind.CommaToken);
+                        M(SyntaxKind.TypeConstraint);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
     }
 }

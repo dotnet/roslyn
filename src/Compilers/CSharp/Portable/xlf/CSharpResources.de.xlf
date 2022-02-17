@@ -907,6 +907,11 @@
         <target state="translated">Im Basistyp "{0}" wurde kein zugänglicher Kopierkonstruktor gefunden.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NoDelegateConstraint">
+        <source>Keyword 'delegate' cannot be used as a constraint. Did you mean 'System.Delegate'?</source>
+        <target state="new">Keyword 'delegate' cannot be used as a constraint. Did you mean 'System.Delegate'?</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NoEnumConstraint">
         <source>Keyword 'enum' cannot be used as a constraint. Did you mean 'System.Enum'?</source>
         <target state="new">Keyword 'enum' cannot be used as a constraint. Did you mean 'System.Enum'?</target>

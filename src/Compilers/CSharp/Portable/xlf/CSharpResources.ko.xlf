@@ -907,6 +907,11 @@
         <target state="translated">기본 형식 '{0}'에 액세스 가능한 복사 생성자가 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NoDelegateConstraint">
+        <source>Keyword 'delegate' cannot be used as a constraint. Did you mean 'System.Delegate'?</source>
+        <target state="new">Keyword 'delegate' cannot be used as a constraint. Did you mean 'System.Delegate'?</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NoEnumConstraint">
         <source>Keyword 'enum' cannot be used as a constraint. Did you mean 'System.Enum'?</source>
         <target state="new">Keyword 'enum' cannot be used as a constraint. Did you mean 'System.Enum'?</target>

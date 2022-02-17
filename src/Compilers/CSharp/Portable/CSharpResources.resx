@@ -6989,4 +6989,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_NoEnumConstraint" xml:space="preserve">
     <value>Keyword 'enum' cannot be used as a constraint. Did you mean 'System.Enum'?</value>
   </data>
+  <data name="ERR_NoDelegateConstraint" xml:space="preserve">
+    <value>Keyword 'delegate' cannot be used as a constraint. Did you mean 'System.Delegate'?</value>
+  </data>
 </root>

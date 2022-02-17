@@ -2050,14 +2050,17 @@ tryAgain:
                     var defaultToken = this.EatToken();
                     return CheckFeatureAvailability(_syntaxFactory.DefaultConstraint(defaultToken), MessageID.IDS_FeatureDefaultTypeParameterConstraint);
                 case SyntaxKind.EnumKeyword:
-                    var missingType = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_NoEnumConstraint);
-                    missingType = AddTrailingSkippedSyntax(missingType, this.EatToken());
-                    return _syntaxFactory.TypeConstraint(missingType);
+                    {
+                        var missingType = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_NoEnumConstraint);
+                        missingType = AddTrailingSkippedSyntax(missingType, this.EatToken());
+                        return _syntaxFactory.TypeConstraint(missingType);
+                    }
                 case SyntaxKind.DelegateKeyword:
-                    // TODO2
-                    var missingType = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_NoEnumConstraint);
-                    missingType = AddTrailingSkippedSyntax(missingType, this.EatToken());
-                    return _syntaxFactory.TypeConstraint(missingType);
+                    {
+                        var missingType = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_NoDelegateConstraint);
+                        missingType = AddTrailingSkippedSyntax(missingType, this.EatToken());
+                        return _syntaxFactory.TypeConstraint(missingType);
+                    }
                 default:
                     var type = this.ParseType();
                     return _syntaxFactory.TypeConstraint(type);

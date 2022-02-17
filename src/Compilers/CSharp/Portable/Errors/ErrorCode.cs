@@ -2046,6 +2046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_StringMustStartWithQuoteCharacter = 9009,
 
         ERR_NoEnumConstraint = 9010,
+        ERR_NoDelegateConstraint = 9011,
 
         #endregion
 
