@@ -70,6 +70,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
                 return false;
             }
 
+            var isExpressionInVariable = token.GetAncestors<SyntaxNode>()
+                .Any(node => node.IsKind(SyntaxKind.ParenthesizedLambdaExpression) || node.IsKind(SyntaxKind.AnonymousMethodExpression));
+            var isInVariableDeclaration = token.GetAncestors<SyntaxNode>().Any(node => node.IsKind(SyntaxKind.VariableDeclaration));
+
+            if (isInVariableDeclaration && !isExpressionInVariable)
+            {
+                return false;
+            }
+
             var isInsideMethod = token.GetAncestors<SyntaxNode>()
                .Any(node => node.IsKind(SyntaxKind.MethodDeclaration) ||
                             node.IsKind(SyntaxKind.ConstructorDeclaration) ||
@@ -80,14 +89,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
             var isInNamespace = token.GetAncestors<SyntaxNode>()
                 .Any(node => node.IsKind(SyntaxKind.NamespaceDeclaration) ||
                              node.IsKind(SyntaxKind.FileScopedNamespaceDeclaration));
-
-            var isInParenthesizedLambdaExpression = token.GetAncestors<SyntaxNode>().Any(node => node.IsKind(SyntaxKind.ParenthesizedExpression));
-            var isInVariableDeclaration = token.GetAncestors<SyntaxNode>().Any(node => node.IsKind(SyntaxKind.VariableDeclaration));
-
-            if (isInVariableDeclaration && !isInParenthesizedLambdaExpression)
-            {
-                return false;
-            }
 
             if (isInNamespace && !isInsideMethod)
             {
@@ -104,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
 
         protected override string GetSnippetDisplayName()
         {
-            return "Write to the Console";
+            return FeaturesResources.Write_to_the_Console;
         }
 
         protected override async Task<TextChange> GenerateSnippetTextChangeAsync(Document document, TextSpan span, int tokenSpanStart, int tokenSpanEnd, CancellationToken cancellationToken)

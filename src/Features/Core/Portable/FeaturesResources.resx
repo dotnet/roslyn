@@ -2948,4 +2948,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Silent" xml:space="preserve">
     <value>Silent</value>
   </data>
+  <data name="Write_to_the_Console" xml:space="preserve">
+    <value>Write to the Console</value>
+  </data>
 </root>

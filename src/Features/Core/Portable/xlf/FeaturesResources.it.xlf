@@ -2645,6 +2645,11 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">Ritorno a capo</target>
         <note />
       </trans-unit>
+      <trans-unit id="Write_to_the_Console">
+        <source>Write to the Console</source>
+        <target state="new">Write to the Console</target>
+        <note />
+      </trans-unit>
       <trans-unit id="You_can_use_the_navigation_bar_to_switch_contexts">
         <source>You can use the navigation bar to switch contexts.</source>
         <target state="translated">Per cambiare contesto, si può usare la barra di spostamento.</target>

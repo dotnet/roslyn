@@ -2645,6 +2645,11 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
         <target state="translated">Zawijanie</target>
         <note />
       </trans-unit>
+      <trans-unit id="Write_to_the_Console">
+        <source>Write to the Console</source>
+        <target state="new">Write to the Console</target>
+        <note />
+      </trans-unit>
       <trans-unit id="You_can_use_the_navigation_bar_to_switch_contexts">
         <source>You can use the navigation bar to switch contexts.</source>
         <target state="translated">Za pomocą paska nawigacyjnego można przełączać konteksty.</target>
