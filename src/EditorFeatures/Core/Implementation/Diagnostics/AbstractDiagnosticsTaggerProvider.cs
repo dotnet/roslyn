@@ -75,38 +75,32 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 return;
             }
 
-            var asyncToken = AsyncListener.BeginAsyncOperation(nameof(OnDiagnosticsUpdatedAsync));
-            _ = OnDiagnosticsUpdatedAsync(e.Id, e.Workspace, e.Solution, e.DocumentId).CompletesAsyncOperation(asyncToken);
+            var document = e.Solution.GetDocument(e.DocumentId);
 
-            static async Task OnDiagnosticsUpdatedAsync(object updateGroupId, Workspace workspace, Solution solution, DocumentId documentId)
+            // If we couldn't find a normal document, and all features are enabled for source generated documents,
+            // attempt to locate a matching source generated document in the project.
+            if (document is null
+                && e.Workspace.Services.GetService<ISyntaxTreeConfigurationService>() is { EnableOpeningSourceGeneratedFilesInWorkspace: true }
+                && e.Solution.GetProject(e.DocumentId.ProjectId) is { } project)
             {
-                var document = solution.GetDocument(documentId);
+                document = ThreadingContext.JoinableTaskFactory.Run(() => project.GetSourceGeneratedDocumentAsync(e.DocumentId, CancellationToken.None).AsTask());
+            }
 
-                // If we couldn't find a normal document, and all features are enabled for source generated documents,
-                // attempt to locate a matching source generated document in the project.
-                if (document is null
-                    && workspace.Services.GetService<ISyntaxTreeConfigurationService>() is { EnableOpeningSourceGeneratedFilesInWorkspace: true }
-                    && solution.GetProject(documentId.ProjectId) is { } project)
+            // Open documents *should* always have their SourceText available, but we cannot guarantee
+            // (i.e. assert) that they do.  That's because we're not on the UI thread here, so there's
+            // a small risk that between calling .IsOpen the file may then close, which then would
+            // cause TryGetText to fail.  However, that's ok.  In that case, if we do need to tag this
+            // document, we'll just use the current editor snapshot.  If that's the same, then the tags
+            // will be hte same.  If it is different, we'll eventually hear about the new diagnostics 
+            // for it and we'll reach our fixed point.
+            if (document != null && document.IsOpen())
+            {
+                // This should always be fast since the document is open.
+                var sourceText = document.State.GetTextSynchronously(cancellationToken: default);
+                snapshot = sourceText.FindCorrespondingEditorTextSnapshot();
+                if (snapshot != null)
                 {
-                    document = await project.GetSourceGeneratedDocumentAsync(documentId, CancellationToken.None).ConfigureAwait(false);
-                }
-
-                // Open documents *should* always have their SourceText available, but we cannot guarantee
-                // (i.e. assert) that they do.  That's because we're not on the UI thread here, so there's
-                // a small risk that between calling .IsOpen the file may then close, which then would
-                // cause TryGetText to fail.  However, that's ok.  In that case, if we do need to tag this
-                // document, we'll just use the current editor snapshot.  If that's the same, then the tags
-                // will be hte same.  If it is different, we'll eventually hear about the new diagnostics 
-                // for it and we'll reach our fixed point.
-                if (document != null && document.IsOpen())
-                {
-                    // This should always be fast since the document is open.
-                    var sourceText = document.State.GetTextSynchronously(cancellationToken: default);
-                    var snapshot = sourceText.FindCorrespondingEditorTextSnapshot();
-                    if (snapshot != null)
-                    {
-                        _diagnosticIdToTextSnapshot.GetValue(updateGroupId, _ => snapshot);
-                    }
+                    _diagnosticIdToTextSnapshot.GetValue(e.Id, _ => snapshot);
                 }
             }
         }
@@ -116,10 +110,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {
+            // OnTextChanged is added for diagnostics in source generated files: it's possible that the analyzer driver
+            // executed on content which was produced by a source generator but is not yet reflected in an open text
+            // buffer for that generated file. In this case, we need to update the tags after the buffer updates (which
+            // triggers a text changed event) to ensure diagnostics are positioned correctly.
             return TaggerEventSources.Compose(
                 TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
                 TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
-                TaggerEventSources.OnDiagnosticsChanged(subjectBuffer, _diagnosticService));
+                TaggerEventSources.OnDiagnosticsChanged(subjectBuffer, _diagnosticService),
+                TaggerEventSources.OnTextChanged(subjectBuffer));
         }
 
         protected internal abstract bool IsEnabled { get; }
