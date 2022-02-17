@@ -67,7 +67,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             options,
                             text,
                             encoding,
-                            root.FullSpan.Length));
+                            root.FullSpan.Length,
+                            root.ContainsDirectives));
                 }
 
                 public override string FilePath
@@ -145,6 +146,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CompilationUnitSyntax IRecoverableSyntaxTree<CompilationUnitSyntax>.CloneNodeAsRoot(CompilationUnitSyntax root)
                     => CloneNodeAsRoot(root);
 
+                public bool ContainsDirectives => _info.ContainsDirectives;
+
                 public override SyntaxTree WithRootAndOptions(SyntaxNode root, ParseOptions options)
                 {
                     if (ReferenceEquals(_info.Options, options) && this.TryGetRoot(out var oldRoot) && ReferenceEquals(root, oldRoot))
@@ -163,6 +166,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     return new RecoverableSyntaxTree(this, _info.WithFilePath(path));
+                }
+
+                public SyntaxTree WithOptions(ParseOptions parseOptions)
+                {
+                    if (ReferenceEquals(_info.Options, parseOptions))
+                    {
+                        return this;
+                    }
+
+                    return new RecoverableSyntaxTree(this, _info.WithOptions(parseOptions));
                 }
             }
         }

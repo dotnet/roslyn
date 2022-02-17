@@ -53,7 +53,7 @@ using System.Linq;|}", FoldingRangeKind.Imports)>
                         </Project>
                     </Workspace>)
 
-                Dim annotatedLocations = AbstractLanguageServerProtocolTests.GetAnnotatedLocations(workspace, workspace.CurrentSolution)
+                Dim annotatedLocations = Await AbstractLanguageServerProtocolTests.GetAnnotatedLocationsAsync(workspace, workspace.CurrentSolution)
                 Dim expectedRanges = annotatedLocations("foldingRange").Select(Function(location) CreateFoldingRange(rangeKind, location.Range)).OrderBy(Function(range) range.StartLine).ToArray()
 
                 Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()

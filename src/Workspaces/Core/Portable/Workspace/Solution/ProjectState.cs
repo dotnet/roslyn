@@ -547,9 +547,12 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
+            var onlyPreprocessorDirectiveChange = ParseOptions != null &&
+                _languageServices.SyntaxTreeFactory!.OptionsDifferOnlyByPreprocessorDirectives(options, ParseOptions);
+
             return With(
                 projectInfo: ProjectInfo.WithParseOptions(options).WithVersion(Version.GetNewerVersion()),
-                documentStates: DocumentStates.UpdateStates(static (state, options) => state.UpdateParseOptions(options), options));
+                documentStates: DocumentStates.UpdateStates((state, options) => state.UpdateParseOptions(options, onlyPreprocessorDirectiveChange), options));
         }
 
         public static bool IsSameLanguage(ProjectState project1, ProjectState project2)

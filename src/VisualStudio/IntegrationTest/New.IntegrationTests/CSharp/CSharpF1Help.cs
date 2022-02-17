@@ -2,29 +2,26 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
-    [Collection(nameof(SharedIntegrationHostFixture))]
+    [Trait(Traits.Feature, Traits.Features.F1Help)]
     public class CSharpF1Help : AbstractEditorTest
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpF1Help(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpF1Help))
+        public CSharpF1Help()
+            : base(nameof(CSharpF1Help))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.F1Help)]
-        private void F1Help()
+        [IdeFact]
+        private async Task F1Help()
         {
             var text = @"
 using System;
@@ -69,17 +66,17 @@ namespace F1TestNamespace
     #endregion TaoRegion
 }";
 
-            SetUpEditor(text);
-            Verify("abstract", "abstract_CSharpKeyword");
-            Verify("ascending", "ascending_CSharpKeyword");
-            Verify("from", "from_CSharpKeyword");
-            Verify("First();", "System.Linq.Enumerable.First``1");
+            await SetUpEditorAsync(text, HangMitigatingCancellationToken);
+            await VerifyAsync("abstract", "abstract_CSharpKeyword", HangMitigatingCancellationToken);
+            await VerifyAsync("ascending", "ascending_CSharpKeyword", HangMitigatingCancellationToken);
+            await VerifyAsync("from", "from_CSharpKeyword", HangMitigatingCancellationToken);
+            await VerifyAsync("First();", "System.Linq.Enumerable.First``1", HangMitigatingCancellationToken);
         }
 
-        private void Verify(string word, string expectedKeyword)
+        private async Task VerifyAsync(string word, string expectedKeyword, CancellationToken cancellationToken)
         {
-            VisualStudio.Editor.PlaceCaret(word, charsOffset: -1);
-            Assert.Contains(expectedKeyword, VisualStudio.Editor.GetF1Keyword());
+            await TestServices.Editor.PlaceCaretAsync(word, charsOffset: -1, cancellationToken);
+            Assert.Contains(expectedKeyword, await TestServices.Editor.GetF1KeywordsAsync(cancellationToken));
         }
     }
 }

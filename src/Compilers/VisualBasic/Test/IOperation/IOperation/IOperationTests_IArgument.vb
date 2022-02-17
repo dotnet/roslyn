@@ -873,7 +873,7 @@ BC30587: Named argument cannot match a ParamArray parameter.
 
         <CompilerTrait(CompilerFeature.IOperation)>
         <Fact()>
-        Public Sub Error_NamedArgumenNotExist()
+        Public Sub Error_NamedArgumentNotExist()
             Dim source = <![CDATA[
 Class P
     Sub M1()
