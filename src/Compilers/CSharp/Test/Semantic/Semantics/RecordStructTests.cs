@@ -11211,5 +11211,34 @@ record struct S3(char A)
                 Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(1, 8)
                 );
         }
+
+        [Fact]
+        public void StructNamedRecord_WithBaseList()
+        {
+            var source = @"
+interface I { }
+struct record<T> : I { }
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (3,8): warning CS8981: The type name 'record' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // struct record<T> : I { }
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "record").WithArguments("record").WithLocation(3, 8)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular9);
+            comp.VerifyDiagnostics(
+                // (3,8): warning CS8860: Types and aliases should not be named 'record'.
+                // struct record<T> : I { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(3, 8)
+                );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular10);
+            comp.VerifyDiagnostics(
+                // (3,8): warning CS8860: Types and aliases should not be named 'record'.
+                // struct record<T> : I { }
+                Diagnostic(ErrorCode.WRN_RecordNamedDisallowed, "record").WithLocation(3, 8)
+                );
+        }
     }
 }

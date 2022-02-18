@@ -1562,9 +1562,9 @@ tryAgain:
             else if (keyword.Kind is SyntaxKind.StructKeyword or SyntaxKind.ClassKeyword &&
                     CurrentToken.ContextualKind == SyntaxKind.RecordKeyword &&
                     IsFeatureEnabled(MessageID.IDS_FeatureRecordStructs) &&
-                    PeekToken(1).Kind is not (SyntaxKind.LessThanToken or SyntaxKind.OpenBraceToken))
+                    PeekToken(1).Kind is SyntaxKind.IdentifierToken)
             {
-                // Provide a specific diagnostic on `struct record` or `class record`
+                // Provide a specific diagnostic on `struct record S` or `class record C`
                 var misplacedRecord = this.AddError(this.EatToken(), ErrorCode.ERR_MisplacedRecord);
                 keyword = AddTrailingSkippedSyntax(keyword, misplacedRecord);
             }

@@ -3355,21 +3355,14 @@ class C(int X, int Y)
         public void StructNamedRecord_CSharp10()
         {
             var text = "struct record { }";
-            UsingTree(text, options: TestOptions.Regular10,
-                // (1,8): error CS9012: Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?
-                // struct record { }
-                Diagnostic(ErrorCode.ERR_MisplacedRecord, "record").WithLocation(1, 8),
-                // (1,15): error CS1001: Identifier expected
-                // struct record { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(1, 15)
-                );
+            UsingTree(text, options: TestOptions.Regular10);
 
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.StructDeclaration);
                 {
                     N(SyntaxKind.StructKeyword);
-                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "record");
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.CloseBraceToken);
                 }
