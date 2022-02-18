@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.TextStructureNavigation
 
         protected StringBuilder result = new StringBuilder();
 
-        protected void AssertExtent(string code, int pos)
+        protected void AssertExtent(string code, int pos, bool isSignificant = false, int start = 0, int length = 0)
         {
             using var workspace = CreateWorkspace(code);
             var document = workspace.Documents.First();
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.TextStructureNavigation
             var extent = navigator.GetExtentOfWord(new SnapshotPoint(buffer.CurrentSnapshot, pos));
 
             result.AppendLine("            AssertExtent(");
-            result.Append("                @\"");
+            result.Append("                \"");
 
             var spanStart = extent.Span.Span.Start;
             var spanEnd = extent.Span.Span.End;
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.TextStructureNavigation
                 result.Append(code[spanEnd..].Replace("\"", "\"\""));
             }
 
-            result.Append("\");");
+            result.Append("\")");
 
             result.AppendLine();
             result.AppendLine();
