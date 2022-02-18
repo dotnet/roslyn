@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -1631,6 +1632,23 @@ class C
 ";
 
             await AssertFormatAsync(expected, code, spans: null);
+        }
+
+        [WpfTheory]
+        [CombinatorialData]
+        [WorkItem(59637, "https://github.com/dotnet/roslyn/issues/59637")]
+        public async Task FormatAttributeAtEndOfFile(bool trailingNewLine)
+        {
+            var endOfFile = trailingNewLine ? Environment.NewLine : "";
+            var code = $@"using System.Diagnostics.CodeAnalysis;
+
+[assembly:SuppressMessage(""Globalization"", ""CA1308: Normalize strings to uppercase"", Justification = ""My reason"", Scope = ""member"", Target = ""~M:Method"") ] {endOfFile}";
+            var expected = $@"using System.Diagnostics.CodeAnalysis;
+
+[assembly: SuppressMessage(""Globalization"", ""CA1308: Normalize strings to uppercase"", Justification = ""My reason"", Scope = ""member"", Target = ""~M:Method"")]{endOfFile}";
+
+            await AssertFormatAsync(expected, code, spans: null);
+            await AssertFormatAsync(expected, expected, spans: null);
         }
 
         [WorkItem(30787, "https://github.com/dotnet/roslyn/issues/30787")]
