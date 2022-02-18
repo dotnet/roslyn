@@ -380,8 +380,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TextStructureNavigation
         World!
     :)
     {|Significant:""""$$""|};");
-
-
         }
 
         private static void TestNavigator(
