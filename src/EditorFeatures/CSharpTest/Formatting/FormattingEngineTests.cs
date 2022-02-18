@@ -8,11 +8,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
@@ -1585,6 +1583,56 @@ class C
             AssertFormatOnArbitraryNode(node, expected);
         }
 
+        [WpfFact]
+        [WorkItem(57465, "https://github.com/dotnet/roslyn/issues/57465")]
+        public async Task FormatLambdaWithDirective()
+        {
+            var code = @"namespace N
+{
+    public class C
+    {
+        protected void Render()
+        {
+            if (outer)
+            {
+                    M(() =>
+                        {
+#nullable enable
+                               if (inner)
+                                    {
+                                    }
+                                }
+                        );
+                }
+        }
+    }
+}
+";
+            var expected = @"namespace N
+{
+    public class C
+    {
+        protected void Render()
+        {
+            if (outer)
+            {
+                M(() =>
+                    {
+#nullable enable
+                        if (inner)
+                        {
+                        }
+                    }
+                    );
+            }
+        }
+    }
+}
+";
+
+            await AssertFormatAsync(expected, code, spans: null);
+        }
+
         [WorkItem(30787, "https://github.com/dotnet/roslyn/issues/30787")]
         [WpfFact]
         public void DoSmartIndentOpenBraceEvenWithFormatWhileTypingOff1()
@@ -2246,7 +2294,7 @@ namespace TestApp
 
             var newSnapshot = subjectDocument.GetTextBuffer().CurrentSnapshot;
 
-            Assert.Equal(expected, newSnapshot.GetText());
+            AssertEx.EqualOrDiff(expected, newSnapshot.GetText());
         }
     }
 }

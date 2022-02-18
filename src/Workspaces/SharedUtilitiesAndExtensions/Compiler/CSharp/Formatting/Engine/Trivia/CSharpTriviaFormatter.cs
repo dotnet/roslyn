@@ -78,7 +78,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                 if (insertNewLine)
                 {
-                    return LineColumnRule.PreserveLinesWithDefaultIndentation(lines: 0);
+                    if (existingWhitespaceBetween.Spaces != this.Spaces)
+                        return LineColumnRule.PreserveWithGivenSpaces(spaces: this.Spaces);
+                    else
+                        return LineColumnRule.PreserveLinesWithDefaultIndentation(lines: 0);
                 }
 
                 if (existingWhitespaceBetween.Lines > 0 && existingWhitespaceBetween.Spaces != this.Spaces)

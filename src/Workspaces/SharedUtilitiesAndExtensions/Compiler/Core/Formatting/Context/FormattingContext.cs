@@ -403,8 +403,9 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            var originalSpace = _tokenStream.GetOriginalColumn(operation.StartToken);
-            var data = new AnchorData(operation, originalSpace);
+            var anchorToken = _tokenStream.FirstTokenOfBaseTokenLine(operation.AnchorToken);
+            var originalSpace = _tokenStream.GetOriginalColumn(anchorToken);
+            var data = new AnchorData(operation, anchorToken, originalSpace);
 
             _anchorTree.AddIntervalInPlace(data);
 

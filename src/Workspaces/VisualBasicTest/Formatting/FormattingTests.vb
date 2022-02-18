@@ -491,7 +491,7 @@ End Class</Code>
             Dim expected = <Code>Class C
     Sub Method()
         Dim a = From q In
-                   {1, 3, 5}
+                                                {1, 3, 5}
                 Where q > 10
                 Select q
     End Sub

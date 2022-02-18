@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,6 +19,7 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -176,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             {
                 var factory = (TestFormattingRuleFactoryServiceFactory.Factory)formattingRuleProvider;
                 factory.BaseIndentation = baseIndentation.Value;
-                factory.TextSpan = spans.First();
+                factory.TextSpan = spans?.First() ?? syntaxTree.GetRoot(CancellationToken.None).FullSpan;
             }
 
             var optionSet = workspace.Options;
@@ -220,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             if (actual != expected)
             {
                 _output.WriteLine(actual);
-                Assert.Equal(expected, actual);
+                AssertEx.EqualOrDiff(expected, actual);
             }
         }
 
@@ -264,12 +266,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             string expected, string markupCode, int baseIndentation,
             Dictionary<OptionKey, object> options = null)
         {
-            MarkupTestFile.GetSpan(markupCode, out var code, out var span);
+            TestFileMarkupParser.GetSpans(markupCode, out var code, out ImmutableArray<TextSpan> spans);
 
             await AssertFormatAsync(
                 expected,
                 code,
-            new List<TextSpan> { span },
+            spans,
             changedOptionSet: options,
             baseIndentation: baseIndentation);
         }
