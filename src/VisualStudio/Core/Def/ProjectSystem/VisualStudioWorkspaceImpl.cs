@@ -152,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             FileChangeWatcher = exportProvider.GetExportedValue<FileChangeWatcherProvider>().Watcher;
             FileWatchedReferenceFactory = exportProvider.GetExportedValue<FileWatchedPortableExecutableReferenceFactory>();
 
-            FileWatchedReferenceFactory.ReferenceChanged += this.RefreshMetadataReferencesForFile;
+            FileWatchedReferenceFactory.ReferenceChanged += this.StartRefreshingMetadataReferencesForFile;
 
             _lazyExternalErrorDiagnosticUpdateSource = new Lazy<ExternalErrorDiagnosticUpdateSource>(() =>
                 new ExternalErrorDiagnosticUpdateSource(
@@ -1441,7 +1441,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 _textBufferFactoryService.TextBufferCreated -= AddTextBufferCloneServiceToBuffer;
                 _projectionBufferFactoryService.ProjectionBufferCreated -= AddTextBufferCloneServiceToBuffer;
-                FileWatchedReferenceFactory.ReferenceChanged -= RefreshMetadataReferencesForFile;
+                FileWatchedReferenceFactory.ReferenceChanged -= StartRefreshingMetadataReferencesForFile;
 
                 if (_lazyExternalErrorDiagnosticUpdateSource.IsValueCreated)
                 {
@@ -1982,40 +1982,51 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private void RefreshMetadataReferencesForFile(object sender, string fullFilePath)
+        private void StartRefreshingMetadataReferencesForFile(object sender, string fullFilePath)
         {
-            using (_gate.DisposableWait())
+            var asyncToken = _workspaceListener.BeginAsyncOperation(nameof(StartRefreshingMetadataReferencesForFile));
+            _threadingContext.RunWithShutdownBlockAsync(async cancellationToken =>
             {
-                var solutionChanges = new SolutionChangeAccumulator(this.CurrentSolution);
-
-                foreach (var project in CurrentSolution.Projects)
+                try
                 {
-                    // Loop to find each reference with the given path. It's possible that there might be multiple references of the same path;
-                    // the project system could concievably add the same reference multiple times but with different aliases. It's also possible
-                    // we might not find the path at all: when we receive the file changed event, we aren't checking if the file is still
-                    // in the workspace at that time; it's possible it might have already been removed.
-                    foreach (var portableExecutableReference in project.MetadataReferences.OfType<PortableExecutableReference>())
+                    await ApplyBatchChangeToWorkspaceMaybeAsync(useAsync: true, s =>
                     {
-                        if (portableExecutableReference.FilePath == fullFilePath)
+                        var solutionChanges = new SolutionChangeAccumulator(s);
+
+                        foreach (var project in CurrentSolution.Projects)
                         {
-                            FileWatchedReferenceFactory.StopWatchingReference(portableExecutableReference);
+                            // Loop to find each reference with the given path. It's possible that there might be multiple references of the same path;
+                            // the project system could concievably add the same reference multiple times but with different aliases. It's also possible
+                            // we might not find the path at all: when we receive the file changed event, we aren't checking if the file is still
+                            // in the workspace at that time; it's possible it might have already been removed.
+                            foreach (var portableExecutableReference in project.MetadataReferences.OfType<PortableExecutableReference>())
+                            {
+                                if (portableExecutableReference.FilePath == fullFilePath)
+                                {
+                                    FileWatchedReferenceFactory.StopWatchingReference(portableExecutableReference);
 
-                            var newPortableExecutableReference =
-                                FileWatchedReferenceFactory.CreateReferenceAndStartWatchingFile(
-                                    portableExecutableReference.FilePath,
-                                    portableExecutableReference.Properties);
+                                    var newPortableExecutableReference =
+                                        FileWatchedReferenceFactory.CreateReferenceAndStartWatchingFile(
+                                            portableExecutableReference.FilePath,
+                                            portableExecutableReference.Properties);
 
-                            var newSolution = solutionChanges.Solution.RemoveMetadataReference(project.Id, portableExecutableReference)
-                                                                      .AddMetadataReference(project.Id, newPortableExecutableReference);
+                                    var newSolution = solutionChanges.Solution.RemoveMetadataReference(project.Id, portableExecutableReference)
+                                                                              .AddMetadataReference(project.Id, newPortableExecutableReference);
 
-                            solutionChanges.UpdateSolutionForProjectAction(project.Id, newSolution);
+                                    solutionChanges.UpdateSolutionForProjectAction(project.Id, newSolution);
 
+                                }
+                            }
                         }
-                    }
-                }
 
-                ApplyBatchChangeToWorkspace_NoLock(solutionChanges);
-            }
+                        return solutionChanges;
+                    }).ConfigureAwait(false);
+                }
+                finally
+                {
+                    asyncToken.Dispose();
+                }
+            });
         }
 
         internal async Task EnsureDocumentOptionProvidersInitializedAsync(CancellationToken cancellationToken)
