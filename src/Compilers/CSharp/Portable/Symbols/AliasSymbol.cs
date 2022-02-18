@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return (object?)other != null &&
                 Equals(this.Locations.FirstOrDefault(), other.Locations.FirstOrDefault()) &&
-                this.ContainingAssembly.Equals(other.ContainingAssembly, compareKind);
+                Equals(this.ContainingSymbol, other.ContainingSymbol, compareKind);
         }
 
         public override int GetHashCode()
