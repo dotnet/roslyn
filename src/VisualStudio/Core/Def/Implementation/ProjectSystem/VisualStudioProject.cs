@@ -259,11 +259,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
                 else
                 {
-                    _workspace.ApplyBatchChangeToWorkspaceMaybeAsync(useAsync: false, s =>
+                    _workspace.ApplyBatchChangeToWorkspaceMaybeAsync(useAsync: false, solutionChanges =>
                     {
-                        var solutionChanges = new SolutionChangeAccumulator(s);
                         updateSolution(solutionChanges, oldValue);
-                        return solutionChanges;
                     }).AsTask().GetAwaiter().GetResult();
                 }
             }
@@ -522,10 +520,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var additionalDocumentsToOpen = new List<(DocumentId documentId, SourceTextContainer textContainer)>();
                 var analyzerConfigDocumentsToOpen = new List<(DocumentId documentId, SourceTextContainer textContainer)>();
 
-                await _workspace.ApplyBatchChangeToWorkspaceMaybeAsync(useAsync, solution =>
+                await _workspace.ApplyBatchChangeToWorkspaceMaybeAsync(useAsync, solutionChanges =>
                 {
-                    var solutionChanges = new SolutionChangeAccumulator(startingSolution: solution);
-
                     _sourceFiles.UpdateSolutionForBatch(
                         solutionChanges,
                         documentFileNamesAdded,
@@ -660,8 +656,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
 
                     ClearAndZeroCapacity(_projectPropertyModificationsInBatch);
-
-                    return solutionChanges;
                 }).ConfigureAwait(false);
 
                 foreach (var (documentId, textContainer) in documentsToOpen)
