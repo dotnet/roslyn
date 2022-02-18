@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             var symbolId = SymbolKey.Create(symbol, cancellationToken);
             var navigateProject = workspace.CurrentSolution.GetRequiredProject(projectId);
 
-            var documentInfos = CreateDocumentInfos(sourceFileInfos, navigateProject);
+            var documentInfos = CreateDocumentInfos(sourceFileInfos, encoding, navigateProject);
             if (documentInfos.Length > 0)
             {
                 workspace.OnDocumentsAdded(documentInfos);
@@ -169,12 +169,6 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             var firstSourceFileInfo = sourceFileInfos[0]!;
             var documentPath = firstSourceFileInfo.FilePath;
             var document = navigateProject.Documents.FirstOrDefault(d => d.FilePath?.Equals(documentPath, StringComparison.OrdinalIgnoreCase) ?? false);
-
-            // In order to open documents in VS we need to understand the link from temp file to document and its encoding
-            if (!_fileToDocumentMap.ContainsKey(documentPath))
-            {
-                _fileToDocumentMap[documentPath] = new(document.Id, encoding, project.Id, project.Solution.Workspace);
-            }
 
             var navigateLocation = await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, document, cancellationToken).ConfigureAwait(false);
             var navigateDocument = navigateProject.GetDocument(navigateLocation.SourceTree);
@@ -215,7 +209,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 metadataReferences: project.MetadataReferences.ToImmutableArray()); // TODO: Read references from PDB info: https://github.com/dotnet/roslyn/issues/55834
         }
 
-        private static ImmutableArray<DocumentInfo> CreateDocumentInfos(SourceFileInfo?[] sourceFileInfos, Project project)
+        private ImmutableArray<DocumentInfo> CreateDocumentInfos(SourceFileInfo?[] sourceFileInfos, Encoding encoding, Project project)
         {
             using var _ = ArrayBuilder<DocumentInfo>.GetInstance(out var documents);
 
@@ -223,9 +217,11 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             {
                 Contract.ThrowIfNull(info);
 
-                // If a document has multiple symbols then we would already know about it
-                if (project.Documents.Contains(d => d.FilePath?.Equals(info.FilePath, StringComparison.OrdinalIgnoreCase) ?? false))
+                // If a document has multiple symbols then we might already know about it
+                if (_fileToDocumentMap.ContainsKey(info.FilePath))
+                {
                     continue;
+                }
 
                 var documentId = DocumentId.CreateNewId(project.Id);
 
@@ -234,6 +230,9 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     Path.GetFileName(info.FilePath),
                     filePath: info.FilePath,
                     loader: info.Loader));
+
+                // In order to open documents in VS we need to understand the link from temp file to document and its encoding etc.
+                _fileToDocumentMap[info.FilePath] = new(documentId, encoding, project.Id, project.Solution.Workspace);
             }
 
             return documents.ToImmutable();
