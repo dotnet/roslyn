@@ -587,13 +587,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var prologueBuilder = ArrayBuilder<BoundStatement>.GetInstance();
                 var sourceOpt = node.ExceptionSourceOpt;
-                if (sourceOpt == null)
+                prologueBuilder.Add(_F.ExpressionStatement(storePending));
+                if (sourceOpt is not null)
                 {
-                    prologueBuilder.Add(_F.ExpressionStatement(storePending));
-                }
-                else
-                {
-                    prologueBuilder.Add(_F.ExpressionStatement(storePending));
                     prologueBuilder.Add(_F.ExpressionStatement(AssignCatchSource((BoundExpression)this.Visit(sourceOpt), currentAwaitCatchFrame)));
                 }
 
