@@ -15,6 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
+    using System.Diagnostics.CodeAnalysis;
     using Microsoft.CodeAnalysis.PooledObjects;
     using Microsoft.CodeAnalysis.Syntax.InternalSyntax;
 
@@ -1542,31 +1543,21 @@ tryAgain:
 
         private TypeDeclarationSyntax ParseClassOrStructOrInterfaceDeclaration(SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
         {
-            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.ClassKeyword ||
-                this.CurrentToken.Kind == SyntaxKind.StructKeyword ||
-                this.CurrentToken.Kind == SyntaxKind.InterfaceKeyword ||
-                CurrentToken.ContextualKind == SyntaxKind.RecordKeyword);
+            Debug.Assert(this.CurrentToken.Kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword or SyntaxKind.InterfaceKeyword ||
+                this.CurrentToken.ContextualKind == SyntaxKind.RecordKeyword);
 
             // "top-level" expressions and statements should never occur inside an asynchronous context
             Debug.Assert(!IsInAsync);
 
-            var keyword = ConvertToKeyword(this.EatToken());
-
             var outerSaveTerm = _termState;
-            SyntaxToken? recordModifier = null;
-            if (keyword.Kind == SyntaxKind.RecordKeyword)
+
+            if (tryScanRecordStart(out var keyword, out var recordModifier))
             {
                 _termState |= TerminatorState.IsEndOfRecordSignature;
-                recordModifier = eatRecordModifierIfAvailable();
             }
-            else if (keyword.Kind is SyntaxKind.StructKeyword or SyntaxKind.ClassKeyword &&
-                    CurrentToken.ContextualKind == SyntaxKind.RecordKeyword &&
-                    IsFeatureEnabled(MessageID.IDS_FeatureRecordStructs) &&
-                    PeekToken(1).Kind is SyntaxKind.IdentifierToken)
+            else
             {
-                // Provide a specific diagnostic on `struct record S` or `class record C`
-                var misplacedRecord = this.AddError(this.EatToken(), ErrorCode.ERR_MisplacedRecord);
-                keyword = AddTrailingSkippedSyntax(keyword, misplacedRecord);
+                keyword = ConvertToKeyword(this.EatToken());
             }
 
             var saveTerm = _termState;
@@ -1684,17 +1675,39 @@ tryAgain:
                 }
             }
 
-            SyntaxToken? eatRecordModifierIfAvailable()
+            bool tryScanRecordStart([NotNullWhen(true)] out SyntaxToken? keyword, out SyntaxToken? recordModifier)
             {
-                Debug.Assert(keyword.Kind == SyntaxKind.RecordKeyword);
-                if (CurrentToken.Kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword)
+                if (this.CurrentToken.ContextualKind == SyntaxKind.RecordKeyword)
                 {
-                    var result = EatToken();
-                    result = CheckFeatureAvailability(result, MessageID.IDS_FeatureRecordStructs);
-                    return result;
+                    keyword = ConvertToKeyword(this.EatToken());
+                    recordModifier = this.CurrentToken.Kind is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword
+                        ? CheckFeatureAvailability(EatToken(), MessageID.IDS_FeatureRecordStructs)
+                        : null;
+
+                    return true;
                 }
 
-                return null;
+                if (this.CurrentToken.Kind is SyntaxKind.StructKeyword or SyntaxKind.ClassKeyword &&
+                    this.PeekToken(1).ContextualKind == SyntaxKind.RecordKeyword &&
+                    IsFeatureEnabled(MessageID.IDS_FeatureRecordStructs) &&
+                    PeekToken(2).Kind is SyntaxKind.IdentifierToken)
+                {
+                    // Provide a specific diagnostic on `struct record S` or `class record C`
+                    var misplacedToken = this.EatToken();
+
+                    // Parse out 'record' but place 'struct/class' as leading skipped trivia on it.
+                    keyword = AddLeadingSkippedSyntax(
+                        this.AddError(ConvertToKeyword(this.EatToken()), ErrorCode.ERR_MisplacedRecord),
+                        misplacedToken);
+
+                    // Treat `struct record` as a RecordStructDeclaration, and `class record` as a RecordDeclaration.
+                    recordModifier = SyntaxFactory.MissingToken(misplacedToken.Kind);
+                    return true;
+                }
+
+                keyword = null;
+                recordModifier = null;
+                return false;
             }
 
             static TypeDeclarationSyntax constructTypeDeclaration(ContextAwareSyntax syntaxFactory, SyntaxList<AttributeListSyntax> attributes, SyntaxListBuilder modifiers, SyntaxToken keyword, SyntaxToken? recordModifier,
