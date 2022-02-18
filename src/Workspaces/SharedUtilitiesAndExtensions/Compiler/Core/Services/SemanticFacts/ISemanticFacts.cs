@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 {
     internal partial interface ISemanticFacts
     {
+        ISyntaxFacts SyntaxFacts { get; }
+
         /// <summary>
         /// True if this language supports implementing an interface by signature only. If false,
         /// implementations must specific explicitly which symbol they're implementing.
