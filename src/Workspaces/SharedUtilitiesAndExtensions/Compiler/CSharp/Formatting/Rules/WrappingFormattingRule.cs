@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private static void RemoveSuppressOperationForBlock(List<SuppressOperation> list, SyntaxNode node)
         {
             var bracePair = GetBracePair(node);
-            if (!bracePair.IsValidBracePair())
+            if (!bracePair.IsValidBracketOrBracePair())
             {
                 return;
             }
