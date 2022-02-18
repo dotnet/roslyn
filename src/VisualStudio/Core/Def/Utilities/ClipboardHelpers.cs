@@ -15,43 +15,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
 {
     internal static class ClipboardHelpers
     {
-        [DllImport("user32.dll")]
-        [PreserveSig]
-        private static extern int GetPriorityClipboardFormat([In] uint[] formatPriorityList, [In] int formatCount);
+        [DllImport("ole32.dll", ExactSpelling = true, CharSet = CharSet.Unicode)]
+        private static extern int OleGetClipboard(out IDataObject dataObject);
 
-        /// <summary>
-        /// Determines if clipboard data exists for the text format without blocking
-        /// on <see cref="Clipboard.GetText()"/> or <see cref="Clipboard.GetDataObject()"/> for cases where the clipboard is being
-        /// delay rendered. See https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1463413/ 
-        /// </summary>
-        public static bool CanGetText()
-        {
-            const uint TextFormatId = 1;          // ID for clipboard text format (CF_TEXT)
-
-            var formats = new uint[] { TextFormatId };
-
-            // GetPriorityClipboardFormat returns 0 if the clipboard is empty, -1 if there is data in the clipboard but it does not match
-            // any of the input formats and otherwise returns the ID of the format available in the clipboard.
-            return GetPriorityClipboardFormat(formats, formats.Length) > 0;
-        }
-
-        /// <summary>
-        /// Gets the text from the clipboard. Check <see cref="CanGetText"/>
-        /// first before calling this to verify text can be safely retrieved
-        /// without a deadlock
-        /// </summary>
         public static string? GetText()
         {
-            Debug.Assert(CanGetText());
-
-            var dataObject = Clipboard.GetDataObject();
-
-            if (dataObject is not null && dataObject.GetDataPresent(DataFormats.Text))
+            IDataObject? dataObject = null;
+            var result = OleGetClipboard(out dataObject);
+            if (result != 0) // S_OK
             {
-                return (string)dataObject.GetData(DataFormats.Text, true);
+                // Report NFW?
             }
 
-            return null;
+            if (dataObject is null || !dataObject.GetDataPresent(typeof(string)))
+            {
+                return null;
+            }
+
+            return (string)dataObject.GetData(typeof(string));
         }
     }
 }

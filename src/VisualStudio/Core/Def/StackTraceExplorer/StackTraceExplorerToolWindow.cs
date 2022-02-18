@@ -63,11 +63,6 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                 return false;
             }
 
-            if (!ClipboardHelpers.CanGetText())
-            {
-                return false;
-            }
-
             var text = ClipboardHelpers.GetText();
             if (RoslynString.IsNullOrEmpty(text))
             {
