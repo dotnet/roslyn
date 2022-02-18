@@ -122,6 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private bool _documentOptionsProvidersInitialized = false;
 
         private readonly Lazy<ExternalErrorDiagnosticUpdateSource> _lazyExternalErrorDiagnosticUpdateSource;
+        private readonly IAsynchronousOperationListener _workspaceListener;
         private bool _isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents;
 
         public VisualStudioWorkspaceImpl(ExportProvider exportProvider, IAsyncServiceProvider asyncServiceProvider)
@@ -161,6 +162,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     exportProvider.GetExportedValue<IDiagnosticUpdateSourceRegistrationService>(),
                     exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>(),
                     _threadingContext), isThreadSafe: true);
+
+            _workspaceListener = Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>().GetListener();
         }
 
         internal ExternalErrorDiagnosticUpdateSource ExternalErrorDiagnosticUpdateSource => _lazyExternalErrorDiagnosticUpdateSource.Value;
@@ -1688,8 +1691,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             base.OnProjectRemoved(projectId);
 
             // Try to update the UI context info.  But cancel that work if we're shutting down.
-            var listenerProvider = Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
-            var asyncToken = listenerProvider.GetListener().BeginAsyncOperation(nameof(RefreshProjectExistsUIContextForLanguageAsync));
+            var asyncToken = _workspaceListener.BeginAsyncOperation(nameof(RefreshProjectExistsUIContextForLanguageAsync));
             _threadingContext.RunWithShutdownBlockAsync(async cancellationToken =>
             {
                 try
