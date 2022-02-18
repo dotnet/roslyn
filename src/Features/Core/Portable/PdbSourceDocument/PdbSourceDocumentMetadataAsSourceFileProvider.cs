@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         private readonly IPdbSourceDocumentLogger? _logger;
 
         private readonly Dictionary<string, ProjectId> _assemblyToProjectMap = new();
-        private readonly Dictionary<string, (DocumentId documentId, Encoding encoding)> _fileToDocumentMap = new();
+        private readonly Dictionary<string, SourceDocumentInfo> _fileToDocumentMap = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             // In order to open documents in VS we need to understand the link from temp file to document and its encoding
             if (!_fileToDocumentMap.ContainsKey(documentPath))
             {
-                _fileToDocumentMap[documentPath] = (document.Id, encoding);
+                _fileToDocumentMap[documentPath] = new(document.Id, encoding, project.Id, project.Solution.Workspace);
             }
 
             var navigateLocation = await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, document, cancellationToken).ConfigureAwait(false);
@@ -241,9 +241,9 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
         public bool TryAddDocumentToWorkspace(Workspace workspace, string filePath, SourceTextContainer sourceTextContainer)
         {
-            if (_fileToDocumentMap.TryGetValue(filePath, out var value))
+            if (_fileToDocumentMap.TryGetValue(filePath, out var info))
             {
-                workspace.OnDocumentOpened(value.documentId, sourceTextContainer);
+                workspace.OnDocumentOpened(info.DocumentId, sourceTextContainer);
 
                 return true;
             }
@@ -253,9 +253,9 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
         public bool TryRemoveDocumentFromWorkspace(Workspace workspace, string filePath)
         {
-            if (_fileToDocumentMap.TryGetValue(filePath, out var value))
+            if (_fileToDocumentMap.TryGetValue(filePath, out var info))
             {
-                workspace.OnDocumentClosed(value.documentId, new FileTextLoader(filePath, value.encoding));
+                workspace.OnDocumentClosed(info.DocumentId, new FileTextLoader(filePath, info.Encoding));
 
                 return true;
             }
@@ -265,7 +265,28 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
         public Project? MapDocument(Document document)
         {
-            return document.Project;
+            if (document.FilePath is not null &&
+                _fileToDocumentMap.TryGetValue(document.FilePath, out var info))
+            {
+                // We always want to do symbol look ups in the context of the source project, not in
+                // our temporary project. This is so that source symbols in our source project don't
+                // get incorrectly found, as they might not represent the whole picture. For example
+                // given the following in two different files:
+                //
+                // File1.cs
+                // public partial class C { void M1(); }
+                // File2.cs
+                // public partial class C { void M2(); }
+                //
+                // A go-to-def on M1() would find File1.cs. If a subsequent go-to-def is done on C
+                // it would find the source definition from the downloaded File1.cs, and use that
+                // rather than doing a probably symbol search to find both possible locations for C
+
+                var solution = info.SourceWorkspace.CurrentSolution;
+                return solution.GetProject(info.SourceProjectId);
+            }
+
+            return null;
         }
 
         public void CleanupGeneratedFiles(Workspace? workspace)
@@ -287,4 +308,6 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
     }
 
     internal sealed record SourceDocument(string FilePath, SourceHashAlgorithm HashAlgorithm, ImmutableArray<byte> Checksum, byte[]? EmbeddedTextBytes, string? SourceLinkUrl);
+
+    internal record struct SourceDocumentInfo(DocumentId DocumentId, Encoding Encoding, ProjectId SourceProjectId, Workspace SourceWorkspace);
 }
