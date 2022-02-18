@@ -213,6 +213,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
                 var diagnostic = node.Kind switch
                 {
                     JsonKind.Array => CheckArray((JsonArrayNode)node),
+                    JsonKind.Object => CheckObject((JsonObjectNode)node),
                     _ => null,
                 };
 
@@ -246,7 +247,22 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json
                     }
                 }
 
-                return CheckChildren(node);
+                return null;
+            }
+
+            static EmbeddedDiagnostic? CheckObject(JsonObjectNode node)
+            {
+                foreach (var child in node.Sequence)
+                {
+                    if (child is JsonLiteralNode { LiteralToken.Kind: JsonKind.StringToken })
+                    {
+                        return new EmbeddedDiagnostic(
+                            FeaturesResources.Property_name_must_be_followed_by_a_colon,
+                            child.GetSpan());
+                    }
+                }
+
+                return null;
             }
         }
 

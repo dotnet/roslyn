@@ -1220,6 +1220,11 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="new">Property name must be a string</target>
         <note />
       </trans-unit>
+      <trans-unit id="Property_name_must_be_followed_by_a_colon">
+        <source>Property name must be followed by a ':'</source>
+        <target state="new">Property name must be followed by a ':'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Property_reference_cannot_be_updated">
         <source>Property reference cannot be updated</source>
         <target state="translated">Odkaz na vlastnost se nedá aktualizovat.</target>
