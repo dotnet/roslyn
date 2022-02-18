@@ -5,6 +5,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Snippets;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
 {
@@ -21,7 +22,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
             var tokenSpanStart = SnippetCompletionItem.GetTokenSpanStart(item);
             var tokenSpanEnd = SnippetCompletionItem.GetTokenSpanEnd(item);
             var span = item.Span;
-
             var snippetProvider = service.GetSnippetProvider(new SnippetData(item.DisplayText));
             var snippet = await snippetProvider.GetSnippetAsync(document, span, tokenSpanStart, tokenSpanEnd, cancellationToken).ConfigureAwait(false);
 

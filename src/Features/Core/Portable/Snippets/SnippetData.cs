@@ -6,8 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
+namespace Microsoft.CodeAnalysis.Snippets
 {
+    /// <summary>
+    /// Stores only the dates needed for the creation of a CompletionItem.
+    /// Avoids using the Snippet and creating a TextChange/finding cursor
+    /// position before we know it was the selected CompletionItem.
+    /// </summary>
     internal struct SnippetData
     {
         public readonly string DisplayName;

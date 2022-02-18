@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
+namespace Microsoft.CodeAnalysis.Snippets
 {
     internal interface ISnippetService : ILanguageService
     {

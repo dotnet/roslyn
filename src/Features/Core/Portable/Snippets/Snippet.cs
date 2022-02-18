@@ -6,8 +6,13 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Completion.Providers.Snippets
+namespace Microsoft.CodeAnalysis.Snippets
 {
+    /// <summary>
+    /// Encapsulates the information that makes up a Snippet.
+    /// What is used to create the CompletionChange in the 
+    /// AbstractSnippetCompletionProvider.
+    /// </summary>
     internal readonly struct Snippet
     {
         public readonly string SnippetType;
