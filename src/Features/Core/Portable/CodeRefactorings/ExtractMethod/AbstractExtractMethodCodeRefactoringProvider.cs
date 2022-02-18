@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
                 return;
             }
 
-            var options = ExtractMethodOptions.From(document.Project);
+            var options = context.Options.ExtractMethodOptions;
             var actions = await GetCodeActionsAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
             context.RegisterRefactorings(actions);
         }
