@@ -216,8 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i <= n; i++)
             {
                 var part = node.Parts[i];
-                var fillin = part as BoundStringInsert;
-                if (fillin == null)
+                if (part is not BoundStringInsert fillin)
                 {
                     Debug.Assert(part is BoundLiteral && part.ConstantValue?.StringValue != null);
                     // this is one of the literal parts.  If it contains a { or } then we need to escape those so that
@@ -305,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         // this is one of the literal parts
-                        Debug.Assert(part is BoundLiteral && part.ConstantValue is { StringValue: { } });
+                        Debug.Assert(part is BoundLiteral && part.ConstantValue?.StringValue is not null);
                         part = _factory.StringLiteral(part.ConstantValue.StringValue);
                     }
 
@@ -317,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We need to ensure that the result of the interpolated string is not null. If the single part has a non-null constant value
                 // or is itself an interpolated string (which by proxy cannot be null), then there's nothing else that needs to be done. Otherwise,
                 // we need to test for null and ensure "" if it is.
-                if (length == 1 && result is not ({ Kind: BoundKind.InterpolatedString } or { ConstantValue: { IsString: true } }))
+                if (length == 1 && result is not ({ Kind: BoundKind.InterpolatedString } or { ConstantValue.IsString: true }))
                 {
                     Debug.Assert(result is not null);
                     Debug.Assert(result.Type is not null);
