@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var text = ((InterpolatedStringTextSyntax)content).TextToken.ValueText;
                                 // Raw string literals have no escapes.  So there is no need to manipulate their value texts.
                                 // We have to unescape normal interpolated strings as the parser stores their text without
-                                // interpretting {{ and }} sequences (as '{' and '}') respectively.  Changing that at the syntax
+                                // interpreting {{ and }} sequences (as '{' and '}') respectively.  Changing that at the syntax
                                 // level might potentially be a breaking change, so we do the conversion here when creating the
                                 // bound nodes.
                                 if (!isRawInterpolatedString)
