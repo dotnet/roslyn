@@ -57,6 +57,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             using var telemetry = new TelemetryMessage(cancellationToken);
 
             var assemblyName = symbol.ContainingAssembly.Identity.Name;
+            var assemblyVersion = symbol.ContainingAssembly.Identity.Version.ToString();
 
             if (_logger is not null)
             {
@@ -122,7 +123,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             if (!_assemblyToProjectMap.TryGetValue(assemblyName, out var projectId))
             {
                 // Get the project info now, so we can dispose the documentDebugInfoReader sooner
-                var projectInfo = CreateProjectInfo(workspace, project, pdbCompilationOptions, assemblyName);
+                var projectInfo = CreateProjectInfo(workspace, project, pdbCompilationOptions, assemblyName, assemblyVersion);
 
                 if (projectInfo is null)
                     return null;
@@ -186,7 +187,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             return new MetadataAsSourceFile(documentPath, navigateLocation, documentName, sourceDocuments[0].FilePath);
         }
 
-        private ProjectInfo? CreateProjectInfo(Workspace workspace, Project project, ImmutableDictionary<string, string> pdbCompilationOptions, string assemblyName)
+        private ProjectInfo? CreateProjectInfo(Workspace workspace, Project project, ImmutableDictionary<string, string> pdbCompilationOptions, string assemblyName, string assemblyVersion)
         {
             // First we need the language name in order to get the services
             // TODO: Find language another way for non portable PDBs: https://github.com/dotnet/roslyn/issues/55834
@@ -206,7 +207,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             return ProjectInfo.Create(
                 projectId,
                 VersionStamp.Default,
-                name: assemblyName + ProviderName, // Distinguish this project from any decompilation projects that might be created
+                name: $"{assemblyName} ({assemblyVersion})",
                 assemblyName: assemblyName,
                 language: languageName,
                 compilationOptions: compilationOptions,
