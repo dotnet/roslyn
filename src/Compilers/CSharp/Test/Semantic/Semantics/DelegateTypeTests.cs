@@ -10385,7 +10385,7 @@ class Program
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var syntax = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single();
-            var operation = (IVariableDeclaratorOperation)model.GetOperation(syntax);
+            var operation = (IVariableDeclaratorOperation)model.GetOperation(syntax)!;
 
             var actualText = OperationTreeVerifier.GetOperationTree(comp, operation);
             OperationTreeVerifier.Verify(
@@ -10408,7 +10408,7 @@ class Program
 ",
             actualText);
 
-            var value = ((IConversionOperation)operation.Initializer.Value).Operand;
+            var value = ((IConversionOperation)operation.Initializer!.Value).Operand;
             Assert.Equal("System.Func<System.Int32, System.String>", value.Type.ToTestDisplayString());
         }
 
