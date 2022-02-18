@@ -216,14 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i <= n; i++)
             {
                 var part = node.Parts[i];
-                if (part is not BoundStringInsert fillin)
-                {
-                    Debug.Assert(part is BoundLiteral && part.ConstantValue?.StringValue != null);
-                    // this is one of the literal parts.  If it contains a { or } then we need to escape those so that
-                    // they're treated the same way in string.Format.
-                    stringBuilder.Append(escapeInterpolatedStringLiteral(part.ConstantValue.StringValue));
-                }
-                else
+                if (part is BoundStringInsert fillin)
                 {
                     // this is one of the expression holes
                     stringBuilder.Append('{').Append(nextFormatPosition++);
@@ -246,6 +239,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     expressions.Add(value); // NOTE: must still be lowered
                 }
+                else
+                {
+                    Debug.Assert(part is BoundLiteral && part.ConstantValue?.StringValue != null);
+                    // this is one of the literal parts.  If it contains a { or } then we need to escape those so that
+                    // they're treated the same way in string.Format.
+                    stringBuilder.Append(escapeInterpolatedStringLiteral(part.ConstantValue.StringValue));
+                }
             }
 
             format = _factory.StringLiteral(formatString.ToStringAndFree());
@@ -264,7 +264,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                return builder.ToStringAndFree();
+                // Avoid unnecessary allocation in the common case of nothing to escape.
+                var result = builder.Length == value.Length
+                    ? value
+                    : builder.Builder.ToString();
+                builder.Free();
+
+                return result;
             }
         }
 

@@ -203,7 +203,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         i++;
                     }
                 }
-                return builder.ToStringAndFree();
+
+                // Avoid unnecessary allocation in the common case of no escaped curlies.
+                var result = builder.Length == value.Length
+                    ? value
+                    : builder.Builder.ToString();
+                builder.Free();
+
+                return result;
             }
         }
 

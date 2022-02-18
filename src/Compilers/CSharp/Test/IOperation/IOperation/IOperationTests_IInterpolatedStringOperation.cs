@@ -4752,7 +4752,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
           ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "" }"", IsImplicit) (Syntax: ' }}')
 ";
 
-            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code }, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
@@ -4775,7 +4775,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         FormatString:
           null";
 
-            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code }, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
@@ -4793,7 +4793,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         Text:
           ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""{{i}}"", IsImplicit) (Syntax: '{{i}}')";
 
-            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code }, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
@@ -4811,7 +4811,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         Text:
           ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""{{i}}"", IsImplicit) (Syntax: '{{i}}')";
 
-            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code }, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
@@ -4829,7 +4829,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         Text:
           ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""{{{i}}}"", IsImplicit) (Syntax: '{{{i}}}')";
 
-            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code }, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact]
