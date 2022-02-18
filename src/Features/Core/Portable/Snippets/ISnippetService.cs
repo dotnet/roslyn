@@ -15,8 +15,14 @@ namespace Microsoft.CodeAnalysis.Snippets
 {
     internal interface ISnippetService : ILanguageService
     {
+        // Retrieves all possible types of snippets for a particular position
         Task<ImmutableArray<SnippetData?>> GetSnippetsAsync(Document document, int position, CancellationToken cancellationToken);
+
+        // Gets the corresponding provider from the snippet data. 
+        // Called upon by the AbstractSnippetCompletionProvider
         ISnippetProvider GetSnippetProvider(SnippetData data);
+
+        // Gets the span from the SyntaxContext's token
         Task<TextSpan> GetInvocationSpanAsync(Document document, int position, CancellationToken cancellationToken);
     }
 }

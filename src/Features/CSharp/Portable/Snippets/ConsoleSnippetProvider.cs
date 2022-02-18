@@ -23,11 +23,11 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
 {
     [Export(typeof(ISnippetProvider)), Shared]
-    internal class ConsoleSnippet : AbstractSnippetProvider
+    internal class ConsoleSnippetProvider : AbstractSnippetProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ConsoleSnippet()
+        public ConsoleSnippetProvider()
         {
         }
 
