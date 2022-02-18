@@ -144,4 +144,7 @@
   <data name="Place_colon_on_following_line" xml:space="preserve">
     <value>Place colon on following line</value>
   </data>
+  <data name="Fix_token_placement" xml:space="preserve">
+    <value>Fix token placement</value>
+  </data>
 </root>
