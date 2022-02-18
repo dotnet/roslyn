@@ -5010,7 +5010,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingTree(source, TestOptions.Regular9);
             verify();
 
-            UsingTree(source, TestOptions.RegularNext);
+            UsingTree(source, TestOptions.Regular10);
             verify();
 
             void verify()

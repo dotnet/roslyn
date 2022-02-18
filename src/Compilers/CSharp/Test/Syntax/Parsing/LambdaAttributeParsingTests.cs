@@ -2780,7 +2780,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingExpression(source, TestOptions.Regular9);
             verify();
 
-            UsingExpression(source, TestOptions.RegularNext);
+            UsingExpression(source, TestOptions.Regular10);
             verify();
 
             void verify()
