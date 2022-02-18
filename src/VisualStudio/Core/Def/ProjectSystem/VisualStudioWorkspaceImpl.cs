@@ -80,7 +80,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private ImmutableDictionary<ProjectId, IVsHierarchy?> _projectToHierarchyMap = ImmutableDictionary<ProjectId, IVsHierarchy?>.Empty;
         private ImmutableDictionary<ProjectId, Guid> _projectToGuidMap = ImmutableDictionary<ProjectId, Guid>.Empty;
+
+        /// <remarks>Should be updated with <see cref="ImmutableInterlocked"/>.</remarks>
         private ImmutableDictionary<ProjectId, string?> _projectToMaxSupportedLangVersionMap = ImmutableDictionary<ProjectId, string?>.Empty;
+
+        /// <remarks>Should be updated with <see cref="ImmutableInterlocked"/>.</remarks>
         private ImmutableDictionary<ProjectId, string> _projectToDependencyNodeTargetIdentifier = ImmutableDictionary<ProjectId, string>.Empty;
 
         /// <summary>
@@ -88,7 +92,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <see cref="TryGetRuleSetPathForProject(ProjectId)"/> and any other use is extremely suspicious, since direct use of this is out of
         /// sync with the Workspace if there is active batching happening.
         /// </summary>
-        private readonly Dictionary<ProjectId, Func<string?>> _projectToRuleSetFilePath = new();
+        /// <remarks>Should be updated with <see cref="ImmutableInterlocked"/>.</remarks>
+        private ImmutableDictionary<ProjectId, Func<string?>> _projectToRuleSetFilePath = ImmutableDictionary<ProjectId, Func<string?>>.Empty;
 
         private readonly Dictionary<string, List<VisualStudioProject>> _projectSystemNameToProjectsMap = new();
 
@@ -262,10 +267,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal void AddProjectRuleSetFileToInternalMaps(VisualStudioProject project, Func<string?> ruleSetFilePathFunc)
         {
-            using (_gate.DisposableWait())
-            {
-                _projectToRuleSetFilePath.Add(project.Id, ruleSetFilePathFunc);
-            }
+            Contract.ThrowIfFalse(ImmutableInterlocked.TryAdd(ref _projectToRuleSetFilePath, project.Id, ruleSetFilePathFunc));
         }
 
         internal void AddDocumentToDocumentsNotFromFiles_NoLock(DocumentId documentId)
@@ -339,16 +341,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         // Solution Explorer in the SolutionExplorerShim, where if we just could more directly get to the rule set file it'd simplify this.
         internal override string? TryGetRuleSetPathForProject(ProjectId projectId)
         {
-            using (_gate.DisposableWait())
+            // _projectToRuleSetFilePath is immutable, so can be used outside of locks
+            if (_projectToRuleSetFilePath.TryGetValue(projectId, out var ruleSetPathFunc))
             {
-                if (_projectToRuleSetFilePath.TryGetValue(projectId, out var ruleSetPathFunc))
-                {
-                    return ruleSetPathFunc();
-                }
-                else
-                {
-                    return null;
-                }
+                return ruleSetPathFunc();
+            }
+            else
+            {
+                return null;
             }
         }
 
@@ -1668,11 +1668,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             _projectToHierarchyMap = _projectToHierarchyMap.Remove(projectId);
             _projectToGuidMap = _projectToGuidMap.Remove(projectId);
-            // _projectToMaxSupportedLangVersionMap needs to be updated with ImmutableInterlocked since it can be mutated outside the lock
+
             ImmutableInterlocked.TryRemove<ProjectId, string?>(ref _projectToMaxSupportedLangVersionMap, projectId, out _);
-            // _projectToDependencyNodeTargetIdentifier needs to be updated with ImmutableInterlocked since it can be mutated outside the lock
             ImmutableInterlocked.TryRemove(ref _projectToDependencyNodeTargetIdentifier, projectId, out _);
-            _projectToRuleSetFilePath.Remove(projectId);
+            ImmutableInterlocked.TryRemove(ref _projectToRuleSetFilePath, projectId, out _);
 
             foreach (var (projectName, projects) in _projectSystemNameToProjectsMap)
             {
