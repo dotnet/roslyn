@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         private readonly List<VisualStudioAnalyzer> _analyzersRemovedInBatch = new();
 
-        private readonly List<Func<Solution, Solution>> _projectPropertyModificationsInBatch = new();
+        private readonly List<Action<SolutionChangeAccumulator>> _projectPropertyModificationsInBatch = new();
 
         private string _assemblyName;
         private string _displayName;
@@ -216,45 +216,56 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _documentFileChangeContext.FileChanged += DocumentFileChangeContext_FileChanged;
         }
 
-        private void ChangeProjectProperty<T>(ref T field, T newValue, Func<Solution, Solution> withNewValue, bool logThrowAwayTelemetry = false)
+        private void ChangeProjectProperty<T>(ref T field, T newValue, Func<Solution, Solution> updateSolution, bool logThrowAwayTelemetry = false)
+        {
+            ChangeProjectProperty(
+                ref field,
+                newValue,
+                (solutionChanges, oldValue) => solutionChanges.UpdateSolutionForProjectAction(Id, updateSolution(solutionChanges.Solution)),
+                logThrowAwayTelemetry);
+        }
+
+        private void ChangeProjectProperty<T>(ref T field, T newValue, Action<SolutionChangeAccumulator, T> updateSolution, bool logThrowAwayTelemetry = false)
         {
             using (_gate.DisposableWait())
             {
-                ChangeProjectProperty_NoLock(ref field, newValue, withNewValue, logThrowAwayTelemetry);
-            }
-        }
+                // If nothing is changing, we can skip entirely
+                if (object.Equals(field, newValue))
+                {
+                    return;
+                }
 
-        private void ChangeProjectProperty_NoLock<T>(ref T field, T newValue, Func<Solution, Solution> withNewValue, bool logThrowAwayTelemetry = false)
-        {
-            // If nothing is changing, we can skip entirely
-            if (object.Equals(field, newValue))
-            {
-                return;
-            }
+                var oldValue = field;
 
-            field = newValue;
+                field = newValue;
 
-            // Importantly, we do not await/wait on the fullyLoadedStateTask.  We do not want to ever be waiting on work
-            // that may end up touching the UI thread (As we can deadlock if GetTagsSynchronous waits on us).  Instead,
-            // we only check if the Task is completed.  Prior to that we will assume we are still loading.  Once this
-            // task is completed, we know that the WaitUntilFullyLoadedAsync call will have actually finished and we're
-            // fully loaded.
-            var isFullyLoadedTask = _workspaceStatusService?.IsFullyLoadedAsync(CancellationToken.None);
-            var isFullyLoaded = isFullyLoadedTask is { IsCompleted: true } && isFullyLoadedTask.GetAwaiter().GetResult();
+                // Importantly, we do not await/wait on the fullyLoadedStateTask.  We do not want to ever be waiting on work
+                // that may end up touching the UI thread (As we can deadlock if GetTagsSynchronous waits on us).  Instead,
+                // we only check if the Task is completed.  Prior to that we will assume we are still loading.  Once this
+                // task is completed, we know that the WaitUntilFullyLoadedAsync call will have actually finished and we're
+                // fully loaded.
+                var isFullyLoadedTask = _workspaceStatusService?.IsFullyLoadedAsync(CancellationToken.None);
+                var isFullyLoaded = isFullyLoadedTask is { IsCompleted: true } && isFullyLoadedTask.GetAwaiter().GetResult();
 
-            // We only log telemetry during solution open
-            if (logThrowAwayTelemetry && _telemetryService?.HasActiveSession == true && !isFullyLoaded)
-            {
-                TryReportCompilationThrownAway(_workspace.CurrentSolution.State, Id);
-            }
+                // We only log telemetry during solution open
+                if (logThrowAwayTelemetry && _telemetryService?.HasActiveSession == true && !isFullyLoaded)
+                {
+                    TryReportCompilationThrownAway(_workspace.CurrentSolution.State, Id);
+                }
 
-            if (_activeBatchScopes > 0)
-            {
-                _projectPropertyModificationsInBatch.Add(withNewValue);
-            }
-            else
-            {
-                _workspace.ApplyChangeToWorkspace(Id, withNewValue);
+                if (_activeBatchScopes > 0)
+                {
+                    _projectPropertyModificationsInBatch.Add(solutionChanges => updateSolution(solutionChanges, oldValue));
+                }
+                else
+                {
+                    _workspace.ApplyBatchChangeToWorkspaceMaybeAsync(useAsync: false, s =>
+                    {
+                        var solutionChanges = new SolutionChangeAccumulator(s);
+                        updateSolution(solutionChanges, oldValue);
+                        return solutionChanges;
+                    }).AsTask().GetAwaiter().GetResult();
+                }
             }
         }
 
@@ -292,26 +303,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void ChangeProjectOutputPath(ref string? field, string? newValue, Func<Solution, Solution> withNewValue)
         {
-            using (_gate.DisposableWait())
+            ChangeProjectProperty(ref field, newValue, (solutionChanges, oldValue) =>
             {
-                // Skip if nothing changing
-                if (field == newValue)
-                {
-                    return;
-                }
+                // First, update the property itself that's exposed on the Project.
+                solutionChanges.UpdateSolutionForProjectAction(Id, withNewValue(solutionChanges.Solution));
 
-                if (field != null)
+                if (oldValue != null)
                 {
-                    _workspace.RemoveProjectOutputPath(Id, field);
+                    _workspace.RemoveProjectOutputPath_NoLock(solutionChanges, Id, oldValue);
                 }
 
                 if (newValue != null)
                 {
-                    _workspace.AddProjectOutputPath(Id, newValue);
+                    _workspace.AddProjectOutputPath_NoLock(solutionChanges, Id, newValue);
                 }
-
-                ChangeProjectProperty_NoLock(ref field, newValue, withNewValue);
-            }
+            });
         }
 
         public string AssemblyName
@@ -650,9 +656,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     // Other property modifications...
                     foreach (var propertyModification in _projectPropertyModificationsInBatch)
                     {
-                        solutionChanges.UpdateSolutionForProjectAction(
-                            Id,
-                            propertyModification(solutionChanges.Solution));
+                        propertyModification(solutionChanges);
                     }
 
                     ClearAndZeroCapacity(_projectPropertyModificationsInBatch);
