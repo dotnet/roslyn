@@ -251,14 +251,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public void ProcessQueuedWorkOnUIThread()
             => _openFileTracker?.ProcessQueuedWorkOnUIThread();
 
-        internal void AddProjectToInternalMaps(VisualStudioProject project, IVsHierarchy? hierarchy, Guid guid, string projectSystemName)
+        internal void AddProjectToInternalMaps_NoLock(VisualStudioProject project, IVsHierarchy? hierarchy, Guid guid, string projectSystemName)
         {
-            using (_gate.DisposableWait())
-            {
-                _projectToHierarchyMap = _projectToHierarchyMap.Add(project.Id, hierarchy);
-                _projectToGuidMap = _projectToGuidMap.Add(project.Id, guid);
-                _projectSystemNameToProjectsMap.MultiAdd(projectSystemName, project);
-            }
+            Contract.ThrowIfFalse(_gate.CurrentCount == 0);
+
+            _projectToHierarchyMap = _projectToHierarchyMap.Add(project.Id, hierarchy);
+            _projectToGuidMap = _projectToGuidMap.Add(project.Id, guid);
+            _projectSystemNameToProjectsMap.MultiAdd(projectSystemName, project);
         }
 
         internal void AddProjectRuleSetFileToInternalMaps(VisualStudioProject project, Func<string?> ruleSetFilePathFunc)

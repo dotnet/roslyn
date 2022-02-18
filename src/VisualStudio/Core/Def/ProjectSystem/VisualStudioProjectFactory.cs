@@ -96,10 +96,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var versionStamp = creationInfo.FilePath != null ? VersionStamp.Create(File.GetLastWriteTimeUtc(creationInfo.FilePath))
                                                              : VersionStamp.Create();
 
-            _visualStudioWorkspaceImpl.AddProjectToInternalMaps(project, creationInfo.Hierarchy, creationInfo.ProjectGuid, projectSystemName);
-
-            _visualStudioWorkspaceImpl.ApplyChangeToWorkspace(w =>
+            await _visualStudioWorkspaceImpl.ApplyChangeToWorkspaceMaybeAsync(useAsync: true, w =>
             {
+                _visualStudioWorkspaceImpl.AddProjectToInternalMaps_NoLock(project, creationInfo.Hierarchy, creationInfo.ProjectGuid, projectSystemName);
+
                 var projectInfo = ProjectInfo.Create(
                         id,
                         versionStamp,
@@ -129,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     w.OnProjectAdded(projectInfo);
                 }
-            });
+            }).ConfigureAwait(false);
 
             // Ensure that other VS contexts get accurate information that the UIContext for this language is now active.
             // This is not cancellable as we have already mutated the solution.
