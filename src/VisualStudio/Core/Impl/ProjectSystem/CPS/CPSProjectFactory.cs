@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
 {
@@ -63,8 +64,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             string? assemblyName,
             CancellationToken cancellationToken)
         {
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
             var creationInfo = new VisualStudioProjectCreationInfo
             {
                 AssemblyName = assemblyName,
@@ -74,7 +73,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             };
 
             var visualStudioProject = await _projectFactory.CreateAndAddToWorkspaceAsync(
-                projectUniqueName, languageName, creationInfo, cancellationToken).ConfigureAwait(true);
+                projectUniqueName, languageName, creationInfo, cancellationToken).ConfigureAwait(false);
 
 #pragma warning disable IDE0059 // Unnecessary assignment of a value
             // At this point we've mutated the workspace.  So we're no longer cancellable.
@@ -83,6 +82,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
             if (languageName == LanguageNames.FSharp)
             {
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
                 var shell = await _serviceProvider.GetServiceAsync<SVsShell, IVsShell7>().ConfigureAwait(true);
 
                 // Force the F# package to load; this is necessary because the F# package listens to WorkspaceChanged to 
@@ -90,6 +91,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 // so we're caught in the middle doing this.
                 var packageId = Guids.FSharpPackageId;
                 await shell.LoadPackageAsync(ref packageId);
+
+                await TaskScheduler.Default;
             }
 
             // CPSProject constructor has a UI thread dependencies currently, so switch back to the UI thread before proceeding.
