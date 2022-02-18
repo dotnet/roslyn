@@ -2055,8 +2055,10 @@ tryAgain:
                         missingType = AddTrailingSkippedSyntax(missingType, this.EatToken());
                         return _syntaxFactory.TypeConstraint(missingType);
                     }
-                case SyntaxKind.DelegateKeyword:
+                case SyntaxKind.DelegateKeyword when PeekToken(1).Kind is not SyntaxKind.AsteriskToken:
                     {
+                        // Produce a specific diagnostic for `where T : delegate`
+                        // but not `where T : delegate*<...>
                         var missingType = this.AddError(this.CreateMissingIdentifierName(), ErrorCode.ERR_NoDelegateConstraint);
                         missingType = AddTrailingSkippedSyntax(missingType, this.EatToken());
                         return _syntaxFactory.TypeConstraint(missingType);
