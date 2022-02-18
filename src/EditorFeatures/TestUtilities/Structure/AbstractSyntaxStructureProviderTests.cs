@@ -8,8 +8,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
         protected virtual string WorkspaceKind => CodeAnalysis.WorkspaceKind.Host;
 
         internal virtual BlockStructureOptions GetOptions()
-            => new(MaximumBannerLength: 120);
+            => new(MaximumBannerLength: 120, IsMetadataAsSource: WorkspaceKind == CodeAnalysis.WorkspaceKind.MetadataAsSource);
 
         private Task<ImmutableArray<BlockSpan>> GetBlockSpansAsync(Document document, int position)
             => GetBlockSpansWorkerAsync(document, position);
