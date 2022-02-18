@@ -93,7 +93,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
 
             // CPSProject constructor has a UI thread dependencies currently, so switch back to the UI thread before proceeding.
-            return new CPSProject(visualStudioProject, _workspace, _projectCodeModelFactory, projectGuid, binOutputPath);
+            var project = new CPSProject(visualStudioProject, _workspace, _projectCodeModelFactory, projectGuid);
+
+            // Set the output path in a batch; if we set the property directly we'll be taking a synchronous lock here and
+            // potentially block up thread pool threads. Doing this in a batch means the global lock will be acquired asynchronously.
+            project.StartBatch();
+            project.BinOutputPath = binOutputPath;
+            await project.EndBatchAsync().ConfigureAwait(false);
+
+            return project;
         }
     }
 }
