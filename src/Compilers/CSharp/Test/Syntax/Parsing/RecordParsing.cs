@@ -3152,67 +3152,38 @@ class C(int X, int Y)
             UsingTree(text, options: TestOptions.Regular10,
                 // (1,8): error CS9012: Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?
                 // struct record C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_MisplacedRecord, "record").WithLocation(1, 8),
-                // (1,16): error CS1514: { expected
-                // struct record C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 16),
-                // (1,16): error CS1513: } expected
-                // struct record C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 16),
-                // (1,16): error CS8803: Top-level statements must precede namespace and type declarations.
-                // struct record C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int X, int Y);").WithLocation(1, 16)
-                );
+                Diagnostic(ErrorCode.ERR_MisplacedRecord, "record").WithLocation(1, 8));
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.StructDeclaration);
+                N(SyntaxKind.RecordStructDeclaration);
                 {
-                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.RecordKeyword);
+                    M(SyntaxKind.StructKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
-                    M(SyntaxKind.OpenBraceToken);
-                    M(SyntaxKind.CloseBraceToken);
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.ExpressionStatement);
+                    N(SyntaxKind.ParameterList);
                     {
-                        N(SyntaxKind.TupleExpression);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.Argument);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.DeclarationExpression);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                    N(SyntaxKind.SingleVariableDesignation);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "X");
-                                    }
-                                }
+                                N(SyntaxKind.IntKeyword);
                             }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.Argument);
-                            {
-                                N(SyntaxKind.DeclarationExpression);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                    N(SyntaxKind.SingleVariableDesignation);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Y");
-                                    }
-                                }
-                            }
-                            N(SyntaxKind.CloseParenToken);
+                            N(SyntaxKind.IdentifierToken, "X");
                         }
-                        N(SyntaxKind.SemicolonToken);
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                        N(SyntaxKind.CloseParenToken);
                     }
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -3378,67 +3349,38 @@ class C(int X, int Y)
             UsingTree(text, options: TestOptions.Regular10,
                 // (1,7): error CS9012: Unexpected keyword 'record'. Did you mean 'record struct' or 'record class'?
                 // class record C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_MisplacedRecord, "record").WithLocation(1, 7),
-                // (1,15): error CS1514: { expected
-                // class record C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(1, 15),
-                // (1,15): error CS1513: } expected
-                // class record C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "(").WithLocation(1, 15),
-                // (1,15): error CS8803: Top-level statements must precede namespace and type declarations.
-                // class record C(int X, int Y);
-                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "(int X, int Y);").WithLocation(1, 15)
-                );
+                Diagnostic(ErrorCode.ERR_MisplacedRecord, "record").WithLocation(1, 7));
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.ClassDeclaration);
+                N(SyntaxKind.RecordDeclaration);
                 {
-                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.RecordKeyword);
+                    M(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
-                    M(SyntaxKind.OpenBraceToken);
-                    M(SyntaxKind.CloseBraceToken);
-                }
-                N(SyntaxKind.GlobalStatement);
-                {
-                    N(SyntaxKind.ExpressionStatement);
+                    N(SyntaxKind.ParameterList);
                     {
-                        N(SyntaxKind.TupleExpression);
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.Parameter);
                         {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.Argument);
+                            N(SyntaxKind.PredefinedType);
                             {
-                                N(SyntaxKind.DeclarationExpression);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                    N(SyntaxKind.SingleVariableDesignation);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "X");
-                                    }
-                                }
+                                N(SyntaxKind.IntKeyword);
                             }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.Argument);
-                            {
-                                N(SyntaxKind.DeclarationExpression);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                    N(SyntaxKind.SingleVariableDesignation);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Y");
-                                    }
-                                }
-                            }
-                            N(SyntaxKind.CloseParenToken);
+                            N(SyntaxKind.IdentifierToken, "X");
                         }
-                        N(SyntaxKind.SemicolonToken);
+                        N(SyntaxKind.CommaToken);
+                        N(SyntaxKind.Parameter);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                        N(SyntaxKind.CloseParenToken);
                     }
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
