@@ -24,12 +24,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string initialMarkup, string expectedMarkup,
             ImmutableArray<string> expectedContainers,
             string expectedDocumentName,
-            TestParameters parameters = default)
+            TestParameters? parameters = null)
         {
+            var ps = parameters ?? TestParameters.Default;
+
             await TestAddDocument(
                 initialMarkup, expectedMarkup,
                 expectedContainers, expectedDocumentName,
-                WithRegularOptions(parameters));
+                WithRegularOptions(ps));
 
             // VB script is not supported:
             if (GetLanguage() == LanguageNames.CSharp)
@@ -37,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 await TestAddDocument(
                     initialMarkup, expectedMarkup,
                     expectedContainers, expectedDocumentName,
-                    WithScriptOptions(parameters));
+                    WithScriptOptions(ps));
             }
         }
 
@@ -59,15 +61,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             string expectedMarkup,
             ImmutableArray<string> expectedContainers,
             string expectedDocumentName,
-            TestParameters parameters = default)
+            TestParameters? parameters = null)
         {
-            using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
-            {
-                var (_, action) = await GetCodeActionsAsync(workspace, parameters);
-                await TestAddDocument(
-                    workspace, expectedMarkup, expectedContainers,
-                    expectedDocumentName, action);
-            }
+            var ps = parameters ?? TestParameters.Default;
+            using var workspace = CreateWorkspaceFromOptions(initialMarkup, ps);
+            var (_, action) = await GetCodeActionsAsync(workspace, ps);
+            await TestAddDocument(
+                workspace, expectedMarkup, expectedContainers,
+                expectedDocumentName, action);
         }
 
         private async Task<Tuple<Solution, Solution>> TestAddDocument(

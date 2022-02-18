@@ -42,8 +42,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
         public const int DefaultWrappingColumn = 120;
 
         public CodeActionOptions()
-            : this(SearchOptions: SymbolSearchOptions.Default,
-                   ImplementTypeOptions: ImplementTypeOptions.Default)
+            : this(searchOptions: null)
+        {
+        }
 
         public CodeActionOptions(
             SymbolSearchOptions? searchOptions = null,

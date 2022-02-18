@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
         private static async Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
             Document document,
             TextSpan textSpan,
-             ExtractMethodOptions options,
+            ExtractMethodOptions options,
             CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
