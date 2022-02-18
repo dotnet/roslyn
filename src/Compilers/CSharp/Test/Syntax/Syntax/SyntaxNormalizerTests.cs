@@ -400,6 +400,33 @@ breaks
         }
 
         [Theory]
+        [InlineData("[return:A]void Local([B]object o){}", "[return: A]\r\nvoid Local([B] object o)\r\n{\r\n}")]
+        [InlineData("[A,B][C]T Local<T>()=>default;", "[A, B]\r\n[C]\r\nT Local<T>() => default;")]
+        public void TestLocalFunctionAttributes(string text, string expected)
+        {
+            TestNormalizeStatement(text, expected);
+        }
+
+        [Theory]
+        [InlineData("([A]x)=>x", "([A] x) => x")]
+        [InlineData("[return:A]([B]object o)=>{}", "[return: A]\r\n([B] object o) =>\r\n{\r\n}")]
+        [InlineData("[A,B][C]()=>x", "[A, B]\r\n[C]\r\n() => x")]
+        [InlineData("[A]B()=>{ }", "[A]\r\nB () =>\r\n{\r\n}")]
+        public void TestLambdaAttributes(string text, string expected)
+        {
+            TestNormalizeExpression(text, expected);
+        }
+
+        [Theory]
+        [InlineData("int(x)=>x", "int (x) => x")]
+        [InlineData("A(B b)=>{}", "A (B b) =>\r\n{\r\n}")]
+        [InlineData("static\r\nasync\r\nA<int>()=>x", "static async A<int> () => x")]
+        public void TestLambdaReturnType(string text, string expected)
+        {
+            TestNormalizeExpression(text, expected);
+        }
+
+        [Theory]
         [InlineData("int*p;", "int* p;")]
         [InlineData("int *p;", "int* p;")]
         [InlineData("int*p1,p2;", "int* p1, p2;")]
