@@ -335,6 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     CheckUserDefinedConversionSignature(diagnostics);
                     break;
 
+                case WellKnownMemberNames.CheckedUnaryNegationOperatorName:
                 case WellKnownMemberNames.UnaryNegationOperatorName:
                 case WellKnownMemberNames.UnaryPlusOperatorName:
                 case WellKnownMemberNames.LogicalNotOperatorName:
@@ -347,7 +348,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     CheckTrueFalseSignature(diagnostics);
                     break;
 
+                case WellKnownMemberNames.CheckedIncrementOperatorName:
                 case WellKnownMemberNames.IncrementOperatorName:
+                case WellKnownMemberNames.CheckedDecrementOperatorName:
                 case WellKnownMemberNames.DecrementOperatorName:
                     CheckIncrementDecrementSignature(diagnostics);
                     break;
@@ -367,8 +370,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             switch (name)
             {
+                case WellKnownMemberNames.CheckedIncrementOperatorName:
                 case WellKnownMemberNames.IncrementOperatorName:
+                case WellKnownMemberNames.CheckedDecrementOperatorName:
                 case WellKnownMemberNames.DecrementOperatorName:
+                case WellKnownMemberNames.CheckedUnaryNegationOperatorName:
                 case WellKnownMemberNames.UnaryNegationOperatorName:
                 case WellKnownMemberNames.UnaryPlusOperatorName:
                 case WellKnownMemberNames.LogicalNotOperatorName:

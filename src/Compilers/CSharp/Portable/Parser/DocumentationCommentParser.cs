@@ -988,7 +988,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             Debug.Assert(CurrentToken.Kind == SyntaxKind.OperatorKeyword);
             SyntaxToken operatorKeyword = EatToken();
-            SyntaxToken checkedKeyword = TryEatToken(SyntaxKind.CheckedKeyword); // PROTOTYPE(CheckedUserDefinedOperators) : consider gracefully recovering from erroneous use of 'unchecked' at this location 
+            SyntaxToken checkedKeyword = TryEatCheckedKeyword(isConversion: false);
 
             SyntaxToken operatorToken;
 
@@ -1071,6 +1071,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return SyntaxFactory.OperatorMemberCref(operatorKeyword, checkedKeyword, operatorToken, parameters);
         }
 
+        private SyntaxToken TryEatCheckedKeyword(bool isConversion)
+        {
+            SyntaxToken checkedKeyword = TryEatToken(SyntaxKind.CheckedKeyword); // PROTOTYPE(CheckedUserDefinedOperators) : consider gracefully recovering from erroneous use of 'unchecked' at this location 
+
+            if (checkedKeyword is not null &&
+                (isConversion || SyntaxFacts.IsAnyOverloadableOperator(CurrentToken.Kind)))
+            {
+                checkedKeyword = CheckFeatureAvailability(checkedKeyword, MessageID.IDS_FeatureCheckedUserDefinedOperators, forceWarning: true);
+            }
+
+            return checkedKeyword;
+        }
+
         /// <summary>
         /// Parse a user-defined conversion, with optional parameters.
         /// </summary>
@@ -1081,7 +1094,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             SyntaxToken implicitOrExplicit = EatToken();
 
             SyntaxToken operatorKeyword = EatToken(SyntaxKind.OperatorKeyword);
-            SyntaxToken checkedKeyword = TryEatToken(SyntaxKind.CheckedKeyword); // PROTOTYPE(CheckedUserDefinedOperators) : consider gracefully recovering from erroneous use of 'unchecked' at this location 
+            SyntaxToken checkedKeyword = TryEatCheckedKeyword(isConversion: true);
 
             TypeSyntax type = ParseCrefType(typeArgumentsMustBeIdentifiers: false);
 
