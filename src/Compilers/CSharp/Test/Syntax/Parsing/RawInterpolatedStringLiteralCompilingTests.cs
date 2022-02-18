@@ -1877,4 +1877,58 @@ System.Console.Write(
     {{1 + 2}}
     """""");", expectedOutput: "{{1 + 2}}");
     }
+
+    [Fact, WorkItem(59603, "https://github.com/dotnet/roslyn/issues/59603")]
+    public void TestFourDollarTwoCurly_SingleLine()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $$$$""""""{{1 + 2}}"""""");", expectedOutput: "{{1 + 2}}");
+    }
+
+    [Fact]
+    public void TestFourDollarTwoCurly_MultiLine()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $$$""""""
+    {{1 + 2}}
+    """""");", expectedOutput: "{{1 + 2}}");
+    }
+
+    [Fact, WorkItem(59603, "https://github.com/dotnet/roslyn/issues/59603")]
+    public void TestThreeDollarThreeCurly_SingleLine()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $$$""""""{{{1 + 2}}}"""""");", expectedOutput: "3");
+    }
+
+    [Fact]
+    public void TestThreeDollarThreeCurly_MultiLine()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $$$""""""
+    {{{1 + 2}}}
+    """""");", expectedOutput: "3");
+    }
+
+    [Fact, WorkItem(59603, "https://github.com/dotnet/roslyn/issues/59603")]
+    public void TestFourDollarThreeCurly_SingleLine()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $$$$""""""{{{1 + 2}}}"""""");", expectedOutput: "{{{1 + 2}}}");
+    }
+
+    [Fact]
+    public void TestFourDollarThreeCurly_MultiLine()
+    {
+        RenderAndVerify(@"
+System.Console.Write(
+    $$$$""""""
+    {{{1 + 2}}}
+    """""");", expectedOutput: "{{{1 + 2}}}");
+    }
 }

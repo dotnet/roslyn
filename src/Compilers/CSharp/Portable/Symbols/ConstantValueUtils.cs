@@ -73,38 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        internal static string UnescapeInterpolatedStringLiteral(string s)
-        {
-            var builder = PooledStringBuilder.GetInstance();
-            var stringBuilder = builder.Builder;
-            for (int i = 0, formatLength = s.Length; i < formatLength; i++)
-            {
-                char c = s[i];
-                stringBuilder.Append(c);
-                if (c is '{' or '}' && (i + 1) < formatLength && s[i + 1] == c)
-                {
-                    i++;
-                }
-            }
-            return builder.ToStringAndFree();
-        }
-
-        internal static string EscapeInterpolatedStringLiteral(string s)
-        {
-            var builder = PooledStringBuilder.GetInstance();
-            var stringBuilder = builder.Builder;
-            foreach (var c in s)
-            {
-                stringBuilder.Append(c);
-                if (c is '{' or '}')
-                {
-                    stringBuilder.Append(c);
-                }
-            }
-
-            return builder.ToStringAndFree();
-        }
-
         internal static ConstantValue GetAndValidateConstantValue(
             BoundExpression boundValue,
             Symbol thisSymbol,

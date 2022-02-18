@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // bound nodes.
                                 if (!isRawInterpolatedString)
                                 {
-                                    text = ConstantValueUtils.UnescapeInterpolatedStringLiteral(text);
+                                    text = unescapeInterpolatedStringLiteral(text);
                                 }
 
                                 var constantValue = ConstantValue.Create(text, SpecialType.System_String);
@@ -187,6 +187,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(isResultConstant == (resultConstant != null));
             return new BoundUnconvertedInterpolatedString(node, builder.ToImmutableAndFree(), resultConstant, stringType);
+
+            static string unescapeInterpolatedStringLiteral(string value)
+            {
+                var builder = PooledStringBuilder.GetInstance();
+                var stringBuilder = builder.Builder;
+                for (int i = 0, formatLength = value.Length; i < formatLength; i++)
+                {
+                    var c = value[i];
+                    stringBuilder.Append(c);
+                    if (c is '{' or '}' &&
+                        i + 1 < formatLength &&
+                        value[i + 1] == c)
+                    {
+                        i++;
+                    }
+                }
+                return builder.ToStringAndFree();
+            }
         }
 
         private BoundInterpolatedString BindUnconvertedInterpolatedStringToString(BoundUnconvertedInterpolatedString unconvertedInterpolatedString, BindingDiagnosticBag diagnostics)

@@ -219,10 +219,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var fillin = part as BoundStringInsert;
                 if (fillin == null)
                 {
-                    Debug.Assert(part is BoundLiteral && part.ConstantValue != null);
+                    Debug.Assert(part is BoundLiteral && part.ConstantValue?.StringValue != null);
                     // this is one of the literal parts.  If it contains a { or } then we need to escape those so that
                     // they're treated the same way in string.Format.
-                    stringBuilder.Append(ConstantValueUtils.EscapeInterpolatedStringLiteral(part.ConstantValue.StringValue));
+                    stringBuilder.Append(escapeInterpolatedStringLiteral(part.ConstantValue.StringValue));
                 }
                 else
                 {
@@ -250,6 +250,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             format = _factory.StringLiteral(formatString.ToStringAndFree());
+            return;
+
+            static string escapeInterpolatedStringLiteral(string value)
+            {
+                var builder = PooledStringBuilder.GetInstance();
+                var stringBuilder = builder.Builder;
+                foreach (var c in value)
+                {
+                    stringBuilder.Append(c);
+                    if (c is '{' or '}')
+                    {
+                        stringBuilder.Append(c);
+                    }
+                }
+
+                return builder.ToStringAndFree();
+            }
         }
 
         public override BoundNode VisitInterpolatedString(BoundInterpolatedString node)

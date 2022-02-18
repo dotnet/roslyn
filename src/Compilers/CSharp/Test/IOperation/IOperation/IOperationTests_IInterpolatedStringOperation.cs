@@ -4724,7 +4724,7 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         }
 
         [Fact, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
-        public void InterpolationEscapeConstantValue_WithoutDefaultHandler()
+        public void InterpolationEscapeConstantValue_WithoutDefaultHandler1()
         {
             var code = @"
 int i = 1;
@@ -4751,6 +4751,83 @@ IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.Str
         Text:
           ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "" }"", IsImplicit) (Syntax: ' }}')
 ";
+
+            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+        }
+
+        [Fact, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
+        public void RawInterpolationEscapeConstantValue_WithoutDefaultHandler1()
+        {
+            var code = @"
+int i = 1;
+System.Console.WriteLine(/*<bind>*/$$""""""{{i}}""""""/*</bind>*/);";
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedOperationTree = @"
+IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String) (Syntax: '$$""""""{{i}}""""""')
+  Parts(1):
+      IInterpolationOperation (OperationKind.Interpolation, Type: null) (Syntax: '{{i}}')
+        Expression:
+          ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+        Alignment:
+          null
+        FormatString:
+          null";
+
+            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+        }
+
+        [Fact, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
+        public void RawInterpolationEscapeConstantValue_WithoutDefaultHandler2()
+        {
+            var code = @"
+System.Console.WriteLine(/*<bind>*/$$$""""""{{i}}""""""/*</bind>*/);";
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedOperationTree = @"
+IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, Constant: ""{{i}}"") (Syntax: '$$$""""""{{i}}""""""')
+  Parts(1):
+      IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: '{{i}}')
+        Text:
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""{{i}}"", IsImplicit) (Syntax: '{{i}}')";
+
+            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+        }
+
+        [Fact, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
+        public void RawInterpolationEscapeConstantValue_WithoutDefaultHandler3()
+        {
+            var code = @"
+System.Console.WriteLine(/*<bind>*/$$$$""""""{{i}}""""""/*</bind>*/);";
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedOperationTree = @"
+IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, Constant: ""{{i}}"") (Syntax: '$$$$""""""{{i}}""""""')
+  Parts(1):
+      IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: '{{i}}')
+        Text:
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""{{i}}"", IsImplicit) (Syntax: '{{i}}')";
+
+            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
+        }
+
+        [Fact, WorkItem(54703, "https://github.com/dotnet/roslyn/issues/54703")]
+        public void RawInterpolationEscapeConstantValue_WithoutDefaultHandler4()
+        {
+            var code = @"
+System.Console.WriteLine(/*<bind>*/$$$$""""""{{{i}}}""""""/*</bind>*/);";
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedOperationTree = @"
+IInterpolatedStringOperation (OperationKind.InterpolatedString, Type: System.String, Constant: ""{{{i}}}"") (Syntax: '$$$$""""""{{{i}}}""""""')
+  Parts(1):
+      IInterpolatedStringTextOperation (OperationKind.InterpolatedStringText, Type: null) (Syntax: '{{{i}}}')
+        Text:
+          ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""{{{i}}}"", IsImplicit) (Syntax: '{{{i}}}')";
 
             VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(new[] { code }, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
         }
