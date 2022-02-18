@@ -411,22 +411,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         return;
                     }
 
-                    await _project._workspace.ApplyBatchChangeToWorkspaceMaybeAsync(useAsync: true, s =>
+                    await _project._workspace.ApplyBatchChangeToWorkspaceMaybeAsync(useAsync: true, solutionChanges =>
                     {
-                        var accumulator = new SolutionChangeAccumulator(s);
-
                         foreach (var (documentId, textLoader) in documentsToChange)
                         {
-                            if (!s.Workspace.IsDocumentOpen(documentId))
+                            if (!_project._workspace.IsDocumentOpen(documentId))
                             {
-                                accumulator.UpdateSolutionForDocumentAction(
-                                    _documentTextLoaderChangedAction(accumulator.Solution, documentId, textLoader),
+                                solutionChanges.UpdateSolutionForDocumentAction(
+                                    _documentTextLoaderChangedAction(solutionChanges.Solution, documentId, textLoader),
                                     _documentChangedWorkspaceKind,
                                     SpecializedCollections.SingletonEnumerable(documentId));
                             }
                         }
-
-                        return accumulator;
                     }).ConfigureAwait(false);
 
                     documentsToChange.Free();

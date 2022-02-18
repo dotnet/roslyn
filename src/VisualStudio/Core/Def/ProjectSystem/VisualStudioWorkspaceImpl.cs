@@ -1594,12 +1594,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         /// <remarks>This is needed to synchronize with <see cref="ApplyChangeToWorkspace(Action{Workspace})" /> to avoid any races. This
         /// method could be moved down to the core Workspace layer and then could use the synchronization lock there.</remarks>
-        public async ValueTask ApplyBatchChangeToWorkspaceMaybeAsync(bool useAsync, Func<CodeAnalysis.Solution, SolutionChangeAccumulator> mutation)
+        public async ValueTask ApplyBatchChangeToWorkspaceMaybeAsync(bool useAsync, Action<SolutionChangeAccumulator> mutation)
         {
             using (useAsync ? await _gate.DisposableWaitAsync().ConfigureAwait(false) : _gate.DisposableWait())
             {
-                var oldSolution = this.CurrentSolution;
-                var solutionChanges = mutation(oldSolution);
+                var solutionChanges = new SolutionChangeAccumulator(CurrentSolution);
+                mutation(solutionChanges);
 
                 ApplyBatchChangeToWorkspace_NoLock(solutionChanges);
             }
@@ -1987,10 +1987,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 try
                 {
-                    await ApplyBatchChangeToWorkspaceMaybeAsync(useAsync: true, s =>
+                    await ApplyBatchChangeToWorkspaceMaybeAsync(useAsync: true, solutionChanges =>
                     {
-                        var solutionChanges = new SolutionChangeAccumulator(s);
-
                         foreach (var project in CurrentSolution.Projects)
                         {
                             // Loop to find each reference with the given path. It's possible that there might be multiple references of the same path;
@@ -2016,8 +2014,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                                 }
                             }
                         }
-
-                        return solutionChanges;
                     }).ConfigureAwait(false);
                 }
                 finally
