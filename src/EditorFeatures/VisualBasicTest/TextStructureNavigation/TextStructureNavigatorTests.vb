@@ -231,7 +231,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavig
             Using workspace = TestWorkspace.CreateVisualBasic(code)
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
 
-                Dim provider = Assert.IsType(Of TextStructureNavigatorProvider)(
+                Dim provider = Assert.IsType(Of VisualBasicTextStructureNavigatorProvider)(
                     workspace.GetService(Of ITextStructureNavigatorProvider)(ContentTypeNames.VisualBasicContentType))
 
                 Dim navigator = provider.CreateTextStructureNavigator(buffer)
