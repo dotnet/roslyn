@@ -787,6 +787,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var oldTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
 
+            // Hold onto the old root, so we don't actually release the root; if the root were to fall away
+            // we're unable to use IsIncrementallyIdenticalTo to see if we didn't reparse, since asking for
+            // the old root will recover the tree and produce a new green node.
+            var oldRoot = oldTree.GetRoot();
+
             Assert.Equal(document.Project.ParseOptions, oldTree.Options);
 
             ParseOptions newOptions =
@@ -799,7 +804,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Equal(document.Project.ParseOptions, newTree.Options);
 
-            Assert.Equal(expectReuse, oldTree.GetRoot().IsIncrementallyIdenticalTo(newTree.GetRoot()));
+            Assert.Equal(expectReuse, oldRoot.IsIncrementallyIdenticalTo(newTree.GetRoot()));
         }
 
         [Fact]
