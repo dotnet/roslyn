@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Testing.Model;
 using Microsoft.CodeAnalysis.Text;
+using static Microsoft.CodeAnalysis.CodeFixes.FixAllContext;
 
 namespace Microsoft.CodeAnalysis.Testing
 {
@@ -235,6 +236,54 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <returns>New <see cref="CodeFixContext"/>.</returns>
         protected virtual CodeFixContext CreateCodeFixContext(Document document, TextSpan span, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix, CancellationToken cancellationToken)
             => new CodeFixContext(document, span, diagnostics, registerCodeFix, cancellationToken);
+
+        /// <summary>
+        /// Creates a new <see cref="FixAllContext"/>.
+        /// Use this overload when applying fix all to a diagnostic with a source location.
+        /// </summary>
+        /// <param name="document">Document within which fix all occurrences was triggered.</param>
+        /// <param name="codeFixProvider">Underlying <see cref="CodeFixes.CodeFixProvider"/> which triggered this fix all.</param>
+        /// <param name="scope"><see cref="FixAllScope"/> to fix all occurrences.</param>
+        /// <param name="codeActionEquivalenceKey">The <see cref="CodeAction.EquivalenceKey"/> value expected of a <see cref="CodeAction"/> participating in this fix all.</param>
+        /// <param name="diagnosticIds">Diagnostic Ids to fix.</param>
+        /// <param name="fixAllDiagnosticProvider">
+        /// <see cref="DiagnosticProvider"/> to fetch document/project diagnostics to fix in a <see cref="FixAllContext"/>.
+        /// </param>
+        /// <param name="cancellationToken">Cancellation token for fix all computation.</param>
+        /// <returns>New <see cref="FixAllContext"/></returns>
+        protected virtual FixAllContext CreateFixAllContext(
+            Document document,
+            CodeFixProvider codeFixProvider,
+            FixAllScope scope,
+            string? codeActionEquivalenceKey,
+            IEnumerable<string> diagnosticIds,
+            DiagnosticProvider fixAllDiagnosticProvider,
+            CancellationToken cancellationToken)
+            => new FixAllContext(document, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider, cancellationToken);
+
+        /// <summary>
+        /// Creates a new <see cref="FixAllContext"/>.
+        /// Use this overload when applying fix all to a diagnostic with no source location, i.e. <see cref="Location.None"/>.
+        /// </summary>
+        /// <param name="project">Project within which fix all occurrences was triggered.</param>
+        /// <param name="codeFixProvider">Underlying <see cref="CodeFixes.CodeFixProvider"/> which triggered this fix all.</param>
+        /// <param name="scope"><see cref="FixAllScope"/> to fix all occurrences.</param>
+        /// <param name="codeActionEquivalenceKey">The <see cref="CodeAction.EquivalenceKey"/> value expected of a <see cref="CodeAction"/> participating in this fix all.</param>
+        /// <param name="diagnosticIds">Diagnostic Ids to fix.</param>
+        /// <param name="fixAllDiagnosticProvider">
+        /// <see cref="DiagnosticProvider"/> to fetch document/project diagnostics to fix in a <see cref="FixAllContext"/>.
+        /// </param>
+        /// <param name="cancellationToken">Cancellation token for fix all computation.</param>
+        /// <returns>New <see cref="FixAllContext"/></returns>
+        protected virtual FixAllContext CreateFixAllContext(
+            Project project,
+            CodeFixProvider codeFixProvider,
+            FixAllScope scope,
+            string? codeActionEquivalenceKey,
+            IEnumerable<string> diagnosticIds,
+            DiagnosticProvider fixAllDiagnosticProvider,
+            CancellationToken cancellationToken)
+            => new FixAllContext(project, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider, cancellationToken);
 
         /// <inheritdoc />
         protected override bool IsCompilerDiagnosticIncluded(Diagnostic diagnostic, CompilerDiagnostics compilerDiagnostics)
@@ -778,7 +827,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 var compilerDiagnosticIds = codeFixProviders.SelectMany(codeFixProvider => codeFixProvider.FixableDiagnosticIds).Where(x => x.StartsWith("CS", StringComparison.Ordinal) || x.StartsWith("BC", StringComparison.Ordinal));
                 var disabledDiagnosticIds = project.CompilationOptions.SpecificDiagnosticOptions.Where(x => x.Value == ReportDiagnostic.Suppress).Select(x => x.Key);
                 var relevantIds = analyzerDiagnosticIds.Concat(compilerDiagnosticIds).Except(disabledDiagnosticIds).Distinct();
-                var fixAllContext = new FixAllContext(fixableDocument, effectiveCodeFixProvider, scope, equivalenceKey, relevantIds, fixAllDiagnosticProvider, cancellationToken);
+                var fixAllContext = CreateFixAllContext(fixableDocument, effectiveCodeFixProvider!, scope, equivalenceKey, relevantIds, fixAllDiagnosticProvider, cancellationToken);
 
                 var action = await fixAllProvider.GetFixAsync(fixAllContext).ConfigureAwait(false);
                 if (action == null)
