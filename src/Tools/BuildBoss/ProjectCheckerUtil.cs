@@ -158,7 +158,6 @@ namespace BuildBoss
                 yield return $"$({name}Version)";
                 yield return $"$({name}FixedVersion)";
                 yield return $"$(RefOnly{name}Version)";
-                yield return $"$(SourceBuildLifted{name}Version)";
             }
         }
 

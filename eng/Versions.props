@@ -55,6 +55,17 @@
     <HumanizerCoreVersion>2.2.0</HumanizerCoreVersion>
     <ICSharpCodeDecompilerVersion>7.1.0.6543</ICSharpCodeDecompilerVersion>
     <MicrosoftBuildLocatorVersion>1.4.1</MicrosoftBuildLocatorVersion>
+    <!--
+      SourceBuild will requires that all dependencies also be source buildable. We are referencing a
+      version of MSBuild that is not SourceBuild compatible, which makes our build incompatible. Since we only
+      use these dependencies as reference assemblies, we can opt them out of this behavior by having their
+      version variable be prefixed with `RefOnly`. This will allow us to reference these libraries and remain
+      Source Build compatible.
+    -->
+    <RefOnlyMicrosoftBuildVersion>$(RefOnlyMicrosoftBuildPackagesVersion)</RefOnlyMicrosoftBuildVersion>
+    <RefOnlyMicrosoftBuildFrameworkVersion>$(RefOnlyMicrosoftBuildPackagesVersion)</RefOnlyMicrosoftBuildFrameworkVersion>
+    <RefOnlyMicrosoftBuildRuntimeVersion>$(RefOnlyMicrosoftBuildPackagesVersion)</RefOnlyMicrosoftBuildRuntimeVersion>
+    <RefOnlyMicrosoftBuildTasksCoreVersion>$(RefOnlyMicrosoftBuildPackagesVersion)</RefOnlyMicrosoftBuildTasksCoreVersion>
     <NuGetVisualStudioContractsVersion>6.0.0-preview.0.15</NuGetVisualStudioContractsVersion>
     <MicrosoftVisualStudioRpcContractsVersion>17.0.51</MicrosoftVisualStudioRpcContractsVersion>
     <!--
@@ -264,21 +275,6 @@
     <SystemCollectionsImmutableVersion>5.0.0</SystemCollectionsImmutableVersion>
     <SystemReflectionMetadataVersion>5.0.0</SystemReflectionMetadataVersion>
     <MicrosoftBclAsyncInterfacesVersion>6.0.0</MicrosoftBclAsyncInterfacesVersion>
-    <!--
-      SourceBuild will requires that all dependencies also be source buildable. We are referencing a
-      version of MSBuild that is not SourceBuild compatible, which makes our build incompatible. Since we only
-      use these dependencies as reference assemblies, we can opt them out of this behavior by having their
-      version variable be prefixed with `RefOnly`. This will allow us to reference these libraries and remain
-      Source Build compatible.
-    -->
-    <RefOnlyMicrosoftBuildVersion>$(RefOnlyMicrosoftBuildPackagesVersion)</RefOnlyMicrosoftBuildVersion>
-    <RefOnlyMicrosoftBuildFrameworkVersion>$(RefOnlyMicrosoftBuildPackagesVersion)</RefOnlyMicrosoftBuildFrameworkVersion>
-    <RefOnlyMicrosoftBuildRuntimeVersion>$(RefOnlyMicrosoftBuildPackagesVersion)</RefOnlyMicrosoftBuildRuntimeVersion>
-    <RefOnlyMicrosoftBuildTasksCoreVersion>$(RefOnlyMicrosoftBuildPackagesVersion)</RefOnlyMicrosoftBuildTasksCoreVersion>
-    <SourceBuildLiftedSystemCollectionsImmutableVersion Condition="'$(SourceBuildLiftedSystemCollectionsImmutableVersion)' == ''">$(SystemCollectionsImmutableVersion)</SourceBuildLiftedSystemCollectionsImmutableVersion>
-    <SourceBuildLiftedSystemReflectionMetadataVersion Condition="'$(SourceBuildLiftedSystemReflectionMetadataVersion)' == ''">$(SystemReflectionMetadataVersion)</SourceBuildLiftedSystemReflectionMetadataVersion>
-    <SourceBuildLiftedSystemRuntimeCompilerServicesUnsafeVersion Condition="'$(SourceBuildLiftedSystemRuntimeCompilerServicesUnsafeVersion)' == ''">$(SystemRuntimeCompilerServicesUnsafeVersion)</SourceBuildLiftedSystemRuntimeCompilerServicesUnsafeVersion>
-    <SourceBuildLiftedSystemTextEncodingCodePagesVersion Condition="'$(SourceBuildLiftedSystemTextEncodingCodePagesVersion)' == ''">$(SystemTextEncodingCodePagesVersion)</SourceBuildLiftedSystemTextEncodingCodePagesVersion>
   </PropertyGroup>
   <PropertyGroup>
     <UsingToolPdbConverter>true</UsingToolPdbConverter>
