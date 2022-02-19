@@ -10,14 +10,19 @@ namespace Microsoft.CodeAnalysis.Snippets
 {
     /// <summary>
     /// Encapsulates the information that makes up a Snippet.
-    /// What is used to create the CompletionChange in the 
-    /// AbstractSnippetCompletionProvider.
     /// </summary>
     internal readonly struct Snippet
     {
+        /// The type of snippet, equivalent to what gets displayed in the Completion list
         public readonly string SnippetType;
+
+        /// The TextChange that gets created for the Snippet
         public readonly TextChange TextChange;
+
+        /// The position that the cursor should end up on
         public readonly int CursorPosition;
+
+        // The TextSpans that need to be renamed if we insert a snippet with values that the user may want to change
         public readonly ImmutableArray<TextSpan> RenameLocations;
 
         public Snippet(

@@ -7,6 +7,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Snippets
@@ -16,15 +18,15 @@ namespace Microsoft.CodeAnalysis.Snippets
         protected SyntaxAnnotation _cursorAnnotation = new();
         protected SyntaxAnnotation _reformatAnnotation = new();
 
-        // Enumerates all the cases in which a particular snippet should occur. 
+        /// Enumerates all the cases in which a particular snippet should occur. 
         protected abstract Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken);
-        // Gets the localized string that is displayed in the Completion list
+        /// Gets the localized string that is displayed in the Completion list
         protected abstract string GetSnippetDisplayName();
-        // Generates the new snippet's TextChange that is being inserted into the document
+        /// Generates the new snippet's TextChange that is being inserted into the document
         protected abstract Task<TextChange> GenerateSnippetTextChangeAsync(Document document, TextSpan span, int tokenSpanStart, int tokenSpanEnd, CancellationToken cancellationToken);
-        // Method for each snippet to locate the SyntaxNode they want to annotate for the final cursor
+        /// Method for each snippet to locate the SyntaxNode they want to annotate for the final cursor
         protected abstract Task<SyntaxNode> AnnotateRootForCursorAsync(Document document, TextSpan span, SyntaxAnnotation cursorAnnotation, CancellationToken cancellationToken);
-        // Method for each snippet to locate the inserted SyntaxNode to reformat
+        /// Method for each snippet to locate the inserted SyntaxNode to reformat
         protected abstract Task<SyntaxNode> AnnotateRootForReformattingAsync(Document document, TextSpan span, SyntaxAnnotation reformatAnnotation, CancellationToken cancellationToken);
         protected abstract int GetTargetCaretPosition(SyntaxNode caretTarget);
         protected abstract Task<ImmutableArray<TextSpan>> GetRenameLocationsAsync(Document document, TextSpan span, CancellationToken cancellationToken);
@@ -35,6 +37,13 @@ namespace Microsoft.CodeAnalysis.Snippets
         /// </summary>
         public async Task<SnippetData?> GetSnippetDataAsync(Document document, int position, CancellationToken cancellationToken)
         {
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            if (syntaxFacts.IsInNonUserCode(syntaxTree, position, cancellationToken))
+            {
+                return null;
+            }
+
             if (await IsValidSnippetLocationAsync(document, position, cancellationToken).ConfigureAwait(false))
             {
                 return new SnippetData(GetSnippetDisplayName());

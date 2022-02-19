@@ -20,26 +20,19 @@ using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
+namespace Microsoft.CodeAnalysis.CSharp.Snippets
 {
-    [Export(typeof(ISnippetProvider)), Shared]
-    internal class ConsoleSnippetProvider : AbstractSnippetProvider
+    [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
+    internal class CSharpConsoleSnippetProvider : AbstractSnippetProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ConsoleSnippetProvider()
+        public CSharpConsoleSnippetProvider()
         {
         }
 
         protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            if (syntaxFacts.IsInNonUserCode(syntaxTree, position, cancellationToken))
-            {
-                return false;
-            }
-
             var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
             var syntaxContext = (CSharpSyntaxContext)document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
 

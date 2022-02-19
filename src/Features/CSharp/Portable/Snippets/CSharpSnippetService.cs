@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets
+namespace Microsoft.CodeAnalysis.CSharp.Snippets
 {
     [ExportLanguageService(typeof(ISnippetService), LanguageNames.CSharp), Shared]
     internal class CSharpSnippetService : ISnippetService

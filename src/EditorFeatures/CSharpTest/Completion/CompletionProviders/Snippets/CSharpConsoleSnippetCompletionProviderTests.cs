@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 {
     public class CSharpConsoleSnippetCompletionProviderTests : AbstractCSharpCompletionProviderTests
     {
+        private static readonly string s_itemToCommit = FeaturesResources.Write_to_the_Console;
+
         internal override Type GetCompletionProviderType()
             => typeof(CSharpSnippetCompletionProvider);
 
@@ -36,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         Console.WriteLine($$);
     }
 }";
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Write to the Console", expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         await Console.Out.WriteLineAsync($$);
     }
 }";
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Write to the Console", expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -84,7 +86,7 @@ class Program
     {
     }
 }";
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Write to the Console", expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -102,7 +104,7 @@ namespace Namespace
         }
     }
 }";
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, "Write to the Console");
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, s_itemToCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -119,7 +121,7 @@ class Program
     }
 }
 ";
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, "Write to the Console");
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, s_itemToCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -144,7 +146,7 @@ class Program
         Console.WriteLine($$);
     }
 }";
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Write to the Console", expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -175,7 +177,7 @@ class Program
         }
     }
 }";
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Write to the Console", expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -204,7 +206,7 @@ static void Main(string[] args)
     };
 
 }";
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Write to the Console", expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -225,7 +227,7 @@ Func<int, int, bool> testForEquality = (x, y) =>
     Console.WriteLine($$);
     return x == y;
 };";
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Write to the Console", expectedCodeAfterCommit);
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, s_itemToCommit, expectedCodeAfterCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -248,7 +250,7 @@ Func<int, int, bool> testForEquality = (x, y) =>
         };
     }
 }";
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, "Write to the Console");
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, s_itemToCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -262,7 +264,7 @@ Func<int, int, bool> testForEquality = (x, y) =>
        Func<int, int> f = x => $$;
     }
 }";
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, "Write to the Console");
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, s_itemToCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -277,7 +279,7 @@ Func<int, int, bool> testForEquality = (x, y) =>
     }
 }";
 
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, "Write to the Console");
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, s_itemToCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -302,7 +304,7 @@ class Test
     }
 }";
 
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, "Write to the Console");
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, s_itemToCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -316,7 +318,7 @@ class Test
     }
 }";
 
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, "Write to the Console");
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, s_itemToCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -330,7 +332,7 @@ class Test
     public string LastName { get; init; } = default!;
 };";
 
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, "Write to the Console");
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, s_itemToCommit);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -345,7 +347,7 @@ class Test
     }
 }";
 
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, "Write to the Console");
+            await VerifyItemIsAbsentAsync(markupBeforeCommit, s_itemToCommit);
         }
     }
 }
