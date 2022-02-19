@@ -7720,6 +7720,46 @@ static class C
         }
 
         [Fact, WorkItem(59050, "https://github.com/dotnet/roslyn/issues/59050")]
+        public void IsPatternInExceptionFilterInAsyncMethod_ExecuteVariousCodePaths()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+Console.Write(await C.ExceptionFilterBroken(() => { }));
+Console.Write(await C.ExceptionFilterBroken(() => C.ThrowException()));
+Console.Write(await C.ExceptionFilterBroken(() => throw new Exception()));
+
+public static class C
+{
+    public static async Task<int> ExceptionFilterBroken(Action a)
+    {
+        try
+        {
+            await Task.Yield();
+            a();
+            return 0;
+        }
+        catch (Exception ex) when (ex.InnerException is { Message: ""bad dog"" or ""dog bad"" })
+        {
+            return await OneAsync();
+        }
+        catch
+        {
+            return 2;
+        }
+    }
+
+    public static void ThrowException() => throw new Exception("""", new Exception(""bad dog""));
+    public static Task<int> OneAsync() => Task.FromResult(1);
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "012");
+        }
+
+        [Fact, WorkItem(59050, "https://github.com/dotnet/roslyn/issues/59050")]
         public void IsPatternInExceptionFilterInAsyncMethod_Spilled_NoExceptionLocal()
         {
             var source = @"
