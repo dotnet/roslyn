@@ -30,6 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
+        public ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
+
         public bool SupportsImplicitInterfaceImplementation => true;
 
         public bool ExposesAnonymousFunctionParameterNames => false;

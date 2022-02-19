@@ -107,7 +107,7 @@ void M()
             int tabSize = 4)
         {
             return await testLspServer.ExecuteRequestAsync<LSP.DocumentFormattingParams, LSP.TextEdit[]>(LSP.Methods.TextDocumentFormattingName,
-                CreateDocumentFormattingParams(uri, insertSpaces, tabSize), new LSP.ClientCapabilities(), null, CancellationToken.None);
+                CreateDocumentFormattingParams(uri, insertSpaces, tabSize), CancellationToken.None);
         }
 
         private static LSP.DocumentFormattingParams CreateDocumentFormattingParams(Uri uri, bool insertSpaces, int tabSize)

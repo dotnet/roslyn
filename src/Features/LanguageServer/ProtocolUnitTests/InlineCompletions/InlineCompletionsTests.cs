@@ -261,8 +261,8 @@ class A
             Options = options
         };
 
-        var response = await testLspServer.ExecuteRequestAsync<LSP.VSInternalInlineCompletionRequest, LSP.VSInternalInlineCompletionList>(LSP.VSInternalMethods.TextDocumentInlineCompletionName,
-            request, new LSP.ClientCapabilities(), null, CancellationToken.None);
+        var response = await testLspServer.ExecuteRequestAsync<LSP.VSInternalInlineCompletionRequest, LSP.VSInternalInlineCompletionList>(
+            LSP.VSInternalMethods.TextDocumentInlineCompletionName, request, CancellationToken.None);
         Contract.ThrowIfNull(response);
         return response;
     }

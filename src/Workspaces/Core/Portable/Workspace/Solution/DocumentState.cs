@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        [MemberNotNullWhen(true, nameof(_treeSource))]
         internal bool SupportsSyntaxTree
             => _treeSource != null;
 
@@ -325,11 +326,11 @@ namespace Microsoft.CodeAnalysis
         public bool HasTextChanged(DocumentState oldState)
             => HasTextChanged(oldState, ignoreUnchangeableDocument: false);
 
-        public DocumentState UpdateParseOptions(ParseOptions options)
+        public DocumentState UpdateParseOptions(ParseOptions options, bool onlyPreprocessorDirectiveChange)
         {
             var originalSourceKind = this.SourceCodeKind;
 
-            var newState = this.SetParseOptions(options);
+            var newState = this.SetParseOptions(options, onlyPreprocessorDirectiveChange);
             if (newState.SourceCodeKind != originalSourceKind)
             {
                 newState = newState.UpdateSourceCodeKind(originalSourceKind);
@@ -338,7 +339,7 @@ namespace Microsoft.CodeAnalysis
             return newState;
         }
 
-        private DocumentState SetParseOptions(ParseOptions options)
+        private DocumentState SetParseOptions(ParseOptions options, bool onlyPreprocessorDirectiveChange)
         {
             if (options == null)
             {
@@ -350,12 +351,42 @@ namespace Microsoft.CodeAnalysis
                 throw new InvalidOperationException();
             }
 
-            var newTreeSource = CreateLazyFullyParsedTree(
-                TextAndVersionSource,
-                Id.ProjectId,
-                GetSyntaxTreeFilePath(Attributes),
-                options,
-                _languageServices);
+            ValueSource<TreeAndVersion>? newTreeSource = null;
+
+            // Optimization: if we are only changing preprocessor directives, and we've already parsed the existing tree and it didn't have
+            // any, we can avoid a reparse since the tree will be parsed the same.
+            if (onlyPreprocessorDirectiveChange &&
+                _treeSource.TryGetValue(out var existingTreeAndVersion))
+            {
+                var existingTree = existingTreeAndVersion.Tree;
+                SyntaxTree? newTree = null;
+
+                if (existingTree is IRecoverableSyntaxTree recoverableTree &&
+                    !recoverableTree.ContainsDirectives)
+                {
+                    // It's a recoverable tree, so we can try to reuse without even having to need the root
+                    newTree = recoverableTree.WithOptions(options);
+                }
+                else if (existingTree.TryGetRoot(out var existingRoot) && !existingRoot.ContainsDirectives)
+                {
+                    var treeFactory = _languageServices.GetRequiredService<ISyntaxTreeFactoryService>();
+                    newTree = treeFactory.CreateSyntaxTree(FilePath, options, existingTree.Encoding, existingRoot);
+                }
+
+                if (newTree is not null)
+                    newTreeSource = new ConstantValueSource<TreeAndVersion>(TreeAndVersion.Create(newTree, existingTreeAndVersion.Version));
+            }
+
+            // If we weren't able to reuse in a smart way, just reparse
+            if (newTreeSource is null)
+            {
+                newTreeSource = CreateLazyFullyParsedTree(
+                    TextAndVersionSource,
+                    Id.ProjectId,
+                    GetSyntaxTreeFilePath(Attributes),
+                    options,
+                    _languageServices);
+            }
 
             return new DocumentState(
                 LanguageServices,
@@ -375,7 +406,7 @@ namespace Microsoft.CodeAnalysis
                 return this;
             }
 
-            return this.SetParseOptions(this.ParseOptions.WithKind(kind));
+            return this.SetParseOptions(this.ParseOptions.WithKind(kind), onlyPreprocessorDirectiveChange: false);
         }
 
         // TODO: https://github.com/dotnet/roslyn/issues/37125

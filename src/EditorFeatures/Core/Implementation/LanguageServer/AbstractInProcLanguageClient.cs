@@ -198,11 +198,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
             ICapabilitiesProvider capabilitiesProvider,
             ILspLogger logger)
         {
-            return new VisualStudioInProcLanguageServer(
+            return new LanguageServerTarget(
                 _requestDispatcherFactory,
                 jsonRpc,
                 capabilitiesProvider,
                 _lspWorkspaceRegistrationService,
+                lspMiscellaneousFilesWorkspace: null,
                 GlobalOptions,
                 _listenerProvider,
                 logger,
