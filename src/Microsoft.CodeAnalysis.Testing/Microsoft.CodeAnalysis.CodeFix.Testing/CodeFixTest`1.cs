@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Testing.Model;
 using Microsoft.CodeAnalysis.Text;
-using static Microsoft.CodeAnalysis.CodeFixes.FixAllContext;
 
 namespace Microsoft.CodeAnalysis.Testing
 {
@@ -247,7 +246,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="codeActionEquivalenceKey">The <see cref="CodeAction.EquivalenceKey"/> value expected of a <see cref="CodeAction"/> participating in this fix all.</param>
         /// <param name="diagnosticIds">Diagnostic Ids to fix.</param>
         /// <param name="fixAllDiagnosticProvider">
-        /// <see cref="DiagnosticProvider"/> to fetch document/project diagnostics to fix in a <see cref="FixAllContext"/>.
+        /// <see cref="FixAllContext.DiagnosticProvider"/> to fetch document/project diagnostics to fix in a <see cref="FixAllContext"/>.
         /// </param>
         /// <param name="cancellationToken">Cancellation token for fix all computation.</param>
         /// <returns>New <see cref="FixAllContext"/></returns>
@@ -257,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Testing
             FixAllScope scope,
             string? codeActionEquivalenceKey,
             IEnumerable<string> diagnosticIds,
-            DiagnosticProvider fixAllDiagnosticProvider,
+            FixAllContext.DiagnosticProvider fixAllDiagnosticProvider,
             CancellationToken cancellationToken)
             => new FixAllContext(document, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider, cancellationToken);
 
@@ -271,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="codeActionEquivalenceKey">The <see cref="CodeAction.EquivalenceKey"/> value expected of a <see cref="CodeAction"/> participating in this fix all.</param>
         /// <param name="diagnosticIds">Diagnostic Ids to fix.</param>
         /// <param name="fixAllDiagnosticProvider">
-        /// <see cref="DiagnosticProvider"/> to fetch document/project diagnostics to fix in a <see cref="FixAllContext"/>.
+        /// <see cref="FixAllContext.DiagnosticProvider"/> to fetch document/project diagnostics to fix in a <see cref="FixAllContext"/>.
         /// </param>
         /// <param name="cancellationToken">Cancellation token for fix all computation.</param>
         /// <returns>New <see cref="FixAllContext"/></returns>
@@ -281,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Testing
             FixAllScope scope,
             string? codeActionEquivalenceKey,
             IEnumerable<string> diagnosticIds,
-            DiagnosticProvider fixAllDiagnosticProvider,
+            FixAllContext.DiagnosticProvider fixAllDiagnosticProvider,
             CancellationToken cancellationToken)
             => new FixAllContext(project, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider, cancellationToken);
 
