@@ -7464,7 +7464,7 @@ class Class : IInterface
 }",
                 CodeActionOptions = CodeActionOptions.Default with
                 {
-                    ImplementTypeOptions = new ImplementTypeOptions(InsertionBehavior: ImplementTypeInsertionBehavior.AtTheEnd)
+                    ImplementTypeOptions = new ImplementTypeOptions(PropertyGenerationBehavior: ImplementTypePropertyGenerationBehavior.PreferAutoProperties)
                 }
             }.RunAsync();
         }
