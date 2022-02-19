@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         cancellationToken).ConfigureAwait(false);
                 }
 
-                if (globalOptions.GetOption(SolutionCrawlerRegistrationService.EnableSolutionCrawler))
+                if (configuration.HasFlag(RemoteProcessConfiguration.EnableSolutionCrawler))
                 {
                     await client.TryInvokeAsync<IRemoteDiagnosticAnalyzerService>(
                         (service, cancellationToken) => service.StartSolutionCrawlerAsync(cancellationToken),
