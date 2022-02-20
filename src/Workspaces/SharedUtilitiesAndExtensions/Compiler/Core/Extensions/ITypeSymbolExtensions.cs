@@ -9,10 +9,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -21,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     internal static partial class ITypeSymbolExtensions
     {
         public const string DefaultParameterName = "p";
-        private const string DefaultBuiltInParameterName = "v";
+        private const string GenericParameterName = "generic";
 
         public static bool IsIntegralType([NotNullWhen(returnValue: true)] this ITypeSymbol? type)
             => type?.SpecialType.IsIntegralType() == true;
@@ -368,9 +365,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return DefaultParameterName;
             }
 
-            if (type.IsSpecialType() || type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+            if (type.Kind == SymbolKind.TypeParameter)
             {
-                return DefaultBuiltInParameterName;
+                return GenericParameterName;
             }
 
             var shortName = type.GetShortName();
