@@ -454,11 +454,11 @@ public class C
             comp.VerifyDiagnostics();
             VerifyTypeIL(comp, "C", @"
 .class public auto ansi beforefieldinit C
-	extends [netstandard]System.Object
+	extends [mscorlib]System.Object
 {
 	// Fields
 	.field private initonly int32 '<P>k__BackingField'
-	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+	.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
 		01 00 00 00
 	)
 	// Methods
@@ -493,7 +493,7 @@ public class C
 		// Code size 7 (0x7)
 		.maxstack 8
 		IL_0000: ldarg.0
-		IL_0001: call instance void [netstandard]System.Object::.ctor()
+		IL_0001: call instance void [mscorlib]System.Object::.ctor()
 		IL_0006: ret
 	} // end of method C::.ctor
 	// Properties

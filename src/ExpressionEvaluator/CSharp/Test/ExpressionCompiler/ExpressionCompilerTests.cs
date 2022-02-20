@@ -7066,5 +7066,174 @@ class C
                 Assert.Equal("error CS0103: The name 'field' does not exist in the current context", error);
             });
         }
+
+        [Fact]
+        public void EvaluateField_LocalInScope()
+        {
+            var source =
+@"public class C
+{
+    public int P
+    {
+        get
+        {
+            if (GetBoolValue())
+            {
+                int field = 10;
+#line 999
+                return field;
+            }
+
+            return field;
+        }
+    }
+
+    public bool GetBoolValue() => true;
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics();
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.get_P",
+                atLineNumber: 999,
+                expr: "field",
+                resultProperties: out var resultProperties,
+                error: out var error);
+            Assert.Null(error);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (bool V_0,
+                int V_1, //field
+                int V_2)
+  IL_0000:  ldloc.1
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        public void EvaluateField_LocalNotInScope()
+        {
+            var source =
+@"public class C
+{
+    public int P
+    {
+        get
+        {
+            if (GetBoolValue())
+            {
+                int field = 10;
+                return field;
+            }
+
+#line 999
+            return field;
+        }
+    }
+
+    public bool GetBoolValue() => true;
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics();
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.get_P",
+                atLineNumber: 999,
+                expr: "field",
+                resultProperties: out var resultProperties,
+                error: out var error);
+            // PROTOTYPE(semi-auto-props): Feels unexpected.
+            Assert.Equal("error CS0103: The name 'field' does not exist in the current context", error);
+        }
+
+        [Fact]
+        public void EvaluateField_RegularProperty_LocalInScope()
+        {
+            var source =
+@"public class C
+{
+    public int P
+    {
+        get
+        {
+            if (GetBoolValue())
+            {
+                int field = 10;
+#line 999
+                return field;
+            }
+
+            return 0;
+        }
+    }
+
+    public bool GetBoolValue() => true;
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics();
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.get_P",
+                atLineNumber: 999,
+                expr: "field",
+                resultProperties: out var resultProperties,
+                error: out var error);
+            Assert.Null(error);
+            testData.GetMethodData("<>x.<>m0").VerifyIL(
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (bool V_0,
+                int V_1, //field
+                int V_2)
+  IL_0000:  ldloc.1
+  IL_0001:  ret
+}");
+        }
+
+        [Fact]
+        public void EvaluateField_RegularProperty_LocalNotInScope()
+        {
+            var source =
+@"public class C
+{
+    public int P
+    {
+        get
+        {
+            if (GetBoolValue())
+            {
+                int field = 10;
+                return field;
+            }
+
+#line 999
+            return 0;
+        }
+    }
+
+    public bool GetBoolValue() => true;
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics();
+            var testData = Evaluate(
+                source,
+                OutputKind.DynamicallyLinkedLibrary,
+                methodName: "C.get_P",
+                atLineNumber: 999,
+                expr: "field",
+                resultProperties: out var resultProperties,
+                error: out var error);
+            Assert.Equal("error CS0103: The name 'field' does not exist in the current context", error);
+        }
     }
 }
