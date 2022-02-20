@@ -141,15 +141,15 @@ class Test
             var ref2 = TestReferences.SymbolsTests.MDTestLib2;
             var comp = CreateCompilation(text, references: new MetadataReference[] { ref2 }, assemblyName: "Test3");
             comp.VerifyDiagnostics(
-    // (9,22): error CS0012: The type 'C1<>.C2<>' is defined in an assembly that is not referenced. You must add a reference to assembly 'MDTestLib1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-    //             Test x = var;
-    Diagnostic(ErrorCode.ERR_NoTypeDef, "var").WithArguments("C1<>.C2<>", "MDTestLib1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
-    // (9,22): error CS0029: Cannot implicitly convert type 'TC5<string, string>' to 'NS.Test'
-    //             Test x = var;
-    Diagnostic(ErrorCode.ERR_NoImplicitConv, "var").WithArguments("TC5<string, string>", "NS.Test"),
-    // (5,28): warning CS0649: Field 'NS.Test.var' is never assigned to, and will always have its default value null
-    //        TC5<string, string> var; // inherit C1 from MDTestLib1.dll
-    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "var").WithArguments("NS.Test.var", "null")
+                // (9,22): error CS0012: The type 'C1<>.C2<>' is defined in an assembly that is not referenced. You must add a reference to assembly 'MDTestLib1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //             Test x = var;
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "var").WithArguments("C1<>.C2<>", "MDTestLib1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(9, 22),
+                // (9,22): error CS0029: Cannot implicitly convert type 'TC5<string, string>' to 'NS.Test'
+                //             Test x = var;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "var").WithArguments("TC5<string, string>", "NS.Test").WithLocation(9, 22),
+                // (5,28): warning CS0649: Field 'Test.var' is never assigned to, and will always have its default value null
+                //        TC5<string, string> var; // inherit C1 from MDTestLib1.dll
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "var").WithArguments("Test.var", "null").WithLocation(5, 28)
             );
         }
 
@@ -1147,7 +1147,7 @@ class C
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "()").WithArguments("System.ValueTuple`2").WithLocation(5, 15),
                 // (5,9): error CS0161: 'C.F<>(int, (?, ?))': not all code paths return a value
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "F").WithArguments("NS.C.F<>(int, (?, ?))").WithLocation(5, 9)
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "F").WithArguments("C.F<>(int, (?, ?))").WithLocation(5, 9)
                 );
         }
 
@@ -1201,7 +1201,7 @@ class C
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "()").WithArguments("System.ValueTuple`2").WithLocation(5, 15),
                 // (5,9): error CS0161: 'C.F<>(int, (?, ?))': not all code paths return a value
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "F").WithArguments("NS.C.F<>(int, (?, ?))").WithLocation(5, 9)
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "F").WithArguments("C.F<>(int, (?, ?))").WithLocation(5, 9)
                 );
         }
 
@@ -1600,21 +1600,21 @@ class C : I
 }
 ")
             .VerifyDiagnostics(
-                // (6,19): error CS0102: The type 'NS.C' already contains a definition for 'I'
+                // (6,19): error CS0102: The type 'C' already contains a definition for 'I'
                 //         interface I<T, U> { }
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "I").WithArguments("NS.C", "I"),
-                // (9,23): error CS0102: The type 'NS.C' already contains a definition for 'S'
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "I").WithArguments("C", "I").WithLocation(6, 19),
+                // (9,23): error CS0102: The type 'C' already contains a definition for 'S'
                 //         public struct S { }
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("NS.C", "S"),
-                // (14,11): error CS0102: The type 'NS.S<X>' already contains a definition for 'x'
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("C", "S").WithLocation(9, 23),
+                // (14,11): error CS0102: The type 'S<X>' already contains a definition for 'x'
                 //         C x;
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x").WithArguments("NS.S<X>", "x"),
-                // (13,11): warning CS0169: The field 'NS.S<X>.x' is never used
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "x").WithArguments("S<X>", "x").WithLocation(14, 11),
+                // (14,11): warning CS0169: The field 'S<X>.x' is never used
+                //         C x;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("S<X>.x").WithLocation(14, 11),
+                // (13,11): warning CS0169: The field 'S<X>.x' is never used
                 //         X x;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("NS.S<X>.x"),
-                // (14,11): warning CS0169: The field 'NS.S<X>.x' is never used
-                //         C x;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("NS.S<X>.x")
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("S<X>.x").WithLocation(13, 11)
                 ); // Dev10 miss this with previous errors
         }
 
@@ -1684,7 +1684,7 @@ namespace n3
                 Diagnostic(ErrorCode.ERR_AmbigContext, "IGoo<X>").WithArguments("IGoo<>", "n1.IGoo<T>", "n3.n2.IGoo<V>").WithLocation(16, 25),
                 // (22,11): warning CS0169: The field 'S.a' is never used
                 //         A a;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("n3.S.a").WithLocation(22, 11)
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("S.a").WithLocation(22, 11)
             );
 
             var ns3 = comp.SourceModule.GlobalNamespace.GetMember<NamespaceSymbol>("n3");
@@ -1719,6 +1719,15 @@ namespace n3
     }
 }";
             CreateCompilation(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+                // (6,28): error CS8703: The modifier 'static' is not valid for this item in C# 7.0. Please use language version '8.0' or greater.
+                //         static public void f();
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "f").WithArguments("static", "7.0", "8.0").WithLocation(6, 28),
+                // (6,28): error CS8703: The modifier 'public' is not valid for this item in C# 7.0. Please use language version '8.0' or greater.
+                //         static public void f();
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "f").WithArguments("public", "7.0", "8.0").WithLocation(6, 28),
+                // (6,28): error CS0501: 'I.f()' must declare a body because it is not marked abstract, extern, or partial
+                //         static public void f();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "f").WithArguments("I.f()").WithLocation(6, 28),
                 // (11,24): error CS0106: The modifier 'virtual' is not valid for this item
                 //         virtual ushort field;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "field").WithArguments("virtual").WithLocation(11, 24),
@@ -1727,19 +1736,10 @@ namespace n3
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "m").WithArguments("public").WithLocation(12, 23),
                 // (12,21): error CS0540: 'MyClass.I.m()': containing type does not implement interface 'I'
                 //         public void I.m()   // CS0106
-                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I").WithArguments("MyNamespace.MyClass.MyNamespace.I.m()", "MyNamespace.I").WithLocation(12, 21),
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I").WithArguments("MyClass.I.m()", "I").WithLocation(12, 21),
                 // (11,24): warning CS0169: The field 'MyClass.field' is never used
                 //         virtual ushort field;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("MyNamespace.MyClass.field").WithLocation(11, 24),
-                // (6,28): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version '8.0' or greater.
-                //         static public void f();   // CS0106
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "f").WithArguments("static", "7.0", "8.0").WithLocation(6, 28),
-                // (6,28): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version '8.0' or greater.
-                //         static public void f();   // CS0106
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "f").WithArguments("public", "7.0", "8.0").WithLocation(6, 28),
-                // (6,28): error CS0501: 'I.f()' must declare a body because it is not marked abstract, extern, or partial
-                //         static public void f();   // CS0106
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "f").WithArguments("MyNamespace.I.f()").WithLocation(6, 28)
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("MyClass.field").WithLocation(11, 24)
             );
         }
 
@@ -2088,13 +2088,13 @@ interface I<T>
             CreateCompilation(text, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
                 // (7,18): error CS0534: 'MyClass2' does not implement inherited abstract member 'MyClass.MyMethod()'
                 //     public class MyClass2 : MyClass
-                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "MyClass2").WithArguments("MyNamespace.MyClass2", "MyNamespace.MyClass.MyMethod()").WithLocation(7, 18),
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "MyClass2").WithArguments("MyClass2", "MyClass.MyMethod()").WithLocation(7, 18),
                 // (9,37): error CS0112: A static member cannot be marked as 'override'
                 //         override public static void MyMethod()   // CS0112, remove static keyword
                 Diagnostic(ErrorCode.ERR_StaticNotVirtual, "MyMethod").WithArguments("override").WithLocation(9, 37),
                 // (9,37): warning CS0114: 'MyClass2.MyMethod()' hides inherited member 'MyClass.MyMethod()'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.
                 //         override public static void MyMethod()   // CS0112, remove static keyword
-                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "MyMethod").WithArguments("MyNamespace.MyClass2.MyMethod()", "MyNamespace.MyClass.MyMethod()").WithLocation(9, 37)
+                Diagnostic(ErrorCode.WRN_NewOrOverrideExpected, "MyMethod").WithArguments("MyClass2.MyMethod()", "MyClass.MyMethod()").WithLocation(9, 37)
                 );
         }
 
@@ -2535,18 +2535,18 @@ namespace NS
 }";
             var comp = CreateCompilation(Parse(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)));
             comp.VerifyDiagnostics(
-                // (1,7): error CS0138: A using namespace directive can only be applied to namespaces; 'object' is a type not a namespace
+                // (1,7): error CS0138: A 'using namespace' directive can only be applied to namespaces; 'object' is a type not a namespace. Consider a 'using static' directive instead
                 // using System.Object;
-                Diagnostic(ErrorCode.ERR_BadUsingNamespace, "System.Object").WithArguments("object"),
-                // (5,11): error CS0138: A using namespace directive can only be applied to namespaces; 'NS.S' is a type not a namespace
+                Diagnostic(ErrorCode.ERR_BadUsingNamespace, "System.Object").WithArguments("object").WithLocation(1, 7),
+                // (5,11): error CS0138: A 'using namespace' directive can only be applied to namespaces; 'S' is a type not a namespace. Consider a 'using static' directive instead
                 //     using NS.S;
-                Diagnostic(ErrorCode.ERR_BadUsingNamespace, "NS.S").WithArguments("NS.S"),
-                // (1,1): info CS8019: Unnecessary using directive.
+                Diagnostic(ErrorCode.ERR_BadUsingNamespace, "NS.S").WithArguments("S").WithLocation(5, 11),
+                // (5,5): hidden CS8019: Unnecessary using directive.
+                //     using NS.S;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using NS.S;").WithLocation(5, 5),
+                // (1,1): hidden CS8019: Unnecessary using directive.
                 // using System.Object;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Object;"),
-                // (5,5): info CS8019: Unnecessary using directive.
-                //     using NS.S;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using NS.S;"));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Object;").WithLocation(1, 1));
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             // TODO...
@@ -2660,34 +2660,34 @@ namespace NS
             comp.VerifyDiagnostics(
                 // (6,16): error CS0179: 'C.C()' cannot be extern and declare a body
                 //         extern C() { }
-                Diagnostic(ErrorCode.ERR_ExternHasBody, "C").WithArguments("NS.C.C()").WithLocation(6, 16),
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "C").WithArguments("C.C()").WithLocation(6, 16),
                 // (7,21): error CS0179: 'C.M1()' cannot be extern and declare a body
                 //         extern void M1() { }
-                Diagnostic(ErrorCode.ERR_ExternHasBody, "M1").WithArguments("NS.C.M1()").WithLocation(7, 21),
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "M1").WithArguments("C.M1()").WithLocation(7, 21),
                 // (8,20): error CS0179: 'C.M2()' cannot be extern and declare a body
                 //         extern int M2() => 1;
-                Diagnostic(ErrorCode.ERR_ExternHasBody, "M2").WithArguments("NS.C.M2()").WithLocation(8, 20),
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "M2").WithArguments("C.M2()").WithLocation(8, 20),
                 // (9,28): error CS0179: 'C.P1.get' cannot be extern and declare a body
                 //         extern object P1 { get { return null; } set { } }
-                Diagnostic(ErrorCode.ERR_ExternHasBody, "get").WithArguments("NS.C.P1.get").WithLocation(9, 28),
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "get").WithArguments("C.P1.get").WithLocation(9, 28),
                 // (9,49): error CS0179: 'C.P1.set' cannot be extern and declare a body
                 //         extern object P1 { get { return null; } set { } }
-                Diagnostic(ErrorCode.ERR_ExternHasBody, "set").WithArguments("NS.C.P1.set").WithLocation(9, 49),
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "set").WithArguments("C.P1.set").WithLocation(9, 49),
                 // (10,26): error CS0179: 'C.P2.get' cannot be extern and declare a body
                 //         extern int P2 => 1;
-                Diagnostic(ErrorCode.ERR_ExternHasBody, "1").WithArguments("NS.C.P2.get").WithLocation(10, 26),
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "1").WithArguments("C.P2.get").WithLocation(10, 26),
                 // (11,40): error CS0179: 'C.E.add' cannot be extern and declare a body
                 //         extern event System.Action E { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_ExternHasBody, "add").WithArguments("NS.C.E.add").WithLocation(11, 40),
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "add").WithArguments("C.E.add").WithLocation(11, 40),
                 // (11,48): error CS0179: 'C.E.remove' cannot be extern and declare a body
                 //         extern event System.Action E { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_ExternHasBody, "remove").WithArguments("NS.C.E.remove").WithLocation(11, 48),
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "remove").WithArguments("C.E.remove").WithLocation(11, 48),
                 // (12,43): error CS0179: 'C.operator +(C, C)' cannot be extern and declare a body
                 //         extern static public int operator + (C c1, C c2) { return 1; }
-                Diagnostic(ErrorCode.ERR_ExternHasBody, "+").WithArguments("NS.C.operator +(NS.C, NS.C)").WithLocation(12, 43),
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "+").WithArguments("C.operator +(C, C)").WithLocation(12, 43),
                 // (13,43): error CS0179: 'C.operator -(C, C)' cannot be extern and declare a body
                 //         extern static public int operator - (C c1, C c2) => 1;
-                Diagnostic(ErrorCode.ERR_ExternHasBody, "-").WithArguments("NS.C.operator -(NS.C, NS.C)").WithLocation(13, 43));
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "-").WithArguments("C.operator -(C, C)").WithLocation(13, 43));
         }
 
         [Fact]
@@ -3571,13 +3571,13 @@ class BAttribute : System.Attribute { }
             comp.VerifyDiagnostics(
                 // (3,30): error CS0262: Partial declarations of 'I' have conflicting accessibility modifiers
                 //     public partial interface I { }
-                Diagnostic(ErrorCode.ERR_PartialModifierConflict, "I").WithArguments("NS.I").WithLocation(3, 30),
+                Diagnostic(ErrorCode.ERR_PartialModifierConflict, "I").WithArguments("I").WithLocation(3, 30),
                 // (9,32): error CS0262: Partial declarations of 'A.C' have conflicting accessibility modifiers
                 //         internal partial class C { }
-                Diagnostic(ErrorCode.ERR_PartialModifierConflict, "C").WithArguments("NS.A.C").WithLocation(9, 32),
+                Diagnostic(ErrorCode.ERR_PartialModifierConflict, "C").WithArguments("A.C").WithLocation(9, 32),
                 // (12,32): error CS0262: Partial declarations of 'A.S' have conflicting accessibility modifiers
                 //         private partial struct S { }
-                Diagnostic(ErrorCode.ERR_PartialModifierConflict, "S").WithArguments("NS.A.S").WithLocation(12, 32)
+                Diagnostic(ErrorCode.ERR_PartialModifierConflict, "S").WithArguments("A.S").WithLocation(12, 32)
                 );
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
@@ -3860,9 +3860,10 @@ namespace N
     partial class B3<T> where T : NIBA { }
 }";
             CreateCompilation(text).VerifyDiagnostics(
-                // (19,19): error CS0265: Partial declarations of 'N.B3<T>' have inconsistent constraints for type parameter 'T'
-                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "B3").WithArguments("N.B3<T>", "T").WithLocation(19, 19),
-                // (1,1): info CS8019: Unnecessary using directive.
+                // (19,19): error CS0265: Partial declarations of 'B3<T>' have inconsistent constraints for type parameter 'T'
+                //     partial class B3<T> where T : IB<A> { }
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "B3").WithArguments("B3<T>", "T").WithLocation(19, 19),
+                // (1,1): hidden CS8019: Unnecessary using directive.
                 // using NIA = N.IA;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using NIA = N.IA;").WithLocation(1, 1));
         }
@@ -4409,12 +4410,12 @@ class C<T>
     }
 }";
             CreateCompilationWithMscorlib46(source).VerifyDiagnostics(
-                // (3,7): error CS0306: The type 'ArgIterator' may not be used as a type argument
-                // using COfArgIterator = C<System.ArgIterator>; // unused
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "COfArgIterator").WithArguments("System.ArgIterator").WithLocation(3, 7),
                 // (2,7): error CS0306: The type 'int*' may not be used as a type argument
                 // using COfIntPtr = C<int*>;
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "COfIntPtr").WithArguments("int*").WithLocation(2, 7),
+                // (3,7): error CS0306: The type 'ArgIterator' may not be used as a type argument
+                // using COfArgIterator = C<System.ArgIterator>; // unused
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "COfArgIterator").WithArguments("ArgIterator").WithLocation(3, 7),
                 // (10,19): error CS0306: The type 'int*' may not be used as a type argument
                 //         COfObject.F<int*>();
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "F<int*>").WithArguments("int*").WithLocation(10, 19),
@@ -4447,27 +4448,27 @@ class C<T>
 ";
 
             CreateCompilation(text).VerifyDiagnostics(
-// (10,31): error CS0307: The namespace 'NS' cannot be used with type arguments
-//             Test<int> t = new NS<T>.Test<int>();
-Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "NS<T>").WithArguments("NS", "namespace"),
-// (11,23): error CS0307: The field 'NS.Test<int>.field' cannot be used with type arguments
-//             var v = t.field<string>;
-Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "field<string>").WithArguments("NS.Test<int>.field", "field"),
-// (12,23): error CS0307: The property 'NS.Test<int>.P' cannot be used with type arguments
-//             int p = t.P<int>();
-Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "P<int>").WithArguments("NS.Test<int>.P", "property"),
-// (13,17): warning CS1718: Comparison made to same variable; did you mean to compare something else?
-//             if (v == v | p == p | t == t) {}
-Diagnostic(ErrorCode.WRN_ComparisonToSelf, "v == v"),
-// (13,26): warning CS1718: Comparison made to same variable; did you mean to compare something else?
-//             if (v == v | p == p | t == t) {}
-Diagnostic(ErrorCode.WRN_ComparisonToSelf, "p == p"),
-// (13,35): warning CS1718: Comparison made to same variable; did you mean to compare something else?
-//             if (v == v | p == p | t == t) {}
-Diagnostic(ErrorCode.WRN_ComparisonToSelf, "t == t"),
-// (5,25): warning CS0649: Field 'NS.Test<T>.field' is never assigned to, and will always have its default value null
-//         internal object field;
-Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("NS.Test<T>.field", "null")
+                // (10,31): error CS0307: The namespace 'NS' cannot be used with type arguments
+                //             Test<int> t = new NS<T>.Test<int>();
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "NS<T>").WithArguments("NS", "namespace").WithLocation(10, 31),
+                // (11,23): error CS0307: The field 'Test<int>.field' cannot be used with type arguments
+                //             var v = t.field<string>;
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "field<string>").WithArguments("Test<int>.field", "field").WithLocation(11, 23),
+                // (12,23): error CS0307: The property 'Test<int>.P' cannot be used with type arguments
+                //             int p = t.P<int>();
+                Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "P<int>").WithArguments("Test<int>.P", "property").WithLocation(12, 23),
+                // (13,35): warning CS1718: Comparison made to same variable; did you mean to compare something else?
+                //             if (v == v | p == p | t == t) {}
+                Diagnostic(ErrorCode.WRN_ComparisonToSelf, "t == t").WithLocation(13, 35),
+                // (13,26): warning CS1718: Comparison made to same variable; did you mean to compare something else?
+                //             if (v == v | p == p | t == t) {}
+                Diagnostic(ErrorCode.WRN_ComparisonToSelf, "p == p").WithLocation(13, 26),
+                // (13,17): warning CS1718: Comparison made to same variable; did you mean to compare something else?
+                //             if (v == v | p == p | t == t) {}
+                Diagnostic(ErrorCode.WRN_ComparisonToSelf, "v == v").WithLocation(13, 17),
+                // (5,25): warning CS0649: Field 'Test<T>.field' is never assigned to, and will always have its default value null
+                //         internal object field;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("Test<T>.field", "null").WithLocation(5, 25)
                 );
         }
 
@@ -4579,10 +4580,10 @@ public class NormalType
             comp.VerifyDiagnostics(
                 // (14,17): error CS0400: The type or namespace name 'G' could not be found in the global namespace (are you missing an assembly reference?)
                 //         global::G field;
-                Diagnostic(ErrorCode.ERR_GlobalSingleTypeNameNotFound, "G").WithArguments("G", "<global namespace>"),
-                // (14,19): warning CS0169: The field 'NS.S.field' is never used
+                Diagnostic(ErrorCode.ERR_GlobalSingleTypeNameNotFound, "G").WithArguments("G", "<global namespace>").WithLocation(14, 17),
+                // (14,19): warning CS0169: The field 'S.field' is never used
                 //         global::G field;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("NS.S.field")
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("S.field").WithLocation(14, 19)
                 );
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
@@ -5232,15 +5233,15 @@ abstract class B2 : IB
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (14,18): error CS0426: The type name 's' does not exist in the type 'NS.S'
+                // (14,18): error CS0426: The type name 's' does not exist in the type 'S'
                 //         void M(S.s p) { } // CS0426
-                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "s").WithArguments("s", "NS.S"),
-                // (13,13): error CS0426: The type name 'x' does not exist in the type 'NS.C.I'
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "s").WithArguments("s", "S").WithLocation(14, 18),
+                // (13,13): error CS0426: The type name 'x' does not exist in the type 'C.I'
                 //         C.I.x field; // CS0426
-                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "x").WithArguments("x", "NS.C.I"),
-                // (13,15): warning CS0169: The field 'NS.Test.field' is never used
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "x").WithArguments("x", "C.I").WithLocation(13, 13),
+                // (13,15): warning CS0169: The field 'Test.field' is never used
                 //         C.I.x field; // CS0426
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("NS.Test.field")
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("Test.field").WithLocation(13, 15)
                 );
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
@@ -5327,13 +5328,13 @@ class E : C::A { }";
             comp.VerifyDiagnostics(
                 // (6,16): error CS0433: The type 'Class1' exists in both 'MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' and 'MultiModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 //         void M(Class1 p) {}
-                Diagnostic(ErrorCode.ERR_SameFullNameAggAgg, "Class1").WithArguments("MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", "Class1", "MultiModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                Diagnostic(ErrorCode.ERR_SameFullNameAggAgg, "Class1").WithArguments("MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", "Class1", "MultiModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 16),
                 // (5,9): error CS0433: The type 'Class1' exists in both 'MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' and 'MultiModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 //         Class1 var;
-                Diagnostic(ErrorCode.ERR_SameFullNameAggAgg, "Class1").WithArguments("MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", "Class1", "MultiModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
-                // (5,16): warning CS0169: The field 'NS.Test.var' is never used
+                Diagnostic(ErrorCode.ERR_SameFullNameAggAgg, "Class1").WithArguments("MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", "Class1", "MultiModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(5, 9),
+                // (5,16): warning CS0169: The field 'Test.var' is never used
                 //         Class1 var;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "var").WithArguments("NS.Test.var"));
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "var").WithArguments("Test.var").WithLocation(5, 16));
 
             text = @"
 class Class1
@@ -5464,7 +5465,7 @@ namespace NS
             comp.VerifyDiagnostics(
     // Test.cs(9,38): error CS0438: The type 'NS.Util' in 'Test.cs' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
     //             Console.WriteLine(typeof(Util.A));   // CS0438
-    Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("Test.cs", "NS.Util", "ErrTestMod02.netmodule", "NS.Util")
+    Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("Test.cs", "Util", "ErrTestMod02.netmodule", "NS.Util")
                 );
         }
 
@@ -5509,9 +5510,9 @@ namespace NS
                 });
 
             comp.VerifyDiagnostics(
-    // (9,38): error CS0438: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
-    //             Console.WriteLine(typeof(Util.A).Module);   
-    Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "ErrTestMod02.netmodule", "NS.Util")
+                // (9,38): error CS0438: The type 'Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
+                //             Console.WriteLine(typeof(Util.A).Module);   
+                Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("ErrTestMod01.netmodule", "Util", "ErrTestMod02.netmodule", "NS.Util").WithLocation(9, 38)
                 );
 
             comp = CreateCompilation(text,
@@ -5523,9 +5524,9 @@ namespace NS
                 });
 
             comp.VerifyDiagnostics(
-    // (9,38): error CS0438: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
-    //             Console.WriteLine(typeof(Util.A).Module);   
-    Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "ErrTestMod02.netmodule", "NS.Util")
+                // (9,38): error CS0438: The type 'Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
+                //             Console.WriteLine(typeof(Util.A).Module);   
+                Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("ErrTestMod01.netmodule", "Util", "ErrTestMod02.netmodule", "NS.Util").WithLocation(9, 38)
                 );
         }
 
@@ -5572,7 +5573,7 @@ namespace NS
             comp.VerifyDiagnostics(
     // Test.cs(9,38): error CS0438: The type 'NS.Util' in 'Test.cs' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
     //             Console.WriteLine(typeof(Util.A));   // CS0101
-    Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("Test.cs", "NS.Util", "ErrTestMod02.netmodule", "NS.Util")
+    Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("Test.cs", "Util", "ErrTestMod02.netmodule", "NS.Util")
                 );
 
             comp = CreateCompilation(text,
@@ -5585,7 +5586,7 @@ namespace NS
             comp.VerifyDiagnostics(
     // Test.cs(9,38): error CS0438: The type 'NS.Util' in 'Test.cs' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
     //             Console.WriteLine(typeof(Util.A));   // CS0101
-    Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("Test.cs", "NS.Util", "ErrTestMod02.netmodule", "NS.Util")
+    Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("Test.cs", "Util", "ErrTestMod02.netmodule", "NS.Util")
                 );
         }
 
@@ -5630,9 +5631,9 @@ namespace NS
                 });
 
             comp.VerifyDiagnostics(
-    // (9,38): error CS0438: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
-    //             Console.WriteLine(typeof(Util.A).Module);   
-    Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "ErrTestMod02.netmodule", "NS.Util")
+                // (9,38): error CS0438: The type 'Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
+                //             Console.WriteLine(typeof(Util.A).Module);   
+                Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("ErrTestMod01.netmodule", "Util", "ErrTestMod02.netmodule", "NS.Util").WithLocation(9, 38)
                 );
 
             comp = CreateCompilation(text,
@@ -5644,9 +5645,9 @@ namespace NS
                 });
 
             comp.VerifyDiagnostics(
-    // (9,38): error CS0438: The type 'NS.Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
-    //             Console.WriteLine(typeof(Util.A).Module);   
-    Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("ErrTestMod01.netmodule", "NS.Util", "ErrTestMod02.netmodule", "NS.Util")
+                // (9,38): error CS0438: The type 'Util' in 'ErrTestMod01.netmodule' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
+                //             Console.WriteLine(typeof(Util.A).Module);   
+                Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("ErrTestMod01.netmodule", "Util", "ErrTestMod02.netmodule", "NS.Util").WithLocation(9, 38)
                 );
         }
 
@@ -5693,7 +5694,7 @@ namespace NS
             comp.VerifyDiagnostics(
     // Test.cs(9,38): error CS0438: The type 'NS.Util' in 'Test.cs' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
     //             Console.WriteLine(typeof(Util.A));   
-    Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("Test.cs", "NS.Util", "ErrTestMod02.netmodule", "NS.Util")
+    Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("Test.cs", "Util", "ErrTestMod02.netmodule", "NS.Util")
                 );
 
             comp = CreateCompilation(text,
@@ -5706,7 +5707,7 @@ namespace NS
             comp.VerifyDiagnostics(
     // Test.cs(9,38): error CS0438: The type 'NS.Util' in 'Test.cs' conflicts with the namespace 'NS.Util' in 'ErrTestMod02.netmodule'
     //             Console.WriteLine(typeof(Util.A));   
-    Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("Test.cs", "NS.Util", "ErrTestMod02.netmodule", "NS.Util")
+    Diagnostic(ErrorCode.ERR_SameFullNameThisAggThisNs, "Util").WithArguments("Test.cs", "Util", "ErrTestMod02.netmodule", "NS.Util")
                 );
         }
 
@@ -7068,10 +7069,10 @@ namespace ns1
                 }, TestOptions.ReleaseDll);
 
             compilation.VerifyEmitDiagnostics(
-    // error CS8005: Type 'c2' exported from module 'mod_1_2.netmodule' conflicts with type 'c2<T>' exported from module 'mod_1_1.netmodule'.
-    Diagnostic(ErrorCode.ERR_ExportedTypesConflict).WithArguments("c2", "mod_1_2.netmodule", "c2<T>", "mod_1_1.netmodule"),
-    // error CS8005: Type 'ns.c1' exported from module 'mod_1_2.netmodule' conflicts with type 'ns.c1<T>' exported from module 'mod_1_1.netmodule'.
-    Diagnostic(ErrorCode.ERR_ExportedTypesConflict).WithArguments("ns.c1", "mod_1_2.netmodule", "ns.c1<T>", "mod_1_1.netmodule")
+                // error CS8005: Type 'c2' exported from module 'mod_1_2.netmodule' conflicts with type 'c2<T>' exported from module 'mod_1_1.netmodule'.
+                Diagnostic(ErrorCode.ERR_ExportedTypesConflict).WithArguments("c2", "mod_1_2.netmodule", "c2<T>", "mod_1_1.netmodule").WithLocation(1, 1),
+                // error CS8005: Type 'c1' exported from module 'mod_1_2.netmodule' conflicts with type 'c1<T>' exported from module 'mod_1_1.netmodule'.
+                Diagnostic(ErrorCode.ERR_ExportedTypesConflict).WithArguments("c1", "mod_1_2.netmodule", "c1<T>", "mod_1_1.netmodule").WithLocation(1, 1)
                 );
         }
 
@@ -7143,10 +7144,10 @@ public class CF3<T>
                 }, TestOptions.ReleaseDll);
 
             compilation.VerifyEmitDiagnostics(
-                // error CS8006: Forwarded type 'ns.CF2' conflicts with type declared in primary module of this assembly.
-                Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithDeclaration).WithArguments("ns.CF2"),
                 // error CS8006: Forwarded type 'CF1' conflicts with type declared in primary module of this assembly.
-                Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithDeclaration).WithArguments("CF1"));
+                Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithDeclaration).WithArguments("CF1").WithLocation(1, 1),
+                // error CS8006: Forwarded type 'CF2' conflicts with type declared in primary module of this assembly.
+                Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithDeclaration).WithArguments("CF2").WithLocation(1, 1));
 
             compilation = CreateCompilation(modSource,
                 new List<MetadataReference>()
@@ -7176,10 +7177,10 @@ public class CF3<T>
                 }, TestOptions.ReleaseDll);
 
             compilation.VerifyEmitDiagnostics(
-                // error CS8007: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'ns.CF2' forwarded to assembly 'ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                Diagnostic(ErrorCode.ERR_ForwardedTypesConflict).WithArguments("ns.CF2", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "ns.CF2", "ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                // error CS8007: Type 'CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'CF2' forwarded to assembly 'ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                Diagnostic(ErrorCode.ERR_ForwardedTypesConflict).WithArguments("CF2", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CF2", "ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1),
                 // error CS8007: Type 'CF1' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'CF1' forwarded to assembly 'ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                Diagnostic(ErrorCode.ERR_ForwardedTypesConflict).WithArguments("CF1", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CF1", "ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
+                Diagnostic(ErrorCode.ERR_ForwardedTypesConflict).WithArguments("CF1", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CF1", "ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
 
             compilation = CreateCompilation(
 @"
@@ -7196,9 +7197,9 @@ extern alias FT1;
 
             compilation.VerifyEmitDiagnostics(
                 // error CS8008: Type 'CF1' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'CF1' exported from module 'forwardedTypesMod.netmodule'.
-                Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("CF1", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CF1", "forwardedTypesMod.netmodule"),
-                // error CS8008: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'ns.CF2' exported from module 'forwardedTypesMod.netmodule'.
-                Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("ns.CF2", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "ns.CF2", "forwardedTypesMod.netmodule"));
+                Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("CF1", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CF1", "forwardedTypesMod.netmodule").WithLocation(1, 1),
+                // error CS8008: Type 'CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'CF2' exported from module 'forwardedTypesMod.netmodule'.
+                Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("CF2", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CF2", "forwardedTypesMod.netmodule").WithLocation(1, 1));
 
             compilation = CreateCompilation("",
                 new List<MetadataReference>()
@@ -7209,10 +7210,10 @@ extern alias FT1;
                 }, TestOptions.ReleaseDll);
 
             compilation.VerifyEmitDiagnostics(
-                // error CS8008: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'ns.CF2' exported from module 'forwardedTypesMod.netmodule'.
-                Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("ns.CF2", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "ns.CF2", "forwardedTypesMod.netmodule"),
+                // error CS8008: Type 'CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'CF2' exported from module 'forwardedTypesMod.netmodule'.
+                Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("CF2", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CF2", "forwardedTypesMod.netmodule").WithLocation(1, 1),
                 // error CS8008: Type 'CF1' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'CF1' exported from module 'forwardedTypesMod.netmodule'.
-                Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("CF1", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CF1", "forwardedTypesMod.netmodule"));
+                Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("CF1", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CF1", "forwardedTypesMod.netmodule").WithLocation(1, 1));
 
             compilation = CreateCompilation("",
                 new List<MetadataReference>()
@@ -7223,10 +7224,10 @@ extern alias FT1;
                 }, TestOptions.ReleaseDll);
 
             compilation.VerifyEmitDiagnostics(
-                // error CS8008: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'ns.CF2' exported from module 'forwardedTypesMod.netmodule'.
-                Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("ns.CF2", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "ns.CF2", "forwardedTypesMod.netmodule"),
+                // error CS8008: Type 'CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'CF2' exported from module 'forwardedTypesMod.netmodule'.
+                Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("CF2", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CF2", "forwardedTypesMod.netmodule").WithLocation(1, 1),
                 // error CS8008: Type 'CF1' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'CF1' exported from module 'forwardedTypesMod.netmodule'.
-                Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("CF1", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CF1", "forwardedTypesMod.netmodule"));
+                Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType).WithArguments("CF1", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CF1", "forwardedTypesMod.netmodule").WithLocation(1, 1));
 
             compilation = CreateCompilation("",
                 new List<MetadataReference>()
@@ -7248,10 +7249,10 @@ extern alias FT1;
                 }, TestOptions.ReleaseDll);
 
             compilation.VerifyEmitDiagnostics(
-                // error CS8007: Type 'ns.CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'ns.CF2' forwarded to assembly 'ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                Diagnostic(ErrorCode.ERR_ForwardedTypesConflict).WithArguments("ns.CF2", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "ns.CF2", "ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                // error CS8007: Type 'CF2' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'CF2' forwarded to assembly 'ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                Diagnostic(ErrorCode.ERR_ForwardedTypesConflict).WithArguments("CF2", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CF2", "ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1),
                 // error CS8007: Type 'CF1' forwarded to assembly 'ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with type 'CF1' forwarded to assembly 'ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                Diagnostic(ErrorCode.ERR_ForwardedTypesConflict).WithArguments("CF1", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CF1", "ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
+                Diagnostic(ErrorCode.ERR_ForwardedTypesConflict).WithArguments("CF1", "ForwardedTypes1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CF1", "ForwardedTypes2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
         }
 
         [Fact]
@@ -7279,17 +7280,21 @@ extern alias FT1;
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (3,25): error CS0441: 'NS.Test': a type cannot be both static and sealed
-                Diagnostic(ErrorCode.ERR_SealedStaticClass, "Test").WithArguments("NS.Test"),
-                // (11,25): error CS0441: 'NS.StaticClass': a type cannot be both static and sealed
-                Diagnostic(ErrorCode.ERR_SealedStaticClass, "StaticClass").WithArguments("NS.StaticClass"),
+                // (3,25): error CS0441: 'Test': a type cannot be both static and sealed
+                //     static sealed class Test
+                Diagnostic(ErrorCode.ERR_SealedStaticClass, "Test").WithArguments("Test").WithLocation(3, 25),
+                // (11,25): error CS0441: 'StaticClass': a type cannot be both static and sealed
+                //     sealed static class StaticClass : Test //verify 'sealed' works
+                Diagnostic(ErrorCode.ERR_SealedStaticClass, "StaticClass").WithArguments("StaticClass").WithLocation(11, 25),
 
                 //CONSIDER: Dev10 skips these cascading errors
 
-                // (11,39): error CS07: Static class 'NS.StaticClass' cannot derive from type 'NS.Test'. Static classes must derive from object.
-                Diagnostic(ErrorCode.ERR_StaticDerivedFromNonObject, "Test").WithArguments("NS.StaticClass", "NS.Test"),
-                // (15,28): error CS07: Static class 'NS.Derived' cannot derive from type 'NS.StaticClass'. Static classes must derive from object.
-                Diagnostic(ErrorCode.ERR_StaticDerivedFromNonObject, "StaticClass").WithArguments("NS.Derived", "NS.StaticClass"));
+                // (15,28): error CS0713: Static class 'Derived' cannot derive from type 'StaticClass'. Static classes must derive from object.
+                //     static class Derived : StaticClass //verify 'sealed' works
+                Diagnostic(ErrorCode.ERR_StaticDerivedFromNonObject, "StaticClass").WithArguments("Derived", "StaticClass").WithLocation(15, 28),
+                // (11,39): error CS0713: Static class 'StaticClass' cannot derive from type 'Test'. Static classes must derive from object.
+                //     sealed static class StaticClass : Test //verify 'sealed' works
+                Diagnostic(ErrorCode.ERR_StaticDerivedFromNonObject, "Test").WithArguments("StaticClass", "Test").WithLocation(11, 39));
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             // TODO...
@@ -7741,14 +7746,19 @@ class B4 : A<int?>
 }";
             CreateCompilation(source).VerifyDiagnostics(
                 // (14,31): error CS0455: Type parameter 'U' inherits conflicting constraints 'int' and 'class'
+                //     internal override void M2<U>() { }
                 Diagnostic(ErrorCode.ERR_BaseConstraintConflict, "U").WithArguments("U", "int", "class").WithLocation(14, 31),
-                // (18,31): error CS0455: Type parameter 'U' inherits conflicting constraints 'string' and 'System.ValueType'
-                Diagnostic(ErrorCode.ERR_BaseConstraintConflict, "U").WithArguments("U", "string", "System.ValueType").WithLocation(18, 31),
-                // (18,31): error CS0455: Type parameter 'U' inherits conflicting constraints 'System.ValueType' and 'struct'
-                Diagnostic(ErrorCode.ERR_BaseConstraintConflict, "U").WithArguments("U", "System.ValueType", "struct").WithLocation(18, 31),
+                // (18,31): error CS0455: Type parameter 'U' inherits conflicting constraints 'string' and 'ValueType'
+                //     internal override void M1<U>() { }
+                Diagnostic(ErrorCode.ERR_BaseConstraintConflict, "U").WithArguments("U", "string", "ValueType").WithLocation(18, 31),
+                // (18,31): error CS0455: Type parameter 'U' inherits conflicting constraints 'ValueType' and 'struct'
+                //     internal override void M1<U>() { }
+                Diagnostic(ErrorCode.ERR_BaseConstraintConflict, "U").WithArguments("U", "ValueType", "struct").WithLocation(18, 31),
                 // (23,31): error CS0455: Type parameter 'T' inherits conflicting constraints 'int?' and 'struct'
+                //     internal override void M1<T>() { }
                 Diagnostic(ErrorCode.ERR_BaseConstraintConflict, "T").WithArguments("T", "int?", "struct").WithLocation(23, 31),
                 // (24,31): error CS0455: Type parameter 'X' inherits conflicting constraints 'int?' and 'class'
+                //     internal override void M2<X>() { }
                 Diagnostic(ErrorCode.ERR_BaseConstraintConflict, "X").WithArguments("X", "int?", "class").WithLocation(24, 31));
         }
 
@@ -7892,25 +7902,25 @@ class MyClass : I
             var comp = CreateCompilation(text).VerifyDiagnostics(
                 // (5,30): error CS0500: 'clx.M1()' cannot declare a body because it is marked abstract
                 //         abstract public void M1() { }
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "M1").WithArguments("NS.clx.M1()").WithLocation(5, 30),
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "M1").WithArguments("clx.M1()").WithLocation(5, 30),
                 // (6,34): error CS0500: 'clx.M2()' cannot declare a body because it is marked abstract
                 //         internal abstract object M2() { return null; }
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "M2").WithArguments("NS.clx.M2()").WithLocation(6, 34),
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "M2").WithArguments("clx.M2()").WithLocation(6, 34),
                 // (7,42): error CS0500: 'clx.M3(sbyte)' cannot declare a body because it is marked abstract
                 //         protected abstract internal void M3(sbyte p) { }
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "M3").WithArguments("NS.clx.M3(sbyte)").WithLocation(7, 42),
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "M3").WithArguments("clx.M3(sbyte)").WithLocation(7, 42),
                 // (8,36): error CS0500: 'clx.P.get' cannot declare a body because it is marked abstract
                 //         public abstract object P { get { return null; } set { } }
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("NS.clx.P.get").WithLocation(8, 36),
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("clx.P.get").WithLocation(8, 36),
                 // (8,57): error CS0500: 'clx.P.set' cannot declare a body because it is marked abstract
                 //         public abstract object P { get { return null; } set { } }
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "set").WithArguments("NS.clx.P.set").WithLocation(8, 57),
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "set").WithArguments("clx.P.set").WithLocation(8, 57),
                 // (9,47): error CS8712: 'clx.E': abstract event cannot use event accessor syntax
                 //         public abstract event System.Action E { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("NS.clx.E").WithLocation(9, 47),
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("clx.E").WithLocation(9, 47),
                 // (10,47): error CS8712: 'clx.X': abstract event cannot use event accessor syntax
                 //         public abstract event System.Action X { add => throw null; remove => throw null; }
-                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("NS.clx.X").WithLocation(10, 47));
+                Diagnostic(ErrorCode.ERR_AbstractEventHasAccessors, "{").WithArguments("clx.X").WithLocation(10, 47));
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             // TODO...
@@ -7933,21 +7943,18 @@ namespace NS
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-// (7,21): error CS0501: 'NS.clx<T>.M1(T)' must declare a body because it is not marked abstract, extern, or partial
-//         public void M1(T t);
-Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M1").WithArguments("NS.clx<T>.M1(T)"),
-
-// (8,20): error CS0501: 'NS.clx<T>.M2<V>()' must declare a body because it is not marked abstract, extern, or partial
-//         internal V M2<V>();
-Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M2").WithArguments("NS.clx<T>.M2<V>()"),
-
-// (9,33): error CS0501: 'NS.clx<T>.M3(sbyte)' must declare a body because it is not marked abstract, extern, or partial
-//         protected internal void M3(sbyte p);
-Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M3").WithArguments("NS.clx<T>.M3(sbyte)"),
-
-                // (10,35): error CS0501: 'NS.clx<T>.operator +(NS.clx<T>)' must declare a body because it is not marked abstract, extern, or partial
+                // (7,21): error CS0501: 'clx<T>.M1(T)' must declare a body because it is not marked abstract, extern, or partial
+                //         public void M1(T t);
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M1").WithArguments("clx<T>.M1(T)").WithLocation(7, 21),
+                // (8,20): error CS0501: 'clx<T>.M2<V>()' must declare a body because it is not marked abstract, extern, or partial
+                //         internal V M2<V>();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M2").WithArguments("clx<T>.M2<V>()").WithLocation(8, 20),
+                // (9,33): error CS0501: 'clx<T>.M3(sbyte)' must declare a body because it is not marked abstract, extern, or partial
+                //         protected internal void M3(sbyte p);
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M3").WithArguments("clx<T>.M3(sbyte)").WithLocation(9, 33),
+                // (10,35): error CS0501: 'clx<T>.operator +(clx<T>)' must declare a body because it is not marked abstract, extern, or partial
                 //         public static int operator+(clx<T> c);
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "+").WithArguments("NS.clx<T>.operator +(NS.clx<T>)"));
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "+").WithArguments("clx<T>.operator +(clx<T>)").WithLocation(10, 35));
         }
 
         [Fact]
@@ -8039,16 +8046,16 @@ Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M3").WithArguments("NS.clx<T>.M3(
             var comp = CreateCompilation(source).VerifyDiagnostics(
                 // (7,40): error CS0503: The abstract property 'clx.P' cannot be marked virtual
                 //         virtual abstract public object P { get; set; }
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P").WithArguments("property", "NS.clx.P").WithLocation(7, 40),
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P").WithArguments("property", "clx.P").WithLocation(7, 40),
                 // (6,41): error CS0503: The abstract method 'clx.M2<T>(T)' cannot be marked virtual
                 //         abstract virtual protected void M2<T>(T t);
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M2").WithArguments("method", "NS.clx.M2<T>(T)").WithLocation(6, 41),
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M2").WithArguments("method", "clx.M2<T>(T)").WithLocation(6, 41),
                 // (5,40): error CS0503: The abstract method 'clx.M1()' cannot be marked virtual
                 //         abstract virtual internal void M1();
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M1").WithArguments("method", "NS.clx.M1()").WithLocation(5, 40),
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M1").WithArguments("method", "clx.M1()").WithLocation(5, 40),
                 // (8,53): error CS0503: The abstract event 'clx.E' cannot be marked virtual
                 //         virtual abstract public event System.Action E;
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "E").WithArguments("event", "NS.clx.E").WithLocation(8, 53));
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "E").WithArguments("event", "clx.E").WithLocation(8, 53));
 
             var nsNamespace = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             var clxClass = nsNamespace.GetMembers("clx").Single() as NamedTypeSymbol;
@@ -8366,10 +8373,10 @@ Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "GM").WithArguments("GG
             CreateCompilation(source).VerifyDiagnostics(
                 // (6,25): error CS0509: 'cly': cannot derive from sealed type 'clx'
                 //     public class @cly : clx {}
-                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "clx").WithArguments("NS.cly", "NS.clx").WithLocation(6, 25),
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "clx").WithArguments("cly", "clx").WithLocation(6, 25),
                 // (7,25): error CS0509: 'clz': cannot derive from sealed type 'stx'
                 //     public class @clz : stx { }
-                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "stx").WithArguments("NS.clz", "NS.stx").WithLocation(7, 25));
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "stx").WithArguments("clz", "stx").WithLocation(7, 25));
         }
 
         [Fact]
@@ -8387,13 +8394,13 @@ namespace N2
             CreateCompilation(source).VerifyDiagnostics(
                 // (6,15): error CS0509: 'E': cannot derive from sealed type 'int'
                 //     class E : int { }
-                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "int").WithArguments("N2.E", "int").WithLocation(6, 15),
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "int").WithArguments("E", "int").WithLocation(6, 15),
                 // (4,15): error CS0509: 'C': cannot derive from sealed type 'E'
                 //     class C : N1.E { }
-                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "N1.E").WithArguments("N2.C", "N1.E").WithLocation(4, 15),
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "N1.E").WithArguments("C", "E").WithLocation(4, 15),
                 // (5,15): error CS0509: 'D': cannot derive from sealed type 'int'
                 //     class D : System.Int32 { }
-                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "System.Int32").WithArguments("N2.D", "int").WithLocation(5, 15));
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "System.Int32").WithArguments("D", "int").WithLocation(5, 15));
         }
 
         [Fact]
@@ -8414,16 +8421,16 @@ namespace N2
             CreateCompilation(source).VerifyDiagnostics(
                 // (8,36): error CS0513: 'clx.P.get' is abstract but it is contained in non-abstract type 'clx'
                 //         public abstract object P { get; set; }
-                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("NS.clx.P.get", "NS.clx").WithLocation(8, 36),
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "get").WithArguments("clx.P.get", "clx").WithLocation(8, 36),
                 // (8,41): error CS0513: 'clx.P.set' is abstract but it is contained in non-abstract type 'clx'
                 //         public abstract object P { get; set; }
-                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "set").WithArguments("NS.clx.P.set", "NS.clx").WithLocation(8, 41),
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "set").WithArguments("clx.P.set", "clx").WithLocation(8, 41),
                 // (6,34): error CS0513: 'clx.M2()' is abstract but it is contained in non-abstract type 'clx'
                 //         internal abstract object M2();
-                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M2").WithArguments("NS.clx.M2()", "NS.clx").WithLocation(6, 34),
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M2").WithArguments("clx.M2()", "clx").WithLocation(6, 34),
                 // (7,42): error CS0513: 'clx.M3(sbyte)' is abstract but it is contained in non-abstract type 'clx'
                 //         protected abstract internal void M3(sbyte p);
-                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M3").WithArguments("NS.clx.M3(sbyte)", "NS.clx").WithLocation(7, 42),
+                Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M3").WithArguments("clx.M3(sbyte)", "clx").WithLocation(7, 42),
                 // (5,30): error CS0513: 'clx.M1()' is abstract but it is contained in non-abstract type 'clx'
                 //         abstract public void M1();
                 Diagnostic(ErrorCode.ERR_AbstractInConcreteClass, "M1").WithArguments("clx.M1()", "clx").WithLocation(5, 30));
@@ -9269,7 +9276,7 @@ namespace NS
             CreateCompilation(text).VerifyDiagnostics(
                 // (31,32): error CS0533: 'A3.goo' hides inherited abstract member 'B3.goo()'
                 //         new protected double[] goo;  // CS0533
-                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "goo").WithArguments("NS.A3.goo", "NS.B3.goo()").WithLocation(31, 32),
+                Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "goo").WithArguments("A3.goo", "B3.goo()").WithLocation(31, 32),
                 // (9,24): error CS0533: 'A1.goo' hides inherited abstract member 'B1.goo'
                 //     new protected enum @goo { } // CS0533
                 Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "@goo").WithArguments("A1.goo", "B1.goo").WithLocation(9, 24),
@@ -9278,7 +9285,7 @@ namespace NS
                 Diagnostic(ErrorCode.ERR_HidingAbstractMethod, "@goo").WithArguments("A1.A2.goo", "A1.B2.goo()").WithLocation(18, 36),
                 // (31,32): warning CS0649: Field 'A3.goo' is never assigned to, and will always have its default value null
                 //         new protected double[] goo;  // CS0533
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "goo").WithArguments("NS.A3.goo", "null").WithLocation(31, 32));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "goo").WithArguments("A3.goo", "null").WithLocation(31, 32));
         }
 
         [WorkItem(540464, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540464")]
@@ -9615,18 +9622,18 @@ public class Clx
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
-                // (11,20): error CS8652: The feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
+                // (11,20): error CS8107: Feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //         void IFace.F();   // CS0541
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "F").WithArguments("default interface implementation", "8.0").WithLocation(11, 20),
-                // (12,23): error CS8652: The feature 'default interface implementation' is not available in C# 7. Please use language version 8.0 or greater.
+                // (12,23): error CS8107: Feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //         int IFace.P { set; } //CS0541
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "set").WithArguments("default interface implementation", "8.0").WithLocation(12, 23),
                 // (12,23): error CS0501: 'IFace2.IFace.P.set' must declare a body because it is not marked abstract, extern, or partial
                 //         int IFace.P { set; } //CS0541
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("x.IFace2.x.IFace.P.set").WithLocation(12, 23),
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("IFace2.IFace.P.set").WithLocation(12, 23),
                 // (11,20): error CS0501: 'IFace2.IFace.F()' must declare a body because it is not marked abstract, extern, or partial
                 //         void IFace.F();   // CS0541
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "F").WithArguments("x.IFace2.x.IFace.F()").WithLocation(11, 20)
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "F").WithArguments("IFace2.IFace.F()").WithLocation(11, 20)
                 );
         }
 
@@ -9668,88 +9675,88 @@ public class Clx
             comp.VerifyDiagnostics(
                 // (7,20): error CS0542: 'B': member names cannot be the same as their enclosing type
                 //     class B { enum B { } }
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "B").WithArguments("B"),
-                // (8,27): error CS0542: 'C': member names cannot be the same as their enclosing type
-                //     class C { static void C() { } }
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "C").WithArguments("C"),
-                // (9,22): error CS0542: 'D': member names cannot be the same as their enclosing type
-                //     class D { object D { get; set; } }
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "D").WithArguments("D"),
-                // (10,22): error CS0542: 'E': member names cannot be the same as their enclosing type
-                //     class E { int D, E, F; }
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "E").WithArguments("E"),
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "B").WithArguments("B").WithLocation(7, 20),
                 // (11,21): error CS0542: 'F': member names cannot be the same as their enclosing type
                 //     class F { class F { } }
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "F").WithArguments("F"),
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "F").WithArguments("F").WithLocation(11, 21),
                 // (12,22): error CS0542: 'G': member names cannot be the same as their enclosing type
                 //     class G { struct G { } }
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "G").WithArguments("G"),
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "G").WithArguments("G").WithLocation(12, 22),
                 // (13,29): error CS0542: 'H': member names cannot be the same as their enclosing type
                 //     class H { delegate void H(); }
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "H").WithArguments("H"),
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "H").WithArguments("H").WithLocation(13, 29),
                 // (14,21): error CS0542: 'L': member names cannot be the same as their enclosing type
                 //     class L { class L<T> { } }
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "L").WithArguments("L"),
-                // (15,24): error CS0542: 'K': member names cannot be the same as their enclosing type
-                //     class K<T> { class K { } }
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "K").WithArguments("K"),
-                // (16,28): error CS0542: 'M': member names cannot be the same as their enclosing type
-                //     class M<T> { interface M<U> { } }
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "M").WithArguments("M"),
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "L").WithArguments("L").WithLocation(14, 21),
                 // (17,22): error CS0542: 'N': member names cannot be the same as their enclosing type
                 //     class N { struct N<T, U> { } }
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "N").WithArguments("N"),
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "N").WithArguments("N").WithLocation(17, 22),
                 // (18,21): error CS0542: 'O': member names cannot be the same as their enclosing type
                 //     struct O { enum O { } }
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "O").WithArguments("O"),
-                // (19,21): error CS0542: 'P': member names cannot be the same as their enclosing type
-                //     struct P { void P() { } }
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "P").WithArguments("P"),
-                // (20,30): error CS0542: 'Q': member names cannot be the same as their enclosing type
-                //     struct Q { static object Q { get; set; } }
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "Q").WithArguments("Q"),
-                // (21,26): error CS0542: 'R': member names cannot be the same as their enclosing type
-                //     struct R { object Q, R; }
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "R").WithArguments("R"),
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "O").WithArguments("O").WithLocation(18, 21),
+                // (8,27): error CS0542: 'C': member names cannot be the same as their enclosing type
+                //     class C { static void C() { } }
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "C").WithArguments("C").WithLocation(8, 27),
                 // (22,22): error CS0542: 'S': member names cannot be the same as their enclosing type
                 //     struct S { class S { } }
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "S").WithArguments("S"),
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "S").WithArguments("S").WithLocation(22, 22),
                 // (23,26): error CS0542: 'T': member names cannot be the same as their enclosing type
                 //     struct T { interface T { } }
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "T").WithArguments("T"),
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "T").WithArguments("T").WithLocation(23, 26),
                 // (24,23): error CS0542: 'U': member names cannot be the same as their enclosing type
                 //     struct U { struct U { } }
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "U").WithArguments("U"),
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "U").WithArguments("U").WithLocation(24, 23),
+                // (19,21): error CS0542: 'P': member names cannot be the same as their enclosing type
+                //     struct P { void P() { } }
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "P").WithArguments("P").WithLocation(19, 21),
                 // (25,30): error CS0542: 'V': member names cannot be the same as their enclosing type
                 //     struct V { delegate void V(); }
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "V").WithArguments("V"),
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "V").WithArguments("V").WithLocation(25, 30),
                 // (26,22): error CS0542: 'W': member names cannot be the same as their enclosing type
                 //     struct W { class W<T> { } }
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "W").WithArguments("W"),
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "W").WithArguments("W").WithLocation(26, 22),
+                // (15,24): error CS0542: 'K': member names cannot be the same as their enclosing type
+                //     class K<T> { class K { } }
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "K").WithArguments("K").WithLocation(15, 24),
+                // (16,28): error CS0542: 'M': member names cannot be the same as their enclosing type
+                //     class M<T> { interface M<U> { } }
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "M").WithArguments("M").WithLocation(16, 28),
+                // (21,26): error CS0542: 'R': member names cannot be the same as their enclosing type
+                //     struct R { object Q, R; }
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "R").WithArguments("R").WithLocation(21, 26),
+                // (9,22): error CS0542: 'D': member names cannot be the same as their enclosing type
+                //     class D { object D { get; set; } }
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "D").WithArguments("D").WithLocation(9, 22),
                 // (27,25): error CS0542: 'X': member names cannot be the same as their enclosing type
                 //     struct X<T> { class X { } }
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "X").WithArguments("X"),
-                // (28,29): error CS0542: 'Y': member names cannot be the same as their enclosing type
-                //     struct Y<T> { interface Y<U> { } }
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "Y").WithArguments("Y"),
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "X").WithArguments("X").WithLocation(27, 25),
+                // (20,30): error CS0542: 'Q': member names cannot be the same as their enclosing type
+                //     struct Q { static object Q { get; set; } }
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "Q").WithArguments("Q").WithLocation(20, 30),
                 // (29,23): error CS0542: 'Z': member names cannot be the same as their enclosing type
                 //     struct Z { struct Z<T, U> { } }
-                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "Z").WithArguments("Z"),
-                // (10,19): warning CS0169: The field 'NS.E.D' is never used
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "Z").WithArguments("Z").WithLocation(29, 23),
+                // (28,29): error CS0542: 'Y': member names cannot be the same as their enclosing type
+                //     struct Y<T> { interface Y<U> { } }
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "Y").WithArguments("Y").WithLocation(28, 29),
+                // (10,22): error CS0542: 'E': member names cannot be the same as their enclosing type
                 //     class E { int D, E, F; }
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "D").WithArguments("NS.E.D"),
-                // (10,22): warning CS0169: The field 'NS.E.E' is never used
-                //     class E { int D, E, F; }
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "E").WithArguments("NS.E.E"),
-                // (10,25): warning CS0169: The field 'NS.E.F' is never used
-                //     class E { int D, E, F; }
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "F").WithArguments("NS.E.F"),
-                // (21,23): warning CS0169: The field 'NS.R.Q' is never used
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "E").WithArguments("E").WithLocation(10, 22),
+                // (21,23): warning CS0169: The field 'R.Q' is never used
                 //     struct R { object Q, R; }
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "Q").WithArguments("NS.R.Q"),
-                // (21,26): warning CS0169: The field 'NS.R.R' is never used
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "Q").WithArguments("R.Q").WithLocation(21, 23),
+                // (21,26): warning CS0169: The field 'R.R' is never used
                 //     struct R { object Q, R; }
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "R").WithArguments("NS.R.R"));
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "R").WithArguments("R.R").WithLocation(21, 26),
+                // (10,25): warning CS0169: The field 'E.F' is never used
+                //     class E { int D, E, F; }
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "F").WithArguments("E.F").WithLocation(10, 25),
+                // (10,19): warning CS0169: The field 'E.D' is never used
+                //     class E { int D, E, F; }
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "D").WithArguments("E.D").WithLocation(10, 19),
+                // (10,22): warning CS0169: The field 'E.E' is never used
+                //     class E { int D, E, F; }
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "E").WithArguments("E.E").WithLocation(10, 22));
         }
 
         [Fact]
@@ -10453,9 +10460,9 @@ public class C
 
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-// (12,45): error CS0557: Duplicate user-defined conversion in type 'x.ii.iii'
-//             public static explicit operator int(iii aa)
-Diagnostic(ErrorCode.ERR_DuplicateConversionInClass, "int").WithArguments("x.ii.iii")
+                // (12,45): error CS0557: Duplicate user-defined conversion in type 'ii.iii'
+                //             public static explicit operator int(iii aa)
+                Diagnostic(ErrorCode.ERR_DuplicateConversionInClass, "int").WithArguments("ii.iii").WithLocation(12, 45)
                 );
         }
 
@@ -10478,9 +10485,9 @@ Diagnostic(ErrorCode.ERR_DuplicateConversionInClass, "int").WithArguments("x.ii.
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-// (75): error CS0558: User-defined operator 'x.ii.iii.implicit operator int(x.ii.iii)' must be declared static and public
-//          static implicit operator int(iii aa)   // CS0558, add public
-Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "int").WithArguments("x.ii.iii.implicit operator int(x.ii.iii)")
+                // (7,35): error CS0558: User-defined operator 'ii.iii.implicit operator int(ii.iii)' must be declared static and public
+                //          static implicit operator int(iii aa)   // CS0558, add public
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "int").WithArguments("ii.iii.implicit operator int(ii.iii)").WithLocation(7, 35)
                 );
         }
 
@@ -10671,16 +10678,16 @@ interface IA
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "a").WithArguments("struct field initializers", "10.0").WithLocation(12, 13),
                 // (12,13): warning CS0169: The field 'cly.a' is never used
                 //         clx a = new clx();   // CS8036
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("x.cly.a").WithLocation(12, 13),
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("cly.a").WithLocation(12, 13),
                 // (13,13): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //         int i = 7;           // CS8036
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "i").WithArguments("struct field initializers", "10.0").WithLocation(13, 13),
                 // (13,13): warning CS0169: The field 'cly.i' is never used
                 //         int i = 7;           // CS8036
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("x.cly.i").WithLocation(13, 13),
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("cly.i").WithLocation(13, 13),
                 // (15,20): warning CS0414: The field 'cly.s' is assigned but its value is never used
                 //         static int s = 2;    // no error
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s").WithArguments("x.cly.s").WithLocation(15, 20));
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s").WithArguments("cly.s").WithLocation(15, 20));
 
             comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
@@ -10689,13 +10696,13 @@ interface IA
                 Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "@cly").WithLocation(10, 19),
                 // (12,13): warning CS0169: The field 'cly.a' is never used
                 //         clx a = new clx();   // CS8036
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("x.cly.a").WithLocation(12, 13),
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("cly.a").WithLocation(12, 13),
                 // (13,13): warning CS0169: The field 'cly.i' is never used
                 //         int i = 7;           // CS8036
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("x.cly.i").WithLocation(13, 13),
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("cly.i").WithLocation(13, 13),
                 // (15,20): warning CS0414: The field 'cly.s' is assigned but its value is never used
                 //         static int s = 2;    // no error
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s").WithArguments("x.cly.s").WithLocation(15, 20));
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "s").WithArguments("cly.s").WithLocation(15, 20));
         }
 
         [Fact]
@@ -10786,16 +10793,16 @@ namespace NS
             comp.VerifyDiagnostics(
                 // (22,27): error CS0576: Namespace 'NS' contains a definition conflicting with alias 'B'
                 //         public void M(ref B p) { }
-                Diagnostic(ErrorCode.ERR_ConflictAliasAndMember, "B").WithArguments("B", "NS"),
+                Diagnostic(ErrorCode.ERR_ConflictAliasAndMember, "B").WithArguments("B", "NS").WithLocation(22, 27),
                 // (21,9): error CS0576: Namespace 'NS' contains a definition conflicting with alias 'B'
                 //         B field;
-                Diagnostic(ErrorCode.ERR_ConflictAliasAndMember, "B").WithArguments("B", "NS"),
+                Diagnostic(ErrorCode.ERR_ConflictAliasAndMember, "B").WithArguments("B", "NS").WithLocation(21, 9),
                 // (15,13): error CS0576: Namespace 'NS' contains a definition conflicting with alias 'B'
                 //             B b = null; if (b == b) {}
-                Diagnostic(ErrorCode.ERR_ConflictAliasAndMember, "B").WithArguments("B", "NS"),
-                // (21,11): warning CS0169: The field 'NS.S.field' is never used
+                Diagnostic(ErrorCode.ERR_ConflictAliasAndMember, "B").WithArguments("B", "NS").WithLocation(15, 13),
+                // (21,11): warning CS0169: The field 'S.field' is never used
                 //         B field;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("NS.S.field")
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("S.field").WithLocation(21, 11)
                 );
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
@@ -11120,15 +11127,15 @@ public class C
     System.TypedReference Prop { get; set; }
 }";
             CreateCompilation(text).VerifyDiagnostics(
-                // (8,5): error CS0610: Field or property cannot be of type 'System.TypedReference'
-                //     System.TypedReference Prop { get; set; }
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference"),
-                // (3,5): error CS0610: Field or property cannot be of type 'System.TypedReference'
+                // (3,5): error CS0610: Field or property cannot be of type 'TypedReference'
                 //     System.TypedReference i;   // CS0610
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference"),
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("TypedReference").WithLocation(3, 5),
+                // (8,5): error CS0610: Field or property cannot be of type 'TypedReference'
+                //     System.TypedReference Prop { get; set; }
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "System.TypedReference").WithArguments("TypedReference").WithLocation(8, 5),
                 // (3,27): warning CS0169: The field 'MainClass.i' is never used
                 //     System.TypedReference i;   // CS0610
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("MainClass.i")
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("MainClass.i").WithLocation(3, 27)
                 );
         }
 
@@ -11502,19 +11509,19 @@ namespace N
             CreateCompilation(source).VerifyDiagnostics(
                 // (5,15): error CS0644: 'D' cannot derive from special class 'ValueType'
                 //     class D : ValueType { }
-                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "ValueType").WithArguments("N.D", "System.ValueType").WithLocation(5, 15),
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "ValueType").WithArguments("D", "ValueType").WithLocation(5, 15),
                 // (6,15): error CS0644: 'E' cannot derive from special class 'Delegate'
                 //     class E : Delegate { }
-                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "Delegate").WithArguments("N.E", "System.Delegate").WithLocation(6, 15),
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "Delegate").WithArguments("E", "Delegate").WithLocation(6, 15),
                 // (4,15): error CS0644: 'C' cannot derive from special class 'Enum'
                 //     class C : Enum { }
-                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "Enum").WithArguments("N.C", "System.Enum").WithLocation(4, 15),
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "Enum").WithArguments("C", "Enum").WithLocation(4, 15),
                 // (8,22): error CS0644: 'G' cannot derive from special class 'Array'
                 //     static class G : Array { }
-                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "Array").WithArguments("N.G", "System.Array").WithLocation(8, 22),
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "Array").WithArguments("G", "Array").WithLocation(8, 22),
                 // (7,22): error CS0644: 'F' cannot derive from special class 'MulticastDelegate'
                 //     static class F : MulticastDelegate { }
-                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "MulticastDelegate").WithArguments("N.F", "System.MulticastDelegate").WithLocation(7, 22));
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "MulticastDelegate").WithArguments("F", "MulticastDelegate").WithLocation(7, 22));
         }
 
         [Fact]
@@ -11793,13 +11800,13 @@ public class A4 : Attribute
             comp.VerifyDiagnostics(
                 // (7,14): error CS0663: 'IGoo<T>' cannot define an overloaded method that differs only on parameter modifiers 'out' and 'ref'
                 //         void M(out T t);
-                Diagnostic(ErrorCode.ERR_OverloadRefKind, "M").WithArguments("NS.IGoo<T>", "method", "out", "ref").WithLocation(7, 14),
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "M").WithArguments("IGoo<T>", "method", "out", "ref").WithLocation(7, 14),
                 // (24,20): error CS0663: 'CGoo' cannot define an overloaded method that differs only on parameter modifiers 'ref' and 'out'
                 //         public int RetInt(byte b, ref int j)
-                Diagnostic(ErrorCode.ERR_OverloadRefKind, "RetInt").WithArguments("NS.CGoo", "method", "ref", "out").WithLocation(24, 20),
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "RetInt").WithArguments("CGoo", "method", "ref", "out").WithLocation(24, 20),
                 // (16,18): error CS0663: 'CGoo.SGoo' cannot define an overloaded method that differs only on parameter modifiers 'out' and 'ref'
                 //             void M<T>(out T t) { }
-                Diagnostic(ErrorCode.ERR_OverloadRefKind, "M").WithArguments("NS.CGoo.SGoo", "method", "out", "ref").WithLocation(16, 18),
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "M").WithArguments("CGoo.SGoo", "method", "out", "ref").WithLocation(16, 18),
                 // (21,20): error CS0269: Use of unassigned out parameter 'i'
                 //             return i;
                 Diagnostic(ErrorCode.ERR_UseDefViolationOut, "i").WithArguments("i").WithLocation(21, 20),
@@ -11835,39 +11842,39 @@ public class A4 : Attribute
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (5,21): error CS0666: 'NS.S1<T, V>.field': new protected member declared in struct
+                // (5,21): error CS0666: 'S1<T, V>.field': new protected member declared in struct
                 //         protected T field;
-                Diagnostic(ErrorCode.ERR_ProtectedInStruct, "field").WithArguments("NS.S1<T, V>.field"),
-                // (7,26): error CS0666: 'NS.S1<T, V>.P': new protected member declared in struct
+                Diagnostic(ErrorCode.ERR_ProtectedInStruct, "field").WithArguments("S1<T, V>.field").WithLocation(5, 21),
+                // (7,26): error CS0666: 'S1<T, V>.P': new protected member declared in struct
                 //         protected object P { get { return null; } } // Dev10 no error
-                Diagnostic(ErrorCode.ERR_ProtectedInStruct, "P").WithArguments("NS.S1<T, V>.P"),
-                // (8,39): error CS0666: 'NS.S1<T, V>.E': new protected member declared in struct
+                Diagnostic(ErrorCode.ERR_ProtectedInStruct, "P").WithArguments("S1<T, V>.P").WithLocation(7, 26),
+                // (8,39): error CS0666: 'S1<T, V>.E': new protected member declared in struct
                 //         protected event System.Action E;
-                Diagnostic(ErrorCode.ERR_ProtectedInStruct, "E").WithArguments("NS.S1<T, V>.E"),
-                // (6,33): error CS0666: 'NS.S1<T, V>.M(T, V)': new protected member declared in struct
+                Diagnostic(ErrorCode.ERR_ProtectedInStruct, "E").WithArguments("S1<T, V>.E").WithLocation(8, 39),
+                // (6,33): error CS0666: 'S1<T, V>.M(T, V)': new protected member declared in struct
                 //         protected internal void M(T t, V v) { }
-                Diagnostic(ErrorCode.ERR_ProtectedInStruct, "M").WithArguments("NS.S1<T, V>.M(T, V)"),
-                // (14,39): error CS0666: 'NS.S1<T, V>.S2.Q': new protected member declared in struct
+                Diagnostic(ErrorCode.ERR_ProtectedInStruct, "M").WithArguments("S1<T, V>.M(T, V)").WithLocation(6, 33),
+                // (14,39): error CS0666: 'S1<T, V>.S2.Q': new protected member declared in struct
                 //             protected internal object Q { get; set; } // Dev10 no error
-                Diagnostic(ErrorCode.ERR_ProtectedInStruct, "Q").WithArguments("NS.S1<T, V>.S2.Q"),
-                // (15,43): error CS0666: 'NS.S1<T, V>.S2.E': new protected member declared in struct
+                Diagnostic(ErrorCode.ERR_ProtectedInStruct, "Q").WithArguments("S1<T, V>.S2.Q").WithLocation(14, 39),
+                // (15,43): error CS0666: 'S1<T, V>.S2.E': new protected member declared in struct
                 //             protected event System.Action E;
-                Diagnostic(ErrorCode.ERR_ProtectedInStruct, "E").WithArguments("NS.S1<T, V>.S2.E"),
-                // (12,28): error CS0666: 'NS.S1<T, V>.S2.M1<X>(X)': new protected member declared in struct
+                Diagnostic(ErrorCode.ERR_ProtectedInStruct, "E").WithArguments("S1<T, V>.S2.E").WithLocation(15, 43),
+                // (12,28): error CS0666: 'S1<T, V>.S2.M1<X>(X)': new protected member declared in struct
                 //             protected void M1<X>(X p) { }
-                Diagnostic(ErrorCode.ERR_ProtectedInStruct, "M1").WithArguments("NS.S1<T, V>.S2.M1<X>(X)"),
-                // (13,34): error CS0666: 'NS.S1<T, V>.S2.M2<X, R>(ref X, R)': new protected member declared in struct
+                Diagnostic(ErrorCode.ERR_ProtectedInStruct, "M1").WithArguments("S1<T, V>.S2.M1<X>(X)").WithLocation(12, 28),
+                // (13,34): error CS0666: 'S1<T, V>.S2.M2<X, R>(ref X, R)': new protected member declared in struct
                 //             protected internal R M2<X, R>(ref X p, R r) { return r; }
-                Diagnostic(ErrorCode.ERR_ProtectedInStruct, "M2").WithArguments("NS.S1<T, V>.S2.M2<X, R>(ref X, R)"),
-                // (5,21): warning CS0649: Field 'NS.S1<T, V>.field' is never assigned to, and will always have its default value 
+                Diagnostic(ErrorCode.ERR_ProtectedInStruct, "M2").WithArguments("S1<T, V>.S2.M2<X, R>(ref X, R)").WithLocation(13, 34),
+                // (5,21): warning CS0649: Field 'S1<T, V>.field' is never assigned to, and will always have its default value 
                 //         protected T field;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("NS.S1<T, V>.field", ""),
-                // (8,39): warning CS0067: The event 'NS.S1<T, V>.E' is never used
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("S1<T, V>.field", "").WithLocation(5, 21),
+                // (8,39): warning CS0067: The event 'S1<T, V>.E' is never used
                 //         protected event System.Action E;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("NS.S1<T, V>.E"),
-                // (15,43): warning CS0067: The event 'NS.S1<T, V>.S2.E' is never used
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("S1<T, V>.E").WithLocation(8, 39),
+                // (15,43): warning CS0067: The event 'S1<T, V>.S2.E' is never used
                 //             protected event System.Action E;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("NS.S1<T, V>.S2.E")
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("S1<T, V>.S2.E").WithLocation(15, 43)
                 );
         }
 
@@ -12089,27 +12096,27 @@ class TestClass
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (5,9): error CS0670: Field cannot have void type
-                //         void Field2 = 0;
-                Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "void"),
                 // (6,16): error CS0670: Field cannot have void type
                 //         public void Field1;
-                Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "void"),
-                // (10,13): error CS0670: Field cannot have void type
-                //             void Field1;
-                Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "void"),
+                Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "void").WithLocation(6, 16),
+                // (5,9): error CS0670: Field cannot have void type
+                //         void Field2 = 0;
+                Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "void").WithLocation(5, 9),
                 // (11,22): error CS0670: Field cannot have void type
                 //             internal void Field2;
-                Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "void"),
+                Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "void").WithLocation(11, 22),
+                // (10,13): error CS0670: Field cannot have void type
+                //             void Field1;
+                Diagnostic(ErrorCode.ERR_FieldCantHaveVoidType, "void").WithLocation(10, 13),
                 // (5,23): error CS0029: Cannot implicitly convert type 'int' to 'void'
                 //         void Field2 = 0;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "void"),
-                // (10,18): warning CS0169: The field 'NS.Goo.SGoo.Field1' is never used
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "void").WithLocation(5, 23),
+                // (10,18): warning CS0169: The field 'Goo.SGoo.Field1' is never used
                 //             void Field1;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "Field1").WithArguments("NS.Goo.SGoo.Field1"),
-                // (11,27): warning CS0649: Field 'NS.Goo.SGoo.Field2' is never assigned to, and will always have its default value 
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "Field1").WithArguments("Goo.SGoo.Field1").WithLocation(10, 18),
+                // (11,27): warning CS0649: Field 'Goo.SGoo.Field2' is never assigned to, and will always have its default value 
                 //             internal void Field2;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field2").WithArguments("NS.Goo.SGoo.Field2", "")
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field2").WithArguments("Goo.SGoo.Field2", "").WithLocation(11, 27)
                 );
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
@@ -12139,11 +12146,21 @@ class TestClass
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_SystemVoid, "Void"),
-                Diagnostic(ErrorCode.ERR_SystemVoid, "Void"),
-                Diagnostic(ErrorCode.ERR_SystemVoid, "Void"),
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IGoo<Void>").WithArguments("NS.Goo.SGoo", "NS.IGoo<System.Void>.M(System.Void)"),
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "GetVoid").WithArguments("NS.Goo.GetVoid()"));
+                // (12,16): error CS0673: System.Void cannot be used from C# -- use typeof(void) to get the void type object
+                //         extern Void GetVoid();
+                Diagnostic(ErrorCode.ERR_SystemVoid, "Void").WithLocation(12, 16),
+                // (14,28): error CS0673: System.Void cannot be used from C# -- use typeof(void) to get the void type object
+                //         struct SGoo : IGoo<Void>
+                Diagnostic(ErrorCode.ERR_SystemVoid, "Void").WithLocation(14, 28),
+                // (7,9): error CS0673: System.Void cannot be used from C# -- use typeof(void) to get the void type object
+                //         Void M(T t);
+                Diagnostic(ErrorCode.ERR_SystemVoid, "Void").WithLocation(7, 9),
+                // (14,23): error CS0535: 'Goo.SGoo' does not implement interface member 'IGoo<Void>.M(Void)'
+                //         struct SGoo : IGoo<Void>
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IGoo<Void>").WithArguments("Goo.SGoo", "IGoo<Void>.M(Void)").WithLocation(14, 23),
+                // (12,21): warning CS0626: Method, operator, or accessor 'Goo.GetVoid()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //         extern Void GetVoid();
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "GetVoid").WithArguments("Goo.GetVoid()").WithLocation(12, 21));
         }
 
         [Fact]
@@ -12274,18 +12291,18 @@ class C5<T> where T : I
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (6,27): error CS0681: The modifier 'abstract' is not valid on fields. Try using a property instead.
+                // (5,27): error CS0681: The modifier 'abstract' is not valid on fields. Try using a property instead.
                 //         public abstract T field;
-                Diagnostic(ErrorCode.ERR_AbstractField, "field"),
-                // (10,43): error CS0681: The modifier 'abstract' is not valid on fields. Try using a property instead.
+                Diagnostic(ErrorCode.ERR_AbstractField, "field").WithLocation(5, 27),
+                // (9,43): error CS0681: The modifier 'abstract' is not valid on fields. Try using a property instead.
                 //             abstract internal Goo<object> field;
-                Diagnostic(ErrorCode.ERR_AbstractField, "field"),
-                // (6,27): warning CS0649: Field 'NS.Goo<T>.field' is never assigned to, and will always have its default value 
+                Diagnostic(ErrorCode.ERR_AbstractField, "field").WithLocation(9, 43),
+                // (5,27): warning CS0649: Field 'Goo<T>.field' is never assigned to, and will always have its default value 
                 //         public abstract T field;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("NS.Goo<T>.field", ""),
-                // (10,43): warning CS0649: Field 'NS.Goo<T>.SGoo.field' is never assigned to, and will always have its default value null
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("Goo<T>.field", "").WithLocation(5, 27),
+                // (9,43): warning CS0649: Field 'Goo<T>.SGoo.field' is never assigned to, and will always have its default value null
                 //             abstract internal Goo<object> field;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("NS.Goo<T>.SGoo.field", "null")
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("Goo<T>.SGoo.field", "null").WithLocation(9, 43)
                 );
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
@@ -12674,10 +12691,12 @@ interface ID<T> where T : Array { }";
                 // (3,27): error CS0702: Constraint cannot be special class 'object'
                 // interface IB<T> where T : System.Object { }
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "System.Object").WithArguments("object").WithLocation(3, 27),
-                // (4,30): error CS0702: Constraint cannot be special class 'System.ValueType'
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "ValueType").WithArguments("System.ValueType").WithLocation(4, 30),
-                // (5,27): error CS0702: Constraint cannot be special class 'System.Array'
-                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "Array").WithArguments("System.Array").WithLocation(5, 27));
+                // (4,30): error CS0702: Constraint cannot be special class 'ValueType'
+                // interface IC<T, U> where T : ValueType { }
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "ValueType").WithArguments("ValueType").WithLocation(4, 30),
+                // (5,27): error CS0702: Constraint cannot be special class 'Array'
+                // interface ID<T> where T : Array { }
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "Array").WithArguments("Array").WithLocation(5, 27));
         }
 
         [Fact]
@@ -12940,12 +12959,12 @@ static class C
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (75): error CS07: Static class 'Derived' cannot derive from type 'Base'. Static classes must derive from object.
+                // (7,35): error CS0713: Static class 'Derived' cannot derive from type 'Base'. Static classes must derive from object.
                 //     public static class Derived : Base
-                Diagnostic(ErrorCode.ERR_StaticDerivedFromNonObject, "Base").WithArguments("NS.Derived", "NS.Base").WithLocation(7, 35),
-                // (15,25): error CS07: Static class 'D<V>' cannot derive from type 'Base1<string, V>'. Static classes must derive from object.
+                Diagnostic(ErrorCode.ERR_StaticDerivedFromNonObject, "Base").WithArguments("Derived", "Base").WithLocation(7, 35),
+                // (15,25): error CS0713: Static class 'D<V>' cannot derive from type 'Base1<string, V>'. Static classes must derive from object.
                 //     static class D<V> : Base1<string, V>
-                Diagnostic(ErrorCode.ERR_StaticDerivedFromNonObject, "Base1<string, V>").WithArguments("NS.D<V>", "NS.Base1<string, V>").WithLocation(15, 25));
+                Diagnostic(ErrorCode.ERR_StaticDerivedFromNonObject, "Base1<string, V>").WithArguments("D<V>", "Base1<string, V>").WithLocation(15, 25));
         }
 
         [Fact]
@@ -12989,10 +13008,12 @@ static class D : B { }
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (7,29): error CS0714: 'NS.C': static classes cannot implement interfaces
-                Diagnostic(ErrorCode.ERR_StaticClassInterfaceImpl, "I").WithArguments("NS.C", "NS.I"),
-                // (15,25): error CS0714: 'NS.D<V>': static classes cannot implement interfaces
-                Diagnostic(ErrorCode.ERR_StaticClassInterfaceImpl, "IGoo<string, V>").WithArguments("NS.D<V>", "NS.IGoo<string, V>"));
+                // (7,29): error CS0714: 'C': static classes cannot implement interfaces
+                //     public static class C : I
+                Diagnostic(ErrorCode.ERR_StaticClassInterfaceImpl, "I").WithArguments("C", "I").WithLocation(7, 29),
+                // (15,25): error CS0714: 'D<V>': static classes cannot implement interfaces
+                //     static class D<V> : IGoo<string, V>
+                Diagnostic(ErrorCode.ERR_StaticClassInterfaceImpl, "IGoo<string, V>").WithArguments("D<V>", "IGoo<string, V>").WithLocation(15, 25));
         }
 
         [Fact]
@@ -13264,24 +13285,24 @@ static class S
 }";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (12,9): error CS0719: 'NS.C': array elements cannot be of static type
+                // (12,9): error CS0719: 'C': array elements cannot be of static type
                 //         C[] X;
-                Diagnostic(ErrorCode.ERR_ArrayOfStaticClass, "C").WithArguments("NS.C"),
-                // (13,11): error CS07: Cannot declare a variable of static type 'NS.C'
+                Diagnostic(ErrorCode.ERR_ArrayOfStaticClass, "C").WithArguments("C").WithLocation(12, 9),
+                // (13,11): error CS0723: Cannot declare a variable of static type 'C'
                 //         C Y;
-                Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "Y").WithArguments("NS.C"),
-                // (14,16): error CS07: Cannot declare a variable of static type 'NS.D<int>'
+                Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "Y").WithArguments("C").WithLocation(13, 11),
+                // (14,16): error CS0723: Cannot declare a variable of static type 'D<int>'
                 //         D<int> Z;
-                Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "Z").WithArguments("NS.D<int>"),
-                // (12,13): warning CS0169: The field 'NS.Test.X' is never used
+                Diagnostic(ErrorCode.ERR_VarDeclIsStaticClass, "Z").WithArguments("D<int>").WithLocation(14, 16),
+                // (12,13): warning CS0169: The field 'Test.X' is never used
                 //         C[] X;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "X").WithArguments("NS.Test.X"),
-                // (13,11): warning CS0169: The field 'NS.Test.Y' is never used
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "X").WithArguments("Test.X").WithLocation(12, 13),
+                // (13,11): warning CS0169: The field 'Test.Y' is never used
                 //         C Y;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "Y").WithArguments("NS.Test.Y"),
-                // (14,16): warning CS0169: The field 'NS.Test.Z' is never used
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "Y").WithArguments("Test.Y").WithLocation(13, 11),
+                // (14,16): warning CS0169: The field 'Test.Z' is never used
                 //         D<int> Z;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "Z").WithArguments("NS.Test.Z"));
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "Z").WithArguments("Test.Z").WithLocation(14, 16));
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             // TODO...
         }
@@ -13393,16 +13414,21 @@ class C
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (12,14): warning CS8898: 'NS.D<T>': static types cannot be used as return types
-                Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "M").WithArguments("NS.D<T>").WithLocation(12, 14),
-                // (16,25): error CS0722: 'NS.C': static types cannot be used as return types
-                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "F").WithArguments("NS.C").WithLocation(16, 25),
-                // (23,29): error CS0722: 'NS.D<sbyte>': static types cannot be used as return types
-                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "M").WithArguments("NS.D<sbyte>").WithLocation(23, 29),
-                // (16,25): warning CS0626: Method, operator, or accessor 'NS.Test.F()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "F").WithArguments("NS.Test.F()").WithLocation(16, 25),
-                // (23,29): warning CS0626: Method, operator, or accessor 'NS.Test.S.M()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M").WithArguments("NS.Test.S.M()").WithLocation(23, 29));
+                // (16,25): error CS0722: 'C': static types cannot be used as return types
+                //         extern public C F(); // CS0722
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "F").WithArguments("C").WithLocation(16, 25),
+                // (12,14): warning CS8898: 'D<T>': static types cannot be used as return types
+                //         D<T> M(); // Dev10 no error?
+                Diagnostic(ErrorCode.WRN_ReturnTypeIsStaticClass, "M").WithArguments("D<T>").WithLocation(12, 14),
+                // (23,29): error CS0722: 'D<sbyte>': static types cannot be used as return types
+                //             extern D<sbyte> M();  // CS0722
+                Diagnostic(ErrorCode.ERR_ReturnTypeIsStaticClass, "M").WithArguments("D<sbyte>").WithLocation(23, 29),
+                // (23,29): warning CS0626: Method, operator, or accessor 'Test.S.M()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //             extern D<sbyte> M();  // CS0722
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M").WithArguments("Test.S.M()").WithLocation(23, 29),
+                // (16,25): warning CS0626: Method, operator, or accessor 'Test.F()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //         extern public C F(); // CS0722
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "F").WithArguments("Test.F()").WithLocation(16, 25));
         }
 
         [Fact]
@@ -13817,9 +13843,9 @@ namespace NS
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.RegularWithExtendedPartialMethods).VerifyDiagnostics(
-                // (7,22): error CS8795: Partial method 'C.F(out int)' must have accessibility modifiers because it has 'out' parameters.
+                // (7,22): error CS8797: Partial method 'C.F(out int)' must have accessibility modifiers because it has 'out' parameters.
                 //         partial void F(out int x);
-                Diagnostic(ErrorCode.ERR_PartialMethodWithOutParamMustHaveAccessMods, "F").WithArguments("NS.C.F(out int)").WithLocation(7, 22));
+                Diagnostic(ErrorCode.ERR_PartialMethodWithOutParamMustHaveAccessMods, "F").WithArguments("C.F(out int)").WithLocation(7, 22));
         }
 
         [Fact]
@@ -14158,7 +14184,7 @@ namespace N
             CreateCompilation(source).VerifyDiagnostics(
                 // (25,22): error CS0761: Partial method declarations of 'C.M4<T, U>()' have inconsistent constraints for type parameter 'T'
                 //         partial void M4<T, U>() where T : NIA { }
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M4").WithArguments("N.C.M4<T, U>()", "T").WithLocation(25, 22));
+                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M4").WithArguments("C.M4<T, U>()", "T").WithLocation(25, 22));
         }
 
         [Fact]
@@ -14270,19 +14296,19 @@ class A : IFace<int>
             comp.VerifyDiagnostics(
                 // (6,24): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
                 //         extern private var M();
-                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var"),
+                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(6, 24),
                 // (7,21): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
                 //         void MM(ref var v) { }
-                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var"),
+                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(7, 21),
                 // (5,16): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
                 //         static var myStaticField;
-                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var"),
-                // (6,28): warning CS0626: Method, operator, or accessor 'NS.Test.M()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(5, 16),
+                // (6,28): warning CS0626: Method, operator, or accessor 'Test.M()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //         extern private var M();
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M").WithArguments("NS.Test.M()"),
-                // (5,20): warning CS0169: The field 'NS.Test.myStaticField' is never used
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M").WithArguments("Test.M()").WithLocation(6, 28),
+                // (5,20): warning CS0169: The field 'Test.myStaticField' is never used
                 //         static var myStaticField;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "myStaticField").WithArguments("NS.Test.myStaticField")
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "myStaticField").WithArguments("Test.myStaticField").WithLocation(5, 20)
                 );
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
@@ -14315,10 +14341,10 @@ namespace TestNamespace
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (9,20): error CS0625: 'Str.Num': instance field types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
+                // (9,20): error CS0625: 'Str.Num': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
                 //         public int Num // CS0625
-                Diagnostic(ErrorCode.ERR_MissingStructOffset, "Num").WithArguments("TestNamespace.Str.Num").WithLocation(9, 20)
-                );
+                Diagnostic(ErrorCode.ERR_MissingStructOffset, "Num").WithArguments("Str.Num").WithLocation(9, 20)
+                 );
         }
 
         [Fact]
@@ -14369,7 +14395,7 @@ namespace TestNamespace
             CreateCompilation(text).VerifyDiagnostics(
                 // (8,17): error CS0663: 'MyClass' cannot define an overloaded constructor that differs only on parameter modifiers 'out' and 'ref'
                 //         public  MyClass(out int num)
-                Diagnostic(ErrorCode.ERR_OverloadRefKind, "MyClass").WithArguments("TestNamespace.MyClass", "constructor", "out", "ref").WithLocation(8, 17));
+                Diagnostic(ErrorCode.ERR_OverloadRefKind, "MyClass").WithArguments("MyClass", "constructor", "out", "ref").WithLocation(8, 17));
         }
 
         [Fact]
@@ -14485,18 +14511,24 @@ static class B {
     partial interface I7<in T, U> { }
 }";
             CreateCompilation(text).VerifyDiagnostics(
-                // (4,23): error CS1067: Partial declarations of 'NS.I1<T>' must have the same type parameter names and variance modifiers in the same order
-                Diagnostic(ErrorCode.ERR_PartialWrongTypeParamsVariance, "I1").WithArguments("NS.I1<T>"),
-                // (7,23): error CS1067: Partial declarations of 'NS.I2<T>' must have the same type parameter names and variance modifiers in the same order
-                Diagnostic(ErrorCode.ERR_PartialWrongTypeParamsVariance, "I2").WithArguments("NS.I2<T>"),
-                // (10,23): error CS1067: Partial declarations of 'NS.I3<T>' must have the same type parameter names and variance modifiers in the same order
-                Diagnostic(ErrorCode.ERR_PartialWrongTypeParamsVariance, "I3").WithArguments("NS.I3<T>"),
-                // (14,23): error CS1067: Partial declarations of 'NS.I4<T, U>' must have the same type parameter names and variance modifiers in the same order
-                Diagnostic(ErrorCode.ERR_PartialWrongTypeParamsVariance, "I4").WithArguments("NS.I4<T, U>"),
-                // (18,23): error CS1067: Partial declarations of 'NS.I5<S>' must have the same type parameter names and variance modifiers in the same order
-                Diagnostic(ErrorCode.ERR_PartialWrongTypeParamsVariance, "I5").WithArguments("NS.I5<S>"),
-                // (22,23): error CS0264: Partial declarations of 'NS.I6<R, T>' must have the same type parameter names in the same order
-                Diagnostic(ErrorCode.ERR_PartialWrongTypeParams, "I6").WithArguments("NS.I6<R, T>"));
+                // (4,23): error CS1067: Partial declarations of 'I1<T>' must have the same type parameter names and variance modifiers in the same order
+                //     partial interface I1<in T> { }
+                Diagnostic(ErrorCode.ERR_PartialWrongTypeParamsVariance, "I1").WithArguments("I1<T>").WithLocation(4, 23),
+                // (7,23): error CS1067: Partial declarations of 'I2<T>' must have the same type parameter names and variance modifiers in the same order
+                //     partial interface I2<in T> { }
+                Diagnostic(ErrorCode.ERR_PartialWrongTypeParamsVariance, "I2").WithArguments("I2<T>").WithLocation(7, 23),
+                // (10,23): error CS1067: Partial declarations of 'I3<T>' must have the same type parameter names and variance modifiers in the same order
+                //     partial interface I3<T> { }
+                Diagnostic(ErrorCode.ERR_PartialWrongTypeParamsVariance, "I3").WithArguments("I3<T>").WithLocation(10, 23),
+                // (14,23): error CS1067: Partial declarations of 'I4<T, U>' must have the same type parameter names and variance modifiers in the same order
+                //     partial interface I4<T, U> { }
+                Diagnostic(ErrorCode.ERR_PartialWrongTypeParamsVariance, "I4").WithArguments("I4<T, U>").WithLocation(14, 23),
+                // (18,23): error CS1067: Partial declarations of 'I5<S>' must have the same type parameter names and variance modifiers in the same order
+                //     partial interface I5<S> { }
+                Diagnostic(ErrorCode.ERR_PartialWrongTypeParamsVariance, "I5").WithArguments("I5<S>").WithLocation(18, 23),
+                // (22,23): error CS0264: Partial declarations of 'I6<R, T>' must have the same type parameter names in the same order
+                //     partial interface I6<R, in T> { }
+                Diagnostic(ErrorCode.ERR_PartialWrongTypeParams, "I6").WithArguments("I6<R, T>").WithLocation(22, 23));
         }
 
         [Fact]
@@ -14724,25 +14756,25 @@ static class B
             compilation.VerifyDiagnostics(
                 // (2,2): error CS1112: Do not use 'System.Runtime.CompilerServices.ExtensionAttribute'. Use the 'this' keyword instead.
                 // [System.Runtime.CompilerServices.ExtensionAttribute]
-                Diagnostic(ErrorCode.ERR_ExplicitExtension, "System.Runtime.CompilerServices.ExtensionAttribute"),
-                // (9,6): error CS1112: Do not use 'System.Runtime.CompilerServices.ExtensionAttribute'. Use the 'this' keyword instead.
-                //     [Extension]
-                Diagnostic(ErrorCode.ERR_ExplicitExtension, "Extension"),
+                Diagnostic(ErrorCode.ERR_ExplicitExtension, "System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(2, 2),
+                // (19,6): error CS1729: 'ExtensionAttribute' does not contain a constructor that takes 1 arguments
+                //     [Extension(0)]
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Extension(0)").WithArguments("ExtensionAttribute", "1").WithLocation(19, 6),
                 // (11,6): error CS1112: Do not use 'System.Runtime.CompilerServices.ExtensionAttribute'. Use the 'this' keyword instead.
                 //     [ExtensionAttribute]
-                Diagnostic(ErrorCode.ERR_ExplicitExtension, "ExtensionAttribute"),
+                Diagnostic(ErrorCode.ERR_ExplicitExtension, "ExtensionAttribute").WithLocation(11, 6),
                 // (13,6): error CS0592: Attribute 'Extension' is not valid on this declaration type. It is only valid on 'assembly, class, method' declarations.
                 //     [Extension]
-                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Extension").WithArguments("Extension", "assembly, class, method"),
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Extension").WithArguments("Extension", "assembly, class, method").WithLocation(13, 6),
                 // (16,10): error CS1112: Do not use 'System.Runtime.CompilerServices.ExtensionAttribute'. Use the 'this' keyword instead.
                 //         [Extension]
-                Diagnostic(ErrorCode.ERR_ExplicitExtension, "Extension"),
-                // (19,6): error CS1729: 'System.Runtime.CompilerServices.ExtensionAttribute' does not contain a constructor that takes 1 arguments
-                //     [Extension(0)]
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Extension(0)").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute", "1"),
+                Diagnostic(ErrorCode.ERR_ExplicitExtension, "Extension").WithLocation(16, 10),
+                // (9,6): error CS1112: Do not use 'System.Runtime.CompilerServices.ExtensionAttribute'. Use the 'this' keyword instead.
+                //     [Extension]
+                Diagnostic(ErrorCode.ERR_ExplicitExtension, "Extension").WithLocation(9, 6),
                 // (20,19): warning CS0169: The field 'B.F' is never used
                 //     static object F;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "F").WithArguments("B.F"));
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "F").WithArguments("B.F").WithLocation(20, 19));
         }
 
         [Fact]
@@ -14934,18 +14966,18 @@ class C
 }
 ";
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-// (5,5): error CS1599: The return type of a method, delegate, or function pointer cannot be 'System.ArgIterator'
-//     ArgIterator M(); // 1599
-Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator"),
-// (11,12): error CS1599: The return type of a method, delegate, or function pointer cannot be 'System.RuntimeArgumentHandle'
-//     public RuntimeArgumentHandle Test2() // 1599
-Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "RuntimeArgumentHandle").WithArguments("System.RuntimeArgumentHandle"),
-// (17,19): error CS1599: The return type of a method, delegate, or function pointer cannot be 'System.ArgIterator'
-//     public static ArgIterator operator +(C c1, C c2) // 1599
-Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator"),
-// (9,21): error CS1599: The return type of a method, delegate, or function pointer cannot be 'System.TypedReference'
-//     public delegate TypedReference Test1(); // 1599
-Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "TypedReference").WithArguments("System.TypedReference")
+                // (5,5): error CS1599: The return type of a method, delegate, or function pointer cannot be 'ArgIterator'
+                //     ArgIterator M(); // 1599
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ArgIterator").WithArguments("ArgIterator").WithLocation(5, 5),
+                // (17,19): error CS1599: The return type of a method, delegate, or function pointer cannot be 'ArgIterator'
+                //     public static ArgIterator operator +(C c1, C c2) // 1599
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "ArgIterator").WithArguments("ArgIterator").WithLocation(17, 19),
+                // (11,12): error CS1599: The return type of a method, delegate, or function pointer cannot be 'RuntimeArgumentHandle'
+                //     public RuntimeArgumentHandle Test2() // 1599
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "RuntimeArgumentHandle").WithArguments("RuntimeArgumentHandle").WithLocation(11, 12),
+                // (9,21): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
+                //     public delegate TypedReference Test1(); // 1599
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "TypedReference").WithArguments("TypedReference").WithLocation(9, 21)
                 );
         }
 
@@ -14980,13 +15012,13 @@ class C
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
                 // (6,9): error CS1599: The return type of a method, delegate, or function pointer cannot be 'TypedReference'
                 //         System.TypedReference local1() // 1599
-                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(6, 9),
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "System.TypedReference").WithArguments("TypedReference").WithLocation(6, 9),
                 // (12,9): error CS1599: The return type of a method, delegate, or function pointer cannot be 'RuntimeArgumentHandle'
                 //         System.RuntimeArgumentHandle local2() // 1599
-                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "System.RuntimeArgumentHandle").WithArguments("System.RuntimeArgumentHandle").WithLocation(12, 9),
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "System.RuntimeArgumentHandle").WithArguments("RuntimeArgumentHandle").WithLocation(12, 9),
                 // (18,9): error CS1599: The return type of a method, delegate, or function pointer cannot be 'ArgIterator'
                 //         System.ArgIterator local3() // 1599
-                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(18, 9));
+                Diagnostic(ErrorCode.ERR_MethodReturnCantBeRefAny, "System.ArgIterator").WithArguments("ArgIterator").WithLocation(18, 9));
         }
 
         [Fact, WorkItem(27463, "https://github.com/dotnet/roslyn/issues/27463")]
@@ -15116,31 +15148,31 @@ class C
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
                 // (8,25): error CS1601: Cannot make reference to variable of type 'TypedReference'
                 //             void local1(ref System.TypedReference tr) { } // 1601
-                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref System.TypedReference tr").WithArguments("System.TypedReference").WithLocation(8, 25),
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref System.TypedReference tr").WithArguments("TypedReference").WithLocation(8, 25),
                 // (11,25): error CS1601: Cannot make reference to variable of type 'TypedReference'
                 //             void local2(in System.TypedReference tr) { } // 1601
-                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "in System.TypedReference tr").WithArguments("System.TypedReference").WithLocation(11, 25),
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "in System.TypedReference tr").WithArguments("TypedReference").WithLocation(11, 25),
                 // (14,25): error CS1601: Cannot make reference to variable of type 'TypedReference'
                 //             void local3(out System.TypedReference tr) // 1601
-                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out System.TypedReference tr").WithArguments("System.TypedReference").WithLocation(14, 25),
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out System.TypedReference tr").WithArguments("TypedReference").WithLocation(14, 25),
                 // (23,25): error CS1601: Cannot make reference to variable of type 'ArgIterator'
                 //             void local1(ref System.ArgIterator ai) { } // 1601
-                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref System.ArgIterator ai").WithArguments("System.ArgIterator").WithLocation(23, 25),
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref System.ArgIterator ai").WithArguments("ArgIterator").WithLocation(23, 25),
                 // (26,25): error CS1601: Cannot make reference to variable of type 'ArgIterator'
                 //             void local2(in System.ArgIterator ai) { } // 1601
-                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "in System.ArgIterator ai").WithArguments("System.ArgIterator").WithLocation(26, 25),
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "in System.ArgIterator ai").WithArguments("ArgIterator").WithLocation(26, 25),
                 // (29,25): error CS1601: Cannot make reference to variable of type 'ArgIterator'
                 //             void local3(out System.ArgIterator ai) // 1601
-                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out System.ArgIterator ai").WithArguments("System.ArgIterator").WithLocation(29, 25),
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out System.ArgIterator ai").WithArguments("ArgIterator").WithLocation(29, 25),
                 // (38,25): error CS1601: Cannot make reference to variable of type 'RuntimeArgumentHandle'
                 //             void local1(ref System.RuntimeArgumentHandle ah) { } // 1601
-                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref System.RuntimeArgumentHandle ah").WithArguments("System.RuntimeArgumentHandle").WithLocation(38, 25),
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "ref System.RuntimeArgumentHandle ah").WithArguments("RuntimeArgumentHandle").WithLocation(38, 25),
                 // (41,25): error CS1601: Cannot make reference to variable of type 'RuntimeArgumentHandle'
                 //             void local2(in System.RuntimeArgumentHandle ah) { } // 1601
-                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "in System.RuntimeArgumentHandle ah").WithArguments("System.RuntimeArgumentHandle").WithLocation(41, 25),
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "in System.RuntimeArgumentHandle ah").WithArguments("RuntimeArgumentHandle").WithLocation(41, 25),
                 // (44,25): error CS1601: Cannot make reference to variable of type 'RuntimeArgumentHandle'
                 //             void local3(out System.RuntimeArgumentHandle ah) // 1601
-                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out System.RuntimeArgumentHandle ah").WithArguments("System.RuntimeArgumentHandle").WithLocation(44, 25));
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out System.RuntimeArgumentHandle ah").WithArguments("RuntimeArgumentHandle").WithLocation(44, 25));
         }
 
         [WorkItem(542003, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542003")]
@@ -16302,12 +16334,12 @@ class MyClass
             var comp = CreateCompilation(text);
 
             comp.VerifyDiagnostics(
-    // (13,33): error CS1770: A value of type 'DateTime' cannot be used as default parameter for nullable parameter 'x' because 'DateTime' is not a simple type
-    //     public void Goo11(DateTime? x = default(DateTime)) { }
-    Diagnostic(ErrorCode.ERR_NoConversionForNubDefaultParam, "x").WithArguments("System.DateTime", "x").WithLocation(13, 33),
-    // (14,33): error CS1770: A value of type 'DateTime' cannot be used as default parameter for nullable parameter 'x' because 'DateTime' is not a simple type
-    //     public void Goo12(DateTime? x = new DateTime()) { }
-    Diagnostic(ErrorCode.ERR_NoConversionForNubDefaultParam, "x").WithArguments("System.DateTime", "x").WithLocation(14, 33)
+                // (13,33): error CS1770: A value of type 'DateTime' cannot be used as default parameter for nullable parameter 'x' because 'DateTime' is not a simple type
+                //     public void Goo11(DateTime? x = default(DateTime)) { }
+                Diagnostic(ErrorCode.ERR_NoConversionForNubDefaultParam, "x").WithArguments("DateTime", "x").WithLocation(13, 33),
+                // (14,33): error CS1770: A value of type 'DateTime' cannot be used as default parameter for nullable parameter 'x' because 'DateTime' is not a simple type
+                //     public void Goo12(DateTime? x = new DateTime()) { }
+                Diagnostic(ErrorCode.ERR_NoConversionForNubDefaultParam, "x").WithArguments("DateTime", "x").WithLocation(14, 33)
                 );
         }
 
@@ -16425,8 +16457,9 @@ public interface ISomeInterface
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (4,17): error CS1910: Argument of type 'System.Type' is not applicable for the DefaultValue attribute
-                Diagnostic(ErrorCode.ERR_DefaultValueBadValueType, "DefaultParameterValue").WithArguments("System.Type"));
+                // (4,17): error CS1910: Argument of type 'Type' is not applicable for the DefaultParameterValue attribute
+                //     void Test1([DefaultParameterValue(typeof(int))]System.Type t);   // CS1910
+                Diagnostic(ErrorCode.ERR_DefaultValueBadValueType, "DefaultParameterValue").WithArguments("Type").WithLocation(4, 17));
         }
 
         [Fact]
@@ -17341,13 +17374,13 @@ namespace SA
             comp.VerifyDiagnostics(
                 // (11,16): warning CS0435: The namespace 'CSFields' in '' conflicts with the imported type 'CSFields' in 'CSFields, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the namespace defined in ''.
                 //         void M(CSFields.FFF p) { }
-                Diagnostic(ErrorCode.WRN_SameFullNameThisNsAgg, "CSFields").WithArguments("", "CSFields", "CSFields, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CSFields"),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisNsAgg, "CSFields").WithArguments("", "CSFields", "CSFields, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CSFields").WithLocation(11, 16),
                 // (10,9): warning CS0435: The namespace 'CSFields' in '' conflicts with the imported type 'CSFields' in 'CSFields, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the namespace defined in ''.
                 //         CSFields.FFF var = null;
-                Diagnostic(ErrorCode.WRN_SameFullNameThisNsAgg, "CSFields").WithArguments("", "CSFields", "CSFields, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CSFields"),
-                // (10,22): warning CS0414: The field 'SA.Test.var' is assigned but its value is never used
+                Diagnostic(ErrorCode.WRN_SameFullNameThisNsAgg, "CSFields").WithArguments("", "CSFields", "CSFields, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CSFields").WithLocation(10, 9),
+                // (10,22): warning CS0414: The field 'Test.var' is assigned but its value is never used
                 //         CSFields.FFF var = null;
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "var").WithArguments("SA.Test.var")
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "var").WithArguments("Test.var").WithLocation(10, 22)
                 );
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("SA").Single() as NamespaceSymbol;
@@ -17379,14 +17412,13 @@ namespace SA
             comp.VerifyDiagnostics(
                 // (8,16): warning CS0436: The type 'Class1' in '' conflicts with the imported type 'Class1' in 'MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         void M(Class1 p) { }
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Class1").WithArguments("", "Class1", "MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", "Class1"),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Class1").WithArguments("", "Class1", "MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", "Class1").WithLocation(8, 16),
                 // (7,9): warning CS0436: The type 'Class1' in '' conflicts with the imported type 'Class1' in 'MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         Class1 cls;
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Class1").WithArguments("", "Class1", "MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", "Class1"),
-                // (7,16): warning CS0169: The field 'SA.Test.cls' is never used
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Class1").WithArguments("", "Class1", "MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", "Class1").WithLocation(7, 9),
+                // (7,16): warning CS0169: The field 'Test.cls' is never used
                 //         Class1 cls;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "cls").WithArguments("SA.Test.cls"));
-
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "cls").WithArguments("Test.cls").WithLocation(7, 16));
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("SA").Single() as NamespaceSymbol;
             // TODO...
@@ -17458,25 +17490,35 @@ internal class D8 : NNN.X { }
 
             lib.VerifyDiagnostics(
                 // C:\lib.cs(12,21): warning CS0435: The namespace 'CCN' in 'C:\lib.cs' conflicts with the imported type 'CCN' in 'Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the namespace defined in 'C:\lib.cs'.
-                Diagnostic(ErrorCode.WRN_SameFullNameThisNsAgg, "CCN").WithArguments(@"C:\lib.cs", "CCN", "Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CCN"),
+                // internal class DN : CCN.X { }
+                Diagnostic(ErrorCode.WRN_SameFullNameThisNsAgg, "CCN").WithArguments(@"C:\lib.cs", "CCN", "Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CCN").WithLocation(12, 21),
                 // C:\lib.cs(16,21): warning CS0435: The namespace 'NCN' in 'C:\lib.cs' conflicts with the imported type 'NCN' in 'Ref2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the namespace defined in 'C:\lib.cs'.
-                Diagnostic(ErrorCode.WRN_SameFullNameThisNsAgg, "NCN").WithArguments(@"C:\lib.cs", "NCN", "Ref2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NCN"),
-                // C:\lib.cs(16,25): warning CS0436: The type 'NCN.X' in 'C:\lib.cs' conflicts with the imported type 'NCN.X' in 'Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'C:\lib.cs'.
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "X").WithArguments(@"C:\lib.cs", "NCN.X", "Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NCN.X"),
+                // internal class D6 : NCN.X { }
+                Diagnostic(ErrorCode.WRN_SameFullNameThisNsAgg, "NCN").WithArguments(@"C:\lib.cs", "NCN", "Ref2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NCN").WithLocation(16, 21),
+                // C:\lib.cs(16,25): warning CS0436: The type 'X' in 'C:\lib.cs' conflicts with the imported type 'X' in 'Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'C:\lib.cs'.
+                // internal class D6 : NCN.X { }
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "X").WithArguments(@"C:\lib.cs", "X", "Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "X").WithLocation(16, 25),
                 // C:\lib.cs(11,21): warning CS0436: The type 'CCC' in 'C:\lib.cs' conflicts with the imported type 'CCC' in 'Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'C:\lib.cs'.
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "CCC").WithArguments(@"C:\lib.cs", "CCC", "Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CCC"),
+                // internal class DC : CCC.X { }
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "CCC").WithArguments(@"C:\lib.cs", "CCC", "Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CCC").WithLocation(11, 21),
                 // C:\lib.cs(15,21): warning CS0436: The type 'NCC' in 'C:\lib.cs' conflicts with the imported type 'NCC' in 'Ref2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'C:\lib.cs'.
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "NCC").WithArguments(@"C:\lib.cs", "NCC", "Ref2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NCC"),
+                // internal class D5 : NCC.X { }
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "NCC").WithArguments(@"C:\lib.cs", "NCC", "Ref2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NCC").WithLocation(15, 21),
                 // C:\lib.cs(13,21): warning CS0436: The type 'CNC' in 'C:\lib.cs' conflicts with the imported type 'CNC' in 'Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'C:\lib.cs'.
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "CNC").WithArguments(@"C:\lib.cs", "CNC", "Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CNC"),
+                // internal class D3 : CNC.X { }
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "CNC").WithArguments(@"C:\lib.cs", "CNC", "Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CNC").WithLocation(13, 21),
                 // C:\lib.cs(14,21): warning CS0435: The namespace 'CNN' in 'C:\lib.cs' conflicts with the imported type 'CNN' in 'Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the namespace defined in 'C:\lib.cs'.
-                Diagnostic(ErrorCode.WRN_SameFullNameThisNsAgg, "CNN").WithArguments(@"C:\lib.cs", "CNN", "Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CNN"),
-                // C:\lib.cs(14,25): warning CS0436: The type 'CNN.X' in 'C:\lib.cs' conflicts with the imported type 'CNN.X' in 'Ref2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'C:\lib.cs'.
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "X").WithArguments(@"C:\lib.cs", "CNN.X", "Ref2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CNN.X"),
+                // internal class D4 : CNN.X { }
+                Diagnostic(ErrorCode.WRN_SameFullNameThisNsAgg, "CNN").WithArguments(@"C:\lib.cs", "CNN", "Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "CNN").WithLocation(14, 21),
+                // C:\lib.cs(14,25): warning CS0436: The type 'X' in 'C:\lib.cs' conflicts with the imported type 'X' in 'Ref2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'C:\lib.cs'.
+                // internal class D4 : CNN.X { }
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "X").WithArguments(@"C:\lib.cs", "X", "Ref2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "X").WithLocation(14, 25),
                 // C:\lib.cs(17,21): warning CS0437: The type 'NNC' in 'C:\lib.cs' conflicts with the imported namespace 'NNC' in 'Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'C:\lib.cs'.
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggNs, "NNC").WithArguments(@"C:\lib.cs", "NNC", "Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NNC"),
-                // C:\lib.cs(18,25): warning CS0436: The type 'NNN.X' in 'C:\lib.cs' conflicts with the imported type 'NNN.X' in 'Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'C:\lib.cs'.
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "X").WithArguments(@"C:\lib.cs", "NNN.X", "Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NNN.X"));
+                // internal class D7 : NNC.X { }
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggNs, "NNC").WithArguments(@"C:\lib.cs", "NNC", "Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "NNC").WithLocation(17, 21),
+                // C:\lib.cs(18,25): warning CS0436: The type 'X' in 'C:\lib.cs' conflicts with the imported type 'X' in 'Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'C:\lib.cs'.
+                // internal class D8 : NNN.X { }
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "X").WithArguments(@"C:\lib.cs", "X", "Ref1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "X").WithLocation(18, 25));
         }
 
         [Fact]
@@ -17558,14 +17600,18 @@ namespace System
             // We should report a path to an assembly rather than the assembly name when reporting an error.
 
             CreateCompilation(new SyntaxTree[] { Parse(text, "goo.cs") }).VerifyDiagnostics(
-                // goo.cs(6,15): warning CS0436: The type 'System.Int32' in 'goo.cs' conflicts with the imported type 'int' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in 'goo.cs'.
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Int32").WithArguments("goo.cs", "System.Int32", RuntimeCorLibName.FullName, "int"),
-                // goo.cs(9,13): warning CS0436: The type 'System.Int32' in 'goo.cs' conflicts with the imported type 'int' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in 'goo.cs'.
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Int32").WithArguments("goo.cs", "System.Int32", RuntimeCorLibName.FullName, "int"),
-                // goo.cs(9,23): warning CS0436: The type 'System.Int32' in 'goo.cs' conflicts with the imported type 'int' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in 'goo.cs'.
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "System.Int32").WithArguments("goo.cs", "System.Int32", RuntimeCorLibName.FullName, "int"),
+                // goo.cs(6,15): warning CS0436: The type 'Int32' in 'goo.cs' conflicts with the imported type 'int' in 'netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51'. Using the type defined in 'goo.cs'.
+                //         const Int32 MaxValue = null;
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Int32").WithArguments("goo.cs", "Int32", RuntimeCorLibName.FullName, "int").WithLocation(6, 15),
+                // goo.cs(9,13): warning CS0436: The type 'Int32' in 'goo.cs' conflicts with the imported type 'int' in 'netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51'. Using the type defined in 'goo.cs'.
+                //             Int32 x = System.Int32.MaxValue;
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Int32").WithArguments("goo.cs", "Int32", RuntimeCorLibName.FullName, "int").WithLocation(9, 13),
+                // goo.cs(9,23): warning CS0436: The type 'Int32' in 'goo.cs' conflicts with the imported type 'int' in 'netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51'. Using the type defined in 'goo.cs'.
+                //             Int32 x = System.Int32.MaxValue;
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "System.Int32").WithArguments("goo.cs", "Int32", RuntimeCorLibName.FullName, "int").WithLocation(9, 23),
                 // goo.cs(9,19): warning CS0219: The variable 'x' is assigned but its value is never used
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x"));
+                //             Int32 x = System.Int32.MaxValue;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(9, 19));
         }
 
         [WorkItem(538320, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538320")]
@@ -17624,13 +17670,13 @@ namespace SA
             comp.VerifyDiagnostics(
                 // (11,16): warning CS0437: The type 'AppCS' in '' conflicts with the imported namespace 'AppCS' in 'AppCS, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         void M(AppCS.App p) { }
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggNs, "AppCS").WithArguments("", "AppCS", "AppCS, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null", "AppCS"),
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggNs, "AppCS").WithArguments("", "AppCS", "AppCS, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null", "AppCS").WithLocation(11, 16),
                 // (10,9): warning CS0437: The type 'AppCS' in '' conflicts with the imported namespace 'AppCS' in 'AppCS, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         AppCS.App app = null;
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggNs, "AppCS").WithArguments("", "AppCS", "AppCS, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null", "AppCS"),
-                // (10,19): warning CS0414: The field 'SA.Test.app' is assigned but its value is never used
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggNs, "AppCS").WithArguments("", "AppCS", "AppCS, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null", "AppCS").WithLocation(10, 9),
+                // (10,19): warning CS0414: The field 'Test.app' is assigned but its value is never used
                 //         AppCS.App app = null;
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "app").WithArguments("SA.Test.app"));
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "app").WithArguments("Test.app").WithLocation(10, 19));
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("SA").Single() as NamespaceSymbol;
             // TODO...
@@ -18113,10 +18159,12 @@ public class C : Base
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,16): warning CS0824: Constructor 'NS.C<T>.C()' is marked external
-                Diagnostic(ErrorCode.WRN_ExternCtorNoImplementation, "C").WithArguments("NS.C<T>.C()").WithLocation(5, 16),
-                // (9,20): warning CS0824: Constructor 'NS.C<T>.S.S(string)' is marked external
-                Diagnostic(ErrorCode.WRN_ExternCtorNoImplementation, "S").WithArguments("NS.C<T>.S.S(string)").WithLocation(9, 20));
+                // (5,16): warning CS0824: Constructor 'C<T>.C()' is marked external
+                //         extern C();
+                Diagnostic(ErrorCode.WRN_ExternCtorNoImplementation, "C").WithArguments("C<T>.C()").WithLocation(5, 16),
+                // (9,20): warning CS0824: Constructor 'C<T>.S.S(string)' is marked external
+                //             extern S(string s);
+                Diagnostic(ErrorCode.WRN_ExternCtorNoImplementation, "S").WithArguments("C<T>.S.S(string)").WithLocation(9, 20));
         }
 
         [WorkItem(540859, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540859")]
@@ -20025,39 +20073,39 @@ internal class InternalClass : PublicClass
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (9,51): error CS7025: Inconsistent accessibility: event type 'System.Action<InternalInterface>' is less accessible than event 'PublicClass.A'
+                // (9,51): error CS7025: Inconsistent accessibility: event type 'Action<InternalInterface>' is less accessible than event 'PublicClass.A'
                 //     public event System.Action<InternalInterface> A;
-                Diagnostic(ErrorCode.ERR_BadVisEventType, "A").WithArguments("PublicClass.A", "System.Action<InternalInterface>"),
-                // (10,47): error CS7025: Inconsistent accessibility: event type 'System.Action<InternalClass>' is less accessible than event 'PublicClass.B'
+                Diagnostic(ErrorCode.ERR_BadVisEventType, "A").WithArguments("PublicClass.A", "Action<InternalInterface>").WithLocation(9, 51),
+                // (10,47): error CS7025: Inconsistent accessibility: event type 'Action<InternalClass>' is less accessible than event 'PublicClass.B'
                 //     public event System.Action<InternalClass> B;
-                Diagnostic(ErrorCode.ERR_BadVisEventType, "B").WithArguments("PublicClass.B", "System.Action<InternalClass>"),
-                // (11,45): error CS7025: Inconsistent accessibility: event type 'System.Action<PublicClass.Protected>' is less accessible than event 'PublicClass.C'
+                Diagnostic(ErrorCode.ERR_BadVisEventType, "B").WithArguments("PublicClass.B", "Action<InternalClass>").WithLocation(10, 47),
+                // (11,45): error CS7025: Inconsistent accessibility: event type 'Action<PublicClass.Protected>' is less accessible than event 'PublicClass.C'
                 //     internal event System.Action<Protected> C;
-                Diagnostic(ErrorCode.ERR_BadVisEventType, "C").WithArguments("PublicClass.C", "System.Action<PublicClass.Protected>"),
+                Diagnostic(ErrorCode.ERR_BadVisEventType, "C").WithArguments("PublicClass.C", "Action<PublicClass.Protected>").WithLocation(11, 45),
                 // (13,35): error CS7025: Inconsistent accessibility: event type 'InternalDelegate' is less accessible than event 'PublicClass.D'
                 //     public event InternalDelegate D;
-                Diagnostic(ErrorCode.ERR_BadVisEventType, "D").WithArguments("PublicClass.D", "InternalDelegate"),
+                Diagnostic(ErrorCode.ERR_BadVisEventType, "D").WithArguments("PublicClass.D", "InternalDelegate").WithLocation(13, 35),
                 // (14,35): error CS7025: Inconsistent accessibility: event type 'InternalDelegate' is less accessible than event 'PublicClass.E'
                 //     public event InternalDelegate E { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_BadVisEventType, "E").WithArguments("PublicClass.E", "InternalDelegate"),
-                // (18,43): error CS7025: Inconsistent accessibility: event type 'System.Action<PublicClass.Protected>' is less accessible than event 'InternalClass.F'
+                Diagnostic(ErrorCode.ERR_BadVisEventType, "E").WithArguments("PublicClass.E", "InternalDelegate").WithLocation(14, 35),
+                // (18,43): error CS7025: Inconsistent accessibility: event type 'Action<PublicClass.Protected>' is less accessible than event 'InternalClass.F'
                 //     public event System.Action<Protected> F;
-                Diagnostic(ErrorCode.ERR_BadVisEventType, "F").WithArguments("InternalClass.F", "System.Action<PublicClass.Protected>"),
+                Diagnostic(ErrorCode.ERR_BadVisEventType, "F").WithArguments("InternalClass.F", "Action<PublicClass.Protected>").WithLocation(18, 43),
                 // (9,51): warning CS0067: The event 'PublicClass.A' is never used
                 //     public event System.Action<InternalInterface> A;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "A").WithArguments("PublicClass.A"),
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "A").WithArguments("PublicClass.A").WithLocation(9, 51),
                 // (10,47): warning CS0067: The event 'PublicClass.B' is never used
                 //     public event System.Action<InternalClass> B;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "B").WithArguments("PublicClass.B"),
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "B").WithArguments("PublicClass.B").WithLocation(10, 47),
                 // (11,45): warning CS0067: The event 'PublicClass.C' is never used
                 //     internal event System.Action<Protected> C;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "C").WithArguments("PublicClass.C"),
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "C").WithArguments("PublicClass.C").WithLocation(11, 45),
                 // (13,35): warning CS0067: The event 'PublicClass.D' is never used
                 //     public event InternalDelegate D;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "D").WithArguments("PublicClass.D"),
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "D").WithArguments("PublicClass.D").WithLocation(13, 35),
                 // (18,43): warning CS0067: The event 'InternalClass.F' is never used
                 //     public event System.Action<Protected> F;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "F").WithArguments("InternalClass.F"));
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "F").WithArguments("InternalClass.F").WithLocation(18, 43));
         }
 
         [Fact, WorkItem(543386, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543386")]
@@ -20505,7 +20553,7 @@ namespace A
             CreateCompilation(codeA, references: new MetadataReference[] { referenceB, referenceC2 }).VerifyDiagnostics(
                 // (10,38): error CS0012: The type 'ClassC' is defined in an assembly that is not referenced. You must add a reference to assembly 'D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //             System.Console.WriteLine(ClassB.MethodB(null));
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "ClassB.MethodB").WithArguments("C.ClassC", "D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(10, 38));
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "ClassB.MethodB").WithArguments("ClassC", "D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(10, 38));
 
             var codeD = @"
 namespace C
@@ -20559,7 +20607,7 @@ namespace C
             var ilModule = GetILModuleReference(ilSource, prependDefaultHeader: false);
             CreateCompilation(string.Empty, references: new MetadataReference[] { ilModule }).VerifyDiagnostics(
                 // error CS0012: The type 'TestType' is defined in an assembly that is not referenced. You must add a reference to assembly 'D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("Testspace.TestType", "D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("TestType", "D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
 
             var dCode = @"
 namespace Testspace
