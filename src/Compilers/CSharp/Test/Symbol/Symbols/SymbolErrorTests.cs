@@ -12784,36 +12784,36 @@ public partial class C
                 // (7,25): error CS0708: 'Goo.P': cannot declare instance members in a static class
                 //         internal object P { get; set; }
                 Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "P").WithArguments("Goo.P").WithLocation(7, 25),
+                // (8,29): error CS0708: 'E': cannot declare instance members in a static class
+                //         event System.Action E;
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "E").WithArguments("E").WithLocation(8, 29),
+                // (6,14): error CS0708: 'M': cannot declare instance members in a static class
+                //         void M() { }
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "M").WithArguments("M").WithLocation(6, 14),
                 // (13,11): error CS0708: 'Bar<T>.field': cannot declare instance members in a static class
                 //         T field;
                 Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "field").WithArguments("Bar<T>.field").WithLocation(13, 11),
                 // (15,13): error CS0708: 'Bar<T>.Q': cannot declare instance members in a static class
                 //         int Q { get { return 0; } }
                 Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "Q").WithArguments("Bar<T>.Q").WithLocation(15, 13),
-                // (6,14): error CS0708: 'M': cannot declare instance members in a static class
-                //         void M() { }
-                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "M").WithArguments("M").WithLocation(6, 14),
-                // (14,11): error CS0708: 'M': cannot declare instance members in a static class
-                //         T M(T x) { return x; }
-                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "M").WithArguments("M").WithLocation(14, 11),
-                // (16,32): error CS0708: 'E': cannot declare instance members in a static class
-                //         event System.Action<T> E;
-                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "E").WithArguments("E").WithLocation(16, 32),
-                // (8,29): error CS0708: 'E': cannot declare instance members in a static class
-                //         event System.Action E;
-                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "E").WithArguments("E").WithLocation(8, 29),
                 // (16,32): warning CS0067: The event 'Bar<T>.E' is never used
                 //         event System.Action<T> E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("Bar<T>.E").WithLocation(16, 32),
+                // (16,32): error CS0708: 'E': cannot declare instance members in a static class
+                //         event System.Action<T> E;
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "E").WithArguments("E").WithLocation(16, 32),
+                // (8,29): warning CS0067: The event 'Goo.E' is never used
+                //         event System.Action E;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("Goo.E").WithLocation(8, 29),
+                // (14,11): error CS0708: 'M': cannot declare instance members in a static class
+                //         T M(T x) { return x; }
+                Diagnostic(ErrorCode.ERR_InstanceMemberInStaticClass, "M").WithArguments("M").WithLocation(14, 11),
                 // (13,11): warning CS0169: The field 'Bar<T>.field' is never used
                 //         T field;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("Bar<T>.field").WithLocation(13, 11),
                 // (5,13): warning CS0169: The field 'Goo.i' is never used
                 //         int i;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("Goo.i").WithLocation(5, 13),
-                // (8,29): warning CS0067: The event 'Goo.E' is never used
-                //         event System.Action E;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("Goo.E").WithLocation(8, 29));
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "i").WithArguments("Goo.i").WithLocation(5, 13));
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             // TODO...
@@ -17590,7 +17590,7 @@ namespace System
             CreateCompilation(new SyntaxTree[] { Parse(text, "goo.cs") }).VerifyDiagnostics(
                 // goo.cs(11,17): warning CS0436: The type 'Object' in 'goo.cs' conflicts with the imported type 'object' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in 'goo.cs'.
                 //     class Bar : Object {}
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Object").WithArguments("goo.cs", "Object", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "object").WithLocation(11, 17));
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Object").WithArguments("goo.cs", "Object", RuntimeCorLibName.FullName, "object").WithLocation(11, 17));
         }
 
         /// <summary>
