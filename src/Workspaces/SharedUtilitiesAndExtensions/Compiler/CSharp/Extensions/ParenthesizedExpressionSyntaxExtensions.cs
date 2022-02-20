@@ -8,7 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Extensions;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -414,12 +414,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     //  3) for logical operators the result will always be the same (there are 
                     //     additional conditions that are checked for non-logical operators).
                     if (IsAssociative(parentBinaryExpression.Kind()) &&
-                        node.Expression.Kind() == parentBinaryExpression.Kind() &&
-                        parentBinaryExpression.Right == node)
+                        parentBinaryExpression.Right == node &&
+                        node.Expression.IsKind(parentBinaryExpression.Kind(), out BinaryExpressionSyntax? nodeBinary))
                     {
-                        return !node.IsSafeToChangeAssociativity(
-                            node.Expression, parentBinaryExpression.Left,
-                            parentBinaryExpression.Right, semanticModel);
+                        return !CSharpSemanticFacts.Instance.IsSafeToChangeAssociativity(
+                            nodeBinary, parentBinaryExpression, semanticModel);
                     }
 
                     // Null-coalescing is right associative; removing parens from the LHS changes the association.

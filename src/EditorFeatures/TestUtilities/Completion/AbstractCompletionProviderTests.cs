@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
 
             var options = GetCompletionOptions();
-            var displayOptions = SymbolDescriptionOptions.From(document.Project);
+            var displayOptions = SymbolDescriptionOptions.Default;
             var completionService = GetCompletionService(document.Project);
             var completionList = await GetCompletionListAsync(completionService, document, position, trigger, options);
             var items = completionList.Items;
@@ -800,7 +800,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var document = solution.GetDocument(documentId);
 
                 var options = GetCompletionOptions();
-                var displayOptions = SymbolDescriptionOptions.From(document.Project);
+                var displayOptions = SymbolDescriptionOptions.Default;
                 var triggerInfo = RoslynCompletion.CompletionTrigger.Invoke;
 
                 var completionService = GetCompletionService(document.Project);
@@ -856,7 +856,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var solution = testWorkspace.CurrentSolution;
                 var documentId = testWorkspace.Documents.Single(d => d.Name == "SourceDocument").Id;
                 var document = solution.GetDocument(documentId);
-                var displayOptions = SymbolDescriptionOptions.From(document.Project);
+                var displayOptions = SymbolDescriptionOptions.Default;
 
                 var triggerInfo = RoslynCompletion.CompletionTrigger.Invoke;
                 var completionService = GetCompletionService(document.Project);
@@ -888,7 +888,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 var textContainer = testWorkspace.Documents.First().GetTextBuffer().AsTextContainer();
                 var currentContextDocumentId = testWorkspace.GetDocumentIdInCurrentContext(textContainer);
                 var document = solution.GetDocument(currentContextDocumentId);
-                var displayOptions = SymbolDescriptionOptions.From(document.Project);
+                var displayOptions = SymbolDescriptionOptions.Default;
 
                 var triggerInfo = RoslynCompletion.CompletionTrigger.Invoke;
                 var completionService = GetCompletionService(document.Project);

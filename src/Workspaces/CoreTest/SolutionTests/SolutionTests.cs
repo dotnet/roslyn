@@ -741,6 +741,73 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public async Task ChangingLanguageVersionReparses()
+        {
+            var projectId = ProjectId.CreateNewId();
+            var documentId = DocumentId.CreateNewId(projectId);
+
+            using var workspace = CreateWorkspace();
+            var document = workspace.CurrentSolution
+                            .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp)
+                            .AddDocument(documentId, "Test.cs", "// File")
+                            .GetRequiredDocument(documentId);
+
+            var oldTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+
+            Assert.Equal(document.Project.ParseOptions, oldTree.Options);
+
+            document = document.Project.WithParseOptions(new CSharpParseOptions(languageVersion: CS.LanguageVersion.CSharp1)).GetRequiredDocument(documentId);
+
+            var newTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+
+            Assert.Equal(document.Project.ParseOptions, newTree.Options);
+
+            Assert.False(oldTree.GetRoot().IsIncrementallyIdenticalTo(newTree.GetRoot()));
+        }
+
+        [Theory]
+        [InlineData("#if DEBUG", false, LanguageNames.CSharp, false)]
+        [InlineData("#if DEBUG", false, LanguageNames.CSharp, true)]
+        [InlineData("// File", true, LanguageNames.CSharp, false)]
+        [InlineData("// File", true, LanguageNames.CSharp, true)]
+        [InlineData("#if DEBUG", false, LanguageNames.VisualBasic, false)]
+        [InlineData("#if DEBUG", false, LanguageNames.VisualBasic, true)]
+        [InlineData("' File", true, LanguageNames.VisualBasic, false)]
+        [InlineData("' File", true, LanguageNames.VisualBasic, true)]
+        public async Task ChangingPreprocessorDirectivesMayReparse(string source, bool expectReuse, string languageName, bool useRecoverableTrees)
+        {
+            var projectId = ProjectId.CreateNewId();
+            var documentId = DocumentId.CreateNewId(projectId);
+
+            using var workspace = useRecoverableTrees ? CreateWorkspaceWithRecoverableSyntaxTreesAndWeakCompilations() : CreateWorkspace();
+            var document = workspace.CurrentSolution
+                            .AddProject(projectId, "proj1", "proj1.dll", languageName)
+                            .AddDocument(documentId, "Test", source)
+                            .GetRequiredDocument(documentId);
+
+            var oldTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+
+            // Hold onto the old root, so we don't actually release the root; if the root were to fall away
+            // we're unable to use IsIncrementallyIdenticalTo to see if we didn't reparse, since asking for
+            // the old root will recover the tree and produce a new green node.
+            var oldRoot = oldTree.GetRoot();
+
+            Assert.Equal(document.Project.ParseOptions, oldTree.Options);
+
+            ParseOptions newOptions =
+                languageName == LanguageNames.CSharp ? new CSharpParseOptions(preprocessorSymbols: new[] { "DEBUG" })
+                                                     : new VisualBasicParseOptions(preprocessorSymbols: new KeyValuePair<string, object?>[] { new("DEBUG", null) });
+
+            document = document.Project.WithParseOptions(newOptions).GetRequiredDocument(documentId);
+
+            var newTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+
+            Assert.Equal(document.Project.ParseOptions, newTree.Options);
+
+            Assert.Equal(expectReuse, oldRoot.IsIncrementallyIdenticalTo(newTree.GetRoot()));
+        }
+
+        [Fact]
         public void WithProjectReferences()
         {
             using var workspace = CreateWorkspaceWithProjectAndDocuments();

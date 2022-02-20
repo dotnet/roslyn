@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             private readonly IAsynchronousOperationListener _listener;
             private readonly IOptionService _optionService;
             private readonly IDocumentTrackingService _documentTrackingService;
+            private readonly ISyntaxTreeConfigurationService? _syntaxTreeConfigurationService;
 
             private readonly CancellationTokenSource _shutdownNotificationSource;
             private readonly CancellationToken _shutdownToken;
@@ -50,6 +51,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 _listener = listener;
                 _optionService = _registration.Workspace.Services.GetRequiredService<IOptionService>();
                 _documentTrackingService = _registration.Workspace.Services.GetRequiredService<IDocumentTrackingService>();
+                _syntaxTreeConfigurationService = _registration.Workspace.Services.GetService<ISyntaxTreeConfigurationService>();
 
                 // event and worker queues
                 _shutdownNotificationSource = new CancellationTokenSource();
@@ -421,6 +423,41 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         var newProject = newSolution.GetRequiredProject(documentId.ProjectId);
 
                         await EnqueueChangedDocumentWorkItemAsync(oldProject.GetRequiredDocument(documentId), newProject.GetRequiredDocument(documentId)).ConfigureAwait(false);
+
+                        // If all features are enabled for source generated documents, the solution crawler needs to
+                        // include them in incremental analysis.
+                        if (_syntaxTreeConfigurationService is { EnableOpeningSourceGeneratedFilesInWorkspace: true })
+                        {
+                            // TODO: if this becomes a hot spot, we should be able to expose/access the dictionary
+                            // underneath GetSourceGeneratedDocumentsAsync rather than create a new one here.
+                            var oldProjectSourceGeneratedDocuments = await oldProject.GetSourceGeneratedDocumentsAsync(_shutdownToken).ConfigureAwait(false);
+                            var oldProjectSourceGeneratedDocumentsById = oldProjectSourceGeneratedDocuments.ToDictionary(static document => document.Id);
+                            var newProjectSourceGeneratedDocuments = await newProject.GetSourceGeneratedDocumentsAsync(_shutdownToken).ConfigureAwait(false);
+                            var newProjectSourceGeneratedDocumentsById = newProjectSourceGeneratedDocuments.ToDictionary(static document => document.Id);
+
+                            foreach (var (oldDocumentId, _) in oldProjectSourceGeneratedDocumentsById)
+                            {
+                                if (!newProjectSourceGeneratedDocumentsById.ContainsKey(oldDocumentId))
+                                {
+                                    // This source generated document was removed
+                                    EnqueueFullDocumentEvent(oldSolution, oldDocumentId, InvocationReasons.DocumentRemoved, "OnWorkspaceChanged");
+                                }
+                            }
+
+                            foreach (var (newDocumentId, newDocument) in newProjectSourceGeneratedDocumentsById)
+                            {
+                                if (!oldProjectSourceGeneratedDocumentsById.TryGetValue(newDocumentId, out var oldDocument))
+                                {
+                                    // This source generated document was added
+                                    EnqueueFullDocumentEvent(newSolution, newDocumentId, InvocationReasons.DocumentAdded, "OnWorkspaceChanged");
+                                }
+                                else
+                                {
+                                    // This source generated document may have changed
+                                    await EnqueueChangedDocumentWorkItemAsync(oldDocument, newDocument).ConfigureAwait(continueOnCapturedContext: false);
+                                }
+                            }
+                        }
                     },
                     _shutdownToken);
             }
@@ -474,6 +511,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 foreach (var documentId in project.AnalyzerConfigDocumentIds)
                     await EnqueueDocumentWorkItemAsync(project, documentId, document: null, invocationReasons).ConfigureAwait(false);
+
+                // If all features are enabled for source generated documents, the solution crawler needs to
+                // include them in incremental analysis.
+                if (_syntaxTreeConfigurationService is { EnableOpeningSourceGeneratedFilesInWorkspace: true })
+                {
+                    foreach (var document in await project.GetSourceGeneratedDocumentsAsync(_shutdownToken).ConfigureAwait(false))
+                        await EnqueueDocumentWorkItemAsync(project, document.Id, document, invocationReasons).ConfigureAwait(false);
+                }
             }
 
             private async Task EnqueueWorkItemAsync(IIncrementalAnalyzer analyzer, ReanalyzeScope scope, bool highPriority)

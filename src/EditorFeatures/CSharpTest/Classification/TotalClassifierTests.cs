@@ -2240,5 +2240,57 @@ Punctuation.OpenCurly,
 Punctuation.CloseCurly,
 Punctuation.CloseCurly);
         }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(59569, "https://github.com/dotnet/roslyn/issues/59569")]
+        public async Task TestArgsInTopLevel(TestHost testHost)
+        {
+            await TestAsync(
+@"
+[|foreach (var arg in args)
+{
+}|]",
+                testHost,
+                parseOptions: null,
+ControlKeyword("foreach"),
+Punctuation.OpenParen,
+Keyword("var"),
+Local("arg"),
+ControlKeyword("in"),
+Keyword("args"),
+Punctuation.CloseParen,
+Punctuation.OpenCurly,
+Punctuation.CloseCurly);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem(59569, "https://github.com/dotnet/roslyn/issues/59569")]
+        public async Task TestArgsInNormalProgram(TestHost testHost)
+        {
+            await TestAsync(
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        [|foreach (var arg in args)
+        {
+        }|]
+    }
+}",
+                testHost,
+                parseOptions: null,
+ControlKeyword("foreach"),
+Punctuation.OpenParen,
+Keyword("var"),
+Local("arg"),
+ControlKeyword("in"),
+Parameter("args"),
+Punctuation.CloseParen,
+Punctuation.OpenCurly,
+Punctuation.CloseCurly);
+        }
     }
 }

@@ -24,14 +24,12 @@ using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(LSP.VSInternalMethods.OnAutoInsertName)]
+    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(OnAutoInsertHandler)), Shared]
+    [Method(LSP.VSInternalMethods.OnAutoInsertName)]
     internal class OnAutoInsertHandler : AbstractStatelessRequestHandler<LSP.VSInternalDocumentOnAutoInsertParams, LSP.VSInternalDocumentOnAutoInsertResponseItem?>
     {
         private readonly ImmutableArray<IBraceCompletionService> _csharpBraceCompletionServices;
         private readonly ImmutableArray<IBraceCompletionService> _visualBasicBraceCompletionServices;
-
-        public override string Method => LSP.VSInternalMethods.OnAutoInsertName;
 
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;

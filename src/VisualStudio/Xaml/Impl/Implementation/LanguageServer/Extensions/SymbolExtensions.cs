@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
 {
     internal static class SymbolExtensions
     {
-        public static async Task<IEnumerable<TaggedText>> GetDescriptionAsync(this ISymbol symbol, TextDocument document, CancellationToken cancellationToken)
+        public static async Task<IEnumerable<TaggedText>> GetDescriptionAsync(this ISymbol symbol, TextDocument document, SymbolDescriptionOptions options, CancellationToken cancellationToken)
         {
             if (symbol == null)
             {
@@ -55,7 +55,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             }
 
             var services = codeProject.Solution.Workspace.Services;
-            var options = SymbolDescriptionOptions.From(document.Project);
             var quickInfo = await QuickInfoUtilities.CreateQuickInfoItemAsync(services, semanticModel, span: default, ImmutableArray.Create(symbol), options, cancellationToken).ConfigureAwait(false);
             var builder = new List<TaggedText>();
             foreach (var section in quickInfo.Sections)
