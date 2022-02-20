@@ -7,6 +7,14 @@ using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.CodeAnalysis.CodeActions
 {
+#if CODE_STYLE
+    /// <summary>
+    /// Empty type to avoid excessive ifdefs.
+    /// </summary>
+    internal readonly struct CodeActionOptions
+    {
+    }
+#else
     /// <summary>
     /// Options available to code fixes that are supplied by the IDE (i.e. not stored in editorconfig).
     /// </summary>
@@ -23,4 +31,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         public static readonly CodeActionOptions Default = new();
     }
+#endif
+
+    internal delegate CodeActionOptions CodeActionOptionsProvider(string language);
 }
