@@ -4086,6 +4086,68 @@ class X
                 Escape(@"}}"));
         }
 
+        [Theory]
+        [CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral1(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = """"""goo\r\nbar"""""";",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral2(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = """"""
+    goo\r\nbar
+    """""";",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral3(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $""""""
+    goo\r\nbar
+    """""";",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral4(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = """"""\"""""";",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral5(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = """"""
+    \
+    """""";",
+                testHost,
+                Keyword("var"));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public async Task TestNotStringEscapeInRawLiteral6(TestHost testHost)
+        {
+            await TestInMethodAsync(@"var goo = $""""""
+    \
+    """""";",
+                testHost,
+                Keyword("var"));
+        }
+
         [WorkItem(31200, "https://github.com/dotnet/roslyn/issues/31200")]
         [Theory]
         [CombinatorialData]
