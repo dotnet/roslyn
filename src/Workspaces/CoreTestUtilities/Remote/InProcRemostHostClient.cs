@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
 
         public override RemoteServiceConnection<T> CreateConnection<T>(object? callbackTarget) where T : class
         {
-            var descriptor = ServiceDescriptors.Instance.GetServiceDescriptor(typeof(T), isRemoteHostServerGC: GCSettings.IsServerGC, isRemoteHostCoreClr: RemoteHostOptions.IsCurrentProcessRunningOnCoreClr());
+            var descriptor = ServiceDescriptors.Instance.GetServiceDescriptor(typeof(T), RemoteProcessConfiguration.ServerGC | (ServiceDescriptors.IsCurrentProcessRunningOnCoreClr() ? RemoteProcessConfiguration.Core : 0));
             var callbackDispatcher = (descriptor.ClientInterface != null) ? _callbackDispatchers.GetDispatcher(typeof(T)) : null;
 
             return new BrokeredServiceConnection<T>(

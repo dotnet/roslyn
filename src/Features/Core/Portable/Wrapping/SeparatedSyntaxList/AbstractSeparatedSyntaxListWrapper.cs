@@ -4,31 +4,44 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
 {
-    using Microsoft.CodeAnalysis.Indentation;
-    using Microsoft.CodeAnalysis.Shared.Extensions;
-
     /// <summary>
-    /// Base type for all wrappers that involve wrapping a comma-separated list of arguments or parameters.
+    /// Base type for all wrappers that involve wrapping a comma-separated list of items.
     /// </summary>
     internal abstract partial class AbstractSeparatedSyntaxListWrapper<
         TListSyntax,
         TListItemSyntax>
-        : AbstractSeparatedListWrapper<TListSyntax, TListItemSyntax>
+        : AbstractSyntaxWrapper
         where TListSyntax : SyntaxNode
         where TListItemSyntax : SyntaxNode
     {
-        // These refactor offerings are unique to argument or parameter lists
+        protected abstract string Unwrap_list { get; }
+        protected abstract string Wrap_long_list { get; }
+
         protected abstract string Unwrap_and_indent_all_items { get; }
+        protected abstract string Unwrap_all_items { get; }
+        protected abstract string Indent_all_items { get; }
         protected abstract string Align_wrapped_items { get; }
         protected abstract string Indent_wrapped_items { get; }
+
+        protected abstract string Wrap_every_item { get; }
+
+        public abstract bool Supports_WrapEveryGroup_UnwrapFirst { get; }
+        public abstract bool Supports_UnwrapGroup_WrapFirst_IndentRest { get; }
+        public abstract bool Supports_WrapLongGroup_UnwrapFirst { get; }
 
         protected AbstractSeparatedSyntaxListWrapper(IIndentationService indentationService)
             : base(indentationService)
         {
         }
+
+        protected abstract bool ShouldMoveCloseBraceToNewLine { get; }
+        protected abstract bool ShouldMoveOpenBraceToNewLine(OptionSet options);
 
         protected abstract TListSyntax? TryGetApplicableList(SyntaxNode node);
         protected abstract SeparatedSyntaxList<TListItemSyntax> GetListItems(TListSyntax listSyntax);
