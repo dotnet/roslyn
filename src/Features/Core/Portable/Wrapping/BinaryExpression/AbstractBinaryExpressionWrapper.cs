@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
         protected abstract SyntaxTriviaList GetNewLineBeforeOperatorTrivia(SyntaxTriviaList newLine);
 
         public sealed override async Task<ICodeActionComputer?> TryCreateComputerAsync(
-            Document document, int position, SyntaxNode node, bool containsSyntaxError, CancellationToken cancellationToken)
+            Document document, int position, SyntaxNode node, SyntaxWrappingOptions options, bool containsSyntaxError, CancellationToken cancellationToken)
         {
             if (containsSyntaxError)
                 return null;
@@ -87,7 +87,6 @@ namespace Microsoft.CodeAnalysis.Wrapping.BinaryExpression
                 return null;
 
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             return new BinaryExpressionCodeActionComputer(
                 this, document, sourceText, options, binaryExpr,
                 exprsAndOperators, cancellationToken);
