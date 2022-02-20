@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.Text
 Imports Xunit.Abstractions
 
@@ -2099,13 +2100,6 @@ End Module</text>.Value
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Sub TestSmartIndenterConstructorThrows1()
-            Assert.Throws(Of ArgumentNullException)(
-                Function() New SmartIndent(Nothing))
-        End Sub
-
-        <WpfFact>
-        <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestParameter1()
             Dim code = <code>Class CL
     Sub Method(Arg1 As Integer,
@@ -3015,7 +3009,7 @@ end class"
                 Dim point = projectedDocument.GetTextView().BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, subjectDocument.GetTextBuffer(), PositionAffinity.Predecessor)
 
                 TestIndentation(
-                    point.Value, expectedIndentation, projectedDocument.GetTextView(), subjectDocument)
+                    point.Value, expectedIndentation, projectedDocument.GetTextView(), subjectDocument, workspace.GlobalOptions)
             End Using
         End Sub
 
@@ -3035,11 +3029,7 @@ end class"
                 useTabs As Boolean,
                 indentStyle As FormattingOptions.IndentStyle)
             Using workspace = TestWorkspace.CreateVisualBasic(code)
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options _
-                    .WithChangedOption(FormattingOptions.SmartIndent, LanguageNames.VisualBasic, indentStyle) _
-                    .WithChangedOption(FormattingOptions.UseTabs, LanguageNames.VisualBasic, useTabs)))
-
-                TestIndentation(workspace, indentationLine, expectedIndentation)
+                TestIndentation(workspace, indentationLine, expectedIndentation, indentStyle, useTabs)
             End Using
         End Sub
     End Class

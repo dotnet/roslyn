@@ -7,6 +7,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Indentation;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -1501,21 +1502,17 @@ class C
             // create tree service
             using var workspace = TestWorkspace.CreateCSharp(code);
 
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs)));
-
             var hostdoc = workspace.Documents.First();
-
             var buffer = hostdoc.GetTextBuffer();
-
             var snapshot = buffer.CurrentSnapshot;
             var line = snapshot.GetLineFromLineNumber(indentationLine);
-
             var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
 
             var root = (await document.GetSyntaxRootAsync()) as CompilationUnitSyntax;
 
-            var options = await IndentationOptions.FromDocumentAsync(document, CancellationToken.None);
+            var options = new IndentationOptions(
+                CSharpSyntaxFormattingOptions.Default.With(useTabs: useTabs, tabSize: 4, indentationSize: 4),
+                AutoFormattingOptions.Default);
 
             Assert.True(
                 CSharpIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
@@ -1545,9 +1542,7 @@ class C
         {
             // create tree service
             using var workspace = TestWorkspace.CreateCSharp(code);
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(workspace.Options
-                .WithChangedOption(AutoFormattingOptions.Metadata.SmartIndent, LanguageNames.CSharp, indentStyle)
-                .WithChangedOption(UseTabs, LanguageNames.CSharp, useTabs)));
+
             var hostdoc = workspace.Documents.First();
             var buffer = hostdoc.GetTextBuffer();
             var snapshot = buffer.CurrentSnapshot;
@@ -1558,14 +1553,16 @@ class C
 
             var root = (await document.GetSyntaxRootAsync()) as CompilationUnitSyntax;
 
-            var options = await IndentationOptions.FromDocumentAsync(document, CancellationToken.None);
+            var options = new IndentationOptions(
+                CSharpSyntaxFormattingOptions.Default.With(useTabs: useTabs, tabSize: 4, indentationSize: 4),
+                new AutoFormattingOptions(IndentStyle: indentStyle));
 
             Assert.False(
                 CSharpIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
                     Formatter.GetDefaultFormattingRules(document),
                     root, line.AsTextLine(), options, out _));
 
-            TestIndentation(workspace, indentationLine, expectedIndentation);
+            TestIndentation(workspace, indentationLine, expectedIndentation, indentStyle, useTabs);
         }
     }
 }
