@@ -38,7 +38,7 @@ class C {
             comp.VerifyDiagnostics(
                 // (5,16): error CS0453: The type 'int?' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'System.Nullable<T>'
                 //       Nullable<Nullable<int>> x = null;
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Nullable<int>").WithArguments("System.Nullable<T>", "T", "int?"),
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "Nullable<int>").WithArguments("Nullable<T>", "T", "int?"),
                 // (7,25): error CS0019: Operator '==' cannot be applied to operands of type 'int??' and 'int?'
                 //       Console.WriteLine(x == y);
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == y").WithArguments("==", "int??", "int?"));
@@ -65,7 +65,7 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(7, 11),
                 // (8,14): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     Nullable<string> s2 = null;
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string").WithArguments("System.Nullable<T>", "T", "string").WithLocation(8, 14)
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string").WithArguments("Nullable<T>", "T", "string").WithLocation(8, 14)
             };
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics(expected);
@@ -76,7 +76,7 @@ class C
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(7, 11),
                 // (8,14): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //     Nullable<string> s2 = null;
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string").WithArguments("System.Nullable<T>", "T", "string").WithLocation(8, 14));
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string").WithArguments("Nullable<T>", "T", "string").WithLocation(8, 14));
         }
 
         [Fact, WorkItem(544152, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544152")]
@@ -100,7 +100,7 @@ class C
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(7, 15),
                 // (8,18): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //         Nullable<string> s2 = null;
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string").WithArguments("System.Nullable<T>", "T", "string").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "string").WithArguments("Nullable<T>", "T", "string").WithLocation(8, 18)
                 );
         }
 

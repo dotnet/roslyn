@@ -184,9 +184,9 @@ namespace N
 }";
             var compilation = CreateCompilationWithMscorlib40(source);
             compilation.VerifyDiagnostics(
-                // (9,6): error CS7036: There is no argument given that corresponds to the required formal parameter 'action' of 'System.Security.Permissions.PrincipalPermissionAttribute.PrincipalPermissionAttribute(System.Security.Permissions.SecurityAction)'
+                // (9,6): error CS7036: There is no argument given that corresponds to the required formal parameter 'action' of 'PrincipalPermissionAttribute.PrincipalPermissionAttribute(SecurityAction)'
                 //     [PrincipalPermission()]                         // Invalid attribute constructor
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "PrincipalPermission()").WithArguments("action", "System.Security.Permissions.PrincipalPermissionAttribute.PrincipalPermissionAttribute(System.Security.Permissions.SecurityAction)").WithLocation(9, 6),
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "PrincipalPermission()").WithArguments("action", "PrincipalPermissionAttribute.PrincipalPermissionAttribute(SecurityAction)").WithLocation(9, 6),
                 // (6,26): error CS7049: Security attribute 'PrincipalPermission' has an invalid SecurityAction value '(SecurityAction)0'
                 //     [PrincipalPermission((SecurityAction)0)]        // Invalid attribute argument
                 Diagnostic(ErrorCode.ERR_SecurityAttributeInvalidAction, "(SecurityAction)0").WithArguments("PrincipalPermission", "(SecurityAction)0").WithLocation(6, 26),

@@ -33,9 +33,9 @@ class C
 
             CreateCompilationWithMscorlib40AndSystemCore(source)
                 .VerifyDiagnostics(
-// (9,32): error CS0428: Cannot convert method group 'Main' to non-delegate type 'System.Linq.Expressions.Expression<System.Action>'. Did you intend to invoke the method?
-//         Expression<Action> e = Main;
-Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Main").WithArguments("Main", "System.Linq.Expressions.Expression<System.Action>")
+                // (9,32): error CS0428: Cannot convert method group 'Main' to non-delegate type 'Expression<Action>'. Did you intend to invoke the method?
+                //         Expression<Action> e = Main;
+                Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "Main").WithArguments("Main", "Expression<Action>").WithLocation(9, 32)
                 );
         }
 
@@ -111,13 +111,13 @@ class C
                 Diagnostic(ErrorCode.ERR_BadSKknown, "N").WithArguments("N", "namespace", "variable").WithLocation(8, 18),
                 // (9,18): error CS0119: 'D' is a type, which is not valid in the given context
                 //         int z = (N.D).x;
-                Diagnostic(ErrorCode.ERR_BadSKunknown, "N.D").WithArguments("N.D", "type").WithLocation(9, 18),
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "N.D").WithArguments("D", "type").WithLocation(9, 18),
                 // (5,16): warning CS0169: The field 'C.x' is never used
                 //     static int x;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("C.x").WithLocation(5, 16),
                 // (2,43): warning CS0649: Field 'D.x' is never assigned to, and will always have its default value 0
                 // namespace N { class D { public static int x; } } 
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("N.D.x", "0").WithLocation(2, 43));
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "x").WithArguments("D.x", "0").WithLocation(2, 43));
         }
 
         [Fact]
@@ -685,7 +685,7 @@ class C
             CreateCompilation(source).VerifyDiagnostics(
                 // (7,7): error CS0161: 'C.GetS(Q<string, double>?[][*,*][*,*,*], int?)': not all code paths return a value
                 //     S GetS(N.Q<string, double>?[][,][,,] q, int? x) { }
-                Diagnostic(ErrorCode.ERR_ReturnExpected, "GetS").WithArguments("C.GetS(N.Q<string, double>?[][*,*][*,*,*], int?)").WithLocation(7, 7),
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "GetS").WithArguments("C.GetS(Q<string, double>?[][*,*][*,*,*], int?)").WithLocation(7, 7),
                 // (12,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
                 //         null = 123;
                 Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "null").WithLocation(12, 9),
@@ -706,8 +706,8 @@ class C
                 Diagnostic(ErrorCode.ERR_AssgReadonlyStatic2, "static_readonly.z").WithArguments("C.static_readonly").WithLocation(17, 9),
                 // (18,9): error CS1612: Cannot modify the return value of 'C.GetS(Q<string, double>?[][*,*][*,*,*], int?)' because it is not a variable
                 //         GetS(null, null).z = 123;
-                Diagnostic(ErrorCode.ERR_ReturnNotLValue, "GetS(null, null)").WithArguments("C.GetS(N.Q<string, double>?[][*,*][*,*,*], int?)").WithLocation(18, 9),
-                // (24,9): error CS0191: A readonly field cannot be assigned to (except in the constructor of the class in which the field is defined or a variable initializer))
+                Diagnostic(ErrorCode.ERR_ReturnNotLValue, "GetS(null, null)").WithArguments("C.GetS(Q<string, double>?[][*,*][*,*,*], int?)").WithLocation(18, 9),
+                // (24,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //         instance_readonly = 123;
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "instance_readonly").WithLocation(24, 9),
                 // (31,18): error CS0029: Cannot implicitly convert type 'void' to 'int'

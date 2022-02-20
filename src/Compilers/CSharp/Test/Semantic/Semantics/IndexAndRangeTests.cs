@@ -835,7 +835,7 @@ class Test
 }").VerifyDiagnostics(
                 // (13,17): error CS0453: The type 'Index' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //         var x = ^arg;
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "^arg").WithArguments("System.Nullable<T>", "T", "System.Index").WithLocation(13, 17));
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "^arg").WithArguments("Nullable<T>", "T", "System.Index").WithLocation(13, 17));
         }
 
         [Fact]
@@ -1047,7 +1047,7 @@ class Test
 }").VerifyDiagnostics(
                 // (13,17): error CS0453: The type 'Range' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //         var a = index..index;
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "index..index").WithArguments("System.Nullable<T>", "T", "System.Range").WithLocation(13, 17));
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "index..index").WithArguments("Nullable<T>", "T", "System.Range").WithLocation(13, 17));
         }
 
         [Fact]
@@ -1075,13 +1075,13 @@ class Test
 }").VerifyDiagnostics(
                 // (18,17): error CS0453: The type 'Index' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //         var a = index..index;
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "index").WithArguments("System.Nullable<T>", "T", "System.Index").WithLocation(18, 17),
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "index").WithArguments("Nullable<T>", "T", "System.Index").WithLocation(18, 17),
                 // (18,17): error CS0029: Cannot implicitly convert type 'int?' to 'System.Index?'
                 //         var a = index..index;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "index").WithArguments("int?", "System.Index?").WithLocation(18, 17),
                 // (18,24): error CS0453: The type 'Index' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //         var a = index..index;
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "index").WithArguments("System.Nullable<T>", "T", "System.Index").WithLocation(18, 24),
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "index").WithArguments("Nullable<T>", "T", "System.Index").WithLocation(18, 24),
                 // (18,24): error CS0029: Cannot implicitly convert type 'int?' to 'System.Index?'
                 //         var a = index..index;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "index").WithArguments("int?", "System.Index?").WithLocation(18, 24));
