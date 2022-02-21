@@ -17,8 +17,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class ITypeSymbolExtensions
     {
-        public const string DefaultParameterName = "p";
-        private const string GenericParameterName = "generic";
+        public const string DefaultParameterName = "value";
 
         public static bool IsIntegralType([NotNullWhen(returnValue: true)] this ITypeSymbol? type)
             => type?.SpecialType.IsIntegralType() == true;
@@ -42,8 +41,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var allInterfaces = type.AllInterfaces;
             if (type is INamedTypeSymbol namedType && namedType.TypeKind == TypeKind.Interface && !allInterfaces.Contains(namedType))
             {
-                var result = new List<INamedTypeSymbol>(allInterfaces.Length + 1);
-                result.Add(namedType);
+                var result = new List<INamedTypeSymbol>(allInterfaces.Length + 1) { namedType };
                 result.AddRange(allInterfaces);
                 return result;
             }
@@ -365,11 +363,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return DefaultParameterName;
             }
 
-            if (type.Kind == SymbolKind.TypeParameter)
-            {
-                return GenericParameterName;
-            }
-
             var shortName = type.GetShortName();
             return shortName.Length == 0
                 ? DefaultParameterName
@@ -552,9 +545,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // SPEC: if the element type of the first is
             // SPEC: more specific than the element type of the second.
 
-            if (t1 is IArrayTypeSymbol)
+            if (t1 is IArrayTypeSymbol arr1)
             {
-                var arr1 = (IArrayTypeSymbol)t1;
                 var arr2 = (IArrayTypeSymbol)t2;
 
                 // We should not have gotten here unless there were identity conversions
@@ -565,9 +557,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // SPEC EXTENSION: We apply the same rule to pointer types.
 
-            if (t1 is IPointerTypeSymbol)
+            if (t1 is IPointerTypeSymbol p1)
             {
-                var p1 = (IPointerTypeSymbol)t1;
                 var p2 = (IPointerTypeSymbol)t2;
                 return p1.PointedAtType.IsMoreSpecificThan(p2.PointedAtType);
             }
@@ -577,10 +568,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // SPEC: argument is more specific and no type argument is less specific than the
             // SPEC: corresponding type argument in the other.
 
-            var n1 = t1 as INamedTypeSymbol;
             var n2 = t2 as INamedTypeSymbol;
 
-            if (n1 == null)
+            if (t1 is not INamedTypeSymbol n1)
             {
                 return null;
             }

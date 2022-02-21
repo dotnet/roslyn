@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             // The main purpose of this is to prevent converting "string" to "chars", but it also simplifies logic for other basic types (int, double, object etc.)
-            if (type.SpecialType != SpecialType.None)
+            if (type.IsSpecialType())
             {
                 return (type, wasPlural);
             }

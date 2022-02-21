@@ -2343,7 +2343,7 @@ public class Class1
 
         [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task EnumerableGenericParameter()
+        public async Task EnumerableGenericTParameter()
         {
             var markup = @"
 using System.Collections.Generic;
@@ -2355,7 +2355,24 @@ public class Class1
   }
 }
 ";
-            await VerifyItemExistsAsync(markup, "generics");
+            await VerifyItemExistsAsync(markup, "values");
+        }
+
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumerableGenericTNameParameter()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method<TResult>(IEnumerable<TResult> $$)
+  {
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "results");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

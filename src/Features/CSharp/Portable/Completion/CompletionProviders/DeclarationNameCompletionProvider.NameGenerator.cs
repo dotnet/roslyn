@@ -4,11 +4,11 @@
 
 using System.Collections.Immutable;
 using Humanizer;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using Words = System.Collections.Immutable.ImmutableArray<string>;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             internal static ImmutableArray<Words> GetBaseNames(ITypeSymbol type, bool pluralize)
             {
-                var baseName = TryRemoveInterfacePrefix(type);
+                var baseName = TryRemoveKnownPrefixes(type);
                 using var parts = TemporaryArray<TextSpan>.Empty;
                 StringBreaker.AddWordParts(baseName, ref parts.AsRef());
                 var result = GetInterleavedPatterns(parts, baseName, pluralize);
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     ((INamedTypeSymbol)alias.Target).IsInterfaceType() &&
                     CanRemoveInterfacePrefix(name))
                 {
-                    name = name.Substring(1);
+                    name = name[1..];
                 }
 
                 using var breaks = TemporaryArray<TextSpan>.Empty;
@@ -94,15 +94,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return result.ToImmutableAndClear();
             }
 
-            private static string TryRemoveInterfacePrefix(ITypeSymbol type)
+            //Tries to remove "I" prefix from interfaces and "T" prefix from generic parameter names
+            private static string TryRemoveKnownPrefixes(ITypeSymbol type)
             {
                 var name = type.Name;
+
                 if (type.TypeKind == TypeKind.Interface && name.Length > 1)
                 {
                     if (CanRemoveInterfacePrefix(name))
                     {
-                        return name.Substring(1);
+                        return name[1..];
                     }
+                }
+
+                if (type.TypeKind == TypeKind.TypeParameter)
+                {
+                    return name == "T" ? ITypeSymbolExtensions.DefaultParameterName : name[1..].ToCamelCase();
                 }
 
                 return type.CreateParameterName();

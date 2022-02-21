@@ -72,7 +72,7 @@ class D
 @"
 class C
 {
-    public C(int v) { }
+    public C(int @int) { }
 }
 
 class D
@@ -155,7 +155,7 @@ class D
 @"
 class C
 {
-    public C(bool v, int i) { }
+    public C(bool @bool, int i) { }
 }
 
 class D
@@ -187,7 +187,7 @@ class D
 @"
 class C
 {
-    public C(int i, bool v) { }
+    public C(int i, bool @bool) { }
 }
 
 class D
@@ -219,7 +219,7 @@ class D
 @"
 class C
 {
-    public C(bool v, params int[] i) { }
+    public C(bool @bool, params int[] i) { }
 }
 
 class D
@@ -272,7 +272,7 @@ class C
 @"
 class C
 {
-    public C(bool v,
+    public C(bool @bool,
              int i,
              /* goo */ int j)
     {
@@ -309,7 +309,7 @@ class C
 class C
 {
     public C(int i,
-             bool v,
+             bool @bool,
              /* goo */ int j)
     {
 
@@ -346,7 +346,7 @@ class C
 {
     public C(int i,
              /* goo */ int j,
-             bool v)
+             bool @bool)
     {
 
     }
@@ -382,7 +382,7 @@ class C
 class C
 {
     public C(
-        bool v,
+        bool @bool,
         int i,
         /* goo */ int j)
     {
@@ -421,7 +421,7 @@ class C
 {
     public C(
         int i,
-        bool v,
+        bool @bool,
         /* goo */ int j)
     {
 
@@ -460,7 +460,7 @@ class C
     public C(
         int i,
         /* goo */ int j,
-        bool v)
+        bool @bool)
     {
 
     }
@@ -493,7 +493,7 @@ class D
 @"
 class C
 {
-    public C(object p, int i) { }
+    public C(object value, int i) { }
 }
 
 class D
@@ -526,7 +526,7 @@ class D
 @"
 class C
 {
-    public C(string s, int v) { }
+    public C(string s, int @int) { }
 }
 
 class D
@@ -559,7 +559,7 @@ class D
 @"
 class C
 {
-    public C(int i, int v) { }
+    public C(int i, int @int) { }
 }
 
 class D
@@ -592,7 +592,7 @@ class D
 @"
 class C
 {
-    public C(string s, int v) { }
+    public C(string s, int @int) { }
 }
 
 class D
@@ -709,7 +709,7 @@ class C1
 {
     void M1()
     {
-        int Local(int v) => 1;
+        int Local(int @int) => 1;
         Local(2);
     }
 }");
@@ -753,7 +753,7 @@ class C1
 @"
 class C1
 {
-    static void M1(int v)
+    static void M1(int @int)
     {
     }
     void M2()
@@ -788,7 +788,7 @@ class C1
 namespace N {
 static class Extensions
 {
-    public static void ExtensionM1(this object o, int v)
+    public static void ExtensionM1(this object o, int @int)
     {
     }
 }
@@ -828,7 +828,7 @@ class C1
 namespace N {
 static class Extensions
 {
-    public static void ExtensionM1(this object o, int v)
+    public static void ExtensionM1(this object o, int @int)
     {
     }
 }
@@ -866,7 +866,7 @@ class Base
 }
 class C1 : Base
 {
-    protected override void M1(int v) { }
+    protected override void M1(int @int) { }
     void M2()
     {
         M1(1);
@@ -875,11 +875,11 @@ class C1 : Base
             var fix_All = @"
 class Base
 {
-    protected virtual void M1(int v) { }
+    protected virtual void M1(int @int) { }
 }
 class C1 : Base
 {
-    protected override void M1(int v) { }
+    protected override void M1(int @int) { }
     void M2()
     {
         M1(1);
@@ -909,7 +909,7 @@ class C1 : I1
             var fix_DeclarationOnly = @"
 interface I1
 {
-    void M1(int v);
+    void M1(int @int);
 }
 class C1 : I1
 {
@@ -922,11 +922,11 @@ class C1 : I1
             var fix_All = @"
 interface I1
 {
-    void M1(int v);
+    void M1(int @int);
 }
 class C1 : I1
 {
-    void I1.M1(int v) { }
+    void I1.M1(int @int) { }
     void M2()
     {
         ((I1)this).M1(1);
@@ -961,7 +961,7 @@ interface I1
 }
 class C1 : I1
 {
-    public void M1(int v) { }
+    public void M1(int @int) { }
     void M2()
     {
         M1(1);
@@ -970,11 +970,11 @@ class C1 : I1
             var fix_All = @"
 interface I1
 {
-    void M1(int v);
+    void M1(int @int);
 }
 class C1 : I1
 {
-    public void M1(int v) { }
+    public void M1(int @int) { }
     void M2()
     {
         M1(1);
@@ -1017,7 +1017,7 @@ interface I2
 }
 class C1 : I1, I2
 {
-    public void M1(int v) { }
+    public void M1(int @int) { }
     void M2()
     {
         M1(1);
@@ -1026,15 +1026,15 @@ class C1 : I1, I2
             var fix_All = @"
 interface I1
 {
-    void M1(int v);
+    void M1(int @int);
 }
 interface I2
 {
-    void M1(int v);
+    void M1(int @int);
 }
 class C1 : I1, I2
 {
-    public void M1(int v) { }
+    public void M1(int @int) { }
     void M2()
     {
         M1(1);
@@ -1062,13 +1062,12 @@ class C1
 @"
 class C1
 {
-    void M1<T>(T arg, int v) { }
+    void M1<T>(T arg, int @int) { }
     void M2()
     {
         M1(1, 2);
     }
 }");
-            //Should fix to: void M1<T>(T arg, T v) { }
         }
 
         [WorkItem(21446, "https://github.com/dotnet/roslyn/issues/21446")]
@@ -1087,7 +1086,7 @@ class C1
 @"
 class C1
 {
-    void M1(int v)
+    void M1(int @int)
     {
         M1(1);
     }
@@ -1114,7 +1113,7 @@ class C1
 class C1
 {
     void M1(string s) { }
-    void M1(int i, int v) { }
+    void M1(int i, int @int) { }
     void M2()
     {
         M1(1, 2);
@@ -1124,7 +1123,7 @@ class C1
 @"
 class C1
 {
-    void M1(int v, string s) { }
+    void M1(int @int, string s) { }
     void M1(int i) { }
     void M2()
     {
@@ -1157,7 +1156,7 @@ class C1
 {
     void M1(string s1, string s2) { }
     void M1(string s) { }
-    void M1(int i, int v) { }
+    void M1(int i, int @int) { }
     void M2()
     {
         M1(1, 2);
@@ -1168,7 +1167,7 @@ class C1
 class C1
 {
     void M1(string s1, string s2) { }
-    void M1(int v, string s) { }
+    void M1(int @int, string s) { }
     void M1(int i) { }
     void M2()
     {
@@ -1199,7 +1198,7 @@ class C1
     @"
 class C1
 {
-    void M1((int, int) t1, (int, string) p)
+    void M1((int, int) t1, (int, string) value)
     {
     }
     void M2()
@@ -1357,7 +1356,7 @@ class C1 : I1
     class C1
     {
         void M1(int i1, int i2) { }
-        void M1(double d, int v) { }
+        void M1(double d, int @int) { }
         void M2()
         {
             M1(1.0, 1);
@@ -1389,7 +1388,7 @@ class C1 : I1
     class C1
     {
         void M1(int i1, int i2) { }
-        void M1(System.Action a, int v) { }
+        void M1(System.Action a, int @int) { }
         void M2()
         {
             M1(()=> { }, 1);
@@ -1475,7 +1474,7 @@ class C1 : I1
 @"
     class C1
     {
-        void M1<T>(T v) { }
+        void M1<T>(T @bool) { }
         void M2()
         {
             [|M1|](true, true);
@@ -1486,7 +1485,7 @@ class C1 : I1
 @"
     class C1
     {
-        void M1<T>(T v, bool v1) { }
+        void M1<T>(T @bool, bool bool1) { }
         void M2()
         {
             M1(true, true);
@@ -1516,7 +1515,7 @@ class C1 : I1
 @"
     class C1
     {
-        static void M1(bool v, params int[] nums) { }
+        static void M1(bool @bool, params int[] nums) { }
         static void M2()
         {
             M1(true, 4);
@@ -1553,7 +1552,7 @@ class C1 : I1
 @"
     class BaseClass
     {
-        protected virtual void M1(int v) { }
+        protected virtual void M1(int @int) { }
     }
     class Derived1: BaseClass
     {
@@ -1571,11 +1570,11 @@ class C1 : I1
 @"
     class BaseClass
     {
-        protected virtual void M1(int v) { }
+        protected virtual void M1(int @int) { }
     }
     class Derived1: BaseClass
     {
-        protected override void M1(int v) { }
+        protected override void M1(int @int) { }
     }
     class Test: BaseClass
     {
@@ -1630,7 +1629,7 @@ namespace N1
 {
     partial class C1
     {
-        partial void PartialM(int v);
+        partial void PartialM(int @int);
     }
 }
         </Document>
@@ -1639,7 +1638,7 @@ namespace N1
 {
     partial class C1
     {
-        partial void PartialM(int v) { }
+        partial void PartialM(int @int) { }
         void M1()
         {
             PartialM(1);
@@ -1692,7 +1691,7 @@ namespace N1
 {
     partial class C1
     {
-        public partial void PartialM(int v);
+        public partial void PartialM(int @int);
     }
 }
         </Document>
@@ -1701,7 +1700,7 @@ namespace N1
 {
     partial class C1
     {
-        public partial void PartialM(int v) { }
+        public partial void PartialM(int @int) { }
         void M1()
         {
             PartialM(1);
@@ -1741,11 +1740,11 @@ namespace N1
 {
     partial class C1
     {
-        partial void PartialM(int v);
+        partial void PartialM(int @int);
     }
     partial class C1
     {
-        partial void PartialM(int v) { }
+        partial void PartialM(int @int) { }
         void M1()
         {
             PartialM(1);
@@ -1835,7 +1834,7 @@ namespace N
 {
     public class Derived: BaseClass
     {
-        public override void M(int v) { }
+        public override void M(int @int) { }
     }
     public class DerivedDerived: Derived
     {
@@ -1851,7 +1850,7 @@ namespace N
 {
     public class Derived: BaseClass
     {
-        public override void M({|Conflict:int v|}) { }
+        public override void M({|Conflict:int @int|}) { }
     }
     public class DerivedDerived: Derived
     {
@@ -1933,7 +1932,7 @@ namespace N
 {
     public class BaseClass
     {
-        public virtual void M(int v) { }
+        public virtual void M(int @int) { }
     }
 }
         </Document>
@@ -1945,7 +1944,7 @@ namespace N
 {
     public class Derived1: BaseClass
     {
-        public override void M(int v) { }
+        public override void M(int @int) { }
     }
 }
         </Document>
@@ -1957,7 +1956,7 @@ namespace N
 {
     public class Derived2: BaseClass
     {
-        public override void M(int v) { }
+        public override void M(int @int) { }
     }
 }
         </Document>
@@ -2008,7 +2007,7 @@ namespace N
     }
     class C: I1
     {
-        public void M1(int v) { }
+        public void M1(int @int) { }
         void MTest() 
         {
             M1(1);
@@ -2019,11 +2018,11 @@ namespace N
 @"
     interface I1
     {
-        void M1(int v);
+        void M1(int @int);
     }
     class C: I1
     {
-        public void M1(int v) { }
+        public void M1(int @int) { }
         void MTest() 
         {
             M1(1);
@@ -2077,7 +2076,7 @@ namespace N
         <Document FilePath=""ReferencedDocument"">
 Namespace N
     Public Class BaseClass
-        Public Overridable Sub M(v As Integer)
+        Public Overridable Sub M(int As Integer)
         End Sub
     End Class
 End Namespace
@@ -2090,7 +2089,7 @@ namespace N
 {
     public class Derived: BaseClass
     {
-        public override void M(int v) { }
+        public override void M(int @int) { }
     }
     public class T
     {
@@ -2123,7 +2122,7 @@ class C
 @"
 class C
 {
-    void M(int v) { }
+    void M(int @int) { }
     void Test()
     {
         M(1, 2, 3, 4);
@@ -2152,7 +2151,7 @@ class C
 @"
 class C
 {
-    void M(int i = 1, int v = 0) { }
+    void M(int i = 1, int @int = 0) { }
     void Test()
     {
         M(1, 2);
@@ -2208,7 +2207,7 @@ class C
 @"
 class C
 {
-    void M(string v, params int[] ints) { }
+    void M(string @string, params int[] ints) { }
     void Test()
     {
         M(""text"");
@@ -2301,7 +2300,7 @@ class C
 @"
 class C
 {
-    void M(int v) { }
+    void M(int @int) { }
     void Test()
     {
         M(1
@@ -2319,7 +2318,7 @@ class C
 @"
 class C
 {
-    void M(int v) { }
+    void M(int @string) { }
     void Test()
     {
         [|M|](""text"", 1
@@ -2328,7 +2327,7 @@ class C
 @"
 class C
 {
-    void M(string v1, int v) { }
+    void M(string string1, int @string) { }
     void Test()
     {
         M(""text"", 1
@@ -2516,7 +2515,7 @@ class C
 @"
 class C 
 {
-    public C(int i, int v) { }
+    public C(int i, int @int) { }
     
     public C(): this(1, 1)
     { }
@@ -2579,7 +2578,7 @@ class Rsrp
   public void M()
   {
     Local(""ignore this"", true);
-    void Local(string whatever, bool v)
+    void Local(string whatever, bool @bool)
     {
 
     }
@@ -2688,7 +2687,7 @@ using System.Collections.Generic;
 namespace N {
 static class Extensions
 {
-    public static IEnumerator<int> GetEnumerator(this object o, int v)
+    public static IEnumerator<int> GetEnumerator(this object o, int @int)
     {
     }
 }
@@ -2732,7 +2731,7 @@ using System.Threading.Tasks;
 namespace N {
 static class Extensions
 {
-    public static IAsyncEnumerator<int> GetAsyncEnumerator(this object o, int v)
+    public static IAsyncEnumerator<int> GetAsyncEnumerator(this object o, int @int)
     {
     }
 }
@@ -2761,7 +2760,7 @@ void local(int x, int y)
 @"
 [|local|](1, 2, 3);
 
-void local(int x, int y, int v)
+void local(int x, int y, int @int)
 {
 }
 ", parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp9));
@@ -2786,7 +2785,7 @@ void outer()
 {
     local(1, 2, 3);
 
-    void local(int x, int y, int v)
+    void local(int x, int y, int @int)
     {
     }
 }
@@ -2810,7 +2809,7 @@ class C
 @"
 class C
 {
-    C(int i, int v) { }
+    C(int i, int @int) { }
 
     void M()
     {
