@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             var symbolId = SymbolKey.Create(symbol, cancellationToken);
             var navigateProject = workspace.CurrentSolution.GetRequiredProject(projectId);
 
-            var documentInfos = CreateDocumentInfos(sourceFileInfos, encoding, navigateProject);
+            var documentInfos = CreateDocumentInfos(sourceFileInfos, encoding, navigateProject.Id, project);
             if (documentInfos.Length > 0)
             {
                 workspace.OnDocumentsAdded(documentInfos);
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 metadataReferences: project.MetadataReferences.ToImmutableArray()); // TODO: Read references from PDB info: https://github.com/dotnet/roslyn/issues/55834
         }
 
-        private ImmutableArray<DocumentInfo> CreateDocumentInfos(SourceFileInfo?[] sourceFileInfos, Encoding encoding, Project project)
+        private ImmutableArray<DocumentInfo> CreateDocumentInfos(SourceFileInfo?[] sourceFileInfos, Encoding encoding, ProjectId projectId, Project sourceProject)
         {
             using var _ = ArrayBuilder<DocumentInfo>.GetInstance(out var documents);
 
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     continue;
                 }
 
-                var documentId = DocumentId.CreateNewId(project.Id);
+                var documentId = DocumentId.CreateNewId(projectId);
 
                 documents.Add(DocumentInfo.Create(
                     documentId,
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     loader: info.Loader));
 
                 // In order to open documents in VS we need to understand the link from temp file to document and its encoding etc.
-                _fileToDocumentMap[info.FilePath] = new(documentId, encoding, project.Id, project.Solution.Workspace);
+                _fileToDocumentMap[info.FilePath] = new(documentId, encoding, sourceProject.Id, sourceProject.Solution.Workspace);
             }
 
             return documents.ToImmutable();
