@@ -44,9 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.TransposeRecordKeyword
 
         private static bool TryGetTokens(
             RecordDeclarationSyntax recordDeclaration,
-            out SyntaxToken recordKeyword,
             out SyntaxToken classOrStructKeyword,
-            out SyntaxTrivia whitespaceTrivia)
+            out SyntaxToken recordKeyword)
         {
             recordKeyword = recordDeclaration.Keyword;
             if (!recordKeyword.IsMissing)
@@ -113,9 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.TransposeRecordKeyword
                                 return currentRecordDeclaration;
 
                             return currentRecordDeclaration
-                                .WithClassOrStructKeyword(classOrStructKeyword.WithAppendedTrailingTrivia(whitespace))
-                                .WithKeyword(recordKeyword.WithLeadingTrivia(
-                                    recordKeyword.LeadingTrivia.Take(recordKeyword.LeadingTrivia.Count - 2)));
+                                .WithClassOrStructKeyword(classOrStructKeyword)
+                                .WithKeyword(recordKeyword);
                         });
                 }
             }
