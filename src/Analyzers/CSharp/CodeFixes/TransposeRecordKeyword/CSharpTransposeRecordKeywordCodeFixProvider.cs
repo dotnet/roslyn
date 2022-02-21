@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.TransposeRecordKeyword
         {
             public MyCodeAction(
                 Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpCodeFixesResources.Fix_token_placement, createChangedDocument, nameof(CSharpTransposeRecordKeywordCodeFixProvider))
+                : base(CSharpCodeFixesResources.Fix_record_declaration, createChangedDocument, nameof(CSharpTransposeRecordKeywordCodeFixProvider))
             {
             }
         }

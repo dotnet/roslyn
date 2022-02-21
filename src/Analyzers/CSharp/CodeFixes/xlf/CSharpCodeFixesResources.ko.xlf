@@ -12,9 +12,9 @@
         <target state="translated">'typeof'를 'nameof'로 변환</target>
         <note />
       </trans-unit>
-      <trans-unit id="Fix_token_placement">
-        <source>Fix token placement</source>
-        <target state="new">Fix token placement</target>
+      <trans-unit id="Fix_record_declaration">
+        <source>Fix_record_declaration</source>
+        <target state="new">Fix_record_declaration</target>
         <note />
       </trans-unit>
       <trans-unit id="Pass_in_captured_variables_as_arguments">
