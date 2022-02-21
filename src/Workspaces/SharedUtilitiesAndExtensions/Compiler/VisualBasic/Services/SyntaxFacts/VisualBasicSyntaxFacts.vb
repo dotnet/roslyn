@@ -685,6 +685,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
             Return False
         End Function
 
+        Public Function IsAnyInitializerExpression(node As SyntaxNode, ByRef creationExpression As SyntaxNode) As Boolean Implements ISyntaxFacts.IsAnyInitializerExpression
+            If TypeOf node Is CollectionInitializerSyntax Then
+                If TypeOf node.Parent Is ArrayCreationExpressionSyntax Then
+                    creationExpression = node.Parent
+                    Return True
+                ElseIf TypeOf node.Parent Is ObjectCollectionInitializerSyntax AndAlso
+                        TypeOf node.Parent.Parent Is ObjectCreationExpressionSyntax Then
+                    creationExpression = node.Parent.Parent
+                    Return True
+                End If
+            End If
+
+            Return False
+        End Function
+
         Public Function IsNameOfSubpattern(node As SyntaxNode) As Boolean Implements ISyntaxFacts.IsNameOfSubpattern
             Return False
         End Function

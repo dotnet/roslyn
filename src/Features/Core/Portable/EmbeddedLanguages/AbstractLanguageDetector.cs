@@ -138,31 +138,33 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
 
             if (HasLanguageComment(token, syntaxFacts, out options))
                 return true;
+            // If we're a string used in a collection initializer, treat this as a lang string if the collection itself
+            // is properly annotated.  This is for APIs that do things like DateTime.ParseExact(..., string[] formats, ...);
+            var container = TryFindContainer(token);
+            if (container is null)
+                return false;
 
-            var parent = syntaxFacts.WalkUpParentheses(token.Parent);
-
-            if (syntaxFacts.IsArgument(parent.Parent))
+            if (syntaxFacts.IsArgument(container.Parent))
             {
-                var argument = parent.Parent;
+                var argument = container.Parent;
                 if (IsArgumentToWellKnownAPI(token, argument, semanticModel, cancellationToken, out options))
                     return true;
 
                 if (IsArgumentToParameterWithMatchingStringSyntaxAttribute(semanticModel, argument, cancellationToken, out options))
                     return true;
             }
-            else if (syntaxFacts.IsAttributeArgument(parent.Parent))
+            else if (syntaxFacts.IsAttributeArgument(container.Parent))
             {
-                var argument = parent.Parent;
-                if (IsArgumentToAttributeParameterWithMatchingStringSyntaxAttribute(semanticModel, argument, cancellationToken, out options))
+                if (IsArgumentToAttributeParameterWithMatchingStringSyntaxAttribute(semanticModel, container.Parent, cancellationToken, out options))
                     return true;
             }
             else
             {
-                var statement = parent.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsStatement);
+                var statement = container.FirstAncestorOrSelf<SyntaxNode>(syntaxFacts.IsStatement);
                 if (syntaxFacts.IsSimpleAssignmentStatement(statement))
                 {
                     syntaxFacts.GetPartsOfAssignmentStatement(statement, out var left, out var right);
-                    if (parent == right &&
+                    if (container == right &&
                         IsFieldOrPropertyWithMatchingStringSyntaxAttribute(semanticModel, left, cancellationToken))
                     {
                         return true;
@@ -171,6 +173,18 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
             }
 
             return false;
+        }
+
+        private SyntaxNode? TryFindContainer(SyntaxToken token)
+        {
+            var syntaxFacts = Info.SyntaxFacts;
+            var node = syntaxFacts.WalkUpParentheses(token.GetRequiredParent());
+
+            // if we're inside some collection-like initializer, find the instance actually being created. 
+            if (syntaxFacts.IsAnyInitializerExpression(node.Parent, out var instance))
+                node = syntaxFacts.WalkUpParentheses(instance);
+
+            return node;
         }
 
         private bool IsArgumentToAttributeParameterWithMatchingStringSyntaxAttribute(

@@ -656,6 +656,21 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
             return false;
         }
 
+        public bool IsAnyInitializerExpression([NotNullWhen(true)] SyntaxNode? node, [NotNullWhen(true)] out SyntaxNode? creationExpression)
+        {
+            if (node is InitializerExpressionSyntax
+                {
+                    Parent: BaseObjectCreationExpressionSyntax or ArrayCreationExpressionSyntax or ImplicitArrayCreationExpressionSyntax
+                })
+            {
+                creationExpression = node.Parent;
+                return true;
+            }
+
+            creationExpression = null;
+            return false;
+        }
+
         public bool IsElementAccessExpression(SyntaxNode? node)
             => node.IsKind(SyntaxKind.ElementAccessExpression);
 
