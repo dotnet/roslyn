@@ -51,30 +51,39 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.TransposeRecordKeyword
             if (!recordKeyword.IsMissing)
             {
                 var leadingTrivia = recordKeyword.LeadingTrivia;
-                if (leadingTrivia.Count >= 2)
+                var skippedTriviaIndex = leadingTrivia.IndexOf(SyntaxKind.SkippedTokensTrivia);
+                if (skippedTriviaIndex >= 0)
                 {
-                    var skippedTrivia = leadingTrivia[^2];
-                    whitespaceTrivia = leadingTrivia[^1];
-                    if (skippedTrivia.Kind() == SyntaxKind.SkippedTokensTrivia &&
-                        whitespaceTrivia.Kind() == SyntaxKind.WhitespaceTrivia)
+                    var skippedTrivia = leadingTrivia[skippedTriviaIndex];
+                    var structure = (SkippedTokensTriviaSyntax)skippedTrivia.GetStructure()!;
+                    var tokens = structure.Tokens;
+                    if (tokens.Count == 1)
                     {
-                        var structure = (SkippedTokensTriviaSyntax)skippedTrivia.GetStructure()!;
-                        var tokens = structure.Tokens;
-                        if (tokens.Count == 1)
+                        classOrStructKeyword = tokens.Single();
+                        if (classOrStructKeyword.Kind() is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword)
                         {
-                            var lastSkippedToken = tokens.Single();
-                            if (lastSkippedToken.Kind() is SyntaxKind.ClassKeyword or SyntaxKind.StructKeyword)
-                            {
-                                classOrStructKeyword = lastSkippedToken;
-                                return true;
-                            }
+                            // Because the class/struct keyword is skipped trivia on the record keyword, it will
+                            // not have trivia of it's own.  So we need to move the other trivia appropriate trivia
+                            // on the record keyword to it.
+                            var remainingLeadingTrivia = SyntaxFactory.TriviaList(leadingTrivia.Skip(skippedTriviaIndex + 1));
+                            var trailingTriviaTakeUntil = remainingLeadingTrivia.IndexOf(SyntaxKind.EndOfLineTrivia) is >= 0 and var eolIndex
+                                ? eolIndex + 1
+                                : remainingLeadingTrivia.Count;
+
+                            classOrStructKeyword = classOrStructKeyword
+                                .WithLeadingTrivia(SyntaxFactory.TriviaList(remainingLeadingTrivia.Skip(trailingTriviaTakeUntil)))
+                                .WithTrailingTrivia(recordKeyword.TrailingTrivia);
+                            recordKeyword = recordKeyword
+                                .WithLeadingTrivia(leadingTrivia.Take(skippedTriviaIndex))
+                                .WithTrailingTrivia(SyntaxFactory.TriviaList(remainingLeadingTrivia.Take(trailingTriviaTakeUntil)));
+
+                            return true;
                         }
                     }
                 }
             }
 
             classOrStructKeyword = default;
-            whitespaceTrivia = default;
             return false;
         }
 
@@ -85,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.TransposeRecordKeyword
 
             var diagnostic = context.Diagnostics.First();
             if (TryGetRecordDeclaration(diagnostic, cancellationToken, out var recordDeclaration) &&
-                TryGetTokens(recordDeclaration, out _, out _, out _))
+                TryGetTokens(recordDeclaration, out _, out _))
             {
                 context.RegisterCodeFix(
                     new MyCodeAction(c => this.FixAsync(document, diagnostic, c)),
@@ -108,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.TransposeRecordKeyword
                         (current, _) =>
                         {
                             var currentRecordDeclaration = (RecordDeclarationSyntax)current;
-                            if (!TryGetTokens(currentRecordDeclaration, out var recordKeyword, out var classOrStructKeyword, out var whitespace))
+                            if (!TryGetTokens(currentRecordDeclaration, out var classOrStructKeyword, out var recordKeyword))
                                 return currentRecordDeclaration;
 
                             return currentRecordDeclaration

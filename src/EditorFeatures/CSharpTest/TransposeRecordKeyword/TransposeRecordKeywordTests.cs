@@ -149,5 +149,24 @@ record class C
                 LanguageVersion = LanguageVersion.CSharp10
             }.RunAsync();
         }
+
+        [Fact]
+        public async Task TestTriviaBeforeAfter()
+        {
+            await new VerifyCS.Test
+            {
+                TestCode = @"
+/*1*/
+class /**/
+/*3*/
+{|CS9012:record|} /*4*/ C { }",
+                FixedCode = @"
+/*1*/
+record /**/
+/*3*/
+class /*4*/ C { }",
+                LanguageVersion = LanguageVersion.CSharp10
+            }.RunAsync();
+        }
     }
 }
