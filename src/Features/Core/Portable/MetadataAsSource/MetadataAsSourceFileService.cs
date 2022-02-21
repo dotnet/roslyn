@@ -115,7 +115,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     if (!provider.IsValueCreated)
                         continue;
 
-                    return provider.Value.TryAddDocumentToWorkspace(_workspace, filePath, sourceTextContainer);
+                    if (provider.Value.TryAddDocumentToWorkspace(_workspace, filePath, sourceTextContainer))
+                        return true;
                 }
             }
 
@@ -133,7 +134,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                     if (!provider.IsValueCreated)
                         continue;
 
-                    return provider.Value.TryRemoveDocumentFromWorkspace(_workspace, filePath);
+                    if (provider.Value.TryRemoveDocumentFromWorkspace(_workspace, filePath))
+                        return true;
                 }
             }
 
