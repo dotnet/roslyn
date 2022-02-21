@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     internal static partial class ITypeSymbolExtensions
     {
         public const string DefaultParameterName = "value";
+        private const string DefaultBuiltInParameterName = "v";
 
         public static bool IsIntegralType([NotNullWhen(returnValue: true)] this ITypeSymbol? type)
             => type?.SpecialType.IsIntegralType() == true;
@@ -335,7 +336,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        public static string CreateParameterName(this ITypeSymbol type, bool capitalize = false)
+        public static string CreateParameterName(this ITypeSymbol type, bool capitalize = false, bool considerPuralization = false)
         {
             while (true)
             {
@@ -352,15 +353,20 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 break;
             }
 
-            var shortName = GetParameterName(type);
+            var shortName = GetParameterName(type, considerPuralization);
             return capitalize ? shortName.ToPascalCase() : shortName.ToCamelCase();
         }
 
-        private static string GetParameterName(ITypeSymbol? type)
+        private static string GetParameterName(ITypeSymbol? type, bool considerPuralization)
         {
             if (type == null || type.IsAnonymousType() || type.IsTupleType)
             {
                 return DefaultParameterName;
+            }
+
+            if (!considerPuralization && type.IsSpecialType())
+            {
+                return DefaultBuiltInParameterName;
             }
 
             var shortName = type.GetShortName();
@@ -568,9 +574,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // SPEC: argument is more specific and no type argument is less specific than the
             // SPEC: corresponding type argument in the other.
 
+            var n1 = t1 as INamedTypeSymbol;
             var n2 = t2 as INamedTypeSymbol;
 
-            if (t1 is not INamedTypeSymbol n1)
+            if (t1 == null)
             {
                 return null;
             }

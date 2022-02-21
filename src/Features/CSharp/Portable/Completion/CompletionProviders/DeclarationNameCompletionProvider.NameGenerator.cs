@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             internal static ImmutableArray<Words> GetBaseNames(ITypeSymbol type, bool pluralize)
             {
-                var baseName = TryRemoveKnownPrefixes(type);
+                var baseName = TryRemoveKnownPrefixes(type, pluralize);
                 using var parts = TemporaryArray<TextSpan>.Empty;
                 StringBreaker.AddWordParts(baseName, ref parts.AsRef());
                 var result = GetInterleavedPatterns(parts, baseName, pluralize);
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             //Tries to remove "I" prefix from interfaces and "T" prefix from generic parameter names
-            private static string TryRemoveKnownPrefixes(ITypeSymbol type)
+            private static string TryRemoveKnownPrefixes(ITypeSymbol type, bool considerPuralization)
             {
                 var name = type.Name;
 
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return name == "T" ? ITypeSymbolExtensions.DefaultParameterName : name[1..].ToCamelCase();
                 }
 
-                return type.CreateParameterName();
+                return type.CreateParameterName(considerPuralization: considerPuralization);
             }
         }
 

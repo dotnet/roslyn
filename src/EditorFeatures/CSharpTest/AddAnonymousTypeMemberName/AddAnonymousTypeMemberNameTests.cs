@@ -86,7 +86,7 @@ class C
 {
     void M()
     {
-        var v = new { Value = new { Type = this.GetType(), String = this.ToString() } };
+        var v = new { Value = new { Type = this.GetType(), V = this.ToString() } };
     }
 }");
         }
@@ -108,7 +108,7 @@ class C
 {
     void M()
     {
-        var v = new { Value = new { Type = this.GetType(), String = this.ToString() } };
+        var v = new { Value = new { Type = this.GetType(), V = this.ToString() } };
     }
 }");
         }
