@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Wrapping;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList
         public override bool Supports_WrapEveryGroup_UnwrapFirst => true;
         public override bool Supports_WrapLongGroup_UnwrapFirst => true;
 
-        protected override bool ShouldMoveOpenBraceToNewLine(OptionSet options)
+        protected override bool ShouldMoveOpenBraceToNewLine(SyntaxWrappingOptions options)
             => false;
 
         protected override bool ShouldMoveCloseBraceToNewLine
