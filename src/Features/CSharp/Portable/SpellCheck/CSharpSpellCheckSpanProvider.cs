@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SpellCheck
 
         protected override bool IsDeclarationIdentifier(SyntaxToken token)
         {
+            // Leverage syntactic classification which already has to determine if an identifier token is the name of
+            // some construct.
             var classification = ClassificationHelpers.GetClassificationForIdentifier(token);
             switch (classification)
             {
