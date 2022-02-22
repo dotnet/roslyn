@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SpellCheck
                 case SyntaxKind.SingleLineCommentTrivia:
                     return TextSpan.FromBounds(trivia.Span.Start + "//".Length, trivia.Span.End);
 
-                case SyntaxKind.MultiLineDocumentationCommentTrivia:
+                case SyntaxKind.MultiLineCommentTrivia:
                     var start = trivia.Span.Start + "/*".Length;
                     var end = trivia.Span.End;
                     if (end >= start + 2 &&
