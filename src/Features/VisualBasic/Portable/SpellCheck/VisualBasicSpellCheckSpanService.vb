@@ -6,6 +6,7 @@ Imports System.Composition
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.SpellCheck
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Classification
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SpellCheck
     <ExportLanguageService(GetType(ISpellCheckSpanService), LanguageNames.VisualBasic), [Shared]>
@@ -17,8 +18,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SpellCheck
         Public Sub New()
         End Sub
 
-        Protected Overrides Function IsDeclarationIdentifier(token As SyntaxToken) As Boolean
-            Throw New NotImplementedException()
+        Protected Overrides Function GetClassificationForIdentifier(token As SyntaxToken) As String
+            Return ClassificationHelpers.GetClassificationForIdentifier(token)
         End Function
 
         Protected Overrides Function GetSpanForComment(trivia As SyntaxTrivia) As TextSpan
