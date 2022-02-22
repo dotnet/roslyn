@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellChecking
 {
-    [Method(VSInternalMethods.TextDocumentSpellCheckableRanges)]
+    [Method(VSInternalMethods.TextDocumentSpellCheckableRangesName)]
     internal class DocumentSpellCheckingHandler : AbstractSpellCheckingHandler<VSInternalDocumentSpellCheckableParams, VSInternalSpellCheckableRangeReport>
     {
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalDocumentSpellCheckableParams requestParams)
