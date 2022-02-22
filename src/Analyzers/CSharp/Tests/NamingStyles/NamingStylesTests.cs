@@ -1340,5 +1340,114 @@ class C
     static extern void [|some_p_invoke()|];
 }", new TestParameters(options: s_options.MethodNamesArePascalCase));
         }
+
+        [Fact]
+        public async Task TestFixAllInDocument()
+        {
+            await TestInRegularAndScript1Async(
+                @"
+class Cls
+{
+    public void {|FixAllInDocument:hello|}() { }
+    public int world() => 1;
+}",
+                @"
+class Cls
+{
+    public void Hello() { }
+    public int World() => 1;
+}", new TestParameters(options: s_options.MethodNamesArePascalCase));
+        }
+
+        [Fact]
+        public async Task TestFixAllInProject()
+        {
+            await TestInRegularAndScript1Async(
+@"<Workspace>
+    <Project Language = ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath = ""z:\\file1.cs"">
+class Cls
+{
+    public void {|FixAllInProject:hello|}() { }
+    public int world() => 1;
+}
+        </Document>
+        <Document FilePath = ""z:\\file2.cs"">
+class Cls2
+{
+    public void hello2() { }
+    public int world() => 1;
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"<Workspace>
+    <Project Language = ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath = ""z:\\file1.cs"">
+class Cls
+{
+    public void Hello() { }
+    public int World() => 1;
+}
+        </Document>
+        <Document FilePath = ""z:\\file2.cs"">
+class Cls2
+{
+    public void Hello2() { }
+    public int World() => 1;
+}
+        </Document>
+    </Project>
+</Workspace>",
+new TestParameters(options: s_options.MethodNamesArePascalCase));
+        }
+
+        [Fact]
+        public async Task TestFixAllInSolution()
+        {
+            await TestInRegularAndScript1Async(
+@"<Workspace>
+    <Project Language = ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath = ""z:\\file1.cs"">
+class Cls
+{
+    public void {|FixAllInSolution:hello|}() { }
+    public int world() => 1;
+}
+        </Document>
+    </Project>
+    <Project Language = ""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document FilePath = ""z:\\file2.cs"">
+class Cls2
+{
+    public void hello() { }
+    public int world() => 2;
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"<Workspace>
+    <Project Language = ""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath = ""z:\\file1.cs"">
+class Cls
+{
+    public void Hello() { }
+    public int World() => 1;
+}
+        </Document>
+    </Project>
+    <Project Language = ""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document FilePath = ""z:\\file2.cs"">
+class Cls2
+{
+    public void Hello() { }
+    public int World() => 2;
+}
+        </Document>
+    </Project>
+</Workspace>",
+new TestParameters(options: s_options.MethodNamesArePascalCase));
+
+        }
     }
 }
