@@ -1124,7 +1124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             TypeSymbol int32Type = compilation.GetSpecialType(SpecialType.System_Int32);
-            BoundExpression arraySize = new BoundLiteral(syntax, ConstantValue.Create(arrayArgs.Length), int32Type, hasErrors: false);
+            BoundExpression arraySize = new BoundLiteral(syntax, ConstantValue.Create(arrayArgs.Length), int32Type, hasErrors: false) { WasCompilerGenerated = true };
             return new BoundArrayCreation(
                 syntax,
                 ImmutableArray.Create(arraySize),
