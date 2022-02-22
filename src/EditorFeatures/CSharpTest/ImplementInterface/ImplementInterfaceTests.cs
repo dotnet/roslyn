@@ -7291,7 +7291,7 @@ class Class : IInterface
                 {
                     ImplementTypeOptions = new ImplementTypeOptions(InsertionBehavior: ImplementTypeInsertionBehavior.AtTheEnd)
                 }
-        }.RunAsync();
+            }.RunAsync();
         }
 
         [WorkItem(15387, "https://github.com/dotnet/roslyn/issues/15387")]
