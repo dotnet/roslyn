@@ -2,23 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.SpellCheck;
-using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using System.Threading;
-using Xunit;
-using Roslyn.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.SpellCheck;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SpellChecking
 {
@@ -115,6 +110,397 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SpellChecking
         {
             await TestAsync(@"
 /*{|Comment:/|}");
+        }
+
+        [Fact]
+        public async Task TestDocComment1()
+        {
+            await TestAsync(@"
+/// {|Comment:goo|} {|Comment:bar|} {|Comment:baz|}
+class {|Identifier:C|}
+{
+}");
+        }
+
+        [Fact]
+        public async Task TestDocComment2()
+        {
+            await TestAsync(@"
+/// <summary> {|Comment:goo|} {|Comment:bar|} {|Comment:baz|} </summary>
+class {|Identifier:C|}
+{
+}");
+        }
+
+        [Fact]
+        public async Task TestString1()
+        {
+            await TestAsync(@"""{|String: goo |}""");
+        }
+
+        [Fact]
+        public async Task TestString2()
+        {
+            await TestAsync(@"""{|String: goo |}");
+        }
+
+        [Fact]
+        public async Task TestString3()
+        {
+            await TestAsync(@"
+""{|String: goo |}""");
+        }
+
+        [Fact]
+        public async Task TestString4()
+        {
+            await TestAsync(@"
+""{|String: goo |}");
+        }
+
+        [Fact]
+        public async Task TestString5()
+        {
+            await TestAsync(@"
+@""{|String: goo |}""");
+        }
+
+        [Fact]
+        public async Task TestString6()
+        {
+            await TestAsync(@"
+@""{|String: goo |}");
+        }
+
+        [Fact]
+        public async Task TestString7()
+        {
+            await TestAsync(@"""""""{|String: goo |}""""""");
+        }
+
+        [Fact]
+        public async Task TestString8()
+        {
+            await TestAsync(@"""""""{|String: goo |}""""");
+        }
+
+        [Fact]
+        public async Task TestString9()
+        {
+            await TestAsync(@"""""""{|String: goo |}""");
+        }
+
+        [Fact]
+        public async Task TestString10()
+        {
+            await TestAsync(@"""""""{|String: goo |}");
+        }
+
+        [Fact]
+        public async Task TestString11()
+        {
+            await TestAsync(@"""""""{|String:
+    goo 
+    |}""""""");
+        }
+
+        [Fact]
+        public async Task TestString12()
+        {
+            await TestAsync(@"""""""{|String:
+    goo
+    |}""""");
+        }
+
+        [Fact]
+        public async Task TestString13()
+        {
+            await TestAsync(@"""""""{|String:
+    goo
+    |}""");
+        }
+
+        [Fact]
+        public async Task TestString14()
+        {
+            await TestAsync(@"""""""{|String:
+    goo
+    |}");
+        }
+
+        [Fact]
+        public async Task TestIdentifier1()
+        {
+            await TestAsync(@"
+class {|Identifier:C|}
+{
+}");
+        }
+
+        [Fact]
+        public async Task TestIdentifier2()
+        {
+            await TestAsync(@"
+record {|Identifier:C|}
+{
+}");
+        }
+
+        [Fact]
+        public async Task TestIdentifier3()
+        {
+            await TestAsync(@"
+record class {|Identifier:C|}
+{
+}");
+        }
+
+        [Fact]
+        public async Task TestIdentifier4()
+        {
+            await TestAsync(@"
+delegate void {|Identifier:C|}();");
+        }
+
+        [Fact]
+        public async Task TestIdentifier5()
+        {
+            await TestAsync(@"
+enum {|Identifier:C|}() { }");
+        }
+
+        [Fact]
+        public async Task TestIdentifier6()
+        {
+            await TestAsync(@"
+enum {|Identifier:C|}()
+{
+    {|Identifier:D|}
+}");
+        }
+
+        [Fact]
+        public async Task TestIdentifier7()
+        {
+            await TestAsync(@"
+enum {|Identifier:C|}()
+{
+    {|Identifier:D|}, {|Identifier:E|}
+}");
+        }
+
+        [Fact]
+        public async Task TestIdentifier8()
+        {
+            await TestAsync(@"
+interface {|Identifier:C|}() { }");
+        }
+
+        [Fact]
+        public async Task TestIdentifier9()
+        {
+            await TestAsync(@"
+struct {|Identifier:C|}() { }");
+        }
+
+        [Fact]
+        public async Task TestIdentifier10()
+        {
+            await TestAsync(@"
+record struct {|Identifier:C|}() { }");
+        }
+
+        [Fact]
+        public async Task TestIdentifier11()
+        {
+            await TestAsync(@"
+class {|Identifier:C|}<{|Identifier:T|}>() { }");
+        }
+
+        [Fact]
+        public async Task TestIdentifier12()
+        {
+            await TestAsync(@"
+class {|Identifier:C|}
+{
+    private int {|Identifier:X|};
+}");
+        }
+
+        [Fact]
+        public async Task TestIdentifier13()
+        {
+            await TestAsync(@"
+class {|Identifier:C|}
+{
+    private int {|Identifier:X|}, {|Identifier:Y|};
+}");
+        }
+
+        [Fact]
+        public async Task TestIdentifier14()
+        {
+            await TestAsync(@"
+class {|Identifier:C|}
+{
+    private const int {|Identifier:X|};
+}");
+        }
+
+        [Fact]
+        public async Task TestIdentifier15()
+        {
+            await TestAsync(@"
+class {|Identifier:C|}
+{
+    private const int {|Identifier:X|}, {|Identifier:Y|};
+}");
+        }
+
+        [Fact]
+        public async Task TestIdentifier16()
+        {
+            await TestAsync(@"
+class {|Identifier:C|}
+{
+    private int {|Identifier:X|} => 0;
+}");
+        }
+
+        [Fact]
+        public async Task TestIdentifier17()
+        {
+            await TestAsync(@"
+class {|Identifier:C|}
+{
+    private event Action {|Identifier:X|};
+}");
+        }
+
+        [Fact]
+        public async Task TestIdentifier18()
+        {
+            await TestAsync(@"
+class {|Identifier:C|}
+{
+    private event Action {|Identifier:X|}, {|Identifier:Y|};
+}");
+        }
+
+        [Fact]
+        public async Task TestIdentifier19()
+        {
+            await TestAsync(@"
+class {|Identifier:C|}
+{
+    private event Action {|Identifier:X|} { add { } remove { } }
+}");
+        }
+
+        [Fact]
+        public async Task TestIdentifier20()
+        {
+            await TestAsync(@"
+class {|Identifier:C|}
+{
+    void {|Identifier:D|}()
+    {
+        int {|Identifier:E|};
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestIdentifier21()
+        {
+            await TestAsync(@"
+class {|Identifier:C|}
+{
+    void {|Identifier:D|}()
+    {
+        int {|Identifier:E|}, {|Identifier:F|};
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestIdentifier22()
+        {
+            await TestAsync(@"
+class {|Identifier:C|}
+{
+    void {|Identifier:D|}()
+    {
+{|Identifier:E|}:
+        return;
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestIdentifier23()
+        {
+            await TestAsync(@"
+class {|Identifier:C|}
+{
+    void {|Identifier:D|}(int {|Identifier:E|})
+    {
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestIdentifier24()
+        {
+            await TestAsync(@"
+class {|Identifier:C|}
+{
+    void {|Identifier:D|}(int {|Identifier:E|})
+    {
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestIdentifier25()
+        {
+            await TestAsync(@"
+class {|Identifier:C|}
+{
+    void {|Identifier:D|}(int {|Identifier:E|}, int {|Identifier:F|})
+    {
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestIdentifier26()
+        {
+            await TestAsync(@"
+static class {|Identifier:C|}
+{
+    static void {|Identifier:D|}(this int {|Identifier:E|})
+    {
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestIdentifier27()
+        {
+            await TestAsync(@"
+namespace {|Identifier:C|}
+{
+}");
+        }
+
+        [Fact]
+        public async Task TestIdentifier28()
+        {
+            await TestAsync(@"
+namespace {|Identifier:C|}.{|Identifier:D|}
+{
+}");
         }
     }
 }

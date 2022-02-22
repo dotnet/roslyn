@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,6 +24,12 @@ namespace Microsoft.CodeAnalysis.SpellCheck
         protected abstract TextSpan GetSpanForComment(SyntaxTrivia trivia);
         protected abstract TextSpan GetSpanForRawString(SyntaxToken token);
         protected abstract TextSpan GetSpanForString(SyntaxToken token);
+
+        private static void AddSpan(ArrayBuilder<SpellCheckSpan> spans, SpellCheckSpan span)
+        {
+            if (span.TextSpan.Length > 0)
+                spans.Add(span);
+        }
 
         public async Task<ImmutableArray<SpellCheckSpan>> GetSpansAsync(Document document, CancellationToken cancellationToken)
         {
@@ -63,22 +70,22 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             var syntaxKinds = syntaxFacts.SyntaxKinds;
             if (syntaxFacts.IsStringLiteral(token))
             {
-                spans.Add(new SpellCheckSpan(GetSpanForString(token), SpellCheckKind.String));
+                AddSpan(spans, new SpellCheckSpan(GetSpanForString(token), SpellCheckKind.String));
             }
             else if (token.RawKind == syntaxKinds.SingleLineRawStringLiteralToken ||
                      token.RawKind == syntaxKinds.MultiLineRawStringLiteralToken)
             {
-                spans.Add(new SpellCheckSpan(GetSpanForRawString(token), SpellCheckKind.String));
+                AddSpan(spans, new SpellCheckSpan(GetSpanForRawString(token), SpellCheckKind.String));
             }
             else if (token.RawKind == syntaxKinds.InterpolatedStringTextToken &&
                      token.Parent?.RawKind == syntaxKinds.InterpolatedStringText)
             {
-                spans.Add(new SpellCheckSpan(token.Span, SpellCheckKind.String));
+                AddSpan(spans, new SpellCheckSpan(token.Span, SpellCheckKind.String));
             }
             else if (token.RawKind == syntaxKinds.IdentifierToken &&
                 IsDeclarationIdentifier(token))
             {
-                spans.Add(new SpellCheckSpan(token.Span, SpellCheckKind.Identifier));
+                AddSpan(spans, new SpellCheckSpan(token.Span, SpellCheckKind.Identifier));
             }
 
             ProcessTriviaList(token.TrailingTrivia, syntaxFacts, spans, cancellationToken);
@@ -94,7 +101,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
         {
             if (syntaxFacts.IsRegularComment(trivia))
             {
-                spans.Add(new SpellCheckSpan(GetSpanForComment(trivia), SpellCheckKind.Comment));
+                AddSpan(spans, new SpellCheckSpan(GetSpanForComment(trivia), SpellCheckKind.Comment));
             }
             else if (syntaxFacts.IsDocumentationComment(trivia))
             {
@@ -117,7 +124,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                 {
                     var token = child.AsToken();
                     if (token.RawKind == syntaxFacts.SyntaxKinds.XmlTextLiteralToken)
-                        spans.Add(new SpellCheckSpan(token.Span, SpellCheckKind.Comment));
+                        AddSpan(spans, new SpellCheckSpan(token.Span, SpellCheckKind.Comment));
                 }
             }
         }
