@@ -5,26 +5,20 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellChecking
 {
-    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(WorkspacePullDiagnosticHandler)), Shared]
-    internal class WorkspacePullDiagnosticHandlerProvider : AbstractRequestHandlerProvider
+    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(WorkspaceSpellCheckingHandler)), Shared]
+    internal class WorkspaceSpellCheckingHandlerProvider : AbstractRequestHandlerProvider
     {
-        private readonly IDiagnosticService _diagnosticService;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public WorkspacePullDiagnosticHandlerProvider(IDiagnosticService diagnosticService)
+        public WorkspaceSpellCheckingHandlerProvider()
         {
-            _diagnosticService = diagnosticService;
         }
 
         public override ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
-        {
-            return ImmutableArray.Create<IRequestHandler>(new WorkspacePullDiagnosticHandler(serverKind, _diagnosticService));
-        }
+            => ImmutableArray.Create<IRequestHandler>(new WorkspaceSpellCheckingHandler());
     }
 }

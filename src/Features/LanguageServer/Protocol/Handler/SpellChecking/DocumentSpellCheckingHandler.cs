@@ -4,9 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellChecking
 {
@@ -38,8 +36,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellChecking
             return null;
         }
 
-        protected override ValueTask<ImmutableArray<Document>> GetOrderedDocumentsAsync(RequestContext context, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(GetRequestedDocument(context));
+        protected override ImmutableArray<Document> GetOrderedDocuments(RequestContext context, CancellationToken cancellationToken)
+            => GetRequestedDocument(context);
 
         internal static ImmutableArray<Document> GetRequestedDocument(RequestContext context)
         {
