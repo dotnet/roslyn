@@ -184,6 +184,34 @@ class {|Identifier:C|}
         }
 
         [Fact]
+        public async Task TestString15()
+        {
+            await TestAsync(@"
+$""{|String: goo |}""");
+        }
+
+        [Fact]
+        public async Task TestString16()
+        {
+            await TestAsync(@"
+$""{|String: goo |}{0}{|String: bar |}""");
+        }
+
+        [Fact]
+        public async Task TestString17()
+        {
+            await TestAsync(@"
+$""""""{|String: goo |}{0}{|String: bar |}""""""");
+        }
+
+        [Fact]
+        public async Task TestString18()
+        {
+            await TestAsync(@"
+$""""""{|String: goo |}{0:abcd}{|String: bar |}""""""");
+        }
+
+        [Fact]
         public async Task TestIdentifier1()
         {
             await TestAsync(@"
