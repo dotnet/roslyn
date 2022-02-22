@@ -3,12 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.UnitTests.SpellChecking;
+using Microsoft.CodeAnalysis.Editor.UnitTests.SpellCheck;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SpellChecking
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SpellCheck
 {
     [UseExportProvider]
     public class SpellCheckSpanTests : AbstractSpellCheckSpanTests

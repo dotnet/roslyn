@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.SpellChecking
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.SpellCheck
 {
     public abstract class AbstractSpellCheckSpanTests
     {
