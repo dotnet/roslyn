@@ -11,10 +11,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellChecking
     [Method(VSInternalMethods.DocumentPullDiagnosticName)]
     internal class DocumentSpellCheckingHandler : AbstractSpellCheckingHandler<VSInternalDocumentSpellCheckableParams, VSInternalSpellCheckableRangeReport>
     {
-        public DocumentSpellCheckingHandler()
-        {
-        }
-
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalDocumentSpellCheckableParams requestParams)
             => requestParams.TextDocument;
 
