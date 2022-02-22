@@ -17,6 +17,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class SemanticModelExtensions
     {
+        private const string DefaultBuildInParameterName = "v";
+
         public static SemanticMap GetSemanticMap(this SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
             => SemanticMap.From(semanticModel, node, cancellationToken);
 
@@ -188,12 +190,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // If there's no type argument and we have an array type, we should pluralize, e.g. using 'frogs' for 'new Frog[]' instead of 'frog'
             if (type.TypeKind == TypeKind.Array && typeArguments.IsEmpty)
             {
-                return type.CreateParameterName(capitalize, true).Pluralize();
+                return type.CreateParameterName(capitalize).Pluralize();
             }
 
             // Otherwise assume no pluralization, e.g. using 'immutableArray', 'list', etc. instead of their
             // plural forms
-            return type.CreateParameterName(capitalize);
+            if (type.IsSpecialType() ||
+                type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T ||
+                type.TypeKind == TypeKind.Pointer)
+            {
+                return capitalize ? DefaultBuildInParameterName.ToUpper() : DefaultBuildInParameterName;
+            }
+            else
+            {
+                return type.CreateParameterName(capitalize);
+            }
         }
 
         private static bool ShouldPluralize(this SemanticModel semanticModel, ITypeSymbol type)

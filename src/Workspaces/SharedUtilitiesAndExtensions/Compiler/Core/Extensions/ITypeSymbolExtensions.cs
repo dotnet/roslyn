@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     internal static partial class ITypeSymbolExtensions
     {
         public const string DefaultParameterName = "value";
-        private const string DefaultBuiltInParameterName = "v";
 
         public static bool IsIntegralType([NotNullWhen(returnValue: true)] this ITypeSymbol? type)
             => type?.SpecialType.IsIntegralType() == true;
@@ -313,13 +312,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool ContainsAnonymousType([NotNullWhen(returnValue: true)] this ITypeSymbol? symbol)
         {
-            switch (symbol)
+            return symbol switch
             {
-                case IArrayTypeSymbol a: return ContainsAnonymousType(a.ElementType);
-                case IPointerTypeSymbol p: return ContainsAnonymousType(p.PointedAtType);
-                case INamedTypeSymbol n: return ContainsAnonymousType(n);
-                default: return false;
-            }
+                IArrayTypeSymbol a => ContainsAnonymousType(a.ElementType),
+                IPointerTypeSymbol p => ContainsAnonymousType(p.PointedAtType),
+                INamedTypeSymbol n => ContainsAnonymousType(n),
+                _ => false,
+            };
         }
 
         private static bool ContainsAnonymousType(INamedTypeSymbol type)
@@ -336,7 +335,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return false;
         }
 
-        public static string CreateParameterName(this ITypeSymbol type, bool capitalize = false, bool considerPuralization = false)
+        public static string CreateParameterName(this ITypeSymbol type, bool capitalize = false)
         {
             while (true)
             {
@@ -353,20 +352,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 break;
             }
 
-            var shortName = GetParameterName(type, considerPuralization);
+            var shortName = GetParameterName(type);
             return capitalize ? shortName.ToPascalCase() : shortName.ToCamelCase();
         }
 
-        private static string GetParameterName(ITypeSymbol? type, bool considerPuralization)
+        private static string GetParameterName(ITypeSymbol? type)
         {
             if (type == null || type.IsAnonymousType() || type.IsTupleType)
             {
                 return DefaultParameterName;
-            }
-
-            if (!considerPuralization && type.IsSpecialType())
-            {
-                return DefaultBuiltInParameterName;
             }
 
             var shortName = type.GetShortName();

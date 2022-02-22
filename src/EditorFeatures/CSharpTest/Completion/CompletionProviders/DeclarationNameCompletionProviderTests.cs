@@ -2375,6 +2375,40 @@ public class Class1
             await VerifyItemExistsAsync(markup, "results");
         }
 
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumerableGenericUnexpectedlyNamedParameter()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method<Arg>(IEnumerable<Arg> $$)
+  {
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "args");
+        }
+
+        [WorkItem(36364, "https://github.com/dotnet/roslyn/issues/36364")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task EnumerableGenericUnexpectedlyNamedParameterBeginsWithT()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+public class Class1
+{
+  public void Method<Type>(IEnumerable<Type> $$)
+  {
+  }
+}
+";
+            await VerifyItemExistsAsync(markup, "types");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CustomNamingStyleInsideClass()
         {

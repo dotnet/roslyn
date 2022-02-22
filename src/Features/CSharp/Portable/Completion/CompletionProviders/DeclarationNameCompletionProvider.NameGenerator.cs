@@ -17,9 +17,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
     {
         internal class NameGenerator
         {
+            private const char DefaultInterfacePrefix = 'I';
+            private const char DefaultGenericParameterPrefix = 'T';
+
             internal static ImmutableArray<Words> GetBaseNames(ITypeSymbol type, bool pluralize)
             {
-                var baseName = TryRemoveKnownPrefixes(type, pluralize);
+                var baseName = TryRemoveKnownPrefixes(type);
                 using var parts = TemporaryArray<TextSpan>.Empty;
                 StringBreaker.AddWordParts(baseName, ref parts.AsRef());
                 var result = GetInterleavedPatterns(parts, baseName, pluralize);
@@ -32,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var name = alias.Name;
                 if (alias.Target.IsType &&
                     ((INamedTypeSymbol)alias.Target).IsInterfaceType() &&
-                    CanRemoveInterfacePrefix(name))
+                    CanRemovePrefix(name, DefaultInterfacePrefix))
                 {
                     name = name[1..];
                 }
@@ -95,13 +98,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             //Tries to remove "I" prefix from interfaces and "T" prefix from generic parameter names
-            private static string TryRemoveKnownPrefixes(ITypeSymbol type, bool considerPuralization)
+            private static string TryRemoveKnownPrefixes(ITypeSymbol type)
             {
                 var name = type.Name;
 
-                if (type.TypeKind == TypeKind.Interface && name.Length > 1)
+                if (type.TypeKind == TypeKind.Interface)
                 {
-                    if (CanRemoveInterfacePrefix(name))
+                    if (CanRemovePrefix(name, DefaultInterfacePrefix))
                     {
                         return name[1..];
                     }
@@ -109,13 +112,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 if (type.TypeKind == TypeKind.TypeParameter)
                 {
-                    return name == "T" ? ITypeSymbolExtensions.DefaultParameterName : name[1..].ToCamelCase();
+                    if (CanRemovePrefix(name, DefaultGenericParameterPrefix))
+                    {
+                        return name[1..];
+                    }
+                    else if (name.Length == 1 && name[0] == DefaultGenericParameterPrefix)
+                    {
+                        return ITypeSymbolExtensions.DefaultParameterName;
+                    }
                 }
 
-                return type.CreateParameterName(considerPuralization: considerPuralization);
+                return type.CreateParameterName();
             }
         }
 
-        private static bool CanRemoveInterfacePrefix(string name) => name.Length > 1 && name[0] == 'I' && char.IsUpper(name[1]);
+        private static bool CanRemovePrefix(string name, char prefix) => name.Length > 1 && name[0] == prefix && char.IsUpper(name[1]);
     }
 }
