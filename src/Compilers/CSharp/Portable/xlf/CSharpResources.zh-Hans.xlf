@@ -1432,9 +1432,9 @@
         <target state="translated">列表模式</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureMainAttrLoc">
-        <source>main as an attribute target specifier</source>
-        <target state="new">main as an attribute target specifier</target>
+      <trans-unit id="IDS_FeatureMainAttributeLocation">
+        <source>'main' as an attribute target specifier</source>
+        <target state="new">'main' as an attribute target specifier</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNewLinesInInterpolations">

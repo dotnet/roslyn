@@ -622,9 +622,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
 
             file.GetDiagnostics().Verify(
-                // (1,2): error CS8652: The feature 'main as an attribute target specifier' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (1,2): error CS8652: The feature ''main' as an attribute target specifier' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // [main:a]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "main:").WithArguments("main as an attribute target specifier").WithLocation(1, 2)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "main:").WithArguments("'main' as an attribute target specifier").WithLocation(1, 2)
                 );
         }
 
