@@ -81,8 +81,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SpellCheck
 
         protected override TextSpan GetSpanForString(SyntaxToken token)
         {
-            var start = token.IsVerbatimStringLiteral() ? 2 : 1;
-            var end = Math.Max(start, token.Text.EndsWith("\"") ? token.Span.End - 1 : token.Span.End);
+            var start = token.SpanStart + (token.IsVerbatimStringLiteral() ? 2 : 1);
+            var end = Math.Max(start, token.Span.End - (token.Text.EndsWith("\"") ? 1 : 0));
             return TextSpan.FromBounds(start, end);
         }
 

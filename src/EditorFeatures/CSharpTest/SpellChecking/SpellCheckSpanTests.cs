@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SpellChecking
         public async Task TestMultiLineComment4()
         {
             await TestAsync(@"
-/*{|Comment:|}*/");
+/**/");
         }
 
         [Fact]
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SpellChecking
         public async Task TestDocComment1()
         {
             await TestAsync(@"
-/// {|Comment:goo|} {|Comment:bar|} {|Comment:baz|}
+///{|Comment:goo bar Comment:baz|}
 class {|Identifier:C|}
 {
 }");
@@ -126,7 +126,7 @@ class {|Identifier:C|}
         public async Task TestDocComment2()
         {
             await TestAsync(@"
-/// <summary> {|Comment:goo|} {|Comment:bar|} {|Comment:baz|} </summary>
+///{|Comment: |}<summary>{|Comment: goo bar baz |}</summary>
 class {|Identifier:C|}
 {
 }");
@@ -266,14 +266,14 @@ delegate void {|Identifier:C|}();");
         public async Task TestIdentifier5()
         {
             await TestAsync(@"
-enum {|Identifier:C|}() { }");
+enum {|Identifier:C|} { }");
         }
 
         [Fact]
         public async Task TestIdentifier6()
         {
             await TestAsync(@"
-enum {|Identifier:C|}()
+enum {|Identifier:C|}
 {
     {|Identifier:D|}
 }");
@@ -283,7 +283,7 @@ enum {|Identifier:C|}()
         public async Task TestIdentifier7()
         {
             await TestAsync(@"
-enum {|Identifier:C|}()
+enum {|Identifier:C|}
 {
     {|Identifier:D|}, {|Identifier:E|}
 }");
@@ -293,14 +293,14 @@ enum {|Identifier:C|}()
         public async Task TestIdentifier8()
         {
             await TestAsync(@"
-interface {|Identifier:C|}() { }");
+interface {|Identifier:C|} { }");
         }
 
         [Fact]
         public async Task TestIdentifier9()
         {
             await TestAsync(@"
-struct {|Identifier:C|}() { }");
+struct {|Identifier:C|} { }");
         }
 
         [Fact]
@@ -314,7 +314,7 @@ record struct {|Identifier:C|}() { }");
         public async Task TestIdentifier11()
         {
             await TestAsync(@"
-class {|Identifier:C|}<{|Identifier:T|}>() { }");
+class {|Identifier:C|}<{|Identifier:T|}> { }");
         }
 
         [Fact]
