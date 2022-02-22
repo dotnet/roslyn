@@ -108,12 +108,12 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         {
             using (_gate.DisposableWait())
             {
-                Contract.ThrowIfNull(_workspace);
-
                 foreach (var provider in _providers)
                 {
                     if (!provider.IsValueCreated)
                         continue;
+
+                    Contract.ThrowIfNull(_workspace);
 
                     if (provider.Value.TryAddDocumentToWorkspace(_workspace, filePath, sourceTextContainer))
                         return true;
@@ -127,12 +127,12 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         {
             using (_gate.DisposableWait())
             {
-                Contract.ThrowIfNull(_workspace);
-
                 foreach (var provider in _providers)
                 {
                     if (!provider.IsValueCreated)
                         continue;
+
+                    Contract.ThrowIfNull(_workspace);
 
                     if (provider.Value.TryRemoveDocumentFromWorkspace(_workspace, filePath))
                         return true;
@@ -157,12 +157,12 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             Project? project = null;
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                Contract.ThrowIfNull(_workspace);
-
                 foreach (var provider in _providers)
                 {
                     if (!provider.IsValueCreated)
                         continue;
+
+                    Contract.ThrowIfNull(_workspace);
 
                     project = provider.Value.MapDocument(document);
                     if (project is not null)

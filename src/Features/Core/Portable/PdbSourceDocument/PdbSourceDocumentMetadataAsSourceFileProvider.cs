@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         private readonly IPdbSourceDocumentLogger? _logger;
 
         private readonly Dictionary<string, ProjectId> _assemblyToProjectMap = new();
-        private readonly Dictionary<string, SourceDocumentInfo> _fileToDocumentMap = new();
+        private readonly Dictionary<string, SourceDocumentInfo> _fileToDocumentInfoMap = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 Contract.ThrowIfNull(info);
 
                 // If a document has multiple symbols then we might already know about it
-                if (_fileToDocumentMap.ContainsKey(info.FilePath))
+                if (_fileToDocumentInfoMap.ContainsKey(info.FilePath))
                 {
                     continue;
                 }
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     loader: info.Loader));
 
                 // In order to open documents in VS we need to understand the link from temp file to document and its encoding etc.
-                _fileToDocumentMap[info.FilePath] = new(documentId, encoding, sourceProject.Id, sourceProject.Solution.Workspace);
+                _fileToDocumentInfoMap[info.FilePath] = new(documentId, encoding, sourceProject.Id, sourceProject.Solution.Workspace);
             }
 
             return documents.ToImmutable();
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
         public bool TryAddDocumentToWorkspace(Workspace workspace, string filePath, SourceTextContainer sourceTextContainer)
         {
-            if (_fileToDocumentMap.TryGetValue(filePath, out var info))
+            if (_fileToDocumentInfoMap.TryGetValue(filePath, out var info))
             {
                 workspace.OnDocumentOpened(info.DocumentId, sourceTextContainer);
 
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
         public bool TryRemoveDocumentFromWorkspace(Workspace workspace, string filePath)
         {
-            if (_fileToDocumentMap.TryGetValue(filePath, out var info))
+            if (_fileToDocumentInfoMap.TryGetValue(filePath, out var info))
             {
                 workspace.OnDocumentClosed(info.DocumentId, new FileTextLoader(filePath, info.Encoding));
 
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         public Project? MapDocument(Document document)
         {
             if (document.FilePath is not null &&
-                _fileToDocumentMap.TryGetValue(document.FilePath, out var info))
+                _fileToDocumentInfoMap.TryGetValue(document.FilePath, out var info))
             {
                 // We always want to do symbol look ups in the context of the source project, not in
                 // our temporary project. This is so that source symbols in our source project don't
@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             _assemblyToProjectMap.Clear();
 
             // The MetadataAsSourceFileService will clean up the entire temp folder so no need to do anything here
-            _fileToDocumentMap.Clear();
+            _fileToDocumentInfoMap.Clear();
         }
     }
 

@@ -161,8 +161,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.PdbSourceDocument
                 Assert.Equal(document.FilePath, file.FilePath);
 
                 // Mapping the project from the generated document should map back to the original project
-                var exportProvider = (IMefHostExportProvider)project.Solution.Workspace.Services.HostServices;
-                var provider = exportProvider.GetExportedValues<IMetadataAsSourceFileProvider>().OfType<PdbSourceDocumentMetadataAsSourceFileProvider>().Single();
+                var provider = workspace.ExportProvider.GetExportedValues<IMetadataAsSourceFileProvider>().OfType<PdbSourceDocumentMetadataAsSourceFileProvider>().Single();
                 var mappedProject = provider.MapDocument(document);
                 Assert.NotNull(mappedProject);
                 Assert.Equal(project.Id, mappedProject!.Id);
