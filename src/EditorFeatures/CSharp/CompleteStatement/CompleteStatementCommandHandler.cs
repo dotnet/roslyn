@@ -334,6 +334,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 case SyntaxKind.GotoCaseStatement:
                 case SyntaxKind.LocalDeclarationStatement:
                 case SyntaxKind.ReturnStatement:
+                case SyntaxKind.YieldReturnStatement:
                 case SyntaxKind.ThrowStatement:
                 case SyntaxKind.FieldDeclaration:
                 case SyntaxKind.DelegateDeclaration:
