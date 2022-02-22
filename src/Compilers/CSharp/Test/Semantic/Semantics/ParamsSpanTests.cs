@@ -483,6 +483,42 @@ public class A
 ");
         }
 
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void IArgumentOperation_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    static void F<T>(params Span<T> args) { }
+    static void Main()
+    {
+        /*<bind>*/F(1)/*</bind>*/;
+    }
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+            VerifyOperationTreeAndDiagnosticsForTest<SyntaxNode>(
+                comp,
+@"IInvocationOperation (void Program.F<System.Int32>(params System.Span<System.Int32> args)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'F(1)')
+  Instance Receiver:
+    null
+  Arguments(1):
+      IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: args) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'F(1)')
+        IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Span<System.Int32>, IsImplicit) (Syntax: 'F(1)')
+          Dimension Sizes(1):
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'F(1)')
+          Initializer:
+            IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: 'F(1)')
+              Element Values(1):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+",
+                DiagnosticDescription.None);
+
+            Assert.False(true); // PROTOTYPE: Add similar test for ReadOnlySpan<T>.
+        }
+
         [Fact]
         public void NoMissingMembers()
         {
@@ -646,9 +682,9 @@ class Program
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
-                // (9,9): error CS0029: Cannot implicitly convert type 'Span<object>' to 'ReadOnlySpan<object>'
+                // (9,9): error CS0656: Missing compiler required member 'System.Span`1.op_Implicit'
                 //         F2();
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "F2()").WithArguments("System.Span<object>", "System.ReadOnlySpan<object>").WithLocation(9, 9));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "F2()").WithArguments("System.Span`1", "op_Implicit").WithLocation(9, 9));
         }
 
         /// <summary>

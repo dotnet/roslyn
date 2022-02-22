@@ -1139,8 +1139,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MethodSymbol spanConstructor;
             MethodSymbol spanGetItem;
+            MethodSymbol? spanToReadOnlySpanOperator = null;
             if (!TryGetWellKnownTypeMember(syntax, WellKnownMember.System_Span_T__ctorArray, out spanConstructor) ||
-                !TryGetWellKnownTypeMember(syntax, WellKnownMember.System_Span_T__get_Item, out spanGetItem))
+                !TryGetWellKnownTypeMember(syntax, WellKnownMember.System_Span_T__get_Item, out spanGetItem) ||
+                (paramArrayType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions) &&
+                !TryGetWellKnownTypeMember<MethodSymbol>(syntax, WellKnownMember.System_Span_T__op_Implicit_SpanReadOnlySpan, out spanToReadOnlySpanOperator)))
             {
                 return BadExpression(syntax, paramArrayType, ImmutableArray<BoundExpression>.Empty);
             }
@@ -1148,6 +1151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var spanType = spanConstructor.ContainingType.Construct(elementType);
             spanConstructor = spanConstructor.AsMember(spanType);
             spanGetItem = spanGetItem.AsMember(spanType);
+            spanToReadOnlySpanOperator = spanToReadOnlySpanOperator?.AsMember(spanType);
 
             // PROTOTYPE: Test use-site diagnostics.
             var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(_diagnostics, _compilation.Assembly);
@@ -1178,7 +1182,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sideEffects.Add(assignment);
             }
 
-            var expr = MakeConversionNode(syntax, temp, conversion, temp.Type, @checked: false);
+            BoundExpression expr = temp;
+            if (spanToReadOnlySpanOperator is { })
+            {
+                // Convert Span<T> to ReadOnlySpan<T>.
+                expr = new BoundCall(
+                    syntax,
+                    receiverOpt: null,
+                    method: spanToReadOnlySpanOperator,
+                    arguments: ImmutableArray.Create(expr),
+                    argumentNamesOpt: default,
+                    argumentRefKindsOpt: default,
+                    isDelegateCall: false,
+                    expanded: false,
+                    invokedAsExtensionMethod: false,
+                    argsToParamsOpt: default,
+                    defaultArguments: default,
+                    resultKind: LookupResultKind.Viable,
+                    type: spanToReadOnlySpanOperator.ReturnType);
+            }
+
             Debug.Assert(expr.Type is { });
 
             return new BoundSequence(
