@@ -131,9 +131,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellChecking
                 {
                     context.TraceInformation($"Spans were unchanged for document: {document.FilePath}");
 
-                    // Nothing changed between the last request and this one.  Report a (null-spans,
-                    // same-result-id) response to the client as that means they should just preserve the current
-                    // diagnostics they have for this file.
+                    // Nothing changed between the last request and this one.  Report a (null-spans, same-result-id)
+                    // response to the client as that means they should just preserve the current spans they have for
+                    // this file.
                     var previousParams = documentToPreviousParams[document];
                     progress.Report(CreateReport(previousParams.TextDocument, ranges: null, previousParams.PreviousResultId));
                 }
