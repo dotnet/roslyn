@@ -502,5 +502,33 @@ namespace {|Identifier:C|}.{|Identifier:D|}
 {
 }");
         }
+
+        [Fact]
+        public async Task TestIdentifier29()
+        {
+            await TestAsync(@"
+class {|Identifier:C|}
+{
+    void {|Identifier:D|}()
+    {
+        for (int {|Identifier:E|} = 0; E < 10; E++)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact]
+        public async Task TestIdentifier30()
+        {
+            await TestAsync(@"
+class {|Identifier:C|}
+{
+    void {|Identifier:D|}()
+    {
+        Goo(out var {|Identifier:E|});
+    }
+}");
+        }
     }
 }
