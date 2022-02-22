@@ -17,15 +17,4 @@ namespace Microsoft.CodeAnalysis.SpellCheck
     {
         Task<ImmutableArray<SpellCheckSpan>> GetSpansAsync(Document document, CancellationToken cancellationToken);
     }
-
-    internal readonly record struct SpellCheckSpan(
-        TextSpan TextSpan,
-        SpellCheckKind Kind);
-
-    internal enum SpellCheckKind
-    {
-        Identifier,
-        Comment,
-        String,
-    }
 }
