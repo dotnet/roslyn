@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
         public async Task DoPasteAsync(CancellationToken cancellationToken)
         {
-            var text = ClipboardHelpers.GetText();
+            var text = ClipboardHelpers.GetTextNoRetry();
             if (RoslynString.IsNullOrEmpty(text))
             {
                 return;

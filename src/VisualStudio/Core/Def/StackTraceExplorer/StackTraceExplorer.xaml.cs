@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
         public void OnPaste()
         {
-            var text = ClipboardHelpers.GetText();
+            var text = ClipboardHelpers.GetTextNoRetry();
             if (RoslynString.IsNullOrEmpty(text))
             {
                 return;
