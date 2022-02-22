@@ -15,12 +15,12 @@ using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellChecking
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
 {
     /// <summary>
     /// Root type for both document and workspace spell checking requests.
     /// </summary>
-    internal abstract class AbstractSpellCheckingHandler<TParams, TReport>
+    internal abstract class AbstractSpellCheckHandler<TParams, TReport>
         : IRequestHandler<TParams, TReport[]?>
         where TParams : IPartialResultParams<TReport[]>
         where TReport : VSInternalSpellCheckableRangeReport
@@ -52,10 +52,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellChecking
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
-
-        protected AbstractSpellCheckingHandler()
-        {
-        }
 
         public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(TParams requestParams);
 

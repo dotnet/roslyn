@@ -6,10 +6,10 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellChecking
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
 {
     [Method(VSInternalMethods.TextDocumentSpellCheckableRangesName)]
-    internal class DocumentSpellCheckingHandler : AbstractSpellCheckingHandler<VSInternalDocumentSpellCheckableParams, VSInternalSpellCheckableRangeReport>
+    internal class DocumentSpellCheckHandler : AbstractSpellCheckHandler<VSInternalDocumentSpellCheckableParams, VSInternalSpellCheckableRangeReport>
     {
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalDocumentSpellCheckableParams requestParams)
             => requestParams.TextDocument;

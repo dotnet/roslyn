@@ -9,10 +9,10 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellChecking
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
 {
     [Method(VSInternalMethods.WorkspaceSpellCheckableRangesName)]
-    internal class WorkspaceSpellCheckingHandler : AbstractSpellCheckingHandler<VSInternalWorkspaceSpellCheckableParams, VSInternalWorkspaceSpellCheckableReport>
+    internal class WorkspaceSpellCheckHandler : AbstractSpellCheckHandler<VSInternalWorkspaceSpellCheckableParams, VSInternalWorkspaceSpellCheckableReport>
     {
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalWorkspaceSpellCheckableParams request)
             => null;

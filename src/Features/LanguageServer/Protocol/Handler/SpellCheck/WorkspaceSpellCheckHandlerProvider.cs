@@ -7,18 +7,18 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellChecking
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
 {
-    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(WorkspaceSpellCheckingHandler)), Shared]
-    internal class WorkspaceSpellCheckingHandlerProvider : AbstractRequestHandlerProvider
+    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(WorkspaceSpellCheckHandler)), Shared]
+    internal class WorkspaceSpellCheckHandlerProvider : AbstractRequestHandlerProvider
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public WorkspaceSpellCheckingHandlerProvider()
+        public WorkspaceSpellCheckHandlerProvider()
         {
         }
 
         public override ImmutableArray<IRequestHandler> CreateRequestHandlers(WellKnownLspServerKinds serverKind)
-            => ImmutableArray.Create<IRequestHandler>(new WorkspaceSpellCheckingHandler());
+            => ImmutableArray.Create<IRequestHandler>(new WorkspaceSpellCheckHandler());
     }
 }
