@@ -41,7 +41,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var allInterfaces = type.AllInterfaces;
             if (type is INamedTypeSymbol namedType && namedType.TypeKind == TypeKind.Interface && !allInterfaces.Contains(namedType))
             {
-                var result = new List<INamedTypeSymbol>(allInterfaces.Length + 1) { namedType };
+                var result = new List<INamedTypeSymbol>(allInterfaces.Length + 1);
+                result.Add(namedType);
                 result.AddRange(allInterfaces);
                 return result;
             }
@@ -557,8 +558,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             // SPEC EXTENSION: We apply the same rule to pointer types.
 
-            if (t1 is IPointerTypeSymbol p1)
+            if (t1 is IPointerTypeSymbol)
             {
+                var p1 = (IPointerTypeSymbol)t1;
                 var p2 = (IPointerTypeSymbol)t2;
                 return p1.PointedAtType.IsMoreSpecificThan(p2.PointedAtType);
             }
@@ -571,7 +573,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var n1 = t1 as INamedTypeSymbol;
             var n2 = t2 as INamedTypeSymbol;
 
-            if (t1 == null)
+            if (n1 == null)
             {
                 return null;
             }
