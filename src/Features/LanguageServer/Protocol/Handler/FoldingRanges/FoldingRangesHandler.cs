@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
@@ -19,13 +20,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     [Method(Methods.TextDocumentFoldingRangeName)]
     internal sealed class FoldingRangesHandler : AbstractStatelessRequestHandler<FoldingRangeParams, FoldingRange[]?>
     {
+        private readonly IGlobalOptionService _globalOptions;
+
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public FoldingRangesHandler()
+        public FoldingRangesHandler(IGlobalOptionService globalOptions)
         {
+            _globalOptions = globalOptions;
         }
 
         public override TextDocumentIdentifier? GetTextDocumentIdentifier(FoldingRangeParams request) => request.TextDocument;
@@ -42,7 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return Array.Empty<FoldingRange>();
             }
 
-            var options = BlockStructureOptions.From(document.Project);
+            var options = _globalOptions.GetBlockStructureOptions(document.Project);
             var blockStructure = await blockStructureService.GetBlockStructureAsync(document, options, cancellationToken).ConfigureAwait(false);
             if (blockStructure == null)
             {

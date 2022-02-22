@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
         }
 
         protected abstract bool ShouldMoveCloseBraceToNewLine { get; }
-        protected abstract bool ShouldMoveOpenBraceToNewLine(OptionSet options);
+        protected abstract bool ShouldMoveOpenBraceToNewLine(SyntaxWrappingOptions options);
 
         protected abstract TListSyntax? TryGetApplicableList(SyntaxNode node);
         protected abstract SeparatedSyntaxList<TListItemSyntax> GetListItems(TListSyntax listSyntax);
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             SyntaxNode root, int position, SyntaxNode declaration, bool containsSyntaxError, TListSyntax listSyntax);
 
         public override async Task<ICodeActionComputer?> TryCreateComputerAsync(
-            Document document, int position, SyntaxNode declaration, bool containsSyntaxError, CancellationToken cancellationToken)
+            Document document, int position, SyntaxNode declaration, SyntaxWrappingOptions options, bool containsSyntaxError, CancellationToken cancellationToken)
         {
             var listSyntax = TryGetApplicableList(declaration);
             if (listSyntax == null)
@@ -74,7 +74,6 @@ namespace Microsoft.CodeAnalysis.Wrapping.SeparatedSyntaxList
             if (containsUnformattableContent)
                 return null;
 
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             return new SeparatedSyntaxListCodeActionComputer(
                 this, document, sourceText, options, listSyntax, listItems, cancellationToken);

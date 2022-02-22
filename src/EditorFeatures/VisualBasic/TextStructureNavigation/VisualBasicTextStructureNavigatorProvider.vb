@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.TextStructureNavigation
 
     <Export(GetType(ITextStructureNavigatorProvider))>
     <ContentType(ContentTypeNames.VisualBasicContentType)>
-    Friend Class TextStructureNavigatorProvider
+    Friend Class VisualBasicTextStructureNavigatorProvider
         Inherits AbstractTextStructureNavigatorProvider
 
         <ImportingConstructor()>

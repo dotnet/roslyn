@@ -3082,6 +3082,9 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Property_name_must_be_a_string" xml:space="preserve">
     <value>Property name must be a string</value>
   </data>
+  <data name="Property_name_must_be_followed_by_a_colon" xml:space="preserve">
+    <value>Property name must be followed by a ':'</value>
+  </data>
   <data name="Strings_must_start_with_double_quote_not_single_quote" xml:space="preserve">
     <value>Strings must start with " not '</value>
   </data>

@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 foreach (var (span, diagnosticList) in spanToDiagnostics)
                 {
                     await foreach (var codeFixCollection in StreamConfigurationFixesAsync(
-                        document, span, diagnosticList, registeredConfigurationFixTitles, cancellationToken).ConfigureAwait(false))
+                        document, span, diagnosticList, registeredConfigurationFixTitles, options, cancellationToken).ConfigureAwait(false))
                     {
                         yield return codeFixCollection;
                     }
@@ -449,6 +449,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                                     }
                                 }
                             },
+                            options,
                             cancellationToken).ConfigureAwait(false);
 
                         if (codeFixCollection != null)
@@ -595,6 +596,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             TextSpan diagnosticsSpan,
             IEnumerable<DiagnosticData> diagnostics,
             PooledHashSet<string> registeredConfigurationFixTitles,
+            CodeActionOptions options,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -618,6 +620,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                             var fixes = await provider.GetFixesAsync(document, diagnosticsSpan, dxs, cancellationToken).ConfigureAwait(false);
                             return fixes.WhereAsArray(f => registeredConfigurationFixTitles.Add(f.Action.Title));
                         },
+                        options,
                         cancellationToken).ConfigureAwait(false);
                     if (codeFixCollection != null)
                         yield return codeFixCollection;
@@ -633,6 +636,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             TCodeFixProvider fixer,
             Func<Diagnostic, bool> hasFix,
             Func<ImmutableArray<Diagnostic>, Task<ImmutableArray<CodeFix>>> getFixes,
+            CodeActionOptions options,
             CancellationToken cancellationToken)
             where TCodeFixProvider : notnull
         {
@@ -692,13 +696,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     : (FixAllContext.DiagnosticProvider)new FixAllDiagnosticProvider(this, diagnosticIdsForDiagnosticProvider, includeSuppressedDiagnostics);
 
                 fixAllState = new FixAllState(
-                    fixAllProvider: fixAllProviderInfo.FixAllProvider,
-                    document: document,
-                    codeFixProvider: codeFixProvider,
-                    scope: FixAllScope.Document,
-                    codeActionEquivalenceKey: fixes[0].Action.EquivalenceKey,
-                    diagnosticIds: diagnosticIds,
-                    fixAllDiagnosticProvider: diagnosticProvider);
+                    fixAllProviderInfo.FixAllProvider,
+                    document,
+                    document.Project,
+                    codeFixProvider,
+                    FixAllScope.Document,
+                    fixes[0].Action.EquivalenceKey,
+                    diagnosticIds,
+                    diagnosticProvider,
+                    codeActionOptionsProvider: language =>
+                    {
+                        Contract.ThrowIfFalse(language == document.Project.Language);
+                        return options;
+                    });
 
                 supportedScopes = fixAllProviderInfo.SupportedScopes;
             }
