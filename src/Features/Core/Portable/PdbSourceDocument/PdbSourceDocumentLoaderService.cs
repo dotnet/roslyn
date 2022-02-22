@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             // First we try getting "local" files, either from embedded source or a local file on disk
             // and if they don't work we call the debugger to download a file from SourceLink info
             return TryGetEmbeddedSourceFile(tempFilePath, sourceDocument, encoding, telemetry) ??
-                TryGetOriginalFile(sourceDocument, encoding, telemetry) ??
+                TryGetOriginalFile(tempFilePath, sourceDocument, encoding, telemetry) ??
                 await TryGetSourceLinkFileAsync(sourceDocument, encoding, telemetry, cancellationToken).ConfigureAwait(false);
         }
 
@@ -167,11 +167,15 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
             return null;
         }
 
-        private SourceFileInfo? TryGetOriginalFile(SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry)
+        private SourceFileInfo? TryGetOriginalFile(string tempFilePath, SourceDocument sourceDocument, Encoding encoding, TelemetryMessage telemetry)
         {
             if (File.Exists(sourceDocument.FilePath))
             {
-                var result = LoadSourceFile(sourceDocument.FilePath, sourceDocument, encoding, FeaturesResources.external, ignoreChecksum: false);
+                // Copy the source file to a temp path so it can't change, making it invalid, while open in VS
+                var tempSourcePath = Path.Combine(tempFilePath, Path.GetFileName(sourceDocument.FilePath));
+                IOUtilities.PerformIO(() => File.Copy(sourceDocument.FilePath, tempSourcePath, true));
+
+                var result = LoadSourceFile(tempSourcePath, sourceDocument, encoding, FeaturesResources.external, ignoreChecksum: false);
                 if (result is not null)
                 {
                     telemetry.SetSourceFileSource("ondisk");

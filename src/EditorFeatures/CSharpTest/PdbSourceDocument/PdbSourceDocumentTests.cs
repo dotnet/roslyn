@@ -5,10 +5,12 @@
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -445,6 +447,55 @@ public class C
                 File.Delete(GetSourceFilePath(path));
 
                 await GenerateFileAndVerifyAsync(project, symbol, Location.OnDisk, source, expectedSpan, expectNullResult: true);
+            });
+        }
+
+        [Fact]
+        public async Task OnDiskSource_CopiedToTempPath()
+        {
+            var source = @"
+public class C
+{
+    public event System.EventHandler [|E|] { add { } remove { } }
+}";
+            await RunTestAsync(async path =>
+            {
+                MarkupTestFile.GetSpan(source, out var metadataSource, out var expectedSpan);
+
+                var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.OnDisk, Location.OnDisk, metadataSource, c => c.GetMember("C.E"));
+
+                using var workspace = (TestWorkspace)project.Solution.Workspace;
+
+                var service = workspace.GetService<IMetadataAsSourceFileService>();
+                try
+                {
+                    var file = await service.GetGeneratedFileAsync(project, symbol, signaturesOnly: false, allowDecompilation: false, CancellationToken.None);
+                    AssertEx.NotNull(file, $"No source document was found in the pdb for the symbol.");
+
+                    // We expect to find an external file, which means loaded from source, but
+                    // not the exact input source file
+                    Assert.True(file.DocumentTitle.Contains($"[{FeaturesResources.external}]"));
+                    Assert.NotEqual(GetSourceFilePath(path), file.FilePath);
+
+                    // Validate the rest of the system as per normal
+                    var masWorkspace = service.TryGetWorkspace();
+
+                    var document = masWorkspace!.CurrentSolution.Projects.First().Documents.First();
+
+                    Assert.Equal(document.FilePath, file.FilePath);
+
+                    var actual = await document.GetTextAsync();
+                    var actualSpan = file!.IdentifierLocation.SourceSpan;
+
+                    AssertEx.EqualOrDiff(metadataSource.ToString(), actual.ToString());
+                    Assert.Equal(expectedSpan.Start, actualSpan.Start);
+                    Assert.Equal(expectedSpan.End, actualSpan.End);
+                }
+                finally
+                {
+                    service.CleanupGeneratedFiles();
+                    service.TryGetWorkspace()?.Dispose();
+                }
             });
         }
 
