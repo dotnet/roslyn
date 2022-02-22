@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Text.Classification;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 {
@@ -68,8 +67,8 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
         public async Task DoPasteAsync(CancellationToken cancellationToken)
         {
-            var text = ClipboardHelpers.GetTextNoRetry();
-            if (RoslynString.IsNullOrEmpty(text))
+            var text = Clipboard.GetText();
+            if (string.IsNullOrEmpty(text))
             {
                 return;
             }

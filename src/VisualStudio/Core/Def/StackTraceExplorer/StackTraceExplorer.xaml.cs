@@ -8,8 +8,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.StackTraceExplorer;
-using Microsoft.VisualStudio.LanguageServices.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 {
@@ -36,12 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 
         public void OnPaste()
         {
-            var text = ClipboardHelpers.GetTextNoRetry();
-            if (RoslynString.IsNullOrEmpty(text))
-            {
-                return;
-            }
-
+            var text = Clipboard.GetText();
             ViewModel.OnPaste_CallOnUIThread(text);
         }
 
