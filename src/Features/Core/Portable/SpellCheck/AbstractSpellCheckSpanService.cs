@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                 else
                 {
                     var token = child.AsToken();
-                    if (token.RawKind == syntaxFacts.SyntaxKinds.XmlTextToken)
+                    if (token.RawKind == syntaxFacts.SyntaxKinds.XmlTextLiteralToken)
                         spans.Add(new SpellCheckSpan(token.Span, SpellCheckKind.Comment));
                 }
             }
