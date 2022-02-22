@@ -64,6 +64,29 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover
         }
 
         [Fact]
+        public async Task TestGetHoverAsync_WithExceptionsTruncated()
+        {
+            var markup =
+@"class A
+{
+    /// <summary>
+    /// A great method
+    /// </summary>
+    /// <exception cref='System.NullReferenceException'>
+    /// Oh no! This will get truncated as this should be super long. See it right here just about now!
+    /// </exception>
+    private string {|caret:Method|}(int i)
+    {
+    }
+}";
+            using var testLspServer = await CreateTestLspServerAsync(markup, CapabilitiesWithVSExtensions);
+            var expectedLocation = testLspServer.GetLocations("caret").Single();
+
+            var results = await RunGetHoverAsync(testLspServer, expectedLocation).ConfigureAwait(false);
+            VerifyVSContent(results, $"string A.Method(int i)|A great method|{FeaturesResources.Exceptions_colon}|  System.NullReferenceException: Oh no! This will get truncated as this should be super long. See it ri...");
+        }
+
+        [Fact]
         public async Task TestGetHoverAsync_WithRemarks()
         {
             var markup =
