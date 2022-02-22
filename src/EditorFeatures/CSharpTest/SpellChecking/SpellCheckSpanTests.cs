@@ -10,7 +10,6 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SpellChecking
 {
-
     [UseExportProvider]
     public class SpellCheckSpanTests : AbstractSpellCheckSpanTests
     {

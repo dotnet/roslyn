@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
         {
         }
 
-        protected abstract bool IsDeclarationIdentifier(SyntaxToken token);
+        protected abstract string? GetClassificationForIdentifier(SyntaxToken token);
         protected abstract TextSpan GetSpanForComment(SyntaxTrivia trivia);
         protected abstract TextSpan GetSpanForRawString(SyntaxToken token);
         protected abstract TextSpan GetSpanForString(SyntaxToken token);
@@ -82,13 +82,47 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             {
                 AddSpan(spans, new SpellCheckSpan(token.Span, SpellCheckKind.String));
             }
-            else if (token.RawKind == syntaxKinds.IdentifierToken &&
-                IsDeclarationIdentifier(token))
+            else if (token.RawKind == syntaxKinds.IdentifierToken)
             {
-                AddSpan(spans, new SpellCheckSpan(token.Span, SpellCheckKind.Identifier));
+                TryAddSpanForIdentifier(token, spans);
             }
 
             ProcessTriviaList(token.TrailingTrivia, syntaxFacts, spans, cancellationToken);
+        }
+
+        private void TryAddSpanForIdentifier(SyntaxToken token, ArrayBuilder<SpellCheckSpan> spans)
+        {
+            // Leverage syntactic classification which already has to determine if an identifier token is the name of
+            // some construct.
+            var classification = this.GetClassificationForIdentifier(token);
+            switch (classification)
+            {
+                case ClassificationTypeNames.ClassName:
+                case ClassificationTypeNames.RecordClassName:
+                case ClassificationTypeNames.DelegateName:
+                case ClassificationTypeNames.EnumName:
+                case ClassificationTypeNames.InterfaceName:
+                case ClassificationTypeNames.ModuleName:
+                case ClassificationTypeNames.StructName:
+                case ClassificationTypeNames.RecordStructName:
+                case ClassificationTypeNames.TypeParameterName:
+                case ClassificationTypeNames.FieldName:
+                case ClassificationTypeNames.EnumMemberName:
+                case ClassificationTypeNames.ConstantName:
+                case ClassificationTypeNames.LocalName:
+                case ClassificationTypeNames.ParameterName:
+                case ClassificationTypeNames.MethodName:
+                case ClassificationTypeNames.ExtensionMethodName:
+                case ClassificationTypeNames.PropertyName:
+                case ClassificationTypeNames.EventName:
+                case ClassificationTypeNames.NamespaceName:
+                case ClassificationTypeNames.LabelName:
+                    break;
+                default:
+                    return;
+            }
+
+            AddSpan(spans, new SpellCheckSpan(token.Span, SpellCheckKind.Identifier));
         }
 
         private void ProcessTriviaList(SyntaxTriviaList triviaList, ISyntaxFactsService syntaxFacts, ArrayBuilder<SpellCheckSpan> spans, CancellationToken cancellationToken)

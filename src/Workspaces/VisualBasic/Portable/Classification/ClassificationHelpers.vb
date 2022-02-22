@@ -184,7 +184,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             End If
         End Function
 
-        Private Function ClassifyIdentifierSyntax(identifier As SyntaxToken) As String
+        Public Function ClassifyIdentifierSyntax(identifier As SyntaxToken) As String
             'Note: parent might be Nothing, if we are classifying raw tokens.
             Dim parent = identifier.Parent
 

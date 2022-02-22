@@ -4,7 +4,6 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Classification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -23,38 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SpellCheck
         {
         }
 
-        protected override bool IsDeclarationIdentifier(SyntaxToken token)
-        {
-            // Leverage syntactic classification which already has to determine if an identifier token is the name of
-            // some construct.
-            var classification = ClassificationHelpers.GetClassificationForIdentifier(token);
-            switch (classification)
-            {
-                case ClassificationTypeNames.ClassName:
-                case ClassificationTypeNames.RecordClassName:
-                case ClassificationTypeNames.DelegateName:
-                case ClassificationTypeNames.EnumName:
-                case ClassificationTypeNames.InterfaceName:
-                case ClassificationTypeNames.ModuleName:
-                case ClassificationTypeNames.StructName:
-                case ClassificationTypeNames.RecordStructName:
-                case ClassificationTypeNames.TypeParameterName:
-                case ClassificationTypeNames.FieldName:
-                case ClassificationTypeNames.EnumMemberName:
-                case ClassificationTypeNames.ConstantName:
-                case ClassificationTypeNames.LocalName:
-                case ClassificationTypeNames.ParameterName:
-                case ClassificationTypeNames.MethodName:
-                case ClassificationTypeNames.ExtensionMethodName:
-                case ClassificationTypeNames.PropertyName:
-                case ClassificationTypeNames.EventName:
-                case ClassificationTypeNames.NamespaceName:
-                case ClassificationTypeNames.LabelName:
-                    return true;
-                default:
-                    return false;
-            }
-        }
+        protected override string? GetClassificationForIdentifier(SyntaxToken token)
+            => ClassificationHelpers.GetClassificationForIdentifier(token);
 
         protected override TextSpan GetSpanForComment(SyntaxTrivia trivia)
         {
