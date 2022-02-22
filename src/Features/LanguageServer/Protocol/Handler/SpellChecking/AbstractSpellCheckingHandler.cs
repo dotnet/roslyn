@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SpellCheck;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
@@ -20,8 +21,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellChecking
     /// Root type for both document and workspace spell checking requests.
     /// </summary>
     internal abstract class AbstractSpellCheckingHandler<TParams, TReport>
-        : IRequestHandler<TParams, TReport[]>
-        where TParams : VSInternalStreamingParams, IPartialResultParams<TReport[]>
+        : IRequestHandler<TParams, TReport[]?>
+        where TParams : IPartialResultParams<TReport[]>
         where TReport : VSInternalSpellCheckableRangeReport
     {
         protected record struct PreviousResult(string PreviousResultId, TextDocumentIdentifier TextDocument);
@@ -67,22 +68,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellChecking
         /// <summary>
         /// Returns all the documents that should be processed in the desired order to process them in.
         /// </summary>
-        protected abstract ValueTask<ImmutableArray<Document>> GetOrderedDocumentsAsync(RequestContext context, CancellationToken cancellationToken);
+        protected abstract ImmutableArray<Document> GetOrderedDocuments(RequestContext context, CancellationToken cancellationToken);
 
         /// <summary>
         /// Creates the <see cref="VSInternalSpellCheckableRangeReport"/> instance we'll report back to clients to let them know our
         /// progress.  Subclasses can fill in data specific to their needs as appropriate.
         /// </summary>
-        protected abstract TReport CreateReport(TextDocumentIdentifier identifier, ImmutableArray<VSInternalSpellCheckableRange> ranges, string? resultId);
+        protected abstract TReport CreateReport(TextDocumentIdentifier identifier, VSInternalSpellCheckableRange[]? ranges, string? resultId);
 
-        protected abstract TReport[] CreateReturn(BufferedProgress<TReport> progress);
-
-        /// <summary>
-        /// Produce the spell check spans for the specified document.
-        /// </summary>
-        protected abstract Task<ImmutableArray<SpellCheckSpan>> GetSpellCheckSpansAsync(RequestContext context, Document document, CancellationToken cancellationToken);
-
-        public async Task<TReport[]> HandleRequestAsync(
+        public async Task<TReport[]?> HandleRequestAsync(
             TParams requestParams, RequestContext context, CancellationToken cancellationToken)
         {
             context.TraceInformation($"{this.GetType()} started getting spell checking spans");
@@ -106,12 +100,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellChecking
 
             // Next process each file in priority order. Determine if spans are changed or unchanged since the
             // last time we notified the client.  Report back either to the client so they can update accordingly.
-            var orderedDocuments = await GetOrderedDocumentsAsync(context, cancellationToken).ConfigureAwait(false);
+            var orderedDocuments = GetOrderedDocuments(context, cancellationToken);
             context.TraceInformation($"Processing {orderedDocuments.Length} documents");
 
             foreach (var document in orderedDocuments)
             {
                 context.TraceInformation($"Processing: {document.FilePath}");
+
+                var languageService = document.GetLanguageService<ISpellCheckSpanService>();
+                if (languageService == null)
+                {
+                    context.TraceInformation($"Ignoring document '{document.FilePath}' because it does not support spell checking");
+                    continue;
+                }
 
                 if (!IncludeDocument(document, context.ClientName))
                 {
@@ -123,7 +124,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellChecking
                 if (newResultId != null)
                 {
                     context.TraceInformation($"Spans were changed for document: {document.FilePath}");
-                    progress.Report(await ComputeAndReportCurrentSpansAsync(context, document, newResultId, cancellationToken).ConfigureAwait(false));
+                    progress.Report(await ComputeAndReportCurrentSpansAsync(
+                        document, languageService, newResultId, cancellationToken).ConfigureAwait(false));
                 }
                 else
                 {
@@ -133,14 +135,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellChecking
                     // same-result-id) response to the client as that means they should just preserve the current
                     // diagnostics they have for this file.
                     var previousParams = documentToPreviousParams[document];
-                    progress.Report(CreateReport(previousParams.TextDocument, ranges: default, previousParams.PreviousResultId));
+                    progress.Report(CreateReport(previousParams.TextDocument, ranges: null, previousParams.PreviousResultId));
                 }
             }
 
             // If we had a progress object, then we will have been reporting to that.  Otherwise, take what we've been
             // collecting and return that.
             context.TraceInformation($"{this.GetType()} finished getting spans");
-            return CreateReturn(progress);
+            return progress.GetValues();
         }
 
         private static bool IncludeDocument(Document document, string? clientName)
@@ -174,20 +176,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellChecking
         }
 
         private async Task<TReport> ComputeAndReportCurrentSpansAsync(
-            RequestContext context,
             Document document,
+            ISpellCheckSpanService service,
             string resultId,
             CancellationToken cancellationToken)
         {
+
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var spans = await this.GetSpellCheckSpansAsync(context, document, cancellationToken).ConfigureAwait(false);
+            var spans = await service.GetSpansAsync(document, cancellationToken).ConfigureAwait(false);
 
             using var _ = ArrayBuilder<LSP.VSInternalSpellCheckableRange>.GetInstance(spans.Length, out var result);
 
             foreach (var span in spans)
                 result.Add(ConvertSpan(text, span));
 
-            return CreateReport(ProtocolConversions.DocumentToTextDocumentIdentifier(document), result.ToImmutable(), resultId);
+            return CreateReport(ProtocolConversions.DocumentToTextDocumentIdentifier(document), result.ToArray(), resultId);
         }
 
         private void HandleRemovedDocuments(
@@ -209,7 +212,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellChecking
                         // the workspace). Report a (null-spans, null-result-id) response to the client as that means
                         // they should just consider the file deleted and should remove all spans information they've
                         // cached for it.
-                        progress.Report(CreateReport(textDocument, ranges: default, resultId: null));
+                        progress.Report(CreateReport(textDocument, ranges: null, resultId: null));
                     }
                 }
             }
