@@ -186,13 +186,12 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             var range = new TextSpan(0, tree.Length);
 
             // Compute diagnostics for everything that is not an IDE analyzer
-            var allDiagnostics = (await _diagnosticService.GetDiagnosticsForSpanAsync(document, range,
-                shouldIncludeDiagnostic: static diagnosticId => !IDEDiagnosticIdToOptionMappingHelper.IsKnownIDEDiagnosticId(diagnosticId),
+            var diagnostics = (await _diagnosticService.GetDiagnosticsForSpanAsync(document, range,
+                shouldIncludeDiagnostic: static diagnosticId => !(IDEDiagnosticIdToOptionMappingHelper.IsKnownIDEDiagnosticId(diagnosticId) || IsCompilerDiagnostic(diagnosticId)),
                 includeSuppressedDiagnostics: false,
                 cancellationToken: cancellationToken).ConfigureAwait(false));
 
             // ensure more than just compiler diagnostics were returned
-            var diagnostics = allDiagnostics.WhereAsArray(d => !IsCompilerDiagnostic(d.Id));
             if (!diagnostics.Any())
             {
                 return document;
