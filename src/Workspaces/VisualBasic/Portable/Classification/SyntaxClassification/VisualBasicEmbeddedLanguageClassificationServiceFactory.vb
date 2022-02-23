@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
     <ExportLanguageServiceFactory(GetType(IEmbeddedLanguageClassificationService), LanguageNames.VisualBasic), [Shared]>
-    Partial Friend Class VisualBasicEmbeddedLanguageClassificationServiceFactory
+    Friend Class VisualBasicEmbeddedLanguageClassificationServiceFactory
         Implements ILanguageServiceFactory
 
         <ImportingConstructor>
