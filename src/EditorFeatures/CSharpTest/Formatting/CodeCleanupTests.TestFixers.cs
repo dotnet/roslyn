@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             }
         }
 
-        [Shared, ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        [PartNotDiscoverable, Shared, ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         private class TestThirdPartyCodeFixWithFixAll : TestThirdPartyCodeFix
         {
             [ImportingConstructor]
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             public override FixAllProvider GetFixAllProvider() => BatchFixAllProvider.Instance;
         }
 
-        [Shared, ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        [PartNotDiscoverable, Shared, ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         private class TestThirdPartyCodeFixWithOutFixAll : TestThirdPartyCodeFix
         {
             [ImportingConstructor]
