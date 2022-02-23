@@ -2807,6 +2807,7 @@ class C { }
             Assert.Single(referenceList, modifiedRef.Display);
         }
 
+        [Fact]
         [WorkItem(59209, "https://github.com/dotnet/roslyn/issues/59209")]
         public void Binary_Additional_Files_Do_Not_Throw_When_Compared()
         {
