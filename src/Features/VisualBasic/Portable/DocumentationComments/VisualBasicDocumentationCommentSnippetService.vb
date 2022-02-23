@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.DocumentationComments
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -109,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
             Return count
         End Function
 
-        Protected Overrides Function GetDocumentationCommentStubLines(member As DeclarationStatementSyntax) As List(Of String)
+        Protected Overrides Function GetDocumentationCommentStubLines(member As DeclarationStatementSyntax, existingCommentText As String) As List(Of String)
             Dim list = New List(Of String) From {
                 "''' <summary>",
                 "''' ",
@@ -139,7 +140,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
             Return list
         End Function
 
-        Protected Overrides Function IsSingleExteriorTrivia(documentationComment As DocumentationCommentTriviaSyntax, Optional allowWhitespace As Boolean = False) As Boolean
+        Protected Overrides Function IsSingleExteriorTrivia(documentationComment As DocumentationCommentTriviaSyntax, <NotNullWhen(True)> ByRef existingCommentText As String) As Boolean
+            existingCommentText = ""
+
             If documentationComment Is Nothing Then
                 Return False
             End If
@@ -156,10 +159,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
             Dim textTokens = xmlText.TextTokens
 
             If Not textTokens.Any Then
-                Return False
-            End If
-
-            If Not allowWhitespace AndAlso textTokens.Count <> 1 Then
                 Return False
             End If
 
