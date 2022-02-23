@@ -1,11 +1,9 @@
 ﻿using Build;
 using PostSharp.Engineering.BuildTools;
-using PostSharp.Engineering.BuildTools.Build;
 using PostSharp.Engineering.BuildTools.Build.Model;
 using PostSharp.Engineering.BuildTools.Dependencies.Model;
 using PostSharp.Engineering.BuildTools.NuGet;
 using Spectre.Console.Cli;
-using System.Collections.Immutable;
 using System.IO;
 
 var product = new Product
@@ -38,23 +36,24 @@ var product = new Product
     SupportedProperties = new() { ["TestAll"] = "Supported by the 'test' command. Run all tests instead of just Metalama's unit tests." },
     KeepEditorConfig = true,
 };
+
 product.BuildCompleted += OnBuildCompleted;
 var commandApp = new CommandApp();
 commandApp.AddProductCommands( product );
 
 return commandApp.Run( args );
 
-static bool OnBuildCompleted( (BuildContext Context, BuildSettings Settings, string Directory) args )
+static void OnBuildCompleted( BuildCompletedEventArgs args )
 {
     // Rename the packages as a post-build step.
     args.Context.Console.WriteHeading( "Renaming packages" );
 
-    var success = RenamePackagesCommand.Execute( args.Context.Console, new RenamePackageSettings { Directory = args.Directory } );
+    var success = RenamePackagesCommand.Execute( args.Context.Console, new RenamePackageCommandSettings { Directory = args.PrivateArtifactsDirectory } );
 
     if ( success )
     {
         // Delete original packages (those non-renamed) so they don't get uploaded.
-        foreach ( var file in Directory.GetFiles( args.Directory, "Microsoft.*.nupkg" ) )
+        foreach ( var file in Directory.GetFiles( args.PrivateArtifactsDirectory, "Microsoft.*.nupkg" ) )
         {
             File.Delete( file );
         }
@@ -62,5 +61,5 @@ static bool OnBuildCompleted( (BuildContext Context, BuildSettings Settings, str
         args.Context.Console.WriteSuccess( "Renaming packages was successful." );
     }
 
-    return success;
+    args.IsFailed = !success;
 }
