@@ -1649,7 +1649,7 @@ sealed class D : B
         {
             var options = CodeActionOptions.Default with
             {
-                ImplementTypeOptions = new ImplementTypeOptions(InsertionBehavior: ImplementTypeInsertionBehavior.AtTheEnd)
+                ImplementTypeOptions = new ImplementTypeOptions(PropertyGenerationBehavior: ImplementTypePropertyGenerationBehavior.PreferAutoProperties)
             };
 
             await TestInRegularAndScript1Async(
