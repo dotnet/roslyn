@@ -27,6 +27,32 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         /// character.  The position provided is the position of the caret in the document after
         /// the character been inserted into the document.
         /// </summary>
+        [Obsolete("Use the other overload")]
+        public static Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(
+            Document document,
+            char typedChar,
+            int position,
+            DocumentOptionSet documentOptions,
+            CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfFalse(document.Project.Language is LanguageNames.CSharp);
+            var formattingService = document.GetRequiredLanguageService<IFormattingInteractionService>();
+            var services = document.Project.Solution.Workspace.Services;
+
+            var globalOptions = document.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
+
+            var indentationOptions = new IndentationOptions(
+               SyntaxFormattingOptions.Create(documentOptions, services, document.Project.Language),
+               globalOptions.GlobalOptions.GetAutoFormattingOptions(document.Project.Language));
+
+            return formattingService.GetFormattingChangesAsync(document, typedChar, position, indentationOptions, cancellationToken);
+        }
+
+        /// <summary>
+        /// Returns the text changes necessary to format the document after the user enters a 
+        /// character.  The position provided is the position of the caret in the document after
+        /// the character been inserted into the document.
+        /// </summary>
         public static async Task<ImmutableArray<TextChange>> GetFormattingChangesAsync(
             Document document,
             char typedChar,
@@ -38,9 +64,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             var formattingService = document.GetRequiredLanguageService<IFormattingInteractionService>();
             var formattingOptions = await SyntaxFormattingOptions.FromDocumentAsync(document, cancellationToken).ConfigureAwait(false);
 
+            // TODO: get auto-formatting options from Razor
+            var globalOptions = document.Project.Solution.Workspace.Services.GetRequiredService<ILegacyGlobalOptionsWorkspaceService>();
+
             var indentationOptions = new IndentationOptions(
                 formattingOptions.With(options.UseTabs, options.TabSize, options.IndentationSize),
-                AutoFormattingOptions.Default); // TODO
+                globalOptions.GlobalOptions.GetAutoFormattingOptions(document.Project.Language));
 
             return await formattingService.GetFormattingChangesAsync(document, typedChar, position, indentationOptions, cancellationToken).ConfigureAwait(false);
         }
