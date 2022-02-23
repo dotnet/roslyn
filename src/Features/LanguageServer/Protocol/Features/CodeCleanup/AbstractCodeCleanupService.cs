@@ -197,10 +197,18 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 return document;
             }
 
-            foreach (var diagnosticId in diagnostics.SelectAsArray(static d => d.Id).Distinct())
+            var distinctDiagnostics = diagnostics.SelectAsArray(static d => d.Id).Distinct();
+
+            // ensure progress is reported for each third party code fix
+            progressTracker.AddItems(distinctDiagnostics.Length);
+            foreach (var diagnosticId in distinctDiagnostics)
             {
-                // Apply codefixes for diagnostics with a severity of warning or higher
-                document = await _codeFixService.ApplyCodeFixesForSpecificDiagnosticIdAsync(document, diagnosticId, DiagnosticSeverity.Warning, progressTracker, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                using (progressTracker.ItemCompletedScope(diagnosticId))
+                {
+                    // Apply codefixes for diagnostics with a severity of warning or higher
+                    document = await _codeFixService.ApplyCodeFixesForSpecificDiagnosticIdAsync(
+                        document, diagnosticId, DiagnosticSeverity.Warning, progressTracker, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                }
             }
 
             return document;
