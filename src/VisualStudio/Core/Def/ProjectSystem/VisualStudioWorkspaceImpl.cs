@@ -1714,17 +1714,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             base.OnProjectRemoved(projectId);
 
             // Try to update the UI context info.  But cancel that work if we're shutting down.
-            var asyncToken = _workspaceListener.BeginAsyncOperation(nameof(RefreshProjectExistsUIContextForLanguageAsync));
             _threadingContext.RunWithShutdownBlockAsync(async cancellationToken =>
             {
-                try
-                {
-                    await RefreshProjectExistsUIContextForLanguageAsync(languageName, cancellationToken).ConfigureAwait(false);
-                }
-                finally
-                {
-                    asyncToken.Dispose();
-                }
+                using var asyncToken = _workspaceListener.BeginAsyncOperation(nameof(RefreshProjectExistsUIContextForLanguageAsync));
+                await RefreshProjectExistsUIContextForLanguageAsync(languageName, cancellationToken).ConfigureAwait(false);
             });
         }
 
@@ -2007,44 +2000,37 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void StartRefreshingMetadataReferencesForFile(object sender, string fullFilePath)
         {
-            var asyncToken = _workspaceListener.BeginAsyncOperation(nameof(StartRefreshingMetadataReferencesForFile));
             _threadingContext.RunWithShutdownBlockAsync(async cancellationToken =>
             {
-                try
+                using var asyncToken = _workspaceListener.BeginAsyncOperation(nameof(StartRefreshingMetadataReferencesForFile));
+                await ApplyBatchChangeToWorkspaceAsync(solutionChanges =>
                 {
-                    await ApplyBatchChangeToWorkspaceAsync(solutionChanges =>
+                    foreach (var project in CurrentSolution.Projects)
                     {
-                        foreach (var project in CurrentSolution.Projects)
+                        // Loop to find each reference with the given path. It's possible that there might be multiple references of the same path;
+                        // the project system could concievably add the same reference multiple times but with different aliases. It's also possible
+                        // we might not find the path at all: when we receive the file changed event, we aren't checking if the file is still
+                        // in the workspace at that time; it's possible it might have already been removed.
+                        foreach (var portableExecutableReference in project.MetadataReferences.OfType<PortableExecutableReference>())
                         {
-                            // Loop to find each reference with the given path. It's possible that there might be multiple references of the same path;
-                            // the project system could concievably add the same reference multiple times but with different aliases. It's also possible
-                            // we might not find the path at all: when we receive the file changed event, we aren't checking if the file is still
-                            // in the workspace at that time; it's possible it might have already been removed.
-                            foreach (var portableExecutableReference in project.MetadataReferences.OfType<PortableExecutableReference>())
+                            if (portableExecutableReference.FilePath == fullFilePath)
                             {
-                                if (portableExecutableReference.FilePath == fullFilePath)
-                                {
-                                    FileWatchedReferenceFactory.StopWatchingReference(portableExecutableReference);
+                                FileWatchedReferenceFactory.StopWatchingReference(portableExecutableReference);
 
-                                    var newPortableExecutableReference =
-                                        FileWatchedReferenceFactory.CreateReferenceAndStartWatchingFile(
-                                            portableExecutableReference.FilePath,
-                                            portableExecutableReference.Properties);
+                                var newPortableExecutableReference =
+                                    FileWatchedReferenceFactory.CreateReferenceAndStartWatchingFile(
+                                        portableExecutableReference.FilePath,
+                                        portableExecutableReference.Properties);
 
-                                    var newSolution = solutionChanges.Solution.RemoveMetadataReference(project.Id, portableExecutableReference)
-                                                                              .AddMetadataReference(project.Id, newPortableExecutableReference);
+                                var newSolution = solutionChanges.Solution.RemoveMetadataReference(project.Id, portableExecutableReference)
+                                                                            .AddMetadataReference(project.Id, newPortableExecutableReference);
 
-                                    solutionChanges.UpdateSolutionForProjectAction(project.Id, newSolution);
+                                solutionChanges.UpdateSolutionForProjectAction(project.Id, newSolution);
 
-                                }
                             }
                         }
-                    }).ConfigureAwait(false);
-                }
-                finally
-                {
-                    asyncToken.Dispose();
-                }
+                    }
+                }).ConfigureAwait(false);
             });
         }
 
