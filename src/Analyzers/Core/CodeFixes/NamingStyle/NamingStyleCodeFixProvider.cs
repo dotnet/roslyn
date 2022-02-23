@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
         Name = PredefinedCodeFixProviderNames.ApplyNamingStyle), Shared]
 #endif
-    internal class NamingStyleCodeFixProvider : CodeFixProvider
+    internal partial class NamingStyleCodeFixProvider : CodeFixProvider
     {
         [ImportingConstructor]
         [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -40,11 +40,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.NamingRuleId);
 
-        public override FixAllProvider? GetFixAllProvider()
-        {
-            // Currently Fix All is not supported for naming style violations.
-            return null;
-        }
+        public override FixAllProvider? GetFixAllProvider() => NamingStyleCodeFixAllProvider.Instance;
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
