@@ -95,7 +95,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 await TaskScheduler.Default;
             }
 
-            // CPSProject constructor has a UI thread dependencies currently, so switch back to the UI thread before proceeding.
             var project = new CPSProject(visualStudioProject, _workspace, _projectCodeModelFactory, projectGuid);
 
             // Set the output path in a batch; if we set the property directly we'll be taking a synchronous lock here and

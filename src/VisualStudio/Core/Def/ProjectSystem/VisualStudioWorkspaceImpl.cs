@@ -175,6 +175,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal void SubscribeExternalErrorDiagnosticUpdateSourceToSolutionBuildEvents()
         {
+            // TODO: further understand if this needs the foreground thread for any reason. UIContexts are safe to read from the UI thread;
+            // it's not clear to me why this is being asserted.
             _foregroundObject.AssertIsForeground();
 
             if (_isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents)
