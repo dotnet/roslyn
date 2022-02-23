@@ -52,7 +52,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient
 
         public override ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities)
         {
-            var serverCapabilities = new VSInternalServerCapabilities();
+            var serverCapabilities = new VSInternalServerCapabilities
+            {
+                SpellCheckingProvider = true,
+            };
 
             // If the LSP editor feature flag is enabled advertise support for LSP features here so they are available locally and remote.
             var isLspEditorEnabled = GlobalOptions.GetOption(LspOptions.LspEditorFeatureFlag);

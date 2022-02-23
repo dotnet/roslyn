@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SpellCheck
         public async Task TestDocComment1()
         {
             await TestAsync(@"
-///{|Comment:goo bar Comment:baz|}
+///{|Comment:goo bar baz|}
 class {|Identifier:C|}
 {
 }");
@@ -79,6 +79,17 @@ class {|Identifier:C|}
 
         [Fact]
         public async Task TestDocComment2()
+        {
+            await TestAsync(@"
+///{|Comment:goo bar baz|}
+///{|Comment:goo bar baz|}
+class {|Identifier:C|}
+{
+}");
+        }
+
+        [Fact]
+        public async Task TestDocComment3()
         {
             await TestAsync(@"
 ///{|Comment: |}<summary>{|Comment: goo bar baz |}</summary>

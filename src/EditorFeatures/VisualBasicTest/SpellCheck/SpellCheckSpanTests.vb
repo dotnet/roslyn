@@ -28,13 +28,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SpellCheck
         <Fact>
         Public Async Function TestDocComment1() As Task
             Await TestAsync("
-'''{|Comment:goo bar Comment:baz|}
+'''{|Comment:goo bar baz|}
 class {|Identifier:C|}
 end class")
         End Function
 
         <Fact>
         Public Async Function TestDocComment2() As Task
+            Await TestAsync("
+'''{|Comment:goo bar baz|}
+'''{|Comment:goo bar baz|}
+class {|Identifier:C|}
+end class")
+        End Function
+
+        <Fact>
+        Public Async Function TestDocComment3() As Task
             Await TestAsync("
 '''{|Comment: |}<summary>{|Comment: goo bar baz |}</summary>
 class {|Identifier:C|}
