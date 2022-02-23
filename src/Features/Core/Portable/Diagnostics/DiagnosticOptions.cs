@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             new FeatureFlagStorageLocation("Lsp.PullDiagnostics"));
 
         public static readonly Option2<bool> LogTelemetryForBackgroundAnalyzerExecution = new(
-            FeatureName, nameof(LogTelemetryForBackgroundAnalyzerExecution), defaultValue: true,
-            new RoamingProfileStorageLocation($"TextEditor.Specific.LogTelemetryForBackgroundAnalyzerExecution"));
+            FeatureName, nameof(LogTelemetryForBackgroundAnalyzerExecution), defaultValue: false,
+            new FeatureFlagStorageLocation($"Roslyn.LogTelemetryForBackgroundAnalyzerExecution"));
 
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
             LspPullDiagnosticsFeatureFlag,

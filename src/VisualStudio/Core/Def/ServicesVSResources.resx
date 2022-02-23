@@ -1642,9 +1642,6 @@ Additional information: {1}</value>
   <data name="Skip_analyzers_for_implicitly_triggered_builds" xml:space="preserve">
     <value>Skip analyzers for implicitly triggered builds</value>
   </data>
-  <data name="Log_telemetry_for_background_code_analysis" xml:space="preserve">
-    <value>Log telemetry for background code analysis</value>
-  </data>
   <data name="This_action_cannot_be_undone_Do_you_wish_to_continue" xml:space="preserve">
     <value>This action cannot be undone. Do you wish to continue?</value>
   </data>

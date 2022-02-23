@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
@@ -20,6 +17,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
     {
         private class TestLogger : TelemetryLogger
         {
+            public TestLogger(bool logDelta = false)
+            {
+                LogDelta = logDelta;
+            }
+
+            protected override bool LogDelta { get; }
+
             public class TestScope
             {
                 public readonly TelemetryEvent EndEvent;
@@ -104,10 +108,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }, InspectProperties(postedEvent));
         }
 
-        [Fact]
-        public void LogBlockStartEnd()
+        [Theory, CombinatorialData]
+        public void LogBlockStartEnd(bool logDelta)
         {
-            var logger = new TestLogger();
+            var logger = new TestLogger(logDelta);
 
             logger.LogBlockStart(FunctionId.Debugging_EncSession_EditSession_EmitDeltaErrorId, KeyValueLogMessage.Create(p => p.Add("test", "start"), logLevel: LogLevel.Information), blockId: 1, CancellationToken.None);
 
@@ -118,12 +122,22 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Equal("vs/ide/vbcs/debugging/encsession/editsession/emitdeltaerrorid", scope.EndEvent.Name);
 
-            // We don't inspect the property value for "Delta" (time of execution) as that value will vary each time.
-            AssertEx.Equal(new[]
+            if (logDelta)
             {
-                "vs.ide.vbcs.debugging.encsession.editsession.emitdeltaerrorid.test=end",
-                "vs.ide.vbcs.debugging.encsession.editsession.emitdeltaerrorid.delta="
-            }, InspectProperties(scope.EndEvent, keyToIgnoreValueInspection: "vs.ide.vbcs.debugging.encsession.editsession.emitdeltaerrorid.delta"));
+                // We don't inspect the property value for "Delta" (time of execution) as that value will vary each time.
+                AssertEx.Equal(new[]
+                {
+                    "vs.ide.vbcs.debugging.encsession.editsession.emitdeltaerrorid.test=end",
+                    "vs.ide.vbcs.debugging.encsession.editsession.emitdeltaerrorid.delta="
+                }, InspectProperties(scope.EndEvent, keyToIgnoreValueInspection: "vs.ide.vbcs.debugging.encsession.editsession.emitdeltaerrorid.delta"));
+            }
+            else
+            {
+                AssertEx.Equal(new[]
+                {
+                    "vs.ide.vbcs.debugging.encsession.editsession.emitdeltaerrorid.test=end"
+                }, InspectProperties(scope.EndEvent));
+            }
         }
     }
 }

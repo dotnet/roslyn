@@ -56,7 +56,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Run_code_analysis_in_separate_process, RemoteHostOptions.OOP64Bit);
             BindToOption(Enable_file_logging_for_diagnostics, InternalDiagnosticsOptions.EnableFileLoggingForDiagnostics);
             BindToOption(Skip_analyzers_for_implicitly_triggered_builds, FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds);
-            BindToOption(Log_telemetry_for_background_code_analysis, DiagnosticOptions.LogTelemetryForBackgroundAnalyzerExecution);
             BindToOption(Show_Remove_Unused_References_command_in_Solution_Explorer_experimental, FeatureOnOffOptions.OfferRemoveUnusedReferences, () =>
             {
                 // If the option has not been set by the user, check if the option to remove unused references
