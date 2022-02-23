@@ -5,9 +5,11 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -53,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxToken identifierToken,
             LocalDeclarationKind declarationKind)
         {
-            Debug.Assert(identifierToken.Kind() != SyntaxKind.None);
+            Debug.Assert(identifierToken.Kind() != SyntaxKind.None || this is Merged);
             Debug.Assert(declarationKind != LocalDeclarationKind.None);
             Debug.Assert(scopeBinder != null);
 
@@ -64,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this._declarationKind = declarationKind;
 
             // create this eagerly as it will always be needed for the EnsureSingleDefinition
-            _locations = ImmutableArray.Create<Location>(identifierToken.GetLocation());
+            _locations = identifierToken.Kind() == SyntaxKind.None ? default : ImmutableArray.Create<Location>(identifierToken.GetLocation());
 
             _refEscapeScope = this._refKind == RefKind.None ?
                                         scopeBinder.LocalScopeDepth :
@@ -384,6 +386,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _type?.Value ?? default;
         }
 
+        internal virtual bool TrySetTypeWithAnnotations(TypeWithAnnotations newType)
+        {
+            SetTypeWithAnnotations(newType);
+            return true;
+        }
+
         internal void SetTypeWithAnnotations(TypeWithAnnotations newType)
         {
             Debug.Assert(newType.Type is object);
@@ -481,7 +489,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _refKind; }
         }
 
-        public sealed override bool Equals(Symbol obj, TypeCompareKind compareKind)
+        public  override bool Equals(Symbol obj, TypeCompareKind compareKind)
         {
             if (obj == (object)this)
             {
@@ -500,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 && symbol._containingSymbol.Equals(_containingSymbol, compareKind);
         }
 
-        public sealed override int GetHashCode()
+        public override int GetHashCode()
         {
             return Hash.Combine(_identifierToken.GetHashCode(), _containingSymbol.GetHashCode());
         }
@@ -714,6 +722,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             return null;
                     }
                 }
+            }
+        }
+
+        public sealed class Merged : SourceLocalSymbol
+        {
+            public Merged(
+                Symbol containingSymbol,
+                Binder scopeBinder,
+                string name,
+                IReadOnlyCollection<LocalSymbol> variablesToMerge)
+                : base(containingSymbol, scopeBinder, allowRefKind: false, typeSyntax: null, identifierToken: default, LocalDeclarationKind.PatternVariable)
+            {
+                Name = name;
+                Locations = variablesToMerge.SelectMany(d => d.Locations).AsImmutable();
+                DeclaringSyntaxReferences = variablesToMerge.SelectMany(d => d.DeclaringSyntaxReferences).AsImmutable();
+            }
+
+            public override string Name { get; }
+            public override ImmutableArray<Location> Locations { get; }
+            public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences { get; }
+
+            internal override SyntaxToken IdentifierToken => throw ExceptionUtilities.Unreachable;
+
+            internal override bool TrySetTypeWithAnnotations(TypeWithAnnotations newType)
+            {
+                return _type is null
+                    ? base.TrySetTypeWithAnnotations(newType)
+                    : _type.Value.TypeSymbolEquals(newType, TypeCompareKind.AllIgnoreOptions);
+            }
+
+            public override bool Equals(Symbol obj, TypeCompareKind compareKind)
+            {
+                return this == (object)obj;
+            }
+
+            public override int GetHashCode()
+            {
+                return RuntimeHelpers.GetHashCode(this);
             }
         }
 

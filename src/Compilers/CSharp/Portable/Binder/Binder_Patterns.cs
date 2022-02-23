@@ -785,8 +785,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     SyntaxToken identifier = singleVariableDesignation.Identifier;
                     SourceLocalSymbol localSymbol = this.LookupLocal(identifier);
 
-                    if (!permitDesignations && !identifier.IsMissing)
-                        diagnostics.Add(ErrorCode.ERR_DesignatorBeneathPatternCombinator, identifier.GetLocation());
+                    // PROTOTYPE(pattern-variables): LangVersion
+                    // if (!permitDesignations && !identifier.IsMissing)
+                    //     diagnostics.Add(ErrorCode.ERR_DesignatorBeneathPatternCombinator, identifier.GetLocation());
 
                     if (localSymbol is { })
                     {
@@ -794,11 +795,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if ((InConstructorInitializer || InFieldInitializer) && ContainingMemberOrLambda.ContainingSymbol.Kind == SymbolKind.NamedType)
                             CheckFeatureAvailability(designation, MessageID.IDS_FeatureExpressionVariablesInQueriesAndInitializers, diagnostics);
 
-                        localSymbol.SetTypeWithAnnotations(declType);
+                        if (!localSymbol.TrySetTypeWithAnnotations(declType))
+                        {
+                            // PROTOTYPE(pattern-variables): ERR_PatternVariableTypeMismatch: declarations of '{0}' must have the same type
+                            diagnostics.Add(ErrorCode.ERR_LocalDuplicate, identifier.GetLocation(), identifier.ValueText);
+                            hasErrors = true;
+                        }
+
                         localSymbol.SetValEscape(GetValEscape(declType.Type, inputValEscape));
 
-                        // Check for variable declaration errors.
-                        hasErrors |= localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
+                        // PROTOTYPE(pattern-variables) Check for variable declaration errors.
+                        if (localSymbol is not SourceLocalSymbol.Merged)
+                            hasErrors |= localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
                         if (!hasErrors)
                             hasErrors = CheckRestrictedTypeInAsyncMethod(this.ContainingMemberOrLambda, declType.Type, diagnostics, typeSyntax ?? (SyntaxNode)designation);

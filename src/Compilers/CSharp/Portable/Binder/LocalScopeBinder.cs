@@ -367,6 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LocalSymbol result = null;
             if (LocalsMap != null && LocalsMap.TryGetValue(nameToken.ValueText, out result))
             {
+                if (result is SourceLocalSymbol.Merged m) return m;
                 if (result.IdentifierToken == nameToken) return (SourceLocalSymbol)result;
 
                 // in error cases we might have more than one declaration of the same name in the same scope

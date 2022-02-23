@@ -194,7 +194,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundDagEvaluation eval:
                         {
                             var sideEffect = LowerEvaluation(eval);
-                            _sideEffectBuilder.Add(sideEffect);
+                            if (sideEffect != null)
+                                _sideEffectBuilder.Add(sideEffect);
                             return;
                         }
                     case var _:
@@ -280,10 +281,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             Debug.Assert(whenNode.WhenExpression == null);
                             Debug.Assert(whenNode.WhenTrue is BoundLeafDecisionDagNode d && d.Label == whenTrueLabel);
-                            foreach (BoundPatternBinding binding in whenNode.Bindings)
+                            foreach (var binding in whenNode.Bindings)
                             {
                                 BoundExpression left = _localRewriter.VisitExpression(binding.VariableAccess);
-                                BoundExpression right = _tempAllocator.GetTemp(binding.TempContainingValue);
+                                BoundExpression right = _tempAllocator.GetTemp(binding.Input);
                                 if (left != right)
                                 {
                                     _sideEffectBuilder.Add(_factory.AssignmentExpression(left, right));

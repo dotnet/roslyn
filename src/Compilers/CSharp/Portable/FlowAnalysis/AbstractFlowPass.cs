@@ -923,9 +923,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundDeclarationPattern or BoundConstantPattern or BoundNegatedPattern or BoundBinaryPattern or
                 BoundDeclarationPattern or BoundDiscardPattern or BoundListPattern or BoundSlicePattern);
 
-            bool negated = node.Pattern.IsNegated(out var pattern);
-            Debug.Assert(negated == node.IsNegated);
-
+            var pattern = node.Pattern;
             if (VisitPossibleConditionalAccess(node.Expression, out var stateWhenNotNull))
             {
                 Debug.Assert(!IsConditionalState);
@@ -963,11 +961,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 SetState(this.StateWhenTrue);
                 SetConditionalState(this.State, UnreachableState());
-            }
-
-            if (negated)
-            {
-                SetConditionalState(this.StateWhenFalse, this.StateWhenTrue);
             }
 
             return node;

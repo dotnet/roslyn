@@ -20,6 +20,114 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ArrayBuilder<TFieldOrLocalSymbol> _variablesBuilder;
         private SyntaxNode _nodeToBind;
 
+        /// <summary>
+        /// The current node under which pattern variables will be merged:
+        /// <list type="bullet">
+        /// <item><see cref="BinaryPatternSyntax"/> for OR-pattern operands</item>
+        /// <item><see cref="SwitchSectionSyntax"/> for switch section labels</item>
+        /// <item><see cref="IsPatternExpressionSyntax"/> for negated patterns</item>
+        /// </list>
+        /// </summary>
+        private SyntaxNode _disjunctionZone;
+
+        /// <summary>
+        /// The node used as <see cref="_disjunctionZone"/> to merge variables under negated patterns
+        /// </summary>
+        private IsPatternExpressionSyntax _topLevelZone;
+
+        /// <summary>
+        /// The map used to collect disjunctive variables to merge.
+        /// </summary>
+        private PooledDictionary<(string variableName, SyntaxNode disjunctionZone), ArrayBuilder<TFieldOrLocalSymbol>> _variablesToMerge;
+
+        private void MergePatternVariables()
+        {
+            if (_variablesToMerge is null)
+                return;
+
+            foreach (var ((name, _), variablesToMerge) in _variablesToMerge)
+            {
+                if (variablesToMerge.Count > 1)
+                {
+                    _variablesBuilder.RemoveRange(variablesToMerge);
+                    _variablesBuilder.Add(MakeMergedPatternVariable(name, variablesToMerge));
+                }
+                variablesToMerge.Free();
+            }
+            
+            _variablesToMerge.Free();
+            _variablesToMerge = null;
+        }
+
+        private void AddPatternVariable(TypeSyntax type, SingleVariableDesignationSyntax designation)
+        {
+            if (designation is null)
+                return;
+            var variable = MakePatternVariable(type, designation, _nodeToBind);
+            if (variable is null)
+                return;
+            _variablesBuilder.Add(variable);
+            if (_disjunctionZone is null)
+                return;
+            var variablesToMerge = _variablesToMerge ??= PooledDictionary<(string, SyntaxNode), ArrayBuilder<TFieldOrLocalSymbol>>.GetInstance();
+            variablesToMerge.MultiAdd((variable.Name, _disjunctionZone), variable);
+        }
+
+        public override void VisitBinaryPattern(BinaryPatternSyntax node)
+        {
+            var operands = ArrayBuilder<PatternSyntax>.GetInstance();
+            PatternSyntax current = node;
+            while (current.Kind() == SyntaxKind.OrPattern)
+            {
+                var binOp = (BinaryPatternSyntax)current;
+                operands.Push(binOp.Right);
+                current = binOp.Left;
+            }
+            if (operands.Count > 0)
+            {
+                SyntaxNode previous = _disjunctionZone;
+                _disjunctionZone = previous ?? node;
+                Visit(current);
+                do
+                {
+                    Visit(operands.Pop());
+                }
+                while (operands.Count > 0);
+                _disjunctionZone = previous;
+            }
+            else
+            {
+                base.VisitBinaryPattern(node);
+            }
+            operands.Free();
+        }
+
+        public override void VisitUnaryPattern(UnaryPatternSyntax node)
+        {
+            SyntaxNode previous = _disjunctionZone;
+            if (previous == null)
+            {
+                _disjunctionZone = _topLevelZone;
+            }
+            else if (previous != _topLevelZone)
+            {
+                _disjunctionZone = null;
+            }
+
+            Visit(node.Pattern);
+            _disjunctionZone = previous;
+        }
+
+        public override void VisitIsPatternExpression(IsPatternExpressionSyntax node)
+        {
+            Visit(node.Expression);
+            Debug.Assert(_topLevelZone == null);
+            _topLevelZone = node;
+            Visit(node.Pattern);
+            _topLevelZone = null;
+            MergePatternVariables();
+        }
+
         protected void FindExpressionVariables(
             ArrayBuilder<TFieldOrLocalSymbol> builder,
             CSharpSyntaxNode node)
@@ -87,6 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode previousNodeToBind = _nodeToBind;
             _nodeToBind = node;
             Visit(node.Pattern);
+            MergePatternVariables();
             Visit(node.WhenClause?.Condition);
             Visit(node.Expression);
             _nodeToBind = previousNodeToBind;
@@ -147,6 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitSwitchSection(SwitchSectionSyntax node)
         {
+            Debug.Assert(_disjunctionZone == null);
             foreach (SwitchLabelSyntax label in node.Labels)
             {
                 switch (label.Kind())
@@ -156,7 +266,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var switchLabel = (CasePatternSwitchLabelSyntax)label;
                             SyntaxNode previousNodeToBind = _nodeToBind;
                             _nodeToBind = switchLabel;
+                            _disjunctionZone = node;
                             Visit(switchLabel.Pattern);
+                            _disjunctionZone = null;
                             if (switchLabel.WhenClause != null)
                             {
                                 VisitNodeToBind(switchLabel.WhenClause.Condition);
@@ -173,6 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                 }
             }
+            MergePatternVariables();
         }
 
         public override void VisitAttribute(AttributeSyntax node)
@@ -223,20 +336,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitDeclarationPattern(DeclarationPatternSyntax node)
         {
-            if (node.Designation?.Kind() == SyntaxKind.SingleVariableDesignation)
-            {
-                TFieldOrLocalSymbol variable = MakePatternVariable(node.Type, (SingleVariableDesignationSyntax)node.Designation, _nodeToBind);
-                if ((object)variable != null)
-                {
-                    _variablesBuilder.Add(variable);
-                }
-            }
-            else
-            {
-                // The declaration pattern does not permit a ParenthesizedVariableDesignation
-                Debug.Assert(node.Designation == null || node.Designation.Kind() == SyntaxKind.DiscardDesignation);
-            }
-
+            Debug.Assert(node.Designation is null or SingleVariableDesignationSyntax or DiscardDesignationSyntax);
+            AddPatternVariable(node.Type, node.Designation as SingleVariableDesignationSyntax);
             base.VisitDeclarationPattern(node);
         }
 
@@ -251,11 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.Kind())
             {
                 case SyntaxKind.SingleVariableDesignation:
-                    TFieldOrLocalSymbol variable = MakePatternVariable(type: null, (SingleVariableDesignationSyntax)node, _nodeToBind);
-                    if ((object)variable != null)
-                    {
-                        _variablesBuilder.Add(variable);
-                    }
+                    AddPatternVariable(type: null, (SingleVariableDesignationSyntax)node);
                     break;
                 case SyntaxKind.DiscardDesignation:
                     break;
@@ -274,28 +371,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitRecursivePattern(RecursivePatternSyntax node)
         {
             Debug.Assert(node.Designation is null or SingleVariableDesignationSyntax or DiscardDesignationSyntax);
-            TFieldOrLocalSymbol variable = MakePatternVariable(node.Type, node.Designation as SingleVariableDesignationSyntax, _nodeToBind);
-            if ((object)variable != null)
-            {
-                _variablesBuilder.Add(variable);
-            }
-
+            AddPatternVariable(node.Type, node.Designation as SingleVariableDesignationSyntax);
             base.VisitRecursivePattern(node);
         }
 
         public override void VisitListPattern(ListPatternSyntax node)
         {
             Debug.Assert(node.Designation is null or SingleVariableDesignationSyntax or DiscardDesignationSyntax);
-            TFieldOrLocalSymbol variable = MakePatternVariable(type: null, node.Designation as SingleVariableDesignationSyntax, _nodeToBind);
-            if ((object)variable != null)
-            {
-                _variablesBuilder.Add(variable);
-            }
-
+            AddPatternVariable(type: null, node.Designation as SingleVariableDesignationSyntax);
             base.VisitListPattern(node);
         }
 
         protected abstract TFieldOrLocalSymbol MakePatternVariable(TypeSyntax type, SingleVariableDesignationSyntax designation, SyntaxNode nodeToBind);
+        protected abstract TFieldOrLocalSymbol MakeMergedPatternVariable(string name, ArrayBuilder<TFieldOrLocalSymbol> variables);
 
         public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node) { }
         public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node) { }
@@ -497,11 +585,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                     AssignmentExpressionSyntax deconstruction);
     }
 
-    internal class ExpressionVariableFinder : ExpressionVariableFinder<LocalSymbol>
+    internal sealed class ExpressionVariableFinder : ExpressionVariableFinder<LocalSymbol>
     {
         private Binder _scopeBinder;
         private Binder _enclosingBinder;
-
 
         internal static void FindExpressionVariables(
             Binder scopeBinder,
@@ -544,6 +631,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             finder._scopeBinder = null;
             finder._enclosingBinder = null;
             s_poolInstance.Free(finder);
+        }
+
+        protected override LocalSymbol MakeMergedPatternVariable(string name, ArrayBuilder<LocalSymbol> variables)
+        {
+            return new SourceLocalSymbol.Merged(
+                _scopeBinder.ContainingMemberOrLambda,
+                scopeBinder: _scopeBinder,
+                name: name,
+                variables);
         }
 
         protected override LocalSymbol MakePatternVariable(TypeSyntax type, SingleVariableDesignationSyntax designation, SyntaxNode nodeToBind)
@@ -628,7 +724,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion
     }
 
-    internal class ExpressionFieldFinder : ExpressionVariableFinder<Symbol>
+    internal sealed class ExpressionFieldFinder : ExpressionVariableFinder<Symbol>
     {
         private SourceMemberContainerTypeSymbol _containingType;
         private DeclarationModifiers _modifiers;
@@ -665,6 +761,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _containingType, _modifiers, type,
                 designation.Identifier.ValueText, designation, designation.GetLocation(),
                 _containingFieldOpt, nodeToBind);
+        }
+
+        protected override Symbol MakeMergedPatternVariable(string name, ArrayBuilder<Symbol> variables)
+        {
+            // PROTOTYPE(pattern-variables) Field Symbol
+            throw new NotImplementedException();
         }
 
         protected override Symbol MakeDeclarationExpressionVariable(DeclarationExpressionSyntax node, SingleVariableDesignationSyntax designation, BaseArgumentListSyntax argumentListSyntaxOpt, SyntaxNode nodeToBind)

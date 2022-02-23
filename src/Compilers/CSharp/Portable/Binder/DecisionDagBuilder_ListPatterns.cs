@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class DecisionDagBuilder
     {
-        private Tests MakeTestsAndBindingsForListPattern(BoundDagTemp input, BoundListPattern list, out BoundDagTemp output, ArrayBuilder<BoundPatternBinding> bindings)
+        private Tests MakeTestsAndBindingsForListPattern(BoundDagTemp input, BoundListPattern list, out BoundDagTemp output)
         {
             Debug.Assert(input.Type.IsErrorType() || list.HasErrors || list.InputType.IsErrorType() ||
                          input.Type.Equals(list.InputType, TypeCompareKind.AllIgnoreOptions) &&
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             tests.Add(new Tests.One(sliceEvaluation));
                             var sliceTemp = new BoundDagTemp(slicePattern.Syntax, slicePattern.InputType, sliceEvaluation);
-                            tests.Add(MakeTestsAndBindings(sliceTemp, slicePattern, bindings));
+                            tests.Add(MakeTestsAndBindings(sliceTemp, slicePattern));
                         }
 
                         continue;
@@ -80,13 +80,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     tests.Add(new Tests.One(indexEvaluation));
                     var indexTemp = new BoundDagTemp(subpattern.Syntax, subpattern.InputType, indexEvaluation);
-                    tests.Add(MakeTestsAndBindings(indexTemp, subpattern, bindings));
+                    tests.Add(MakeTestsAndBindings(indexTemp, subpattern));
                 }
             }
 
             if (list.VariableAccess is not null)
             {
-                bindings.Add(new BoundPatternBinding(list.VariableAccess, input));
+                tests.Add(new Tests.One(new BoundDagBindingEvaluation(syntax, list.VariableAccess, input)));
             }
 
             return Tests.AndSequence.Create(tests);

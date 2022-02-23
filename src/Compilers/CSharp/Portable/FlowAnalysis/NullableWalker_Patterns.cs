@@ -517,7 +517,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         this.State[outputSlot] = NullableFlowState.NotNull; // Slice value is assumed to be never null
                                         break;
                                     }
-                                case BoundDagAssignmentEvaluation e:
+                                case BoundDagAssignmentEvaluation:
+                                case BoundDagBindingEvaluation:
                                     break;
                                 default:
                                     throw ExceptionUtilities.UnexpectedValue(p.Evaluation.Kind);
@@ -612,7 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         foreach (var binding in w.Bindings)
                         {
                             var variableAccess = binding.VariableAccess;
-                            var tempSource = binding.TempContainingValue;
+                            var tempSource = binding.Input;
                             var foundTemp = tempMap.TryGetValue(tempSource, out var tempSlotAndType);
                             if (foundTemp) // in erroneous programs, we might not have seen a temp defined.
                             {

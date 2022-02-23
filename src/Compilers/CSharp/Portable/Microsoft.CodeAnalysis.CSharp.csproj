@@ -31,6 +31,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\IDictionaryExtensions.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="BoundTree\BoundNodes.xml" />
     <None Include="BoundTree\BoundNodes.xsd" />
     <None Include="Generated\CSharp.Generated.g4" />

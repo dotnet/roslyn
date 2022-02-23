@@ -911,8 +911,7 @@ namespace Roslyn.Test.Utilities
         {
             List<(int, Exception)> exceptions = null;
 
-            // Run assertions in reverse order so that line numbers don't change as we adjust the baseline.
-            for (int index = assertions.Length - 1; index >= 0; --index)
+            for (int index = 0; index < assertions.Length; ++index)
             {
                 try
                 {
@@ -934,7 +933,7 @@ namespace Roslyn.Test.Utilities
             {
                 var stack = ex.StackTrace.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
                 stringBuilder
-                    .AppendLine($"Assertion failed at index {index}:")
+                    .AppendLine($"Assertion failed at position {index + 1}:")
                     .AppendLine(stack[^2]) // Prints the failing line in the original test case.
                     .AppendLine(ex.Message);
                 if (includeStackTrace)

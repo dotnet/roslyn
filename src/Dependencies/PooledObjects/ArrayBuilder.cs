@@ -226,6 +226,14 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             return _builder.Remove(element);
         }
 
+        public void RemoveRange(ArrayBuilder<T> elements)
+        {
+            foreach (var element in elements)
+            {
+                this.Remove(element);
+            }
+        }
+
         public void RemoveAt(int index)
         {
             _builder.RemoveAt(index);

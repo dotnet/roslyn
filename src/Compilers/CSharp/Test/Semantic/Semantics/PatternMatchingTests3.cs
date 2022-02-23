@@ -1947,7 +1947,7 @@ class C
             VerifyModelForDeclarationOrVarSimplePattern(model, x2Decl[0], x2Ref);
         }
 
-        [Fact, WorkItem(40533, "https://github.com/dotnet/roslyn/issues/40533")]
+        [Fact(Skip = "PROTOTYPE(pattern-variables) ERR_DesignatorBeneathPatternCombinator"), WorkItem(40533, "https://github.com/dotnet/roslyn/issues/40533")]
         public void DisallowDesignatorsUnderNotAndOr()
         {
             var source = @"
@@ -6538,11 +6538,11 @@ class C
                 C V_1) //c2
   IL_0000:  ldarg.0
   IL_0001:  isinst     ""C""
-  IL_0006:  stloc.0
-  IL_0007:  ldloc.0
+  IL_0006:  stloc.1
+  IL_0007:  ldloc.1
   IL_0008:  brfalse.s  IL_000e
-  IL_000a:  ldloc.0
-  IL_000b:  stloc.1
+  IL_000a:  ldloc.1
+  IL_000b:  stloc.0
   IL_000c:  br.s       IL_000f
   IL_000e:  ret
   IL_000f:  ldloc.0
@@ -6648,11 +6648,11 @@ class C
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""object C.P.get""
   IL_0009:  isinst     ""C""
-  IL_000e:  stloc.0
-  IL_000f:  ldloc.0
+  IL_000e:  stloc.1
+  IL_000f:  ldloc.1
   IL_0010:  brfalse.s  IL_0016
-  IL_0012:  ldloc.0
-  IL_0013:  stloc.1
+  IL_0012:  ldloc.1
+  IL_0013:  stloc.0
   IL_0014:  br.s       IL_0017
   IL_0016:  ret
   IL_0017:  ldloc.0

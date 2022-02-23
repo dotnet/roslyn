@@ -160,6 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         DagIndexerEvaluation,
         DagSliceEvaluation,
         DagAssignmentEvaluation,
+        DagBindingEvaluation,
         SwitchSection,
         SwitchLabel,
         SequencePointExpression,
@@ -5013,8 +5014,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundWhenDecisionDagNode : BoundDecisionDagNode
     {
-        public BoundWhenDecisionDagNode(SyntaxNode syntax, ImmutableArray<BoundPatternBinding> bindings, BoundExpression? whenExpression, BoundDecisionDagNode whenTrue, BoundDecisionDagNode? whenFalse, bool hasErrors = false)
-            : base(BoundKind.WhenDecisionDagNode, syntax, hasErrors || whenExpression.HasErrors() || whenTrue.HasErrors() || whenFalse.HasErrors())
+        public BoundWhenDecisionDagNode(SyntaxNode syntax, ImmutableArray<BoundDagBindingEvaluation> bindings, BoundExpression? whenExpression, BoundDecisionDagNode whenTrue, BoundDecisionDagNode? whenFalse, bool hasErrors = false)
+            : base(BoundKind.WhenDecisionDagNode, syntax, hasErrors || bindings.HasErrors() || whenExpression.HasErrors() || whenTrue.HasErrors() || whenFalse.HasErrors())
         {
 
             RoslynDebug.Assert(!bindings.IsDefault, "Field 'bindings' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -5027,7 +5028,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
-        public ImmutableArray<BoundPatternBinding> Bindings { get; }
+        public ImmutableArray<BoundDagBindingEvaluation> Bindings { get; }
 
         public BoundExpression? WhenExpression { get; }
 
@@ -5037,7 +5038,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitWhenDecisionDagNode(this);
 
-        public BoundWhenDecisionDagNode Update(ImmutableArray<BoundPatternBinding> bindings, BoundExpression? whenExpression, BoundDecisionDagNode whenTrue, BoundDecisionDagNode? whenFalse)
+        public BoundWhenDecisionDagNode Update(ImmutableArray<BoundDagBindingEvaluation> bindings, BoundExpression? whenExpression, BoundDecisionDagNode whenTrue, BoundDecisionDagNode? whenFalse)
         {
             if (bindings != this.Bindings || whenExpression != this.WhenExpression || whenTrue != this.WhenTrue || whenFalse != this.WhenFalse)
             {
@@ -5570,6 +5571,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (target != this.Target || input != this.Input)
             {
                 var result = new BoundDagAssignmentEvaluation(this.Syntax, target, input, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundDagBindingEvaluation : BoundDagEvaluation
+    {
+        public BoundDagBindingEvaluation(SyntaxNode syntax, BoundExpression variableAccess, BoundDagTemp input, bool hasErrors = false)
+            : base(BoundKind.DagBindingEvaluation, syntax, input, hasErrors || variableAccess.HasErrors() || input.HasErrors())
+        {
+
+            RoslynDebug.Assert(variableAccess is object, "Field 'variableAccess' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+            RoslynDebug.Assert(input is object, "Field 'input' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.VariableAccess = variableAccess;
+        }
+
+
+        public BoundExpression VariableAccess { get; }
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDagBindingEvaluation(this);
+
+        public BoundDagBindingEvaluation Update(BoundExpression variableAccess, BoundDagTemp input)
+        {
+            if (variableAccess != this.VariableAccess || input != this.Input)
+            {
+                var result = new BoundDagBindingEvaluation(this.Syntax, variableAccess, input, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -9052,6 +9082,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitDagSliceEvaluation((BoundDagSliceEvaluation)node, arg);
                 case BoundKind.DagAssignmentEvaluation:
                     return VisitDagAssignmentEvaluation((BoundDagAssignmentEvaluation)node, arg);
+                case BoundKind.DagBindingEvaluation:
+                    return VisitDagBindingEvaluation((BoundDagBindingEvaluation)node, arg);
                 case BoundKind.SwitchSection:
                     return VisitSwitchSection((BoundSwitchSection)node, arg);
                 case BoundKind.SwitchLabel:
@@ -9356,6 +9388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitDagIndexerEvaluation(BoundDagIndexerEvaluation node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDagSliceEvaluation(BoundDagSliceEvaluation node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitDagAssignmentEvaluation(BoundDagAssignmentEvaluation node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitDagBindingEvaluation(BoundDagBindingEvaluation node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitSwitchSection(BoundSwitchSection node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitSwitchLabel(BoundSwitchLabel node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitSequencePointExpression(BoundSequencePointExpression node, A arg) => this.DefaultVisit(node, arg);
@@ -9578,6 +9611,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitDagIndexerEvaluation(BoundDagIndexerEvaluation node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDagSliceEvaluation(BoundDagSliceEvaluation node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitDagAssignmentEvaluation(BoundDagAssignmentEvaluation node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitDagBindingEvaluation(BoundDagBindingEvaluation node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitSwitchSection(BoundSwitchSection node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitSwitchLabel(BoundSwitchLabel node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitSequencePointExpression(BoundSequencePointExpression node) => this.DefaultVisit(node);
@@ -10164,6 +10198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode? VisitWhenDecisionDagNode(BoundWhenDecisionDagNode node)
         {
+            this.VisitList(node.Bindings);
             this.Visit(node.WhenExpression);
             this.Visit(node.WhenTrue);
             this.Visit(node.WhenFalse);
@@ -10246,6 +10281,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitDagAssignmentEvaluation(BoundDagAssignmentEvaluation node)
         {
             this.Visit(node.Target);
+            this.Visit(node.Input);
+            return null;
+        }
+        public override BoundNode? VisitDagBindingEvaluation(BoundDagBindingEvaluation node)
+        {
+            this.Visit(node.VariableAccess);
             this.Visit(node.Input);
             return null;
         }
@@ -11353,10 +11394,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode? VisitWhenDecisionDagNode(BoundWhenDecisionDagNode node)
         {
+            ImmutableArray<BoundDagBindingEvaluation> bindings = this.VisitList(node.Bindings);
             BoundExpression? whenExpression = (BoundExpression?)this.Visit(node.WhenExpression);
             BoundDecisionDagNode whenTrue = (BoundDecisionDagNode)this.Visit(node.WhenTrue);
             BoundDecisionDagNode? whenFalse = (BoundDecisionDagNode?)this.Visit(node.WhenFalse);
-            return node.Update(node.Bindings, whenExpression, whenTrue, whenFalse);
+            return node.Update(bindings, whenExpression, whenTrue, whenFalse);
         }
         public override BoundNode? VisitLeafDecisionDagNode(BoundLeafDecisionDagNode node) => node;
         public override BoundNode? VisitDagTemp(BoundDagTemp node)
@@ -11442,6 +11484,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDagTemp target = (BoundDagTemp)this.Visit(node.Target);
             BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
             return node.Update(target, input);
+        }
+        public override BoundNode? VisitDagBindingEvaluation(BoundDagBindingEvaluation node)
+        {
+            BoundExpression variableAccess = (BoundExpression)this.Visit(node.VariableAccess);
+            BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
+            return node.Update(variableAccess, input);
         }
         public override BoundNode? VisitSwitchSection(BoundSwitchSection node)
         {
@@ -15610,7 +15658,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         );
         public override TreeDumperNode VisitWhenDecisionDagNode(BoundWhenDecisionDagNode node, object? arg) => new TreeDumperNode("whenDecisionDagNode", null, new TreeDumperNode[]
         {
-            new TreeDumperNode("bindings", node.Bindings, null),
+            new TreeDumperNode("bindings", null, from x in node.Bindings select Visit(x, null)),
             new TreeDumperNode("whenExpression", null, new TreeDumperNode[] { Visit(node.WhenExpression, null) }),
             new TreeDumperNode("whenTrue", null, new TreeDumperNode[] { Visit(node.WhenTrue, null) }),
             new TreeDumperNode("whenFalse", null, new TreeDumperNode[] { Visit(node.WhenFalse, null) }),
@@ -15731,6 +15779,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitDagAssignmentEvaluation(BoundDagAssignmentEvaluation node, object? arg) => new TreeDumperNode("dagAssignmentEvaluation", null, new TreeDumperNode[]
         {
             new TreeDumperNode("target", null, new TreeDumperNode[] { Visit(node.Target, null) }),
+            new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitDagBindingEvaluation(BoundDagBindingEvaluation node, object? arg) => new TreeDumperNode("dagBindingEvaluation", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("variableAccess", null, new TreeDumperNode[] { Visit(node.VariableAccess, null) }),
             new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) }),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
         }

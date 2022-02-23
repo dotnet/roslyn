@@ -992,7 +992,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(whenNodes.Count > 1);
                     Debug.Assert(whenNodes.All(n => n.Syntax == whenClauseSyntax));
                     Debug.Assert(whenNodes.All(n => n.WhenExpression == whenExpression));
-                    Debug.Assert(whenNodes.All(n => n.Bindings == whenNodes[0].Bindings));
+                    //Debug.Assert(whenNodes.All(n => n.Bindings == whenNodes[0].Bindings));
                     Debug.Assert(whenNodes.All(n => GetDagNodeLabel(n.WhenTrue) == whenTrueLabel));
 
                     ArrayBuilder<BoundStatement> sectionBuilder = BuilderForSection(whenClauseSyntax);
@@ -1078,15 +1078,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                void lowerBindings(ImmutableArray<BoundPatternBinding> bindings, ArrayBuilder<BoundStatement> sectionBuilder)
+                void lowerBindings(ImmutableArray<BoundDagBindingEvaluation> bindings, ArrayBuilder<BoundStatement> sectionBuilder)
                 {
-                    foreach (BoundPatternBinding binding in bindings)
+                    foreach (var binding in bindings)
                     {
                         BoundExpression left = _localRewriter.VisitExpression(binding.VariableAccess);
                         // Since a switch does not add variables to the enclosing scope, the pattern variables
                         // are locals even in a script and rewriting them should have no effect.
                         Debug.Assert(left.Kind == BoundKind.Local && left == binding.VariableAccess);
-                        BoundExpression right = _tempAllocator.GetTemp(binding.TempContainingValue);
+                        BoundExpression right = _tempAllocator.GetTemp(binding.Input);
                         if (left != right)
                         {
                             sectionBuilder.Add(_factory.Assignment(left, right));
@@ -1107,14 +1107,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundEvaluationDecisionDagNode evaluationNode:
                         {
                             BoundExpression sideEffect = LowerEvaluation(evaluationNode.Evaluation);
-                            Debug.Assert(sideEffect != null);
-                            _loweredDecisionDag.Add(_factory.ExpressionStatement(sideEffect));
+                            if (sideEffect != null)
+                            {
+                                _loweredDecisionDag.Add(_factory.ExpressionStatement(sideEffect));
 
-                            // We add a hidden sequence point after the evaluation's side-effect, which may be a call out
-                            // to user code such as `Deconstruct` or a property get, to permit edit-and-continue to
-                            // synchronize on changes.
-                            if (GenerateInstrumentation)
-                                _loweredDecisionDag.Add(_factory.HiddenSequencePoint());
+                                // We add a hidden sequence point after the evaluation's side-effect, which may be a call out
+                                // to user code such as `Deconstruct` or a property get, to permit edit-and-continue to
+                                // synchronize on changes.
+                                if (GenerateInstrumentation)
+                                    _loweredDecisionDag.Add(_factory.HiddenSequencePoint());
+                            }
 
                             if (nextNode != evaluationNode.Next)
                             {
