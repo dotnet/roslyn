@@ -2,29 +2,34 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
+Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.CodeGeneration
+Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Diagnostics.VisualBasic
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.MakeFieldReadonly
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Utilities
 Imports Microsoft.CodeAnalysis.SolutionCrawler
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
+Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
 Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Simplification
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
     <UseExportProvider>
-    Public Class CodeCleanUpTests
+    Partial Public Class CodeCleanUpTests
         ' Format Document tests are handled by Format Document Test
 
         ' TESTS NEEDED but not found in C#
@@ -323,6 +328,283 @@ End Class
             Return AssertCodeCleanupResultAsync(expected, code)
         End Function
 
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
+        Public Shared Async Function RunThirdPartyFixer() As Task
+            Dim code As String = "
+Class C
+    Public Sub M1(x As Integer)
+        Select Case x
+            Case 1, 2
+                Exit Select
+            Case = 10
+                Exit Select
+            Case Else
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case = 1000
+                Exit Select
+            Case Else
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 10 To 500
+                Exit Select
+            Case = 1000
+                Exit Select
+            Case Else
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1, 980 To 985
+                Exit Select
+            Case Else
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1 to 3, 980 To 985
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case > 100000
+                Exit Select
+        End Select
+
+        Select Case x
+            Case Else
+                Exit Select
+        End Select
+
+        Select Case x
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case =
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case 2 to
+                Exit Select
+        End Select
+    End Sub
+End Class
+"
+            Dim expected As String = "
+Class C
+    Public Sub M1(x As Integer)
+        Select Case x
+            Case 1, 2
+                Exit Select
+            Case = 10
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case = 1000
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 10 To 500
+                Exit Select
+            Case = 1000
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1, 980 To 985
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1 to 3, 980 To 985
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case > 100000
+                Exit Select
+        End Select
+
+        Select Case x
+        End Select
+
+        Select Case x
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case =
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case 2 to
+                Exit Select
+        End Select
+    End Sub
+End Class
+"
+            Await TestThirdPartyCodeFixer(Of TestThirdPartyCodeFixWithFixAll, CaseTestAnalyzer)(expected, code)
+        End Function
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.CodeCleanup)>
+        Public Shared Async Function DoNotRunThirdPartyFixerWithNoFixAll() As Task
+            Dim code As String = "
+Class C
+    Public Sub M1(x As Integer)
+        Select Case x
+            Case 1, 2
+                Exit Select
+            Case = 10
+                Exit Select
+            Case Else
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case = 1000
+                Exit Select
+            Case Else
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 10 To 500
+                Exit Select
+            Case = 1000
+                Exit Select
+            Case Else
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1, 980 To 985
+                Exit Select
+            Case Else
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1 to 3, 980 To 985
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case > 100000
+                Exit Select
+        End Select
+
+        Select Case x
+            Case Else
+                Exit Select
+        End Select
+
+        Select Case x
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case =
+                Exit Select
+        End Select
+
+        Select Case x
+            Case 1
+                Exit Select
+            Case 2 to
+                Exit Select
+        End Select
+    End Sub
+End Class
+"
+            Await TestThirdPartyCodeFixer(Of TestThirdPartyCodeFixWithOutFixAll, CaseTestAnalyzer)(code, code)
+        End Function
+
+        Private Shared Async Function TestThirdPartyCodeFixer(Of TCodefix As {CodeFixProvider, New}, TAnalyzer As {DiagnosticAnalyzer, New})(expected As String, code As String) As Task
+            Using workspace = TestWorkspace.CreateVisualBasic(code, composition:=EditorTestCompositions.EditorFeaturesWpf.AddParts(GetType(TCodefix)))
+                Dim options = CodeActionOptions.DefaultProvider
+                Dim project = workspace.CurrentSolution.Projects.Single()
+                Dim map = New Dictionary(Of String, ImmutableArray(Of DiagnosticAnalyzer)) From
+                    {
+                        {LanguageNames.VisualBasic, ImmutableArray.Create(Of DiagnosticAnalyzer)(New TAnalyzer())}
+                    }
+                project = project.AddAnalyzerReference(New TestAnalyzerReferenceByLanguage(map))
+                workspace.TryApplyChanges(project.Solution)
+
+                ' register this workspace to solution crawler so that analyzer service associate itself with given workspace
+                Dim incrementalAnalyzerProvider = TryCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticAnalyzerService)(), IIncrementalAnalyzerProvider)
+                incrementalAnalyzerProvider.CreateIncrementalAnalyzer(workspace)
+
+                Dim hostdoc = workspace.Documents.[Single]()
+                Dim document = workspace.CurrentSolution.GetDocument(hostdoc.Id)
+
+                Dim codeCleanupService = document.GetLanguageService(Of ICodeCleanupService)()
+
+                Dim enabledDiagnostics = codeCleanupService.GetAllDiagnostics()
+
+                Dim newDoc = Await codeCleanupService.CleanupAsync(
+                    document,
+                    enabledDiagnostics,
+                    New ProgressTracker,
+                    options,
+                    CancellationToken.None)
+
+                Dim actual = Await newDoc.GetTextAsync()
+
+                AssertEx.EqualOrDiff(expected, actual.ToString())
+            End Using
+        End Function
+
         ''' <summary>
         ''' Assert the expected code value equals the actual processed input <paramref name="code"/>.
         ''' </summary>
@@ -375,5 +657,52 @@ End Class
             End Using
         End Function
 
+        <PartNotDiscoverable, [Shared], ExportCodeFixProvider(LanguageNames.VisualBasic)>
+        Private Class TestThirdPartyCodeFixWithFixAll : Inherits TestThirdPartyCodeFix
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+            End Sub
+
+            Public Overrides Function GetFixAllProvider() As FixAllProvider
+                Return BatchFixAllProvider.Instance
+            End Function
+        End Class
+
+        <PartNotDiscoverable, [Shared], ExportCodeFixProvider(LanguageNames.VisualBasic)>
+        Private Class TestThirdPartyCodeFixWithOutFixAll : Inherits TestThirdPartyCodeFix
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+            End Sub
+        End Class
+
+        Private Class TestThirdPartyCodeFix : Inherits CodeFixProvider
+
+            Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
+                Get
+                    Return ImmutableArray.Create("HasDefaultCase")
+                End Get
+            End Property
+
+            Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
+                For Each diagnostic In context.Diagnostics
+                    context.RegisterCodeFix(
+                        CodeAction.Create(
+                            "Remove default case",
+                            Async Function(cancellationToken)
+                                Dim root = Await context.Document.GetSyntaxRootAsync(cancellationToken)
+                                Dim node = (Await diagnostic.Location.SourceTree.GetRootAsync(cancellationToken)).FindNode(diagnostic.Location.SourceSpan)
+                                Return context.Document.WithSyntaxRoot(root.RemoveNode(node.Parent, SyntaxRemoveOptions.KeepNoTrivia))
+                            End Function,
+                            NameOf(TestThirdPartyCodeFix)),
+                    diagnostic)
+                Next
+
+                Return Task.CompletedTask
+            End Function
+        End Class
     End Class
 End Namespace

@@ -7,7 +7,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
@@ -578,7 +577,7 @@ namespace A
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
-        public async Task RunThirdPartyFixerCSharp()
+        public async Task RunThirdPartyFixer()
         {
             const string code = @"
 class C
@@ -670,170 +669,12 @@ class C
     }
 }
 ";
-            await TestThirdPartyCodeFixerCSharp<TestThirdPartyCodeFixWithFixAll, CaseTestAnalyzer>(code, expected);
+            await TestThirdPartyCodeFixer<TestThirdPartyCodeFixWithFixAll, CaseTestAnalyzer>(code, expected);
         }
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
-        public async Task RunThirdPartyFixerVisualBasic()
-        {
-            const string code = @"
-Class C
-    Public Sub M1(x As Integer)
-        Select Case x
-            Case 1, 2
-                Exit Select
-            Case = 10
-                Exit Select
-            Case Else
-                Exit Select
-        End Select
-
-        Select Case x
-            Case 1
-                Exit Select
-            Case = 1000
-                Exit Select
-            Case Else
-                Exit Select
-        End Select
-
-        Select Case x
-            Case 10 To 500
-                Exit Select
-            Case = 1000
-                Exit Select
-            Case Else
-                Exit Select
-        End Select
-
-        Select Case x
-            Case 1, 980 To 985
-                Exit Select
-            Case Else
-                Exit Select
-        End Select
-
-        Select Case x
-            Case 1 to 3, 980 To 985
-                Exit Select
-        End Select
-
-        Select Case x
-            Case 1
-                Exit Select
-            Case > 100000
-                Exit Select
-        End Select
-
-        Select Case x
-            Case Else
-                Exit Select
-        End Select
-
-        Select Case x
-        End Select
-
-        Select Case x
-            Case 1
-                Exit Select
-            Case
-                Exit Select
-        End Select
-
-        Select Case x
-            Case 1
-                Exit Select
-            Case =
-                Exit Select
-        End Select
-
-        Select Case x
-            Case 1
-                Exit Select
-            Case 2 to
-                Exit Select
-        End Select
-    End Sub
-End Class
-";
-
-            const string expected = @"
-Class C
-    Public Sub M1(x As Integer)
-        Select Case x
-            Case 1, 2
-                Exit Select
-            Case = 10
-                Exit Select
-        End Select
-
-        Select Case x
-            Case 1
-                Exit Select
-            Case = 1000
-                Exit Select
-        End Select
-
-        Select Case x
-            Case 10 To 500
-                Exit Select
-            Case = 1000
-                Exit Select
-        End Select
-
-        Select Case x
-            Case 1, 980 To 985
-                Exit Select
-        End Select
-
-        Select Case x
-            Case 1 to 3, 980 To 985
-                Exit Select
-        End Select
-
-        Select Case x
-            Case 1
-                Exit Select
-            Case > 100000
-                Exit Select
-        End Select
-
-        Select Case x
-        End Select
-
-        Select Case x
-        End Select
-
-        Select Case x
-            Case 1
-                Exit Select
-            Case
-                Exit Select
-        End Select
-
-        Select Case x
-            Case 1
-                Exit Select
-            Case =
-                Exit Select
-        End Select
-
-        Select Case x
-            Case 1
-                Exit Select
-            Case 2 to
-                Exit Select
-        End Select
-    End Sub
-End Class
-";
-            await TestThirdPartyCodeFixerVisualBasic<TestThirdPartyCodeFixWithFixAll, CaseTestAnalyzer>(code, expected);
-        }
-
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
-        public async Task DoNotRunThirdPartyFixerWithNoFixAllCSharp()
+        public async Task DoNotRunThirdPartyFixerWithNoFixAll()
         {
             const string code = @"
 class C
@@ -884,124 +725,22 @@ class C
 }
 ";
 
-            await TestThirdPartyCodeFixerCSharp<TestThirdPartyCodeFixWithOutFixAll, CaseTestAnalyzer>(code, code);
+            await TestThirdPartyCodeFixer<TestThirdPartyCodeFixWithOutFixAll, CaseTestAnalyzer>(code, code);
         }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
-        public async Task DoNotRunThirdPartyFixerWithNoFixAllVisualBasic()
-        {
-            const string code = @"
-Class C
-    Public Sub M1(x As Integer)
-        Select Case x
-            Case 1, 2
-                Exit Select
-            Case = 10
-                Exit Select
-            Case Else
-                Exit Select
-        End Select
-
-        Select Case x
-            Case 1
-                Exit Select
-            Case = 1000
-                Exit Select
-            Case Else
-                Exit Select
-        End Select
-
-        Select Case x
-            Case 10 To 500
-                Exit Select
-            Case = 1000
-                Exit Select
-            Case Else
-                Exit Select
-        End Select
-
-        Select Case x
-            Case 1, 980 To 985
-                Exit Select
-            Case Else
-                Exit Select
-        End Select
-
-        Select Case x
-            Case 1 to 3, 980 To 985
-                Exit Select
-        End Select
-
-        Select Case x
-            Case 1
-                Exit Select
-            Case > 100000
-                Exit Select
-        End Select
-
-        Select Case x
-            Case Else
-                Exit Select
-        End Select
-
-        Select Case x
-        End Select
-
-        Select Case x
-            Case 1
-                Exit Select
-            Case
-                Exit Select
-        End Select
-
-        Select Case x
-            Case 1
-                Exit Select
-            Case =
-                Exit Select
-        End Select
-
-        Select Case x
-            Case 1
-                Exit Select
-            Case 2 to
-                Exit Select
-        End Select
-    End Sub
-End Class
-";
-
-            await TestThirdPartyCodeFixerVisualBasic<TestThirdPartyCodeFixWithOutFixAll, CaseTestAnalyzer>(code, code);
-        }
-
-        private static Task TestThirdPartyCodeFixerCSharp<TCodefix, TAnalyzer>(string code, string expected)
-            where TAnalyzer : DiagnosticAnalyzer, new()
-            where TCodefix : CodeFixProvider, new()
-        {
-            return TestThirdPartyCodeFixer<TCodefix, TAnalyzer>(code, expected, LanguageNames.CSharp);
-        }
-
-        private static Task TestThirdPartyCodeFixerVisualBasic<TCodefix, TAnalyzer>(string code, string expected)
-            where TAnalyzer : DiagnosticAnalyzer, new()
-            where TCodefix : CodeFixProvider, new()
-        {
-            return TestThirdPartyCodeFixer<TCodefix, TAnalyzer>(code, expected, LanguageNames.VisualBasic);
-        }
-
-        private static async Task TestThirdPartyCodeFixer<TCodefix, TAnalyzer>(string code, string expected, string language)
+        private static async Task TestThirdPartyCodeFixer<TCodefix, TAnalyzer>(string code, string expected)
             where TAnalyzer : DiagnosticAnalyzer, new()
             where TCodefix : CodeFixProvider, new()
         {
 
-            using var workspace = GetTestWorkspaceForLanguage(code, language);
+            using var workspace = TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf.AddParts(typeof(TCodefix)));
 
             var options = CodeActionOptions.DefaultProvider;
 
             var project = workspace.CurrentSolution.Projects.Single();
 
             var map = new Dictionary<string, ImmutableArray<DiagnosticAnalyzer>>{
-                { language, ImmutableArray.Create((DiagnosticAnalyzer)new  TAnalyzer()) }
+                { LanguageNames.CSharp, ImmutableArray.Create((DiagnosticAnalyzer)new  TAnalyzer()) }
             };
 
             project = project.AddAnalyzerReference(new TestAnalyzerReferenceByLanguage(map));
@@ -1024,21 +763,6 @@ End Class
 
             var actual = await newDoc.GetTextAsync();
             Assert.Equal(expected, actual.ToString());
-
-            static TestWorkspace GetTestWorkspaceForLanguage(string code, string language)
-            {
-                if (language == LanguageNames.CSharp)
-                {
-                    return TestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf.AddParts(typeof(TCodefix)));
-                }
-
-                if (language == LanguageNames.VisualBasic)
-                {
-                    return TestWorkspace.CreateVisualBasic(code, composition: EditorTestCompositions.EditorFeaturesWpf.AddParts(typeof(TCodefix)));
-                }
-
-                return null;
-            }
         }
 
         private static string[] GetSupportedDiagnosticIdsForCodeCleanupService(string language)
