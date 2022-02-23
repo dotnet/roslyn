@@ -297,6 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                             // Don't add multiple items for the same name and only add valid identifiers
                             if (name.Length > 1 &&
+                                name != CodeAnalysis.Shared.Extensions.ITypeSymbolExtensions.DefaultParameterName &&
                                 CSharpSyntaxFacts.Instance.IsValidIdentifier(name) &&
                                 seenBaseNames.Add(name))
                             {
