@@ -48,6 +48,7 @@ public class C
 
                 Assert.NotNull(result);
                 Assert.Equal(sourceFilePath, result!.FilePath);
+                Assert.True(result.ShouldCauseTimeoutEase);
             });
         }
 
