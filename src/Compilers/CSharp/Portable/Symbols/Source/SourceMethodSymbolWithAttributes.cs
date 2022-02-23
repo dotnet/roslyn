@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Gets the attributes applied on this symbol.
         /// Returns an empty array if there are no attributes.
-        /// </summary>  
+        /// </summary>
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
             return this.GetAttributesBag().Attributes;
