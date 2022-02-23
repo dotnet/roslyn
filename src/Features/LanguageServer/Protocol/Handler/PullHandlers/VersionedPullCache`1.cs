@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 documentToPreviousDiagnosticParams,
                 document,
                 computeCheapVersionAsync,
-                computeExpensiveVersionAsync: () => SpecializedTasks.Null<object>(),
+                computeExpensiveVersionAsync: SpecializedTasks.Null<object>,
                 cancellationToken);
         }
     }
