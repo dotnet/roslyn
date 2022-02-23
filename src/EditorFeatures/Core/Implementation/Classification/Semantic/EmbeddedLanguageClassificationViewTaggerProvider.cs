@@ -14,9 +14,7 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 {
     /// <summary>
-    /// This is the tagger we use for view classification scenarios.  It is used for classifying code
-    /// in the editor.  We use a view tagger so that we can only classify what's in view, and not
-    /// the whole file.
+    /// This is the tagger we use for classifying the embedded language string literals currently visible in the editor view.
     /// </summary>
     [Export(typeof(IViewTaggerProvider))]
     [TagType(typeof(IClassificationTag))]
