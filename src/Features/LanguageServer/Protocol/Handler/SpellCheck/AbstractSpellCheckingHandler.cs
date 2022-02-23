@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
         /// significance changed. The version key is produced by combining the checksums for project options <see
         /// cref="ProjectState.GetParseOptionsChecksum"/> and <see cref="DocumentStateChecksums.Text"/>
         /// </summary>
-        private readonly VersionedPullCache<(Checksum parseOptionsChecksum, Checksum textChecksum)> _versionedCache;
+        private readonly VersionedPullCache<(Checksum parseOptionsChecksum, Checksum textChecksum)?> _versionedCache;
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
                 var newResultId = await _versionedCache.GetNewResultIdAsync(
                     documentToPreviousParams,
                     document,
-                    computeVersionAsync: () => ComputeChecksumsAsync(document, cancellationToken),
+                    computeVersionAsync: async () => await ComputeChecksumsAsync(document, cancellationToken).ConfigureAwait(false),
                     cancellationToken).ConfigureAwait(false);
                 if (newResultId != null)
                 {

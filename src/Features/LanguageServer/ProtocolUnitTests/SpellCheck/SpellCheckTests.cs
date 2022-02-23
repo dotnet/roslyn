@@ -65,8 +65,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
             });
         }
 
-        [Theory, CombinatorialData]
-        public async Task TestDocumentResultsForRemovedDocument(bool useVSDiagnostics)
+        [Fact]
+        public async Task TestDocumentResultsForRemovedDocument()
         {
             var markup =
 @"class {|Identifier:A|}
@@ -106,38 +106,47 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
             Assert.Null(results.Single().ResultId);
         }
 
-        //        [Theory, CombinatorialData]
-        //        public async Task TestNoChangeIfDocumentDiagnosticsCalledTwice(bool useVSDiagnostics)
-        //        {
-        //            var markup =
-        //@"class A {";
-        //            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
+        [Fact]
+        public async Task TestNoChangeIfDocumentResultsCalledTwice()
+        {
+            var markup =
+@"class {|Identifier:A|}
+{
+}";
+            using var testLspServer = await CreateTestLspServerAsync(markup);
 
-        //            // Calling GetTextBuffer will effectively open the file.
-        //            testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
+            // Calling GetTextBuffer will effectively open the file.
+            testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
 
-        //            var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+            var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
-        //            await OpenDocumentAsync(testLspServer, document);
+            await OpenDocumentAsync(testLspServer, document);
 
-        //            var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
+            var results = await RunGetDocumentSpellCheckSpansAsync(testLspServer, document.GetURI());
 
-        //            Assert.Equal("CS1513", results.Single().Diagnostics.Single().Code);
+            Assert.Single(results);
 
-        //            var resultId = results.Single().ResultId;
-        //            results = await RunGetDocumentPullDiagnosticsAsync(
-        //                testLspServer, document.GetURI(), useVSDiagnostics, previousResultId: resultId);
+            var sourceText = await document.GetTextAsync();
+            AssertJsonEquals(results.Single(), new VSInternalSpellCheckableRangeReport
+            {
+                ResultId = "DocumentSpellCheckHandler:0",
+                Ranges = GetRanges(sourceText, testLspServer.TestWorkspace.Documents.Single().AnnotatedSpans),
+            });
 
-        //            Assert.Null(results.Single().Diagnostics);
-        //            Assert.Equal(resultId, results.Single().ResultId);
-        //        }
+            var resultId = results.Single().ResultId;
+            results = await RunGetDocumentSpellCheckSpansAsync(
+                testLspServer, document.GetURI(), previousResultId: resultId);
 
-        //        [Theory, CombinatorialData]
+            Assert.Null(results.Single().Ranges);
+            Assert.Equal(resultId, results.Single().ResultId);
+        }
+
+        //        [Fact]
         //        public async Task TestDocumentDiagnosticsRemovedAfterErrorIsFixed(bool useVSDiagnostics)
         //        {
         //            var markup =
         //@"class A {";
-        //            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
+        // using var testLspServer = await CreateTestLspServerAsync(markup);
 
         //            // Calling GetTextBuffer will effectively open the file.
         //            var buffer = testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -146,21 +155,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
 
         //            await OpenDocumentAsync(testLspServer, document);
 
-        //            var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
+        //            var results = await RunGetDocumentSpellCheckSpansAsync(testLspServer, document.GetURI(), useVSDiagnostics);
         //            Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
 
         //            await InsertTextAsync(testLspServer, document, buffer.CurrentSnapshot.Length, "}");
 
-        //            results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics, results.Single().ResultId);
+        //            results = await RunGetDocumentSpellCheckSpansAsync(testLspServer, document.GetURI(), results.Single().ResultId);
         //            Assert.Empty(results[0].Diagnostics);
         //        }
 
-        //        [Theory, CombinatorialData]
+        //        [Fact]
         //        public async Task TestDocumentDiagnosticsRemainAfterErrorIsNotFixed(bool useVSDiagnostics)
         //        {
         //            var markup =
         //@"class A {";
-        //            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
+        // using var testLspServer = await CreateTestLspServerAsync(markup);
 
         //            // Calling GetTextBuffer will effectively open the file.
         //            var buffer = testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -168,14 +177,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //            var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
         //            await OpenDocumentAsync(testLspServer, document);
-        //            var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
+        //            var results = await RunGetDocumentSpellCheckSpansAsync(testLspServer, document.GetURI(), useVSDiagnostics);
         //            Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
         //            Assert.Equal(new Position { Line = 0, Character = 9 }, results[0].Diagnostics.Single().Range.Start);
 
         //            buffer.Insert(0, " ");
         //            await InsertTextAsync(testLspServer, document, position: 0, text: " ");
 
-        //            results = await RunGetDocumentPullDiagnosticsAsync(
+        //            results = await RunGetDocumentSpellCheckSpansAsync(
         //                testLspServer, document.GetURI(),
         //                useVSDiagnostics,
         //                previousResultId: results[0].ResultId);
@@ -183,13 +192,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //            Assert.Equal(new Position { Line = 0, Character = 10 }, results[0].Diagnostics.Single().Range.Start);
         //        }
 
-        //        [Theory, CombinatorialData]
+        //        [Fact]
         //        public async Task TestDocumentDiagnosticsAreNotMapped(bool useVSDiagnostics)
         //        {
         //            var markup =
         //@"#line 1 ""test.txt""
         //class A {";
-        //            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
+        // using var testLspServer = await CreateTestLspServerAsync(markup);
 
         //            // Calling GetTextBuffer will effectively open the file.
         //            testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -198,7 +207,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
 
         //            await OpenDocumentAsync(testLspServer, document);
 
-        //            var results = await RunGetDocumentPullDiagnosticsAsync(
+        //            var results = await RunGetDocumentSpellCheckSpansAsync(
         //                testLspServer, document.GetURI(), useVSDiagnostics);
 
         //            Assert.Equal("CS1513", results.Single().Diagnostics.Single().Code);
@@ -221,12 +230,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
 
         //        private static Task CloseDocumentAsync(TestLspServer testLspServer, Document document) => testLspServer.CloseDocumentAsync(document.GetURI());
 
-        //        [Theory, CombinatorialData]
+        //        [Fact]
         //        public async Task TestStreamingDocumentDiagnostics(bool useVSDiagnostics)
         //        {
         //            var markup =
         //@"class A {";
-        //            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
+        // using var testLspServer = await CreateTestLspServerAsync(markup);
 
         //            // Calling GetTextBuffer will effectively open the file.
         //            testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -235,12 +244,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
 
         //            await OpenDocumentAsync(testLspServer, document);
 
-        //            var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics, useProgress: true);
+        //            var results = await RunGetDocumentSpellCheckSpansAsync(testLspServer, document.GetURI(), useProgress: true);
 
         //            Assert.Equal("CS1513", results!.Single().Diagnostics.Single().Code);
         //        }
 
-        //        [Theory, CombinatorialData]
+        //        [Fact]
         //        public async Task TestDocumentDiagnosticsForOpenFilesUsesActiveContext(bool useVSDiagnostics)
         //        {
         //            var documentText =
@@ -258,7 +267,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //    </Project>
         //</Workspace>";
 
-        //            using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
+        // using var testLspServer = await CreateTestLspServerAsync(markup);
 
         //            var csproj1Document = testLspServer.GetCurrentSolution().Projects.Where(p => p.Name == "CSProj1").Single().Documents.First();
         //            var csproj2Document = testLspServer.GetCurrentSolution().Projects.Where(p => p.Name == "CSProj2").Single().Documents.First();
@@ -271,7 +280,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
 
         //            // Set CSProj2 as the active context and get diagnostics.
         //            testLspServer.TestWorkspace.SetDocumentContext(csproj2Document.Id);
-        //            var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, csproj2Document.GetURI(), useVSDiagnostics);
+        //            var results = await RunGetDocumentSpellCheckSpansAsync(testLspServer, csproj2Document.GetURI(), useVSDiagnostics);
         //            Assert.Equal("CS1513", results.Single().Diagnostics.Single().Code);
         //            if (useVSDiagnostics)
         //            {
@@ -282,7 +291,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
 
         //            // Set CSProj1 as the active context and get diagnostics.
         //            testLspServer.TestWorkspace.SetDocumentContext(csproj1Document.Id);
-        //            results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, csproj1Document.GetURI(), useVSDiagnostics);
+        //            results = await RunGetDocumentSpellCheckSpansAsync(testLspServer, csproj1Document.GetURI(), useVSDiagnostics);
         //            Assert.Equal(2, results.Single().Diagnostics!.Length);
         //            Assert.All(results.Single().Diagnostics, d => Assert.Equal("CS1513", d.Code));
 
@@ -292,7 +301,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //            }
         //        }
 
-        //        [Theory, CombinatorialData]
+        //        [Fact]
         //        public async Task TestDocumentDiagnosticsWithChangeInReferencedProject(bool useVSDiagnostics)
         //        {
         //            var markup1 =
@@ -317,7 +326,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //    </Project>
         //</Workspace>";
 
-        //            using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, BackgroundAnalysisScope.FullSolution, useVSDiagnostics).ConfigureAwait(false);
+        // using var testLspServer = await CreateTestLspServerAsync(markup);
         //            var csproj1Document = testLspServer.GetCurrentSolution().Projects.Where(p => p.Name == "CSProj1").Single().Documents.First();
         //            var csproj2Document = testLspServer.GetCurrentSolution().Projects.Where(p => p.Name == "CSProj2").Single().Documents.First();
 
@@ -325,7 +334,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //            await testLspServer.OpenDocumentAsync(csproj2Document.GetURI());
 
         //            // Verify we a diagnostic in A.cs since B does not exist.
-        //            var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, csproj1Document.GetURI(), useVSDiagnostics);
+        //            var results = await RunGetDocumentSpellCheckSpansAsync(testLspServer, csproj1Document.GetURI(), useVSDiagnostics);
         //            Assert.Single(results);
         //            Assert.Equal("CS0246", results.Single().Diagnostics.Single().Code);
 
@@ -333,13 +342,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //            var locationToReplace = testLspServer.GetLocations("caret").Single().Range;
         //            await testLspServer.ReplaceTextAsync(csproj2Document.GetURI(), (locationToReplace, "B"));
         //            var originalResultId = results.Single().ResultId;
-        //            results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, csproj1Document.GetURI(), useVSDiagnostics, originalResultId);
+        //            results = await RunGetDocumentSpellCheckSpansAsync(testLspServer, csproj1Document.GetURI(), originalResultId);
         //            Assert.Single(results);
         //            Assert.Empty(results.Single().Diagnostics);
         //            Assert.NotEqual(originalResultId, results.Single().ResultId);
         //        }
 
-        //        [Theory, CombinatorialData]
+        //        [Fact]
         //        public async Task TestDocumentDiagnosticsWithChangeInNotReferencedProject(bool useVSDiagnostics)
         //        {
         //            var markup1 =
@@ -363,7 +372,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //    </Project>
         //</Workspace>";
 
-        //            using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, BackgroundAnalysisScope.FullSolution, useVSDiagnostics).ConfigureAwait(false);
+        // using var testLspServer = await CreateTestLspServerAsync(markup);
         //            var csproj1Document = testLspServer.GetCurrentSolution().Projects.Where(p => p.Name == "CSProj1").Single().Documents.First();
         //            var csproj2Document = testLspServer.GetCurrentSolution().Projects.Where(p => p.Name == "CSProj2").Single().Documents.First();
 
@@ -371,7 +380,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //            await testLspServer.OpenDocumentAsync(csproj2Document.GetURI());
 
         //            // Verify we get a diagnostic in A since the class B does not exist.
-        //            var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, csproj1Document.GetURI(), useVSDiagnostics);
+        //            var results = await RunGetDocumentSpellCheckSpansAsync(testLspServer, csproj1Document.GetURI(), useVSDiagnostics);
         //            Assert.Single(results);
         //            Assert.Equal("CS0246", results.Single().Diagnostics.Single().Code);
 
@@ -380,20 +389,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //            var locationToReplace = testLspServer.GetLocations("caret").Single().Range;
         //            await testLspServer.ReplaceTextAsync(csproj2Document.GetURI(), (locationToReplace, "B"));
         //            var originalResultId = results.Single().ResultId;
-        //            results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, csproj1Document.GetURI(), useVSDiagnostics, originalResultId);
+        //            results = await RunGetDocumentSpellCheckSpansAsync(testLspServer, csproj1Document.GetURI(), originalResultId);
         //            Assert.Single(results);
         //            Assert.Null(results.Single().Diagnostics);
         //            Assert.Equal(originalResultId, results.Single().ResultId);
         //        }
 
-        //        [Theory, CombinatorialData]
+        //        [Fact]
         //        public async Task TestDocumentDiagnosticsFromRazorServer(bool useVSDiagnostics)
         //        {
         //            var markup =
         //@"class A {";
 
         //            // Turn off pull diagnostics by default, but send a request to the razor LSP server which is always pull.
-        //            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFiles, DiagnosticMode.Push, useVSDiagnostics, serverKind: WellKnownLspServerKinds.RazorLspServer);
+        //            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFiles, DiagnosticMode.Push, serverKind: WellKnownLspServerKinds.RazorLspServer);
 
         //            // Calling GetTextBuffer will effectively open the file.
         //            testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -402,7 +411,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
 
         //            await OpenDocumentAsync(testLspServer, document);
 
-        //            var results = await RunGetDocumentPullDiagnosticsAsync(
+        //            var results = await RunGetDocumentSpellCheckSpansAsync(
         //                testLspServer, document.GetURI(), useVSDiagnostics);
 
         //            // Assert that we have diagnostics even though the option is set to push.
@@ -410,14 +419,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //            Assert.NotNull(results.Single().Diagnostics.Single().CodeDescription!.Href);
         //        }
 
-        //        [Theory, CombinatorialData]
+        //        [Fact]
         //        public async Task TestDocumentDiagnosticsFromLiveShareServer(bool useVSDiagnostics)
         //        {
         //            var markup =
         //@"class A {";
 
         //            // Turn off pull diagnostics by default, but send a request to the razor LSP server which is always pull.
-        //            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFiles, DiagnosticMode.Push, useVSDiagnostics, serverKind: WellKnownLspServerKinds.LiveShareLspServer);
+        //            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(markup, BackgroundAnalysisScope.OpenFiles, DiagnosticMode.Push, serverKind: WellKnownLspServerKinds.LiveShareLspServer);
 
         //            // Calling GetTextBuffer will effectively open the file.
         //            testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
@@ -426,7 +435,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
 
         //            await OpenDocumentAsync(testLspServer, document);
 
-        //            var results = await RunGetDocumentPullDiagnosticsAsync(
+        //            var results = await RunGetDocumentSpellCheckSpansAsync(
         //                testLspServer, document.GetURI(), useVSDiagnostics);
 
         //            // Assert that we have diagnostics even though the option is set to push.
@@ -438,13 +447,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
 
         //        #region Workspace Diagnostics
 
-        //        [Theory, CombinatorialData]
+        //        [Fact]
         //        public async Task TestNoWorkspaceDiagnosticsForClosedFilesWithFSAOff(bool useVSDiagnostics)
         //        {
         //            var markup1 =
         //@"class A {";
         //            var markup2 = "";
-        //            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+        // using var testLspServer = await CreateTestLspServerAsync(
         //                new[] { markup1, markup2 }, BackgroundAnalysisScope.OpenFiles, useVSDiagnostics);
 
         //            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
@@ -452,13 +461,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //            Assert.Empty(results);
         //        }
 
-        //        [Theory, CombinatorialData]
+        //        [Fact]
         //        public async Task TestWorkspaceDiagnosticsForClosedFilesWithFSAOn(bool useVSDiagnostics)
         //        {
         //            var markup1 =
         //@"class A {";
         //            var markup2 = "";
-        //            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+        // using var testLspServer = await CreateTestLspServerAsync(
         //                new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
         //            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
@@ -468,14 +477,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //            Assert.Empty(results[1].Diagnostics);
         //        }
 
-        //        [Theory, CombinatorialData]
+        //        [Fact]
         //        public async Task TestNoWorkspaceDiagnosticsForClosedFilesWithFSAOnAndInPushMode(bool useVSDiagnostics)
         //        {
         //            var markup1 =
         //@"class A {";
         //            var markup2 = "";
-        //            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
-        //                new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution, useVSDiagnostics, pullDiagnostics: false);
+        // using var testLspServer = await CreateTestLspServerAsync(
+        //                new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution, pullDiagnostics: false);
 
         //            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
@@ -484,7 +493,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //            Assert.Empty(results[1].Diagnostics);
         //        }
 
-        //        [Theory, CombinatorialData]
+        //        [Fact]
         //        public async Task TestNoWorkspaceDiagnosticsForClosedFilesInProjectsWithIncorrectLanguage(bool useVSDiagnostics)
         //        {
         //            var csharpMarkup =
@@ -508,7 +517,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //            Assert.True(results.All(r => r.TextDocument!.Uri.LocalPath == "C:\\C.cs"));
         //        }
 
-        //        [Theory, CombinatorialData]
+        //        [Fact]
         //        public async Task TestWorkspaceDiagnosticsForSourceGeneratedFiles(bool useVSDiagnostics)
         //        {
         //            var markup1 =
@@ -532,13 +541,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //            Assert.Empty(results[1].Diagnostics);
         //        }
 
-        //        [Theory, CombinatorialData]
+        //        [Fact]
         //        public async Task TestWorkspaceDiagnosticsForRemovedDocument(bool useVSDiagnostics)
         //        {
         //            var markup1 =
         //@"class A {";
         //            var markup2 = "";
-        //            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+        // using var testLspServer = await CreateTestLspServerAsync(
         //                new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
         //            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
@@ -549,7 +558,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
 
         //            testLspServer.TestWorkspace.OnDocumentRemoved(testLspServer.TestWorkspace.Documents.First().Id);
 
-        //            var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
+        //            var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
 
         //            // First doc should show up as removed.
         //            Assert.Equal(2, results2.Length);
@@ -566,13 +575,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //            return results.Select(r => (r.ResultId, r.Uri)).ToImmutableArray();
         //        }
 
-        //        [Theory, CombinatorialData]
+        //        [Fact]
         //        public async Task TestNoChangeIfWorkspaceDiagnosticsCalledTwice(bool useVSDiagnostics)
         //        {
         //            var markup1 =
         //@"class A {";
         //            var markup2 = "";
-        //            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+        // using var testLspServer = await CreateTestLspServerAsync(
         //                 new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
         //            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
@@ -581,7 +590,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //            Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
         //            Assert.Empty(results[1].Diagnostics);
 
-        //            var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
+        //            var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
 
         //            Assert.Equal(2, results2.Length);
         //            Assert.Null(results2[0].Diagnostics);
@@ -591,13 +600,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //            Assert.Equal(results[1].ResultId, results2[1].ResultId);
         //        }
 
-        //        [Theory, CombinatorialData]
+        //        [Fact]
         //        public async Task TestWorkspaceDiagnosticsRemovedAfterErrorIsFixed(bool useVSDiagnostics)
         //        {
         //            var markup1 =
         //@"class A {";
         //            var markup2 = "";
-        //            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+        // using var testLspServer = await CreateTestLspServerAsync(
         //                 new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
         //            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
@@ -609,7 +618,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //            var buffer = testLspServer.TestWorkspace.Documents.First().GetTextBuffer();
         //            buffer.Insert(buffer.CurrentSnapshot.Length, "}");
 
-        //            var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
+        //            var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
 
         //            Assert.Equal(2, results2.Length);
         //            Assert.Empty(results2[0].Diagnostics);
@@ -621,13 +630,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //            Assert.NotEqual(results[1].ResultId, results2[1].ResultId);
         //        }
 
-        //        [Theory, CombinatorialData]
+        //        [Fact]
         //        public async Task TestWorkspaceDiagnosticsRemainAfterErrorIsNotFixed(bool useVSDiagnostics)
         //        {
         //            var markup1 =
         //@"class A {";
         //            var markup2 = "";
-        //            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+        // using var testLspServer = await CreateTestLspServerAsync(
         //                 new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
         //            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
@@ -658,13 +667,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //            Assert.NotEqual(results[1].ResultId, results2[1].ResultId);
         //        }
 
-        //        [Theory, CombinatorialData]
+        //        [Fact]
         //        public async Task TestStreamingWorkspaceDiagnostics(bool useVSDiagnostics)
         //        {
         //            var markup1 =
         //@"class A {";
         //            var markup2 = "";
-        //            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+        // using var testLspServer = await CreateTestLspServerAsync(
         //                 new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
         //            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
@@ -673,19 +682,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //            Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
         //            Assert.Equal(new Position { Line = 0, Character = 9 }, results[0].Diagnostics.Single().Range.Start);
 
-        //            results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, useProgress: true);
+        //            results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useProgress: true);
 
         //            Assert.Equal("CS1513", results[0].Diagnostics![0].Code);
         //        }
 
-        //        [Theory, CombinatorialData]
+        //        [Fact]
         //        public async Task TestWorkspaceDiagnosticsAreNotMapped(bool useVSDiagnostics)
         //        {
         //            var markup1 =
         //@"#line 1 ""test.txt""
         //class A {";
         //            var markup2 = "";
-        //            using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+        // using var testLspServer = await CreateTestLspServerAsync(
         //                new[] { markup1, markup2 }, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
         //            var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
@@ -696,7 +705,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //            Assert.Empty(results[1].Diagnostics);
         //        }
 
-        //        [Theory, CombinatorialData]
+        //        [Fact]
         //        public async Task TestWorkspaceDiagnosticsWithChangeInReferencedProject(bool useVSDiagnostics)
         //        {
         //            var markup1 =
@@ -740,7 +749,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
 
         //            // Get updated workspace diagnostics for the change.
         //            var previousResultIds = CreateDiagnosticParamsFromPreviousReports(results);
-        //            results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: previousResultIds);
+        //            results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, previousResults: previousResultIds);
         //            AssertEx.NotNull(results);
         //            Assert.Equal(2, results.Length);
 
@@ -753,7 +762,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //            Assert.NotEqual(previousResultIds[1].resultId, results[1].ResultId);
         //        }
 
-        //        [Theory, CombinatorialData]
+        //        [Fact]
         //        public async Task TestWorkspaceDiagnosticsWithChangeInRecursiveReferencedProject(bool useVSDiagnostics)
         //        {
         //            var markup1 =
@@ -793,6 +802,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //    </Project>
         //</Workspace>";
 
+        // using var testLspServer = await CreateTestLspServerAsync(
         //            using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, BackgroundAnalysisScope.FullSolution, useVSDiagnostics).ConfigureAwait(false);
         //            var csproj3Document = testLspServer.GetCurrentSolution().Projects.Where(p => p.Name == "CSProj3").Single().Documents.First();
 
@@ -812,7 +822,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
 
         //            // Get updated workspace diagnostics for the change.
         //            var previousResultIds = CreateDiagnosticParamsFromPreviousReports(results);
-        //            results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: previousResultIds).ConfigureAwait(false);
+        //            results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, previousResults: previousResultIds).ConfigureAwait(false);
         //            AssertEx.NotNull(results);
         //            Assert.Equal(3, results.Length);
 
@@ -828,7 +838,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //            Assert.NotEqual(previousResultIds[2].resultId, results[2].ResultId);
         //        }
 
-        //        [Theory, CombinatorialData]
+        //        [Fact]
         //        public async Task TestWorkspaceDiagnosticsWithChangeInNotReferencedProject(bool useVSDiagnostics)
         //        {
         //            var markup1 =
@@ -852,6 +862,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //    </Project>
         //</Workspace>";
 
+        // using var testLspServer = await CreateTestLspServerAsync(
         //            using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, BackgroundAnalysisScope.FullSolution, useVSDiagnostics).ConfigureAwait(false);
         //            var csproj2Document = testLspServer.GetCurrentSolution().Projects.Where(p => p.Name == "CSProj2").Single().Documents.First();
 
@@ -871,7 +882,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
 
         //            // Get updated workspace diagnostics for the change.
         //            var previousResultIds = CreateDiagnosticParamsFromPreviousReports(results);
-        //            results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResultIds);
+        //            results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, previousResultIds);
         //            AssertEx.NotNull(results);
         //            Assert.Equal(2, results.Length);
 
@@ -884,7 +895,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //            Assert.NotEqual(previousResultIds[1].resultId, results[1].ResultId);
         //        }
 
-        //        [Theory, CombinatorialData]
+        //        [Fact]
         //        public async Task TestWorkspaceDiagnosticsWithDependentProjectReloadedAndChanged(bool useVSDiagnostics)
         //        {
         //            var markup1 =
@@ -909,6 +920,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //    </Project>
         //</Workspace>";
 
+        // using var testLspServer = await CreateTestLspServerAsync(
         //            using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, BackgroundAnalysisScope.FullSolution, useVSDiagnostics).ConfigureAwait(false);
         //            var csproj2Document = testLspServer.GetCurrentSolution().Projects.Where(p => p.Name == "CSProj2").Single().Documents.First();
 
@@ -929,7 +941,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
 
         //            // Get updated workspace diagnostics for the change.
         //            var previousResultIds = CreateDiagnosticParamsFromPreviousReports(results);
-        //            results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: previousResultIds);
+        //            results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, previousResults: previousResultIds);
 
         //            AssertEx.NotNull(results);
         //            Assert.Equal(2, results.Length);
@@ -939,7 +951,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //            Assert.Equal("CS1001", results[1].Diagnostics.Single().Code);
         //        }
 
-        //        [Theory, CombinatorialData]
+        //        [Fact]
         //        public async Task TestWorkspaceDiagnosticsWithDependentProjectReloadedUnChanged(bool useVSDiagnostics)
         //        {
         //            var markup1 =
@@ -964,6 +976,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //    </Project>
         //</Workspace>";
 
+        // using var testLspServer = await CreateTestLspServerAsync(
         //            using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, BackgroundAnalysisScope.FullSolution, useVSDiagnostics).ConfigureAwait(false);
         //            var csproj2Document = testLspServer.GetCurrentSolution().Projects.Where(p => p.Name == "CSProj2").Single().Documents.First();
 
@@ -983,7 +996,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
 
         //            // Get updated workspace diagnostics for the change.
         //            var previousResultIds = CreateDiagnosticParamsFromPreviousReports(results);
-        //            results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: previousResultIds);
+        //            results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, previousResults: previousResultIds);
 
         //            // Verify that since no actual changes have been made we report unchanged diagnostics.
         //            AssertEx.NotNull(results);
@@ -996,7 +1009,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //            Assert.Equal(previousResultIds[1].resultId, results[1].ResultId);
         //        }
 
-        //        [Theory, CombinatorialData]
+        //        [Fact]
         //        public async Task TestWorkspaceDiagnosticsOrderOfReferencedProjectsReloadedDoesNotMatter(bool useVSDiagnostics)
         //        {
         //            var markup1 =
@@ -1020,6 +1033,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //    </Project>
         //</Workspace>";
 
+        // using var testLspServer = await CreateTestLspServerAsync(
         //            using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, BackgroundAnalysisScope.FullSolution, useVSDiagnostics).ConfigureAwait(false);
         //            var csproj2Document = testLspServer.GetCurrentSolution().Projects.Where(p => p.Name == "CSProj2").Single().Documents.First();
 
@@ -1039,7 +1053,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         //            // Get updated workspace diagnostics for the change.
         //            var previousResults = CreateDiagnosticParamsFromPreviousReports(results);
         //            var previousResultIds = previousResults.Select(param => param.resultId).ToImmutableArray();
-        //            results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: previousResults);
+        //            results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, previousResults: previousResults);
 
         //            // Verify that since no actual changes have been made we report unchanged diagnostics.
         //            AssertEx.NotNull(results);
