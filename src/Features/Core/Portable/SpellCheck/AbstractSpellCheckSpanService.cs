@@ -124,12 +124,9 @@ namespace Microsoft.CodeAnalysis.SpellCheck
                     case ClassificationTypeNames.EventName:
                     case ClassificationTypeNames.NamespaceName:
                     case ClassificationTypeNames.LabelName:
+                        AddSpan(new SpellCheckSpan(token.Span, SpellCheckKind.Identifier));
                         break;
-                    default:
-                        return;
                 }
-
-                AddSpan(new SpellCheckSpan(token.Span, SpellCheckKind.Identifier));
             }
 
             private void ProcessTriviaList(SyntaxTriviaList triviaList, CancellationToken cancellationToken)
