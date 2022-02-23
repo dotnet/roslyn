@@ -411,7 +411,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         return;
                     }
 
-                    await _project._workspace.ApplyBatchChangeToWorkspaceMaybeAsync(useAsync: true, solutionChanges =>
+                    await _project._workspace.ApplyBatchChangeToWorkspaceAsync(solutionChanges =>
                     {
                         foreach (var (documentId, textLoader) in documentsToChange)
                         {

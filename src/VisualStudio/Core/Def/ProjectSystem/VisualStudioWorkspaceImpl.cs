@@ -1571,6 +1571,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// <summary>
         /// Applies a single operation to the workspace. <paramref name="action"/> should be a call to one of the protected Workspace.On* methods.
         /// </summary>
+        public async ValueTask ApplyChangeToWorkspaceAsync(Action<Workspace> action)
+        {
+            using (await _gate.DisposableWaitAsync().ConfigureAwait(false))
+            {
+                action(this);
+            }
+        }
+
+        /// <summary>
+        /// Applies a single operation to the workspace. <paramref name="action"/> should be a call to one of the protected Workspace.On* methods.
+        /// </summary>
         public async ValueTask ApplyChangeToWorkspaceMaybeAsync(bool useAsync, Action<Workspace> action)
         {
             using (useAsync ? await _gate.DisposableWaitAsync().ConfigureAwait(false) : _gate.DisposableWait())
@@ -1591,12 +1602,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
+        /// <inheritdoc cref="ApplyBatchChangeToWorkspaceMaybeAsync(bool, Action{SolutionChangeAccumulator})"/>
+        public void ApplyBatchChangeToWorkspace(Action<SolutionChangeAccumulator> mutation)
+        {
+            ApplyBatchChangeToWorkspaceMaybeAsync(useAsync: false, mutation).VerifyCompleted();
+        }
+
+        /// <inheritdoc cref="ApplyBatchChangeToWorkspaceMaybeAsync(bool, Action{SolutionChangeAccumulator})"/>
+        public Task ApplyBatchChangeToWorkspaceAsync(Action<SolutionChangeAccumulator> mutation)
+        {
+            return ApplyBatchChangeToWorkspaceMaybeAsync(useAsync: true, mutation);
+        }
+
         /// <summary>
         /// Applies a change to the workspace that can do any number of project changes.
         /// </summary>
         /// <remarks>This is needed to synchronize with <see cref="ApplyChangeToWorkspace(Action{Workspace})" /> to avoid any races. This
         /// method could be moved down to the core Workspace layer and then could use the synchronization lock there.</remarks>
-        public async ValueTask ApplyBatchChangeToWorkspaceMaybeAsync(bool useAsync, Action<SolutionChangeAccumulator> mutation)
+        public async Task ApplyBatchChangeToWorkspaceMaybeAsync(bool useAsync, Action<SolutionChangeAccumulator> mutation)
         {
             using (useAsync ? await _gate.DisposableWaitAsync().ConfigureAwait(false) : _gate.DisposableWait())
             {
@@ -1989,7 +2012,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 try
                 {
-                    await ApplyBatchChangeToWorkspaceMaybeAsync(useAsync: true, solutionChanges =>
+                    await ApplyBatchChangeToWorkspaceAsync(solutionChanges =>
                     {
                         foreach (var project in CurrentSolution.Projects)
                         {

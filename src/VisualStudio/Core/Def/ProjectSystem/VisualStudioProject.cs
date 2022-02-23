@@ -259,10 +259,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
                 else
                 {
-                    _workspace.ApplyBatchChangeToWorkspaceMaybeAsync(useAsync: false, solutionChanges =>
+                    _workspace.ApplyBatchChangeToWorkspace(solutionChanges =>
                     {
                         updateSolution(solutionChanges, oldValue);
-                    }).AsTask().GetAwaiter().GetResult();
+                    });
                 }
             }
         }
@@ -473,32 +473,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 if (Interlocked.CompareExchange(ref _disposed, 1, 0) == 0)
                 {
-                    // If we're passing useAsync: false, we should always get a task that was already completed.
-#pragma warning disable CA2012 // Use ValueTasks correctly
-                    var valueTask = _project.OnBatchScopeDisposedMaybeAsync(useAsync: false);
-                    Contract.ThrowIfFalse(valueTask.IsCompleted);
-                    if (valueTask.IsFaulted)
-                    {
-                        throw valueTask.AsTask().Exception;
-                    }
-#pragma warning restore CA2012 // Use ValueTasks correctly
+                    _project.OnBatchScopeDisposedMaybeAsync(useAsync: false).VerifyCompleted();
                 }
             }
 
-            public ValueTask DisposeAsync()
+            public async ValueTask DisposeAsync()
             {
                 if (Interlocked.CompareExchange(ref _disposed, 1, 0) == 0)
                 {
-                    return _project.OnBatchScopeDisposedMaybeAsync(useAsync: true);
-                }
-                else
-                {
-                    return ValueTaskFactory.CompletedTask;
+                    await _project.OnBatchScopeDisposedMaybeAsync(useAsync: true).ConfigureAwait(false);
                 }
             }
         }
 
-        private async ValueTask OnBatchScopeDisposedMaybeAsync(bool useAsync)
+        private async Task OnBatchScopeDisposedMaybeAsync(bool useAsync)
         {
             using (useAsync ? await _gate.DisposableWaitAsync().ConfigureAwait(false) : _gate.DisposableWait())
             {
