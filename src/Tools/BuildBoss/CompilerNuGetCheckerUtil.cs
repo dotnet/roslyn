@@ -169,8 +169,6 @@ namespace BuildBoss
             textWriter.WriteLine("Verifying contents of VS.ExternalAPIs.Roslyn");
             textWriter.WriteLine("\tRoot Folder");
             verifyFolder("");
-            textWriter.WriteLine("\tRemote Debugger net20");
-            verifyFolder(@"RemoteDebugger\net20");
             textWriter.WriteLine("\tRemote Debugger net50");
             verifyFolder(@"RemoteDebugger\net45");
             return allGood;
