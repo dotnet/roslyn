@@ -17,9 +17,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SpellCheck
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
-
-        Protected Overrides Function GetClassificationForIdentifier(token As SyntaxToken) As String
-            Return ClassificationHelpers.GetClassificationForIdentifier(token)
-        End Function
     End Class
 End Namespace

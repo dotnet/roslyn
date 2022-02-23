@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
             else if (token.Kind() == SyntaxKind.IdentifierToken)
             {
-                return GetClassificationForIdentifier(token);
+                return GetSyntacticClassificationForIdentifier(token);
             }
             else if (IsStringToken(token))
             {
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             return false;
         }
 
-        public static string? GetClassificationForIdentifier(SyntaxToken token)
+        public static string? GetSyntacticClassificationForIdentifier(SyntaxToken token)
         {
             if (token.Parent is BaseTypeDeclarationSyntax typeDeclaration && typeDeclaration.Identifier == token)
             {

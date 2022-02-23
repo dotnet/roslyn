@@ -16,143 +16,156 @@ namespace Microsoft.CodeAnalysis.SpellCheck
 {
     internal abstract class AbstractSpellCheckSpanService : ISpellCheckSpanService
     {
-        protected AbstractSpellCheckSpanService()
-        {
-        }
-
-        protected abstract string? GetClassificationForIdentifier(SyntaxToken token);
-
-        private static void AddSpan(ArrayBuilder<SpellCheckSpan> spans, SpellCheckSpan span)
-        {
-            if (span.TextSpan.Length > 0)
-                spans.Add(span);
-        }
-
         public async Task<ImmutableArray<SpellCheckSpan>> GetSpansAsync(Document document, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
+            return GetSpans(document, root, cancellationToken);
+        }
+
+        private static ImmutableArray<SpellCheckSpan> GetSpans(Document document, SyntaxNode root, CancellationToken cancellationToken)
+        {
+            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var classifier = document.GetRequiredLanguageService<ISyntaxClassificationService>();
             using var _ = ArrayBuilder<SpellCheckSpan>.GetInstance(out var spans);
 
-            Recurse(root, syntaxFacts, spans, cancellationToken);
+            var worker = new Worker(syntaxFacts, classifier, spans);
+            worker.Recurse(root, cancellationToken);
 
             return spans.ToImmutable();
         }
 
-        private void Recurse(SyntaxNode root, ISyntaxFactsService syntaxFacts, ArrayBuilder<SpellCheckSpan> spans, CancellationToken cancellationToken)
+        private ref struct Worker
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            foreach (var child in root.ChildNodesAndTokens())
+            private readonly ISyntaxFactsService _syntaxFacts;
+            private readonly ISyntaxKinds _syntaxKinds;
+            private readonly ISyntaxClassificationService _classifier;
+            private readonly ArrayBuilder<SpellCheckSpan> _spans;
+
+            public Worker(ISyntaxFactsService syntaxFacts, ISyntaxClassificationService classifier, ArrayBuilder<SpellCheckSpan> spans)
             {
-                if (child.IsNode)
+                _syntaxFacts = syntaxFacts;
+                _syntaxKinds = syntaxFacts.SyntaxKinds;
+                _classifier = classifier;
+                _spans = spans;
+            }
+
+            private void AddSpan(SpellCheckSpan span)
+            {
+                if (span.TextSpan.Length > 0)
+                    _spans.Add(span);
+            }
+
+            public void Recurse(SyntaxNode root, CancellationToken cancellationToken)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                foreach (var child in root.ChildNodesAndTokens())
                 {
-                    Recurse(child.AsNode()!, syntaxFacts, spans, cancellationToken);
+                    if (child.IsNode)
+                    {
+                        Recurse(child.AsNode()!, cancellationToken);
+                    }
+                    else
+                    {
+                        ProcessToken(child.AsToken(), cancellationToken);
+                    }
                 }
-                else
+            }
+
+            private void ProcessToken(
+                SyntaxToken token,
+                CancellationToken cancellationToken)
+            {
+                ProcessTriviaList(token.LeadingTrivia, cancellationToken);
+
+                if (_syntaxFacts.IsStringLiteral(token) ||
+                    token.RawKind == _syntaxKinds.SingleLineRawStringLiteralToken ||
+                    token.RawKind == _syntaxKinds.MultiLineRawStringLiteralToken)
                 {
-                    ProcessToken(child.AsToken(), syntaxFacts, spans, cancellationToken);
+                    AddSpan(new SpellCheckSpan(token.Span, SpellCheckKind.String));
+                }
+                else if (token.RawKind == _syntaxKinds.InterpolatedStringTextToken &&
+                         token.Parent?.RawKind == _syntaxKinds.InterpolatedStringText)
+                {
+                    AddSpan(new SpellCheckSpan(token.Span, SpellCheckKind.String));
+                }
+                else if (token.RawKind == _syntaxKinds.IdentifierToken)
+                {
+                    TryAddSpanForIdentifier(token);
+                }
+
+                ProcessTriviaList(token.TrailingTrivia, cancellationToken);
+            }
+
+            private void TryAddSpanForIdentifier(SyntaxToken token)
+            {
+                // Leverage syntactic classification which already has to determine if an identifier token is the name of
+                // some construct.
+                var classification = _classifier.GetSyntacticClassificationForIdentifier(token);
+                switch (classification)
+                {
+                    case ClassificationTypeNames.ClassName:
+                    case ClassificationTypeNames.RecordClassName:
+                    case ClassificationTypeNames.DelegateName:
+                    case ClassificationTypeNames.EnumName:
+                    case ClassificationTypeNames.InterfaceName:
+                    case ClassificationTypeNames.ModuleName:
+                    case ClassificationTypeNames.StructName:
+                    case ClassificationTypeNames.RecordStructName:
+                    case ClassificationTypeNames.TypeParameterName:
+                    case ClassificationTypeNames.FieldName:
+                    case ClassificationTypeNames.EnumMemberName:
+                    case ClassificationTypeNames.ConstantName:
+                    case ClassificationTypeNames.LocalName:
+                    case ClassificationTypeNames.ParameterName:
+                    case ClassificationTypeNames.MethodName:
+                    case ClassificationTypeNames.ExtensionMethodName:
+                    case ClassificationTypeNames.PropertyName:
+                    case ClassificationTypeNames.EventName:
+                    case ClassificationTypeNames.NamespaceName:
+                    case ClassificationTypeNames.LabelName:
+                        break;
+                    default:
+                        return;
+                }
+
+                AddSpan(new SpellCheckSpan(token.Span, SpellCheckKind.Identifier));
+            }
+
+            private void ProcessTriviaList(SyntaxTriviaList triviaList, CancellationToken cancellationToken)
+            {
+                foreach (var trivia in triviaList)
+                    ProcessTrivia(trivia, cancellationToken);
+            }
+
+            private void ProcessTrivia(SyntaxTrivia trivia, CancellationToken cancellationToken)
+            {
+                if (_syntaxFacts.IsRegularComment(trivia))
+                {
+                    AddSpan(new SpellCheckSpan(trivia.Span, SpellCheckKind.Comment));
+                }
+                else if (_syntaxFacts.IsDocumentationComment(trivia))
+                {
+                    ProcessDocComment(trivia.GetStructure()!, cancellationToken);
                 }
             }
-        }
 
-        private void ProcessToken(
-            SyntaxToken token,
-            ISyntaxFactsService syntaxFacts,
-            ArrayBuilder<SpellCheckSpan> spans,
-            CancellationToken cancellationToken)
-        {
-            ProcessTriviaList(token.LeadingTrivia, syntaxFacts, spans, cancellationToken);
-
-            var syntaxKinds = syntaxFacts.SyntaxKinds;
-            if (syntaxFacts.IsStringLiteral(token) ||
-                token.RawKind == syntaxKinds.SingleLineRawStringLiteralToken ||
-                token.RawKind == syntaxKinds.MultiLineRawStringLiteralToken)
+            private void ProcessDocComment(SyntaxNode node, CancellationToken cancellationToken)
             {
-                AddSpan(spans, new SpellCheckSpan(token.Span, SpellCheckKind.String));
-            }
-            else if (token.RawKind == syntaxKinds.InterpolatedStringTextToken &&
-                     token.Parent?.RawKind == syntaxKinds.InterpolatedStringText)
-            {
-                AddSpan(spans, new SpellCheckSpan(token.Span, SpellCheckKind.String));
-            }
-            else if (token.RawKind == syntaxKinds.IdentifierToken)
-            {
-                TryAddSpanForIdentifier(token, spans);
-            }
+                cancellationToken.ThrowIfCancellationRequested();
 
-            ProcessTriviaList(token.TrailingTrivia, syntaxFacts, spans, cancellationToken);
-        }
-
-        private void TryAddSpanForIdentifier(SyntaxToken token, ArrayBuilder<SpellCheckSpan> spans)
-        {
-            // Leverage syntactic classification which already has to determine if an identifier token is the name of
-            // some construct.
-            var classification = this.GetClassificationForIdentifier(token);
-            switch (classification)
-            {
-                case ClassificationTypeNames.ClassName:
-                case ClassificationTypeNames.RecordClassName:
-                case ClassificationTypeNames.DelegateName:
-                case ClassificationTypeNames.EnumName:
-                case ClassificationTypeNames.InterfaceName:
-                case ClassificationTypeNames.ModuleName:
-                case ClassificationTypeNames.StructName:
-                case ClassificationTypeNames.RecordStructName:
-                case ClassificationTypeNames.TypeParameterName:
-                case ClassificationTypeNames.FieldName:
-                case ClassificationTypeNames.EnumMemberName:
-                case ClassificationTypeNames.ConstantName:
-                case ClassificationTypeNames.LocalName:
-                case ClassificationTypeNames.ParameterName:
-                case ClassificationTypeNames.MethodName:
-                case ClassificationTypeNames.ExtensionMethodName:
-                case ClassificationTypeNames.PropertyName:
-                case ClassificationTypeNames.EventName:
-                case ClassificationTypeNames.NamespaceName:
-                case ClassificationTypeNames.LabelName:
-                    break;
-                default:
-                    return;
-            }
-
-            AddSpan(spans, new SpellCheckSpan(token.Span, SpellCheckKind.Identifier));
-        }
-
-        private void ProcessTriviaList(SyntaxTriviaList triviaList, ISyntaxFactsService syntaxFacts, ArrayBuilder<SpellCheckSpan> spans, CancellationToken cancellationToken)
-        {
-            foreach (var trivia in triviaList)
-                ProcessTrivia(trivia, syntaxFacts, spans, cancellationToken);
-        }
-
-        private void ProcessTrivia(SyntaxTrivia trivia, ISyntaxFactsService syntaxFacts, ArrayBuilder<SpellCheckSpan> spans, CancellationToken cancellationToken)
-        {
-            if (syntaxFacts.IsRegularComment(trivia))
-            {
-                AddSpan(spans, new SpellCheckSpan(trivia.Span, SpellCheckKind.Comment));
-            }
-            else if (syntaxFacts.IsDocumentationComment(trivia))
-            {
-                var structure = trivia.GetStructure()!;
-                ProcessDocComment(structure, syntaxFacts, spans, cancellationToken);
-            }
-        }
-
-        private void ProcessDocComment(SyntaxNode node, ISyntaxFactsService syntaxFacts, ArrayBuilder<SpellCheckSpan> spans, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            foreach (var child in node.ChildNodesAndTokens())
-            {
-                if (child.IsNode)
+                foreach (var child in node.ChildNodesAndTokens())
                 {
-                    ProcessDocComment(child.AsNode()!, syntaxFacts, spans, cancellationToken);
-                }
-                else
-                {
-                    var token = child.AsToken();
-                    if (token.RawKind == syntaxFacts.SyntaxKinds.XmlTextLiteralToken)
-                        AddSpan(spans, new SpellCheckSpan(token.Span, SpellCheckKind.Comment));
+                    if (child.IsNode)
+                    {
+                        ProcessDocComment(child.AsNode()!, cancellationToken);
+                    }
+                    else
+                    {
+                        var token = child.AsToken();
+                        if (token.RawKind == _syntaxFacts.SyntaxKinds.XmlTextLiteralToken)
+                            AddSpan(new SpellCheckSpan(token.Span, SpellCheckKind.Comment));
+                    }
                 }
             }
         }

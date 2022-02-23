@@ -18,8 +18,5 @@ namespace Microsoft.CodeAnalysis.CSharp.SpellCheck
         public CSharpSpellCheckSpanService()
         {
         }
-
-        protected override string? GetClassificationForIdentifier(SyntaxToken token)
-            => ClassificationHelpers.GetClassificationForIdentifier(token);
     }
 }
