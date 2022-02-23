@@ -52,10 +52,6 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             s_handler = value;
         }
 
-        // In the result provider, we aren't copying our handler to somewhere else, so we don't
-        // need this method. It's too much of a challenge to shared code to work in
-        // old versions of the runtime since APIs changed over time.
-
         /// <summary>
         /// Copies the handler in this instance to the linked copy of this type in this other assembly.
         /// </summary>
