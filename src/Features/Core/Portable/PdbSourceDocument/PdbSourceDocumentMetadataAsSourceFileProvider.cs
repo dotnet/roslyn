@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
         private readonly Dictionary<string, ProjectId> _assemblyToProjectMap = new();
         private readonly Dictionary<string, (DocumentId documentId, Encoding encoding)> _fileToDocumentMap = new();
+        private readonly HashSet<ProjectId> _sourceLinkEnabledProjects = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -148,8 +149,9 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
             // Get text loaders for our documents. We do this here because if we can't load any of the files, then
             // we can't provide any results, so there is no point adding a project to the workspace etc.
+            var useEasedTimeout = _sourceLinkEnabledProjects.Contains(projectId);
             var encoding = defaultEncoding ?? Encoding.UTF8;
-            var sourceFileInfoTasks = sourceDocuments.Select(sd => _pdbSourceDocumentLoaderService.LoadSourceDocumentAsync(tempFilePath, sd, encoding, telemetry, cancellationToken)).ToArray();
+            var sourceFileInfoTasks = sourceDocuments.Select(sd => _pdbSourceDocumentLoaderService.LoadSourceDocumentAsync(tempFilePath, sd, encoding, telemetry, useEasedTimeout, cancellationToken)).ToArray();
             var sourceFileInfos = await Task.WhenAll(sourceFileInfoTasks).ConfigureAwait(false);
             if (sourceFileInfos is null || sourceFileInfos.Where(t => t is null).Any())
                 return null;
@@ -214,7 +216,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                 metadataReferences: project.MetadataReferences.ToImmutableArray()); // TODO: Read references from PDB info: https://github.com/dotnet/roslyn/issues/55834
         }
 
-        private static ImmutableArray<DocumentInfo> CreateDocumentInfos(SourceFileInfo?[] sourceFileInfos, Project project)
+        private ImmutableArray<DocumentInfo> CreateDocumentInfos(SourceFileInfo?[] sourceFileInfos, Project project)
         {
             using var _ = ArrayBuilder<DocumentInfo>.GetInstance(out var documents);
 
@@ -233,6 +235,13 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     Path.GetFileName(info.FilePath),
                     filePath: info.FilePath,
                     loader: info.Loader));
+
+                // If we successfully got something from SourceLink for this project then its nice to wait a bit longer
+                // if the user performs subsequent navigation
+                if (info.ShouldCauseTimeoutEase)
+                {
+                    _sourceLinkEnabledProjects.Add(project.Id);
+                }
             }
 
             return documents.ToImmutable();
@@ -282,6 +291,7 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 
             // The MetadataAsSourceFileService will clean up the entire temp folder so no need to do anything here
             _fileToDocumentMap.Clear();
+            _sourceLinkEnabledProjects.Clear();
         }
     }
 
