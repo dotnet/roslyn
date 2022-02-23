@@ -3,12 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
@@ -18,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
         #region Document
 
         [Fact]
-        public async Task TestDocument1()
+        public async Task TestNoDocumentResultsForClosedFiles()
         {
             var markup =
 @"class A
@@ -26,8 +30,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
 }";
             using var testLspServer = await CreateTestLspServerAsync(markup);
 
+            var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
+            var results = await RunGetDocumentSpellCheckSpansAsync(testLspServer, document.GetURI());
+
+            Assert.Empty(results);
+        }
+
+        [Fact]
+        public async Task TestDocumentResultsForOpenFiles()
+        {
+            var markup =
+@"class {|Identifier:A|}
+{
+}";
+            using var testLspServer = await CreateTestLspServerAsync(markup);
+
             // Calling GetTextBuffer will effectively open the file.
-            testLspServer.TestWorkspace.Documents.Single().GetTextBuffer();
+            var testDocument = testLspServer.TestWorkspace.Documents.Single();
+            testDocument.GetTextBuffer();
 
             var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
@@ -35,11 +55,39 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
 
             var results = await RunGetDocumentSpellCheckSpansAsync(testLspServer, document.GetURI());
 
-            //Assert.Equal("CS1513", results.Single().Diagnostics.Single().Code);
-            //Assert.NotNull(results.Single().Diagnostics.Single().CodeDescription!.Href);
+            Assert.Single(results);
+
+            var sourceText = await document.GetTextAsync();
+            AssertJsonEquals(results.Single(), new VSInternalSpellCheckableRangeReport
+            {
+                ResultId = "DocumentSpellCheckHandler:0",
+                Ranges = GetRanges(sourceText, testDocument.AnnotatedSpans),
+            });
         }
 
         #endregion
+
+        private static VSInternalSpellCheckableRange[] GetRanges(SourceText sourceText, IDictionary<string, ImmutableArray<TextSpan>> annotatedSpans)
+        {
+            var allSpans = annotatedSpans.SelectMany(kvp => kvp.Value.Select(textSpan => (kind: kvp.Key, textSpan)).OrderBy(t => t.textSpan.Start));
+            var ranges = allSpans.Select(t => new VSInternalSpellCheckableRange
+            {
+                Kind = Convert(t.kind),
+                Start = ProtocolConversions.LinePositionToPosition(sourceText.Lines.GetLinePosition(t.textSpan.Start)),
+                End = ProtocolConversions.LinePositionToPosition(sourceText.Lines.GetLinePosition(t.textSpan.End)),
+            });
+
+            return ranges.ToArray();
+        }
+
+        private static VSInternalSpellCheckableRangeKind Convert(string kind)
+            => kind switch
+            {
+                "String" => VSInternalSpellCheckableRangeKind.String,
+                "Comment" => VSInternalSpellCheckableRangeKind.Comment,
+                "Identifier" => VSInternalSpellCheckableRangeKind.Identifier,
+                _ => throw ExceptionUtilities.UnexpectedValue(kind),
+            };
 
         private static Task OpenDocumentAsync(TestLspServer testLspServer, Document document)
             => testLspServer.OpenDocumentAsync(document.GetURI());

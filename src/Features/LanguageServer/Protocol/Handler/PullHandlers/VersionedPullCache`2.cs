@@ -65,9 +65,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             Func<Task<TExpensiveVersion>> computeExpensiveVersionAsync,
             CancellationToken cancellationToken)
         {
-            var workspace = document.Project.Solution.Workspace;
             TCheapVersion? cheapVersion = default;
             TExpensiveVersion? expensiveVersion = default;
+
+            var workspace = document.Project.Solution.Workspace;
             using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 if (documentToPreviousResult.TryGetValue(document, out var previousResult) &&
@@ -107,10 +108,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 //
                 // Note that we can safely update the map before computation as any cancellation or exception
                 // during computation means that the client will never recieve this resultId and so cannot ask us for it.
-                var newResultId = $"{_uniqueKey}:{_nextDocumentResultId++}";
                 cheapVersion ??= await computeCheapVersionAsync().ConfigureAwait(false);
                 expensiveVersion ??= await computeExpensiveVersionAsync().ConfigureAwait(false);
-                _documentIdToLastResult[(document.Project.Solution.Workspace, document.Id)] = (newResultId, cheapVersion, expensiveVersion);
+
+                var newResultId = $"{_uniqueKey}:{_nextDocumentResultId++}";
+                _documentIdToLastResult[(workspace, document.Id)] = (newResultId, cheapVersion, expensiveVersion);
                 return newResultId;
             }
         }

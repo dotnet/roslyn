@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
 
             using var _ = ArrayBuilder<LSP.VSInternalSpellCheckableRange>.GetInstance(spans.Length, out var result);
 
-            foreach (var span in spans)
+            foreach (var span in spans.Sort((s1, s2) => s1.TextSpan.CompareTo(s1.TextSpan)))
                 result.Add(ConvertSpan(text, span));
 
             return CreateReport(ProtocolConversions.DocumentToTextDocumentIdentifier(document), result.ToArray(), resultId);
