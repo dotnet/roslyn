@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// UI thread dependencies are resolved and <see cref="IThreadingContext"/> references are removed.
     /// See https://github.com/dotnet/roslyn/issues/55142
     /// </summary>
+    [Command(CodeActionsHandler.RunCodeActionCommandName)]
     internal class RunCodeActionHandler : AbstractExecuteWorkspaceCommandHandler
     {
         private readonly CodeActionsCache _codeActionsCache;
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var runRequest = ((JToken)request.Arguments.Single()).ToObject<CodeActionResolveData>();
             Assumes.Present(runRequest);
 
-            var options = _globalOptions.GetCodeActionOptions(document.Project.Language, isBlocking: false);
+            var options = _globalOptions.GetCodeActionOptions(document.Project.Language);
 
             var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
                 _codeActionsCache, document, runRequest.Range, options, _codeFixService, _codeRefactoringService, cancellationToken).ConfigureAwait(false);

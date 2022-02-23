@@ -5,6 +5,7 @@
 using System;
 using System.Composition;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -102,14 +103,18 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                 @else: null);
         }
 
-        protected override Document? TryAddNullCheckToParameterDeclaration(Document document, ParameterSyntax parameterSyntax, CancellationToken cancellationToken)
+        protected override async Task<Document?> TryAddNullCheckToParameterDeclarationAsync(Document document, ParameterSyntax parameterSyntax, CancellationToken cancellationToken)
         {
             var tree = parameterSyntax.SyntaxTree;
             if (!tree.Options.LanguageVersion().IsCSharp11OrAbove())
                 return null;
 
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            if (!options.GetOption(CSharpCodeStyleOptions.PreferParameterNullChecking).Value)
+                return null;
+
             // We expect the syntax tree to already be in memory since we already have a node from the tree
-            var syntaxRoot = tree.GetRoot(cancellationToken);
+            var syntaxRoot = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             syntaxRoot = syntaxRoot.ReplaceNode(
                 parameterSyntax,
                 parameterSyntax.WithExclamationExclamationToken(Token(SyntaxKind.ExclamationExclamationToken)));

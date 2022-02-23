@@ -67,7 +67,8 @@ namespace Roslyn.Test.Utilities.Desktop
             var image = info.GetByteArray(nameof(ModuleData.Image));
             var pdb = info.GetByteArray(nameof(ModuleData.Pdb));
             var inMemoryModule = info.GetBoolean(nameof(ModuleData.InMemoryModule));
-            Data = new ModuleData(id.Id, kind, image, pdb, inMemoryModule);
+            var isCorLib = info.GetBoolean(nameof(ModuleData.IsCorLib));
+            Data = new ModuleData(id.Id, kind, image, pdb, inMemoryModule, isCorLib);
         }
 
         public void GetObjectData(SerializationInfo info, StreamingContext context)
@@ -77,6 +78,7 @@ namespace Roslyn.Test.Utilities.Desktop
             info.AddByteArray(nameof(ModuleData.Image), Data.Image);
             info.AddByteArray(nameof(ModuleData.Pdb), Data.Pdb);
             info.AddValue(nameof(ModuleData.InMemoryModule), Data.InMemoryModule);
+            info.AddValue(nameof(ModuleData.IsCorLib), Data.IsCorLib);
         }
     }
 }

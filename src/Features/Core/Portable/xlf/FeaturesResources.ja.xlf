@@ -275,6 +275,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">文字範囲にクラス \{0} を含めることはできません</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-\w]. {0} is the invalid class (\w here)</note>
       </trans-unit>
+      <trans-unit id="Cannot_navigate_to_the_symbol_under_the_caret">
+        <source>Cannot navigate to the symbol under the caret.</source>
+        <target state="new">Cannot navigate to the symbol under the caret.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue">
         <source>Capture group numbers must be less than or equal to Int32.MaxValue</source>
         <target state="translated">キャプチャ グループ番号は Int32.MaxValue 以下でなければなりません</target>
@@ -555,9 +560,9 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">プロジェクト '{0}' で加えられた変更にはアプリケーションの再起動が必要です: {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_JSON_editor_features">
-        <source>Enable JSON editor features</source>
-        <target state="new">Enable JSON editor features</target>
+      <trans-unit id="Enable_all_JSON_editor_features">
+        <source>Enable all JSON editor features</source>
+        <target state="new">Enable all JSON editor features</target>
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
@@ -833,6 +838,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Indent_all_arguments">
         <source>Indent all arguments</source>
         <target state="translated">すべての引数にインデントを設定します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Indent_all_elements">
+        <source>Indent all elements</source>
+        <target state="new">Indent all elements</target>
         <note />
       </trans-unit>
       <trans-unit id="Indent_all_parameters">
@@ -1208,6 +1218,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Property_name_must_be_a_string">
         <source>Property name must be a string</source>
         <target state="new">Property name must be a string</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Property_name_must_be_followed_by_a_colon">
+        <source>Property name must be followed by a ':'</source>
+        <target state="new">Property name must be followed by a ':'</target>
         <note />
       </trans-unit>
       <trans-unit id="Property_reference_cannot_be_updated">
@@ -2535,6 +2550,16 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">選択範囲に、宣言のないローカル関数呼び出しが含まれています。</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_symbol_has_no_base">
+        <source>The symbol has no base.</source>
+        <target state="new">The symbol has no base.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_symbol_has_no_implementations">
+        <source>The symbol has no implementations.</source>
+        <target state="new">The symbol has no implementations.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Timeout_SourceLink">
         <source>Timed out trying to download source code from SourceLink. Subsequent requests may succeed.</source>
         <target state="translated">SourceLink からソース コードをダウンロードしようとしてタイムアウトしました。後続の要求は成功する可能性があります。</target>
@@ -2620,6 +2645,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">すべての引数の折り返しを解除</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unwrap_all_elements">
+        <source>Unwrap all elements</source>
+        <target state="new">Unwrap all elements</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unwrap_all_parameters">
         <source>Unwrap all parameters</source>
         <target state="translated">すべてのパラメーターの折り返しを解除します</target>
@@ -2648,6 +2678,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Unwrap_expression">
         <source>Unwrap expression</source>
         <target state="translated">式の折り返しを解除</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_initializer">
+        <source>Unwrap initializer</source>
+        <target state="new">Unwrap initializer</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_parameter_list">
@@ -2825,6 +2860,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">式を折り返す</target>
         <note />
       </trans-unit>
+      <trans-unit id="Wrap_initializer">
+        <source>Wrap initializer</source>
+        <target state="new">Wrap initializer</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_long_argument_list">
         <source>Wrap long argument list</source>
         <target state="translated">長い引数リストを折り返します</target>
@@ -2833,6 +2873,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Wrap_long_call_chain">
         <source>Wrap long call chain</source>
         <target state="translated">長い呼び出しチェーンの折り返し</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_initializer">
+        <source>Wrap long initializer</source>
+        <target state="new">Wrap long initializer</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_parameter_list">
@@ -2848,6 +2893,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="You_can_use_the_navigation_bar_to_switch_contexts">
         <source>You can use the navigation bar to switch contexts.</source>
         <target state="translated">ナビゲーション バーを使用してコンテキストを切り替えることができます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_bases">
+        <source>'{0}' bases</source>
+        <target state="new">'{0}' bases</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_cannot_be_null_or_empty">
@@ -2910,6 +2960,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">'{0}' が SourceLink を通じて見つかりましたが、一時ファイルを読み取ることができませんでした。</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_implementations">
+        <source>'{0}' implementations</source>
+        <target state="new">'{0}' implementations</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_is_not_null_here">
         <source>'{0}' is not null here.</source>
         <target state="translated">ここでは、'{0}' は null ではありません。</target>
@@ -2923,6 +2978,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="_0_may_be_null_here">
         <source>'{0}' may be null here.</source>
         <target state="translated">ここでは、'{0}' は null である可能性があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_references">
+        <source>'{0}' references</source>
+        <target state="new">'{0}' references</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_unexpected">

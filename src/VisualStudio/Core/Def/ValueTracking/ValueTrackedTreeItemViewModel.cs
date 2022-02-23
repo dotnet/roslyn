@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.ValueTracking;
 using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.CodeAnalysis.Classification;
 
@@ -25,6 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
         private readonly IGlyphService _glyphService;
         private readonly IValueTrackingService _valueTrackingService;
         private readonly ValueTrackedItem _trackedItem;
+        private readonly IGlobalOptionService _globalOptions;
 
         public override bool IsNodeExpanded
         {
@@ -43,6 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             ValueTrackingTreeViewModel treeViewModel,
             IGlyphService glyphService,
             IValueTrackingService valueTrackingService,
+            IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
             string fileName,
             ImmutableArray<TreeItemViewModel> children)
@@ -64,6 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             _solution = solution;
             _glyphService = glyphService;
             _valueTrackingService = valueTrackingService;
+            _globalOptions = globalOptions;
 
             if (children.IsEmpty)
             {
@@ -84,13 +86,14 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             ValueTrackingTreeViewModel treeViewModel,
             IGlyphService glyphService,
             IValueTrackingService valueTrackingService,
+            IGlobalOptionService globalOptions,
             IThreadingContext threadingContext,
             CancellationToken cancellationToken)
         {
             var document = solution.GetRequiredDocument(item.DocumentId);
             var fileName = document.FilePath ?? document.Name;
 
-            var options = ClassificationOptions.From(document.Project);
+            var options = globalOptions.GetClassificationOptions(document.Project.Language);
             var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(document, item.Span, options, cancellationToken).ConfigureAwait(false);
             var classificationResult = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(documentSpan, options, cancellationToken).ConfigureAwait(false);
             var classifiedSpans = classificationResult.ClassifiedSpans;
@@ -102,6 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 treeViewModel,
                 glyphService,
                 valueTrackingService,
+                globalOptions,
                 threadingContext,
                 fileName,
                 children: ImmutableArray<TreeItemViewModel>.Empty);
@@ -157,10 +161,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
             }
 
             // While navigating do not activate the tab, which will change focus from the tool window
-            var options = Workspace.CurrentSolution.Options
-                .WithChangedOption(new OptionKey(NavigationOptions.PreferProvisionalTab), true)
-                .WithChangedOption(new OptionKey(NavigationOptions.ActivateTab), false);
-
+            var options = new NavigationOptions(PreferProvisionalTab: true, ActivateTab: false);
             navigationService.TryNavigateToSpan(Workspace, DocumentId, _trackedItem.Span, options, ThreadingContext.DisposalToken);
         }
 
@@ -172,7 +173,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ValueTracking
                 cancellationToken).ConfigureAwait(false);
 
             return await valueTrackedItems.SelectAsArrayAsync((item, cancellationToken) =>
-                CreateAsync(_solution, item, TreeViewModel, _glyphService, _valueTrackingService, ThreadingContext, cancellationToken), cancellationToken).ConfigureAwait(false);
+                CreateAsync(_solution, item, TreeViewModel, _glyphService, _valueTrackingService, _globalOptions, ThreadingContext, cancellationToken), cancellationToken).ConfigureAwait(false);
         }
     }
 }

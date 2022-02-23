@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         protected override bool ShouldAnalyze()
         {
             // Can't add member initializers if the object already has a collection initializer attached to it.
-            return !_syntaxFacts.IsObjectCollectionInitializer(_syntaxFacts.GetInitializerOfObjectCreationExpression(_objectCreationExpression));
+            return !_syntaxFacts.IsObjectCollectionInitializer(_syntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression));
         }
 
         protected override void AddMatches(ArrayBuilder<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches)
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
 
             using var _1 = PooledHashSet<string>.GetInstance(out var seenNames);
 
-            var initializer = _syntaxFacts.GetInitializerOfObjectCreationExpression(_objectCreationExpression);
+            var initializer = _syntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression);
             if (initializer != null)
             {
                 foreach (var init in _syntaxFacts.GetInitializersOfObjectMemberInitializer(initializer))
@@ -119,7 +119,10 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                     break;
                 }
 
-                var type = _semanticModel.GetSymbolInfo(_syntaxFacts.GetTypeOfObjectCreationExpression(_objectCreationExpression), _cancellationToken).Symbol as INamedTypeSymbol;
+                var type = _semanticModel.GetTypeInfo(_objectCreationExpression, _cancellationToken).Type;
+                if (type == null)
+                    break;
+
                 if (IsExplicitlyImplemented(type, leftSymbol, out var typeMember))
                     break;
 
@@ -167,7 +170,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         }
 
         private static bool IsExplicitlyImplemented(
-            INamedTypeSymbol classOrStructType,
+            ITypeSymbol classOrStructType,
             ISymbol member,
             out ISymbol typeMember)
         {

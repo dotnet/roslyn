@@ -10,14 +10,14 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 {
+    [Method(VSInternalMethods.DocumentPullDiagnosticName)]
     internal class DocumentPullDiagnosticHandler : AbstractPullDiagnosticHandler<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport, VSInternalDiagnosticReport[]>
     {
         private readonly IDiagnosticAnalyzerService _analyzerService;
-
-        public override string Method => VSInternalMethods.DocumentPullDiagnosticName;
 
         public DocumentPullDiagnosticHandler(
             WellKnownLspServerKinds serverKind,
@@ -58,9 +58,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData)
             => ConvertTags(diagnosticData, potentialDuplicate: false);
 
-        protected override ImmutableArray<Document> GetOrderedDocuments(RequestContext context)
+        protected override ValueTask<ImmutableArray<Document>> GetOrderedDocumentsAsync(RequestContext context, CancellationToken cancellationToken)
         {
-            return GetRequestedDocument(context);
+            return ValueTaskFactory.FromResult(GetRequestedDocument(context));
         }
 
         protected override Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(

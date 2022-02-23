@@ -19,8 +19,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    [ExportRoslynLanguagesLspRequestHandlerProvider, Shared]
-    [ProvidesMethod(Methods.TextDocumentDocumentHighlightName)]
+    [ExportRoslynLanguagesLspRequestHandlerProvider(typeof(DocumentHighlightsHandler)), Shared]
+    [Method(Methods.TextDocumentDocumentHighlightName)]
     internal class DocumentHighlightsHandler : AbstractStatelessRequestHandler<TextDocumentPositionParams, DocumentHighlight[]?>
     {
         private readonly IHighlightingService _highlightingService;
@@ -31,8 +31,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         {
             _highlightingService = highlightingService;
         }
-
-        public override string Method => Methods.TextDocumentDocumentHighlightName;
 
         public override bool MutatesSolutionState => false;
         public override bool RequiresLSPSolution => true;

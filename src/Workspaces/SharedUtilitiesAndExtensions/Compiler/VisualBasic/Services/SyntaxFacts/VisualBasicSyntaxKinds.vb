@@ -60,11 +60,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public ReadOnly Property TrueLiteralExpression As Integer = SyntaxKind.TrueLiteralExpression Implements ISyntaxKinds.TrueLiteralExpression
 
         Public ReadOnly Property AnonymousObjectCreationExpression As Integer = SyntaxKind.AnonymousObjectCreationExpression Implements ISyntaxKinds.AnonymousObjectCreationExpression
+        Public ReadOnly Property ArrayCreationExpression As Integer = SyntaxKind.ArrayCreationExpression Implements ISyntaxKinds.ArrayCreationExpression
         Public ReadOnly Property AwaitExpression As Integer = SyntaxKind.AwaitExpression Implements ISyntaxKinds.AwaitExpression
         Public ReadOnly Property BaseExpression As Integer = SyntaxKind.MyBaseExpression Implements ISyntaxKinds.BaseExpression
         Public ReadOnly Property ConditionalAccessExpression As Integer = SyntaxKind.ConditionalAccessExpression Implements ISyntaxKinds.ConditionalAccessExpression
         Public ReadOnly Property ConditionalExpression As Integer = SyntaxKind.TernaryConditionalExpression Implements ISyntaxKinds.ConditionalExpression
+        Public ReadOnly Property ImplicitArrayCreationExpression As Integer? = Nothing Implements ISyntaxKinds.ImplicitArrayCreationExpression
         Public ReadOnly Property ImplicitObjectCreationExpression As Integer? = Nothing Implements ISyntaxKinds.ImplicitObjectCreationExpression
+        Public ReadOnly Property IndexExpression As Integer? = Nothing Implements ISyntaxKinds.IndexExpression
         Public ReadOnly Property InvocationExpression As Integer = SyntaxKind.InvocationExpression Implements ISyntaxKinds.InvocationExpression
         Public ReadOnly Property LogicalAndExpression As Integer = SyntaxKind.AndAlsoExpression Implements ISyntaxKinds.LogicalAndExpression
         Public ReadOnly Property LogicalOrExpression As Integer = SyntaxKind.OrElseExpression Implements ISyntaxKinds.LogicalOrExpression
@@ -72,6 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageServices
         Public ReadOnly Property ObjectCreationExpression As Integer = SyntaxKind.ObjectCreationExpression Implements ISyntaxKinds.ObjectCreationExpression
         Public ReadOnly Property ParenthesizedExpression As Integer = SyntaxKind.ParenthesizedExpression Implements ISyntaxKinds.ParenthesizedExpression
         Public ReadOnly Property QueryExpression As Integer = SyntaxKind.QueryExpression Implements ISyntaxKinds.QueryExpression
+        Public ReadOnly Property RangeExpression As Integer? = Nothing Implements ISyntaxKinds.RangeExpression
         Public ReadOnly Property ReferenceEqualsExpression As Integer = SyntaxKind.IsExpression Implements ISyntaxKinds.ReferenceEqualsExpression
         Public ReadOnly Property ReferenceNotEqualsExpression As Integer = SyntaxKind.IsNotExpression Implements ISyntaxKinds.ReferenceNotEqualsExpression
         Public ReadOnly Property SimpleMemberAccessExpression As Integer = SyntaxKind.SimpleMemberAccessExpression Implements ISyntaxKinds.SimpleMemberAccessExpression

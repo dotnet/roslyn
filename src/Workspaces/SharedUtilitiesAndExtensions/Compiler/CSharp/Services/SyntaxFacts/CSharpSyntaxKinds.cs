@@ -59,11 +59,14 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public int TrueLiteralExpression => (int)SyntaxKind.TrueLiteralExpression;
 
         public int AnonymousObjectCreationExpression => (int)SyntaxKind.AnonymousObjectCreationExpression;
+        public int ArrayCreationExpression => (int)SyntaxKind.ArrayCreationExpression;
         public int AwaitExpression => (int)SyntaxKind.AwaitExpression;
         public int BaseExpression => (int)SyntaxKind.BaseExpression;
         public int ConditionalAccessExpression => (int)SyntaxKind.ConditionalAccessExpression;
         public int ConditionalExpression => (int)SyntaxKind.ConditionalExpression;
+        public int? ImplicitArrayCreationExpression => (int)SyntaxKind.ImplicitArrayCreationExpression;
         public int? ImplicitObjectCreationExpression => (int)SyntaxKind.ImplicitObjectCreationExpression;
+        public int? IndexExpression => (int)SyntaxKind.IndexExpression;
         public int InvocationExpression => (int)SyntaxKind.InvocationExpression;
         public int LogicalAndExpression => (int)SyntaxKind.LogicalAndExpression;
         public int LogicalOrExpression => (int)SyntaxKind.LogicalOrExpression;
@@ -71,6 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServices
         public int ObjectCreationExpression => (int)SyntaxKind.ObjectCreationExpression;
         public int ParenthesizedExpression => (int)SyntaxKind.ParenthesizedExpression;
         public int QueryExpression => (int)SyntaxKind.QueryExpression;
+        public int? RangeExpression => (int)SyntaxKind.RangeExpression;
         public int ReferenceEqualsExpression => (int)SyntaxKind.EqualsExpression;
         public int ReferenceNotEqualsExpression => (int)SyntaxKind.NotEqualsExpression;
         public int SimpleMemberAccessExpression => (int)SyntaxKind.SimpleMemberAccessExpression;
