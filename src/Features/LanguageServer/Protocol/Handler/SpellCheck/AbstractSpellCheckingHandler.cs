@@ -25,33 +25,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
         where TParams : IPartialResultParams<TReport[]>
         where TReport : VSInternalSpellCheckableRangeReport
     {
-        protected record struct PreviousResult(string PreviousResultId, TextDocumentIdentifier TextDocument);
-
         /// <summary>
-        /// Lock to protect <see cref="_documentIdToLastResult"/> and <see cref="_nextDocumentResultId"/>. Since this is
-        /// a non-mutating request handler it is possible for calls to <see cref="HandleRequestAsync"/> to run
-        /// concurrently.
+        /// Cache where we store the data produced by prior requests so that they can be returned if nothing of
+        /// significance changed. The version key is produced by combining the checksums for project options <see
+        /// cref="ProjectState.GetParseOptionsChecksum"/> and <see cref="DocumentStateChecksums.Text"/>
         /// </summary>
-        private readonly SemaphoreSlim _semaphore = new(1);
-
-        /// <summary>
-        /// Mapping of a document to the data used to make the last spell checking report which contains:
-        /// <list type="bullet">
-        ///   <item>The resultId reported to the client.</item>
-        ///   <item>A checksum combining the project options <see cref="ProjectState.GetParseOptionsChecksum"/> and the <see cref="DocumentStateChecksums.Text"/>.</item>
-        /// </list>
-        /// This is used to determine if we need to re-calculate spans.
-        /// </summary>
-        private readonly Dictionary<(Workspace workspace, DocumentId documentId), (string resultId, (Checksum parseOptionsChecksum, Checksum textChecksum) checksums)> _documentIdToLastResult = new();
-
-        /// <summary>
-        /// The next available id to label results with.  Note that results are tagged on a per-document bases.  That
-        /// way we can update spell checking with the client with per-doc granularity.
-        /// </summary>
-        private long _nextDocumentResultId;
+        private readonly VersionedPullCache<(Checksum parseOptionsChecksum, Checksum textChecksum)> _versionedCache;
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
+
+        protected AbstractSpellCheckHandler()
+        {
+            _versionedCache = new(this.GetType().Name);
+        }
 
         public abstract TextDocumentIdentifier? GetTextDocumentIdentifier(TParams requestParams);
 
@@ -59,7 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
         /// Retrieve the previous results we reported.  Used so we can avoid resending data for unchanged files. Also
         /// used so we can report which documents were removed and can have all their spell checking results cleared.
         /// </summary>
-        protected abstract ImmutableArray<PreviousResult>? GetPreviousResults(TParams requestParams);
+        protected abstract ImmutableArray<PreviousPullResult>? GetPreviousResults(TParams requestParams);
 
         /// <summary>
         /// Returns all the documents that should be processed in the desired order to process them in.
@@ -82,7 +69,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
 
             // Get the set of results the request said were previously reported.  We can use this to determine both
             // what to skip, and what files we have to tell the client have been removed.
-            var previousResults = GetPreviousResults(requestParams) ?? ImmutableArray<PreviousResult>.Empty;
+            var previousResults = GetPreviousResults(requestParams) ?? ImmutableArray<PreviousPullResult>.Empty;
             context.TraceInformation($"previousResults.Length={previousResults.Length}");
 
             // First, let the client know if any workspace documents have gone away.  That way it can remove those for
@@ -116,7 +103,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
                     continue;
                 }
 
-                var newResultId = await GetNewResultIdAsync(documentToPreviousParams, document, cancellationToken).ConfigureAwait(false);
+                var newResultId = await _versionedCache.GetNewResultIdAsync(
+                    documentToPreviousParams,
+                    document,
+                    computeVersionAsync: () => ComputeChecksumsAsync(document, cancellationToken),
+                    cancellationToken).ConfigureAwait(false);
                 if (newResultId != null)
                 {
                     context.TraceInformation($"Spans were changed for document: {document.FilePath}");
@@ -152,12 +143,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
             return wantsRazorDoc == isRazorDoc;
         }
 
-        private static Dictionary<Document, PreviousResult> GetDocumentToPreviousParams(
-            RequestContext context, ImmutableArray<PreviousResult> previousResults)
+        private static Dictionary<Document, PreviousPullResult> GetDocumentToPreviousParams(
+            RequestContext context, ImmutableArray<PreviousPullResult> previousResults)
         {
             Contract.ThrowIfNull(context.Solution);
 
-            var result = new Dictionary<Document, PreviousResult>();
+            var result = new Dictionary<Document, PreviousPullResult>();
             foreach (var requestParams in previousResults)
             {
                 if (requestParams.TextDocument != null)
@@ -190,7 +181,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
         }
 
         private void HandleRemovedDocuments(
-            RequestContext context, ImmutableArray<PreviousResult> previousResults, BufferedProgress<TReport> progress)
+            RequestContext context, ImmutableArray<PreviousPullResult> previousResults, BufferedProgress<TReport> progress)
         {
             Contract.ThrowIfNull(context.Solution);
 
@@ -211,53 +202,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
                         progress.Report(CreateReport(textDocument, ranges: null, resultId: null));
                     }
                 }
-            }
-        }
-
-        /// <summary>
-        /// If Spans have changed since the last request this calculates and returns a new non-null resultId to use for
-        /// subsequent computation and caches it.
-        /// </summary>
-        /// <param name="documentToPreviousParams">the resultIds the client sent us.</param>
-        /// <param name="document">the document we are currently calculating results for.</param>
-        /// <returns>Null when spans are unchanged, otherwise returns a non-null new resultId.</returns>
-        private async Task<string?> GetNewResultIdAsync(
-            Dictionary<Document, PreviousResult> documentToPreviousParams,
-            Document document,
-            CancellationToken cancellationToken)
-        {
-            var workspace = document.Project.Solution.Workspace;
-            var checksums = await ComputeChecksumsAsync(document, cancellationToken).ConfigureAwait(false);
-            using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-            {
-                if (documentToPreviousParams.TryGetValue(document, out var previousParams) &&
-                    previousParams.PreviousResultId != null &&
-                    _documentIdToLastResult.TryGetValue((workspace, document.Id), out var lastResult) &&
-                    lastResult.resultId == previousParams.PreviousResultId)
-                {
-                    if (lastResult.checksums == checksums)
-                    {
-                        // The client's resultId matches our cached resultId and the checksums are an exact match for
-                        // what we've cached. We return early here to avoid calculating checksums as we know nothing is
-                        // changed.
-                        return null;
-                    }
-                }
-
-                // Client didn't give us a resultId, we have nothing cached, or what we had cached didn't match the current project.
-                // We need to calculate spans and store what we calculated the spans for.
-
-                // Keep track of the spans we reported here so that we can short-circuit producing spans for the same
-                // document in the future.  Use a custom result-id per type (doc spans or workspace spans) so that
-                // clients of one don't errantly call into the other.  For example, a client getting document spans
-                // should not ask for workspace spans with the result-ids it got for doc-spans.  The two systems are
-                // different and cannot share results, or do things like report what changed between each other.
-                //
-                // Note that we can safely update the map before computation as any cancellation or exception
-                // during computation means that the client will never receive this resultId and so cannot ask us for it.
-                var newResultId = $"{GetType().Name}:{_nextDocumentResultId++}";
-                _documentIdToLastResult[(document.Project.Solution.Workspace, document.Id)] = (newResultId, checksums);
-                return newResultId;
             }
         }
 

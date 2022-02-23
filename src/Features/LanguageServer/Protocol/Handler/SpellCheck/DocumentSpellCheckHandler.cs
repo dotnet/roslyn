@@ -21,11 +21,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
                 ResultId = resultId,
             };
 
-        protected override ImmutableArray<PreviousResult>? GetPreviousResults(VSInternalDocumentSpellCheckableParams requestParams)
+        protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(VSInternalDocumentSpellCheckableParams requestParams)
         {
             if (requestParams.PreviousResultId != null && requestParams.TextDocument != null)
             {
-                return ImmutableArray.Create(new PreviousResult(requestParams.PreviousResultId, requestParams.TextDocument));
+                return ImmutableArray.Create(new PreviousPullResult(requestParams.PreviousResultId, requestParams.TextDocument));
             }
 
             // The client didn't provide us with a previous result to look for, so we can't lookup anything.
