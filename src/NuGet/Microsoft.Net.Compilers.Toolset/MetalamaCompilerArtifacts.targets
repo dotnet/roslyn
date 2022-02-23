@@ -2,6 +2,12 @@
 <Project>
 
   <!-- Transitive package dependencies must be included in the project as private assets, then we include their output in our own package.-->
+
+  <PropertyGroup>
+    <!-- <source-file> is not added because the package already contains file <target-file>. -->
+    <MSBuildWarningsAsMessages>$(MSBuildWarningsAsMessages);NU5118</MSBuildWarningsAsMessages>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="System.Composition.AttributedModel" Version="$(SystemCompositionVersion)" PrivateAssets="all">
             <GeneratePathProperty>true</GeneratePathProperty>
