@@ -98,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var versionStamp = creationInfo.FilePath != null ? VersionStamp.Create(File.GetLastWriteTimeUtc(creationInfo.FilePath))
                                                              : VersionStamp.Create();
 
-            await _visualStudioWorkspaceImpl.ApplyChangeToWorkspaceMaybeAsync(useAsync: true, w =>
+            await _visualStudioWorkspaceImpl.ApplyChangeToWorkspaceAsync(w =>
             {
                 _visualStudioWorkspaceImpl.AddProjectToInternalMaps_NoLock(project, creationInfo.Hierarchy, creationInfo.ProjectGuid, projectSystemName);
 
