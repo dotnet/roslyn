@@ -8048,7 +8048,7 @@ class C
 }
 ";
             CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularPreview)
-                .VerifyEmitDiagnostics(
+                .VerifyDiagnostics(
                     // (5,57): error CS0656: Missing compiler required member 'System.MemoryExtensions.SequenceEqual'
                     //     static bool M(ReadOnlySpan<char> chars) => chars is "";
                     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""""").WithArguments("System.MemoryExtensions", "SequenceEqual").WithLocation(5, 57),
@@ -8077,7 +8077,7 @@ class C
 }
 ";
             CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularPreview)
-                .VerifyEmitDiagnostics(
+                .VerifyDiagnostics(
                     // (8,13): error CS0656: Missing compiler required member 'System.MemoryExtensions.SequenceEqual'
                     //             "" => 0,
                     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""""").WithArguments("System.MemoryExtensions", "SequenceEqual").WithLocation(8, 13),
@@ -8130,7 +8130,7 @@ class Program
     }
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyEmitDiagnostics(
+            comp.VerifyDiagnostics(
                 // (7,18): error CS0656: Missing compiler required member 'System.ReadOnlySpan`1.get_Length'
                 //         _ = s is "str";
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""str""").WithArguments("System.ReadOnlySpan`1", "get_Length").WithLocation(7, 18),
@@ -8164,7 +8164,7 @@ class C
 }
 ";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyEmitDiagnostics(
+            comp.VerifyDiagnostics(
                 // (5,57): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static bool M(ReadOnlySpan<char> chars) => chars is "";
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(5, 57));
@@ -8206,7 +8206,7 @@ class C
 }
 ";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyEmitDiagnostics(
+            comp.VerifyDiagnostics(
                 // (4,63): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static bool M(ReadOnlySpan<char> chars) => chars switch { "" => true, _ => false };
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(4, 63));
@@ -8249,7 +8249,7 @@ class C
     static bool M(ReadOnlySpan<char> chars) => chars is null;
 }";
             CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
-                .VerifyEmitDiagnostics(
+                .VerifyDiagnostics(
                     // (5,57): error CS0150: A constant value is expected
                     //     static bool M(ReadOnlySpan<char> chars) => chars is null;
                     Diagnostic(ErrorCode.ERR_ConstantExpected, "null").WithLocation(5, 57));
@@ -8265,7 +8265,7 @@ class C
     static bool M(ReadOnlySpan<char> chars) => chars is (object)null;
 }";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyEmitDiagnostics(
+            comp.VerifyDiagnostics(
                 // (4,57): error CS0266: Cannot implicitly convert type 'object' to 'System.ReadOnlySpan<char>'. An explicit conversion exists (are you missing a cast?)
                 //     static bool M(ReadOnlySpan<char> chars) => chars is (object)null;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "System.ReadOnlySpan<char>").WithLocation(4, 57));
@@ -8315,7 +8315,7 @@ class C
     static bool M(ReadOnlySpan<char> chars) => chars switch { null => true, _ => false };
 }";
             CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
-                .VerifyEmitDiagnostics(
+                .VerifyDiagnostics(
                     // (5,63): error CS0150: A constant value is expected
                     //     static bool M(ReadOnlySpan<char> chars) => chars switch { null => true, _ => false };
                     Diagnostic(ErrorCode.ERR_ConstantExpected, "null").WithLocation(5, 63));
@@ -8331,7 +8331,7 @@ class C
     static bool M(ReadOnlySpan<char> chars) => chars switch { (object)null => true, _ => false };
 }";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyEmitDiagnostics(
+            comp.VerifyDiagnostics(
                 // (4,63): error CS0266: Cannot implicitly convert type 'object' to 'System.ReadOnlySpan<char>'. An explicit conversion exists (are you missing a cast?)
                 //     static bool M(ReadOnlySpan<char> chars) => chars switch { (object)null => true, _ => false };
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "System.ReadOnlySpan<char>").WithLocation(4, 63));
@@ -8386,7 +8386,7 @@ class C
     }
 }";
             CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
-                .VerifyEmitDiagnostics(
+                .VerifyDiagnostics(
                     // (7,13): error CS8518: An expression of type 'ReadOnlySpan<char>' can never match the provided pattern.
                     //         _ = chars is "" and " ";
                     Diagnostic(ErrorCode.ERR_IsPatternImpossible, @"chars is """" and "" """).WithArguments("System.ReadOnlySpan<char>").WithLocation(7, 13),
@@ -8504,7 +8504,7 @@ class C
     };
 }";
             CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
-                .VerifyEmitDiagnostics(
+                .VerifyDiagnostics(
                     // (7,9): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                     //         "" => false,
                     Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"""""").WithLocation(7, 9));
@@ -9209,7 +9209,7 @@ class C
 }
 ";
             CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularPreview)
-                .VerifyEmitDiagnostics(
+                .VerifyDiagnostics(
                     // (5,49): error CS0656: Missing compiler required member 'System.MemoryExtensions.SequenceEqual'
                     //     static bool M(Span<char> chars) => chars is "";
                     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""""").WithArguments("System.MemoryExtensions", "SequenceEqual").WithLocation(5, 49),
@@ -9238,7 +9238,7 @@ class C
 }
 ";
             CreateCompilationWithSpan(source, parseOptions: TestOptions.RegularPreview)
-                .VerifyEmitDiagnostics(
+                .VerifyDiagnostics(
                     // (8,13): error CS0656: Missing compiler required member 'System.MemoryExtensions.SequenceEqual'
                     //             "" => 0,
                     Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""""").WithArguments("System.MemoryExtensions", "SequenceEqual").WithLocation(8, 13),
@@ -9295,7 +9295,7 @@ class Program
     }
 }";
             comp = CreateCompilation(sourceB, references: new[] { refA }, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyEmitDiagnostics(
+            comp.VerifyDiagnostics(
                 // (7,18): error CS0656: Missing compiler required member 'System.Span`1.get_Length'
                 //         _ = s is "str";
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"""str""").WithArguments("System.Span`1", "get_Length").WithLocation(7, 18),
@@ -9328,7 +9328,7 @@ class C
 }
 ";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyEmitDiagnostics(
+            comp.VerifyDiagnostics(
                 // (5,49): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static bool M(Span<char> chars) => chars is "";
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(5, 49));
@@ -9369,7 +9369,7 @@ class C
 }
 ";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular10);
-            comp.VerifyEmitDiagnostics(
+            comp.VerifyDiagnostics(
                 // (5,55): error CS8652: The feature 'pattern matching ReadOnly/Span<char> on constant string' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     static bool M(Span<char> chars) => chars switch { "" => true, _ => false };
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, @"""""").WithArguments("pattern matching ReadOnly/Span<char> on constant string").WithLocation(5, 55));
@@ -9411,7 +9411,7 @@ class C
     static bool M(Span<char> chars) => chars is null;
 }";
             CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
-                .VerifyEmitDiagnostics(
+                .VerifyDiagnostics(
                     // (5,49): error CS0150: A constant value is expected
                     //     static bool M(Span<char> chars) => chars is null;
                     Diagnostic(ErrorCode.ERR_ConstantExpected, "null").WithLocation(5, 49));
@@ -9427,7 +9427,7 @@ class C
     static bool M(Span<char> chars) => chars is (object)null;
 }";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyEmitDiagnostics(
+            comp.VerifyDiagnostics(
                 // (4,49): error CS0266: Cannot implicitly convert type 'object' to 'System.Span<char>'. An explicit conversion exists (are you missing a cast?)
                 //     static bool M(Span<char> chars) => chars is (object)null;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "System.Span<char>").WithLocation(4, 49));
@@ -9477,7 +9477,7 @@ class C
     static bool M(Span<char> chars) => chars switch { null => true, _ => false };
 }";
             CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
-                .VerifyEmitDiagnostics(
+                .VerifyDiagnostics(
                     // (5,55): error CS0150: A constant value is expected
                     //     static bool M(Span<char> chars) => chars switch { null => true, _ => false };
                     Diagnostic(ErrorCode.ERR_ConstantExpected, "null").WithLocation(5, 55));
@@ -9493,7 +9493,7 @@ class C
     static bool M(Span<char> chars) => chars switch { (object)null => true, _ => false };
 }";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyEmitDiagnostics(
+            comp.VerifyDiagnostics(
                 // (4,55): error CS0266: Cannot implicitly convert type 'object' to 'System.Span<char>'. An explicit conversion exists (are you missing a cast?)
                 //     static bool M(Span<char> chars) => chars switch { (object)null => true, _ => false };
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(object)null").WithArguments("object", "System.Span<char>").WithLocation(4, 55));
@@ -9548,7 +9548,7 @@ class C
     }
 }";
             CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
-                .VerifyEmitDiagnostics(
+                .VerifyDiagnostics(
                     // (7,13): error CS8518: An expression of type 'Span<char>' can never match the provided pattern.
                     //         _ = chars is "" and " ";
                     Diagnostic(ErrorCode.ERR_IsPatternImpossible, @"chars is """" and "" """).WithArguments("System.Span<char>").WithLocation(7, 13),
@@ -9668,7 +9668,7 @@ class C
     };
 }";
             CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularPreview)
-                .VerifyEmitDiagnostics(
+                .VerifyDiagnostics(
                     // (7,9): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                     //         "" => false,
                     Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"""""").WithLocation(7, 9));
@@ -9685,7 +9685,7 @@ class Program
     static bool F2<T>(Span<T> span) => span is """";
 }";
             var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
-            comp.VerifyEmitDiagnostics(
+            comp.VerifyDiagnostics(
                 // (4,56): error CS8121: An expression of type 'ReadOnlySpan<T>' cannot be handled by a pattern of type 'string'.
                 //     static bool F1<T>(ReadOnlySpan<T> span) => span is "";
                 Diagnostic(ErrorCode.ERR_PatternWrongType, @"""""").WithArguments("System.ReadOnlySpan<T>", "string").WithLocation(4, 56),
