@@ -6995,4 +6995,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_OperatorCantBeChecked" xml:space="preserve">
     <value>User-defined operator '{0}' cannot be declared checked</value>
   </data>
+  <data name="ERR_ImplicitConversionOperatorCantBeChecked" xml:space="preserve">
+    <value>An 'implicit' user-defined conversion operator cannot be declared checked</value>
+  </data>
 </root>

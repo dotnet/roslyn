@@ -36,3 +36,4 @@ const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedAdditionOperatorName = 
 const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedDivisionOperatorName = "op_CheckedDivision" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedMultiplyOperatorName = "op_CheckedMultiply" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedSubtractionOperatorName = "op_CheckedSubtraction" -> string!
+const Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedExplicitConversionName = "op_CheckedExplicit" -> string!

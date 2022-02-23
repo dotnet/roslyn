@@ -332,6 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case WellKnownMemberNames.ImplicitConversionName:
                 case WellKnownMemberNames.ExplicitConversionName:
+                case WellKnownMemberNames.CheckedExplicitConversionName:
                     CheckUserDefinedConversionSignature(diagnostics);
                     break;
 
@@ -383,6 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case WellKnownMemberNames.FalseOperatorName:
                 case WellKnownMemberNames.ImplicitConversionName:
                 case WellKnownMemberNames.ExplicitConversionName:
+                case WellKnownMemberNames.CheckedExplicitConversionName:
                     return parameterCount == 1;
                 default:
                     return parameterCount == 2;

@@ -997,7 +997,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case WellKnownMemberNames.EqualityOperatorName: return SyntaxKind.EqualsEqualsToken;
                 case WellKnownMemberNames.ExclusiveOrOperatorName: return SyntaxKind.CaretToken;
-                case WellKnownMemberNames.ExplicitConversionName: return SyntaxKind.ExplicitKeyword;
+
+                case WellKnownMemberNames.CheckedExplicitConversionName:
+                case WellKnownMemberNames.ExplicitConversionName:
+                    return SyntaxKind.ExplicitKeyword;
+
                 // case WellKnownMemberNames.ExponentOperatorName:
                 case WellKnownMemberNames.FalseOperatorName: return SyntaxKind.FalseKeyword;
                 case WellKnownMemberNames.GreaterThanOperatorName: return SyntaxKind.GreaterThanToken;
@@ -1051,6 +1055,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case WellKnownMemberNames.CheckedDivisionOperatorName:
                 case WellKnownMemberNames.CheckedMultiplyOperatorName:
                 case WellKnownMemberNames.CheckedSubtractionOperatorName:
+                case WellKnownMemberNames.CheckedExplicitConversionName:
                     return true;
 
                 default:

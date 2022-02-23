@@ -612,6 +612,11 @@
         <target state="translated">このコンテキストでは抑制演算子が許可されていません</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ImplicitConversionOperatorCantBeChecked">
+        <source>An 'implicit' user-defined conversion operator cannot be declared checked</source>
+        <target state="new">An 'implicit' user-defined conversion operator cannot be declared checked</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ImplicitIndexIndexerWithName">
         <source>Invocation of implicit Index Indexer cannot name the argument.</source>
         <target state="translated">暗黙的なインデックス インデクサーの呼び出しでは、引数に名前を付けることはできません。</target>
