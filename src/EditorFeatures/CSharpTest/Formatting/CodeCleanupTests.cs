@@ -996,7 +996,7 @@ End Class
 
             using var workspace = GetTestWorkspaceForLanguage(code, language);
 
-            var options = CodeActionOptions.Default;
+            var options = CodeActionOptions.DefaultProvider;
 
             var project = workspace.CurrentSolution.Projects.Single();
 
