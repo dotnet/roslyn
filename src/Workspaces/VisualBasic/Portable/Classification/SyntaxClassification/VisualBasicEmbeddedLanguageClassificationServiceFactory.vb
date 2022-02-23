@@ -4,12 +4,14 @@
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Classification
+Imports Microsoft.CodeAnalysis.Classification.Classifiers
+Imports Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
-    <ExportLanguageServiceFactory(GetType(ISyntaxClassificationService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicSyntaxClassificationServiceFactory
+    <ExportLanguageServiceFactory(GetType(IEmbeddedLanguageClassificationService), LanguageNames.VisualBasic), [Shared]>
+    Partial Friend Class VisualBasicEmbeddedLanguageClassificationServiceFactory
         Implements ILanguageServiceFactory
 
         <ImportingConstructor>
@@ -17,9 +19,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         Public Sub New()
         End Sub
 
-        <Obsolete(MefConstruction.FactoryMethodMessage, True)>
         Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New VisualBasicSyntaxClassificationService(languageServices)
+            Return New EmbeddedLanguageClassificationService(languageServices.GetRequiredService(Of IEmbeddedLanguagesProvider))
         End Function
     End Class
 End Namespace

@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,7 +20,6 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
-using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
@@ -32,35 +29,33 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
     /// in the editor.  We use a view tagger so that we can only classify what's in view, and not
     /// the whole file.
     /// </summary>
-    [Export(typeof(IViewTaggerProvider))]
-    [TagType(typeof(IClassificationTag))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    internal partial class SemanticClassificationViewTaggerProvider : AsynchronousViewTaggerProvider<IClassificationTag>
+    internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvider : AsynchronousViewTaggerProvider<IClassificationTag>
     {
         private readonly ClassificationTypeMap _typeMap;
         private readonly IGlobalOptionService _globalOptions;
+        private readonly ClassificationType _type;
 
         // We want to track text changes so that we can try to only reclassify a method body if
         // all edits were contained within one.
-        protected override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.TrackTextChanges;
-        protected override IEnumerable<Option2<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.SemanticColorizer);
+        protected sealed override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.TrackTextChanges;
+        protected sealed override IEnumerable<Option2<bool>> Options => SpecializedCollections.SingletonEnumerable(InternalFeatureOnOffOptions.SemanticColorizer);
 
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public SemanticClassificationViewTaggerProvider(
+        protected AbstractSemanticOrEmbeddedClassificationViewTaggerProvider(
             IThreadingContext threadingContext,
             ClassificationTypeMap typeMap,
             IGlobalOptionService globalOptions,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            IAsynchronousOperationListenerProvider listenerProvider,
+            ClassificationType type)
             : base(threadingContext, globalOptions, listenerProvider.GetListener(FeatureAttribute.Classification))
         {
             _typeMap = typeMap;
             _globalOptions = globalOptions;
+            _type = type;
         }
 
-        protected override TaggerDelay EventChangeDelay => TaggerDelay.Short;
+        protected sealed override TaggerDelay EventChangeDelay => TaggerDelay.Short;
 
-        protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
+        protected sealed override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
         {
             this.AssertIsForeground();
 
@@ -79,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 TaggerEventSources.OnOptionChanged(subjectBuffer, ClassificationOptionsStorage.ClassifyReassignedVariables));
         }
 
-        protected override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textView, ITextBuffer subjectBuffer)
+        protected sealed override IEnumerable<SnapshotSpan> GetSpansToTag(ITextView textView, ITextBuffer subjectBuffer)
         {
             this.AssertIsForeground();
 
@@ -95,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             return SpecializedCollections.SingletonEnumerable(visibleSpanOpt.Value);
         }
 
-        protected override Task ProduceTagsAsync(
+        protected sealed override Task ProduceTagsAsync(
             TaggerContext<IClassificationTag> context, CancellationToken cancellationToken)
         {
             Debug.Assert(context.SpansToTag.IsSingle());
@@ -127,8 +122,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             }
 
             var classificationOptions = _globalOptions.GetClassificationOptions(document.Project.Language);
-            return SemanticClassificationUtilities.ProduceTagsAsync(
-                context, spanToTag, classificationService, _typeMap, classificationOptions, cancellationToken);
+
+            return ClassificationUtilities.ProduceTagsAsync(
+                context, spanToTag, classificationService, _typeMap, classificationOptions, _type, cancellationToken);
         }
     }
 }
