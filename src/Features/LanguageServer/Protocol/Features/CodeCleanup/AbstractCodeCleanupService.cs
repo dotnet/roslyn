@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 includeSuppressedDiagnostics: false,
                 cancellationToken: cancellationToken).ConfigureAwait(false));
 
-            // ensure more than just compiler diagnostics were returned
+            // ensure more than just known diagnostics were returned
             if (!diagnostics.Any())
             {
                 return document;
@@ -206,8 +206,17 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                 using (progressTracker.ItemCompletedScope(diagnosticId))
                 {
                     // Apply codefixes for diagnostics with a severity of warning or higher
-                    document = await _codeFixService.ApplyCodeFixesForSpecificDiagnosticIdAsync(
+                    var updatedDocument = await _codeFixService.ApplyCodeFixesForSpecificDiagnosticIdAsync(
                         document, diagnosticId, DiagnosticSeverity.Warning, progressTracker, fallbackOptions, cancellationToken).ConfigureAwait(false);
+
+                    // If changes were made to the solution snap shot outside the current document discard the changes.
+                    // The assumption here is that if we are applying a third party code fix to a document it only affects the document.
+                    // Symbol renames and other complex refactorings we do not want to include in code cleanup.
+                    // We can revisit this if we get feedback to the contrary
+                    if (!ChangesMadeOutsideDocument(document, updatedDocument))
+                    {
+                        document = updatedDocument;
+                    }
                 }
             }
 
@@ -217,12 +226,39 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             {
                 if (!string.IsNullOrEmpty(errorId) && errorId.Length > 2)
                 {
-                    var prefix = errorId.Substring(0, 2);
+                    var prefix = errorId[..2];
                     if (prefix.Equals("CS", StringComparison.OrdinalIgnoreCase) || prefix.Equals("BC", StringComparison.OrdinalIgnoreCase))
                     {
-                        var suffix = errorId.Substring(2);
+                        var suffix = errorId[2..];
                         return int.TryParse(suffix, out _);
                     }
+                }
+
+                return false;
+            }
+
+            static bool ChangesMadeOutsideDocument(Document currentDocument, Document updatedDocument)
+            {
+                var solutionChanges = updatedDocument.Project.Solution.GetChanges(currentDocument.Project.Solution);
+                if (solutionChanges.GetAddedProjects().Any() ||
+                    solutionChanges.GetRemovedProjects().Any() ||
+                    solutionChanges.GetAddedAnalyzerReferences().Any() ||
+                    solutionChanges.GetRemovedAnalyzerReferences().Any() ||
+                    solutionChanges.GetProjectChanges().Any(
+                        projectChanges => projectChanges.GetAddedProjectReferences().Any() ||
+                                          projectChanges.GetRemovedProjectReferences().Any() ||
+                                          projectChanges.GetAddedMetadataReferences().Any() ||
+                                          projectChanges.GetRemovedMetadataReferences().Any() ||
+                                          projectChanges.GetAddedAnalyzerReferences().Any() ||
+                                          projectChanges.GetRemovedAnalyzerReferences().Any() ||
+                                          projectChanges.GetAddedDocuments().Any() ||
+                                          projectChanges.GetAddedAdditionalDocuments().Any() ||
+                                          projectChanges.GetAddedAnalyzerConfigDocuments().Any() ||
+                                          projectChanges.GetChangedDocuments().Any(documentId => documentId != updatedDocument.Id) ||
+                                          projectChanges.GetChangedAdditionalDocuments().Any(documentId => documentId != updatedDocument.Id) ||
+                                          projectChanges.GetChangedAnalyzerConfigDocuments().Any(documentId => documentId != updatedDocument.Id)))
+                {
+                    return true;
                 }
 
                 return false;
